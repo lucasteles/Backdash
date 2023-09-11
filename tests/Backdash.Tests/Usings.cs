@@ -1,0 +1,11 @@
+global using System;
+global using System.Linq;
+global using FluentAssertions;
+global using FsCheck;
+global using Backdash.Tests.Utils;
+global using Backdash.Tests.Utils.Assertions;
+global using Backdash.Tests.Utils.Fixtures;
+global using Backdash.Tests.Utils.Network;
+global using Backdash.Tests.Utils.Types;
+global using Xunit;
+global using Random = System.Random;

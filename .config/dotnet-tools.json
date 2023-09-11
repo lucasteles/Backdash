@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "isRoot": true,
+  "tools": {
+    "dotnet-reportgenerator-globaltool": {
+      "version": "5.2.0",
+      "commands": [
+        "reportgenerator"
+      ]
+    },
+    "nuke.globaltool": {
+      "version": "8.0.0",
+      "commands": [
+        "nuke"
+      ]
+    }
+  }
+}

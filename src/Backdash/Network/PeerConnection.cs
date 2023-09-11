@@ -1,0 +1,98 @@
+using Backdash.Core;
+using Backdash.Data;
+using Backdash.Input;
+using Backdash.Network.Client;
+using Backdash.Network.Messages;
+using Backdash.Network.Protocol;
+using Backdash.Network.Protocol.Events;
+using Backdash.Network.Protocol.Messaging;
+
+namespace Backdash.Network;
+
+sealed class PeerConnection(
+    ProtocolOptions options,
+    ProtocolState state,
+    IRandomNumberGenerator random,
+    IClock clock,
+    ITimeSync timeSync,
+    IProtocolInbox inbox,
+    IProtocolOutbox outbox,
+    IProtocolInputProcessor inputProcessor
+) : IDisposable
+{
+    public long ShutdownTimeout { get; set; }
+
+    public void Dispose()
+    {
+        Disconnect();
+        outbox.Dispose();
+    }
+
+    public ValueTask SendInput(in GameInput input, CancellationToken ct) => inputProcessor.SendInput(input, ct);
+    public bool TrySendInput(in GameInput input) => inputProcessor.TrySendInput(in input);
+
+    public void Disconnect()
+    {
+        state.Status = ProtocolStatus.Disconnected;
+        ShutdownTimeout = clock.GetMilliseconds() + options.UdpShutdownTimer;
+    }
+
+    public Task Start(CancellationToken ct) =>
+        Task.WhenAll(
+            outbox.Start(ct),
+            inputProcessor.Start(ct)
+        );
+
+    // require idle input should be a configuration parameter
+    public int RecommendFrameDelay() => timeSync.RecommendFrameWaitDuration(false);
+
+    void SetLocalFrameNumber(Frame localFrame)
+    {
+        /*
+         * Estimate which frame the other guy is one by looking at the
+         * last frame they gave us plus some delta for the one-way packet
+         * trip time.
+         */
+        var remoteFrame = inbox.LastReceivedInput.Frame + (state.Metrics.RoundTripTime * 60 / 1000);
+
+        /*
+         * Our frame advantage is how many frames *behind* the other guy
+         * we are.  Counter-intuitive, I know.  It's an advantage because
+         * it means they'll have to predict more often and our moves will
+         * pop more frequently.
+         */
+        state.Fairness.LocalFrameAdvantage = remoteFrame - localFrame;
+    }
+
+    public void UpdateNetworkStats(ref PeerConnectionInfo stats)
+    {
+        stats.Ping = state.Metrics.RoundTripTime;
+        stats.SendQueueLen = inputProcessor.PendingNumber;
+        stats.BytesSent = outbox.BytesSent;
+        stats.RemoteFramesBehind = state.Fairness.RemoteFrameAdvantage.Number;
+        stats.LocalFramesBehind = state.Fairness.LocalFrameAdvantage.Number;
+    }
+
+    public ValueTask SendInputAck(CancellationToken ct)
+    {
+        ProtocolMessage msg = new(MsgType.InputAck)
+        {
+            InputAck = new()
+            {
+                AckFrame = inbox.LastReceivedInput.Frame,
+            },
+        };
+
+        return outbox.SendMessage(ref msg, ct);
+    }
+
+    public IUdpObserver<ProtocolMessage> GetUdpObserver() => inbox;
+
+    public async ValueTask Synchronize(CancellationToken ct)
+    {
+        state.Status = ProtocolStatus.Syncing;
+        state.Sync.RemainingRoundtrips = (uint)options.NumberOfSyncPackets;
+        state.Sync.CreateSyncMessage(random.SyncNumber(), out var syncMsg);
+        await outbox.SendMessage(ref syncMsg, ct);
+    }
+}
