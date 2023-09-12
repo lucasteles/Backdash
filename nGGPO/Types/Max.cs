@@ -9,4 +9,5 @@ public static class Max
     public const int CompressedBits = 4096;
     public const int UdpEndpoints = 16;
     public const int UdpPacketSize = 4096;
+    public const int PollableHandles = 64;
 }

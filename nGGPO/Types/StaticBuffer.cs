@@ -67,5 +67,10 @@ public class StaticBuffer<T> : IReadOnlyList<T> where T : notnull
             Trace.Assert(index >= 0 && index < Size);
             return elements[index];
         }
+        set
+        {
+            Trace.Assert(index >= 0 && index < Size);
+            elements[index] = value;
+        }
     }
 }

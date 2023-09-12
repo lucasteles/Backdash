@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
-using System.Net.Sockets;
 using nGGPO.Network;
+using nGGPO.Network.Messages;
 using nGGPO.Types;
 
 namespace nGGPO.Backends;
 
-class Peer2PeerBackend<TInput, TGameState> : ISession<TInput, TGameState>, Udp.ICallbacks
+class Peer2PeerBackend<TInput, TGameState> : ISession<TInput, TGameState>
     where TInput : struct
     where TGameState : struct
 {
@@ -21,7 +21,7 @@ class Peer2PeerBackend<TInput, TGameState> : ISession<TInput, TGameState>, Udp.I
     readonly Poll poll;
     readonly Udp udp;
     readonly Sync sync;
-    readonly StaticBuffer<UdpConnectStatus> localConnectStatus = new(Max.UdpMsgPlayers);
+    readonly StaticBuffer<ConnectStatus> localConnectStatus = new(Max.UdpMsgPlayers);
 
     int numPlayers;
     int numSpectators;
@@ -46,8 +46,10 @@ class Peer2PeerBackend<TInput, TGameState> : ISession<TInput, TGameState>, Udp.I
 
         endpoints = new(numPlayers);
         sync = new(localConnectStatus);
-        udp = new(encoder, localport, this);
         poll = new();
+
+        udp = new(encoder, localport);
+        udp.OnMsg += OnMsg;
         poll.RegisterLoop(udp);
 
         callbacks.BeginGame(gameName);
@@ -161,11 +163,13 @@ class Peer2PeerBackend<TInput, TGameState> : ISession<TInput, TGameState>, Udp.I
          */
         synchronizing = true;
 
-        UdpProtocol protocol = new(udp, poll, queue, endpoint, localConnectStatus)
+        UdpProtocol protocol = new(udp, queue, endpoint, localConnectStatus)
         {
             DisconnectTimeout = disconnectTimeout,
             DisconnectNotifyStart = disconnectNotifyStart,
         };
+
+        poll.RegisterLoop(protocol);
         protocol.Synchronize();
         endpoints.Add(protocol);
     }
@@ -183,11 +187,12 @@ class Peer2PeerBackend<TInput, TGameState> : ISession<TInput, TGameState>, Udp.I
 
         var queue = numSpectators++;
 
-        UdpProtocol protocol = new(udp, poll, queue + SpectatorOffset, endpoint, localConnectStatus)
+        UdpProtocol protocol = new(udp, queue + SpectatorOffset, endpoint, localConnectStatus)
         {
             DisconnectTimeout = disconnectTimeout,
             DisconnectNotifyStart = disconnectNotifyStart,
         };
+        poll.RegisterLoop(protocol);
         protocol.Synchronize();
         spectators.Add(protocol);
 
@@ -209,5 +214,11 @@ class Peer2PeerBackend<TInput, TGameState> : ISession<TInput, TGameState>, Udp.I
             spectators[i].OnMsg(msg, len);
             return;
         }
+    }
+
+    public void Dispose()
+    {
+        udp.OnMsg -= OnMsg;
+        udp.Dispose();
     }
 }

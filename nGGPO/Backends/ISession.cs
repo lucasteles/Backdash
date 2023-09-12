@@ -1,8 +1,9 @@
-﻿using nGGPO.Types;
+﻿using System;
+using nGGPO.Types;
 
 namespace nGGPO;
 
-public interface ISession<TInput, TGameState>
+public interface ISession<TInput, TGameState> : IDisposable
     where TInput : struct
     where TGameState : struct
 {

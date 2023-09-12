@@ -5,58 +5,54 @@ using nGGPO.Types;
 
 namespace nGGPO;
 
-public interface IPollSink
+public interface IPollLoopSink
 {
-    bool OnHandlePoll(object? value);
-    bool OnMsgPoll(object? value);
-    bool OnPeriodicPoll(object? value, long lastFired);
     Task<bool> OnLoopPoll(object? value);
 }
 
-public abstract class PollSink : IPollSink
+public interface IPollPeriodicSink
 {
-    public virtual bool OnHandlePoll(object? value) => true;
-    public virtual bool OnMsgPoll(object? value) => true;
-    public virtual bool OnPeriodicPoll(object? value, long lastFired) => true;
-    public virtual Task<bool> OnLoopPoll(object? value) => Task.FromResult(true);
+    bool OnPeriodicPoll(object? value, long lastFired);
+}
+
+public interface IPollMsgSink
+{
+    bool OnMsgPoll(object? value);
+}
+
+public interface IPollHandleSink
+{
+    bool OnHandlePoll(object? value);
 }
 
 public class Poll
 {
-    public const int MaxPollableHandles = 64;
-
     protected long StartTime;
     protected int HandleCount;
-    protected Handle[] Handles = new Handle[MaxPollableHandles];
-    protected PollSinkCb[] HandleSinks = new PollSinkCb[MaxPollableHandles];
+    protected Handle[] Handles = new Handle[Max.PollableHandles];
 
-    protected StaticBuffer<PollSinkCb> MsgSinks = new();
-    protected StaticBuffer<PollSinkCb> LoopSinks = new();
+    protected StaticBuffer<PollSinkCb<IPollHandleSink>> HandleSinks = new(Max.PollableHandles);
+    protected StaticBuffer<PollSinkCb<IPollMsgSink>> MsgSinks = new();
+    protected StaticBuffer<PollSinkCb<IPollLoopSink>> LoopSinks = new();
     protected StaticBuffer<PollPeriodicSinkCb> PeriodicSinks = new();
 
-    public void RegisterHandle(IPollSink sink, Handle h, object? cookie = null)
+    public void RegisterHandle(IPollHandleSink sink, Handle h, object? cookie = null)
     {
-        Trace.Assert(HandleCount < MaxPollableHandles - 1);
+        Trace.Assert(HandleCount < Max.PollableHandles - 1);
 
         Handles[HandleCount] = h;
         HandleSinks[HandleCount] = new(sink, cookie);
         HandleCount++;
     }
 
-    public void RegisterMsgLoop(IPollSink sink, object? cookie = null)
-    {
-        MsgSinks.PushBack(new PollSinkCb(sink, cookie));
-    }
+    public void RegisterMsgLoop(IPollMsgSink sink, object? cookie = null) =>
+        MsgSinks.PushBack(new(sink, cookie));
 
-    public void RegisterLoop(IPollSink sink, object? cookie = null)
-    {
-        LoopSinks.PushBack(new PollSinkCb(sink, cookie));
-    }
+    public void RegisterLoop(IPollLoopSink sink, object? cookie = null) =>
+        LoopSinks.PushBack(new(sink, cookie));
 
-    public void RegisterPeriodic(IPollSink sink, int interval, object? cookie = null)
-    {
-        PeriodicSinks.PushBack(new PollPeriodicSinkCb(sink, cookie, interval));
-    }
+    public void RegisterPeriodic(IPollPeriodicSink sink, int interval, object? cookie = null) =>
+        PeriodicSinks.PushBack(new(sink, cookie, interval));
 
     public async Task<bool> Pump(long timeout)
     {
@@ -132,24 +128,24 @@ public class Poll
         return waitTime;
     }
 
-    protected class PollSinkCb
+    protected class PollSinkCb<TSink>
     {
-        public IPollSink Sink { get; set; }
+        public TSink Sink { get; set; }
         public object? Cookie { get; set; }
 
-        public PollSinkCb(IPollSink sink, object? cookie)
+        public PollSinkCb(TSink sink, object? cookie)
         {
             Sink = sink;
             Cookie = cookie;
         }
     }
 
-    protected class PollPeriodicSinkCb : PollSinkCb
+    protected class PollPeriodicSinkCb : PollSinkCb<IPollPeriodicSink>
     {
         public int Interval { get; set; }
         public long LastFired { get; set; }
 
-        public PollPeriodicSinkCb(IPollSink sink, object? cookie, int lastFired)
+        public PollPeriodicSinkCb(IPollPeriodicSink sink, object? cookie, int lastFired)
             : base(sink, cookie)
         {
             LastFired = lastFired;

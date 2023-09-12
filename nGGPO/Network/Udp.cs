@@ -5,25 +5,26 @@ using System.Threading.Tasks;
 
 namespace nGGPO.Network;
 
-public class Udp : PollSink, IDisposable
+public class Udp : IPollLoopSink, IDisposable
 {
-    protected UdpClient Socket;
-    protected ICallbacks Callbacks;
+    readonly UdpClient socket;
     readonly IBinaryEncoder encoder;
 
-    public Udp(IBinaryEncoder encoder, int bindingPort, ICallbacks callbacks)
+    public delegate void OnMsgEvent(IPEndPoint from, UdpMsg msg, int len);
+
+    public event OnMsgEvent OnMsg = delegate { };
+
+    public Udp(IBinaryEncoder encoder, int bindingPort)
     {
-        Callbacks = callbacks;
         this.encoder = encoder;
         Logger.Info("binding udp socket to port {0}.\n", bindingPort);
-        Socket = new(bindingPort);
+        socket = new(bindingPort);
     }
-
 
     public async Task SendTo(UdpMsg msg, IPEndPoint dest)
     {
         using var buffer = encoder.Encode(msg);
-        var res = await Socket.SendAsync(buffer.Bytes, buffer.Bytes.Length, dest);
+        var res = await socket.SendAsync(buffer.Bytes, buffer.Bytes.Length, dest);
         if (res == (int) SocketError.SocketError)
         {
             Logger.Warn("Error sending socket value");
@@ -35,19 +36,14 @@ public class Udp : PollSink, IDisposable
     }
 
 
-    public override async Task<bool> OnLoopPoll(object? cookie)
+    public async Task<bool> OnLoopPoll(object? cookie)
     {
-        var data = await Socket.ReceiveAsync();
+        var data = await socket.ReceiveAsync();
         var msg = encoder.Decode<UdpMsg>(data.Buffer);
-        Callbacks.OnMsg(data.RemoteEndPoint, msg, data.Buffer.Length);
+        OnMsg.Invoke(data.RemoteEndPoint, msg, data.Buffer.Length);
 
         return true;
     }
 
-    public interface ICallbacks
-    {
-        void OnMsg(IPEndPoint from, UdpMsg msg, int len);
-    }
-
-    public void Dispose() => Socket.Dispose();
+    public void Dispose() => socket.Dispose();
 }

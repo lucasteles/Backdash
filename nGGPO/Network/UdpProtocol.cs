@@ -1,17 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
-using System.Net.Sockets;
+using System.Threading.Tasks;
+using nGGPO.Network.Messages;
 
 namespace nGGPO.Network;
 
-public class UdpProtocol
+public class UdpProtocol : IPollLoopSink
 {
     readonly Udp? udp;
-    readonly Poll poll;
     readonly int queue;
     readonly IPEndPoint endpoint;
-    readonly IReadOnlyList<UdpConnectStatus> connectStatus;
+    readonly IReadOnlyList<ConnectStatus> connectStatus;
 
     State currentState;
 
@@ -23,11 +23,10 @@ public class UdpProtocol
         Disconnected,
     };
 
-    public UdpProtocol(Udp udp, Poll poll, int queue, IPEndPoint endpoint,
-        IReadOnlyList<UdpConnectStatus> connectStatus)
+    public UdpProtocol(Udp udp, int queue, IPEndPoint endpoint,
+        IReadOnlyList<ConnectStatus> connectStatus)
     {
         this.udp = udp;
-        this.poll = poll;
         this.queue = queue;
         this.endpoint = endpoint;
         this.connectStatus = connectStatus;
@@ -59,6 +58,11 @@ public class UdpProtocol
     }
 
     public void OnMsg(UdpMsg msg, int len)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<bool> OnLoopPoll(object? value)
     {
         throw new NotImplementedException();
     }

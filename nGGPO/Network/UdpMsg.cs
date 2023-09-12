@@ -1,34 +1,28 @@
 ﻿using System.Runtime.InteropServices;
+using nGGPO.Network.Messages;
 
 namespace nGGPO.Network;
 
-public enum MsgType : byte
-{
-    Invalid,
-    SyncRequest,
-    SyncReply,
-    Input,
-    QualityReport,
-    QualityReply,
-    KeepAlive,
-    InputAck,
-};
-
-[StructLayout(LayoutKind.Sequential, Pack = 1)]
-public struct Hrd
-{
-    public ushort Magic;
-    public ushort SequenceNumber;
-    public MsgType Type;
-}
-
-public struct UdpConnectStatus
-{
-    public int LastFrame;
-}
-
-[StructLayout(LayoutKind.Sequential, Pack = 1)]
+[StructLayout(LayoutKind.Explicit, Pack = 1)]
 public struct UdpMsg
 {
-    public Hrd Hrd;
+    const int HeaderSize = 5;
+
+    [FieldOffset(0)]
+    public Header Header;
+
+    [FieldOffset(HeaderSize)]
+    public SyncRequest SyncRequest;
+
+    [FieldOffset(HeaderSize)]
+    public SyncReply SyncReply;
+
+    [FieldOffset(HeaderSize)]
+    public QualityReport QualityReport;
+
+    [FieldOffset(HeaderSize)]
+    public QualityReply QualityReply;
+
+    [FieldOffset(HeaderSize)]
+    public InputAck InputAck;
 }

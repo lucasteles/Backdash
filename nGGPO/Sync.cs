@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using nGGPO.Network;
+using nGGPO.Network.Messages;
 
 namespace nGGPO;
 
 public class Sync
 {
-    public Sync(IReadOnlyList<UdpConnectStatus> localConnectStatus)
+    public Sync(IReadOnlyList<ConnectStatus> localConnectStatus)
     {
         throw new NotImplementedException();
     }
