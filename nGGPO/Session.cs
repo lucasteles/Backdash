@@ -1,4 +1,5 @@
 ﻿using nGGPO.Backends;
+using nGGPO.Network;
 
 namespace nGGPO;
 
@@ -8,8 +9,8 @@ public class Session
         ISessionCallbacks<TGameState> cb, string game, int numPlayers, int localPort)
         where TInput : struct
         where TGameState : struct
-
     {
-        return new Peer2PeerBackend<TInput, TGameState>(cb, game, localPort, numPlayers);
+        StructBinaryEncoder encoder = new();
+        return new Peer2PeerBackend<TInput, TGameState>(encoder, cb, game, localPort, numPlayers);
     }
 }

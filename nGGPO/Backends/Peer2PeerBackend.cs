@@ -1,4 +1,6 @@
-﻿using System.Net;
+﻿using System;
+using System.Collections.Generic;
+using System.Net;
 using System.Net.Sockets;
 using nGGPO.Network;
 using nGGPO.Types;
@@ -16,10 +18,10 @@ class Peer2PeerBackend<TInput, TGameState> : ISession<TInput, TGameState>, Udp.I
 
     readonly ISessionCallbacks<TGameState> callbacks;
 
-    readonly Poll poll = new();
+    readonly Poll poll;
     readonly Udp udp;
     readonly Sync sync;
-    readonly List<UdpConnectStatus> localConnectStatus = new();
+    readonly StaticBuffer<UdpConnectStatus> localConnectStatus = new(Max.UdpMsgPlayers);
 
     int numPlayers;
     int numSpectators;
@@ -31,15 +33,22 @@ class Peer2PeerBackend<TInput, TGameState> : ISession<TInput, TGameState>, Udp.I
     int disconnectTimeout = DefaultDisconnectTimeout;
     int disconnectNotifyStart = DefaultDisconnectNotifyStart;
 
-    public Peer2PeerBackend(ISessionCallbacks<TGameState> callbacks, string gameName, int localport,
-        int numPlayers)
+    public Peer2PeerBackend(
+        IBinaryEncoder encoder,
+        ISessionCallbacks<TGameState> callbacks,
+        string gameName,
+        int localport,
+        int numPlayers
+    )
     {
         this.callbacks = callbacks;
         this.numPlayers = numPlayers;
 
         endpoints = new(numPlayers);
         sync = new(localConnectStatus);
-        udp = new(localport, poll, this);
+        udp = new(encoder, localport, this);
+        poll = new();
+        poll.RegisterLoop(udp);
 
         callbacks.BeginGame(gameName);
     }
@@ -100,8 +109,10 @@ class Peer2PeerBackend<TInput, TGameState> : ISession<TInput, TGameState>, Udp.I
             Logger.Info("setting local connect status for local queue {0} to {1}",
                 queue, input.Frame);
 
-            localConnectStatus[queue].LastFrame = input.Frame;
+            localConnectStatus.Ref(queue).LastFrame = input.Frame;
 
+            // var status = localConnectStatus[queue];
+            // status.LastFrame = input.Frame;
             // Send the input to all the remote players.
             for (var i = 0; i < numPlayers; i++)
                 if (endpoints[i].IsInitialized())
@@ -183,7 +194,7 @@ class Peer2PeerBackend<TInput, TGameState> : ISession<TInput, TGameState>, Udp.I
         return ErrorCode.Ok;
     }
 
-    public void OnMsg(Socket from, UdpMsg msg, int len)
+    public void OnMsg(IPEndPoint from, UdpMsg msg, int len)
     {
         for (var i = 0; i < numPlayers; i++)
         {

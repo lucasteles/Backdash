@@ -1,4 +1,6 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace nGGPO.Types;
@@ -50,6 +52,13 @@ public class StaticBuffer<T> : IReadOnlyList<T> where T : notnull
     }
 
     public bool Contains(T item) => IndexOf(item) >= 0;
+
+
+    public ref T Ref(int index)
+    {
+        Trace.Assert(index >= 0 && index < Size);
+        return ref elements[index];
+    }
 
     public T this[int index]
     {

@@ -14,7 +14,7 @@ public enum MsgType : byte
     InputAck,
 };
 
-[StructLayout(LayoutKind.Sequential)]
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
 public struct Hrd
 {
     public ushort Magic;
@@ -22,12 +22,12 @@ public struct Hrd
     public MsgType Type;
 }
 
-public class UdpConnectStatus
+public struct UdpConnectStatus
 {
-    public int LastFrame { get; set; }
+    public int LastFrame;
 }
 
-[StructLayout(LayoutKind.Sequential)]
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
 public struct UdpMsg
 {
     public Hrd Hrd;

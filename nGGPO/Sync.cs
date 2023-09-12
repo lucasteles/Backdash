@@ -1,10 +1,12 @@
-﻿using nGGPO.Network;
+﻿using System;
+using System.Collections.Generic;
+using nGGPO.Network;
 
 namespace nGGPO;
 
 public class Sync
 {
-    public Sync(List<UdpConnectStatus> localConnectStatus)
+    public Sync(IReadOnlyList<UdpConnectStatus> localConnectStatus)
     {
         throw new NotImplementedException();
     }

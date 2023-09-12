@@ -1,4 +1,6 @@
-﻿using System.Net;
+﻿using System;
+using System.Collections.Generic;
+using System.Net;
 using System.Net.Sockets;
 
 namespace nGGPO.Network;
@@ -9,7 +11,7 @@ public class UdpProtocol
     readonly Poll poll;
     readonly int queue;
     readonly IPEndPoint endpoint;
-    readonly List<UdpConnectStatus> connectStatus;
+    readonly IReadOnlyList<UdpConnectStatus> connectStatus;
 
     State currentState;
 
@@ -22,7 +24,7 @@ public class UdpProtocol
     };
 
     public UdpProtocol(Udp udp, Poll poll, int queue, IPEndPoint endpoint,
-        List<UdpConnectStatus> connectStatus)
+        IReadOnlyList<UdpConnectStatus> connectStatus)
     {
         this.udp = udp;
         this.poll = poll;
@@ -51,7 +53,7 @@ public class UdpProtocol
         throw new NotImplementedException();
     }
 
-    public bool HandlesMsg(Socket from, UdpMsg msg)
+    public bool HandlesMsg(IPEndPoint from, UdpMsg msg)
     {
         throw new NotImplementedException();
     }

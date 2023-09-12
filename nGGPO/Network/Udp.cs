@@ -1,56 +1,29 @@
-﻿using System.Net;
+﻿using System;
+using System.Net;
 using System.Net.Sockets;
-using nGGPO.Types;
+using System.Threading.Tasks;
 
 namespace nGGPO.Network;
 
-public class Udp : PollSink
+public class Udp : PollSink, IDisposable
 {
-    protected Socket Socket;
+    protected UdpClient Socket;
     protected ICallbacks Callbacks;
-    protected Poll Poll;
+    readonly IBinaryEncoder encoder;
 
-    public Udp(int port, Poll poll, ICallbacks callbacks)
+    public Udp(IBinaryEncoder encoder, int bindingPort, ICallbacks callbacks)
     {
         Callbacks = callbacks;
-        Poll = poll;
-        poll.RegisterLoop(this);
-
-        Logger.Info("binding udp socket to port {0}.\n", port);
-        Socket = CreateSocket(port);
+        this.encoder = encoder;
+        Logger.Info("binding udp socket to port {0}.\n", bindingPort);
+        Socket = new(bindingPort);
     }
 
-    readonly byte[] iMode = {1, 0, 0, 0};
-    readonly byte[] optOut = new byte[4];
 
-    Socket CreateSocket(int bindPort)
+    public async Task SendTo(UdpMsg msg, IPEndPoint dest)
     {
-        const int optval = 1;
-        Socket socket = new(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Unspecified);
-        socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, optval);
-        socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.DontLinger, optval);
-        socket.IOControl(IOControlCode.NonBlockingIO, iMode, optOut);
-
-        try
-        {
-            IPEndPoint ip = new(IPAddress.Any, bindPort);
-            socket.Bind(ip);
-            return socket;
-        }
-        catch
-        {
-            socket.Close();
-            throw;
-        }
-    }
-
-    public async Task SendTo(
-        UdpMsg msg, EndPoint dst,
-        SocketFlags flags = SocketFlags.None)
-    {
-        var buffer = Serializer.Encode(msg);
-
-        var res = await Socket.SendToAsync(new(buffer), flags, dst);
+        using var buffer = encoder.Encode(msg);
+        var res = await Socket.SendAsync(buffer.Bytes, buffer.Bytes.Length, dest);
         if (res == (int) SocketError.SocketError)
         {
             Logger.Warn("Error sending socket value");
@@ -58,25 +31,23 @@ public class Udp : PollSink
         }
 
         Logger.Info("sent packet length {0} to {1} (ret:{2}).\n",
-            buffer.Length, dst.ToString(), res);
+            buffer.Bytes.Length, dest.ToString(), res);
     }
 
 
     public override async Task<bool> OnLoopPoll(object? cookie)
     {
-        ArraySegment<byte> recvBuf = new(new byte[Max.UdpPacketSize]);
-
-        IPEndPoint ip = new(IPAddress.Any, IPEndPoint.MinPort);
-        var len = await Socket.ReceiveFromAsync(recvBuf, SocketFlags.None, ip);
-
-        var msg = Serializer.Decode<UdpMsg>(recvBuf.Array!);
-        Callbacks.OnMsg(Socket, msg, len.ReceivedBytes);
+        var data = await Socket.ReceiveAsync();
+        var msg = encoder.Decode<UdpMsg>(data.Buffer);
+        Callbacks.OnMsg(data.RemoteEndPoint, msg, data.Buffer.Length);
 
         return true;
     }
 
     public interface ICallbacks
     {
-        void OnMsg(Socket from, UdpMsg msg, int len);
+        void OnMsg(IPEndPoint from, UdpMsg msg, int len);
     }
+
+    public void Dispose() => Socket.Dispose();
 }
