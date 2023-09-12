@@ -25,16 +25,16 @@ public interface IPollHandleSink
     bool OnHandlePoll(object? value);
 }
 
-public class Poll
+class Poll
 {
-    protected long StartTime;
-    protected int HandleCount;
-    protected Handle[] Handles = new Handle[Max.PollableHandles];
+    long StartTime;
+    int HandleCount;
+    Handle[] Handles = new Handle[Max.PollableHandles];
 
-    protected StaticBuffer<PollSinkCb<IPollHandleSink>> HandleSinks = new(Max.PollableHandles);
-    protected StaticBuffer<PollSinkCb<IPollMsgSink>> MsgSinks = new();
-    protected StaticBuffer<PollSinkCb<IPollLoopSink>> LoopSinks = new();
-    protected StaticBuffer<PollPeriodicSinkCb> PeriodicSinks = new();
+    StaticBuffer<PollSinkCb<IPollHandleSink>> HandleSinks = new(Max.PollableHandles);
+    StaticBuffer<PollSinkCb<IPollMsgSink>> MsgSinks = new();
+    StaticBuffer<PollSinkCb<IPollLoopSink>> LoopSinks = new();
+    StaticBuffer<PollPeriodicSinkCb> PeriodicSinks = new();
 
     public void RegisterHandle(IPollHandleSink sink, Handle h, object? cookie = null)
     {

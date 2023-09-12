@@ -3,42 +3,99 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using nGGPO.Network.Messages;
+using nGGPO.Types;
 
 namespace nGGPO.Network;
 
-public class UdpProtocol : IPollLoopSink
+partial class UdpProtocol : IPollLoopSink
 {
+    /*
+     * Network transmission information
+     */
     readonly Udp? udp;
+    readonly IPEndPoint peerAddress;
+    readonly ushort magicNumber;
     readonly int queue;
-    readonly IPEndPoint endpoint;
-    readonly IReadOnlyList<ConnectStatus> connectStatus;
+    ushort remoteMagicNumber;
+    bool connected;
+    int sendLatency;
+    int oopPercent;
+    Packet ooPacket;
 
-    State currentState;
+    /*
+     * Stats
+     */
+    int roundTripTime;
+    int packetsSent;
+    int bytesSent;
+    int kbpsSent;
+    int statsStartTime;
 
-    public enum State
-    {
-        Syncing,
-        Synchronzied,
-        Running,
-        Disconnected,
-    };
+    /*
+     * The state machine
+     */
+    readonly ConnectStatus localConnectStatus;
+    readonly StaticBuffer<ConnectStatus> peerConnectStatus = new(Max.UdpMsgPlayers);
+    StateEnum currentState;
+    object? state;
 
-    public UdpProtocol(Udp udp, int queue, IPEndPoint endpoint,
-        IReadOnlyList<ConnectStatus> connectStatus)
-    {
-        this.udp = udp;
-        this.queue = queue;
-        this.endpoint = endpoint;
-        this.connectStatus = connectStatus;
-    }
+    /*
+     * Fairness.
+     */
+    int localFrameAdvantage;
+    int remoteFrameAdvantage;
 
+
+    /*
+     * Packet loss...
+     */
+    readonly RingBuffer<GameInput> pendingOutput = new();
+    GameInput? lastReceivedInput = null;
+    GameInput? lastSentInput = null;
+    GameInput? lastAckedInput = null;
+
+
+    ushort nextSendSeq;
+    ushort nextRecvSeq;
+
+    public int LastSendTime { get; set; }
+    public int LastRecvTime { get; set; }
+    public int ShutdownTimeout { get; set; }
     public int DisconnectTimeout { get; set; }
     public int DisconnectNotifyStart { get; set; }
+    public int DisconnectEventSent { get; set; }
+    public bool DisconnectNotifySent { get; set; }
+
+    /*
+     * Rift synchronization.
+     */
+    readonly TimeSync timesync;
+
+    /*
+     * Event queue
+     */
+    readonly RingBuffer<UdpEvent> eventQueue = new();
+
+    public UdpProtocol(
+        TimeSync timesync,
+        Udp udp,
+        int queue,
+        IPEndPoint peerAddress,
+        IReadOnlyList<ConnectStatus> connectStatus
+    )
+    {
+        this.timesync = timesync;
+        this.udp = udp;
+        this.queue = queue;
+        this.peerAddress = peerAddress;
+        localConnectStatus = connectStatus[0];
+    }
+
 
     public void Synchronize()
     {
         if (udp is null) return;
-        currentState = State.Syncing;
+        currentState = StateEnum.Syncing;
         throw new NotImplementedException();
     }
 
@@ -47,7 +104,7 @@ public class UdpProtocol : IPollLoopSink
         throw new NotImplementedException();
     }
 
-    public void SendInput<TInput>(GameInput<TInput> input) where TInput : struct
+    public void SendInput(GameInput input)
     {
         throw new NotImplementedException();
     }

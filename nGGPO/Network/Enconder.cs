@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 namespace nGGPO.Network;
 
-public struct ByteBufferScope : IDisposable
+public readonly struct ByteBufferScope : IDisposable
 {
     public readonly byte[] Bytes;
     readonly bool rented;

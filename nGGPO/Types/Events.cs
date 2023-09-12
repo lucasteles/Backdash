@@ -1,6 +1,6 @@
-﻿namespace nGGPO.Types;
+﻿namespace nGGPO.Network;
 
-public enum EventCode
+public enum EventCode : short
 {
     ConnectedToPeer = 1000,
     SynchronizingWithPeer = 1001,
@@ -12,42 +12,7 @@ public enum EventCode
     ConnectionResumed = 1007,
 }
 
-public abstract class NetCodeEvent
+public interface INetCodeEvent
 {
-    public abstract EventCode Code { get; }
-
-    public class Connected : NetCodeEvent
-    {
-        public override EventCode Code => EventCode.ConnectedToPeer;
-    }
-
-    public class Synchronizing : NetCodeEvent
-    {
-        public override EventCode Code => EventCode.SynchronizingWithPeer;
-    }
-
-    public class Synchronized : NetCodeEvent
-    {
-        public override EventCode Code => EventCode.SynchronizedWithPeer;
-    }
-
-    public class Disconnected : NetCodeEvent
-    {
-        public override EventCode Code => EventCode.DisconnectedFromPeer;
-    }
-
-    public class TimeSync : NetCodeEvent
-    {
-        public override EventCode Code => EventCode.TimeSync;
-    }
-
-    public class ConnectionInterrupted : NetCodeEvent
-    {
-        public override EventCode Code => EventCode.ConnectionInterrupted;
-    }
-
-    public class ConnectionResumed : NetCodeEvent
-    {
-        public override EventCode Code => EventCode.ConnectionResumed;
-    }
+    EventCode Code { get; }
 }

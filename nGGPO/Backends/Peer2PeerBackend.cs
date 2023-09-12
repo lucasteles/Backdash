@@ -16,6 +16,7 @@ class Peer2PeerBackend<TInput, TGameState> : ISession<TInput, TGameState>
     const int DefaultDisconnectNotifyStart = 750;
     const int SpectatorOffset = 1000;
 
+    readonly IBinaryEncoder encoder;
     readonly ISessionCallbacks<TGameState> callbacks;
 
     readonly Poll poll;
@@ -41,6 +42,7 @@ class Peer2PeerBackend<TInput, TGameState> : ISession<TInput, TGameState>
         int numPlayers
     )
     {
+        this.encoder = encoder;
         this.callbacks = callbacks;
         this.numPlayers = numPlayers;
 
@@ -101,7 +103,8 @@ class Peer2PeerBackend<TInput, TGameState> : ISession<TInput, TGameState>
         if (!result.IsSuccess())
             return result;
 
-        GameInput<TInput> input = new(localInput);
+        var inputBytes = encoder.Encode(localInput);
+        GameInput input = new();
 
         if (!sync.AddLocalInput(queue, input))
             return ErrorCode.PredictionThreshold;
@@ -156,6 +159,17 @@ class Peer2PeerBackend<TInput, TGameState> : ISession<TInput, TGameState>
     protected PlayerHandle QueueToSpectatorHandle(int queue) =>
         new(queue + SpectatorOffset); /* out of range of the player array, basically */
 
+    UdpProtocol CreateUdpProtocol(IPEndPoint endpoint, int queue) =>
+        new(
+            timesync: new(),
+            udp: udp,
+            queue, endpoint, localConnectStatus
+        )
+        {
+            DisconnectTimeout = disconnectTimeout,
+            DisconnectNotifyStart = disconnectNotifyStart,
+        };
+
     void AddRemotePlayer(IPEndPoint endpoint, int queue)
     {
         /*
@@ -163,12 +177,7 @@ class Peer2PeerBackend<TInput, TGameState> : ISession<TInput, TGameState>
          */
         synchronizing = true;
 
-        UdpProtocol protocol = new(udp, queue, endpoint, localConnectStatus)
-        {
-            DisconnectTimeout = disconnectTimeout,
-            DisconnectNotifyStart = disconnectNotifyStart,
-        };
-
+        var protocol = CreateUdpProtocol(endpoint, queue);
         poll.RegisterLoop(protocol);
         protocol.Synchronize();
         endpoints.Add(protocol);
@@ -186,12 +195,8 @@ class Peer2PeerBackend<TInput, TGameState> : ISession<TInput, TGameState>
             return ErrorCode.InvalidRequest;
 
         var queue = numSpectators++;
+        var protocol = CreateUdpProtocol(endpoint, queue + SpectatorOffset);
 
-        UdpProtocol protocol = new(udp, queue + SpectatorOffset, endpoint, localConnectStatus)
-        {
-            DisconnectTimeout = disconnectTimeout,
-            DisconnectNotifyStart = disconnectNotifyStart,
-        };
         poll.RegisterLoop(protocol);
         protocol.Synchronize();
         spectators.Add(protocol);

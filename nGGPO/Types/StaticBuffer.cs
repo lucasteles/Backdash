@@ -5,7 +5,7 @@ using System.Diagnostics;
 
 namespace nGGPO.Types;
 
-public class StaticBuffer<T> : IReadOnlyList<T> where T : notnull
+sealed class StaticBuffer<T> : IReadOnlyList<T> where T : notnull
 {
     readonly T[] elements;
 

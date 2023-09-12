@@ -4,7 +4,7 @@ using nGGPO.Network.Messages;
 
 namespace nGGPO;
 
-public class Sync
+class Sync
 {
     public Sync(IReadOnlyList<ConnectStatus> localConnectStatus)
     {
@@ -21,7 +21,7 @@ public class Sync
         throw new NotImplementedException();
     }
 
-    public bool AddLocalInput<TInput>(int queue, GameInput<TInput> input) where TInput : struct
+    public bool AddLocalInput(int queue, GameInput input)
     {
         throw new NotImplementedException();
     }
