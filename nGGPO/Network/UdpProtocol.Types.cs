@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net;
-using System.Threading.Tasks;
-using nGGPO.Network.Messages;
-using nGGPO.Types;
+﻿using System.Net;
 
 namespace nGGPO.Network;
 
@@ -31,7 +26,7 @@ partial class UdpProtocol
 
     struct QueueEntry
     {
-        public int QueueTime;
+        public long QueueTime;
         public IPEndPoint DestAddr;
         public UdpMsg Msg;
     }
@@ -40,7 +35,7 @@ partial class UdpProtocol
     {
         public int SendTime;
         public IPEndPoint DestAddr;
-        public UdpMsg Msg;
+        public UdpMsg? Msg;
     }
 
     struct Sync

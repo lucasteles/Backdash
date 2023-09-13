@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -24,10 +25,14 @@ sealed class RingBuffer<T> : IReadOnlyList<T> where T : notnull
         return ref elements[tail];
     }
 
-    public void Clear() => head = tail;
+    public void Clear()
+    {
+        head = tail;
+        Array.Clear(elements, 0, elements.Length);
+    }
 
-    public ref T Ref(int idx) => ref elements[(tail + idx) % elements.Length];
-    public T this[int idx] => Ref(idx);
+    public ref T Value(int idx) => ref elements[(tail + idx) % elements.Length];
+    public T this[int idx] => Value(idx);
 
     public void Pop()
     {

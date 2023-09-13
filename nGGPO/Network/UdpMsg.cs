@@ -4,7 +4,7 @@ using nGGPO.Network.Messages;
 namespace nGGPO.Network;
 
 [StructLayout(LayoutKind.Explicit, Pack = 1)]
-public struct UdpMsg
+struct UdpMsg
 {
     const int HeaderSize = 5;
 
@@ -25,4 +25,22 @@ public struct UdpMsg
 
     [FieldOffset(HeaderSize)]
     public InputAck InputAck;
+
+    [FieldOffset(HeaderSize)]
+    public InputMsg Input;
+
+    public int PacketSize() => Marshal.SizeOf(Header) + PayloadSize();
+
+    int PayloadSize() =>
+        Header.Type switch
+        {
+            MsgType.SyncRequest => Marshal.SizeOf(SyncRequest),
+            MsgType.SyncReply => Marshal.SizeOf(SyncReply),
+            MsgType.QualityReport => Marshal.SizeOf(QualityReport),
+            MsgType.QualityReply => Marshal.SizeOf(QualityReply),
+            MsgType.InputAck => Marshal.SizeOf(InputAck),
+            MsgType.Input => Marshal.SizeOf(Input),
+            MsgType.KeepAlive => 0,
+            _ => 0,
+        };
 }

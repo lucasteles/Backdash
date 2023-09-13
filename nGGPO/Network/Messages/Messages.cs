@@ -23,46 +23,52 @@ public struct Header
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
 public struct SyncRequest
 {
-    uint RandomRequest; /* please reply back with this random data */
-    ushort RemoteMagic;
-    byte RemoteEndpoint;
+    public uint RandomRequest; /* please reply back with this random data */
+    public ushort RemoteMagic;
+    public byte RemoteEndpoint;
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
 public struct SyncReply
 {
-    uint RandomReply; /* please reply back with this random data */
+    public uint RandomReply; /* please reply back with this random data */
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
 public struct QualityReport
 {
-    byte FrameAdvantage; /* what's the other guy's frame advantage? */
-    uint Ping;
+    public byte FrameAdvantage; /* what's the other guy's frame advantage? */
+    public uint Ping;
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
 public struct QualityReply
 {
-    uint Pong;
+    public uint Pong;
+}
+
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+public struct InputMsg
+{
+    [MarshalAs(UnmanagedType.ByValArray, SizeConst = Max.UdpMsgPlayers)]
+    public ConnectStatus[] PeerConnectStatus;
+
+    public uint StartFrame;
+
+    [MarshalAs(UnmanagedType.I1)]
+    public bool DisconnectRequested;
+
+    public int AckFrame;
+
+    public ushort NumBits;
+    public byte InputSize; // XXX: shouldn't be in every single packet!
+
+    [MarshalAs(UnmanagedType.ByValArray, SizeConst = Max.CompressedBits)]
+    public byte[] Bits; /* must be last */
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
 public struct InputAck
 {
-    [MarshalAs(UnmanagedType.ByValArray, SizeConst = Max.UdpMsgPlayers)]
-    ConnectStatus[] PeerConnectStatus;
-
-    uint StartFrame;
-
-    [MarshalAs(UnmanagedType.I1)]
-    bool DisconnectRequested;
-
-    int AckFrame;
-
-    ushort NumBits;
-    byte InputSize; // XXX: shouldn't be in every single packet!
-
-    [MarshalAs(UnmanagedType.ByValArray, SizeConst = Max.CompressedBits)]
-    byte[] Bits; /* must be last */
+    public int AckFrame;
 }

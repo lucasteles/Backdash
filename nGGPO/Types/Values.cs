@@ -1,7 +1,6 @@
 ﻿namespace nGGPO.Types;
 
-
-public struct Handle
+public class Handle
 {
     public object? Value { get; set; }
 }

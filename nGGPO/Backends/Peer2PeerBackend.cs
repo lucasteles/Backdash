@@ -22,7 +22,7 @@ class Peer2PeerBackend<TInput, TGameState> : ISession<TInput, TGameState>
     readonly Poll poll;
     readonly Udp udp;
     readonly Sync sync;
-    readonly StaticBuffer<ConnectStatus> localConnectStatus = new(Max.UdpMsgPlayers);
+    readonly ConnectStatus[] localConnectStatus = new ConnectStatus[Max.UdpMsgPlayers];
 
     int numPlayers;
     int numSpectators;
@@ -88,10 +88,10 @@ class Peer2PeerBackend<TInput, TGameState> : ISession<TInput, TGameState>
         return ErrorCode.Ok;
     }
 
-    public ErrorCode AddLocalInput(Player player, TInput input) =>
-        AddLocalInput(player.Handle, input);
+    public ErrorCode AddLocalInput(Player player, in TInput input) =>
+        AddLocalInput(player.Handle, in input);
 
-    public ErrorCode AddLocalInput(PlayerHandle player, TInput localInput)
+    public ErrorCode AddLocalInput(PlayerHandle player, in TInput localInput)
     {
         if (sync.InRollback())
             return ErrorCode.InRollback;
@@ -103,25 +103,23 @@ class Peer2PeerBackend<TInput, TGameState> : ISession<TInput, TGameState>
         if (!result.IsSuccess())
             return result;
 
-        var inputBytes = encoder.Encode(localInput);
-        GameInput input = new();
+        using var inputBuffer = encoder.Encode(localInput);
+        GameInput input = new(inputBuffer.Bytes);
 
         if (!sync.AddLocalInput(queue, input))
             return ErrorCode.PredictionThreshold;
 
-        if (input.Frame is not GameInput.NullFrame)
+        if (!input.IsNullFrame())
         {
             Logger.Info("setting local connect status for local queue {0} to {1}",
                 queue, input.Frame);
 
-            localConnectStatus.Ref(queue).LastFrame = input.Frame;
+            localConnectStatus[queue].LastFrame = input.Frame;
 
-            // var status = localConnectStatus[queue];
-            // status.LastFrame = input.Frame;
             // Send the input to all the remote players.
             for (var i = 0; i < numPlayers; i++)
                 if (endpoints[i].IsInitialized())
-                    endpoints[i].SendInput(input);
+                    endpoints[i].SendInput(in input);
         }
 
         return ErrorCode.Ok;
@@ -159,8 +157,9 @@ class Peer2PeerBackend<TInput, TGameState> : ISession<TInput, TGameState>
     protected PlayerHandle QueueToSpectatorHandle(int queue) =>
         new(queue + SpectatorOffset); /* out of range of the player array, basically */
 
-    UdpProtocol CreateUdpProtocol(IPEndPoint endpoint, int queue) =>
-        new(
+    UdpProtocol CreateUdpProtocol(IPEndPoint endpoint, int queue)
+    {
+        UdpProtocol protocol = new(
             timesync: new(),
             udp: udp,
             queue, endpoint, localConnectStatus
@@ -170,6 +169,11 @@ class Peer2PeerBackend<TInput, TGameState> : ISession<TInput, TGameState>
             DisconnectNotifyStart = disconnectNotifyStart,
         };
 
+        poll.RegisterLoop(protocol);
+        protocol.Synchronize();
+        return protocol;
+    }
+
     void AddRemotePlayer(IPEndPoint endpoint, int queue)
     {
         /*
@@ -178,8 +182,6 @@ class Peer2PeerBackend<TInput, TGameState> : ISession<TInput, TGameState>
         synchronizing = true;
 
         var protocol = CreateUdpProtocol(endpoint, queue);
-        poll.RegisterLoop(protocol);
-        protocol.Synchronize();
         endpoints.Add(protocol);
     }
 
@@ -196,27 +198,24 @@ class Peer2PeerBackend<TInput, TGameState> : ISession<TInput, TGameState>
 
         var queue = numSpectators++;
         var protocol = CreateUdpProtocol(endpoint, queue + SpectatorOffset);
-
-        poll.RegisterLoop(protocol);
-        protocol.Synchronize();
         spectators.Add(protocol);
 
         return ErrorCode.Ok;
     }
 
-    public void OnMsg(IPEndPoint from, UdpMsg msg, int len)
+    public void OnMsg(IPEndPoint from, in UdpMsg msg, int len)
     {
         for (var i = 0; i < numPlayers; i++)
         {
-            if (!endpoints[i].HandlesMsg(from, msg)) continue;
-            endpoints[i].OnMsg(msg, len);
+            if (!endpoints[i].HandlesMsg(from, in msg)) continue;
+            endpoints[i].OnMsg(in msg, len);
             return;
         }
 
         for (int i = 0; i < numSpectators; i++)
         {
-            if (!spectators[i].HandlesMsg(from, msg)) continue;
-            spectators[i].OnMsg(msg, len);
+            if (!spectators[i].HandlesMsg(from, in msg)) continue;
+            spectators[i].OnMsg(in msg, len);
             return;
         }
     }

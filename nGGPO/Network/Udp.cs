@@ -5,12 +5,12 @@ using System.Threading.Tasks;
 
 namespace nGGPO.Network;
 
-public class Udp : IPollLoopSink, IDisposable
+class Udp : IPollLoopSink, IDisposable
 {
     readonly UdpClient socket;
     readonly IBinaryEncoder encoder;
 
-    public delegate void OnMsgEvent(IPEndPoint from, UdpMsg msg, int len);
+    public delegate void OnMsgEvent(IPEndPoint from, in UdpMsg msg, int len);
 
     public event OnMsgEvent OnMsg = delegate { };
 

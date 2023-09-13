@@ -1,5 +1,4 @@
 ﻿using nGGPO.Network;
-using nGGPO.Types;
 
 namespace nGGPO;
 
@@ -67,5 +66,5 @@ public interface ISessionCallbacks<TGameState> where TGameState : struct
      * Notification that something has happened.  See the GGPOEventCode
      * structure above for more information.
      */
-    bool OnEvent<TEvent>(TEvent info) where TEvent : INetCodeEvent;
+    bool OnEvent<TEvent>(TEvent info) where TEvent : INetCodeEvent ;
 }

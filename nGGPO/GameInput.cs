@@ -12,12 +12,18 @@ struct GameInput
     public const int MaxBytes = 8;
 
     public int Frame;
-    public int Size;
-    public byte[] Bits;
+    public readonly int Size;
+    public readonly byte[] Bits;
+
+    GameInput(int iframe)
+    {
+        Frame = iframe;
+        Size = 1;
+        Bits = Array.Empty<byte>();
+    }
 
     GameInput(int iframe, int isize)
     {
-        Trace.Assert(isize > 0);
         Frame = iframe;
         Size = isize;
         Bits = new byte[Max.Players * MaxBytes];
@@ -26,6 +32,7 @@ struct GameInput
     public GameInput(int iframe, ReadOnlySpan<byte> ibits) : this(iframe, ibits.Length)
     {
         Trace.Assert(ibits.Length <= MaxBytes * Max.Players);
+        Trace.Assert(ibits.Length > 0);
         if (ibits.Length > 0)
             ibits.CopyTo(Bits);
     }
@@ -37,11 +44,13 @@ struct GameInput
     public GameInput(int iframe, ReadOnlySpan<byte> ibits, int offset) : this(iframe, ibits.Length)
     {
         Trace.Assert(ibits.Length <= MaxBytes);
+        Trace.Assert(ibits.Length > 0);
         if (ibits.Length > 0)
             ibits.CopyTo(Bits.AsSpan()[(offset * ibits.Length)..]);
     }
 
     public bool IsNull => Frame == NullFrame;
+    public static GameInput Null => new(NullFrame);
 
     public bool Value(int bit) => (Bits[bit / 8] & (1 << (bit % 8))) != 0;
 
@@ -73,16 +82,15 @@ struct GameInput
         if (Size != other.Size)
             Logger.Info("sizes don't match: {}, {}", Size, other.Size);
 
-        if (ByteArraysEqual(Bits, other.Bits))
+        if (Mem.BytesEqual(Bits, other.Bits))
             Logger.Info("bits don't match");
 
         Trace.Assert(Size > 0 && other.Size > 0);
 
         return (bitsOnly || Frame == other.Frame)
                && Size == other.Size
-               && ByteArraysEqual(Bits, other.Bits);
+               && Mem.BytesEqual(Bits, other.Bits);
     }
 
-    static bool ByteArraysEqual(ReadOnlySpan<byte> a1, ReadOnlySpan<byte> a2) =>
-        a1.SequenceEqual(a2);
+    public bool IsNullFrame() => Frame is NullFrame;
 }
