@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using nGGPO.Network;
 using nGGPO.Network.Messages;
+using nGGPO.Serialization;
 using nGGPO.Types;
 
 namespace nGGPO.Backends;
@@ -16,7 +17,7 @@ class Peer2PeerBackend<TInput, TGameState> : ISession<TInput, TGameState>
     const int DefaultDisconnectNotifyStart = 750;
     const int SpectatorOffset = 1000;
 
-    readonly IBinaryEncoder encoder;
+    readonly IBinarySerializer serializer;
     readonly ISessionCallbacks<TGameState> callbacks;
 
     readonly Poll poll;
@@ -35,14 +36,14 @@ class Peer2PeerBackend<TInput, TGameState> : ISession<TInput, TGameState>
     int disconnectNotifyStart = DefaultDisconnectNotifyStart;
 
     public Peer2PeerBackend(
-        IBinaryEncoder encoder,
+        IBinarySerializer serializer,
         ISessionCallbacks<TGameState> callbacks,
         string gameName,
         int localport,
         int numPlayers
     )
     {
-        this.encoder = encoder;
+        this.serializer = serializer;
         this.callbacks = callbacks;
         this.numPlayers = numPlayers;
 
@@ -50,7 +51,7 @@ class Peer2PeerBackend<TInput, TGameState> : ISession<TInput, TGameState>
         sync = new(localConnectStatus);
         poll = new();
 
-        udp = new(encoder, localport);
+        udp = new(serializer, localport);
         udp.OnMsg += OnMsg;
         poll.RegisterLoop(udp);
 
@@ -103,7 +104,7 @@ class Peer2PeerBackend<TInput, TGameState> : ISession<TInput, TGameState>
         if (!result.IsSuccess())
             return result;
 
-        using var inputBuffer = encoder.Encode(localInput);
+        using var inputBuffer = serializer.Serialize(localInput);
         GameInput input = new(inputBuffer.Bytes);
 
         if (!sync.AddLocalInput(queue, input))

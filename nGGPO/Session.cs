@@ -1,5 +1,7 @@
 ﻿using nGGPO.Backends;
 using nGGPO.Network;
+using nGGPO.Serialization;
+using nGGPO.Serialization.Serializers;
 
 namespace nGGPO;
 
@@ -10,7 +12,7 @@ public class Session
         where TInput : struct
         where TGameState : struct
     {
-        StructBinaryEncoder encoder = new();
-        return new Peer2PeerBackend<TInput, TGameState>(encoder, cb, game, localPort, numPlayers);
+        StructMarshalBinarySerializer serializer = new();
+        return new Peer2PeerBackend<TInput, TGameState>(serializer, cb, game, localPort, numPlayers);
     }
 }
