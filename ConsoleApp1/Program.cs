@@ -1,6 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using System.Text.Json;
 using nGGPO;
+using nGGPO.Serialization;
 
 void Dump(in ReadOnlySpan<byte> bytes, string source = "")
 {
@@ -24,30 +25,33 @@ Input packet = new()
     Bits = data,
 };
 
+InputSerializer serializer = new();
+
 var sizeM = Marshal.SizeOf(packet);
-var size = packet.Size();
+var size = serializer.SizeOf(packet);
 
 Console.Clear();
 Console.WriteLine($"# Size={size}, SizeM={sizeM}\n");
 
 var bufferMarshal = Mem.SerializeMarshal(packet);
-var bufferRaw = packet.SerializeManual();
-var buffer = packet.Serialize();
-var bufferNetWork = packet.Serialize(true);
+serializer.Network = false;
+var buffer = serializer.Serialize(packet);
+
+serializer.Network = true;
+var bufferNetWork = serializer.Serialize(packet);
 
 Dump(bufferMarshal, "Marshall");
-Dump(bufferRaw, "Raw");
 Dump(buffer, "Serial");
 Dump(bufferNetWork, "Network");
 
 var valueMarshall = Mem.DeserializeMarshal<Input>(bufferMarshal);
-var valueRaw = Mem.DeserializeMarshal<Input>(bufferRaw);
-var value = Input.Deserialize(buffer);
-var valueNetwork = Input.Deserialize(bufferNetWork, true);
+serializer.Network = false;
+var value = serializer.Deserialize(buffer);
+serializer.Network = true;
+var valueNetwork = serializer.Deserialize(bufferNetWork);
 
 Console.WriteLine();
 Console.WriteLine(valueMarshall);
-Console.WriteLine(valueRaw);
 Console.WriteLine(value);
 Console.WriteLine(valueNetwork);
 
@@ -61,42 +65,26 @@ public struct Input
     [MarshalAs(UnmanagedType.ByValArray, SizeConst = 5)]
     public byte[] Bits; /* must be last */
 
-    public int Size() => sizeof(int) + sizeof(byte) + sizeof(uint) + Bits.Length * sizeof(byte);
+    public override string ToString() =>
+        JsonSerializer.Serialize(this, new JsonSerializerOptions {IncludeFields = true});
+}
 
-    public byte[] SerializeManual()
+class InputSerializer : BinarySerializer<Input>
+{
+    public override int SizeOf(Input data) =>
+        sizeof(int) + sizeof(byte) + sizeof(uint) +
+        data.Bits.Length * sizeof(byte);
+
+    protected override void Serialize(ref NetworkBufferWriter writer, in Input data)
     {
-        var buffer = new byte[Size()];
-        var offset = 0;
-
-        var s = BitConverter.GetBytes(S);
-        foreach (var t in s)
-            buffer[offset++] = t;
-
-        buffer[offset++] = A;
-        var b = BitConverter.GetBytes(B);
-        foreach (var t in b)
-            buffer[offset++] = t;
-
-        foreach (var t in Bits)
-            buffer[offset++] = t;
-
-        return buffer;
+        writer.Write(data.S);
+        writer.Write(data.A);
+        writer.Write(data.B);
+        writer.Write(data.Bits);
     }
 
-    public byte[] Serialize(bool network = false)
+    protected override Input Deserialize(ref NetworkBufferReader reader)
     {
-        var buffer = new byte[Size()];
-        NetworkBufferWriter writer = new(buffer, network);
-        writer.Write(S);
-        writer.Write(A);
-        writer.Write(B);
-        writer.Write(Bits);
-        return buffer;
-    }
-
-    public static Input Deserialize(byte[] bytes, bool network = false)
-    {
-        NetworkBufferReader reader = new(bytes, network);
         var size = reader.ReadInt();
         return new()
         {
@@ -106,8 +94,6 @@ public struct Input
             Bits = reader.Read(size),
         };
     }
-
-
-    public override string ToString() =>
-        JsonSerializer.Serialize(this, new JsonSerializerOptions {IncludeFields = true});
 }
+
+record Foo(string A);

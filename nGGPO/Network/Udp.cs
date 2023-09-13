@@ -9,15 +9,15 @@ namespace nGGPO.Network;
 class Udp : IPollLoopSink, IDisposable
 {
     readonly UdpClient socket;
-    readonly IBinarySerializer serializer;
 
     public delegate void OnMsgEvent(IPEndPoint from, in UdpMsg msg, int len);
 
     public event OnMsgEvent OnMsg = delegate { };
 
-    public Udp(IBinarySerializer serializer, int bindingPort)
+    readonly IBinarySerializer<UdpMsg> serializer = new StructMarshalBinarySerializer<UdpMsg>();
+
+    public Udp(int bindingPort)
     {
-        this.serializer = serializer;
         Logger.Info("binding udp socket to port {0}.\n", bindingPort);
         socket = new(bindingPort);
     }
@@ -40,7 +40,7 @@ class Udp : IPollLoopSink, IDisposable
     public async Task<bool> OnLoopPoll(object? cookie)
     {
         var data = await socket.ReceiveAsync();
-        var msg = serializer.Deserialize<UdpMsg>(data.Buffer);
+        var msg = serializer.Deserialize(data.Buffer);
         OnMsg.Invoke(data.RemoteEndPoint, msg, data.Buffer.Length);
 
         return true;

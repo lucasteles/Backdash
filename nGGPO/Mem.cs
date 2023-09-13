@@ -7,13 +7,25 @@ namespace nGGPO;
 public readonly struct ScopedBuffer : IDisposable
 {
     public readonly byte[] Bytes;
+    readonly bool pooled;
 
     public ScopedBuffer(int size)
     {
         Bytes = ArrayPool<byte>.Shared.Rent(size);
+        pooled = true;
     }
 
-    public void Dispose() => ArrayPool<byte>.Shared.Return(Bytes);
+    public ScopedBuffer(byte[] bytes)
+    {
+        Bytes = bytes;
+        pooled = false;
+    }
+
+    public void Dispose()
+    {
+        if (pooled)
+            ArrayPool<byte>.Shared.Return(Bytes);
+    }
 
     public static implicit operator byte[](ScopedBuffer @this) => @this.Bytes;
     public static implicit operator ReadOnlySpan<byte>(ScopedBuffer @this) => @this.Bytes;

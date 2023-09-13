@@ -17,7 +17,7 @@ class Peer2PeerBackend<TInput, TGameState> : ISession<TInput, TGameState>
     const int DefaultDisconnectNotifyStart = 750;
     const int SpectatorOffset = 1000;
 
-    readonly IBinarySerializer serializer;
+    readonly IBinarySerializer<TInput> inputSerializer;
     readonly ISessionCallbacks<TGameState> callbacks;
 
     readonly Poll poll;
@@ -36,14 +36,14 @@ class Peer2PeerBackend<TInput, TGameState> : ISession<TInput, TGameState>
     int disconnectNotifyStart = DefaultDisconnectNotifyStart;
 
     public Peer2PeerBackend(
-        IBinarySerializer serializer,
+        IBinarySerializer<TInput> inputSerializer,
         ISessionCallbacks<TGameState> callbacks,
         string gameName,
-        int localport,
+        int localPort,
         int numPlayers
     )
     {
-        this.serializer = serializer;
+        this.inputSerializer = inputSerializer;
         this.callbacks = callbacks;
         this.numPlayers = numPlayers;
 
@@ -51,7 +51,7 @@ class Peer2PeerBackend<TInput, TGameState> : ISession<TInput, TGameState>
         sync = new(localConnectStatus);
         poll = new();
 
-        udp = new(serializer, localport);
+        udp = new(localPort);
         udp.OnMsg += OnMsg;
         poll.RegisterLoop(udp);
 
@@ -104,7 +104,7 @@ class Peer2PeerBackend<TInput, TGameState> : ISession<TInput, TGameState>
         if (!result.IsSuccess())
             return result;
 
-        using var inputBuffer = serializer.Serialize(localInput);
+        using var inputBuffer = inputSerializer.Serialize(localInput);
         GameInput input = new(inputBuffer.Bytes);
 
         if (!sync.AddLocalInput(queue, input))
