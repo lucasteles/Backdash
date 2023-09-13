@@ -1,47 +1,108 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Text;
 
 namespace nGGPO;
 
-public class BitVector
+struct BitVector : IEquatable<BitVector>
 {
-    public const int NibbleSize = 8;
+    public static BitVector Empty = new(Array.Empty<byte>());
 
-    public static void SetBit(in Span<byte> vector, ref int offset)
+    public byte[] Bits { get; }
+    public int Size => Bits.Length;
+    public int BitCount => Size * Mem.ByteSize;
+
+    public BitVector(in byte[] bits) => Bits = bits;
+
+    public static void SetBit(in Span<byte> vector, int index) =>
+        vector[index / 8] |= (byte) (1 << (index % 8));
+
+    public static bool GetBit(in Span<byte> vector, int index) =>
+        (vector[index / 8] & (1 << (index % 8))) != 0;
+
+    public static void ClearBit(in Span<byte> vector, int index) =>
+        vector[index / 8] &= (byte) ~(1 << (index % 8));
+
+    public bool Get(int i) => GetBit(Bits, i);
+    public void Set(int i) => SetBit(Bits, i);
+    public void Clear(int i) => ClearBit(Bits, i);
+
+    public void Erase() => Array.Clear(Bits, 0, Bits.Length);
+
+    public bool this[int bit]
     {
-        vector[offset / 8] |= (byte) (1 << (offset % 8));
-        offset += 1;
+        get => Get(bit);
+        set
+        {
+            if (value) Set(bit);
+            else Clear(bit);
+        }
     }
 
-    public static void ClearBit(in Span<byte> vector, ref int offset)
-    {
-        vector[offset / 8] &= (byte) ~(1 << (offset % 8));
-        offset += 1;
-    }
+    public override string ToString() => ToString(splitAt: 0);
 
-    public static void WriteNibblet(in Span<byte> vector, int nibble, ref int offset)
-    {
-        Trace.Assert(nibble < 1 << NibbleSize);
-        for (var i = 0; i < NibbleSize; i++)
-            if ((nibble & (1 << i)) != 0)
-                SetBit(vector, ref offset);
-            else
-                ClearBit(vector, ref offset);
-    }
+    public string ToString(int splitAt, int bytePad = Mem.ByteSize) =>
+        Mem.GetBitString(Bits, splitAt, bytePad);
 
-    public static bool ReadBit(in Span<byte> vector, ref int offset)
-    {
-        var ret = (vector[offset / 8] & (1 << (offset % 8))) != 0;
-        offset += 1;
-        return ret;
-    }
+    public bool Equals(BitVector other) => Mem.BytesEqual(Bits, other.Bits);
+    public override bool Equals(object? obj) => obj is BitVector v && Equals(v);
+    public override int GetHashCode() => Bits.GetHashCode();
+    public static bool operator ==(BitVector a, BitVector b) => a.Equals(b);
+    public static bool operator !=(BitVector a, BitVector b) => !(a == b);
+    public static explicit operator byte[](BitVector @this) => @this.Bits;
 
-    public static int ReadNibblet(in Span<byte> vector, ref int offset)
+    public ref struct BitOffsetWriter
     {
-        var nibblet = 0;
-        for (var i = 0; i < NibbleSize; i++)
-            nibblet |= (ReadBit(vector, ref offset) ? 1 : 0) << i;
+        public const int NibbleSize = 4;
 
-        return nibblet;
+        readonly Span<byte> vector;
+
+        public int Offset { get; private set; }
+
+        public BitOffsetWriter(in Span<byte> vector, int offset = 0)
+        {
+            this.vector = vector;
+            Offset = offset;
+        }
+
+        public void Inc() => Offset++;
+
+        public void SetNext()
+        {
+            SetBit(in vector, Offset);
+            Inc();
+        }
+
+        public bool Read()
+        {
+            var ret = GetBit(in vector, Offset);
+            Inc();
+            return ret;
+        }
+
+        public void ClearNext()
+        {
+            ClearBit(vector, Offset);
+            Inc();
+        }
+
+        public void WriteNibble(int nibble)
+        {
+            Trace.Assert(nibble < 1 << NibbleSize);
+            for (var i = 0; i < NibbleSize; i++)
+                if ((nibble & (1 << i)) != 0)
+                    SetNext();
+                else
+                    ClearNext();
+        }
+
+        public int ReadNibble()
+        {
+            var nibble = 0;
+            for (var i = 0; i < NibbleSize; i++)
+                nibble |= (Read() ? 1 : 0) << i;
+
+            return nibble;
+        }
     }
 }

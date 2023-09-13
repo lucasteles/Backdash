@@ -13,7 +13,6 @@ sealed class RingBuffer<T> : IReadOnlyList<T> where T : notnull
 
     public int Capacity => elements.Length;
     public bool IsEmpty => Count is 0;
-    public bool IsFull => Count == Capacity;
 
     int head, tail;
 
@@ -31,8 +30,8 @@ sealed class RingBuffer<T> : IReadOnlyList<T> where T : notnull
         Array.Clear(elements, 0, elements.Length);
     }
 
-    public ref T Value(int idx) => ref elements[(tail + idx) % elements.Length];
-    public T this[int idx] => Value(idx);
+    public ref T Get(int idx) => ref elements[(tail + idx) % elements.Length];
+    public T this[int idx] => Get(idx);
 
     public void Pop()
     {

@@ -1,80 +1,61 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using nGGPO.Types;
 
 namespace nGGPO;
 
-using System;
 using System.Text;
 
-struct GameInput
+struct GameInput : IEquatable<GameInput>
 {
     public const int NullFrame = -1;
     public const int MaxBytes = 8;
 
-    public int Frame;
-    public readonly int Size;
-    public readonly byte[] Bits;
+    public int Frame { get; set; } = NullFrame;
+    public int Size { get; }
 
-    GameInput(int iframe)
+    public BitVector Bits { get; }
+
+    public static GameInput Empty => new(size: 1);
+
+    public GameInput(int size)
     {
-        Frame = iframe;
-        Size = 1;
-        Bits = Array.Empty<byte>();
+        Size = size;
+        Bits = BitVector.Empty;
     }
 
-    GameInput(int iframe, int isize)
-    {
-        Frame = iframe;
-        Size = isize;
-        Bits = new byte[Max.Players * MaxBytes];
-    }
-
-    public GameInput(int iframe, ReadOnlySpan<byte> ibits) : this(iframe, ibits.Length)
+    public GameInput(byte[] ibits, int size)
     {
         Trace.Assert(ibits.Length <= MaxBytes * Max.Players);
         Trace.Assert(ibits.Length > 0);
-        if (ibits.Length > 0)
-            ibits.CopyTo(Bits);
+
+        Size = size;
+        Bits = new(ibits);
     }
 
-    public GameInput(ReadOnlySpan<byte> ibits) : this(NullFrame, ibits)
+    public GameInput(byte[] ibits) : this(ibits, ibits.Length)
     {
     }
 
-    public GameInput(int iframe, ReadOnlySpan<byte> ibits, int offset) : this(iframe, ibits.Length)
+    public bool IsNullFrame => Frame is NullFrame;
+
+    public void Clear() => Bits.Erase();
+
+    public override string ToString()
     {
-        Trace.Assert(ibits.Length <= MaxBytes);
-        Trace.Assert(ibits.Length > 0);
-        if (ibits.Length > 0)
-            ibits.CopyTo(Bits.AsSpan()[(offset * ibits.Length)..]);
-    }
+        var builder = new StringBuilder();
 
-    public bool IsNull => Frame == NullFrame;
-    public static GameInput Null => new(NullFrame);
+        builder.AppendFormat("{{ Frame: {0},", Frame);
+        builder.AppendFormat(" Size: {0}, Input: ", Size);
 
-    public bool Value(int bit) => (Bits[bit / 8] & (1 << (bit % 8))) != 0;
+        builder.Append(Bits.ToString(splitAt: Max.Players));
 
-    public void Set(int i) => Bits[i / 8] |= (byte) (1 << (i % 8));
+        builder.Append(" }");
 
-    public void Clear(int i) => Bits[i / 8] &= (byte) ~(1 << (i % 8));
-
-    public void Clear() => Array.Clear(Bits, 0, Bits.Length);
-
-    public string ToString(bool showFrame = true)
-    {
-        Trace.Assert(Size > 0);
-        var retVal = showFrame ? $"(frame:{Frame} size:{Size} " : $"(size:{Size} ";
-        var builder = new StringBuilder(retVal);
-        for (var i = 0; i < Size; i++)
-            builder.AppendFormat("{0:x2}", Bits[Size]);
-        builder.Append(")");
         return builder.ToString();
     }
 
-    public void Log(string prefix, bool showFrame = true) =>
-        Logger.Info(prefix + ToString(showFrame));
-
-    public bool Equals(in GameInput other, bool bitsOnly)
+    public bool Equals(GameInput other, bool bitsOnly)
     {
         if (!bitsOnly && Frame != other.Frame)
             Logger.Info("frames don't match: {}, {}", Frame, other.Frame);
@@ -82,15 +63,20 @@ struct GameInput
         if (Size != other.Size)
             Logger.Info("sizes don't match: {}, {}", Size, other.Size);
 
-        if (Mem.BytesEqual(Bits, other.Bits))
+        if (Bits.Equals(other.Bits))
             Logger.Info("bits don't match");
 
         Trace.Assert(Size > 0 && other.Size > 0);
 
         return (bitsOnly || Frame == other.Frame)
                && Size == other.Size
-               && Mem.BytesEqual(Bits, other.Bits);
+               && Bits.Equals(other.Bits);
     }
 
-    public bool IsNullFrame() => Frame is NullFrame;
+    // ReSharper disable once NonReadonlyMemberInGetHashCode
+    public override int GetHashCode() => HashCode.Combine(Size, Bits, Frame);
+    public bool Equals(GameInput other) => Equals(other, false);
+    public override bool Equals(object? obj) => obj is GameInput gi && Equals(gi);
+    public static bool operator ==(GameInput a, GameInput b) => a.Equals(b);
+    public static bool operator !=(GameInput a, GameInput b) => !(a == b);
 }

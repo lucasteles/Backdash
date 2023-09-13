@@ -85,9 +85,9 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
         IPEndPoint peerAddress,
         ConnectStatus[] localConnectStatus)
     {
-        lastReceivedInput = GameInput.Null;
-        lastSentInput = GameInput.Null;
-        lastAckedInput = GameInput.Null;
+        lastReceivedInput = GameInput.Empty;
+        lastSentInput = GameInput.Empty;
+        lastAckedInput = GameInput.Empty;
         ooPacket = new();
         sendQueue = new();
         pendingOutput = new();
@@ -136,7 +136,12 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
 
     Task SendPendingOutput()
     {
-        var offset = 0;
+        Trace.Assert(
+            GameInput.MaxBytes * Max.Players * Mem.ByteSize
+            <
+            1 << BitVector.BitOffsetWriter.NibbleSize
+        );
+
         UdpMsg msg = new()
         {
             Header =
@@ -153,59 +158,58 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
         if (!pendingOutput.IsEmpty)
         {
             ref var front = ref pendingOutput.Peek();
-            using var buffer = Mem.CreateBuffer(front.Size);
-            msg.Input.StartFrame = (uint) front.Frame;
+            var buffer = Mem.Rent(front.Size);
             msg.Input.InputSize = (byte) front.Size;
-            msg.Input.Bits = buffer.Bytes;
-            var last = lastAckedInput;
+            msg.Input.StartFrame = (uint) front.Frame;
+            msg.Input.Bits = buffer;
 
-            Trace.Assert(last.IsNull || last.Frame + 1 == msg.Input.StartFrame);
-            for (var i = 0; i < pendingOutput.Count; i++)
-            {
-                ref var current = ref pendingOutput.Value(i);
-                if (Mem.BytesEqual(current.Bits, last.Bits))
-                    continue;
-
-                Trace.Assert(
-                    GameInput.MaxBytes * Max.Players * 8
-                    <
-                    1 << BitVector.NibbleSize
-                );
-
-                for (var j = 0; j < current.Size * 8; j++)
-                {
-                    Trace.Assert(j < 1 << BitVector.NibbleSize);
-                    if (current.Value(j) == last.Value(j))
-                        continue;
-
-                    BitVector.SetBit(msg.Input.Bits, ref offset);
-                    if (current.Value(j))
-                        BitVector.SetBit(msg.Input.Bits, ref offset);
-                    else
-                        BitVector.ClearBit(msg.Input.Bits, ref offset);
-
-                    BitVector.WriteNibblet(msg.Input.Bits, j, ref offset);
-                }
-
-                BitVector.ClearBit(msg.Input.Bits, ref offset);
-                last = lastSentInput = current;
-            }
+            var offset = WriteCompressedInput(ref msg.Input.Bits, msg.Input.StartFrame);
+            msg.Input.NumBits = (ushort) offset;
+            Trace.Assert(offset < Max.CompressedBits);
         }
 
         msg.Input.AckFrame = lastReceivedInput.Frame;
-        msg.Input.NumBits = (ushort) offset;
-        Trace.Assert(offset < Max.CompressedBits);
-
         msg.Input.DisconnectRequested = currentState is not StateEnum.Disconnected;
-        var status = ArrayPool<ConnectStatus>.Shared.Rent(Max.UdpMsgPlayers);
 
-        if (localConnectStatus.Length > 0)
-            localConnectStatus.CopyTo(status, 0);
-
+        var status = Mem.Rent<ConnectStatus>(Max.UdpMsgPlayers);
+        if (localConnectStatus.Length > 0) localConnectStatus.CopyTo(status, 0);
         msg.Input.PeerConnectStatus = status;
-        return SendMsg(msg).ContinueWith(_ =>
-            ArrayPool<ConnectStatus>.Shared.Return(status)
-        );
+
+        return SendMsg(msg);
+    }
+
+    int WriteCompressedInput(ref byte[] bits, uint startFrame)
+    {
+        BitVector.BitOffsetWriter bitWriter = new(bits);
+        var last = lastAckedInput;
+        Trace.Assert(last.IsNullFrame || last.Frame + 1 == startFrame);
+
+        for (var i = 0; i < pendingOutput.Count; i++)
+        {
+            ref var current = ref pendingOutput.Get(i);
+            if (current.Bits != last.Bits)
+            {
+                for (var j = 0; j < current.Bits.BitCount; j++)
+                {
+                    if (current.Bits[j] == last.Bits[j])
+                        continue;
+
+                    bitWriter.SetNext();
+
+                    if (current.Bits[j])
+                        bitWriter.SetNext();
+                    else
+                        bitWriter.ClearNext();
+
+                    bitWriter.WriteNibble(j);
+                }
+            }
+
+            bitWriter.ClearNext();
+            last = lastSentInput = current;
+        }
+
+        return bitWriter.Offset;
     }
 
     Task SendMsg(UdpMsg msg)
@@ -231,6 +235,20 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
 
     Task PumpSendQueue()
     {
+        while (!sendQueue.IsEmpty)
+        {
+            ref var entry = ref sendQueue.Peek();
+
+            // TODO: the rest
+
+            sendQueue.Pop();
+            if (entry.Msg.Header.Type is MsgType.Input)
+            {
+                Mem.Return(entry.Msg.Input.Bits);
+                Mem.Return(entry.Msg.Input.PeerConnectStatus);
+            }
+        }
+
         throw new NotImplementedException();
     }
 

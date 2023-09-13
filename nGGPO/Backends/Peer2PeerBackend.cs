@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Threading.Tasks;
 using nGGPO.Network;
 using nGGPO.Network.Messages;
 using nGGPO.Serialization;
@@ -89,10 +90,7 @@ class Peer2PeerBackend<TInput, TGameState> : ISession<TInput, TGameState>
         return ErrorCode.Ok;
     }
 
-    public ErrorCode AddLocalInput(Player player, in TInput input) =>
-        AddLocalInput(player.Handle, in input);
-
-    public ErrorCode AddLocalInput(PlayerHandle player, in TInput localInput)
+    public async Task<ErrorCode> AddLocalInput(PlayerHandle player, TInput localInput)
     {
         if (sync.InRollback())
             return ErrorCode.InRollback;
@@ -110,7 +108,7 @@ class Peer2PeerBackend<TInput, TGameState> : ISession<TInput, TGameState>
         if (!sync.AddLocalInput(queue, input))
             return ErrorCode.PredictionThreshold;
 
-        if (!input.IsNullFrame())
+        if (!input.IsNullFrame)
         {
             Logger.Info("setting local connect status for local queue {0} to {1}",
                 queue, input.Frame);
@@ -120,7 +118,7 @@ class Peer2PeerBackend<TInput, TGameState> : ISession<TInput, TGameState>
             // Send the input to all the remote players.
             for (var i = 0; i < numPlayers; i++)
                 if (endpoints[i].IsInitialized())
-                    endpoints[i].SendInput(in input);
+                    await endpoints[i].SendInput(in input);
         }
 
         return ErrorCode.Ok;

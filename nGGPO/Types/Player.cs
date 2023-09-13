@@ -30,6 +30,8 @@ public abstract class Player
 
     internal void SetHandle(PlayerHandle handle) => Handle = handle;
 
+    public static implicit operator PlayerHandle(Player player) => player.Handle;
+
     public Player(int playerNumber)
     {
         PlayerNumber = playerNumber;
