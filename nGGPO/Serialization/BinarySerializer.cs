@@ -8,7 +8,7 @@ public interface IBinarySerializer<T> where T : struct
 
 public abstract class BinarySerializer<T> : IBinarySerializer<T> where T : struct
 {
-    public abstract int SizeOf(T data);
+    public abstract int SizeOf(in T data);
 
     public bool Network { get; set; } = true;
 
@@ -18,8 +18,13 @@ public abstract class BinarySerializer<T> : IBinarySerializer<T> where T : struc
 
     public PooledBuffer Serialize(T data)
     {
-        var buffer = Mem.CreateBuffer(SizeOf(data));
-        NetworkBufferWriter writer = new(buffer.Bytes, Network);
+        var buffer = Mem.CreateBuffer(SizeOf(in data));
+        return Serialize(in data, in buffer);
+    }
+
+    public PooledBuffer Serialize(in T data, in PooledBuffer buffer, int offset = 0)
+    {
+        NetworkBufferWriter writer = new(buffer.Bytes, Network, offset);
         Serialize(ref writer, in data);
         return buffer;
     }

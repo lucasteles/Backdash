@@ -1,46 +1,136 @@
-﻿using System.Runtime.InteropServices;
+﻿using System;
+using System.Diagnostics.Contracts;
+using System.Runtime.InteropServices;
 using nGGPO.Network.Messages;
+using nGGPO.Serialization;
 
 namespace nGGPO.Network;
 
-[StructLayout(LayoutKind.Explicit, Pack = 1)]
-struct UdpMsg
+[StructLayout(LayoutKind.Explicit)]
+struct UdpMsg : IDisposable
 {
-    const int HeaderSize = 5;
-
     [FieldOffset(0)]
     public Header Header;
 
-    [FieldOffset(HeaderSize)]
+    [FieldOffset(Header.Size)]
     public SyncRequest SyncRequest;
 
-    [FieldOffset(HeaderSize)]
+    [FieldOffset(Header.Size)]
     public SyncReply SyncReply;
 
-    [FieldOffset(HeaderSize)]
+    [FieldOffset(Header.Size)]
     public QualityReport QualityReport;
 
-    [FieldOffset(HeaderSize)]
+    [FieldOffset(Header.Size)]
     public QualityReply QualityReply;
 
-    [FieldOffset(HeaderSize)]
+    [FieldOffset(Header.Size)]
     public InputAck InputAck;
 
-    [FieldOffset(HeaderSize)]
+    [FieldOffset(Header.Size)]
+    public KeepAlive KeepAlive;
+
+    [FieldOffset(Header.Size)]
     public InputMsg Input;
 
-    public int PacketSize() => Marshal.SizeOf(Header) + PayloadSize();
-
-    int PayloadSize() =>
+    [Pure]
+    public int PacketSize() =>
+        Header.Size +
         Header.Type switch
         {
-            MsgType.SyncRequest => Marshal.SizeOf(SyncRequest),
-            MsgType.SyncReply => Marshal.SizeOf(SyncReply),
-            MsgType.QualityReport => Marshal.SizeOf(QualityReport),
-            MsgType.QualityReply => Marshal.SizeOf(QualityReply),
-            MsgType.InputAck => Marshal.SizeOf(InputAck),
-            MsgType.Input => Marshal.SizeOf(Input),
-            MsgType.KeepAlive => 0,
-            _ => 0,
+            MsgType.SyncRequest => SyncRequest.Size,
+            MsgType.SyncReply => SyncReply.Size,
+            MsgType.QualityReport => QualityReport.Size,
+            MsgType.QualityReply => QualityReply.Size,
+            MsgType.InputAck => InputAck.Size,
+            MsgType.KeepAlive => KeepAlive.Size,
+            MsgType.Input => Input.PacketSize(),
+            MsgType.Invalid => throw new InvalidOperationException(),
+            _ => throw new ArgumentOutOfRangeException(),
         };
+
+    public void Dispose()
+    {
+        if (Header.Type is MsgType.Input)
+            Input.Dispose();
+    }
+}
+
+class UdpMsgBinarySerializer : BinarySerializer<UdpMsg>
+{
+    public static readonly UdpMsgBinarySerializer Instance = new();
+
+    public override int SizeOf(in UdpMsg data) => data.PacketSize();
+
+    protected internal override void Serialize(ref NetworkBufferWriter writer, in UdpMsg data)
+    {
+        Header.Serializer.Instance.Serialize(ref writer, in data.Header);
+        switch (data.Header.Type)
+        {
+            case MsgType.SyncRequest:
+                SyncRequest.Serializer.Instance.Serialize(ref writer, in data.SyncRequest);
+                break;
+            case MsgType.SyncReply:
+                SyncReply.Serializer.Instance.Serialize(ref writer, in data.SyncReply);
+                break;
+            case MsgType.QualityReport:
+                QualityReport.Serializer.Instance.Serialize(ref writer, in data.QualityReport);
+                break;
+            case MsgType.QualityReply:
+                QualityReply.Serializer.Instance.Serialize(ref writer, in data.QualityReply);
+                break;
+            case MsgType.InputAck:
+                InputAck.Serializer.Instance.Serialize(ref writer, in data.InputAck);
+                break;
+            case MsgType.KeepAlive:
+                KeepAlive.Serializer.Instance.Serialize(ref writer, in data.KeepAlive);
+                break;
+            case MsgType.Input:
+                InputMsg.Serializer.Instance.Serialize(ref writer, in data.Input);
+                break;
+            case MsgType.Invalid:
+                throw new InvalidOperationException();
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+    }
+
+    protected internal override UdpMsg Deserialize(ref NetworkBufferReader reader)
+    {
+        UdpMsg data = new()
+        {
+            Header = Header.Serializer.Instance.Deserialize(ref reader),
+        };
+
+        switch (data.Header.Type)
+        {
+            case MsgType.SyncRequest:
+                data.SyncRequest = SyncRequest.Serializer.Instance.Deserialize(ref reader);
+                break;
+            case MsgType.SyncReply:
+                data.SyncReply = SyncReply.Serializer.Instance.Deserialize(ref reader);
+                break;
+            case MsgType.QualityReport:
+                data.QualityReport = QualityReport.Serializer.Instance.Deserialize(ref reader);
+                break;
+            case MsgType.QualityReply:
+                data.QualityReply = QualityReply.Serializer.Instance.Deserialize(ref reader);
+                break;
+            case MsgType.InputAck:
+                data.InputAck = InputAck.Serializer.Instance.Deserialize(ref reader);
+                break;
+            case MsgType.KeepAlive:
+                data.KeepAlive = KeepAlive.Serializer.Instance.Deserialize(ref reader);
+                break;
+            case MsgType.Input:
+                data.Input = InputMsg.Serializer.Instance.Deserialize(ref reader);
+                break;
+            case MsgType.Invalid:
+                throw new InvalidOperationException();
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+
+        return data;
+    }
 }

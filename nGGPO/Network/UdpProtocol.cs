@@ -147,20 +147,15 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
             {
                 Type = MsgType.Input,
             },
-            Input =
-            {
-                StartFrame = 0,
-                InputSize = 0,
-            },
         };
 
         if (!pendingOutput.IsEmpty)
         {
             ref var front = ref pendingOutput.Peek();
-            var buffer = Mem.Rent(front.Size);
+
+            msg.Input = new(front.Size, Max.UdpMsgPlayers);
             msg.Input.InputSize = (byte) front.Size;
             msg.Input.StartFrame = front.Frame;
-            msg.Input.Bits = buffer;
 
             var offset = WriteCompressedInput(ref msg.Input.Bits, msg.Input.StartFrame);
             msg.Input.NumBits = (ushort) offset;
@@ -170,9 +165,9 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
         msg.Input.AckFrame = lastReceivedInput.Frame;
         msg.Input.DisconnectRequested = currentState is not StateEnum.Disconnected;
 
-        var status = Mem.Rent<ConnectStatus>(Max.UdpMsgPlayers);
-        if (localConnectStatus.Length > 0) localConnectStatus.CopyTo(status, 0);
-        msg.Input.PeerConnectStatus = status;
+        msg.Input.EnsurePeers(Max.UdpMsgPlayers);
+        if (localConnectStatus.Length > 0)
+            localConnectStatus.CopyTo(msg.Input.PeerConnectStatus, 0);
 
         return SendMsg(msg);
     }
@@ -238,14 +233,10 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
         {
             ref var entry = ref sendQueue.Peek();
 
-            // TODO: the rest
+            // TODO: everything else
 
             sendQueue.Pop();
-            if (entry.Msg.Header.Type is MsgType.Input)
-            {
-                Mem.Return(entry.Msg.Input.Bits);
-                Mem.Return(entry.Msg.Input.PeerConnectStatus);
-            }
+            entry.Msg.Dispose();
         }
 
         throw new NotImplementedException();

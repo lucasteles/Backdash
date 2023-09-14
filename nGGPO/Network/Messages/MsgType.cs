@@ -1,6 +1,6 @@
 ﻿namespace nGGPO.Network.Messages;
 
-public enum MsgType : byte
+enum MsgType : byte
 {
     Invalid,
     SyncRequest,
@@ -10,4 +10,4 @@ public enum MsgType : byte
     QualityReply,
     KeepAlive,
     InputAck,
-};
+}

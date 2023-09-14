@@ -72,7 +72,7 @@ public struct Input
 
 class InputSerializer : BinarySerializer<Input>
 {
-    public override int SizeOf(Input data) =>
+    public override int SizeOf(in Input data) =>
         sizeof(int) + sizeof(byte) + sizeof(uint) +
         data.Bits.Length * sizeof(byte);
 
@@ -90,9 +90,9 @@ class InputSerializer : BinarySerializer<Input>
         return new()
         {
             S = size,
-            A = reader.Read(),
+            A = reader.ReadByte(),
             B = reader.ReadUInt(),
-            Bits = reader.Read(size),
+            Bits = reader.ReadByte(size),
         };
     }
 }

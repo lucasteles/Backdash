@@ -1,13 +1,13 @@
 ﻿namespace nGGPO.Network;
 
-readonly record struct UdpStats
+record struct UdpStats
 (
     int BytesSent,
     int PacketsSent,
     float KbpsSent
 );
 
-readonly record struct ProtocolStats
+record struct ProtocolStats
 (
     int Ping,
     int RemoteFrameAdvantage,

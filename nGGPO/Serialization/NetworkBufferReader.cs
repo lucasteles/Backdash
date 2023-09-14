@@ -17,9 +17,9 @@ public ref struct NetworkBufferReader
         this.offset = offset;
     }
 
-    public byte Read() => buffer[offset++];
+    public byte ReadByte() => buffer[offset++];
 
-    public void Read(in Span<byte> data)
+    public void ReadByte(in Span<byte> data)
     {
         var size = data.Length;
         var slice = buffer.Slice(offset, size);
@@ -27,10 +27,10 @@ public ref struct NetworkBufferReader
         slice.CopyTo(data);
     }
 
-    public byte[] Read(int size)
+    public byte[] ReadByte(int size)
     {
         var data = new byte[size];
-        Read(data);
+        ReadByte(data);
         return data;
     }
 

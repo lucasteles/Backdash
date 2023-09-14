@@ -16,18 +16,18 @@ static class PrimitiveBinarySerializers
 {
     public class ByteSerializer : BinarySerializer<byte>
     {
-        public override int SizeOf(byte data) => sizeof(byte);
+        public override int SizeOf(in byte data) => sizeof(byte);
 
         protected internal override void Serialize(ref NetworkBufferWriter writer, in byte data) =>
             writer.Write(data);
 
         protected internal override byte Deserialize(ref NetworkBufferReader reader) =>
-            reader.Read();
+            reader.ReadByte();
     }
 
     public class ShortSerializer : BinarySerializer<short>
     {
-        public override int SizeOf(short data) => sizeof(short);
+        public override int SizeOf(in short data) => sizeof(short);
 
         protected internal override void Serialize(ref NetworkBufferWriter writer, in short data) =>
             writer.Write(data);
@@ -38,7 +38,7 @@ static class PrimitiveBinarySerializers
 
     public class IntSerializer : BinarySerializer<int>
     {
-        public override int SizeOf(int data) => sizeof(int);
+        public override int SizeOf(in int data) => sizeof(int);
 
         protected internal override void Serialize(ref NetworkBufferWriter writer, in int data) =>
             writer.Write(data);
@@ -49,7 +49,7 @@ static class PrimitiveBinarySerializers
 
     public class LongSerializer : BinarySerializer<long>
     {
-        public override int SizeOf(long data) => sizeof(long);
+        public override int SizeOf(in long data) => sizeof(long);
 
         protected internal override void Serialize(ref NetworkBufferWriter writer, in long data) =>
             writer.Write(data);
@@ -60,7 +60,7 @@ static class PrimitiveBinarySerializers
 
     public class SByteSerializer : BinarySerializer<sbyte>
     {
-        public override int SizeOf(sbyte data) => sizeof(sbyte);
+        public override int SizeOf(in sbyte data) => sizeof(sbyte);
 
         protected internal override void Serialize(ref NetworkBufferWriter writer, in sbyte data) =>
             writer.Write(data);
@@ -71,7 +71,7 @@ static class PrimitiveBinarySerializers
 
     public class UShortSerializer : BinarySerializer<ushort>
     {
-        public override int SizeOf(ushort data) => sizeof(ushort);
+        public override int SizeOf(in ushort data) => sizeof(ushort);
 
         protected internal override void
             Serialize(ref NetworkBufferWriter writer, in ushort data) =>
@@ -83,7 +83,7 @@ static class PrimitiveBinarySerializers
 
     public class UIntSerializer : BinarySerializer<uint>
     {
-        public override int SizeOf(uint data) => sizeof(uint);
+        public override int SizeOf(in uint data) => sizeof(uint);
 
         protected internal override void Serialize(ref NetworkBufferWriter writer, in uint data) =>
             writer.Write(data);
@@ -94,7 +94,7 @@ static class PrimitiveBinarySerializers
 
     public class ULongSerializer : BinarySerializer<ulong>
     {
-        public override int SizeOf(ulong data) => sizeof(ulong);
+        public override int SizeOf(in ulong data) => sizeof(ulong);
 
         protected internal override void Serialize(ref NetworkBufferWriter writer, in ulong data) =>
             writer.Write(data);
@@ -105,7 +105,7 @@ static class PrimitiveBinarySerializers
 
     public class CharSerializer : BinarySerializer<char>
     {
-        public override int SizeOf(char data) => sizeof(char);
+        public override int SizeOf(in char data) => sizeof(char);
 
         protected internal override void Serialize(ref NetworkBufferWriter writer, in char data) =>
             writer.Write(data);
@@ -116,7 +116,7 @@ static class PrimitiveBinarySerializers
 
     public class BoolSerializer : BinarySerializer<bool>
     {
-        public override int SizeOf(bool data) => sizeof(bool);
+        public override int SizeOf(in bool data) => sizeof(bool);
 
         protected internal override void Serialize(ref NetworkBufferWriter writer, in bool data) =>
             writer.Write(data);
@@ -134,7 +134,7 @@ static class PrimitiveBinarySerializers
         public EnumSerializer(BinarySerializer<TInt> valueSerializer) =>
             this.valueSerializer = valueSerializer;
 
-        public override int SizeOf(TEnum data) => valueSerializer.SizeOf(default);
+        public override int SizeOf(in TEnum data) => valueSerializer.SizeOf(default);
 
         protected internal override void Serialize(ref NetworkBufferWriter writer,
             in TEnum data) =>

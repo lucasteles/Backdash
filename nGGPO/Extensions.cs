@@ -21,7 +21,6 @@ public static class Extensions
 
     public static ButtonsInputEditor GetEditor(this ButtonsInput input) => new(input);
 
-
     public static PadInput.PadButtons SetFlag(
         this PadInput.PadButtons flags,
         PadInput.PadButtons flag, bool value) =>
