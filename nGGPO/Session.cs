@@ -1,6 +1,4 @@
-﻿using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Text.Json;
+﻿using System;
 using nGGPO.Backends;
 using nGGPO.Serialization;
 
@@ -13,8 +11,7 @@ public class Session
         string game,
         int numPlayers,
         int localPort,
-        IBinarySerializer<TInput>? inputSerializer = null,
-        JsonSerializerOptions? options = null
+        IBinarySerializer<TInput>? inputSerializer = null
     )
         where TInput : struct
         where TGameState : struct
@@ -25,13 +22,13 @@ public class Session
             numPlayers);
     }
 
-    public static IBinarySerializer<TInput> GetSerializer<TInput>(
-        JsonSerializerOptions? options = null) where TInput : notnull
+    public static IBinarySerializer<TInput> GetSerializer<TInput>() where TInput : struct
     {
         var inputType = typeof(TInput);
         if (inputType is {IsValueType: true, StructLayoutAttribute: not null})
             return new StructMarshalBinarySerializer<TInput>();
 
-        return new JsonBinarySerializer<TInput>(options);
+        throw new InvalidOperationException(
+            $"Unable to infer serializer for type {typeof(TInput).FullName}");
     }
 }

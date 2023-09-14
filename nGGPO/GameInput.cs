@@ -6,39 +6,67 @@ namespace nGGPO;
 
 using System.Text;
 
-struct GameInput : IEquatable<GameInput>
+readonly record struct Frame : IComparable<Frame>, IComparable<int>, IEquatable<int>
 {
-    public const int NullFrame = -1;
+    public const sbyte NullValue = -1;
+    public static readonly Frame Null = new();
+    public static readonly Frame Zero = new(0);
+    public int Number { get; } = NullValue;
+    public Frame(int number) => Number = number;
+    public Frame Next => new(Number + 1);
+    public bool IsNull => Number is NullValue;
+    public bool IsValid => !IsNull;
+
+    public int CompareTo(Frame other) => Number.CompareTo(other.Number);
+    public int CompareTo(int other) => Number.CompareTo(other);
+    public bool Equals(int other) => Number == other;
+
+    public override string ToString() => Number.ToString();
+
+    public static Frame operator +(Frame a, Frame b) => new(a.Number + b.Number);
+    public static Frame operator +(Frame a, int b) => new(a.Number + b);
+    public static Frame operator +(int a, Frame b) => new(a + b.Number);
+    public static Frame operator ++(Frame frame) => frame.Next;
+
+    public static implicit operator int(Frame frame) => frame.Number;
+    public static explicit operator Frame(int frame) => new(frame);
+}
+
+struct GameInput : IEquatable<GameInput>, IDisposable
+{
+    readonly PooledBuffer buffer;
     public const int MaxBytes = 8;
 
-    public int Frame { get; set; } = NullFrame;
+    public Frame Frame { get; private set; } = Frame.Null;
     public int Size { get; }
-
     public BitVector Bits { get; }
-
-    public static GameInput Empty => new(size: 1);
+    public static GameInput Empty => new();
 
     public GameInput(int size)
     {
         Size = size;
         Bits = BitVector.Empty;
+        buffer = PooledBuffer.Empty;
     }
 
-    public GameInput(byte[] ibits, int size)
+    public GameInput(PooledBuffer ibits, int size)
     {
         Trace.Assert(ibits.Length <= MaxBytes * Max.Players);
         Trace.Assert(ibits.Length > 0);
 
         Size = size;
-        Bits = new(ibits);
+        buffer = ibits;
+        Bits = new(ibits.Bytes);
     }
 
-    public GameInput(byte[] ibits) : this(ibits, ibits.Length)
+    public GameInput(PooledBuffer ibits) : this(ibits, ibits.Length)
     {
     }
 
-    public bool IsNullFrame => Frame is NullFrame;
-
+    public bool IsEmpty => Size is 0 && Bits.IsEmpty;
+    public void IncrementFrame() => Frame = Frame.Next;
+    public void SetFrame(Frame frame) => Frame = frame;
+    public void ResetFrame() => Frame = Frame.Null;
     public void Clear() => Bits.Erase();
 
     public override string ToString()
@@ -79,4 +107,6 @@ struct GameInput : IEquatable<GameInput>
     public override bool Equals(object? obj) => obj is GameInput gi && Equals(gi);
     public static bool operator ==(GameInput a, GameInput b) => a.Equals(b);
     public static bool operator !=(GameInput a, GameInput b) => !(a == b);
+
+    public void Dispose() => buffer.Dispose();
 }

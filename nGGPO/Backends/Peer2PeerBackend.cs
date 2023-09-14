@@ -102,13 +102,13 @@ class Peer2PeerBackend<TInput, TGameState> : ISession<TInput, TGameState>
         if (!result.IsSuccess())
             return result;
 
-        using var inputBuffer = inputSerializer.Serialize(localInput);
-        GameInput input = new(inputBuffer.Bytes);
+        var inputBuffer = inputSerializer.Serialize(localInput);
+        GameInput input = new(inputBuffer);
 
         if (!sync.AddLocalInput(queue, input))
             return ErrorCode.PredictionThreshold;
 
-        if (!input.IsNullFrame)
+        if (!input.Frame.IsNull)
         {
             Logger.Info("setting local connect status for local queue {0} to {1}",
                 queue, input.Frame);
@@ -211,7 +211,7 @@ class Peer2PeerBackend<TInput, TGameState> : ISession<TInput, TGameState>
             return;
         }
 
-        for (int i = 0; i < numSpectators; i++)
+        for (var i = 0; i < numSpectators; i++)
         {
             if (!spectators[i].HandlesMsg(from, in msg)) continue;
             spectators[i].OnMsg(in msg, len);

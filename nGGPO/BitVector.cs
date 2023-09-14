@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Text;
 
 namespace nGGPO;
 
@@ -105,4 +104,6 @@ struct BitVector : IEquatable<BitVector>
             return nibble;
         }
     }
+
+    public bool IsEmpty => Bits.Length is 0;
 }

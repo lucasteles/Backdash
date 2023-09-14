@@ -1,62 +1,54 @@
 ﻿using System;
 using System.Buffers;
-using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Text;
 
 namespace nGGPO;
 
-public readonly struct ScopedBuffer : IDisposable
+public readonly struct PooledBuffer : IDisposable
 {
     public readonly byte[] Bytes;
-    readonly bool pooled;
 
-    public ScopedBuffer(int size)
-    {
-        Bytes = Mem.Rent<byte>(size);
-        pooled = true;
-    }
+    public PooledBuffer(int size) => Bytes = Mem.Rent<byte>(size);
 
-    public ScopedBuffer(byte[] bytes)
-    {
-        Bytes = bytes;
-        pooled = false;
-    }
+    public int Length => Bytes.Length;
+
+    public static readonly PooledBuffer Empty = new();
 
     public void Dispose()
     {
-        if (pooled)
+        if (Bytes?.Length > 0)
             Mem.Return(Bytes, true);
     }
 
-    public static implicit operator byte[](ScopedBuffer @this) => @this.Bytes;
-    public static implicit operator ReadOnlySpan<byte>(ScopedBuffer @this) => @this.Bytes;
-    public static implicit operator Span<byte>(ScopedBuffer @this) => @this.Bytes;
+    public static implicit operator byte[](PooledBuffer @this) => @this.Bytes;
+    public static implicit operator ReadOnlySpan<byte>(PooledBuffer @this) => @this.Bytes;
+    public static implicit operator Span<byte>(PooledBuffer @this) => @this.Bytes;
 }
 
 public static class Mem
 {
     public const int ByteSize = 8;
-    public static ScopedBuffer CreateBuffer(int size) => new(size);
+    public static PooledBuffer CreateBuffer(int size) => new(size);
 
     public static T[] Rent<T>(int size) => ArrayPool<T>.Shared.Rent(size);
     public static byte[] Rent(int size) => Rent<byte>(size);
 
-    public static void Return<T>(T[] arr, bool clearArray = true) =>
+    public static void Return<T>(T[] arr, bool clearArray = false) =>
         ArrayPool<T>.Shared.Return(arr, clearArray);
 
     public static bool BytesEqual(ReadOnlySpan<byte> a1, ReadOnlySpan<byte> a2) =>
         a1.Length == a2.Length && a1.SequenceEqual(a2);
 
-    public static ScopedBuffer SerializeMarshal<T>(T message) where T : notnull
+    public static PooledBuffer SerializeMarshal<T>(T message) where T : struct
     {
         var size = Marshal.SizeOf(message);
-        ScopedBuffer buffer = new(size);
+        var buffer = CreateBuffer(size);
         SerializeMarshal(message, buffer, size);
         return buffer;
     }
 
-    public static void SerializeMarshal<T>(T message, byte[] body, int size) where T : notnull
+    public static void SerializeMarshal<T>(T message, byte[] body, int size) where T : struct
     {
         var ptr = Marshal.AllocHGlobal(size);
         try
@@ -71,14 +63,14 @@ public static class Mem
         }
     }
 
-    public static T DeserializeMarshal<T>(byte[] body) where T : notnull
+    public static T DeserializeMarshal<T>(byte[] body) where T : struct
     {
         var size = Marshal.SizeOf<T>();
         return DeserializeMarshal<T>(body, size);
     }
 
 
-    public static T DeserializeMarshal<T>(byte[] body, int size) where T : notnull
+    public static T DeserializeMarshal<T>(byte[] body, int size) where T : struct
     {
         var ptr = Marshal.AllocHGlobal(size);
 

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Buffers;
 using System.Diagnostics;
 using System.Net;
 using System.Threading.Tasks;
@@ -97,7 +96,7 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
 
         peerConnectStatus = new ConnectStatus[Max.UdpMsgPlayers];
         for (var i = 0; i < peerConnectStatus.Length; i++)
-            peerConnectStatus[i].LastFrame = -1;
+            peerConnectStatus[i].LastFrame = Frame.NullValue;
 
         sendLatency = Platform.GetConfigInt("ggpo.network.delay");
         oopPercent = Platform.GetConfigInt("ggpo.oop.percent");
@@ -160,7 +159,7 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
             ref var front = ref pendingOutput.Peek();
             var buffer = Mem.Rent(front.Size);
             msg.Input.InputSize = (byte) front.Size;
-            msg.Input.StartFrame = (uint) front.Frame;
+            msg.Input.StartFrame = front.Frame;
             msg.Input.Bits = buffer;
 
             var offset = WriteCompressedInput(ref msg.Input.Bits, msg.Input.StartFrame);
@@ -178,11 +177,11 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
         return SendMsg(msg);
     }
 
-    int WriteCompressedInput(ref byte[] bits, uint startFrame)
+    int WriteCompressedInput(ref byte[] bits, int startFrame)
     {
         BitVector.BitOffsetWriter bitWriter = new(bits);
         var last = lastAckedInput;
-        Trace.Assert(last.IsNullFrame || last.Frame + 1 == startFrame);
+        Trace.Assert(last.Frame.IsNull || last.Frame.Next == startFrame);
 
         for (var i = 0; i < pendingOutput.Count; i++)
         {

@@ -53,7 +53,7 @@ public struct InputMsg
     [MarshalAs(UnmanagedType.ByValArray, SizeConst = Max.UdpMsgPlayers)]
     public ConnectStatus[] PeerConnectStatus;
 
-    public uint StartFrame;
+    public int StartFrame;
 
     [MarshalAs(UnmanagedType.I1)]
     public bool DisconnectRequested;
