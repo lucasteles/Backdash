@@ -146,4 +146,12 @@ public ref struct NetworkBufferReader
         for (var i = 0; i < values.Length; i++)
             values[i] = ReadULong();
     }
+
+    public sbyte ReadSByte() => unchecked((sbyte) buffer[offset++]);
+
+    public void ReadSByte(in Span<sbyte> values)
+    {
+        for (var i = 0; i < values.Length; i++)
+            values[i] = ReadSByte();
+    }
 }

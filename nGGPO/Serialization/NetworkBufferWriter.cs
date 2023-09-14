@@ -25,6 +25,14 @@ public ref struct NetworkBufferWriter
         offset += value.Length;
     }
 
+    public void Write(sbyte value) => buffer[offset++] = unchecked((byte) value);
+
+    public void Write(in ReadOnlySpan<sbyte> value)
+    {
+        for (var i = 0; i < value.Length; i++)
+            Write(value[i]);
+    }
+
     public void Write(int value)
     {
         var reordered = network ? IPAddress.HostToNetworkOrder(value) : value;
