@@ -4,7 +4,7 @@ using nGGPO.Types;
 
 namespace nGGPO;
 
-public interface ISession<TInput, TGameState> : IDisposable
+public interface IRollbackSession<TInput, TGameState> : IDisposable
     where TInput : struct
     where TGameState : struct
 {

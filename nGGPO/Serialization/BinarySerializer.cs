@@ -12,9 +12,9 @@ public abstract class BinarySerializer<T> : IBinarySerializer<T> where T : struc
 
     public bool Network { get; set; } = true;
 
-    protected abstract void Serialize(ref NetworkBufferWriter writer, in T data);
+    protected internal abstract void Serialize(ref NetworkBufferWriter writer, in T data);
 
-    protected abstract T Deserialize(ref NetworkBufferReader reader);
+    protected internal abstract T Deserialize(ref NetworkBufferReader reader);
 
     public PooledBuffer Serialize(T data)
     {

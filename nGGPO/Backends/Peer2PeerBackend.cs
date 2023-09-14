@@ -9,7 +9,7 @@ using nGGPO.Types;
 
 namespace nGGPO.Backends;
 
-class Peer2PeerBackend<TInput, TGameState> : ISession<TInput, TGameState>
+class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGameState>
     where TInput : struct
     where TGameState : struct
 {

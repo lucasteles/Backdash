@@ -87,7 +87,7 @@ public ref struct NetworkBufferWriter
     public void Write(bool value)
     {
         BitConverter.TryWriteBytes(buffer[offset..], value).AssertTrue();
-        offset += sizeof(char);
+        offset += sizeof(bool);
     }
 
     public void Write(in ReadOnlySpan<bool> value)

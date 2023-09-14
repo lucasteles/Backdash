@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Buffers;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -84,6 +85,22 @@ public static class Mem
         {
             Marshal.FreeHGlobal(ptr);
         }
+    }
+
+    public static TInt EnumAsInteger<TEnum, TInt>(TEnum enumValue)
+        where TEnum : unmanaged, Enum
+        where TInt : unmanaged
+    {
+        if (Unsafe.SizeOf<TEnum>() != Unsafe.SizeOf<TInt>()) throw new Exception("type mismatch");
+        return Unsafe.As<TEnum, TInt>(ref enumValue);
+    }
+
+    public static TEnum IntegerAsEnum<TEnum, TInt>(TInt intValue)
+        where TEnum : unmanaged, Enum
+        where TInt : unmanaged
+    {
+        if (Unsafe.SizeOf<TEnum>() != Unsafe.SizeOf<TInt>()) throw new Exception("type mismatch");
+        return Unsafe.As<TInt, TEnum>(ref intValue);
     }
 
     public static string GetBitString(
