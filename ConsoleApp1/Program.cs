@@ -1,6 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using System.Text.Json;
 using nGGPO;
+using nGGPO.Inputs;
 using nGGPO.Serialization;
 
 void Dump(in ReadOnlySpan<byte> bytes, string source = "")
