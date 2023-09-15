@@ -11,21 +11,29 @@ public static class Mem
     public const int ByteSize = 8;
 
     const int MaxStackLimit = 1024;
-    public static IMemoryOwner<T> Rent<T>(int size) => MemoryPool<T>.Shared.Rent(size);
-    public static IMemoryOwner<byte> Rent(int size) => Rent<byte>(size);
+    const int MaximumBufferSize = int.MaxValue;
 
-    public static void Return<T>(T[] arr, bool clearArray = false) =>
-        ArrayPool<T>.Shared.Return(arr, clearArray);
+    public static MemoryBuffer<T> Rent<T>(int size = -1)
+    {
+        if (size == -1)
+            size = 1 + 4095 / Unsafe.SizeOf<T>();
+        else if ((uint) size > MaximumBufferSize)
+            throw new ArgumentOutOfRangeException(nameof(size));
+
+        return new(size);
+    }
+
+    public static MemoryBuffer<byte> Rent(int size) => Rent<byte>(size);
 
     public static bool BytesEqual(ReadOnlySpan<byte> a1, ReadOnlySpan<byte> a2) =>
         a1.Length == a2.Length && a1.SequenceEqual(a2);
 
-    public static IMemoryOwner<byte> StructToBytes<T>(T message)
+    public static MemoryBuffer<byte> StructToBytes<T>(T message)
         where T : struct
     {
         var size = Marshal.SizeOf(message);
         var buffer = Rent(size);
-        StructToBytes(message, buffer.Memory.Span);
+        StructToBytes(message, buffer);
         return buffer;
     }
 

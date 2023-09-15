@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Buffers;
 using nGGPO.Serialization.Buffer;
 using nGGPO.Utils;
 
@@ -7,7 +6,7 @@ namespace nGGPO.Serialization;
 
 public interface IBinarySerializer<T> where T : struct
 {
-    IMemoryOwner<byte> Serialize(T message);
+    MemoryBuffer<byte> Serialize(T message);
     T Deserialize(ReadOnlySpan<byte> body);
 }
 
@@ -21,15 +20,15 @@ public abstract class BinarySerializer<T> : IBinarySerializer<T> where T : struc
 
     protected internal abstract T Deserialize(ref NetworkBufferReader reader);
 
-    public IMemoryOwner<byte> Serialize(T data)
+    public MemoryBuffer<byte> Serialize(T data)
     {
         var buffer = Mem.Rent(SizeOf(in data));
         return Serialize(in data, in buffer);
     }
 
-    public IMemoryOwner<byte> Serialize(in T data, in IMemoryOwner<byte> buffer, int offset = 0)
+    public MemoryBuffer<byte> Serialize(in T data, in MemoryBuffer<byte> buffer, int offset = 0)
     {
-        NetworkBufferWriter writer = new(buffer.Memory.Span, Network, offset);
+        NetworkBufferWriter writer = new(buffer, Network, offset);
         Serialize(ref writer, in data);
         return buffer;
     }

@@ -6,8 +6,13 @@ namespace nGGPO.Serialization.Buffer;
 public ref struct NetworkBufferWriter
 {
     int offset;
+
     readonly Span<byte> buffer;
     readonly bool network;
+
+    public int WrittenCount => offset;
+    public int Capacity => buffer.Length;
+    public int FreeCapacity => Capacity - WrittenCount;
 
     public NetworkBufferWriter(Span<byte> buffer, bool network = true, int offset = 0)
     {
@@ -15,6 +20,8 @@ public ref struct NetworkBufferWriter
         this.network = network;
         this.offset = offset;
     }
+
+    public void Advance(int count) => offset += count;
 
     public void Write(byte value) => buffer[offset++] = value;
 

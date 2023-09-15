@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Buffers;
 using System.Reflection;
 using nGGPO.Serialization.Buffer;
 using nGGPO.Utils;
@@ -8,7 +7,7 @@ namespace nGGPO.Serialization;
 
 public sealed class StructMarshalBinarySerializer<T> : IBinarySerializer<T> where T : struct
 {
-    public IMemoryOwner<byte> Serialize(T message) => Mem.StructToBytes(message);
+    public MemoryBuffer<byte> Serialize(T message) => Mem.StructToBytes(message);
     public T Deserialize(ReadOnlySpan<byte> body) => Mem.BytesToStruct<T>(body);
 }
 

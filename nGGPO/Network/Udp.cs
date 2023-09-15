@@ -26,10 +26,9 @@ class Udp : IPollLoopSink, IDisposable
 
     public async Task SendTo(UdpMsg msg, IPEndPoint dest)
     {
-        using var owner = serializer.Serialize(msg);
-        var buffer = owner.Memory;
+        using var buffer = serializer.Serialize(msg);
 
-        var unnecessaryAllocationPleaseRemoveThis = buffer.ToArray();
+        var unnecessaryAllocationPleaseRemoveThis = buffer.Span.ToArray();
         var res = await socket.SendAsync(unnecessaryAllocationPleaseRemoveThis, buffer.Length,
             dest);
 

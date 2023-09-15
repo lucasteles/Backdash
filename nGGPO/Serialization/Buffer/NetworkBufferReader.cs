@@ -9,6 +9,10 @@ public ref struct NetworkBufferReader
     readonly ReadOnlySpan<byte> buffer;
     readonly bool network;
 
+    public int ReadCount => offset;
+    public int Capacity => buffer.Length;
+    public int FreeCapacity => Capacity - ReadCount;
+
     public NetworkBufferReader(ReadOnlySpan<byte> buffer, bool network = true, int offset = 0)
     {
         this.buffer = buffer;
@@ -16,6 +20,7 @@ public ref struct NetworkBufferReader
         this.offset = offset;
     }
 
+    public void Advance(int count) => offset += count;
     public byte ReadByte() => buffer[offset++];
 
     public void ReadByte(in Span<byte> data)
@@ -25,8 +30,6 @@ public ref struct NetworkBufferReader
         offset += size;
         slice.CopyTo(data);
     }
-
-    public void ReadMemory(in Memory<byte> data) => ReadByte(data.Span);
 
     public int ReadInt()
     {

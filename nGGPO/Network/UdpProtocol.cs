@@ -148,7 +148,7 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
         input.AckFrame = lastReceivedInput.Frame;
         input.DisconnectRequested = currentState is not StateEnum.Disconnected;
         if (localConnectStatus.Length > 0)
-            localConnectStatus.CopyTo(input.PeerConnectStatus.Span);
+            localConnectStatus.CopyTo(input.PeerConnectStatus);
 
         UdpMsg msg = new()
         {
@@ -174,7 +174,7 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
                 StartFrame = front.Frame,
             };
 
-            var offset = WriteCompressedInput(input.Bits.Span, input.StartFrame);
+            var offset = WriteCompressedInput(input.Bits, input.StartFrame);
             input.NumBits = (ushort) offset;
             Trace.Assert(offset < Max.CompressedBits);
 

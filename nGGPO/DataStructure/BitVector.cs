@@ -11,7 +11,6 @@ struct BitVector : IEquatable<BitVector>
     public int BitCount => Size * Mem.ByteSize;
 
     public Memory<byte> Memory { get; }
-    public Span<byte> Span => Memory.Span;
     public BitVector(in Memory<byte> bits) => Memory = bits;
 
     public static void SetBit(in Span<byte> vector, int index) =>

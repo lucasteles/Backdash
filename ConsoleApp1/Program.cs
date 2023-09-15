@@ -34,16 +34,13 @@ var size = serializer.SizeOf(packet);
 Console.Clear();
 Console.WriteLine($"# Size={size}, SizeM={sizeM}\n");
 
-using var bufferMarshalOwner = Mem.StructToBytes(packet);
-var bufferMarshal = bufferMarshalOwner.Memory.Span;
+using var bufferMarshal = Mem.StructToBytes(packet);
 
 serializer.Network = false;
-using var bufferOwner = serializer.Serialize(packet);
-var buffer = bufferOwner.Memory.Span;
+using var buffer = serializer.Serialize(packet);
 
 serializer.Network = true;
-using var bufferNetWorkOwner = serializer.Serialize(packet);
-var bufferNetWork = bufferNetWorkOwner.Memory.Span;
+using var bufferNetWork = serializer.Serialize(packet);
 
 Dump(bufferMarshal, "Marshall");
 Dump(buffer, "Serial");
