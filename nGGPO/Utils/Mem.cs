@@ -10,6 +10,7 @@ public static class Mem
 {
     public const int ByteSize = 8;
 
+    const int MaxStackLimit = 1024;
     public static IMemoryOwner<T> Rent<T>(int size) => MemoryPool<T>.Shared.Rent(size);
     public static IMemoryOwner<byte> Rent(int size) => Rent<byte>(size);
 
@@ -19,16 +20,73 @@ public static class Mem
     public static bool BytesEqual(ReadOnlySpan<byte> a1, ReadOnlySpan<byte> a2) =>
         a1.Length == a2.Length && a1.SequenceEqual(a2);
 
-    public static IMemoryOwner<byte> StructToBytes<T>(T message) where T : struct
+    public static IMemoryOwner<byte> StructToBytes<T>(T message)
+        where T : struct
     {
         var size = Marshal.SizeOf(message);
         var buffer = Rent(size);
-        MemoryMarshal.Write(buffer.Memory.Span, ref message);
+        StructToBytes(message, buffer.Memory.Span);
         return buffer;
     }
 
-    public static T BytesToStruct<T>(ReadOnlySpan<byte> body) where T : struct =>
-        MemoryMarshal.Read<T>(body);
+    public unsafe static void StructToBytes<T>(T message, Span<byte> body)
+        where T : struct
+    {
+        var size = body.Length;
+
+        nint ptr;
+
+        if (size > MaxStackLimit)
+            ptr = Marshal.AllocHGlobal(size);
+        else
+        {
+            var stackPointer = stackalloc byte[size];
+            ptr = (nint) stackPointer;
+        }
+
+        try
+        {
+            fixed (byte* bodyPtr = body)
+            {
+                Marshal.StructureToPtr(message, ptr, true);
+                Span<byte> source = new((void*) ptr, size);
+                Span<byte> dest = new(bodyPtr, size);
+                source.CopyTo(dest);
+            }
+        }
+        finally
+        {
+            if (size > MaxStackLimit)
+                Marshal.FreeHGlobal(ptr);
+        }
+    }
+
+    public static unsafe T BytesToStruct<T>(ReadOnlySpan<byte> body) where T : struct
+    {
+        var size = body.Length;
+
+        nint ptr;
+
+        if (size > MaxStackLimit)
+            ptr = Marshal.AllocHGlobal(size);
+        else
+        {
+            var stackPointer = stackalloc byte[size];
+            ptr = (nint) stackPointer;
+        }
+
+        try
+        {
+            Span<byte> dest = new((void*) ptr, body.Length);
+            body.CopyTo(dest);
+            return Marshal.PtrToStructure<T>(ptr);
+        }
+        finally
+        {
+            if (size > MaxStackLimit)
+                Marshal.FreeHGlobal(ptr);
+        }
+    }
 
     public static TInt EnumAsInteger<TEnum, TInt>(TEnum enumValue)
         where TEnum : unmanaged, Enum

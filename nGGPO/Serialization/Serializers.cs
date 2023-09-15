@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Buffers;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using nGGPO.Serialization.Buffer;
 using nGGPO.Utils;
 
