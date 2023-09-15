@@ -1,4 +1,4 @@
-﻿namespace nGGPO.Network;
+﻿namespace nGGPO;
 
 public enum EventCode : short
 {

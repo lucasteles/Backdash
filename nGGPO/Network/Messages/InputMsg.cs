@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Diagnostics.Contracts;
 using nGGPO.Serialization;
+using nGGPO.Serialization.Buffer;
+using nGGPO.Utils;
 
 namespace nGGPO.Network.Messages;
 

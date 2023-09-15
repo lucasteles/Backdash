@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
+// ReSharper disable CheckNamespace
 // ReSharper disable InconsistentNaming
 
 namespace nGGPO.Inputs;

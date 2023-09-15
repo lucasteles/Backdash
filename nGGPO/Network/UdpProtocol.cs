@@ -2,8 +2,10 @@
 using System.Diagnostics;
 using System.Net;
 using System.Threading.Tasks;
+using nGGPO.DataStructure;
+using nGGPO.Input;
 using nGGPO.Network.Messages;
-using nGGPO.Types;
+using nGGPO.Utils;
 
 namespace nGGPO.Network;
 

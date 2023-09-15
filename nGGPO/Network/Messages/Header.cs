@@ -1,4 +1,5 @@
 ﻿using nGGPO.Serialization;
+using nGGPO.Serialization.Buffer;
 
 namespace nGGPO.Network.Messages;
 

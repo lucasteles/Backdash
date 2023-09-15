@@ -1,4 +1,4 @@
-﻿namespace nGGPO.Types;
+﻿namespace nGGPO;
 
 public enum ErrorCode : short
 {
@@ -16,3 +16,4 @@ public enum ErrorCode : short
     TooManySpectators = 10,
     InvalidRequest = 11,
 }
+

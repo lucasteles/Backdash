@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace nGGPO.Types;
+namespace nGGPO.Utils;
 
 public static class Platform
 {

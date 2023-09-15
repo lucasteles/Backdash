@@ -3,6 +3,8 @@ using System.Text.Json;
 using nGGPO;
 using nGGPO.Inputs;
 using nGGPO.Serialization;
+using nGGPO.Serialization.Buffer;
+using nGGPO.Utils;
 
 void Dump(in ReadOnlySpan<byte> bytes, string source = "")
 {

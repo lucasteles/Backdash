@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Security.Cryptography;
 
-namespace nGGPO.Types;
+namespace nGGPO.Utils;
 
 public static class Magic
 {

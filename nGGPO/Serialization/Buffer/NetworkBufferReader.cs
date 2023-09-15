@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Buffers.Binary;
-using System.Net;
+using nGGPO.Network;
 
-namespace nGGPO;
+namespace nGGPO.Serialization.Buffer;
 
 public ref struct NetworkBufferReader
 {

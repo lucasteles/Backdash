@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using nGGPO.Network.Messages;
 
-namespace nGGPO;
+namespace nGGPO.Input;
 
-class Sync
+class Synchronizer
 {
-    public Sync(IReadOnlyList<ConnectStatus> localConnectStatus)
+    public Synchronizer(IReadOnlyList<ConnectStatus> localConnectStatus)
     {
         throw new NotImplementedException();
     }

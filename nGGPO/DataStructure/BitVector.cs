@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
+using nGGPO.Utils;
 
-namespace nGGPO;
+namespace nGGPO.DataStructure;
 
 struct BitVector : IEquatable<BitVector>
 {

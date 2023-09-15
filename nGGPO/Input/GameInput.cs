@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Diagnostics;
-using nGGPO.Types;
-
-namespace nGGPO;
-
 using System.Text;
+using nGGPO.DataStructure;
+using nGGPO.Utils;
+
+namespace nGGPO.Input;
 
 readonly record struct Frame : IComparable<Frame>, IComparable<int>, IEquatable<int>
 {

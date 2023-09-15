@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace nGGPO.Types;
+namespace nGGPO;
 
 public enum PlayerType
 {

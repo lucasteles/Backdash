@@ -1,6 +1,7 @@
-﻿namespace nGGPO;
+﻿using System;
+using nGGPO.Utils;
 
-using System;
+namespace nGGPO.Input;
 
 sealed class TimeSync
 {

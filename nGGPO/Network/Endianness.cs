@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Buffers.Binary;
 
-namespace nGGPO;
+namespace nGGPO.Network;
 
 public static class Endianness
 {

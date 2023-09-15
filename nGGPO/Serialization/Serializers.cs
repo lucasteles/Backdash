@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Reflection;
+using nGGPO.Serialization.Buffer;
+using nGGPO.Utils;
 
 namespace nGGPO.Serialization;
 

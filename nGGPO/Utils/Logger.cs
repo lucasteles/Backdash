@@ -1,4 +1,4 @@
-﻿namespace nGGPO;
+﻿namespace nGGPO.Utils;
 
 public static class Logger
 {

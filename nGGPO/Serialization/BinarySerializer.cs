@@ -1,4 +1,7 @@
-﻿namespace nGGPO.Serialization;
+﻿using nGGPO.Serialization.Buffer;
+using nGGPO.Utils;
+
+namespace nGGPO.Serialization;
 
 public interface IBinarySerializer<T> where T : struct
 {

@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace nGGPO.Types;
+namespace nGGPO.DataStructure;
 
 sealed class RingBuffer<T> : IReadOnlyList<T> where T : notnull
 {

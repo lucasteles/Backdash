@@ -1,6 +1,4 @@
-﻿using nGGPO.Network;
-
-namespace nGGPO;
+﻿namespace nGGPO.Backends;
 
 public readonly struct SaveGameState<TState> where TState : struct
 {

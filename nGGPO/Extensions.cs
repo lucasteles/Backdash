@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using nGGPO.Inputs;
-using nGGPO.Types;
 
 namespace nGGPO;
 

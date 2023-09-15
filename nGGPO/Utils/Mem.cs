@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace nGGPO;
+namespace nGGPO.Utils;
 
 public readonly struct PooledBuffer : IDisposable
 {

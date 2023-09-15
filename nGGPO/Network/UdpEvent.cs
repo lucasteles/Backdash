@@ -1,4 +1,6 @@
-﻿namespace nGGPO.Network;
+﻿using nGGPO.Input;
+
+namespace nGGPO.Network;
 
 class UdpEvent
 {

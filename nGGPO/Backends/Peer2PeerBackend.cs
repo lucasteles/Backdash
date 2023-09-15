@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
+using nGGPO.Input;
 using nGGPO.Network;
 using nGGPO.Network.Messages;
 using nGGPO.Serialization;
-using nGGPO.Types;
+using nGGPO.Utils;
 
 namespace nGGPO.Backends;
 
@@ -23,7 +24,7 @@ class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGameState
 
     readonly Poll poll;
     readonly Udp udp;
-    readonly Sync sync;
+    readonly Synchronizer sync;
     readonly ConnectStatus[] localConnectStatus = new ConnectStatus[Max.UdpMsgPlayers];
 
     int numPlayers;

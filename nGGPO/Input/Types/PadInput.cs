@@ -1,4 +1,5 @@
 ﻿// ReSharper disable InconsistentNaming
+// ReSharper disable CheckNamespace
 
 using System;
 using System.Runtime.InteropServices;

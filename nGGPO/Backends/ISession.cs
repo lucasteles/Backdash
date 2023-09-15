@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
-using nGGPO.Types;
 
-namespace nGGPO;
+namespace nGGPO.Backends;
 
 public interface IRollbackSession<TInput, TGameState> : IDisposable
     where TInput : struct

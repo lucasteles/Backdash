@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using nGGPO.Types;
+using nGGPO.DataStructure;
+using nGGPO.Utils;
 
 namespace nGGPO;
 
@@ -23,6 +24,11 @@ public interface IPollMsgSink
 public interface IPollHandleSink
 {
     bool OnHandlePoll(object? value);
+}
+
+public class Handle //TODO: redefine this
+{
+    public object? Value { get; set; }
 }
 
 class Poll
