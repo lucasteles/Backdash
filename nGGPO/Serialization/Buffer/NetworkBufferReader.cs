@@ -38,7 +38,7 @@ public ref struct NetworkBufferReader
     {
         var value = BitConverter.ToInt32(buffer[offset..]);
         offset += sizeof(int);
-        return network ? IPAddress.NetworkToHostOrder(value) : value;
+        return network ? Endianness.NetworkToHostOrder(value) : value;
     }
 
     public void ReadInt(in Span<int> values)
@@ -51,7 +51,7 @@ public ref struct NetworkBufferReader
     {
         var value = BitConverter.ToInt16(buffer[offset..]);
         offset += sizeof(short);
-        return network ? IPAddress.NetworkToHostOrder(value) : value;
+        return network ? Endianness.NetworkToHostOrder(value) : value;
     }
 
     public void ReadShort(in Span<short> values)
@@ -64,7 +64,7 @@ public ref struct NetworkBufferReader
     {
         var value = BitConverter.ToInt64(buffer[offset..]);
         offset += sizeof(long);
-        return network ? IPAddress.NetworkToHostOrder(value) : value;
+        return network ? Endianness.NetworkToHostOrder(value) : value;
     }
 
     public void ReadLong(in Span<long> values)
@@ -104,9 +104,7 @@ public ref struct NetworkBufferReader
         var value = BitConverter.ToUInt32(buffer[offset..]);
         offset += sizeof(uint);
 
-        return network && BitConverter.IsLittleEndian
-            ? BinaryPrimitives.ReverseEndianness(value)
-            : value;
+        return network ? Endianness.NetworkToHostOrder(value) : value;
     }
 
     public void ReadUInt(in Span<uint> values)
@@ -120,9 +118,7 @@ public ref struct NetworkBufferReader
         var value = BitConverter.ToUInt16(buffer[offset..]);
         offset += sizeof(ushort);
 
-        return network && BitConverter.IsLittleEndian
-            ? BinaryPrimitives.ReverseEndianness(value)
-            : value;
+        return network ? Endianness.NetworkToHostOrder(value) : value;
     }
 
     public void ReadUShort(in Span<ushort> values)
@@ -136,9 +132,7 @@ public ref struct NetworkBufferReader
         var value = BitConverter.ToUInt64(buffer[offset..]);
         offset += sizeof(ulong);
 
-        return network && BitConverter.IsLittleEndian
-            ? BinaryPrimitives.ReverseEndianness(value)
-            : value;
+        return network ? Endianness.NetworkToHostOrder(value) : value;
     }
 
     public void ReadULong(in Span<ulong> values)

@@ -34,7 +34,7 @@ var size = serializer.SizeOf(packet);
 Console.Clear();
 Console.WriteLine($"# Size={size}, SizeM={sizeM}\n");
 
-var bufferMarshal = Mem.SerializeMarshal(packet);
+var bufferMarshal = Mem.StructToBytes(packet);
 serializer.Network = false;
 var buffer = serializer.Serialize(packet);
 
@@ -45,7 +45,7 @@ Dump(bufferMarshal, "Marshall");
 Dump(buffer, "Serial");
 Dump(bufferNetWork, "Network");
 
-var valueMarshall = Mem.DeserializeMarshal<Input>(bufferMarshal);
+var valueMarshall = Mem.BytesToStruct<Input>(bufferMarshal);
 serializer.Network = false;
 var value = serializer.Deserialize(buffer);
 serializer.Network = true;

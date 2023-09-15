@@ -41,15 +41,15 @@ public static class Mem
     public static bool BytesEqual(ReadOnlySpan<byte> a1, ReadOnlySpan<byte> a2) =>
         a1.Length == a2.Length && a1.SequenceEqual(a2);
 
-    public static PooledBuffer SerializeMarshal<T>(T message) where T : struct
+    public static PooledBuffer StructToBytes<T>(T message) where T : struct
     {
         var size = Marshal.SizeOf(message);
         var buffer = CreateBuffer(size);
-        SerializeMarshal(message, buffer, size);
+        StructToBytes(message, buffer, size);
         return buffer;
     }
 
-    public static void SerializeMarshal<T>(T message, byte[] body, int size) where T : struct
+    public static void StructToBytes<T>(T message, byte[] body, int size) where T : struct
     {
         var ptr = Marshal.AllocHGlobal(size);
         try
@@ -64,14 +64,14 @@ public static class Mem
         }
     }
 
-    public static T DeserializeMarshal<T>(byte[] body) where T : struct
+    public static T BytesToStruct<T>(byte[] body) where T : struct
     {
         var size = Marshal.SizeOf<T>();
-        return DeserializeMarshal<T>(body, size);
+        return BytesToStruct<T>(body, size);
     }
 
 
-    public static T DeserializeMarshal<T>(byte[] body, int size) where T : struct
+    public static T BytesToStruct<T>(byte[] body, int size) where T : struct
     {
         var ptr = Marshal.AllocHGlobal(size);
 
