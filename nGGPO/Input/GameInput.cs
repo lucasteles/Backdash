@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Diagnostics;
 using System.Text;
 using nGGPO.DataStructure;
@@ -34,7 +35,8 @@ readonly record struct Frame : IComparable<Frame>, IComparable<int>, IEquatable<
 
 struct GameInput : IEquatable<GameInput>, IDisposable
 {
-    readonly PooledBuffer buffer;
+    readonly IMemoryOwner<byte>? bufferOwner;
+    readonly Memory<byte> buffer;
     public const int MaxBytes = 8;
 
     public Frame Frame { get; private set; } = Frame.Null;
@@ -46,20 +48,22 @@ struct GameInput : IEquatable<GameInput>, IDisposable
     {
         Size = size;
         Bits = BitVector.Empty;
-        buffer = PooledBuffer.Empty;
+        buffer = Memory<byte>.Empty;
+        bufferOwner = null;
     }
 
-    public GameInput(PooledBuffer ibits, int size)
+    public GameInput(IMemoryOwner<byte> ibits, int size)
     {
-        Trace.Assert(ibits.Length <= MaxBytes * Max.Players);
-        Trace.Assert(ibits.Length > 0);
+        Trace.Assert(ibits.Memory.Length <= MaxBytes * Max.Players);
+        Trace.Assert(ibits.Memory.Length > 0);
 
         Size = size;
-        buffer = ibits;
-        Bits = new(ibits.Bytes);
+        buffer = ibits.Memory;
+        bufferOwner = ibits;
+        Bits = new(ibits.Memory);
     }
 
-    public GameInput(PooledBuffer ibits) : this(ibits, ibits.Length)
+    public GameInput(IMemoryOwner<byte> ibits) : this(ibits, ibits.Memory.Length)
     {
     }
 
@@ -108,5 +112,5 @@ struct GameInput : IEquatable<GameInput>, IDisposable
     public static bool operator ==(GameInput a, GameInput b) => a.Equals(b);
     public static bool operator !=(GameInput a, GameInput b) => !(a == b);
 
-    public void Dispose() => buffer.Dispose();
+    public void Dispose() => bufferOwner?.Dispose();
 }

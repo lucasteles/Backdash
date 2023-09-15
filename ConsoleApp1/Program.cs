@@ -1,7 +1,5 @@
 ﻿using System.Runtime.InteropServices;
 using System.Text.Json;
-using nGGPO;
-using nGGPO.Inputs;
 using nGGPO.Serialization;
 using nGGPO.Serialization.Buffer;
 using nGGPO.Utils;
@@ -36,12 +34,16 @@ var size = serializer.SizeOf(packet);
 Console.Clear();
 Console.WriteLine($"# Size={size}, SizeM={sizeM}\n");
 
-var bufferMarshal = Mem.StructToBytes(packet);
+using var bufferMarshalOwner = Mem.StructToBytes(packet);
+var bufferMarshal = bufferMarshalOwner.Memory.Span;
+
 serializer.Network = false;
-var buffer = serializer.Serialize(packet);
+using var bufferOwner = serializer.Serialize(packet);
+var buffer = bufferOwner.Memory.Span;
 
 serializer.Network = true;
-var bufferNetWork = serializer.Serialize(packet);
+using var bufferNetWorkOwner = serializer.Serialize(packet);
+var bufferNetWork = bufferNetWorkOwner.Memory.Span;
 
 Dump(bufferMarshal, "Marshall");
 Dump(buffer, "Serial");
@@ -89,13 +91,15 @@ class InputSerializer : BinarySerializer<Input>
     protected override Input Deserialize(ref NetworkBufferReader reader)
     {
         var size = reader.ReadInt();
-        return new()
+        var input = new Input
         {
             S = size,
             A = reader.ReadByte(),
             B = reader.ReadUInt(),
-            Bits = reader.ReadByte(size),
+            Bits = new byte[size],
         };
+        reader.ReadByte(input.Bits);
+        return input;
     }
 }
 

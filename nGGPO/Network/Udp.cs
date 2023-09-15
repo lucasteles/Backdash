@@ -9,6 +9,7 @@ namespace nGGPO.Network;
 
 class Udp : IPollLoopSink, IDisposable
 {
+    // TODO: go back to raw sockets
     readonly UdpClient socket;
 
     public delegate void OnMsgEvent(IPEndPoint from, in UdpMsg msg, int len);
@@ -25,8 +26,13 @@ class Udp : IPollLoopSink, IDisposable
 
     public async Task SendTo(UdpMsg msg, IPEndPoint dest)
     {
-        using var buffer = serializer.Serialize(msg);
-        var res = await socket.SendAsync(buffer.Bytes, buffer.Bytes.Length, dest);
+        using var owner = serializer.Serialize(msg);
+        var buffer = owner.Memory;
+
+        var unnecessaryAllocationPleaseRemoveThis = buffer.ToArray();
+        var res = await socket.SendAsync(unnecessaryAllocationPleaseRemoveThis, buffer.Length,
+            dest);
+
         if (res == (int) SocketError.SocketError)
         {
             Logger.Warn("Error sending socket value");
@@ -34,9 +40,8 @@ class Udp : IPollLoopSink, IDisposable
         }
 
         Logger.Info("sent packet length {0} to {1} (ret:{2}).\n",
-            buffer.Bytes.Length, dest.ToString(), res);
+            buffer.Length, dest.ToString(), res);
     }
-
 
     public async Task<bool> OnLoopPoll(object? cookie)
     {

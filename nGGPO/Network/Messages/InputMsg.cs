@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Diagnostics.Contracts;
 using nGGPO.Serialization;
 using nGGPO.Serialization.Buffer;
@@ -8,18 +9,26 @@ namespace nGGPO.Network.Messages;
 
 struct InputMsg : IDisposable
 {
-    public ConnectStatus[] PeerConnectStatus;
+    public Memory<ConnectStatus> PeerConnectStatus;
     public int StartFrame;
     public bool DisconnectRequested;
     public int AckFrame;
     public ushort NumBits;
     public byte InputSize;
-    public byte[] Bits;
+    public Memory<byte> Bits;
 
-    public InputMsg(int peerCount, int bitsSize)
+    readonly IMemoryOwner<byte>? bitsOwner;
+    readonly IMemoryOwner<ConnectStatus> peerConnectStatusOwner;
+
+    public InputMsg(
+        IMemoryOwner<ConnectStatus> peerConnectStatusOwner,
+        IMemoryOwner<byte>? bitsOwner
+    )
     {
-        PeerConnectStatus = Mem.Rent<ConnectStatus>(peerCount);
-        Bits = Mem.Rent(bitsSize);
+        this.peerConnectStatusOwner = peerConnectStatusOwner;
+        this.bitsOwner = bitsOwner;
+        PeerConnectStatus = peerConnectStatusOwner.Memory;
+        Bits = bitsOwner?.Memory ?? Memory<byte>.Empty;
 
         StartFrame = default;
         DisconnectRequested = default;
@@ -28,13 +37,18 @@ struct InputMsg : IDisposable
         InputSize = default;
     }
 
-    public void EnsurePeers(int peerCount) =>
-        PeerConnectStatus ??= Mem.Rent<ConnectStatus>(peerCount);
+    public InputMsg(int peerCount, int bitsSize = 0) :
+        this(
+            Mem.Rent<ConnectStatus>(peerCount),
+            bitsSize is 0 ? null : Mem.Rent(bitsSize)
+        )
+    {
+    }
 
     public void Dispose()
     {
-        if (Bits is not null) Mem.Return(Bits);
-        if (PeerConnectStatus is not null) Mem.Return(PeerConnectStatus);
+        peerConnectStatusOwner.Dispose();
+        bitsOwner?.Dispose();
     }
 
     [Pure]
@@ -61,7 +75,7 @@ struct InputMsg : IDisposable
             writer.Write((byte) data.PeerConnectStatus.Length);
             for (var i = 0; i < data.PeerConnectStatus.Length; i++)
                 ConnectStatus.Serializer.Instance
-                    .Serialize(ref writer, in data.PeerConnectStatus[i]);
+                    .Serialize(ref writer, in data.PeerConnectStatus.Span[i]);
 
             writer.Write(data.StartFrame);
             writer.Write(data.DisconnectRequested);
@@ -77,8 +91,8 @@ struct InputMsg : IDisposable
             var statusLength = reader.ReadByte();
             var peerStatus = Mem.Rent<ConnectStatus>(statusLength);
             for (var i = 0; i < statusLength; i++)
-                peerStatus[i] = ConnectStatus.Serializer.Instance
-                    .Deserialize(ref reader);
+                peerStatus.Memory.Span[i] =
+                    ConnectStatus.Serializer.Instance.Deserialize(ref reader);
 
             var startFrame = reader.ReadInt();
             var disconnectRequested = reader.ReadBool();
@@ -88,17 +102,15 @@ struct InputMsg : IDisposable
 
             var bitsLength = reader.ReadByte();
             var bits = Mem.Rent(bitsLength);
-            reader.ReadByte(bits);
+            reader.ReadMemory(bits.Memory);
 
-            return new InputMsg
+            return new(peerStatus, bits)
             {
-                PeerConnectStatus = peerStatus,
                 StartFrame = startFrame,
                 DisconnectRequested = disconnectRequested,
                 AckFrame = ackFrame,
                 NumBits = numBits,
                 InputSize = inputSize,
-                Bits = bits,
             };
         }
     }

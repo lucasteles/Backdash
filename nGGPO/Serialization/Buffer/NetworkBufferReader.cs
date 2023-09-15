@@ -6,10 +6,10 @@ namespace nGGPO.Serialization.Buffer;
 public ref struct NetworkBufferReader
 {
     int offset;
-    readonly Span<byte> buffer;
+    readonly ReadOnlySpan<byte> buffer;
     readonly bool network;
 
-    public NetworkBufferReader(Span<byte> buffer, bool network = true, int offset = 0)
+    public NetworkBufferReader(ReadOnlySpan<byte> buffer, bool network = true, int offset = 0)
     {
         this.buffer = buffer;
         this.network = network;
@@ -26,12 +26,7 @@ public ref struct NetworkBufferReader
         slice.CopyTo(data);
     }
 
-    public byte[] ReadByte(int size)
-    {
-        var data = new byte[size];
-        ReadByte(data);
-        return data;
-    }
+    public void ReadMemory(in Memory<byte> data) => ReadByte(data.Span);
 
     public int ReadInt()
     {

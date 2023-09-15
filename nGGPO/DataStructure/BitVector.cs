@@ -6,13 +6,13 @@ namespace nGGPO.DataStructure;
 
 struct BitVector : IEquatable<BitVector>
 {
-    public static BitVector Empty = new(Array.Empty<byte>());
-
-    public byte[] Bits { get; }
-    public int Size => Bits.Length;
+    public static BitVector Empty = new(Memory<byte>.Empty);
+    public int Size => Memory.Length;
     public int BitCount => Size * Mem.ByteSize;
 
-    public BitVector(in byte[] bits) => Bits = bits;
+    public Memory<byte> Memory { get; }
+    public Span<byte> Span => Memory.Span;
+    public BitVector(in Memory<byte> bits) => Memory = bits;
 
     public static void SetBit(in Span<byte> vector, int index) =>
         vector[index / 8] |= (byte) (1 << (index % 8));
@@ -23,11 +23,11 @@ struct BitVector : IEquatable<BitVector>
     public static void ClearBit(in Span<byte> vector, int index) =>
         vector[index / 8] &= (byte) ~(1 << (index % 8));
 
-    public bool Get(int i) => GetBit(Bits, i);
-    public void Set(int i) => SetBit(Bits, i);
-    public void Clear(int i) => ClearBit(Bits, i);
+    public bool Get(int i) => GetBit(Memory.Span, i);
+    public void Set(int i) => SetBit(Memory.Span, i);
+    public void Clear(int i) => ClearBit(Memory.Span, i);
 
-    public void Erase() => Array.Clear(Bits, 0, Bits.Length);
+    public void Erase() => Memory.Span.Clear();
 
     public bool this[int bit]
     {
@@ -42,14 +42,14 @@ struct BitVector : IEquatable<BitVector>
     public override string ToString() => ToString(splitAt: 0);
 
     public string ToString(int splitAt, int bytePad = Mem.ByteSize) =>
-        Mem.GetBitString(Bits, splitAt, bytePad);
+        Mem.GetBitString(Memory.Span, splitAt, bytePad);
 
-    public bool Equals(BitVector other) => Mem.BytesEqual(Bits, other.Bits);
+    public bool Equals(BitVector other) => Mem.BytesEqual(Memory.Span, other.Memory.Span);
     public override bool Equals(object? obj) => obj is BitVector v && Equals(v);
-    public override int GetHashCode() => Bits.GetHashCode();
+    public override int GetHashCode() => Memory.Span.GetHashCode();
     public static bool operator ==(BitVector a, BitVector b) => a.Equals(b);
     public static bool operator !=(BitVector a, BitVector b) => !(a == b);
-    public static explicit operator byte[](BitVector @this) => @this.Bits;
+    public static implicit operator Memory<byte>(BitVector @this) => @this.Memory;
 
     public ref struct BitOffsetWriter
     {
@@ -106,5 +106,5 @@ struct BitVector : IEquatable<BitVector>
         }
     }
 
-    public bool IsEmpty => Bits.Length is 0;
+    public bool IsEmpty => Memory.Span.Length is 0;
 }

@@ -133,4 +133,6 @@ public ref struct NetworkBufferWriter
         for (var i = 0; i < value.Length; i++)
             Write(value[i]);
     }
+
+    public void Write(Memory<byte> value) => Write(value.Span);
 }

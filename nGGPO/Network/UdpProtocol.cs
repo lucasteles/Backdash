@@ -143,38 +143,48 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
             1 << BitVector.BitOffsetWriter.NibbleSize
         );
 
+        var input = GetInputMsg();
+
+        input.AckFrame = lastReceivedInput.Frame;
+        input.DisconnectRequested = currentState is not StateEnum.Disconnected;
+        if (localConnectStatus.Length > 0)
+            localConnectStatus.CopyTo(input.PeerConnectStatus.Span);
+
         UdpMsg msg = new()
         {
             Header =
             {
                 Type = MsgType.Input,
             },
+            Input = input,
         };
-
-        if (!pendingOutput.IsEmpty)
-        {
-            ref var front = ref pendingOutput.Peek();
-
-            msg.Input = new(front.Size, Max.UdpMsgPlayers);
-            msg.Input.InputSize = (byte) front.Size;
-            msg.Input.StartFrame = front.Frame;
-
-            var offset = WriteCompressedInput(ref msg.Input.Bits, msg.Input.StartFrame);
-            msg.Input.NumBits = (ushort) offset;
-            Trace.Assert(offset < Max.CompressedBits);
-        }
-
-        msg.Input.AckFrame = lastReceivedInput.Frame;
-        msg.Input.DisconnectRequested = currentState is not StateEnum.Disconnected;
-
-        msg.Input.EnsurePeers(Max.UdpMsgPlayers);
-        if (localConnectStatus.Length > 0)
-            localConnectStatus.CopyTo(msg.Input.PeerConnectStatus, 0);
 
         return SendMsg(msg);
     }
 
-    int WriteCompressedInput(ref byte[] bits, int startFrame)
+    InputMsg GetInputMsg()
+    {
+        if (!pendingOutput.IsEmpty)
+        {
+            ref var front = ref pendingOutput.Peek();
+
+            InputMsg input = new(front.Size, Max.UdpMsgPlayers)
+            {
+                InputSize = (byte) front.Size,
+                StartFrame = front.Frame,
+            };
+
+            var offset = WriteCompressedInput(input.Bits.Span, input.StartFrame);
+            input.NumBits = (ushort) offset;
+            Trace.Assert(offset < Max.CompressedBits);
+
+            return input;
+        }
+
+        return new(peerCount: Max.UdpMsgPlayers);
+    }
+
+    int WriteCompressedInput(Span<byte> bits, int startFrame)
     {
         BitVector.BitOffsetWriter bitWriter = new(bits);
         var last = lastAckedInput;
