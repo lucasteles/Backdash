@@ -57,7 +57,6 @@ public static class Mem
             Marshal.StructureToPtr(message, ptr, true);
             Marshal.Copy(ptr, body, 0, size);
         }
-
         finally
         {
             Marshal.FreeHGlobal(ptr);
