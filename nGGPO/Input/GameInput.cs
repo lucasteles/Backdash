@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Text;
 using nGGPO.DataStructure;
 using nGGPO.Utils;
@@ -9,7 +8,7 @@ namespace nGGPO.Input;
 readonly record struct Frame : IComparable<Frame>, IComparable<int>, IEquatable<int>
 {
     public const sbyte NullValue = -1;
-    public static readonly Frame Null = new();
+    public static readonly Frame Null = new(NullValue);
     public static readonly Frame Zero = new(0);
     public int Number { get; } = NullValue;
     public Frame(int number) => Number = number;
@@ -38,7 +37,7 @@ struct GameInput : IEquatable<GameInput>, IDisposable
     public const int MaxBytes = 8;
 
     public Frame Frame { get; private set; } = Frame.Null;
-    public int Size { get; }
+    public int Size { get; set; }
     public BitVector Bits { get; }
     public static GameInput Empty => new();
 
@@ -51,8 +50,8 @@ struct GameInput : IEquatable<GameInput>, IDisposable
 
     public GameInput(MemoryBuffer<byte> ibits, int size)
     {
-        Trace.Assert(ibits.Length <= MaxBytes * Max.Players);
-        Trace.Assert(ibits.Length > 0);
+        Tracer.Assert(ibits.Length <= MaxBytes * Max.Players);
+        Tracer.Assert(ibits.Length > 0);
 
         Size = size;
         buffer = ibits;
@@ -86,15 +85,15 @@ struct GameInput : IEquatable<GameInput>, IDisposable
     public bool Equals(GameInput other, bool bitsOnly)
     {
         if (!bitsOnly && Frame != other.Frame)
-            Logger.Info("frames don't match: {}, {}", Frame, other.Frame);
+            Tracer.Log("frames don't match: {}, {}", Frame, other.Frame);
 
         if (Size != other.Size)
-            Logger.Info("sizes don't match: {}, {}", Size, other.Size);
+            Tracer.Log("sizes don't match: {}, {}", Size, other.Size);
 
         if (Bits.Equals(other.Bits))
-            Logger.Info("bits don't match");
+            Tracer.Log("bits don't match");
 
-        Trace.Assert(Size > 0 && other.Size > 0);
+        Tracer.Assert(Size > 0 && other.Size > 0);
 
         return (bitsOnly || Frame == other.Frame)
                && Size == other.Size

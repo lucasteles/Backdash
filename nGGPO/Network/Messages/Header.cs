@@ -9,6 +9,13 @@ struct Header
     public ushort Magic;
     public ushort SequenceNumber;
 
+    public Header(MsgType type)
+    {
+        Type = type;
+        Magic = default;
+        SequenceNumber = default;
+    }
+
     public const int Size =
         sizeof(byte) + sizeof(ushort) + sizeof(ushort);
 

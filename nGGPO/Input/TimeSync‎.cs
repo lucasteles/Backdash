@@ -68,7 +68,7 @@ sealed class TimeSync
         // sleep for.
         var sleepFrames = (int) ((radvantage - advantage) / 2 + 0.5f);
 
-        Logger.Info("iteration {}:  sleep frames is {}", _counter, sleepFrames);
+        Tracer.Log("iteration {}:  sleep frames is {}", _counter, sleepFrames);
 
         // Some things just aren't worth correcting for.  Make sure
         // the difference is relevant before proceeding.
@@ -84,7 +84,7 @@ sealed class TimeSync
             {
                 if (!lastInputs[i].Equals(lastInputs[0], true))
                 {
-                    Logger.Info(
+                    Tracer.Log(
                         "iteration {}:  rejecting due to input stuff at position {}...!!!",
                         _counter, i);
                     return 0;

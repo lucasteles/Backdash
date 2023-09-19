@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -112,6 +111,7 @@ public static class Mem
         return Unsafe.As<TInt, TEnum>(ref intValue);
     }
 
+    // TODO: create non alloc version of this
     public static string GetBitString(
         in ReadOnlySpan<byte> bytes,
         int splitAt = 0,

@@ -111,7 +111,7 @@ class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGameState
 
         if (!input.Frame.IsNull)
         {
-            Logger.Info("setting local connect status for local queue {0} to {1}",
+            Tracer.Log("setting local connect status for local queue {0} to {1}",
                 queue, input.Frame);
 
             localConnectStatus[queue].LastFrame = input.Frame;
@@ -161,6 +161,7 @@ class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGameState
     {
         UdpProtocol protocol = new(
             timesync: new(),
+            random: Rnd.Shared,
             udp: udp,
             queue, endpoint, localConnectStatus
         )
@@ -203,19 +204,19 @@ class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGameState
         return ErrorCode.Ok;
     }
 
-    public void OnMsg(IPEndPoint from, in UdpMsg msg, int len)
+    public async Task OnMsg(IPEndPoint from, UdpMsg msg, int len)
     {
         for (var i = 0; i < numPlayers; i++)
         {
             if (!endpoints[i].HandlesMsg(from, in msg)) continue;
-            endpoints[i].OnMsg(in msg, len);
+            await endpoints[i].OnMsg(msg, len);
             return;
         }
 
         for (var i = 0; i < numSpectators; i++)
         {
             if (!spectators[i].HandlesMsg(from, in msg)) continue;
-            spectators[i].OnMsg(in msg, len);
+            await spectators[i].OnMsg(msg, len);
             return;
         }
     }

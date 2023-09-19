@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using nGGPO.Utils;
 
 namespace nGGPO.Input;
@@ -41,7 +40,7 @@ class InputQueue : IDisposable
 
     public int GetLastConfirmedFrame()
     {
-        Logger.Info("returning last confirmed frame {0}.", lastAddedFrame);
+        Tracer.Log("returning last confirmed frame {0}.", lastAddedFrame);
         return lastAddedFrame;
     }
 
@@ -49,12 +48,12 @@ class InputQueue : IDisposable
 
     public void DiscardConfirmedFrames(int frame)
     {
-        Trace.Assert(frame >= 0);
+        Tracer.Assert(frame >= 0);
 
         if (lastFrameRequested.IsValid)
             frame = Math.Min(frame, lastFrameRequested);
 
-        Logger.Info(
+        Tracer.Log(
             "discarding confirmed frames up to {0} (last_added:{1} length:{2} [head:{3} tail:{4}]).",
             frame, lastAddedFrame, length, head, tail);
 
@@ -64,25 +63,25 @@ class InputQueue : IDisposable
         {
             var offset = frame - inputs[tail].Frame.Next;
 
-            Logger.Info("difference of {} frames.", offset);
-            Trace.Assert(offset >= 0);
+            Tracer.Log("difference of {} frames.", offset);
+            Tracer.Assert(offset >= 0);
 
             tail = (tail + offset) % inputs.Length;
             length -= offset;
         }
 
-        Logger.Info("after discarding, new tail is {} (frame:{}).",
+        Tracer.Log("after discarding, new tail is {} (frame:{}).",
             tail, inputs[tail].Frame);
 
-        Trace.Assert(length >= 0);
+        Tracer.Assert(length >= 0);
     }
 
     public void ResetPrediction(Frame frame)
     {
-        Trace.Assert(firstIncorrectFrame.IsNull
+        Tracer.Assert(firstIncorrectFrame.IsNull
                      || frame <= firstIncorrectFrame);
 
-        Logger.Info("resetting all prediction errors back to frame {}.", frame);
+        Tracer.Log("resetting all prediction errors back to frame {}.", frame);
 
         // There's nothing really to do other than reset our prediction
         // state and the incorrect frame counter...
@@ -93,7 +92,7 @@ class InputQueue : IDisposable
 
     public bool GetConfirmedInput(Frame requestedFrame, ref GameInput input)
     {
-        Trace.Assert(firstIncorrectFrame.IsNull ||
+        Tracer.Assert(firstIncorrectFrame.IsNull ||
                      requestedFrame < firstIncorrectFrame);
         var offset = requestedFrame % inputs.Length;
         if (inputs[offset].Frame != requestedFrame) return false;
@@ -103,18 +102,18 @@ class InputQueue : IDisposable
 
     public bool GetInput(Frame requestedFrame, out GameInput input)
     {
-        Logger.Info("requesting input frame {}.", requestedFrame);
+        Tracer.Log("requesting input frame {}.", requestedFrame);
 
         // No one should ever try to grab any input when we have a prediction
         // error.  Doing so means that we're just going further down the wrong
-        // path.  Trace.Assert this to verify that it's true.
-        Trace.Assert(firstIncorrectFrame.IsNull);
+        // path.  Tracer.Assert this to verify that it's true.
+        Tracer.Assert(firstIncorrectFrame.IsNull);
 
         // Remember the last requested frame number for later.  We'll need
         // this in AddInput() to drop out of prediction mode.
         lastFrameRequested = requestedFrame;
 
-        Trace.Assert(requestedFrame >= inputs[tail].Frame);
+        Tracer.Assert(requestedFrame >= inputs[tail].Frame);
 
         if (prediction.Frame.IsNull)
         {
@@ -125,9 +124,9 @@ class InputQueue : IDisposable
             if (offset < length)
             {
                 offset = (offset + tail) % inputs.Length;
-                Trace.Assert(inputs[offset].Frame == requestedFrame);
+                Tracer.Assert(inputs[offset].Frame == requestedFrame);
                 input = inputs[offset];
-                Logger.Info("returning confirmed frame number {}.", input.Frame);
+                Tracer.Log("returning confirmed frame number {}.", input.Frame);
                 return true;
             }
 
@@ -136,19 +135,19 @@ class InputQueue : IDisposable
             // same thing they did last time.
             if (requestedFrame == 0)
             {
-                Logger.Debug(
+                Tracer.Debug(
                     "basing new prediction frame from nothing, you're client wants frame 0.");
                 prediction.Clear();
             }
             else if (lastAddedFrame.IsNull)
             {
-                Logger.Debug(
+                Tracer.Debug(
                     "basing new prediction frame from nothing, since we have no frames yet.");
                 prediction.Clear();
             }
             else
             {
-                Logger.Info(
+                Tracer.Log(
                     "basing new prediction frame from previously added frame (queue entry:{}, frame:{}).",
                     PreviousFrame(head), inputs[PreviousFrame(head)].Frame);
 
@@ -159,14 +158,14 @@ class InputQueue : IDisposable
             prediction.IncrementFrame();
         }
 
-        Trace.Assert(prediction.Frame >= 0);
+        Tracer.Assert(prediction.Frame >= 0);
 
         // If we've made it this far, we must be predicting.  Go ahead and
         // forward the prediction frame contents.  Be sure to return the
         // frame number requested by the client, though.
         input = prediction;
         input.SetFrame(requestedFrame);
-        Logger.Info("returning prediction frame number {} ({}).", input.Frame,
+        Tracer.Log("returning prediction frame number {} ({}).", input.Frame,
             prediction.Frame);
 
         return false;
@@ -174,11 +173,11 @@ class InputQueue : IDisposable
 
     public void AddInput(ref GameInput input)
     {
-        Logger.Info("adding input frame number {} to queue.", input.Frame);
+        Tracer.Log("adding input frame number {} to queue.", input.Frame);
 
         // These next two lines simply verify that inputs are passed in
         // sequentially by the user, regardless of frame delay.
-        Trace.Assert(
+        Tracer.Assert(
             lastUserAddedFrame.IsNull
             || input.Frame == lastUserAddedFrame.Next
         );
@@ -198,12 +197,12 @@ class InputQueue : IDisposable
 
     void AddDelayedInputToQueue(ref GameInput input, Frame frameNumber)
     {
-        Logger.Info("adding delayed input frame number {} to queue.", frameNumber);
+        Tracer.Log("adding delayed input frame number {} to queue.", frameNumber);
 
-        Trace.Assert(input.Size == prediction.Size);
-        Trace.Assert(
+        Tracer.Assert(input.Size == prediction.Size);
+        Tracer.Assert(
             lastAddedFrame.IsNull || frameNumber == lastAddedFrame.Next);
-        Trace.Assert(frameNumber == 0 || inputs[PreviousFrame(head)].Frame == frameNumber - 1);
+        Tracer.Assert(frameNumber == 0 || inputs[PreviousFrame(head)].Frame == frameNumber - 1);
 
         // Add the frame to the back of the queue
         inputs[head] = input;
@@ -215,7 +214,7 @@ class InputQueue : IDisposable
 
         if (prediction.Frame.IsValid)
         {
-            Trace.Assert(frameNumber == prediction.Frame);
+            Tracer.Assert(frameNumber == prediction.Frame);
 
             // We've been predicting...  See if the inputs we've gotten match
             // what we've been predicting.  If so, don't worry about it.  If not,
@@ -223,7 +222,7 @@ class InputQueue : IDisposable
             // in GetFirstIncorrectFrame()
             if (firstIncorrectFrame.IsNull && !prediction.Equals(input, true))
             {
-                Logger.Info("frame {} does not match prediction.  marking error.", frameNumber);
+                Tracer.Log("frame {} does not match prediction.  marking error.", frameNumber);
                 firstIncorrectFrame = frameNumber;
             }
 
@@ -234,7 +233,7 @@ class InputQueue : IDisposable
             if (prediction.Frame == lastFrameRequested &&
                 firstIncorrectFrame.IsNull)
             {
-                Logger.Debug("prediction is correct!  dumping out of prediction mode.");
+                Tracer.Debug("prediction is correct!  dumping out of prediction mode.");
                 prediction.ResetFrame();
             }
             else
@@ -243,12 +242,12 @@ class InputQueue : IDisposable
             }
         }
 
-        Trace.Assert(length <= inputs.Length);
+        Tracer.Assert(length <= inputs.Length);
     }
 
     Frame AdvanceQueueHead(Frame frame)
     {
-        Logger.Info("advancing queue head to frame {}.", frame);
+        Tracer.Log("advancing queue head to frame {}.", frame);
 
         var expectedFrame = firstFrame ? Frame.Zero : inputs[PreviousFrame(head)].Frame.Next;
 
@@ -259,7 +258,7 @@ class InputQueue : IDisposable
             // This can occur when the frame delay has dropped since the last
             // time we shoved a frame into the system.  In this case, there's
             // no room on the queue.  Toss it.
-            Logger.Info("Dropping input frame {} (expected next frame to be {}).",
+            Tracer.Log("Dropping input frame {} (expected next frame to be {}).",
                 frame, expectedFrame);
             return Frame.Null;
         }
@@ -270,14 +269,14 @@ class InputQueue : IDisposable
             // time we shoved a frame into the system.  We need to replicate the
             // last frame in the queue several times in order to fill the space
             // left.
-            Logger.Info("Adding padding frame {} to account for change in frame delay.",
+            Tracer.Log("Adding padding frame {} to account for change in frame delay.",
                 expectedFrame);
             ref var lastFrame = ref inputs[PreviousFrame(head)];
             AddDelayedInputToQueue(ref lastFrame, expectedFrame);
             expectedFrame++;
         }
 
-        Trace.Assert(frame == 0 || frame == inputs[PreviousFrame(head)].Frame + 1);
+        Tracer.Assert(frame == 0 || frame == inputs[PreviousFrame(head)].Frame + 1);
         return frame;
     }
 

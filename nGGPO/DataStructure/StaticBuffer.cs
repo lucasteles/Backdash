@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
+using nGGPO.Utils;
 
 namespace nGGPO.DataStructure;
 
@@ -23,7 +23,7 @@ sealed class StaticBuffer<T> : IReadOnlyList<T> where T : notnull
 
     public void PushBack(T t)
     {
-        Trace.Assert(Size != elements.Length - 1);
+        Tracer.Assert(Size != elements.Length - 1);
         elements[Size++] = t;
     }
 
@@ -56,7 +56,7 @@ sealed class StaticBuffer<T> : IReadOnlyList<T> where T : notnull
 
     public ref T Ref(int index)
     {
-        Trace.Assert(index >= 0 && index < Size);
+        Tracer.Assert(index >= 0 && index < Size);
         return ref elements[index];
     }
 
@@ -64,12 +64,12 @@ sealed class StaticBuffer<T> : IReadOnlyList<T> where T : notnull
     {
         get
         {
-            Trace.Assert(index >= 0 && index < Size);
+            Tracer.Assert(index >= 0 && index < Size);
             return elements[index];
         }
         set
         {
-            Trace.Assert(index >= 0 && index < Size);
+            Tracer.Assert(index >= 0 && index < Size);
             elements[index] = value;
         }
     }

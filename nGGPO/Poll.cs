@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Threading.Tasks;
 using nGGPO.DataStructure;
 using nGGPO.Utils;
@@ -44,7 +43,7 @@ class Poll
 
     public void RegisterHandle(IPollHandleSink sink, Handle h, object? cookie = null)
     {
-        Trace.Assert(HandleCount < Max.PollableHandles - 1);
+        Tracer.Assert(HandleCount < Max.PollableHandles - 1);
 
         Handles[HandleCount] = h;
         HandleSinks[HandleCount] = new(sink, cookie);

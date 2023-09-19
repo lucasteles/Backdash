@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
+using nGGPO.Utils;
 
 namespace nGGPO.DataStructure;
 
@@ -20,7 +20,7 @@ sealed class RingBuffer<T> : IReadOnlyList<T> where T : notnull
 
     public ref T Peek()
     {
-        Trace.Assert(Count != elements.Length);
+        Tracer.Assert(Count != elements.Length);
         return ref elements[tail];
     }
 
@@ -33,15 +33,17 @@ sealed class RingBuffer<T> : IReadOnlyList<T> where T : notnull
     public ref T Get(int idx) => ref elements[(tail + idx) % elements.Length];
     public T this[int idx] => Get(idx);
 
-    public void Pop()
+    public T Pop()
     {
-        Trace.Assert(Count != Capacity);
+        Tracer.Assert(Count != Capacity);
+        var value = elements[tail];
         tail = (tail + 1) % Capacity;
+        return value;
     }
 
     public void Push(in T val)
     {
-        Trace.Assert(Count != elements.Length - 1);
+        Tracer.Assert(Count != elements.Length - 1);
         elements[head] = val;
         head = (head + 1) % Capacity;
     }

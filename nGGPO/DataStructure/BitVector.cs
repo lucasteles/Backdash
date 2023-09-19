@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using nGGPO.Utils;
 
 namespace nGGPO.DataStructure;
@@ -50,17 +49,17 @@ struct BitVector : IEquatable<BitVector>
     public static bool operator !=(BitVector a, BitVector b) => !(a == b);
     public static implicit operator Memory<byte>(BitVector @this) => @this.Memory;
 
-    public ref struct BitOffsetWriter
+    public struct BitOffset
     {
         public const int NibbleSize = 4;
 
-        readonly Span<byte> vector;
+        readonly Memory<byte> bytes;
 
         public int Offset { get; private set; }
 
-        public BitOffsetWriter(in Span<byte> vector, int offset = 0)
+        public BitOffset(Memory<byte> bytes, int offset = 0)
         {
-            this.vector = vector;
+            this.bytes = bytes;
             Offset = offset;
         }
 
@@ -68,26 +67,26 @@ struct BitVector : IEquatable<BitVector>
 
         public void SetNext()
         {
-            SetBit(in vector, Offset);
+            SetBit(bytes.Span, Offset);
             Inc();
         }
 
         public bool Read()
         {
-            var ret = GetBit(in vector, Offset);
+            var ret = GetBit(bytes.Span, Offset);
             Inc();
             return ret;
         }
 
         public void ClearNext()
         {
-            ClearBit(vector, Offset);
+            ClearBit(bytes.Span, Offset);
             Inc();
         }
 
         public void WriteNibble(int nibble)
         {
-            Trace.Assert(nibble < 1 << NibbleSize);
+            Tracer.Assert(nibble < 1 << NibbleSize);
             for (var i = 0; i < NibbleSize; i++)
                 if ((nibble & (1 << i)) != 0)
                     SetNext();

@@ -34,6 +34,17 @@ struct UdpMsg : IDisposable
     [FieldOffset(Header.Size)]
     public InputMsg Input;
 
+    public UdpMsg(MsgType type)
+    {
+        Header = new(type);
+        SyncRequest = default;
+        SyncReply = default;
+        QualityReport = default;
+        QualityReply = default;
+        InputAck = default;
+        Input = default;
+    }
+
     [Pure]
     public int PacketSize() =>
         Header.Size +

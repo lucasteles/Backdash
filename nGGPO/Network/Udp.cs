@@ -12,15 +12,15 @@ class Udp : IPollLoopSink, IDisposable
     // TODO: go back to raw sockets
     readonly UdpClient socket;
 
-    public delegate void OnMsgEvent(IPEndPoint from, in UdpMsg msg, int len);
+    public delegate Task OnMsgEvent(IPEndPoint from, UdpMsg msg, int len);
 
-    public event OnMsgEvent OnMsg = delegate { };
+    public event OnMsgEvent OnMsg = delegate { return Task.CompletedTask; };
 
     readonly IBinarySerializer<UdpMsg> serializer = new StructMarshalBinarySerializer<UdpMsg>();
 
     public Udp(int bindingPort)
     {
-        Logger.Info("binding udp socket to port {0}.\n", bindingPort);
+        Tracer.Log("binding udp socket to port {0}.\n", bindingPort);
         socket = new(bindingPort);
     }
 
@@ -34,11 +34,11 @@ class Udp : IPollLoopSink, IDisposable
 
         if (res == (int) SocketError.SocketError)
         {
-            Logger.Warn("Error sending socket value");
+            Tracer.Warn("Error sending socket value");
             return;
         }
 
-        Logger.Info("sent packet length {0} to {1} (ret:{2}).\n",
+        Tracer.Log("sent packet length {0} to {1} (ret:{2}).\n",
             buffer.Length, dest.ToString(), res);
     }
 
@@ -46,7 +46,7 @@ class Udp : IPollLoopSink, IDisposable
     {
         var data = await socket.ReceiveAsync();
         var msg = serializer.Deserialize(data.Buffer);
-        OnMsg.Invoke(data.RemoteEndPoint, msg, data.Buffer.Length);
+        await OnMsg.Invoke(data.RemoteEndPoint, msg, data.Buffer.Length);
 
         return true;
     }
