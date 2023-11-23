@@ -10,7 +10,14 @@ public interface IBinarySerializer<T> where T : struct
     T Deserialize(ReadOnlySpan<byte> body);
 }
 
-public abstract class BinarySerializer<T> : IBinarySerializer<T> where T : struct
+public interface IBinarySerializer2<T> where T : struct
+{
+    int Serialize(T data, Span<byte> buffer);
+    T Deserialize(in ReadOnlySpan<byte> data);
+}
+
+public abstract class BinarySerializer<T> : IBinarySerializer<T>, IBinarySerializer2<T>
+    where T : struct
 {
     public abstract int SizeOf(in T data);
 
@@ -34,6 +41,19 @@ public abstract class BinarySerializer<T> : IBinarySerializer<T> where T : struc
     }
 
     public T Deserialize(ReadOnlySpan<byte> data)
+    {
+        NetworkBufferReader reader = new(data, Network);
+        return Deserialize(ref reader);
+    }
+
+    public int Serialize(T data, Span<byte> buffer)
+    {
+        NetworkBufferWriter writer = new(buffer, Network);
+        Serialize(ref writer, in data);
+        return writer.WrittenCount;
+    }
+
+    public T Deserialize(in ReadOnlySpan<byte> data)
     {
         NetworkBufferReader reader = new(data, Network);
         return Deserialize(ref reader);
