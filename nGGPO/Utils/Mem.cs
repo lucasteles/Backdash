@@ -24,9 +24,8 @@ public static class Mem
 
     public static MemoryBuffer<byte> Rent(int size) => Rent<byte>(size);
 
-    public static bool BytesEqual(ReadOnlySpan<byte> a1, ReadOnlySpan<byte> a2) =>
+    public static bool BytesEqual(in ReadOnlySpan<byte> a1, in ReadOnlySpan<byte> a2) =>
         a1.Length == a2.Length && a1.SequenceEqual(a2);
-
 
     [Obsolete]
     public static MemoryBuffer<byte> StructToBytes<T>(T message)
@@ -103,13 +102,12 @@ public static class Mem
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Span<TElement> InlineArrayAsSpan<TBuffer, TElement>(
-        ref TBuffer buffer, int size) where TBuffer : struct =>
-        MemoryMarshal.CreateSpan(
-            ref Unsafe.As<TBuffer, TElement>(ref buffer), size);
+        scoped ref TBuffer buffer, int size) where TBuffer : struct =>
+        MemoryMarshal.CreateSpan(ref Unsafe.As<TBuffer, TElement>(ref buffer), size);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ReadOnlySpan<TElement> InlineArrayAsReadOnlySpan<TBuffer, TElement>(
-        in TBuffer buffer, int size) where TBuffer : struct =>
+        scoped in TBuffer buffer, int size) where TBuffer : struct =>
         MemoryMarshal.CreateReadOnlySpan(
             ref Unsafe.As<TBuffer, TElement>(ref Unsafe.AsRef(in buffer)), size);
 

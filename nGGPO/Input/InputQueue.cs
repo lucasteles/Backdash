@@ -3,7 +3,7 @@ using nGGPO.Utils;
 
 namespace nGGPO.Input;
 
-class InputQueue : IDisposable
+class InputQueue
 {
     readonly int inputSize;
     int head, tail, length;
@@ -79,7 +79,7 @@ class InputQueue : IDisposable
     public void ResetPrediction(Frame frame)
     {
         Tracer.Assert(firstIncorrectFrame.IsNull
-                     || frame <= firstIncorrectFrame);
+                      || frame <= firstIncorrectFrame);
 
         Tracer.Log("resetting all prediction errors back to frame {}.", frame);
 
@@ -93,7 +93,7 @@ class InputQueue : IDisposable
     public bool GetConfirmedInput(Frame requestedFrame, ref GameInput input)
     {
         Tracer.Assert(firstIncorrectFrame.IsNull ||
-                     requestedFrame < firstIncorrectFrame);
+                      requestedFrame < firstIncorrectFrame);
         var offset = requestedFrame % inputs.Length;
         if (inputs[offset].Frame != requestedFrame) return false;
         input = inputs[offset];
@@ -151,7 +151,6 @@ class InputQueue : IDisposable
                     "basing new prediction frame from previously added frame (queue entry:{}, frame:{}).",
                     PreviousFrame(head), inputs[PreviousFrame(head)].Frame);
 
-                prediction.Dispose();
                 prediction = inputs[PreviousFrame(head)];
             }
 
@@ -278,12 +277,5 @@ class InputQueue : IDisposable
 
         Tracer.Assert(frame == 0 || frame == inputs[PreviousFrame(head)].Frame + 1);
         return frame;
-    }
-
-    public void Dispose()
-    {
-        prediction.Dispose();
-        foreach (var input in inputs)
-            input.Dispose();
     }
 }

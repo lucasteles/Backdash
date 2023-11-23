@@ -1,72 +1,58 @@
 ﻿using System;
+using System.Diagnostics.Contracts;
+using System.Runtime.CompilerServices;
 using System.Text;
 using nGGPO.DataStructure;
 using nGGPO.Utils;
 
 namespace nGGPO.Input;
 
-readonly record struct Frame : IComparable<Frame>, IComparable<int>, IEquatable<int>
+[InlineArray(Max.InputBytes * Max.Players)]
+public struct GameInputBuffer
 {
-    public const sbyte NullValue = -1;
-    public static readonly Frame Null = new(NullValue);
-    public static readonly Frame Zero = new(0);
-    public int Number { get; } = NullValue;
-    public Frame(int number) => Number = number;
-    public Frame Next => new(Number + 1);
-    public bool IsNull => Number is NullValue;
-    public bool IsValid => !IsNull;
-
-    public int CompareTo(Frame other) => Number.CompareTo(other.Number);
-    public int CompareTo(int other) => Number.CompareTo(other);
-    public bool Equals(int other) => Number == other;
-
-    public override string ToString() => Number.ToString();
-
-    public static Frame operator +(Frame a, Frame b) => new(a.Number + b.Number);
-    public static Frame operator +(Frame a, int b) => new(a.Number + b);
-    public static Frame operator +(int a, Frame b) => new(a + b.Number);
-    public static Frame operator ++(Frame frame) => frame.Next;
-
-    public static implicit operator int(Frame frame) => frame.Number;
-    public static explicit operator Frame(int frame) => new(frame);
+    byte element0;
 }
 
-struct GameInput : IEquatable<GameInput>, IDisposable
+struct GameInput : IEquatable<GameInput>
 {
-    readonly MemoryBuffer<byte> buffer;
-    public const int MaxBytes = 8;
-
     public Frame Frame { get; private set; } = Frame.Null;
-    public int Size { get; set; }
-    public BitVector Bits { get; }
     public static GameInput Empty => new();
 
-    public GameInput(int size)
+    GameInputBuffer buffer = new();
+    public int Size { get; set; }
+
+    public GameInput(ReadOnlySpan<byte> bits)
     {
-        Size = size;
-        Bits = BitVector.Empty;
-        buffer = MemoryBuffer<byte>.Empty;
+        Tracer.Assert(bits.Length <= Max.InputBytes * Max.Players);
+        Tracer.Assert(bits.Length > 0);
+        Size = bits.Length;
+        CopyFrom(bits);
     }
 
-    public GameInput(MemoryBuffer<byte> ibits, int size)
-    {
-        Tracer.Assert(ibits.Length <= MaxBytes * Max.Players);
-        Tracer.Assert(ibits.Length > 0);
+    [Pure]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Span<byte> AsSpan() => Mem.InlineArrayAsSpan<GameInputBuffer, byte>(ref buffer, Size);
 
-        Size = size;
-        buffer = ibits;
-        Bits = new(ibits.Memory);
+    [Pure]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public ReadOnlySpan<byte> AsReadOnlySpan() =>
+        Mem.InlineArrayAsReadOnlySpan<GameInputBuffer, byte>(in buffer, Size);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public BitVector GetBitVector()
+    {
+        var span = AsSpan();
+        return new(ref span);
     }
 
-    public GameInput(MemoryBuffer<byte> ibits) : this(ibits, ibits.Length)
-    {
-    }
+    public void CopyFrom(in ReadOnlySpan<byte> bits, int offset = 0) =>
+        bits.CopyTo(AsSpan()[offset..]);
 
-    public bool IsEmpty => Size is 0 && Bits.IsEmpty;
+    public bool IsEmpty => Size is 0;
     public void IncrementFrame() => Frame = Frame.Next;
     public void SetFrame(Frame frame) => Frame = frame;
     public void ResetFrame() => Frame = Frame.Null;
-    public void Clear() => Bits.Erase();
+    public void Clear() => AsSpan().Clear();
 
     public override string ToString()
     {
@@ -75,14 +61,17 @@ struct GameInput : IEquatable<GameInput>, IDisposable
         builder.Append($"{{ Frame: {Frame},");
         builder.Append($" Size: {Size}, Input: ");
 
-        builder.Append(Bits.ToString(splitAt: Max.Players));
+        builder.Append(GetBitVector().ToString(splitAt: Max.Players));
 
         builder.Append(" }");
 
         return builder.ToString();
     }
 
-    public bool Equals(GameInput other, bool bitsOnly)
+    public bool BitsEquals(in GameInput other) =>
+        Mem.BytesEqual(AsReadOnlySpan(), other.AsReadOnlySpan());
+
+    public bool Equals(in GameInput other, bool bitsOnly)
     {
         if (!bitsOnly && Frame != other.Frame)
             Tracer.Log("frames don't match: {}, {}", Frame, other.Frame);
@@ -90,22 +79,20 @@ struct GameInput : IEquatable<GameInput>, IDisposable
         if (Size != other.Size)
             Tracer.Log("sizes don't match: {}, {}", Size, other.Size);
 
-        if (Bits.Equals(other.Bits))
+        if (buffer.Equals(other.buffer))
             Tracer.Log("bits don't match");
 
         Tracer.Assert(Size > 0 && other.Size > 0);
 
         return (bitsOnly || Frame == other.Frame)
                && Size == other.Size
-               && Bits.Equals(other.Bits);
+               && BitsEquals(other);
     }
 
     // ReSharper disable once NonReadonlyMemberInGetHashCode
-    public override int GetHashCode() => HashCode.Combine(Size, Bits, Frame);
+    public override int GetHashCode() => HashCode.Combine(Size, buffer, Frame);
     public bool Equals(GameInput other) => Equals(other, false);
     public override bool Equals(object? obj) => obj is GameInput gi && Equals(gi);
     public static bool operator ==(GameInput a, GameInput b) => a.Equals(b);
     public static bool operator !=(GameInput a, GameInput b) => !(a == b);
-
-    public void Dispose() => buffer.Dispose();
 }

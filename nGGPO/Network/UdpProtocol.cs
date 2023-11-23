@@ -146,7 +146,7 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
     Task SendPendingOutput()
     {
         Tracer.Assert(
-            GameInput.MaxBytes * Max.Players * Mem.ByteSize
+            Max.InputBytes * Max.Players * Mem.ByteSize
             <
             1 << BitVector.BitOffset.NibbleSize
         );
@@ -173,21 +173,23 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
         {
             BitVector.BitOffset bitWriter = new(bits);
             var last = lastAckedInput;
+            var lastBits = last.GetBitVector();
             Tracer.Assert(last.Frame.IsNull || last.Frame.Next == startFrame);
 
             for (var i = 0; i < pendingOutput.Count; i++)
             {
                 ref var current = ref pendingOutput.Get(i);
-                if (current.Bits != last.Bits)
+                if (current.Equals(last, bitsOnly: true))
                 {
-                    for (var j = 0; j < current.Bits.BitCount; j++)
+                    var currentBits = current.GetBitVector();
+                    for (var j = 0; j < currentBits.BitCount; j++)
                     {
-                        if (current.Bits[j] == last.Bits[j])
+                        if (currentBits[j] == lastBits[j])
                             continue;
 
                         bitWriter.SetNext();
 
-                        if (current.Bits[j])
+                        if (currentBits[j])
                             bitWriter.SetNext();
                         else
                             bitWriter.ClearNext();
@@ -209,17 +211,17 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
             {
                 ref var front = ref pendingOutput.Peek();
 
-                InputMsg input = new(front.Size, Max.UdpMsgPlayers)
+                InputMsg inputMsg = new(front.Size, Max.UdpMsgPlayers)
                 {
                     InputSize = (byte) front.Size,
                     StartFrame = front.Frame,
                 };
 
-                var offset = WriteCompressedInput(input.Bits.Memory, input.StartFrame);
-                input.NumBits = (ushort) offset;
+                var offset = WriteCompressedInput(inputMsg.Bits.Memory, inputMsg.StartFrame);
+                inputMsg.NumBits = (ushort) offset;
                 Tracer.Assert(offset < Max.CompressedBits);
 
-                return input;
+                return inputMsg;
             }
 
             return new(peerCount: Max.UdpMsgPlayers);
@@ -322,7 +324,7 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
                 handled = await OnSyncReply(msg, len);
                 break;
             case MsgType.Input:
-                handled = await OnInput(msg, len);
+                handled = OnInput(msg);
                 break;
             case MsgType.QualityReport:
                 handled = await OnQualityReport(msg, len);
@@ -355,7 +357,7 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
         }
     }
 
-    async Task<bool> OnInput(UdpMsg msg, int len)
+    bool OnInput(UdpMsg msg)
     {
         /*
          * If a disconnect is requested, go ahead and disconnect now.
@@ -408,6 +410,7 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
                 lastReceivedInput.SetFrame(new(msg.Input.StartFrame - 1));
 
             BitVector.BitOffset bitVector = new(msg.Input.Bits.Memory);
+            var lastInputBits = lastReceivedInput.GetBitVector();
 
             while (bitVector.Offset < numBits)
             {
@@ -424,9 +427,9 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
                     var button = bitVector.ReadNibble();
                     if (!useInputs) continue;
                     if (on)
-                        lastReceivedInput.Bits.Set(button);
+                        lastInputBits.Set(button);
                     else
-                        lastReceivedInput.Bits.Clear(button);
+                        lastInputBits.Clear(button);
                 }
 
                 Tracer.Assert(bitVector.Offset <= numBits);
@@ -455,7 +458,7 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
                     state.Running.LastInputPacketRecvTime = (uint) Platform.GetCurrentTimeMS();
 
                     Tracer.Log("Sending frame {0} to emu queue {1} ({2}).\n",
-                        lastReceivedInput.Frame, queue, lastAckedInput.Bits.ToString());
+                        lastReceivedInput.Frame, queue, lastInputBits.ToString());
 
                     QueueEvent(evt);
                 }

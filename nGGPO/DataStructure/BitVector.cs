@@ -3,14 +3,11 @@ using nGGPO.Utils;
 
 namespace nGGPO.DataStructure;
 
-struct BitVector : IEquatable<BitVector>
+readonly ref struct BitVector(scoped ref Span<byte> bits)
 {
-    public static BitVector Empty = new(Memory<byte>.Empty);
-    public int Size => Memory.Length;
+    public int Size => Buffer.Length;
     public int BitCount => Size * Mem.ByteSize;
-
-    public Memory<byte> Memory { get; }
-    public BitVector(in Memory<byte> bits) => Memory = bits;
+    public Span<byte> Buffer { get; } = bits;
 
     public static void SetBit(in Span<byte> vector, int index) =>
         vector[index / 8] |= (byte) (1 << (index % 8));
@@ -21,11 +18,11 @@ struct BitVector : IEquatable<BitVector>
     public static void ClearBit(in Span<byte> vector, int index) =>
         vector[index / 8] &= (byte) ~(1 << (index % 8));
 
-    public bool Get(int i) => GetBit(Memory.Span, i);
-    public void Set(int i) => SetBit(Memory.Span, i);
-    public void Clear(int i) => ClearBit(Memory.Span, i);
+    public bool Get(int i) => GetBit(Buffer, i);
+    public void Set(int i) => SetBit(Buffer, i);
+    public void Clear(int i) => ClearBit(Buffer, i);
 
-    public void Erase() => Memory.Span.Clear();
+    public void Erase() => Buffer.Clear();
 
     public bool this[int bit]
     {
@@ -40,28 +37,15 @@ struct BitVector : IEquatable<BitVector>
     public override string ToString() => ToString(splitAt: 0);
 
     public string ToString(int splitAt, int bytePad = Mem.ByteSize) =>
-        Mem.GetBitString(Memory.Span, splitAt, bytePad);
+        Mem.GetBitString(Buffer, splitAt, bytePad);
 
-    public bool Equals(BitVector other) => Mem.BytesEqual(Memory.Span, other.Memory.Span);
-    public override bool Equals(object? obj) => obj is BitVector v && Equals(v);
-    public override int GetHashCode() => Memory.Span.GetHashCode();
-    public static bool operator ==(BitVector a, BitVector b) => a.Equals(b);
-    public static bool operator !=(BitVector a, BitVector b) => !(a == b);
-    public static implicit operator Memory<byte>(BitVector @this) => @this.Memory;
+    public static implicit operator Span<byte>(BitVector @this) => @this.Buffer;
 
-    public struct BitOffset
+    public struct BitOffset(Memory<byte> bytes, int offset = 0)
     {
         public const int NibbleSize = 4;
 
-        readonly Memory<byte> bytes;
-
-        public int Offset { get; private set; }
-
-        public BitOffset(Memory<byte> bytes, int offset = 0)
-        {
-            this.bytes = bytes;
-            Offset = offset;
-        }
+        public int Offset { get; private set; } = offset;
 
         public void Inc() => Offset++;
 
@@ -104,5 +88,5 @@ struct BitVector : IEquatable<BitVector>
         }
     }
 
-    public bool IsEmpty => Memory.Span.Length is 0;
+    public bool IsEmpty => Buffer.Length is 0;
 }

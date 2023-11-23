@@ -2,6 +2,8 @@
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -82,10 +84,9 @@ public class UdpPeerClient<T>(
     async Task Produce(CancellationToken ct)
     {
         var buffer = GC.AllocateArray<byte>(
-                length: MaxUdpSize,
-                pinned: true
-            )
-            .AsMemory();
+            length: MaxUdpSize,
+            pinned: true
+        );
 
         var address = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort).Serialize();
 
@@ -97,7 +98,8 @@ public class UdpPeerClient<T>(
 
                 if (receivedSize is 0) continue;
 
-                await channel.Writer.WriteAsync((address, buffer[..receivedSize]), ct);
+                var memory = MemoryMarshal.CreateFromPinnedArray(buffer, 0, receivedSize);
+                await channel.Writer.WriteAsync((address, memory), ct);
             }
             catch (SocketException ex)
             {
@@ -133,17 +135,17 @@ public class UdpPeerClient<T>(
     async Task ProcessSendQueue(CancellationToken ct)
     {
         var buffer = GC.AllocateArray<byte>(
-                length: MaxUdpSize,
-                pinned: true
-            )
-            .AsMemory();
+            length: MaxUdpSize,
+            pinned: true
+        );
 
         try
         {
             await foreach (var (peerAddress, msg) in sendQueue.Reader.ReadAllAsync(ct))
             {
-                var bodySize = serializer.Serialize(msg, buffer.Span);
-                var sentSize = await SendRaw(buffer[..bodySize], peerAddress, ct);
+                var bodySize = serializer.Serialize(msg, buffer);
+                var memory = MemoryMarshal.CreateFromPinnedArray(buffer, 0, bodySize);
+                var sentSize = await SendRaw(memory, peerAddress, ct);
                 Trace.Assert(sentSize == bodySize);
             }
         }

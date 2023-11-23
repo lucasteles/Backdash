@@ -8,6 +8,9 @@ public static class Max
     public const int Spectators = 32;
     public const int CompressedBits = 4096;
     public const int UdpEndpoints = 16;
-    public const int UdpPacketSize = 4096;
+    public const int UdpPacketSize = 65527;
+    public const int InputBytes = 8;
     public const int PollableHandles = 64;
+    
+    // public const int UdpPacketSize = 4096;
 }
