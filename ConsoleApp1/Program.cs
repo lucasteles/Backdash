@@ -34,7 +34,7 @@ var size = serializer.SizeOf(packet);
 Console.Clear();
 Console.WriteLine($"# Size={size}, SizeM={sizeM}\n");
 
-using var bufferMarshal = Mem.StructToBytes(packet);
+// using var bufferMarshal = Mem.StructToBytes(packet);
 
 // serializer.Network = false;
 // using var buffer = serializer.Serialize(packet);

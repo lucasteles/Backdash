@@ -3,7 +3,6 @@
 namespace nGGPO.Network;
 
 partial class UdpProtocol
-
 {
     const int UdpHeaderSize = 28; /* Size of IP + UDP headers */
     const int NumSyncPackets = 5;
@@ -38,13 +37,13 @@ partial class UdpProtocol
         public UdpMsg? Msg;
     }
 
-    public class SyncState
+    public struct SyncState
     {
         public uint RoundtripsRemaining;
         public uint Random;
     };
 
-    public class RunningState
+    public struct RunningState
     {
         public uint LastQualityReportTime;
         public uint LastNetworkStatsInterval;
@@ -53,7 +52,7 @@ partial class UdpProtocol
 
     public sealed class UdpProtocolState
     {
-        public SyncState Sync { get; set; } = new();
-        public RunningState Running { get; set; } = new();
+        public SyncState Sync = new();
+        public RunningState Running = new();
     }
 }

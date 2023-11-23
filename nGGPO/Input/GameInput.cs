@@ -72,8 +72,8 @@ struct GameInput : IEquatable<GameInput>, IDisposable
     {
         var builder = new StringBuilder();
 
-        builder.AppendFormat("{{ Frame: {0},", Frame);
-        builder.AppendFormat(" Size: {0}, Input: ", Size);
+        builder.Append($"{{ Frame: {Frame},");
+        builder.Append($" Size: {Size}, Input: ");
 
         builder.Append(Bits.ToString(splitAt: Max.Players));
 

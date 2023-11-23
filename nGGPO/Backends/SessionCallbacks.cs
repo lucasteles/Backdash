@@ -19,11 +19,6 @@ public readonly struct SaveGameState<TState> where TState : struct
  */
 public interface ISessionCallbacks<TGameState> where TGameState : struct
 {
-    /*
-     * This callback has been deprecated.  You must
-     * implement it, but should ignore the 'game' parameter.
-     */
-    bool BeginGame(string game);
 
     /*
      The client should allocate a buffer, copy the

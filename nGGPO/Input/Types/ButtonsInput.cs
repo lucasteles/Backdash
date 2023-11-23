@@ -24,8 +24,8 @@ public enum ButtonsInput : short
     RB = 1 << 10,
     LT = 1 << 11,
     RT = 1 << 12,
-    L3 = 1 << 13,
-    R3 = 1 << 14,
+    LSB = 1 << 13,
+    RSB = 1 << 14,
 
     UpLeft = Up | Left,
     UpRight = Up | Right,
@@ -117,14 +117,14 @@ public struct ButtonsInputEditor
 
     public bool L3
     {
-        get => Input.HasFlag(ButtonsInput.L3);
-        set => Input = Input.SetFlag(ButtonsInput.L3, value);
+        get => Input.HasFlag(ButtonsInput.LSB);
+        set => Input = Input.SetFlag(ButtonsInput.LSB, value);
     }
 
     public bool R3
     {
-        get => Input.HasFlag(ButtonsInput.R3);
-        set => Input = Input.SetFlag(ButtonsInput.R3, value);
+        get => Input.HasFlag(ButtonsInput.RSB);
+        set => Input = Input.SetFlag(ButtonsInput.RSB, value);
     }
 
     public bool Select

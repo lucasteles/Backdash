@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using nGGPO.Input;
@@ -41,7 +42,6 @@ class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGameState
     public Peer2PeerBackend(
         IBinarySerializer<TInput> inputSerializer,
         ISessionCallbacks<TGameState> callbacks,
-        string gameName,
         int localPort,
         int numPlayers
     )
@@ -56,14 +56,13 @@ class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGameState
 
         udp = new(localPort);
         udp.OnMessage += OnMsg;
-        poll.RegisterLoop(udp);
 
-        callbacks.BeginGame(gameName);
+        poll.RegisterLoop(udp);
     }
 
     public ErrorCode AddPlayer(Player player)
     {
-        if (player is null) throw new ArgumentNullException(nameof(player));
+        ArgumentNullException.ThrowIfNull(player);
 
         if (player is Player.Spectator spectator)
             return AddSpectator(spectator.EndPoint);

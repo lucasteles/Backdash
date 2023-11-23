@@ -7,7 +7,6 @@ public class Rollback
 {
     public static IRollbackSession<TInput, TGameState> CreateSession<TInput, TGameState>(
         ISessionCallbacks<TGameState> cb,
-        string game,
         int numPlayers,
         int localPort,
         IBinarySerializer<TInput>? inputSerializer = null
@@ -17,7 +16,6 @@ public class Rollback
     {
         inputSerializer ??= BinarySerializers.Get<TInput>();
 
-        return new Peer2PeerBackend<TInput, TGameState>(inputSerializer, cb, game, localPort,
-            numPlayers);
+        return new Peer2PeerBackend<TInput, TGameState>(inputSerializer, cb, localPort, numPlayers);
     }
 }

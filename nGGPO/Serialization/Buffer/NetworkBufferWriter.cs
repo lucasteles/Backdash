@@ -13,7 +13,7 @@ public ref struct NetworkBufferWriter
     public int WrittenCount => offset;
     public int Capacity => buffer.Length;
     public int FreeCapacity => Capacity - WrittenCount;
-
+    
     public NetworkBufferWriter(Span<byte> buffer, bool network = true, int offset = 0)
     {
         this.buffer = buffer;
