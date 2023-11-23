@@ -12,6 +12,18 @@ public static class Endianness
         ? BinaryPrimitives.ReverseEndianness(host)
         : host;
 
+    public static char HostToNetworkOrder(char host) => IsLittleEndian
+        ? (char) BinaryPrimitives.ReverseEndianness(host)
+        : host;
+
+    public static Int128 HostToNetworkOrder(Int128 host) => IsLittleEndian
+        ? BinaryPrimitives.ReverseEndianness(host)
+        : host;
+
+    public static UInt128 HostToNetworkOrder(UInt128 host) => IsLittleEndian
+        ? BinaryPrimitives.ReverseEndianness(host)
+        : host;
+
     public static int HostToNetworkOrder(int host) => IsLittleEndian
         ? BinaryPrimitives.ReverseEndianness(host)
         : host;
@@ -40,24 +52,17 @@ public static class Endianness
 
     public static T TryHostToNetworkOrder<T>(T host) where T : unmanaged => host switch
     {
+        char n => As<char, T>(HostToNetworkOrder(n)),
         short n => As<short, T>(HostToNetworkOrder(n)),
         int n => As<int, T>(HostToNetworkOrder(n)),
         long n => As<long, T>(HostToNetworkOrder(n)),
-
+        Int128 n => As<Int128, T>(HostToNetworkOrder(n)),
         ushort n => As<ushort, T>(HostToNetworkOrder(n)),
         uint n => As<uint, T>(HostToNetworkOrder(n)),
         ulong n => As<ulong, T>(HostToNetworkOrder(n)),
-
+        UInt128 n => As<UInt128, T>(HostToNetworkOrder(n)),
         _ => host,
     };
-
-    public static bool IsReordable(Type host) =>
-        host == typeof(short)
-        || host == typeof(int)
-        || host == typeof(long)
-        || host == typeof(ushort)
-        || host == typeof(uint)
-        || host == typeof(ulong);
 
     public static long NetworkToHostOrder(long network) => HostToNetworkOrder(network);
     public static int NetworkToHostOrder(int network) => HostToNetworkOrder(network);
@@ -65,6 +70,9 @@ public static class Endianness
     public static ulong NetworkToHostOrder(ulong network) => HostToNetworkOrder(network);
     public static uint NetworkToHostOrder(uint network) => HostToNetworkOrder(network);
     public static ushort NetworkToHostOrder(ushort network) => HostToNetworkOrder(network);
+    public static char NetworkToHostOrder(char network) => HostToNetworkOrder(network);
+    public static Int128 NetworkToHostOrder(Int128 network) => HostToNetworkOrder(network);
+    public static UInt128 NetworkToHostOrder(UInt128 network) => HostToNetworkOrder(network);
 
     public static T TryNetworkToHostOrder<T>(T network) where T : unmanaged =>
         TryHostToNetworkOrder(network);

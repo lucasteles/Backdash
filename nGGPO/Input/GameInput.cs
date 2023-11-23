@@ -18,15 +18,25 @@ struct GameInput : IEquatable<GameInput>
     public Frame Frame { get; private set; } = Frame.Null;
     public static GameInput Empty => new();
 
-    GameInputBuffer buffer = new();
+    GameInputBuffer buffer;
     public int Size { get; set; }
+
+    public GameInput(ref GameInputBuffer inputBuffer, int size)
+    {
+        ReadOnlySpan<byte> bits = inputBuffer;
+        Tracer.Assert(bits.Length <= Max.InputBytes * Max.Players);
+        Tracer.Assert(bits.Length > 0);
+        Size = size;
+        buffer = inputBuffer;
+    }
 
     public GameInput(ReadOnlySpan<byte> bits)
     {
         Tracer.Assert(bits.Length <= Max.InputBytes * Max.Players);
         Tracer.Assert(bits.Length > 0);
         Size = bits.Length;
-        CopyFrom(bits);
+        buffer = new();
+        bits.CopyTo(buffer);
     }
 
     [Pure]
@@ -45,8 +55,6 @@ struct GameInput : IEquatable<GameInput>
         return new(ref span);
     }
 
-    public void CopyFrom(in ReadOnlySpan<byte> bits, int offset = 0) =>
-        bits.CopyTo(AsSpan()[offset..]);
 
     public bool IsEmpty => Size is 0;
     public void IncrementFrame() => Frame = Frame.Next;

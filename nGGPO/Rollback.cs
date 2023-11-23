@@ -1,4 +1,5 @@
-﻿using nGGPO.Backends;
+﻿using System;
+using nGGPO.Backends;
 using nGGPO.Serialization;
 
 namespace nGGPO;
@@ -14,7 +15,9 @@ public class Rollback
         where TInput : struct
         where TGameState : struct
     {
-        inputSerializer ??= BinarySerializers.Get<TInput>();
+        inputSerializer ??= BinarySerializers.Get<TInput>()
+                            ?? throw new InvalidOperationException(
+                                $"Unable to infer serializer for type {typeof(TInput).FullName}");
 
         return new Peer2PeerBackend<TInput, TGameState>(inputSerializer, cb, localPort, numPlayers);
     }

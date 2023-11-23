@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using nGGPO.Network;
 
 namespace nGGPO.Serialization.Buffer;
@@ -78,7 +80,8 @@ public ref struct NetworkBufferWriter
 
     public void Write(char value)
     {
-        BitConverter.TryWriteBytes(buffer[offset..], value).AssertTrue();
+        var reordered = Network ? Endianness.HostToNetworkOrder(value) : value;
+        BitConverter.TryWriteBytes(buffer[offset..], reordered).AssertTrue();
         offset += sizeof(char);
     }
 
@@ -140,4 +143,48 @@ public ref struct NetworkBufferWriter
     }
 
     public void Write(Memory<byte> value) => Write(value.Span);
+
+    public void Write(Int128 value)
+    {
+        var reordered = Network ? Endianness.HostToNetworkOrder(value) : value;
+        TryWriteBytes(buffer[offset..], reordered).AssertTrue();
+        offset += Unsafe.SizeOf<Int128>();
+
+        return;
+
+        static bool TryWriteBytes(Span<byte> destination, Int128 value)
+        {
+            if (destination.Length < Unsafe.SizeOf<Int128>()) return false;
+            Unsafe.WriteUnaligned(ref MemoryMarshal.GetReference(destination), value);
+            return true;
+        }
+    }
+
+    public void Write(in ReadOnlySpan<Int128> value)
+    {
+        for (var i = 0; i < value.Length; i++)
+            Write(value[i]);
+    }
+
+    public void Write(UInt128 value)
+    {
+        var reordered = Network ? Endianness.HostToNetworkOrder(value) : value;
+        TryWriteBytes(buffer[offset..], reordered).AssertTrue();
+        offset += Unsafe.SizeOf<UInt128>();
+
+        return;
+
+        static bool TryWriteBytes(Span<byte> destination, UInt128 value)
+        {
+            if (destination.Length < Unsafe.SizeOf<UInt128>()) return false;
+            Unsafe.WriteUnaligned(ref MemoryMarshal.GetReference(destination), value);
+            return true;
+        }
+    }
+
+    public void Write(in ReadOnlySpan<UInt128> value)
+    {
+        for (var i = 0; i < value.Length; i++)
+            Write(value[i]);
+    }
 }

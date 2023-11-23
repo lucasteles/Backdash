@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -24,7 +25,7 @@ public static class Mem
 
     public static MemoryBuffer<byte> Rent(int size) => Rent<byte>(size);
 
-    public static unsafe int MarshallStructure<T>(in T message, Span<byte> body)
+    public static unsafe Span<byte> MarshallStructure<T>(in T message)
         where T : struct
     {
         var size = Marshal.SizeOf(message);
@@ -41,21 +42,15 @@ public static class Mem
 
         try
         {
-            fixed (byte* bodyPtr = body)
-            {
-                Marshal.StructureToPtr(message, ptr, true);
-                Span<byte> source = new((void*) ptr, size);
-                Span<byte> dest = new(bodyPtr, size);
-                source.CopyTo(dest);
-            }
+            Marshal.StructureToPtr(message, ptr, true);
+            Span<byte> source = new((void*) ptr, size);
+            return source;
         }
         finally
         {
             if (size > MaxStackLimit)
                 Marshal.FreeHGlobal(ptr);
         }
-
-        return size;
     }
 
     public static unsafe T UnmarshallStructure<T>(in ReadOnlySpan<byte> body) where T : struct
@@ -111,20 +106,12 @@ public static class Mem
         where TValue : struct =>
         MemoryMarshal.Cast<byte, TValue>(bytes)[0];
 
-    public static TInt EnumAsInteger<TEnum, TInt>(TEnum enumValue)
-        where TEnum : unmanaged, Enum
-        where TInt : unmanaged
+    public static T ReadUnaligned<T>(in ReadOnlySpan<byte> data) where T : struct
     {
-        if (Unsafe.SizeOf<TEnum>() != Unsafe.SizeOf<TInt>()) throw new Exception("type mismatch");
-        return Unsafe.As<TEnum, TInt>(ref enumValue);
-    }
+        if (data.Length < Unsafe.SizeOf<T>())
+            throw new ArgumentOutOfRangeException(nameof(data));
 
-    public static TEnum IntegerAsEnum<TEnum, TInt>(TInt intValue)
-        where TEnum : unmanaged, Enum
-        where TInt : unmanaged
-    {
-        if (Unsafe.SizeOf<TEnum>() != Unsafe.SizeOf<TInt>()) throw new Exception("type mismatch");
-        return Unsafe.As<TInt, TEnum>(ref intValue);
+        return Unsafe.ReadUnaligned<T>(ref MemoryMarshal.GetReference(data));
     }
 
     // TODO: create non alloc version of this

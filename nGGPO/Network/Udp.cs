@@ -5,7 +5,7 @@ namespace nGGPO.Network;
 
 class Udp : UdpPeerClient<UdpMsg>, IPollLoopSink
 {
-    public Udp(int bindingPort) : base(bindingPort, new StructMarshalBinarySerializer<UdpMsg>())
+    public Udp(int bindingPort) : base(bindingPort, new StructBinarySerializer<UdpMsg>())
     {
     }
 

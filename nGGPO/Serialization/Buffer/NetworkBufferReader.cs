@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using nGGPO.Network;
 
 namespace nGGPO.Serialization.Buffer;
@@ -70,11 +72,55 @@ public ref struct NetworkBufferReader
             values[i] = ReadLong();
     }
 
+    public Int128 ReadInt128()
+    {
+        static Int128 ToInt128(ReadOnlySpan<byte> value)
+        {
+            if (value.Length < Unsafe.SizeOf<Int128>())
+                throw new ArgumentOutOfRangeException(nameof(value));
+
+            return Unsafe.ReadUnaligned<Int128>(ref MemoryMarshal.GetReference(value));
+        }
+
+        var value = ToInt128(buffer[offset..]);
+        offset += Unsafe.SizeOf<Int128>();
+
+        return network ? Endianness.NetworkToHostOrder(value) : value;
+    }
+
+    public void ReadInt128(in Span<Int128> values)
+    {
+        for (var i = 0; i < values.Length; i++)
+            values[i] = ReadInt128();
+    }
+
+    public UInt128 ReadUInt128()
+    {
+        var value = ToUInt128(buffer[offset..]);
+        offset += Unsafe.SizeOf<UInt128>();
+
+        return network ? Endianness.NetworkToHostOrder(value) : value;
+
+        static UInt128 ToUInt128(ReadOnlySpan<byte> value)
+        {
+            if (value.Length < Unsafe.SizeOf<UInt128>())
+                throw new ArgumentOutOfRangeException(nameof(value));
+
+            return Unsafe.ReadUnaligned<UInt128>(ref MemoryMarshal.GetReference(value));
+        }
+    }
+
+    public void ReadUInt128(in Span<UInt128> values)
+    {
+        for (var i = 0; i < values.Length; i++)
+            values[i] = ReadUInt128();
+    }
+
     public char ReadChar()
     {
         var value = BitConverter.ToChar(buffer[offset..]);
         offset += sizeof(char);
-        return value;
+        return network ? Endianness.NetworkToHostOrder(value) : value;
     }
 
     public void ReadChar(in Span<char> values)
