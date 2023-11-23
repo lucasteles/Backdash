@@ -27,6 +27,8 @@ public static class Mem
     public static bool BytesEqual(ReadOnlySpan<byte> a1, ReadOnlySpan<byte> a2) =>
         a1.Length == a2.Length && a1.SequenceEqual(a2);
 
+
+    [Obsolete]
     public static MemoryBuffer<byte> StructToBytes<T>(T message)
         where T : struct
     {
@@ -36,10 +38,12 @@ public static class Mem
         return buffer;
     }
 
-    public unsafe static void StructToBytes<T>(T message, Span<byte> body)
+    public static int SizeOf<T>(T data) => Marshal.SizeOf(data);
+
+    public static unsafe int StructToBytes<T>(T message, Span<byte> body)
         where T : struct
     {
-        var size = body.Length;
+        var size = SizeOf(message);
 
         nint ptr;
 
@@ -66,9 +70,11 @@ public static class Mem
             if (size > MaxStackLimit)
                 Marshal.FreeHGlobal(ptr);
         }
+
+        return size;
     }
 
-    public static unsafe T BytesToStruct<T>(ReadOnlySpan<byte> body) where T : struct
+    public static unsafe T BytesToStruct<T>(in ReadOnlySpan<byte> body) where T : struct
     {
         var size = body.Length;
 

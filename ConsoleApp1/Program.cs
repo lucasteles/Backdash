@@ -36,26 +36,26 @@ Console.WriteLine($"# Size={size}, SizeM={sizeM}\n");
 
 using var bufferMarshal = Mem.StructToBytes(packet);
 
-serializer.Network = false;
-using var buffer = serializer.Serialize(packet);
-
-serializer.Network = true;
-using var bufferNetWork = serializer.Serialize(packet);
-
-Dump(bufferMarshal, "Marshall");
-Dump(buffer, "Serial");
-Dump(bufferNetWork, "Network");
-
-var valueMarshall = Mem.BytesToStruct<Input>(bufferMarshal);
-serializer.Network = false;
-var value = serializer.Deserialize(buffer);
-serializer.Network = true;
-var valueNetwork = serializer.Deserialize(bufferNetWork);
-
-Console.WriteLine();
-Console.WriteLine(valueMarshall);
-Console.WriteLine(value);
-Console.WriteLine(valueNetwork);
+// serializer.Network = false;
+// using var buffer = serializer.Serialize(packet);
+//
+// serializer.Network = true;
+// using var bufferNetWork = serializer.Serialize(packet);
+//
+// Dump(bufferMarshal, "Marshall");
+// Dump(buffer, "Serial");
+// Dump(bufferNetWork, "Network");
+//
+// var valueMarshall = Mem.BytesToStruct<Input>(bufferMarshal);
+// serializer.Network = false;
+// var value = serializer.Deserialize(buffer);
+// serializer.Network = true;
+// var valueNetwork = serializer.Deserialize(bufferNetWork);
+//
+// Console.WriteLine();
+// Console.WriteLine(valueMarshall);
+// Console.WriteLine(value);
+// Console.WriteLine(valueNetwork);
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
 public struct Input

@@ -6,13 +6,13 @@ using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using nGGPO.Serialization;
+using nGGPO.Utils;
 
 namespace nGGPO.Network;
 
-public sealed class PeerUdpClient<T>(
+public class UdpPeerClient<T>(
     int port,
-    IPEndPoint peer,
-    IBinarySerializer2<T> serializer
+    IBinarySerializer<T> serializer
 ) : IDisposable where T : struct
 {
     public const int MaxUdpSize = 65527;
@@ -20,10 +20,9 @@ public sealed class PeerUdpClient<T>(
 
     readonly Socket socket = CreateSocket(port);
     readonly CancellationTokenSource cancellation = new();
-    readonly SocketAddress peerAddress = peer.Serialize();
 
-    readonly Channel<ReadOnlyMemory<byte>> channel =
-        Channel.CreateBounded<ReadOnlyMemory<byte>>(
+    readonly Channel<(SocketAddress, ReadOnlyMemory<byte>)> channel =
+        Channel.CreateBounded<(SocketAddress, ReadOnlyMemory<byte>)>(
             new BoundedChannelOptions(MaxQueuedPackages)
             {
                 SingleWriter = true,
@@ -33,7 +32,7 @@ public sealed class PeerUdpClient<T>(
             }
         );
 
-    readonly Channel<T> sendQueue = Channel.CreateBounded<T>(
+    readonly Channel<(SocketAddress, T)> sendQueue = Channel.CreateBounded<(SocketAddress, T)>(
         new BoundedChannelOptions(MaxQueuedPackages)
         {
             SingleWriter = true,
@@ -43,12 +42,11 @@ public sealed class PeerUdpClient<T>(
         }
     );
 
-    public event Func<T, CancellationToken, ValueTask> OnMessage = delegate
+    public event Func<T, SocketAddress, CancellationToken, ValueTask> OnMessage = delegate
     {
         return ValueTask.CompletedTask;
     };
 
-    public IPEndPoint Peer { get; } = peer;
     public int Port => port;
 
     public async Task Start(CancellationToken cancellationToken = default)
@@ -76,6 +74,8 @@ public sealed class PeerUdpClient<T>(
 
         IPEndPoint localEp = new(IPAddress.Any, port);
         socket.Bind(localEp);
+
+        Tracer.Log("binding udp socket to port {0}.\n", port);
         return socket;
     }
 
@@ -87,15 +87,17 @@ public sealed class PeerUdpClient<T>(
             )
             .AsMemory();
 
+        var address = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort).Serialize();
+
         while (!ct.IsCancellationRequested)
             try
             {
                 var receivedSize = await socket
-                    .ReceiveFromAsync(buffer, SocketFlags.None, peerAddress, ct);
+                    .ReceiveFromAsync(buffer, SocketFlags.None, address, ct);
 
                 if (receivedSize is 0) continue;
 
-                await channel.Writer.WriteAsync(buffer[..receivedSize], ct);
+                await channel.Writer.WriteAsync((address, buffer[..receivedSize]), ct);
             }
             catch (SocketException ex)
             {
@@ -114,10 +116,10 @@ public sealed class PeerUdpClient<T>(
     {
         try
         {
-            await foreach (var pkg in channel.Reader.ReadAllAsync(ct))
+            await foreach (var (peerAddress, pkg) in channel.Reader.ReadAllAsync(ct))
             {
                 var parsed = serializer.Deserialize(pkg.Span);
-                await OnMessage.Invoke(parsed, ct);
+                await OnMessage.Invoke(parsed, peerAddress, ct);
             }
         }
         catch (OperationCanceledException)
@@ -138,10 +140,10 @@ public sealed class PeerUdpClient<T>(
 
         try
         {
-            await foreach (var msg in sendQueue.Reader.ReadAllAsync(ct))
+            await foreach (var (peerAddress, msg) in sendQueue.Reader.ReadAllAsync(ct))
             {
                 var bodySize = serializer.Serialize(msg, buffer.Span);
-                var sentSize = await SendRaw(buffer[..bodySize], ct);
+                var sentSize = await SendRaw(buffer[..bodySize], peerAddress, ct);
                 Trace.Assert(sentSize == bodySize);
             }
         }
@@ -153,11 +155,18 @@ public sealed class PeerUdpClient<T>(
         }
     }
 
-    public async ValueTask<int> SendRaw(ReadOnlyMemory<byte> payload, CancellationToken ct) =>
+    public async ValueTask<int> SendRaw(
+        ReadOnlyMemory<byte> payload,
+        SocketAddress peerAddress,
+        CancellationToken ct = default
+    ) =>
         await socket.SendToAsync(payload, SocketFlags.None, peerAddress, ct);
 
-    public ValueTask Send(T payload, CancellationToken ct) =>
-        sendQueue.Writer.WriteAsync(payload, ct);
+    public ValueTask SendTo(T payload, IPEndPoint dest, CancellationToken ct = default) =>
+        SendTo(payload, dest.Serialize(), ct);
+
+    public ValueTask SendTo(T payload, SocketAddress peerAddress, CancellationToken ct = default) =>
+        sendQueue.Writer.WriteAsync((peerAddress, payload), ct);
 
     public void Dispose()
     {

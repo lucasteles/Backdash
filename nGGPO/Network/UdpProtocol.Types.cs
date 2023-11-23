@@ -27,14 +27,14 @@ partial class UdpProtocol
     struct QueueEntry
     {
         public long QueueTime;
-        public IPEndPoint DestAddr;
+        public SocketAddress DestAddr;
         public UdpMsg Msg;
     }
 
     struct Packet
     {
         public int SendTime;
-        public IPEndPoint DestAddr;
+        public SocketAddress DestAddr;
         public UdpMsg? Msg;
     }
 

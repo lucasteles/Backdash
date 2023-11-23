@@ -7,8 +7,11 @@ namespace nGGPO.Serialization;
 
 public sealed class StructMarshalBinarySerializer<T> : IBinarySerializer<T> where T : struct
 {
-    public MemoryBuffer<byte> Serialize(T message) => Mem.StructToBytes(message);
-    public T Deserialize(ReadOnlySpan<byte> body) => Mem.BytesToStruct<T>(body);
+    public int Serialize(T data, Span<byte> buffer) =>
+        Mem.StructToBytes(data, buffer);
+
+    public T Deserialize(in ReadOnlySpan<byte> data) =>
+        Mem.BytesToStruct<T>(in data);
 }
 
 static class PrimitiveBinarySerializers

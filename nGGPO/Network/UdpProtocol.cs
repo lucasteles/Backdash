@@ -15,7 +15,7 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
      * Network transmission information
      */
     readonly Udp? udp;
-    readonly IPEndPoint peerAddress;
+    readonly SocketAddress peerAddress;
     readonly ushort magicNumber;
     readonly int queue;
     ushort remoteMagicNumber;
@@ -86,7 +86,7 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
         Random random,
         Udp udp,
         int queue,
-        IPEndPoint peerAddress,
+        SocketAddress peerAddress,
         ConnectStatus[] localConnectStatus)
     {
         lastReceivedInput = GameInput.Empty;
@@ -288,9 +288,7 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
         return PumpSendQueue();
     }
 
-    public bool HandlesMsg(IPEndPoint from, in UdpMsg _) =>
-        peerAddress.Address.Equals(from.Address)
-        && peerAddress.Port == from.Port;
+    public bool HandlesMsg(SocketAddress from, in UdpMsg _) => peerAddress.Equals(from);
 
     public async Task OnMsg(UdpMsg msg, int len)
     {

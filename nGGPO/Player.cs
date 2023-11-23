@@ -9,11 +9,9 @@ public enum PlayerType
     Spectator,
 }
 
-public readonly struct LocalEndPoint
+public readonly struct LocalEndPoint(int playerNumber)
 {
-    public int PlayerNumber { get; }
-
-    public LocalEndPoint(int playerNumber) => PlayerNumber = playerNumber;
+    public int PlayerNumber { get; } = playerNumber;
 }
 
 public readonly record struct PlayerHandle(int Value)
@@ -21,10 +19,10 @@ public readonly record struct PlayerHandle(int Value)
     public static PlayerHandle Empty { get; } = new(-1);
 }
 
-public abstract class Player
+public abstract class Player(int playerNumber)
 {
     public abstract PlayerType Type { get; }
-    public int PlayerNumber { get; }
+    public int PlayerNumber { get; } = playerNumber;
 
     public PlayerHandle Handle { get; private set; } = PlayerHandle.Empty;
 
@@ -32,37 +30,28 @@ public abstract class Player
 
     public static implicit operator PlayerHandle(Player player) => player.Handle;
 
-    public Player(int playerNumber)
-    {
-        PlayerNumber = playerNumber;
-    }
-
-    public class Local : Player
+    public class Local(int playerNumber) : Player(playerNumber)
     {
         public override PlayerType Type => PlayerType.Local;
-
-        public Local(int playerNumber) : base(playerNumber)
-        {
-        }
     }
 
     public class Remote : Player
     {
         public override PlayerType Type => PlayerType.Remote;
-        public IPEndPoint EndPoint { get; }
+        public SocketAddress EndPoint { get; }
 
-        public Remote(int playerNumber, IPEndPoint endpoint) : base(playerNumber) =>
+        public Remote(int playerNumber, SocketAddress endpoint) : base(playerNumber) =>
             EndPoint = endpoint;
 
         public Remote(int playerNumber, IPAddress ipAddress, int port) : base(playerNumber) =>
-            EndPoint = new IPEndPoint(ipAddress, port);
+            EndPoint = new IPEndPoint(ipAddress, port).Serialize();
     }
 
     public class Spectator : Remote
     {
         public override PlayerType Type => PlayerType.Spectator;
 
-        public Spectator(int playerNumber, IPEndPoint endpoint) : base(playerNumber, endpoint)
+        public Spectator(int playerNumber, SocketAddress endpoint) : base(playerNumber, endpoint)
         {
         }
 

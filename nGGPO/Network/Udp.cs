@@ -1,55 +1,17 @@
-﻿using System;
-using System.Net;
-using System.Net.Sockets;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using nGGPO.Serialization;
-using nGGPO.Utils;
 
 namespace nGGPO.Network;
 
-class Udp : IPollLoopSink, IDisposable
+class Udp : UdpPeerClient<UdpMsg>, IPollLoopSink
 {
-    // TODO: go back to raw sockets
-    readonly UdpClient socket;
-
-    public delegate Task OnMsgEvent(IPEndPoint from, UdpMsg msg, int len);
-
-    public event OnMsgEvent OnMsg = delegate { return Task.CompletedTask; };
-
-    readonly IBinarySerializer<UdpMsg> serializer = new StructMarshalBinarySerializer<UdpMsg>();
-
-    public Udp(int bindingPort)
+    public Udp(int bindingPort) : base(bindingPort, new StructMarshalBinarySerializer<UdpMsg>())
     {
-        Tracer.Log("binding udp socket to port {0}.\n", bindingPort);
-        socket = new(bindingPort);
     }
 
-    public async Task SendTo(UdpMsg msg, IPEndPoint dest)
+    public Task<bool> OnLoopPoll(object? cookie)
     {
-        using var buffer = serializer.Serialize(msg);
-
-        var unnecessaryAllocationPleaseRemoveThis = buffer.Span.ToArray();
-        var res = await socket.SendAsync(unnecessaryAllocationPleaseRemoveThis, buffer.Length,
-            dest);
-
-        if (res == (int) SocketError.SocketError)
-        {
-            Tracer.Warn("Error sending socket value");
-            return;
-        }
-
-        Tracer.Log("sent packet length {0} to {1} (ret:{2}).\n",
-            buffer.Length, dest.ToString(), res);
+        // TODO: precisa?
+        return Task.FromResult(true);
     }
-
-    public async Task<bool> OnLoopPoll(object? cookie)
-    {
-        var data = await socket.ReceiveAsync();
-        var msg = serializer.Deserialize(data.Buffer);
-        await OnMsg.Invoke(data.RemoteEndPoint, msg, data.Buffer.Length);
-
-        return true;
-    }
-
-    public void Dispose() => socket.Dispose();
 }
