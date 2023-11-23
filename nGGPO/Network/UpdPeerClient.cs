@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Channels;
@@ -12,37 +11,35 @@ using nGGPO.Utils;
 
 namespace nGGPO.Network;
 
-public class UdpPeerClient<T>(
-    int port,
-    IBinarySerializer<T> serializer
-) : IDisposable where T : struct
+using static UdpPeerClient;
+
+static class UdpPeerClient
 {
-    public const int MaxUdpSize = 65527;
-    const int MaxQueuedPackages = 12;
+    const int MaxQueuedPackages = 60;
 
-    readonly Socket socket = CreateSocket(port);
-    readonly CancellationTokenSource cancellation = new();
-
-    readonly Channel<(SocketAddress, ReadOnlyMemory<byte>)> channel =
-        Channel.CreateBounded<(SocketAddress, ReadOnlyMemory<byte>)>(
-            new BoundedChannelOptions(MaxQueuedPackages)
-            {
-                SingleWriter = true,
-                SingleReader = true,
-                AllowSynchronousContinuations = false,
-                FullMode = BoundedChannelFullMode.DropOldest,
-            }
-        );
-
-    readonly Channel<(SocketAddress, T)> sendQueue = Channel.CreateBounded<(SocketAddress, T)>(
-        new BoundedChannelOptions(MaxQueuedPackages)
+    public static readonly BoundedChannelOptions ChannelOptions =
+        new(MaxQueuedPackages)
         {
             SingleWriter = true,
             SingleReader = true,
             AllowSynchronousContinuations = false,
             FullMode = BoundedChannelFullMode.DropOldest,
-        }
-    );
+        };
+}
+
+public class UdpPeerClient<T>(
+    int port,
+    IBinarySerializer<T> serializer
+) : IDisposable where T : struct
+{
+    readonly Socket socket = CreateSocket(port);
+    readonly CancellationTokenSource cancellation = new();
+
+    readonly Channel<(SocketAddress, ReadOnlyMemory<byte>)> channel =
+        Channel.CreateBounded<(SocketAddress, ReadOnlyMemory<byte>)>(ChannelOptions);
+
+    readonly Channel<(SocketAddress, T)> sendQueue =
+        Channel.CreateBounded<(SocketAddress, T)>(ChannelOptions);
 
     public event Func<T, SocketAddress, CancellationToken, ValueTask> OnMessage = delegate
     {
@@ -84,7 +81,7 @@ public class UdpPeerClient<T>(
     async Task Produce(CancellationToken ct)
     {
         var buffer = GC.AllocateArray<byte>(
-            length: MaxUdpSize,
+            length: Max.UdpPacketSize,
             pinned: true
         );
 
@@ -135,7 +132,7 @@ public class UdpPeerClient<T>(
     async Task ProcessSendQueue(CancellationToken ct)
     {
         var buffer = GC.AllocateArray<byte>(
-            length: MaxUdpSize,
+            length: Max.UdpPacketSize,
             pinned: true
         );
 

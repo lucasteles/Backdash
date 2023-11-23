@@ -24,12 +24,10 @@ public static class Mem
 
     public static MemoryBuffer<byte> Rent(int size) => Rent<byte>(size);
 
-    public static int SizeOf<T>(T data) => Marshal.SizeOf(data);
-
     public static unsafe int MarshallStructure<T>(in T message, Span<byte> body)
         where T : struct
     {
-        var size = SizeOf(message);
+        var size = Marshal.SizeOf(message);
 
         nint ptr;
 
