@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using nGGPO.DataStructure;
 using nGGPO.Utils;
@@ -36,10 +37,10 @@ class Poll
     int HandleCount;
     Handle[] Handles = new Handle[Max.PollableHandles];
 
-    StaticBuffer<PollSinkCb<IPollHandleSink>> HandleSinks = new(Max.PollableHandles);
-    StaticBuffer<PollSinkCb<IPollMsgSink>> MsgSinks = new();
-    StaticBuffer<PollSinkCb<IPollLoopSink>> LoopSinks = new();
-    StaticBuffer<PollPeriodicSinkCb> PeriodicSinks = new();
+    List<PollSinkCb<IPollHandleSink>> HandleSinks = new(Max.PollableHandles);
+    List<PollSinkCb<IPollMsgSink>> MsgSinks = new();
+    List<PollSinkCb<IPollLoopSink>> LoopSinks = new();
+    List<PollPeriodicSinkCb> PeriodicSinks = new();
 
     public void RegisterHandle(IPollHandleSink sink, Handle h, object? cookie = null)
     {
@@ -51,13 +52,13 @@ class Poll
     }
 
     public void RegisterMsgLoop(IPollMsgSink sink, object? cookie = null) =>
-        MsgSinks.PushBack(new(sink, cookie));
+        MsgSinks.Add(new(sink, cookie));
 
     public void RegisterLoop(IPollLoopSink sink, object? cookie = null) =>
-        LoopSinks.PushBack(new(sink, cookie));
+        LoopSinks.Add(new(sink, cookie));
 
     public void RegisterPeriodic(IPollPeriodicSink sink, int interval, object? cookie = null) =>
-        PeriodicSinks.PushBack(new(sink, cookie, interval));
+        PeriodicSinks.Add(new(sink, cookie, interval));
 
     public async Task<bool> Pump(long timeout)
     {
@@ -82,13 +83,13 @@ class Poll
         //     finished = !_handle_sinks[i].Sink.OnHandlePoll(_handle_sinks[i].Cookie) || finished;
         // }
 
-        for (i = 0; i < MsgSinks.Size; i++)
+        for (i = 0; i < MsgSinks.Count; i++)
         {
             var cb = MsgSinks[i];
             finished = !cb.Sink.OnMsgPoll(cb.Cookie) || finished;
         }
 
-        for (i = 0; i < PeriodicSinks.Size; i++)
+        for (i = 0; i < PeriodicSinks.Count; i++)
         {
             var cb = PeriodicSinks[i];
             if (cb.Interval + cb.LastFired <= elapsed)
@@ -98,7 +99,7 @@ class Poll
             }
         }
 
-        for (i = 0; i < LoopSinks.Size; i++)
+        for (i = 0; i < LoopSinks.Count; i++)
         {
             var cb = LoopSinks[i];
             finished = !await cb.Sink.OnLoopPoll(cb.Cookie) || finished;
@@ -118,7 +119,7 @@ class Poll
     protected long ComputeWaitTime(long elapsed)
     {
         var waitTime = long.MaxValue;
-        var count = PeriodicSinks.Size;
+        var count = PeriodicSinks.Count;
 
         if (count <= 0) return waitTime;
 

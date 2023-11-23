@@ -1,13 +1,14 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using nGGPO.Utils;
 
 namespace nGGPO.DataStructure;
 
-sealed class RingBuffer<T> : IReadOnlyList<T> where T : notnull
+sealed class CircularBuffer<T>(int size = CircularBuffer<T>.DefaultSize)
+    where T : notnull
 {
-    readonly T[] elements;
+    public const int DefaultSize = 64;
+
+    readonly T[] elements = new T[size];
 
     public int Count => head >= tail ? head - tail : head + (Capacity - tail);
 
@@ -15,8 +16,6 @@ sealed class RingBuffer<T> : IReadOnlyList<T> where T : notnull
     public bool IsEmpty => Count is 0;
 
     int head, tail;
-
-    public RingBuffer(int size = 64) => elements = new T[size];
 
     public ref T Peek()
     {
@@ -30,8 +29,7 @@ sealed class RingBuffer<T> : IReadOnlyList<T> where T : notnull
         Array.Clear(elements, 0, elements.Length);
     }
 
-    public ref T Get(int idx) => ref elements[(tail + idx) % elements.Length];
-    public T this[int idx] => Get(idx);
+    public ref T this[int idx] => ref elements[(tail + idx) % elements.Length];
 
     public T Pop()
     {
@@ -47,12 +45,4 @@ sealed class RingBuffer<T> : IReadOnlyList<T> where T : notnull
         elements[head] = val;
         head = (head + 1) % Capacity;
     }
-
-    public IEnumerator<T> GetEnumerator()
-    {
-        for (var i = 0; i < Count; i++)
-            yield return this[i];
-    }
-
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }

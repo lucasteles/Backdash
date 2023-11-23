@@ -23,7 +23,7 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
     int sendLatency;
     int oopPercent;
     Packet ooPacket;
-    RingBuffer<QueueEntry> sendQueue;
+    CircularBuffer<QueueEntry> sendQueue;
 
     /*
      * Stats
@@ -52,7 +52,7 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
     /*
      * Packet loss...
      */
-    readonly RingBuffer<GameInput> pendingOutput;
+    readonly CircularBuffer<GameInput> pendingOutput;
     GameInput lastReceivedInput;
     GameInput lastSentInput;
     GameInput lastAckedInput;
@@ -79,7 +79,7 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
     /*
      * Event queue
      */
-    readonly RingBuffer<UdpEvent> eventQueue;
+    readonly CircularBuffer<UdpEvent> eventQueue;
 
     public UdpProtocol(
         TimeSync timesync,
@@ -178,7 +178,7 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
 
             for (var i = 0; i < pendingOutput.Count; i++)
             {
-                ref var current = ref pendingOutput.Get(i);
+                ref var current = ref pendingOutput[i];
                 if (current.Equals(last, bitsOnly: true))
                 {
                     var currentBits = current.GetBitVector();
