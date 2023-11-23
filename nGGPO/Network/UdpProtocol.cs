@@ -207,24 +207,22 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
 
         InputMsg GetInputMsg()
         {
-            if (!pendingOutput.IsEmpty)
+            if (pendingOutput.IsEmpty)
+                return new(peerCount: Max.UdpMsgPlayers);
+
+            ref var front = ref pendingOutput.Peek();
+
+            InputMsg inputMsg = new(front.Size, Max.UdpMsgPlayers)
             {
-                ref var front = ref pendingOutput.Peek();
+                InputSize = (byte) front.Size,
+                StartFrame = front.Frame,
+            };
 
-                InputMsg inputMsg = new(front.Size, Max.UdpMsgPlayers)
-                {
-                    InputSize = (byte) front.Size,
-                    StartFrame = front.Frame,
-                };
+            var offset = WriteCompressedInput(inputMsg.Bits.Memory, inputMsg.StartFrame);
+            inputMsg.NumBits = (ushort) offset;
+            Tracer.Assert(offset < Max.CompressedBits);
 
-                var offset = WriteCompressedInput(inputMsg.Bits.Memory, inputMsg.StartFrame);
-                inputMsg.NumBits = (ushort) offset;
-                Tracer.Assert(offset < Max.CompressedBits);
-
-                return inputMsg;
-            }
-
-            return new(peerCount: Max.UdpMsgPlayers);
+            return inputMsg;
         }
     }
 
