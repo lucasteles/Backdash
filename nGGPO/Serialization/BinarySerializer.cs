@@ -5,7 +5,7 @@ namespace nGGPO.Serialization;
 
 public interface IBinarySerializer<T> where T : struct
 {
-    int Serialize(T data, Span<byte> buffer);
+    int Serialize(in T data, Span<byte> buffer);
     T Deserialize(in ReadOnlySpan<byte> data);
 }
 
@@ -20,9 +20,9 @@ public abstract class BinarySerializer<T> : IBinarySerializer<T>
 
     protected internal abstract T Deserialize(ref NetworkBufferReader reader);
 
-    public int Serialize(T data, Span<byte> buffer)
+    public int Serialize(in T data, Span<byte> buffer)
     {
-        NetworkBufferWriter writer = new(buffer, Network);
+        NetworkBufferWriter writer = new(ref buffer) {Network = Network};
         Serialize(ref writer, in data);
         return writer.WrittenCount;
     }

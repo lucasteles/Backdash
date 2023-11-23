@@ -68,8 +68,8 @@ struct GameInput : IEquatable<GameInput>
         return builder.ToString();
     }
 
-    public bool BitsEquals(in GameInput other) =>
-        Mem.BytesEqual(AsReadOnlySpan(), other.AsReadOnlySpan());
+    public bool EqualBytes(in GameInput other) =>
+        AsReadOnlySpan().SequenceEqual(other.AsReadOnlySpan());
 
     public bool Equals(in GameInput other, bool bitsOnly)
     {
@@ -79,14 +79,16 @@ struct GameInput : IEquatable<GameInput>
         if (Size != other.Size)
             Tracer.Log("sizes don't match: {}, {}", Size, other.Size);
 
-        if (buffer.Equals(other.buffer))
+        var sameBits = EqualBytes(other);
+
+        if (sameBits)
             Tracer.Log("bits don't match");
 
         Tracer.Assert(Size > 0 && other.Size > 0);
 
         return (bitsOnly || Frame == other.Frame)
                && Size == other.Size
-               && BitsEquals(other);
+               && sameBits;
     }
 
     // ReSharper disable once NonReadonlyMemberInGetHashCode

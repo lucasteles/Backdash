@@ -24,22 +24,9 @@ public static class Mem
 
     public static MemoryBuffer<byte> Rent(int size) => Rent<byte>(size);
 
-    public static bool BytesEqual(in ReadOnlySpan<byte> a1, in ReadOnlySpan<byte> a2) =>
-        a1.Length == a2.Length && a1.SequenceEqual(a2);
-
-    [Obsolete]
-    public static MemoryBuffer<byte> StructToBytes<T>(T message)
-        where T : struct
-    {
-        var size = Marshal.SizeOf(message);
-        var buffer = Rent(size);
-        StructToBytes(message, buffer);
-        return buffer;
-    }
-
     public static int SizeOf<T>(T data) => Marshal.SizeOf(data);
 
-    public static unsafe int StructToBytes<T>(T message, Span<byte> body)
+    public static unsafe int MarshallStructure<T>(in T message, Span<byte> body)
         where T : struct
     {
         var size = SizeOf(message);
@@ -73,7 +60,7 @@ public static class Mem
         return size;
     }
 
-    public static unsafe T BytesToStruct<T>(in ReadOnlySpan<byte> body) where T : struct
+    public static unsafe T UnmarshallStructure<T>(in ReadOnlySpan<byte> body) where T : struct
     {
         var size = body.Length;
 
@@ -110,6 +97,21 @@ public static class Mem
         scoped in TBuffer buffer, int size) where TBuffer : struct =>
         MemoryMarshal.CreateReadOnlySpan(
             ref Unsafe.As<TBuffer, TElement>(ref Unsafe.AsRef(in buffer)), size);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Span<byte> StructAsSpan<TValue>(scoped ref TValue value)
+        where TValue : struct =>
+        MemoryMarshal.AsBytes(MemoryMarshal.CreateSpan(ref value, 1));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ReadOnlySpan<byte> StructAsReadOnlySpan<TValue>(scoped in TValue value)
+        where TValue : struct =>
+        MemoryMarshal.AsBytes(MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in value), 1));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static TValue SpanAsStruct<TValue>(in ReadOnlySpan<byte> bytes)
+        where TValue : struct =>
+        MemoryMarshal.Cast<byte, TValue>(bytes)[0];
 
     public static TInt EnumAsInteger<TEnum, TInt>(TEnum enumValue)
         where TEnum : unmanaged, Enum

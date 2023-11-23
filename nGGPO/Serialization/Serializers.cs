@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using nGGPO.Serialization.Buffer;
 using nGGPO.Utils;
 
@@ -7,11 +9,24 @@ namespace nGGPO.Serialization;
 
 public sealed class StructMarshalBinarySerializer<T> : IBinarySerializer<T> where T : struct
 {
-    public int Serialize(T data, Span<byte> buffer) =>
-        Mem.StructToBytes(data, buffer);
+    public int Serialize(in T data, Span<byte> buffer) =>
+        Mem.MarshallStructure(in data, buffer);
 
     public T Deserialize(in ReadOnlySpan<byte> data) =>
-        Mem.BytesToStruct<T>(in data);
+        Mem.UnmarshallStructure<T>(in data);
+}
+
+public sealed class StructBinarySerializer<T> : IBinarySerializer<T> where T : struct
+{
+    public int Serialize(in T data, Span<byte> buffer)
+    {
+        var bytes = Mem.StructAsReadOnlySpan(in data);
+        bytes.CopyTo(buffer);
+        return bytes.Length;
+    }
+
+    public T Deserialize(in ReadOnlySpan<byte> data) =>
+        Mem.SpanAsStruct<T>(in data);
 }
 
 static class PrimitiveBinarySerializers
@@ -240,7 +255,12 @@ public static class BinarySerializers
         var inputType = typeof(TInput);
 
         if (inputType is {IsEnum: false, IsPrimitive: false, StructLayoutAttribute: not null})
-            return new StructMarshalBinarySerializer<TInput>();
+        {
+            if (inputType.GetMembers().Any(m => Attribute.IsDefined(m, typeof(MarshalAsAttribute))))
+                return new StructMarshalBinarySerializer<TInput>();
+
+            return new StructBinarySerializer<TInput>();
+        }
 
         if (typeof(PrimitiveBinarySerializers)
                 .GetMethod(nameof(PrimitiveBinarySerializers.GetSerializer),
