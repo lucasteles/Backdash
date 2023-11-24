@@ -11,24 +11,18 @@ namespace nGGPO.Serialization;
 
 public sealed class StructMarshalBinarySerializer<T> : IBinarySerializer<T> where T : struct
 {
-    public T Deserialize(in ReadOnlySpan<byte> data) => Mem.UnmarshallStructure<T>(in data);
+    public T Deserialize(in ReadOnlySpan<byte> data) => Mem.UnmarshallStruct<T>(in data);
 
-    public int Serialize(in T data, Span<byte> buffer) => Mem.MarshallStructure(in data, in buffer);
+    public int Serialize(in T data, Span<byte> buffer) => Mem.MarshallStruct(in data, in buffer);
 }
 
 public sealed class StructBinarySerializer<T> : IBinarySerializer<T> where T : struct
 {
     public T Deserialize(in ReadOnlySpan<byte> data) =>
-        Mem.SpanAsStruct<T>(in data);
+        Mem.ReadStruct<T>(in data);
 
-    public Span<byte> Serialize(in T data) => Mem.StructAsSpan(ref Unsafe.AsRef(in data));
-
-    public int Serialize(in T data, Span<byte> buffer)
-    {
-        var bytes = Mem.StructAsSpan(ref Unsafe.AsRef(in data));
-        bytes.CopyTo(buffer);
-        return bytes.Length;
-    }
+    public int Serialize(in T data, Span<byte> buffer) =>
+        Mem.WriteStruct(in data, buffer);
 }
 
 public static class BinarySerializers
@@ -48,9 +42,7 @@ public static class BinarySerializers
         public int SerializeScoped(scoped ref T data, Span<byte> buffer)
         {
             var reordered = Network ? Endianness.ToNetworkOrder(data) : data;
-            var bytes = Mem.StructAsSpan(ref reordered);
-            bytes.CopyTo(buffer);
-            return bytes.Length;
+            return Mem.WriteStruct(reordered, buffer);
         }
 
         public int Serialize(in T data, Span<byte> buffer) =>

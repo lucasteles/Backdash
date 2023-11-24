@@ -11,22 +11,61 @@ public static class Mem
     public const int ByteSize = 8;
 
     const int MaxStackLimit = 1024;
-    const int MaximumBufferSize = int.MaxValue;
 
-    public static MemoryBuffer<T> Rent<T>(int size = -1, bool clearArray = false)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Span<TElement> InlineArrayAsSpan<TBuffer, TElement>(
+        scoped ref TBuffer buffer, int size) where TBuffer : struct =>
+        MemoryMarshal.CreateSpan(ref Unsafe.As<TBuffer, TElement>(ref buffer), size);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ReadOnlySpan<TElement> InlineArrayAsReadOnlySpan<TBuffer, TElement>(
+        scoped in TBuffer buffer, int size) where TBuffer : struct =>
+        MemoryMarshal.CreateReadOnlySpan(
+            ref Unsafe.As<TBuffer, TElement>(ref Unsafe.AsRef(in buffer)), size);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ReadOnlySpan<byte> AsReadOnlySpan<TValue>(scoped in TValue value)
+        where TValue : struct =>
+        MemoryMarshal.AsBytes(MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in value), 1));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static TValue ReadStruct<TValue>(in ReadOnlySpan<byte> bytes)
+        where TValue : struct =>
+        MemoryMarshal.Read<TValue>(bytes);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int WriteStruct<TValue>(scoped in TValue value, Span<byte> destination)
+        where TValue : struct
     {
-        if (size == -1)
-            size = 1 + 4095 / Unsafe.SizeOf<T>();
-        else if ((uint) size > MaximumBufferSize)
-            throw new ArgumentOutOfRangeException(nameof(size));
-
-        return new(size, clearArray);
+        MemoryMarshal.Write(destination, in value);
+        return Unsafe.SizeOf<TValue>();
     }
 
-    public static MemoryBuffer<byte> Rent(int size, bool clearArray = false) =>
-        Rent<byte>(size, clearArray);
+    public static T ReadUnaligned<T>(in ReadOnlySpan<byte> data) where T : struct
+    {
+        if (data.Length < Unsafe.SizeOf<T>())
+            throw new ArgumentOutOfRangeException(nameof(data));
 
-    public static unsafe int MarshallStructure<T>(in T message, in Span<byte> body)
+        return Unsafe.ReadUnaligned<T>(ref MemoryMarshal.GetReference(data));
+    }
+
+    public static TInt EnumAsInteger<TEnum, TInt>(TEnum enumValue)
+        where TEnum : unmanaged, Enum
+        where TInt : unmanaged, IBinaryInteger<TInt>
+    {
+        if (Unsafe.SizeOf<TEnum>() != Unsafe.SizeOf<TInt>()) throw new Exception("type mismatch");
+        return Unsafe.As<TEnum, TInt>(ref enumValue);
+    }
+
+    public static TEnum IntegerAsEnum<TEnum, TInt>(TInt intValue)
+        where TEnum : unmanaged, Enum
+        where TInt : unmanaged, IBinaryInteger<TInt>
+    {
+        if (Unsafe.SizeOf<TEnum>() != Unsafe.SizeOf<TInt>()) throw new Exception("type mismatch");
+        return Unsafe.As<TInt, TEnum>(ref intValue);
+    }
+
+    public static unsafe int MarshallStruct<T>(in T message, in Span<byte> body)
         where T : struct
     {
         var size = Marshal.SizeOf(message);
@@ -60,7 +99,7 @@ public static class Mem
         return size;
     }
 
-    public static unsafe T UnmarshallStructure<T>(in ReadOnlySpan<byte> body) where T : struct
+    public static unsafe T UnmarshallStruct<T>(in ReadOnlySpan<byte> body) where T : struct
     {
         var size = body.Length;
 
@@ -85,56 +124,6 @@ public static class Mem
             if (size > MaxStackLimit)
                 Marshal.FreeHGlobal(ptr);
         }
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Span<TElement> InlineArrayAsSpan<TBuffer, TElement>(
-        scoped ref TBuffer buffer, int size) where TBuffer : struct =>
-        MemoryMarshal.CreateSpan(ref Unsafe.As<TBuffer, TElement>(ref buffer), size);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ReadOnlySpan<TElement> InlineArrayAsReadOnlySpan<TBuffer, TElement>(
-        scoped in TBuffer buffer, int size) where TBuffer : struct =>
-        MemoryMarshal.CreateReadOnlySpan(
-            ref Unsafe.As<TBuffer, TElement>(ref Unsafe.AsRef(in buffer)), size);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Span<byte> StructAsSpan<TValue>(scoped ref TValue value)
-        where TValue : struct =>
-        MemoryMarshal.AsBytes(MemoryMarshal.CreateSpan(ref value, 1));
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ReadOnlySpan<byte> StructAsReadOnlySpan<TValue>(scoped in TValue value)
-        where TValue : struct =>
-        MemoryMarshal.AsBytes(MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in value), 1));
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static TValue SpanAsStruct<TValue>(in ReadOnlySpan<byte> bytes)
-        where TValue : struct =>
-        MemoryMarshal.Cast<byte, TValue>(bytes)[0];
-
-    public static T ReadUnaligned<T>(in ReadOnlySpan<byte> data) where T : struct
-    {
-        if (data.Length < Unsafe.SizeOf<T>())
-            throw new ArgumentOutOfRangeException(nameof(data));
-
-        return Unsafe.ReadUnaligned<T>(ref MemoryMarshal.GetReference(data));
-    }
-
-    public static TInt EnumAsInteger<TEnum, TInt>(TEnum enumValue)
-        where TEnum : unmanaged, Enum
-        where TInt : unmanaged, IBinaryInteger<TInt>
-    {
-        if (Unsafe.SizeOf<TEnum>() != Unsafe.SizeOf<TInt>()) throw new Exception("type mismatch");
-        return Unsafe.As<TEnum, TInt>(ref enumValue);
-    }
-
-    public static TEnum IntegerAsEnum<TEnum, TInt>(TInt intValue)
-        where TEnum : unmanaged, Enum
-        where TInt : unmanaged, IBinaryInteger<TInt>
-    {
-        if (Unsafe.SizeOf<TEnum>() != Unsafe.SizeOf<TInt>()) throw new Exception("type mismatch");
-        return Unsafe.As<TInt, TEnum>(ref intValue);
     }
 
     // TODO: create non alloc version of this

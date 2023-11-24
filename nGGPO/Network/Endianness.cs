@@ -111,25 +111,26 @@ public static class Endianness
 
     public static void ToHost(Span<UInt128> value) => ToHost(value, value);
 
-    static TTo As<TFrom, TTo>(in TFrom value) where TFrom : unmanaged where TTo : unmanaged
+    static TTo As<TFrom, TTo>(in TFrom value) where TFrom : struct where TTo : struct
     {
         var valueRef = value;
         return Unsafe.As<TFrom, TTo>(ref valueRef);
     }
 
-    public static T ToHostOrder<T>(T value) where T : unmanaged => value switch
-    {
-        char n => As<char, T>(ToHost(n)),
-        short n => As<short, T>(ToHost(n)),
-        int n => As<int, T>(ToHost(n)),
-        long n => As<long, T>(ToHost(n)),
-        Int128 n => As<Int128, T>(ToHost(n)),
-        ushort n => As<ushort, T>(ToHost(n)),
-        uint n => As<uint, T>(ToHost(n)),
-        ulong n => As<ulong, T>(ToHost(n)),
-        UInt128 n => As<UInt128, T>(ToHost(n)),
-        _ => value,
-    };
+    public static T ToHostOrder<T>(T value) where T : unmanaged =>
+        value switch
+        {
+            char n => As<char, T>(ToHost(n)),
+            short n => As<short, T>(ToHost(n)),
+            ushort n => As<ushort, T>(ToHost(n)),
+            int n => As<int, T>(ToHost(n)),
+            uint n => As<uint, T>(ToHost(n)),
+            long n => As<long, T>(ToHost(n)),
+            ulong n => As<ulong, T>(ToHost(n)),
+            Int128 n => As<Int128, T>(ToHost(n)),
+            UInt128 n => As<UInt128, T>(ToHost(n)),
+            _ => value,
+        };
 
     #region HostToNetwork
 

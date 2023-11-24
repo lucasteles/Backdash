@@ -1,18 +1,18 @@
 ﻿using System;
 using System.Buffers;
+using System.Runtime.CompilerServices;
 
 namespace nGGPO.Utils;
 
 public readonly struct MemoryBuffer<T> : IDisposable
 {
     readonly bool clearArray;
-    public static readonly MemoryBuffer<T> Empty = new(0);
 
     readonly T[] array;
     public int Length { get; }
     public Memory<T> Memory { get; }
 
-    public MemoryBuffer(int size, bool clearArray = false)
+    internal MemoryBuffer(int size, bool clearArray = false)
     {
         var buffer =
             size is 0
@@ -36,4 +36,24 @@ public readonly struct MemoryBuffer<T> : IDisposable
 
     public static implicit operator Span<T>(MemoryBuffer<T> @this) => @this.Span;
     public static implicit operator ReadOnlySpan<T>(MemoryBuffer<T> @this) => @this.Span;
+}
+
+public static class MemoryBuffer
+{
+    const int MaximumBufferSize = int.MaxValue;
+
+    public static MemoryBuffer<T> Empty<T>() => new(0);
+
+    public static MemoryBuffer<T> Rent<T>(int size = -1, bool clearArray = false)
+    {
+        if (size == -1)
+            size = 1 + 4095 / Unsafe.SizeOf<T>();
+        else if ((uint) size > MaximumBufferSize)
+            throw new ArgumentOutOfRangeException(nameof(size));
+
+        return new(size, clearArray);
+    }
+
+    public static MemoryBuffer<byte> Rent(int size, bool clearArray = false) =>
+        Rent<byte>(size, clearArray);
 }

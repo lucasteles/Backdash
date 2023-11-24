@@ -24,7 +24,7 @@ var data = new byte[] {1, 2, 3, 4, 5};
     data.CopyTo(values);
 
     var serializer = BinarySerializers.Get<Input>()!;
-    using var buffer = Mem.Rent(20, true);
+    using var buffer = MemoryBuffer.Rent(20, true);
     var size = serializer.Serialize(in packet, buffer);
     var bytes = buffer.Span[..size];
 
@@ -36,7 +36,7 @@ var data = new byte[] {1, 2, 3, 4, 5};
 {
     var packet = long.MaxValue;
     var serializer = BinarySerializers.Get<long>()!;
-    using var buffer = Mem.Rent(10, true);
+    using var buffer = MemoryBuffer.Rent(10, true);
     var size = serializer.Serialize(in packet, buffer);
     var bytes = buffer.Span[..size];
 
@@ -48,7 +48,7 @@ var data = new byte[] {1, 2, 3, 4, 5};
 {
     var packet = ButtonsInput.UpLeft | ButtonsInput.X;
     var serializer = BinarySerializers.Get<ButtonsInput>()!;
-    using var buffer = Mem.Rent(10, true);
+    using var buffer = MemoryBuffer.Rent(10, true);
     var size = serializer.Serialize(in packet, buffer);
     var bytes = buffer.Span[..size];
     Console.WriteLine($"# Size={size}\n");
