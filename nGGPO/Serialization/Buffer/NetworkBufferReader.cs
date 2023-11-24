@@ -27,22 +27,31 @@ public ref struct NetworkBufferReader
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Advance(int count) => offset += count;
 
-    void ReadSpan<T>(in Span<T> data) where T : struct =>
-        ReadByte(MemoryMarshal.AsBytes(data));
+    const int FullSize = -1;
+
+    void ReadSpan<T>(in Span<T> data, int size) where T : struct
+    {
+        var sliceSize = size < 0 ? data.Length : size;
+        ReadByte(MemoryMarshal.AsBytes(data[..sliceSize]));
+    }
 
     public byte ReadByte() => buffer[offset++];
 
-    public void ReadByte(in Span<byte> data)
+    public void ReadByte(in Span<byte> data, int size = FullSize)
     {
-        var size = data.Length;
-        var slice = buffer.Slice(offset, size);
-        Advance(size);
-        slice.CopyTo(data);
+        var length = size < 0 ? data.Length : size;
+
+        if (length > FreeCapacity)
+            throw new InvalidOperationException("Not available buffer space");
+
+        var slice = buffer.Slice(offset, length);
+        Advance(length);
+        slice.CopyTo(data[..length]);
     }
 
     public sbyte ReadSByte() => unchecked((sbyte) buffer[offset++]);
 
-    public void ReadSByte(in Span<sbyte> values) => ReadSpan(values);
+    public void ReadSByte(in Span<sbyte> values, int size = FullSize) => ReadSpan(values, size);
 
     public bool ReadBool()
     {
@@ -51,7 +60,7 @@ public ref struct NetworkBufferReader
         return value;
     }
 
-    public void ReadBool(in Span<bool> values) => ReadSpan(values);
+    public void ReadBool(in Span<bool> values, int size = FullSize) => ReadSpan(values, size);
 
     public short ReadShort()
     {
@@ -60,9 +69,9 @@ public ref struct NetworkBufferReader
         return network ? Endianness.ToHost(value) : value;
     }
 
-    public void ReadShort(in Span<short> values)
+    public void ReadShort(in Span<short> values, int size = FullSize)
     {
-        ReadSpan(values);
+        ReadSpan(values, size);
         if (network) Endianness.ToHost(values);
     }
 
@@ -74,9 +83,9 @@ public ref struct NetworkBufferReader
         return network ? Endianness.ToHost(value) : value;
     }
 
-    public void ReadUShort(in Span<ushort> values)
+    public void ReadUShort(in Span<ushort> values, int size = FullSize)
     {
-        ReadSpan(values);
+        ReadSpan(values, size);
         if (network) Endianness.ToHost(values);
     }
 
@@ -87,9 +96,9 @@ public ref struct NetworkBufferReader
         return network ? Endianness.ToHost(value) : value;
     }
 
-    public void ReadChar(in Span<char> values)
+    public void ReadChar(in Span<char> values, int size = FullSize)
     {
-        ReadSpan(values);
+        ReadSpan(values, size);
         if (network) Endianness.ToHost(values);
     }
 
@@ -100,9 +109,9 @@ public ref struct NetworkBufferReader
         return network ? Endianness.ToHost(value) : value;
     }
 
-    public void ReadInt(in Span<int> values)
+    public void ReadInt(in Span<int> values, int size = FullSize)
     {
-        ReadSpan(values);
+        ReadSpan(values, size);
         if (network) Endianness.ToHost(values);
     }
 
@@ -114,9 +123,9 @@ public ref struct NetworkBufferReader
         return network ? Endianness.ToHost(value) : value;
     }
 
-    public void ReadUInt(in Span<uint> values)
+    public void ReadUInt(in Span<uint> values, int size = FullSize)
     {
-        ReadSpan(values);
+        ReadSpan(values, size);
         if (network) Endianness.ToHost(values);
     }
 
@@ -127,9 +136,9 @@ public ref struct NetworkBufferReader
         return network ? Endianness.ToHost(value) : value;
     }
 
-    public void ReadLong(in Span<long> values)
+    public void ReadLong(in Span<long> values, int size = FullSize)
     {
-        ReadSpan(values);
+        ReadSpan(values, size);
         if (network) Endianness.ToHost(values);
     }
 
@@ -141,9 +150,9 @@ public ref struct NetworkBufferReader
         return network ? Endianness.ToHost(value) : value;
     }
 
-    public void ReadULong(in Span<ulong> values)
+    public void ReadULong(in Span<ulong> values, int size = FullSize)
     {
-        ReadSpan(values);
+        ReadSpan(values, size);
         if (network) Endianness.ToHost(values);
     }
 
@@ -163,9 +172,9 @@ public ref struct NetworkBufferReader
         }
     }
 
-    public void ReadInt128(in Span<Int128> values)
+    public void ReadInt128(in Span<Int128> values, int size = FullSize)
     {
-        ReadSpan(values);
+        ReadSpan(values, size);
         if (network) Endianness.ToHost(values);
     }
 
@@ -185,9 +194,9 @@ public ref struct NetworkBufferReader
         }
     }
 
-    public void ReadUInt128(in Span<UInt128> values)
+    public void ReadUInt128(in Span<UInt128> values, int size = FullSize)
     {
-        ReadSpan(values);
+        ReadSpan(values, size);
         if (network) Endianness.ToHost(values);
     }
 

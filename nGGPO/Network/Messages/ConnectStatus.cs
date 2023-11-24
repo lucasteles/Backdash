@@ -15,13 +15,13 @@ struct ConnectStatus
         public static readonly Serializer Instance = new();
 
         protected internal override void Serialize(
-            scoped ref NetworkBufferWriter writer, in ConnectStatus data)
+            scoped NetworkBufferWriter writer, scoped in ConnectStatus data)
         {
             writer.Write(data.Disconnected);
             writer.Write(data.LastFrame);
         }
 
-        protected internal override ConnectStatus Deserialize(scoped ref NetworkBufferReader reader) =>
+        protected internal override ConnectStatus Deserialize(scoped NetworkBufferReader reader) =>
             new()
             {
                 Disconnected = reader.ReadBool(),

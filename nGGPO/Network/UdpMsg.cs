@@ -66,31 +66,32 @@ class UdpMsgBinarySerializer : BinarySerializer<UdpMsg>
 {
     public static readonly UdpMsgBinarySerializer Instance = new();
 
-    protected internal override void Serialize(scoped ref NetworkBufferWriter writer, in UdpMsg data)
+    protected internal override void Serialize(scoped NetworkBufferWriter writer,
+        scoped in UdpMsg data)
     {
-        Header.Serializer.Instance.Serialize(ref writer, in data.Header);
+        Header.Serializer.Instance.Serialize(writer, in data.Header);
         switch (data.Header.Type)
         {
             case MsgType.SyncRequest:
-                SyncRequest.Serializer.Instance.Serialize(ref writer, in data.SyncRequest);
+                SyncRequest.Serializer.Instance.Serialize(writer, in data.SyncRequest);
                 break;
             case MsgType.SyncReply:
-                SyncReply.Serializer.Instance.Serialize(ref writer, in data.SyncReply);
+                SyncReply.Serializer.Instance.Serialize(writer, in data.SyncReply);
                 break;
             case MsgType.QualityReport:
-                QualityReport.Serializer.Instance.Serialize(ref writer, in data.QualityReport);
+                QualityReport.Serializer.Instance.Serialize(writer, in data.QualityReport);
                 break;
             case MsgType.QualityReply:
-                QualityReply.Serializer.Instance.Serialize(ref writer, in data.QualityReply);
+                QualityReply.Serializer.Instance.Serialize(writer, in data.QualityReply);
                 break;
             case MsgType.InputAck:
-                InputAck.Serializer.Instance.Serialize(ref writer, in data.InputAck);
+                InputAck.Serializer.Instance.Serialize(writer, in data.InputAck);
                 break;
             case MsgType.KeepAlive:
-                KeepAlive.Serializer.Instance.Serialize(ref writer, in data.KeepAlive);
+                KeepAlive.Serializer.Instance.Serialize(writer, in data.KeepAlive);
                 break;
             case MsgType.Input:
-                InputMsg.Serializer.Instance.Serialize(ref writer, in data.Input);
+                InputMsg.Serializer.Instance.Serialize(writer, in data.Input);
                 break;
             case MsgType.Invalid:
                 throw new InvalidOperationException();
@@ -99,35 +100,35 @@ class UdpMsgBinarySerializer : BinarySerializer<UdpMsg>
         }
     }
 
-    protected internal override UdpMsg Deserialize(scoped ref NetworkBufferReader reader)
+    protected internal override UdpMsg Deserialize(scoped NetworkBufferReader reader)
     {
         UdpMsg data = new()
         {
-            Header = Header.Serializer.Instance.Deserialize(ref reader),
+            Header = Header.Serializer.Instance.Deserialize(reader),
         };
 
         switch (data.Header.Type)
         {
             case MsgType.SyncRequest:
-                data.SyncRequest = SyncRequest.Serializer.Instance.Deserialize(ref reader);
+                data.SyncRequest = SyncRequest.Serializer.Instance.Deserialize(reader);
                 break;
             case MsgType.SyncReply:
-                data.SyncReply = SyncReply.Serializer.Instance.Deserialize(ref reader);
+                data.SyncReply = SyncReply.Serializer.Instance.Deserialize(reader);
                 break;
             case MsgType.QualityReport:
-                data.QualityReport = QualityReport.Serializer.Instance.Deserialize(ref reader);
+                data.QualityReport = QualityReport.Serializer.Instance.Deserialize(reader);
                 break;
             case MsgType.QualityReply:
-                data.QualityReply = QualityReply.Serializer.Instance.Deserialize(ref reader);
+                data.QualityReply = QualityReply.Serializer.Instance.Deserialize(reader);
                 break;
             case MsgType.InputAck:
-                data.InputAck = InputAck.Serializer.Instance.Deserialize(ref reader);
+                data.InputAck = InputAck.Serializer.Instance.Deserialize(reader);
                 break;
             case MsgType.KeepAlive:
-                data.KeepAlive = KeepAlive.Serializer.Instance.Deserialize(ref reader);
+                data.KeepAlive = KeepAlive.Serializer.Instance.Deserialize(reader);
                 break;
             case MsgType.Input:
-                data.Input = InputMsg.Serializer.Instance.Deserialize(ref reader);
+                data.Input = InputMsg.Serializer.Instance.Deserialize(reader);
                 break;
             case MsgType.Invalid:
                 throw new InvalidOperationException();

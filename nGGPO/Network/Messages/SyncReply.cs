@@ -14,13 +14,13 @@ struct SyncReply
         public static readonly Serializer Instance = new();
 
         protected internal override void Serialize(
-            ref NetworkBufferWriter writer,
+            scoped NetworkBufferWriter writer,
             in SyncReply data)
         {
             writer.Write(data.RandomReply);
         }
 
-        protected internal override SyncReply Deserialize(ref NetworkBufferReader reader) =>
+        protected internal override SyncReply Deserialize(scoped NetworkBufferReader reader) =>
             new()
             {
                 RandomReply = reader.ReadUInt(),

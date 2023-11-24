@@ -24,14 +24,14 @@ struct Header
         public static readonly Serializer Instance = new();
 
         protected internal override void Serialize(
-            ref NetworkBufferWriter writer, in Header data)
+            scoped NetworkBufferWriter writer, in Header data)
         {
             writer.Write((byte) data.Type);
             writer.Write(data.Magic);
             writer.Write(data.SequenceNumber);
         }
 
-        protected internal override Header Deserialize(ref NetworkBufferReader reader) =>
+        protected internal override Header Deserialize(scoped NetworkBufferReader reader) =>
             new()
             {
                 Type = (MsgType) reader.ReadByte(),

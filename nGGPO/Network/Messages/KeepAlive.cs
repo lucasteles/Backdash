@@ -13,12 +13,12 @@ readonly struct KeepAlive
         public static readonly Serializer Instance = new();
 
         protected internal override void Serialize(
-            ref NetworkBufferWriter writer,
+            scoped NetworkBufferWriter writer,
             in KeepAlive data)
         {
         }
 
-        protected internal override KeepAlive Deserialize(ref NetworkBufferReader reader) =>
+        protected internal override KeepAlive Deserialize(scoped NetworkBufferReader reader) =>
             Default;
     }
 }

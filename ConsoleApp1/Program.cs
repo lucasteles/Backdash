@@ -8,6 +8,8 @@ using nGGPO.Serialization;
 using nGGPO.Serialization.Buffer;
 using nGGPO.Utils;
 
+void Div() => Console.WriteLine(new string('-', 10));
+
 byte[] data = {1, 2, 3, 4, 5};
 
 {
@@ -15,26 +17,25 @@ byte[] data = {1, 2, 3, 4, 5};
     var serializer = BinarySerializers.Get<long>()!;
     using var buffer = MemoryBuffer.Rent(10, true);
     var size = serializer.Serialize(in packet, buffer);
-    var bytes = buffer.Span[..size];
+    var bytes = buffer[..size];
 
     Console.WriteLine($"# Size={size}\n");
     var backPacket = serializer.Deserialize(bytes);
     Console.WriteLine($"# Pkg={backPacket}\n");
 }
-
+Div();
 {
     var packet = ButtonsInput.UpLeft | ButtonsInput.X;
     var serializer = BinarySerializers.Get<ButtonsInput>()!;
     using var buffer = MemoryBuffer.Rent(10, true);
     var size = serializer.Serialize(in packet, buffer);
-    var bytes = buffer.Span[..size];
+    var bytes = buffer[..size];
     Console.WriteLine($"# Size={size}\n");
     var backPacket = serializer.Deserialize(bytes);
     var buttons = new ButtonsInputEditor(backPacket);
     Console.WriteLine($"# Pkg= {buttons}\n");
 }
-
-
+Div();
 {
     Input packet = new()
     {
@@ -50,14 +51,13 @@ byte[] data = {1, 2, 3, 4, 5};
     var serializer = BinarySerializers.Get<Input>()!;
     using var buffer = MemoryBuffer.Rent(20, true);
     var size = serializer.Serialize(in packet, buffer);
-    var bytes = buffer.Span[..size];
+    var bytes = buffer[..size];
 
     Console.WriteLine($"# Size={size}\n");
     var backPacket = serializer.Deserialize(bytes);
     Console.WriteLine($"# Pkg: {backPacket}\n");
 }
-
-
+Div();
 {
     Input packet = new()
     {
@@ -68,41 +68,16 @@ byte[] data = {1, 2, 3, 4, 5};
     };
     data.CopyTo(packet.Bits);
 
-    // var serializer = new CustomInputSerializer();
-    //
-    // using var buffer = MemoryBuffer.Rent(20, true);
-    // var size = serializer.Serialize(in packet, buffer);
-    // var bytes = buffer.Span[..size];
-    //
-    // Console.WriteLine($"# Size={size}\n");
-    // var backPacket = serializer.Deserialize(bytes);
-    // Console.WriteLine($"# Pkg={backPacket}\n");
+    var serializer = new CustomInputSerializer {Network = false};
+
+    using var buffer = MemoryBuffer.Rent(20, true);
+    var size = serializer.Serialize(in packet, buffer);
+    var bytes = buffer[..size];
+
+    Console.WriteLine($"# Size={size}\n");
+    var backPacket = serializer.Deserialize(bytes);
+    Console.WriteLine($"# Pkg={backPacket}\n");
 }
-
-// Console.WriteLine($"# Size={size}, SizeM={sizeM}\n");
-
-// using var bufferMarshal = Mem.StructToBytes(packet);
-
-// serializer.Network = false;
-// using var buffer = serializer.Serialize(packet);
-//
-// serializer.Network = true;
-// using var bufferNetWork = serializer.Serialize(packet);
-//
-// Dump(bufferMarshal, "Marshall");
-// Dump(buffer, "Serial");
-// Dump(bufferNetWork, "Network");
-//
-// var valueMarshall = Mem.BytesToStruct<Input>(bufferMarshal);
-// serializer.Network = false;
-// var value = serializer.Deserialize(buffer);
-// serializer.Network = true;
-// var valueNetwork = serializer.Deserialize(bufferNetWork);
-//
-// Console.WriteLine();
-// Console.WriteLine(valueMarshall);
-// Console.WriteLine(value);
-// Console.WriteLine(valueNetwork);
 
 [InlineArray(10)]
 [DebuggerDisplay("Buffer {ToString()}")]
@@ -138,29 +113,27 @@ public struct Input
 
 class CustomInputSerializer : BinarySerializer<Input>
 {
-    protected override void Serialize(ref NetworkBufferWriter writer, in Input data)
+    protected override void Serialize(scoped NetworkBufferWriter writer, in Input data)
     {
         writer.Write(data.S);
+        writer.Write(data.Bits, data.S);
         writer.Write(data.A);
         writer.Write(data.B);
-
-        var bits = data.Bits[..data.S];
-        bits.CopyTo(writer.CurrentBuffer);
-        writer.Advance(bits.Length);
-        // writer.WriteBytes(bits);
     }
 
-    protected override Input Deserialize(ref NetworkBufferReader reader)
+    protected override Input Deserialize(scoped NetworkBufferReader reader)
     {
         var size = reader.ReadInt();
-        var input = new Input
+
+        var bits = new ValueBuffer();
+        reader.ReadByte(bits, size);
+
+        return new()
         {
             S = size,
+            Bits = bits,
             A = reader.ReadByte(),
             B = reader.ReadUInt(),
-            // Bits = new byte[size],
         };
-        // reader.ReadByte(input.Bits);
-        return input;
     }
 }

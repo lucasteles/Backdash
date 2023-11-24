@@ -19,14 +19,14 @@ struct SyncRequest
         public static readonly Serializer Instance = new();
 
         protected internal override void Serialize(
-            ref NetworkBufferWriter writer, in SyncRequest data)
+            scoped NetworkBufferWriter writer, in SyncRequest data)
         {
             writer.Write(data.RandomRequest);
             writer.Write(data.RemoteMagic);
             writer.Write(data.RemoteEndpoint);
         }
 
-        protected internal override SyncRequest Deserialize(ref NetworkBufferReader reader) =>
+        protected internal override SyncRequest Deserialize(scoped NetworkBufferReader reader) =>
             new()
             {
                 RandomRequest = reader.ReadUInt(),

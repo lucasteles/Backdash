@@ -20,20 +20,21 @@ public abstract class BinarySerializer<T> : IBinarySerializer<T>
 {
     public bool Network { get; init; } = true;
 
-    protected internal abstract void Serialize(ref NetworkBufferWriter writer, in T data);
+    protected internal abstract void Serialize(scoped NetworkBufferWriter writer, scoped in T data);
 
-    protected internal abstract T Deserialize(ref NetworkBufferReader reader);
+    protected internal abstract T Deserialize(scoped NetworkBufferReader reader);
 
     public int Serialize(in T data, Span<byte> buffer)
     {
-        NetworkBufferWriter writer = new(buffer) {Network = Network};
-        Serialize(ref writer, in data);
+        var offset = 0;
+        NetworkBufferWriter writer = new(buffer, ref offset) {Network = Network};
+        Serialize(writer, in data);
         return writer.WrittenCount;
     }
 
     public T Deserialize(in ReadOnlySpan<byte> data)
     {
         NetworkBufferReader reader = new(data, Network);
-        return Deserialize(ref reader);
+        return Deserialize(reader);
     }
 }

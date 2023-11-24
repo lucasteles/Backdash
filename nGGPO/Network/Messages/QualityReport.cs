@@ -16,13 +16,13 @@ struct QualityReport
         public static readonly Serializer Instance = new();
 
         protected internal override void Serialize(
-            ref NetworkBufferWriter writer, in QualityReport data)
+            scoped NetworkBufferWriter writer, in QualityReport data)
         {
             writer.Write(data.FrameAdvantage);
             writer.Write(data.Ping);
         }
 
-        protected internal override QualityReport Deserialize(ref NetworkBufferReader reader) =>
+        protected internal override QualityReport Deserialize(scoped NetworkBufferReader reader) =>
             new()
             {
                 FrameAdvantage = reader.ReadByte(),

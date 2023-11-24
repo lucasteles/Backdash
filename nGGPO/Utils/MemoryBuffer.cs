@@ -27,6 +27,7 @@ public readonly struct MemoryBuffer<T> : IDisposable
 
     public Span<T> Span => Memory.Span;
     public ref T this[int index] => ref Span[index];
+    public Span<T> this[Range range] => Span[range];
 
     public void Dispose()
     {
