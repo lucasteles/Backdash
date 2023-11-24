@@ -176,7 +176,7 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
             var lastBits = last.GetBitVector();
             Tracer.Assert(last.Frame.IsNull || last.Frame.Next == startFrame);
 
-            for (var i = 0; i < pendingOutput.Count; i++)
+            for (var i = 0; i < pendingOutput.Size; i++)
             {
                 ref var current = ref pendingOutput[i];
                 if (current.Equals(last, bitsOnly: true))
@@ -650,7 +650,7 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
     public void GetNetworkStats(ref NetworkStats stats)
     {
         stats.Ping = roundTripTime;
-        stats.SendQueueLen = pendingOutput.Count;
+        stats.SendQueueLen = pendingOutput.Size;
         stats.KbpsSent = kbpsSent;
         stats.RemoteFramesBehind = remoteFrameAdvantage;
         stats.LocalFramesBehind = localFrameAdvantage;
