@@ -26,6 +26,6 @@ class Udp(int bindingPort) : UdpPeerClient<UdpMsg>(bindingPort, new UdpMsgBinary
             return offset;
         }
     }
-    
-    
+
+
 }

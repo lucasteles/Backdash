@@ -7,7 +7,7 @@ using nGGPO.Utils;
 
 namespace nGGPO.Input;
 
-[InlineArray(Max.InputBytes * Max.Players)]
+[InlineArray(Max.InputBytes * Max.InputPlayers)]
 public struct GameInputBuffer
 {
     byte element0;
@@ -24,7 +24,7 @@ struct GameInput : IEquatable<GameInput>
     public GameInput(ref GameInputBuffer inputBuffer, int size)
     {
         ReadOnlySpan<byte> bits = inputBuffer;
-        Tracer.Assert(bits.Length <= Max.InputBytes * Max.Players);
+        Tracer.Assert(bits.Length <= Max.InputBytes * Max.MsgPlayers);
         Tracer.Assert(bits.Length > 0);
         Size = size;
         buffer = inputBuffer;
@@ -32,7 +32,7 @@ struct GameInput : IEquatable<GameInput>
 
     public GameInput(ReadOnlySpan<byte> bits)
     {
-        Tracer.Assert(bits.Length <= Max.InputBytes * Max.Players);
+        Tracer.Assert(bits.Length <= Max.InputBytes * Max.MsgPlayers);
         Tracer.Assert(bits.Length > 0);
         Size = bits.Length;
         buffer = new();
@@ -68,7 +68,7 @@ struct GameInput : IEquatable<GameInput>
         builder.Append($"{{ Frame: {Frame},");
         builder.Append($" Size: {Size}, Input: ");
 
-        builder.Append(GetBitVector().ToString(splitAt: Max.Players));
+        builder.Append(GetBitVector().ToString(splitAt: Max.MsgPlayers));
 
         builder.Append(" }");
 

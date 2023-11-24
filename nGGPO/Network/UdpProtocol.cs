@@ -103,7 +103,7 @@ partial class UdpProtocol : IDisposable
 
         magicNumber = Rnd.MagicNumber();
 
-        peerConnectStatus = new ConnectStatus[Max.UdpMsgPlayers];
+        peerConnectStatus = new ConnectStatus[Max.MsgPlayers];
         for (var i = 0; i < peerConnectStatus.Length; i++)
             peerConnectStatus[i].LastFrame = Frame.NullValue;
 
@@ -177,12 +177,12 @@ partial class UdpProtocol : IDisposable
 
             InputMsg inputMsg = new()
             {
-                InputSize = (byte) front.Size,
+                InputSize = (byte)front.Size,
                 StartFrame = front.Frame,
             };
 
             var offset = WriteCompressedInput(inputMsg.Bits, inputMsg.StartFrame);
-            inputMsg.NumBits = (ushort) offset;
+            inputMsg.NumBits = (ushort)offset;
             Tracer.Assert(offset < Max.CompressedBits);
 
             return inputMsg;
@@ -228,7 +228,7 @@ partial class UdpProtocol : IDisposable
     ValueTask SendPendingOutput()
     {
         Tracer.Assert(
-            Max.InputBytes * Max.Players * Mem.ByteSize
+            Max.InputBytes * Max.MsgPlayers * Mem.ByteSize
             <
             1 << BitVector.BitOffset.NibbleSize
         );
@@ -315,7 +315,7 @@ partial class UdpProtocol : IDisposable
                 return;
             }
 
-            var skipped = (ushort) (seq - nextRecvSeq);
+            var skipped = (ushort)(seq - nextRecvSeq);
             if (skipped > MaxSeqDistance)
             {
                 Tracer.Log("dropping out of order packet (seq: %d, last seq:%d)\n",
@@ -473,7 +473,7 @@ partial class UdpProtocol : IDisposable
                         Input = lastAckedInput,
                     };
 
-                    state.Running.LastInputPacketRecvTime = (uint) Platform.GetCurrentTimeMS();
+                    state.Running.LastInputPacketRecvTime = (uint)Platform.GetCurrentTimeMS();
 
                     Tracer.Log("Sending frame {0} to emu queue {1} ({2}).\n",
                         lastReceivedInput.Frame, queue, lastInputBits.ToString());
@@ -521,7 +521,7 @@ partial class UdpProtocol : IDisposable
 
     bool OnQualityReply(UdpMsg msg)
     {
-        roundTripTime = (int) (Platform.GetCurrentTimeMS() - msg.QualityReply.Pong);
+        roundTripTime = (int)(Platform.GetCurrentTimeMS() - msg.QualityReply.Pong);
         return true;
     }
 
@@ -588,7 +588,7 @@ partial class UdpProtocol : IDisposable
                 Synchronizing = new()
                 {
                     Total = NumSyncPackets,
-                    Count = NumSyncPackets - (int) state.Sync.RoundtripsRemaining,
+                    Count = NumSyncPackets - (int)state.Sync.RoundtripsRemaining,
                 },
             };
 
@@ -686,7 +686,7 @@ partial class UdpProtocol : IDisposable
          * it means they'll have to predict more often and our moves will
          * pop more frequently.
          */
-        localFrameAdvantage = (int) remoteFrame - localFrame;
+        localFrameAdvantage = (int)remoteFrame - localFrame;
     }
 
 

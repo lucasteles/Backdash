@@ -6,7 +6,7 @@ using nGGPO.Utils;
 
 namespace nGGPO.Network.Messages;
 
-[InlineArray(Max.Players)]
+[InlineArray(Max.MsgPlayers)]
 public struct PeerStatusBuffer
 {
     ConnectStatus element0;
