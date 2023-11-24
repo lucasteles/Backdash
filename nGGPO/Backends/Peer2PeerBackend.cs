@@ -54,7 +54,6 @@ class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGameState
         poll = new();
 
         udp = new(localPort);
-        udp.OnMessage += OnMsg;
 
         poll.RegisterLoop(udp);
     }
@@ -207,29 +206,6 @@ class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGameState
 
         return ErrorCode.Ok;
     }
-
-    async ValueTask OnMsg(UdpMsg msg, SocketAddress from, CancellationToken ct)
-    {
-        var len = 0;
-
-        for (var i = 0; i < numPlayers; i++)
-        {
-            if (!endpoints[i].HandlesMsg(from, in msg)) continue;
-            await endpoints[i].OnMsg(msg, len);
-            return;
-        }
-
-        for (var i = 0; i < numSpectators; i++)
-        {
-            if (!spectators[i].HandlesMsg(from, in msg)) continue;
-            await spectators[i].OnMsg(msg, len);
-            return;
-        }
-    }
-
-    public void Dispose()
-    {
-        udp.OnMessage -= OnMsg;
-        udp.Dispose();
-    }
+    
+    public void Dispose() => udp.Dispose();
 }

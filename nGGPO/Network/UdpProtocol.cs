@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Net;
+using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using nGGPO.DataStructure;
 using nGGPO.Input;
@@ -14,7 +16,7 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
     /*
      * Network transmission information
      */
-    readonly Udp? udp;
+    readonly Udp udp;
     readonly SocketAddress peerAddress;
     readonly ushort magicNumber;
     readonly int queue;
@@ -23,7 +25,9 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
     int sendLatency;
     int oopPercent;
     Packet ooPacket;
-    CircularBuffer<QueueEntry> sendQueue;
+
+    Channel<QueueEntry> sendQueue;
+    CancellationTokenSource sendQueueCancellation = new();
 
     /*
      * Stats
@@ -93,7 +97,7 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
         lastSentInput = GameInput.Empty;
         lastAckedInput = GameInput.Empty;
         ooPacket = new();
-        sendQueue = new();
+        sendQueue = CircularBuffer.CreateChannel<QueueEntry>();
         pendingOutput = new();
         eventQueue = new();
 
@@ -112,15 +116,24 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
         this.queue = queue;
         this.peerAddress = peerAddress;
         this.localConnectStatus = localConnectStatus;
+
+        this.udp.OnMessage += OnMsgEventHandler;
+    }
+
+    async ValueTask OnMsgEventHandler(UdpMsg msg, SocketAddress from, CancellationToken ct)
+    {
+        if (peerAddress.Equals(from))
+            await OnMsg(msg);
     }
 
     public void Dispose()
     {
+        sendQueue.Writer.Complete();
+        udp.OnMessage -= OnMsgEventHandler;
         Disconnect();
-        sendQueue.Clear();
     }
 
-    public Task SendInput(in GameInput input)
+    public ValueTask SendInput(in GameInput input)
     {
         if (currentState is StateEnum.Running)
         {
@@ -143,7 +156,7 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
         return SendPendingOutput();
     }
 
-    Task SendPendingOutput()
+    ValueTask SendPendingOutput()
     {
         Tracer.Assert(
             Max.InputBytes * Max.Players * Mem.ByteSize
@@ -214,12 +227,12 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
 
             InputMsg inputMsg = new()
             {
-                InputSize = (byte)front.Size,
+                InputSize = (byte) front.Size,
                 StartFrame = front.Frame,
             };
 
             var offset = WriteCompressedInput(inputMsg.Bits, inputMsg.StartFrame);
-            inputMsg.NumBits = (ushort)offset;
+            inputMsg.NumBits = (ushort) offset;
             Tracer.Assert(offset < Max.CompressedBits);
 
             return inputMsg;
@@ -265,7 +278,7 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
         };
     }
 
-    Task SendMsg(ref UdpMsg msg)
+    ValueTask SendMsg(ref UdpMsg msg)
     {
         LogMsg("send", msg);
 
@@ -275,19 +288,15 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
         msg.Header.Magic = magicNumber;
         msg.Header.SequenceNumber = nextSendSeq++;
 
-        sendQueue.Push(new()
+        return sendQueue.Writer.WriteAsync(new()
         {
             QueueTime = Platform.GetCurrentTimeMS(),
             DestAddr = peerAddress,
             Msg = msg,
-        });
-
-        return PumpSendQueue();
+        }, sendQueueCancellation.Token);
     }
 
-    public bool HandlesMsg(SocketAddress from, in UdpMsg _) => peerAddress.Equals(from);
-
-    public async Task OnMsg(UdpMsg msg, int len)
+    async Task OnMsg(UdpMsg msg)
     {
         var seq = msg.Header.SequenceNumber;
         if (msg.Header.Type is not MsgType.SyncRequest and not MsgType.SyncReply)
@@ -298,7 +307,7 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
                 return;
             }
 
-            var skipped = (ushort)(seq - nextRecvSeq);
+            var skipped = (ushort) (seq - nextRecvSeq);
             if (skipped > MaxSeqDistance)
             {
                 Tracer.Log("dropping out of order packet (seq: %d, last seq:%d)\n",
@@ -456,7 +465,7 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
                         Input = lastAckedInput,
                     };
 
-                    state.Running.LastInputPacketRecvTime = (uint)Platform.GetCurrentTimeMS();
+                    state.Running.LastInputPacketRecvTime = (uint) Platform.GetCurrentTimeMS();
 
                     Tracer.Log("Sending frame {0} to emu queue {1} ({2}).\n",
                         lastReceivedInput.Frame, queue, lastInputBits.ToString());
@@ -504,7 +513,7 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
 
     bool OnQualityReply(UdpMsg msg)
     {
-        roundTripTime = (int)(Platform.GetCurrentTimeMS() - msg.QualityReply.Pong);
+        roundTripTime = (int) (Platform.GetCurrentTimeMS() - msg.QualityReply.Pong);
         return true;
     }
 
@@ -571,7 +580,7 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
                 Synchronizing = new()
                 {
                     Total = NumSyncPackets,
-                    Count = NumSyncPackets - (int)state.Sync.RoundtripsRemaining,
+                    Count = NumSyncPackets - (int) state.Sync.RoundtripsRemaining,
                 },
             };
 
@@ -605,20 +614,46 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
         return true;
     }
 
-    Task PumpSendQueue()
+    async Task PumpSendQueue()
     {
-        while (!sendQueue.IsEmpty)
+        await foreach (var entry in sendQueue.Reader.ReadAllAsync(sendQueueCancellation.Token))
         {
             // TODO: increment bytesSent
             // bytesSent += 
-            ref var entry = ref sendQueue.Peek();
 
-            // TODO: everything else
-
-            sendQueue.Pop();
+            // if (_send_latency) {
+            //       // should really come up with a gaussian distributation based on the configured
+            //       // value, but this will do for now.
+            //       int jitter = (_send_latency * 2 / 3) + ((rand() % _send_latency) / 3);
+            //       if (Platform::GetCurrentTimeMS() < _send_queue.front().queue_time + jitter) {
+            //          break;
+            //       }
+            //    }
+            //    if (_oop_percent && !_oo_packet.msg && ((rand() % 100) < _oop_percent)) {
+            //       int delay = rand() % (_send_latency * 10 + 1000);
+            //       Log("creating rogue oop (seq: %d  delay: %d)\n", entry.msg->hdr.sequence_number, delay);
+            //       _oo_packet.send_time = Platform::GetCurrentTimeMS() + delay;
+            //       _oo_packet.msg = entry.msg;
+            //       _oo_packet.dest_addr = entry.dest_addr;
+            //    } else {
+            //       ASSERT(entry.dest_addr.sin_addr.s_addr);
+            //
+            //       _udp->SendTo((char *)entry.msg, entry.msg->PacketSize(), 0,
+            //                    (struct sockaddr *)&entry.dest_addr, sizeof entry.dest_addr);
+            //
+            //       delete entry.msg;
+            //    }
+            //    _send_queue.pop();
+            // }
+            // if (_oo_packet.msg && _oo_packet.send_time < Platform::GetCurrentTimeMS()) {
+            //    Log("sending rogue oop!");
+            //    _udp->SendTo((char *)_oo_packet.msg, _oo_packet.msg->PacketSize(), 0,
+            //                   (struct sockaddr *)&_oo_packet.dest_addr, sizeof _oo_packet.dest_addr);
+            //
+            //    delete _oo_packet.msg;
+            //    _oo_packet.msg = NULL;
+            // }
         }
-
-        throw new NotImplementedException();
     }
 
 
@@ -643,7 +678,7 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
          * it means they'll have to predict more often and our moves will
          * pop more frequently.
          */
-        localFrameAdvantage = (int)remoteFrame - localFrame;
+        localFrameAdvantage = (int) remoteFrame - localFrame;
     }
 
 
