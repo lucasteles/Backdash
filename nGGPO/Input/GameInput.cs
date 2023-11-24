@@ -55,7 +55,6 @@ struct GameInput : IEquatable<GameInput>
         return new(ref span);
     }
 
-
     public bool IsEmpty => Size is 0;
     public void IncrementFrame() => Frame = Frame.Next;
     public void SetFrame(Frame frame) => Frame = frame;
@@ -76,8 +75,11 @@ struct GameInput : IEquatable<GameInput>
         return builder.ToString();
     }
 
-    public bool EqualBytes(in GameInput other) =>
-        AsReadOnlySpan().SequenceEqual(other.AsReadOnlySpan());
+    public bool EqualBits(in GameInput other)
+    {
+        var bytes = AsReadOnlySpan();
+        return bytes.SequenceEqual(other.AsReadOnlySpan()[..bytes.Length]);
+    }
 
     public bool Equals(in GameInput other, bool bitsOnly)
     {
@@ -87,7 +89,7 @@ struct GameInput : IEquatable<GameInput>
         if (Size != other.Size)
             Tracer.Log("sizes don't match: {}, {}", Size, other.Size);
 
-        var sameBits = EqualBytes(other);
+        var sameBits = EqualBits(other);
 
         if (sameBits)
             Tracer.Log("bits don't match");

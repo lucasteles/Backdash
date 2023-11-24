@@ -11,7 +11,7 @@ public ref struct NetworkBufferWriter
     readonly ref int offset;
     readonly Span<byte> buffer;
 
-    public bool Network { get; init; }
+    public bool Network { get; init; } = true;
     public int WrittenCount => offset;
     public int Capacity => buffer.Length;
     public int FreeCapacity => Capacity - WrittenCount;
@@ -23,7 +23,7 @@ public ref struct NetworkBufferWriter
         this.buffer = buffer;
         this.offset = ref offset;
     }
-    
+
     const int FullSize = -1;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

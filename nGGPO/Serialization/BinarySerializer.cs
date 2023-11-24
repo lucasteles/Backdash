@@ -29,12 +29,13 @@ public abstract class BinarySerializer<T> : IBinarySerializer<T>
         var offset = 0;
         NetworkBufferWriter writer = new(buffer, ref offset) {Network = Network};
         Serialize(writer, in data);
-        return writer.WrittenCount;
+        return offset;
     }
 
     public T Deserialize(in ReadOnlySpan<byte> data)
     {
-        NetworkBufferReader reader = new(data, Network);
+        var offset = 0;
+        NetworkBufferReader reader = new(data, ref offset) {Network = Network};
         return Deserialize(reader);
     }
 }
