@@ -42,12 +42,12 @@ public static class BinarySerializers
         public T Deserialize(in ReadOnlySpan<byte> data)
         {
             var value = Mem.ReadUnaligned<T>(data);
-            return Network ? Endianness.TryNetworkToHostOrder(value) : value;
+            return Network ? Endianness.ToHostOrder(value) : value;
         }
 
         public int SerializeScoped(scoped ref T data, Span<byte> buffer)
         {
-            var reordered = Network ? Endianness.TryHostToNetworkOrder(data) : data;
+            var reordered = Network ? Endianness.ToNetworkOrder(data) : data;
             var bytes = Mem.StructAsSpan(ref reordered);
             bytes.CopyTo(buffer);
             return bytes.Length;

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace nGGPO.Network;
 
@@ -8,72 +9,168 @@ public static class Endianness
 {
     public static readonly bool IsLittleEndian = BitConverter.IsLittleEndian;
 
-    public static long HostToNetworkOrder(long host) => IsLittleEndian
-        ? BinaryPrimitives.ReverseEndianness(host)
-        : host;
+    public static char ToHost(char value) => IsLittleEndian
+        ? (char) BinaryPrimitives.ReverseEndianness(value)
+        : value;
 
-    public static char HostToNetworkOrder(char host) => IsLittleEndian
-        ? (char) BinaryPrimitives.ReverseEndianness(host)
-        : host;
+    public static void ToHost(ReadOnlySpan<char> value, Span<char> destination)
+    {
+        if (!IsLittleEndian) return;
+        var ushortSpan = MemoryMarshal.Cast<char, ushort>(value);
+        var ushortDest = MemoryMarshal.Cast<char, ushort>(destination);
+        BinaryPrimitives.ReverseEndianness(ushortSpan, ushortDest);
+    }
 
-    public static Int128 HostToNetworkOrder(Int128 host) => IsLittleEndian
-        ? BinaryPrimitives.ReverseEndianness(host)
-        : host;
+    public static void ToHost(Span<char> value) => ToHost(value, value);
 
-    public static UInt128 HostToNetworkOrder(UInt128 host) => IsLittleEndian
-        ? BinaryPrimitives.ReverseEndianness(host)
-        : host;
+    public static short ToHost(short value) => IsLittleEndian
+        ? BinaryPrimitives.ReverseEndianness(value)
+        : value;
 
-    public static int HostToNetworkOrder(int host) => IsLittleEndian
-        ? BinaryPrimitives.ReverseEndianness(host)
-        : host;
+    public static void ToHost(ReadOnlySpan<short> value, Span<short> destination)
+    {
+        if (IsLittleEndian) BinaryPrimitives.ReverseEndianness(value, destination);
+    }
 
-    public static short HostToNetworkOrder(short host) => IsLittleEndian
-        ? BinaryPrimitives.ReverseEndianness(host)
-        : host;
+    public static void ToHost(Span<short> value) => ToHost(value, value);
 
-    public static ulong HostToNetworkOrder(ulong host) => IsLittleEndian
-        ? BinaryPrimitives.ReverseEndianness(host)
-        : host;
+    public static ushort ToHost(ushort value) => IsLittleEndian
+        ? BinaryPrimitives.ReverseEndianness(value)
+        : value;
 
-    public static uint HostToNetworkOrder(uint host) => IsLittleEndian
-        ? BinaryPrimitives.ReverseEndianness(host)
-        : host;
+    public static void ToHost(ReadOnlySpan<ushort> value, Span<ushort> destination)
+    {
+        if (IsLittleEndian) BinaryPrimitives.ReverseEndianness(value, destination);
+    }
 
-    public static ushort HostToNetworkOrder(ushort host) => IsLittleEndian
-        ? BinaryPrimitives.ReverseEndianness(host)
-        : host;
+    public static void ToHost(Span<ushort> value) => ToHost(value, value);
 
-    static TTo As<TFrom, TTo>(TFrom value) where TFrom : unmanaged where TTo : unmanaged
+    public static int ToHost(int value) => IsLittleEndian
+        ? BinaryPrimitives.ReverseEndianness(value)
+        : value;
+
+    public static void ToHost(ReadOnlySpan<int> value, Span<int> destination)
+    {
+        if (IsLittleEndian) BinaryPrimitives.ReverseEndianness(value, destination);
+    }
+
+    public static void ToHost(Span<int> value) => ToHost(value, value);
+
+    public static uint ToHost(uint value) => IsLittleEndian
+        ? BinaryPrimitives.ReverseEndianness(value)
+        : value;
+
+    public static void ToHost(ReadOnlySpan<uint> value, Span<uint> destination)
+    {
+        if (IsLittleEndian) BinaryPrimitives.ReverseEndianness(value, destination);
+    }
+
+    public static void ToHost(Span<uint> value) => ToHost(value, value);
+
+    public static long ToHost(long value) => IsLittleEndian
+        ? BinaryPrimitives.ReverseEndianness(value)
+        : value;
+
+    public static void ToHost(ReadOnlySpan<long> value, Span<long> destination)
+    {
+        if (IsLittleEndian) BinaryPrimitives.ReverseEndianness(value, destination);
+    }
+
+    public static void ToHost(Span<long> value) => ToHost(value, value);
+
+    public static ulong ToHost(ulong value) => IsLittleEndian
+        ? BinaryPrimitives.ReverseEndianness(value)
+        : value;
+
+    public static void ToHost(ReadOnlySpan<ulong> value, Span<ulong> destination)
+    {
+        if (IsLittleEndian) BinaryPrimitives.ReverseEndianness(value, destination);
+    }
+
+    public static void ToHost(Span<ulong> value) => ToHost(value, value);
+
+    public static Int128 ToHost(Int128 value) => IsLittleEndian
+        ? BinaryPrimitives.ReverseEndianness(value)
+        : value;
+
+    public static void ToHost(ReadOnlySpan<Int128> value, Span<Int128> destination)
+    {
+        if (IsLittleEndian) BinaryPrimitives.ReverseEndianness(value, destination);
+    }
+
+    public static void ToHost(Span<Int128> value) => ToHost(value, value);
+
+    public static UInt128 ToHost(UInt128 value) => IsLittleEndian
+        ? BinaryPrimitives.ReverseEndianness(value)
+        : value;
+
+    public static void ToHost(ReadOnlySpan<UInt128> value, Span<UInt128> destination)
+    {
+        if (IsLittleEndian) BinaryPrimitives.ReverseEndianness(value, destination);
+    }
+
+    public static void ToHost(Span<UInt128> value) => ToHost(value, value);
+
+    static TTo As<TFrom, TTo>(in TFrom value) where TFrom : unmanaged where TTo : unmanaged
     {
         var valueRef = value;
         return Unsafe.As<TFrom, TTo>(ref valueRef);
     }
 
-    public static T TryHostToNetworkOrder<T>(T host) where T : unmanaged => host switch
+    public static T ToHostOrder<T>(T value) where T : unmanaged => value switch
     {
-        char n => As<char, T>(HostToNetworkOrder(n)),
-        short n => As<short, T>(HostToNetworkOrder(n)),
-        int n => As<int, T>(HostToNetworkOrder(n)),
-        long n => As<long, T>(HostToNetworkOrder(n)),
-        Int128 n => As<Int128, T>(HostToNetworkOrder(n)),
-        ushort n => As<ushort, T>(HostToNetworkOrder(n)),
-        uint n => As<uint, T>(HostToNetworkOrder(n)),
-        ulong n => As<ulong, T>(HostToNetworkOrder(n)),
-        UInt128 n => As<UInt128, T>(HostToNetworkOrder(n)),
-        _ => host,
+        char n => As<char, T>(ToHost(n)),
+        short n => As<short, T>(ToHost(n)),
+        int n => As<int, T>(ToHost(n)),
+        long n => As<long, T>(ToHost(n)),
+        Int128 n => As<Int128, T>(ToHost(n)),
+        ushort n => As<ushort, T>(ToHost(n)),
+        uint n => As<uint, T>(ToHost(n)),
+        ulong n => As<ulong, T>(ToHost(n)),
+        UInt128 n => As<UInt128, T>(ToHost(n)),
+        _ => value,
     };
 
-    public static long NetworkToHostOrder(long network) => HostToNetworkOrder(network);
-    public static int NetworkToHostOrder(int network) => HostToNetworkOrder(network);
-    public static short NetworkToHostOrder(short network) => HostToNetworkOrder(network);
-    public static ulong NetworkToHostOrder(ulong network) => HostToNetworkOrder(network);
-    public static uint NetworkToHostOrder(uint network) => HostToNetworkOrder(network);
-    public static ushort NetworkToHostOrder(ushort network) => HostToNetworkOrder(network);
-    public static char NetworkToHostOrder(char network) => HostToNetworkOrder(network);
-    public static Int128 NetworkToHostOrder(Int128 network) => HostToNetworkOrder(network);
-    public static UInt128 NetworkToHostOrder(UInt128 network) => HostToNetworkOrder(network);
+    #region HostToNetwork
 
-    public static T TryNetworkToHostOrder<T>(T network) where T : unmanaged =>
-        TryHostToNetworkOrder(network);
+    public static char ToNetwork(char value) => ToHost(value);
+    public static short ToNetwork(short value) => ToHost(value);
+    public static ushort ToNetwork(ushort value) => ToHost(value);
+    public static int ToNetwork(int value) => ToHost(value);
+    public static uint ToNetwork(uint value) => ToHost(value);
+    public static long ToNetwork(long value) => ToHost(value);
+    public static ulong ToNetwork(ulong value) => ToHost(value);
+    public static Int128 ToNetwork(Int128 value) => ToHost(value);
+    public static UInt128 ToNetwork(UInt128 value) => ToHost(value);
+
+    public static void ToNetwork(ReadOnlySpan<char> value, Span<char> destination) =>
+        ToHost(value, destination);
+
+    public static void ToNetwork(ReadOnlySpan<short> value, Span<short> destination) =>
+        ToHost(value, destination);
+
+    public static void ToNetwork(ReadOnlySpan<ushort> value, Span<ushort> destination) =>
+        ToHost(value, destination);
+
+    public static void ToNetwork(ReadOnlySpan<int> value, Span<int> destination) =>
+        ToHost(value, destination);
+
+    public static void ToNetwork(ReadOnlySpan<uint> value, Span<uint> destination) =>
+        ToHost(value, destination);
+
+    public static void ToNetwork(ReadOnlySpan<long> value, Span<long> destination) =>
+        ToHost(value, destination);
+
+    public static void ToNetwork(ReadOnlySpan<ulong> value, Span<ulong> destination) =>
+        ToHost(value, destination);
+
+    public static void ToNetwork(ReadOnlySpan<Int128> value, Span<Int128> destination) =>
+        ToHost(value, destination);
+
+    public static void ToNetwork(ReadOnlySpan<UInt128> value, Span<UInt128> destination) =>
+        ToHost(value, destination);
+
+    public static T ToNetworkOrder<T>(T value) where T : unmanaged => ToHostOrder(value);
+
+    #endregion
 }

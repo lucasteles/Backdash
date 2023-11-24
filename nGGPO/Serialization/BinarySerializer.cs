@@ -18,7 +18,6 @@ public interface IBinarySerializer<T> : IBinaryReader<T>, IBinaryWriter<T> where
 public abstract class BinarySerializer<T> : IBinarySerializer<T>
     where T : struct
 {
-
     public bool Network { get; init; } = true;
 
     protected internal abstract void Serialize(ref NetworkBufferWriter writer, in T data);
@@ -27,7 +26,7 @@ public abstract class BinarySerializer<T> : IBinarySerializer<T>
 
     public int Serialize(in T data, Span<byte> buffer)
     {
-        NetworkBufferWriter writer = new(ref buffer) {Network = Network};
+        NetworkBufferWriter writer = new(buffer) {Network = Network};
         Serialize(ref writer, in data);
         return writer.WrittenCount;
     }

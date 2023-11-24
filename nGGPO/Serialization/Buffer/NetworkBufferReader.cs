@@ -23,6 +23,10 @@ public ref struct NetworkBufferReader
     }
 
     public void Advance(int count) => offset += count;
+
+    void ReadSpan<T>(in Span<T> data) where T : struct =>
+        ReadByte(MemoryMarshal.AsBytes(data));
+
     public byte ReadByte() => buffer[offset++];
 
     public void ReadByte(in Span<byte> data)
@@ -33,47 +37,120 @@ public ref struct NetworkBufferReader
         slice.CopyTo(data);
     }
 
-    public int ReadInt()
+    public sbyte ReadSByte() => unchecked((sbyte) buffer[offset++]);
+
+    public void ReadSByte(in Span<sbyte> values) => ReadSpan(values);
+
+    public bool ReadBool()
     {
-        var value = BitConverter.ToInt32(buffer[offset..]);
-        offset += sizeof(int);
-        return network ? Endianness.NetworkToHostOrder(value) : value;
+        var value = BitConverter.ToBoolean(buffer[offset..]);
+        offset += sizeof(bool);
+        return value;
     }
 
-    public void ReadInt(in Span<int> values)
-    {
-        for (var i = 0; i < values.Length; i++)
-            values[i] = ReadInt();
-    }
+    public void ReadBool(in Span<bool> values) => ReadSpan(values);
 
     public short ReadShort()
     {
         var value = BitConverter.ToInt16(buffer[offset..]);
         offset += sizeof(short);
-        return network ? Endianness.NetworkToHostOrder(value) : value;
+        return network ? Endianness.ToHost(value) : value;
     }
 
     public void ReadShort(in Span<short> values)
     {
-        for (var i = 0; i < values.Length; i++)
-            values[i] = ReadShort();
+        ReadSpan(values);
+        if (network) Endianness.ToHost(values);
+    }
+
+    public ushort ReadUShort()
+    {
+        var value = BitConverter.ToUInt16(buffer[offset..]);
+        offset += sizeof(ushort);
+
+        return network ? Endianness.ToHost(value) : value;
+    }
+
+    public void ReadUShort(in Span<ushort> values)
+    {
+        ReadSpan(values);
+        if (network) Endianness.ToHost(values);
+    }
+
+    public char ReadChar()
+    {
+        var value = BitConverter.ToChar(buffer[offset..]);
+        offset += sizeof(char);
+        return network ? Endianness.ToHost(value) : value;
+    }
+
+    public void ReadChar(in Span<char> values)
+    {
+        ReadSpan(values);
+        if (network) Endianness.ToHost(values);
+    }
+
+    public int ReadInt()
+    {
+        var value = BitConverter.ToInt32(buffer[offset..]);
+        offset += sizeof(int);
+        return network ? Endianness.ToHost(value) : value;
+    }
+
+    public void ReadInt(in Span<int> values)
+    {
+        ReadSpan(values);
+        if (network) Endianness.ToHost(values);
+    }
+
+    public uint ReadUInt()
+    {
+        var value = BitConverter.ToUInt32(buffer[offset..]);
+        offset += sizeof(uint);
+
+        return network ? Endianness.ToHost(value) : value;
+    }
+
+    public void ReadUInt(in Span<uint> values)
+    {
+        ReadSpan(values);
+        if (network) Endianness.ToHost(values);
     }
 
     public long ReadLong()
     {
         var value = BitConverter.ToInt64(buffer[offset..]);
         offset += sizeof(long);
-        return network ? Endianness.NetworkToHostOrder(value) : value;
+        return network ? Endianness.ToHost(value) : value;
     }
 
     public void ReadLong(in Span<long> values)
     {
-        for (var i = 0; i < values.Length; i++)
-            values[i] = ReadLong();
+        ReadSpan(values);
+        if (network) Endianness.ToHost(values);
+    }
+
+    public ulong ReadULong()
+    {
+        var value = BitConverter.ToUInt64(buffer[offset..]);
+        offset += sizeof(ulong);
+
+        return network ? Endianness.ToHost(value) : value;
+    }
+
+    public void ReadULong(in Span<ulong> values)
+    {
+        ReadSpan(values);
+        if (network) Endianness.ToHost(values);
     }
 
     public Int128 ReadInt128()
     {
+        var value = ToInt128(buffer[offset..]);
+        offset += Unsafe.SizeOf<Int128>();
+
+        return network ? Endianness.ToHost(value) : value;
+
         static Int128 ToInt128(ReadOnlySpan<byte> value)
         {
             if (value.Length < Unsafe.SizeOf<Int128>())
@@ -81,17 +158,12 @@ public ref struct NetworkBufferReader
 
             return Unsafe.ReadUnaligned<Int128>(ref MemoryMarshal.GetReference(value));
         }
-
-        var value = ToInt128(buffer[offset..]);
-        offset += Unsafe.SizeOf<Int128>();
-
-        return network ? Endianness.NetworkToHostOrder(value) : value;
     }
 
     public void ReadInt128(in Span<Int128> values)
     {
-        for (var i = 0; i < values.Length; i++)
-            values[i] = ReadInt128();
+        ReadSpan(values);
+        if (network) Endianness.ToHost(values);
     }
 
     public UInt128 ReadUInt128()
@@ -99,7 +171,7 @@ public ref struct NetworkBufferReader
         var value = ToUInt128(buffer[offset..]);
         offset += Unsafe.SizeOf<UInt128>();
 
-        return network ? Endianness.NetworkToHostOrder(value) : value;
+        return network ? Endianness.ToHost(value) : value;
 
         static UInt128 ToUInt128(ReadOnlySpan<byte> value)
         {
@@ -112,85 +184,10 @@ public ref struct NetworkBufferReader
 
     public void ReadUInt128(in Span<UInt128> values)
     {
-        for (var i = 0; i < values.Length; i++)
-            values[i] = ReadUInt128();
+        ReadSpan(values);
+        if (network) Endianness.ToHost(values);
     }
 
-    public char ReadChar()
-    {
-        var value = BitConverter.ToChar(buffer[offset..]);
-        offset += sizeof(char);
-        return network ? Endianness.NetworkToHostOrder(value) : value;
-    }
-
-    public void ReadChar(in Span<char> values)
-    {
-        for (var i = 0; i < values.Length; i++)
-            values[i] = ReadChar();
-    }
-
-    public bool ReadBool()
-    {
-        var value = BitConverter.ToBoolean(buffer[offset..]);
-        offset += sizeof(bool);
-        return value;
-    }
-
-    public void ReadBool(in Span<bool> values)
-    {
-        for (var i = 0; i < values.Length; i++)
-            values[i] = ReadBool();
-    }
-
-    public uint ReadUInt()
-    {
-        var value = BitConverter.ToUInt32(buffer[offset..]);
-        offset += sizeof(uint);
-
-        return network ? Endianness.NetworkToHostOrder(value) : value;
-    }
-
-    public void ReadUInt(in Span<uint> values)
-    {
-        for (var i = 0; i < values.Length; i++)
-            values[i] = ReadUInt();
-    }
-
-    public ushort ReadUShort()
-    {
-        var value = BitConverter.ToUInt16(buffer[offset..]);
-        offset += sizeof(ushort);
-
-        return network ? Endianness.NetworkToHostOrder(value) : value;
-    }
-
-    public void ReadUShort(in Span<ushort> values)
-    {
-        for (var i = 0; i < values.Length; i++)
-            values[i] = ReadUShort();
-    }
-
-    public ulong ReadULong()
-    {
-        var value = BitConverter.ToUInt64(buffer[offset..]);
-        offset += sizeof(ulong);
-
-        return network ? Endianness.NetworkToHostOrder(value) : value;
-    }
-
-    public void ReadULong(in Span<ulong> values)
-    {
-        for (var i = 0; i < values.Length; i++)
-            values[i] = ReadULong();
-    }
-
-    public sbyte ReadSByte() => unchecked((sbyte) buffer[offset++]);
-
-    public void ReadSByte(in Span<sbyte> values)
-    {
-        for (var i = 0; i < values.Length; i++)
-            values[i] = ReadSByte();
-    }
 
     // public TEnum ReadEnum<TEnum, TUnderType>()
     //     where TEnum : unmanaged, Enum
