@@ -87,7 +87,7 @@ public class UdpPeerClient<T>(
             pinned: true
         );
 
-        var address = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort).Serialize();
+        SocketAddress address = new(socket.AddressFamily);
 
         while (!ct.IsCancellationRequested)
             try

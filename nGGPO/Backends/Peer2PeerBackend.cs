@@ -160,13 +160,15 @@ class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGameState
     protected PlayerHandle QueueToSpectatorHandle(int queue) =>
         new(queue + SpectatorOffset); /* out of range of the player array, basically */
 
-    UdpProtocol CreateUdpProtocol(SocketAddress endpoint, int queue)
+    UdpProtocol CreateUdpProtocol(IPEndPoint endpoint, int queue)
     {
         UdpProtocol protocol = new(
             timesync: new(),
             random: Rnd.Shared,
             udp: udp,
-            queue, endpoint, localConnectStatus
+            queue,
+            endpoint,
+            localConnectStatus
         )
         {
             DisconnectTimeout = disconnectTimeout,
@@ -178,7 +180,7 @@ class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGameState
         return protocol;
     }
 
-    void AddRemotePlayer(SocketAddress endpoint, int queue)
+    void AddRemotePlayer(IPEndPoint endpoint, int queue)
     {
         /*
          * Start the state machine (xxx: no)
@@ -189,7 +191,7 @@ class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGameState
         endpoints.Add(protocol);
     }
 
-    ErrorCode AddSpectator(SocketAddress endpoint)
+    ErrorCode AddSpectator(IPEndPoint endpoint)
     {
         if (numSpectators == Max.Spectators)
             return ErrorCode.TooManySpectators;
@@ -206,6 +208,6 @@ class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGameState
 
         return ErrorCode.Ok;
     }
-    
+
     public void Dispose() => udp.Dispose();
 }

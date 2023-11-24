@@ -17,7 +17,7 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
      * Network transmission information
      */
     readonly Udp udp;
-    readonly SocketAddress peerAddress;
+    readonly IPEndPoint peerAddress;
     readonly ushort magicNumber;
     readonly int queue;
     ushort remoteMagicNumber;
@@ -90,7 +90,7 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
         Random random,
         Udp udp,
         int queue,
-        SocketAddress peerAddress,
+        IPEndPoint peerAddress,
         ConnectStatus[] localConnectStatus)
     {
         lastReceivedInput = GameInput.Empty;

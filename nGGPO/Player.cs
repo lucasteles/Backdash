@@ -38,20 +38,22 @@ public abstract class Player(int playerNumber)
     public class Remote : Player
     {
         public override PlayerType Type => PlayerType.Remote;
-        public SocketAddress EndPoint { get; }
+        public IPEndPoint EndPoint { get; }
 
-        public Remote(int playerNumber, SocketAddress endpoint) : base(playerNumber) =>
+        public Remote(int playerNumber, IPEndPoint endpoint) : base(playerNumber) =>
             EndPoint = endpoint;
 
-        public Remote(int playerNumber, IPAddress ipAddress, int port) : base(playerNumber) =>
-            EndPoint = new IPEndPoint(ipAddress, port).Serialize();
+        public Remote(int playerNumber, IPAddress ipAddress, int port)
+            : this(playerNumber, new IPEndPoint(ipAddress, port))
+        {
+        }
     }
 
-    public class Spectator : Remote
+    public sealed class Spectator : Remote
     {
         public override PlayerType Type => PlayerType.Spectator;
 
-        public Spectator(int playerNumber, SocketAddress endpoint) : base(playerNumber, endpoint)
+        public Spectator(int playerNumber, IPEndPoint endpoint) : base(playerNumber, endpoint)
         {
         }
 
