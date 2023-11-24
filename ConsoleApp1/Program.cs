@@ -83,13 +83,19 @@ var data = new byte[] {1, 2, 3, 4, 5};
 // Console.WriteLine(value);
 // Console.WriteLine(valueNetwork);
 
-[InlineArray(5)]
+[InlineArray(10)]
 [DebuggerDisplay("Buffer {ToString()}")]
 public struct ValueBuffer
 {
 #pragma warning disable CS0169 // Field is never used
     byte element0;
 #pragma warning restore CS0169 // Field is never used
+
+    public override string ToString()
+    {
+        ReadOnlySpan<byte> bytes = this;
+        return $"[{string.Join(", ", bytes.ToArray().Select(x => (int) x))}]";
+    }
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
@@ -104,17 +110,17 @@ public struct Input
     // [MarshalAs(UnmanagedType.ByValArray, SizeConst = 5)]
     // public byte[] Bits; /* must be last */
 
-    public byte[] BufferValues
-    {
-        get
-        {
-            ReadOnlySpan<byte> bytes = this.Values;
-            return bytes.ToArray();
-        }
-    }
+    // public byte[] BufferValues
+    // {
+    //     get
+    //     {
+    //         ReadOnlySpan<byte> bytes = this.Values;
+    //         return bytes.ToArray();
+    //     }
+    // }
 
     public override string ToString() =>
-        JsonSerializer.Serialize(this, new JsonSerializerOptions {IncludeFields = true});
+        $"{JsonSerializer.Serialize(this, new JsonSerializerOptions {IncludeFields = true})}; Buffer: {Values}";
 }
 
 // class InputSerializer : BinarySerializer<Input>
