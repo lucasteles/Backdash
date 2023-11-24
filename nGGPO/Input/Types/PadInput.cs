@@ -31,8 +31,8 @@ public struct PadInput
         B = 1 << 8,
         LB = 1 << 9,
         RB = 1 << 10,
-        L3 = 1 << 11,
-        R3 = 1 << 12,
+        LSB = 1 << 11,
+        RSB = 1 << 12,
     }
 
     public PadButtons Buttons;

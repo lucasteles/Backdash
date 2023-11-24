@@ -117,13 +117,13 @@ public sealed class ButtonsInputEditor(ButtonsInput input)
         set => Input = Input.SetFlag(ButtonsInput.RT, value);
     }
 
-    public bool L3
+    public bool LSB
     {
         get => Input.HasFlag(ButtonsInput.LSB);
         set => Input = Input.SetFlag(ButtonsInput.LSB, value);
     }
 
-    public bool R3
+    public bool RSB
     {
         get => Input.HasFlag(ButtonsInput.RSB);
         set => Input = Input.SetFlag(ButtonsInput.RSB, value);
@@ -192,8 +192,8 @@ public sealed class ButtonsInputEditor(ButtonsInput input)
         if (RB) buttons.Add(nameof(RB));
         if (LT) buttons.Add(nameof(LT));
         if (RT) buttons.Add(nameof(RT));
-        if (L3) buttons.Add(nameof(L3));
-        if (R3) buttons.Add(nameof(R3));
+        if (LSB) buttons.Add(nameof(LSB));
+        if (RSB) buttons.Add(nameof(RSB));
         if (Select) buttons.Add(nameof(Select));
 
         builder.Append(string.Join(',', buttons));
