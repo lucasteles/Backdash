@@ -5,33 +5,10 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using nGGPO.Inputs;
 using nGGPO.Serialization;
+using nGGPO.Serialization.Buffer;
 using nGGPO.Utils;
 
-
-var data = new byte[] {1, 2, 3, 4, 5};
-
-{
-    Input packet = new()
-    {
-        S = data.Length,
-        A = (byte) 'a',
-        B = 2,
-        Values = new(),
-        // Bits = data,
-    };
-
-    Span<byte> values = packet.Values;
-    data.CopyTo(values);
-
-    var serializer = BinarySerializers.Get<Input>()!;
-    using var buffer = MemoryBuffer.Rent(20, true);
-    var size = serializer.Serialize(in packet, buffer);
-    var bytes = buffer.Span[..size];
-
-    Console.WriteLine($"# Size={size}\n");
-    var backPacket = serializer.Deserialize(bytes);
-    Console.WriteLine($"# Pkg={backPacket}\n");
-}
+byte[] data = {1, 2, 3, 4, 5};
 
 {
     var packet = long.MaxValue;
@@ -57,6 +34,50 @@ var data = new byte[] {1, 2, 3, 4, 5};
     Console.WriteLine($"# Pkg= {buttons}\n");
 }
 
+
+{
+    Input packet = new()
+    {
+        S = data.Length,
+        A = (byte) 'a',
+        B = 2,
+        Bits = new(),
+    };
+    data.CopyTo(packet.Bits);
+    Console.WriteLine($"# Ipt: {packet}\n");
+
+
+    var serializer = BinarySerializers.Get<Input>()!;
+    using var buffer = MemoryBuffer.Rent(20, true);
+    var size = serializer.Serialize(in packet, buffer);
+    var bytes = buffer.Span[..size];
+
+    Console.WriteLine($"# Size={size}\n");
+    var backPacket = serializer.Deserialize(bytes);
+    Console.WriteLine($"# Pkg: {backPacket}\n");
+}
+
+
+{
+    Input packet = new()
+    {
+        S = data.Length,
+        A = (byte) 'a',
+        B = 2,
+        Bits = new(),
+    };
+    data.CopyTo(packet.Bits);
+
+    // var serializer = new CustomInputSerializer();
+    //
+    // using var buffer = MemoryBuffer.Rent(20, true);
+    // var size = serializer.Serialize(in packet, buffer);
+    // var bytes = buffer.Span[..size];
+    //
+    // Console.WriteLine($"# Size={size}\n");
+    // var backPacket = serializer.Deserialize(bytes);
+    // Console.WriteLine($"# Pkg={backPacket}\n");
+}
 
 // Console.WriteLine($"# Size={size}, SizeM={sizeM}\n");
 
@@ -106,48 +127,40 @@ public struct Input
     public uint B;
 
     [JsonIgnore]
-    public ValueBuffer Values;
+    public ValueBuffer Bits;
+
     // [MarshalAs(UnmanagedType.ByValArray, SizeConst = 5)]
     // public byte[] Bits; /* must be last */
 
-    // public byte[] BufferValues
-    // {
-    //     get
-    //     {
-    //         ReadOnlySpan<byte> bytes = this.Values;
-    //         return bytes.ToArray();
-    //     }
-    // }
-
     public override string ToString() =>
-        $"{JsonSerializer.Serialize(this, new JsonSerializerOptions {IncludeFields = true})}; Buffer: {Values}";
+        $"{JsonSerializer.Serialize(this, new JsonSerializerOptions {IncludeFields = true})}; Buffer: {Bits}";
 }
 
-// class InputSerializer : BinarySerializer<Input>
-// {
-//     public override int SizeOf(in Input data) =>
-//         sizeof(int) + sizeof(byte) + sizeof(uint)
-//         + data.Bits.Length * sizeof(byte);
-//
-//     protected override void Serialize(ref NetworkBufferWriter writer, in Input data)
-//     {
-//         writer.Write(data.S);
-//         writer.Write(data.A);
-//         writer.Write(data.B);
-//         writer.Write(data.Bits);
-//     }
-//
-//     protected override Input Deserialize(ref NetworkBufferReader reader)
-//     {
-//         var size = reader.ReadInt();
-//         var input = new Input
-//         {
-//             S = size,
-//             A = reader.ReadByte(),
-//             B = reader.ReadUInt(),
-//             Bits = new byte[size],
-//         };
-//         reader.ReadByte(input.Bits);
-//         return input;
-//     }
-// }
+class CustomInputSerializer : BinarySerializer<Input>
+{
+    protected override void Serialize(ref NetworkBufferWriter writer, in Input data)
+    {
+        writer.Write(data.S);
+        writer.Write(data.A);
+        writer.Write(data.B);
+
+        var bits = data.Bits[..data.S];
+        bits.CopyTo(writer.CurrentBuffer);
+        writer.Advance(bits.Length);
+        // writer.WriteBytes(bits);
+    }
+
+    protected override Input Deserialize(ref NetworkBufferReader reader)
+    {
+        var size = reader.ReadInt();
+        var input = new Input
+        {
+            S = size,
+            A = reader.ReadByte(),
+            B = reader.ReadUInt(),
+            // Bits = new byte[size],
+        };
+        // reader.ReadByte(input.Bits);
+        return input;
+    }
+}

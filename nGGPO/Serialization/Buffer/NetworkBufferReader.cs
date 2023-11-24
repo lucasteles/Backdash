@@ -15,6 +15,8 @@ public ref struct NetworkBufferReader
     public int Capacity => buffer.Length;
     public int FreeCapacity => Capacity - ReadCount;
 
+    public ReadOnlySpan<byte> CurrentBuffer => buffer[offset..];
+
     public NetworkBufferReader(ReadOnlySpan<byte> buffer, bool network = true, int offset = 0)
     {
         this.buffer = buffer;
@@ -22,6 +24,7 @@ public ref struct NetworkBufferReader
         this.offset = offset;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Advance(int count) => offset += count;
 
     void ReadSpan<T>(in Span<T> data) where T : struct =>
@@ -33,7 +36,7 @@ public ref struct NetworkBufferReader
     {
         var size = data.Length;
         var slice = buffer.Slice(offset, size);
-        offset += size;
+        Advance(size);
         slice.CopyTo(data);
     }
 
@@ -43,8 +46,8 @@ public ref struct NetworkBufferReader
 
     public bool ReadBool()
     {
-        var value = BitConverter.ToBoolean(buffer[offset..]);
-        offset += sizeof(bool);
+        var value = BitConverter.ToBoolean(CurrentBuffer);
+        Advance(sizeof(bool));
         return value;
     }
 
@@ -52,8 +55,8 @@ public ref struct NetworkBufferReader
 
     public short ReadShort()
     {
-        var value = BitConverter.ToInt16(buffer[offset..]);
-        offset += sizeof(short);
+        var value = BitConverter.ToInt16(CurrentBuffer);
+        Advance(sizeof(short));
         return network ? Endianness.ToHost(value) : value;
     }
 
@@ -65,8 +68,8 @@ public ref struct NetworkBufferReader
 
     public ushort ReadUShort()
     {
-        var value = BitConverter.ToUInt16(buffer[offset..]);
-        offset += sizeof(ushort);
+        var value = BitConverter.ToUInt16(CurrentBuffer);
+        Advance(sizeof(ushort));
 
         return network ? Endianness.ToHost(value) : value;
     }
@@ -79,8 +82,8 @@ public ref struct NetworkBufferReader
 
     public char ReadChar()
     {
-        var value = BitConverter.ToChar(buffer[offset..]);
-        offset += sizeof(char);
+        var value = BitConverter.ToChar(CurrentBuffer);
+        Advance(sizeof(char));
         return network ? Endianness.ToHost(value) : value;
     }
 
@@ -92,8 +95,8 @@ public ref struct NetworkBufferReader
 
     public int ReadInt()
     {
-        var value = BitConverter.ToInt32(buffer[offset..]);
-        offset += sizeof(int);
+        var value = BitConverter.ToInt32(CurrentBuffer);
+        Advance(sizeof(int));
         return network ? Endianness.ToHost(value) : value;
     }
 
@@ -105,8 +108,8 @@ public ref struct NetworkBufferReader
 
     public uint ReadUInt()
     {
-        var value = BitConverter.ToUInt32(buffer[offset..]);
-        offset += sizeof(uint);
+        var value = BitConverter.ToUInt32(CurrentBuffer);
+        Advance(sizeof(uint));
 
         return network ? Endianness.ToHost(value) : value;
     }
@@ -119,8 +122,8 @@ public ref struct NetworkBufferReader
 
     public long ReadLong()
     {
-        var value = BitConverter.ToInt64(buffer[offset..]);
-        offset += sizeof(long);
+        var value = BitConverter.ToInt64(CurrentBuffer);
+        Advance(sizeof(long));
         return network ? Endianness.ToHost(value) : value;
     }
 
@@ -132,8 +135,8 @@ public ref struct NetworkBufferReader
 
     public ulong ReadULong()
     {
-        var value = BitConverter.ToUInt64(buffer[offset..]);
-        offset += sizeof(ulong);
+        var value = BitConverter.ToUInt64(CurrentBuffer);
+        Advance(sizeof(ulong));
 
         return network ? Endianness.ToHost(value) : value;
     }
@@ -146,8 +149,8 @@ public ref struct NetworkBufferReader
 
     public Int128 ReadInt128()
     {
-        var value = ToInt128(buffer[offset..]);
-        offset += Unsafe.SizeOf<Int128>();
+        var value = ToInt128(CurrentBuffer);
+        Advance(Unsafe.SizeOf<Int128>());
 
         return network ? Endianness.ToHost(value) : value;
 
@@ -168,8 +171,8 @@ public ref struct NetworkBufferReader
 
     public UInt128 ReadUInt128()
     {
-        var value = ToUInt128(buffer[offset..]);
-        offset += Unsafe.SizeOf<UInt128>();
+        var value = ToUInt128(CurrentBuffer);
+        Advance(Unsafe.SizeOf<UInt128>());
 
         return network ? Endianness.ToHost(value) : value;
 
@@ -195,7 +198,7 @@ public ref struct NetworkBufferReader
     // {
     //     var size = Unsafe.SizeOf<TUnderType>();
     //     var value = Mem.SpanAsStruct<TUnderType>(buffer[offset..(offset + size)]);
-    //     offset += size;
+    //     Advance( size);
     //     var reordered = network ? Endianness.TryNetworkToHostOrder(value) : value;
     //     return Mem.IntegerAsEnum<TEnum, TUnderType>(reordered);
     // }

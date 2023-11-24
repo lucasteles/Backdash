@@ -2,6 +2,7 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using nGGPO.Network;
+using nGGPO.Utils;
 
 namespace nGGPO.Serialization.Buffer;
 
@@ -15,12 +16,15 @@ public ref struct NetworkBufferWriter
     public int Capacity => buffer.Length;
     public int FreeCapacity => Capacity - WrittenCount;
 
+    public Span<byte> CurrentBuffer => buffer[offset..];
+
     public NetworkBufferWriter(Span<byte> buffer, int offset = 0)
     {
         this.buffer = buffer;
         this.offset = offset;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Advance(int count) => offset += count;
 
     void WriteSpan<T>(in ReadOnlySpan<T> data) where T : struct =>
@@ -36,8 +40,8 @@ public ref struct NetworkBufferWriter
 
     public void Write(in ReadOnlySpan<byte> value)
     {
-        value.CopyTo(buffer[offset..]);
-        offset += value.Length;
+        value.CopyTo(CurrentBuffer);
+        Advance(value.Length);
     }
 
     public void Write(sbyte value) => buffer[offset++] = unchecked((byte) value);
@@ -46,8 +50,8 @@ public ref struct NetworkBufferWriter
 
     public void Write(bool value)
     {
-        BitConverter.TryWriteBytes(buffer[offset..], value).AssertTrue();
-        offset += sizeof(bool);
+        BitConverter.TryWriteBytes(CurrentBuffer, value).AssertTrue();
+        Advance(sizeof(bool));
     }
 
     public void Write(in ReadOnlySpan<bool> value) => WriteSpan(value);
@@ -55,8 +59,8 @@ public ref struct NetworkBufferWriter
     public void Write(short value)
     {
         var reordered = Network ? Endianness.ToNetwork(value) : value;
-        BitConverter.TryWriteBytes(buffer[offset..], reordered).AssertTrue();
-        offset += sizeof(short);
+        BitConverter.TryWriteBytes(CurrentBuffer, reordered).AssertTrue();
+        Advance(sizeof(short));
     }
 
     public void Write(in ReadOnlySpan<short> value)
@@ -70,8 +74,8 @@ public ref struct NetworkBufferWriter
     public void Write(int value)
     {
         var reordered = Network ? Endianness.ToNetwork(value) : value;
-        BitConverter.TryWriteBytes(buffer[offset..], reordered).AssertTrue();
-        offset += sizeof(int);
+        BitConverter.TryWriteBytes(CurrentBuffer, reordered).AssertTrue();
+        Advance(sizeof(int));
     }
 
     public void Write(in ReadOnlySpan<int> value)
@@ -86,8 +90,8 @@ public ref struct NetworkBufferWriter
     public void Write(long value)
     {
         var reordered = Network ? Endianness.ToNetwork(value) : value;
-        BitConverter.TryWriteBytes(buffer[offset..], reordered).AssertTrue();
-        offset += sizeof(long);
+        BitConverter.TryWriteBytes(CurrentBuffer, reordered).AssertTrue();
+        Advance(sizeof(long));
     }
 
     public void Write(in ReadOnlySpan<long> value)
@@ -101,8 +105,8 @@ public ref struct NetworkBufferWriter
     public void Write(char value)
     {
         var reordered = Network ? Endianness.ToNetwork(value) : value;
-        BitConverter.TryWriteBytes(buffer[offset..], reordered).AssertTrue();
-        offset += sizeof(char);
+        BitConverter.TryWriteBytes(CurrentBuffer, reordered).AssertTrue();
+        Advance(sizeof(char));
     }
 
     public void Write(in ReadOnlySpan<char> value)
@@ -116,8 +120,8 @@ public ref struct NetworkBufferWriter
     public void Write(uint value)
     {
         var reordered = Network ? Endianness.ToNetwork(value) : value;
-        BitConverter.TryWriteBytes(buffer[offset..], reordered).AssertTrue();
-        offset += sizeof(uint);
+        BitConverter.TryWriteBytes(CurrentBuffer, reordered).AssertTrue();
+        Advance(sizeof(uint));
     }
 
     public void Write(in ReadOnlySpan<uint> value)
@@ -131,8 +135,8 @@ public ref struct NetworkBufferWriter
     public void Write(ushort value)
     {
         var reordered = Network ? Endianness.ToNetwork(value) : value;
-        BitConverter.TryWriteBytes(buffer[offset..], reordered).AssertTrue();
-        offset += sizeof(ushort);
+        BitConverter.TryWriteBytes(CurrentBuffer, reordered).AssertTrue();
+        Advance(sizeof(ushort));
     }
 
     public void Write(in ReadOnlySpan<ushort> value)
@@ -146,8 +150,8 @@ public ref struct NetworkBufferWriter
     public void Write(ulong value)
     {
         var reordered = Network ? Endianness.ToNetwork(value) : value;
-        BitConverter.TryWriteBytes(buffer[offset..], reordered).AssertTrue();
-        offset += sizeof(ulong);
+        BitConverter.TryWriteBytes(CurrentBuffer, reordered).AssertTrue();
+        Advance(sizeof(ulong));
     }
 
     public void Write(in ReadOnlySpan<ulong> value)
@@ -163,8 +167,8 @@ public ref struct NetworkBufferWriter
     public void Write(Int128 value)
     {
         var reordered = Network ? Endianness.ToNetwork(value) : value;
-        WriteInt128(buffer[offset..], reordered).AssertTrue();
-        offset += Unsafe.SizeOf<Int128>();
+        WriteInt128(CurrentBuffer, reordered).AssertTrue();
+        Advance(Unsafe.SizeOf<Int128>());
 
         return;
 
@@ -187,8 +191,8 @@ public ref struct NetworkBufferWriter
     public void Write(UInt128 value)
     {
         var reordered = Network ? Endianness.ToNetwork(value) : value;
-        WriteUInt128(buffer[offset..], reordered).AssertTrue();
-        offset += Unsafe.SizeOf<UInt128>();
+        WriteUInt128(CurrentBuffer, reordered).AssertTrue();
+        Advance(Unsafe.SizeOf<UInt128>());
 
         return;
 
