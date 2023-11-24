@@ -3,25 +3,18 @@ using nGGPO.Utils;
 
 namespace nGGPO.DataStructure;
 
-sealed class CircularBuffer<T>(int size = CircularBuffer<T>.DefaultSize)
+sealed class CircularBuffer<T>(int size = 64)
     where T : notnull
 {
-    public const int DefaultSize = 64;
-
     readonly T[] elements = new T[size];
+    int head, tail;
 
     public int Count => head >= tail ? head - tail : head + (Capacity - tail);
 
     public int Capacity => elements.Length;
     public bool IsEmpty => Count is 0;
 
-    int head, tail;
-
-    public ref T Peek()
-    {
-        Tracer.Assert(Count != elements.Length);
-        return ref elements[tail];
-    }
+    public ref T Peek() => ref elements[tail];
 
     public void Clear()
     {
@@ -33,7 +26,6 @@ sealed class CircularBuffer<T>(int size = CircularBuffer<T>.DefaultSize)
 
     public T Pop()
     {
-        Tracer.Assert(Count != Capacity);
         var value = elements[tail];
         tail = (tail + 1) % Capacity;
         return value;
@@ -41,7 +33,6 @@ sealed class CircularBuffer<T>(int size = CircularBuffer<T>.DefaultSize)
 
     public void Push(in T val)
     {
-        Tracer.Assert(Count != elements.Length - 1);
         elements[head] = val;
         head = (head + 1) % Capacity;
     }
