@@ -32,6 +32,8 @@ public class UdpPeerClient<T>(
     IBinarySerializer<T> serializer
 ) : IDisposable where T : struct
 {
+    public const int UdpPacketSize = 65_527;
+
     readonly Socket socket = CreateSocket(port);
     readonly CancellationTokenSource cancellation = new();
 
@@ -81,7 +83,7 @@ public class UdpPeerClient<T>(
     async Task Produce(CancellationToken ct)
     {
         var buffer = GC.AllocateArray<byte>(
-            length: Max.UdpPacketSize,
+            length: UdpPacketSize,
             pinned: true
         );
 
@@ -132,7 +134,7 @@ public class UdpPeerClient<T>(
     async Task ProcessSendQueue(CancellationToken ct)
     {
         var buffer = GC.AllocateArray<byte>(
-            length: Max.UdpPacketSize,
+            length: UdpPacketSize,
             pinned: true
         );
 

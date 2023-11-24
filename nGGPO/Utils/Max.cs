@@ -11,6 +11,4 @@ public static class Max
     public const int InputBytes = 8;
     public const int PollableHandles = 64;
     public const int UdpPacketSize = CompressedBits;
-
-    // public const int UdpPacketSize = 65_527;
 }
