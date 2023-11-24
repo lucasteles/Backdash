@@ -19,11 +19,10 @@ public ref struct NetworkBufferReader
 
     public ReadOnlySpan<byte> CurrentBuffer => buffer[offset..];
 
-    public NetworkBufferReader(ReadOnlySpan<byte> buffer, ref int offset)
-    {
-        this.buffer = buffer;
+    public NetworkBufferReader(ReadOnlySpan<byte> buffer) => this.buffer = buffer;
+
+    public NetworkBufferReader(ReadOnlySpan<byte> buffer, ref int offset) : this(buffer) =>
         this.offset = ref offset;
-    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Advance(int count) => offset += count;

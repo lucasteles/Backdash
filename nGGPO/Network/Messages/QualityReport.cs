@@ -1,5 +1,4 @@
-﻿using nGGPO.Serialization;
-using nGGPO.Serialization.Buffer;
+﻿using nGGPO.Serialization.Buffer;
 
 namespace nGGPO.Network.Messages;
 
@@ -11,22 +10,15 @@ struct QualityReport
     public const int Size =
         sizeof(byte) + sizeof(uint);
 
-    public class Serializer : BinarySerializer<QualityReport>
+    public void Serialize(NetworkBufferWriter writer)
     {
-        public static readonly Serializer Instance = new();
+        writer.Write(FrameAdvantage);
+        writer.Write(Ping);
+    }
 
-        protected internal override void Serialize(
-            scoped NetworkBufferWriter writer, in QualityReport data)
-        {
-            writer.Write(data.FrameAdvantage);
-            writer.Write(data.Ping);
-        }
-
-        protected internal override QualityReport Deserialize(scoped NetworkBufferReader reader) =>
-            new()
-            {
-                FrameAdvantage = reader.ReadByte(),
-                Ping = reader.ReadUInt(),
-            };
+    public void Deserialize(NetworkBufferReader reader)
+    {
+        FrameAdvantage = reader.ReadByte();
+        Ping = reader.ReadUInt();
     }
 }

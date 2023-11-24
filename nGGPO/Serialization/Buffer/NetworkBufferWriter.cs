@@ -2,7 +2,6 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using nGGPO.Network;
-using nGGPO.Utils;
 
 namespace nGGPO.Serialization.Buffer;
 
@@ -18,11 +17,11 @@ public ref struct NetworkBufferWriter
 
     public Span<byte> CurrentBuffer => buffer[offset..];
 
-    public NetworkBufferWriter(Span<byte> buffer, ref int offset)
-    {
-        this.buffer = buffer;
+    public NetworkBufferWriter(Span<byte> buffer) => this.buffer = buffer;
+
+    public NetworkBufferWriter(Span<byte> buffer, ref int offset) : this(buffer) =>
         this.offset = ref offset;
-    }
+
 
     const int FullSize = -1;
 

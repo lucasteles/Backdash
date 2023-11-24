@@ -1,5 +1,4 @@
-﻿using nGGPO.Serialization;
-using nGGPO.Serialization.Buffer;
+﻿using nGGPO.Serialization.Buffer;
 
 namespace nGGPO.Network.Messages;
 
@@ -9,21 +8,7 @@ struct SyncReply
 
     public const int Size = sizeof(uint);
 
-    public class Serializer : BinarySerializer<SyncReply>
-    {
-        public static readonly Serializer Instance = new();
+    public void Serialize(NetworkBufferWriter writer) => writer.Write(RandomReply);
 
-        protected internal override void Serialize(
-            scoped NetworkBufferWriter writer,
-            in SyncReply data)
-        {
-            writer.Write(data.RandomReply);
-        }
-
-        protected internal override SyncReply Deserialize(scoped NetworkBufferReader reader) =>
-            new()
-            {
-                RandomReply = reader.ReadUInt(),
-            };
-    }
+    public void Deserialize(NetworkBufferReader reader) => RandomReply = reader.ReadUInt();
 }

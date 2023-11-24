@@ -1,5 +1,4 @@
-﻿using nGGPO.Serialization;
-using nGGPO.Serialization.Buffer;
+﻿using nGGPO.Serialization.Buffer;
 
 namespace nGGPO.Network.Messages;
 
@@ -9,21 +8,9 @@ struct QualityReply
 
     public const int Size = sizeof(uint);
 
-    public class Serializer : BinarySerializer<QualityReply>
-    {
-        public static readonly Serializer Instance = new();
+    public void Serialize(NetworkBufferWriter writer) =>
+        writer.Write(Pong);
 
-        protected internal override void Serialize(
-            scoped NetworkBufferWriter writer,
-            in QualityReply data)
-        {
-            writer.Write(data.Pong);
-        }
-
-        protected internal override QualityReply Deserialize(scoped NetworkBufferReader reader) =>
-            new()
-            {
-                Pong = reader.ReadUInt(),
-            };
-    }
+    public void Deserialize(NetworkBufferReader reader) =>
+        Pong = reader.ReadUInt();
 }

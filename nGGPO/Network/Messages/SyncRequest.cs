@@ -1,5 +1,4 @@
-﻿using nGGPO.Serialization;
-using nGGPO.Serialization.Buffer;
+﻿using nGGPO.Serialization.Buffer;
 
 namespace nGGPO.Network.Messages;
 
@@ -14,24 +13,17 @@ struct SyncRequest
         + sizeof(ushort)
         + sizeof(byte);
 
-    public class Serializer : BinarySerializer<SyncRequest>
+    public void Serialize(NetworkBufferWriter writer)
     {
-        public static readonly Serializer Instance = new();
+        writer.Write(RandomRequest);
+        writer.Write(RemoteMagic);
+        writer.Write(RemoteEndpoint);
+    }
 
-        protected internal override void Serialize(
-            scoped NetworkBufferWriter writer, in SyncRequest data)
-        {
-            writer.Write(data.RandomRequest);
-            writer.Write(data.RemoteMagic);
-            writer.Write(data.RemoteEndpoint);
-        }
-
-        protected internal override SyncRequest Deserialize(scoped NetworkBufferReader reader) =>
-            new()
-            {
-                RandomRequest = reader.ReadUInt(),
-                RemoteMagic = reader.ReadUShort(),
-                RemoteEndpoint = reader.ReadByte(),
-            };
+    public void Deserialize(NetworkBufferReader reader)
+    {
+        RandomRequest = reader.ReadUInt();
+        RemoteMagic = reader.ReadUShort();
+        RemoteEndpoint = reader.ReadByte();
     }
 }

@@ -1,7 +1,6 @@
 ﻿using System.Diagnostics.Contracts;
 using System.Runtime.CompilerServices;
 using nGGPO.Input;
-using nGGPO.Serialization;
 using nGGPO.Serialization.Buffer;
 using nGGPO.Utils;
 
@@ -36,57 +35,33 @@ struct InputMsg
         + sizeof(byte)
         + sizeof(byte) * InputSize;
 
-    public class Serializer : BinarySerializer<InputMsg>
+
+    public void Serialize(scoped NetworkBufferWriter writer)
     {
-        public static readonly Serializer Instance = new();
+        writer.Write(PeerCount);
+        for (var i = 0; i < PeerCount; i++)
+            PeerConnectStatus[i].Serialize(writer);
 
-        protected internal override void Serialize(
-            scoped NetworkBufferWriter writer, scoped in InputMsg data)
-        {
-            writer.Write(data.PeerCount);
-            var statuses = data.PeerConnectStatus;
-            for (var i = 0; i < data.PeerCount; i++)
-                ConnectStatus.Serializer.Instance.Serialize(writer, in statuses[i]);
+        writer.Write(StartFrame);
+        writer.Write(DisconnectRequested);
+        writer.Write(AckFrame);
+        writer.Write(NumBits);
+        writer.Write(InputSize);
+        writer.Write(Bits, InputSize);
+    }
 
-            writer.Write(data.StartFrame);
-            writer.Write(data.DisconnectRequested);
-            writer.Write(data.AckFrame);
-            writer.Write(data.NumBits);
-            writer.Write(data.InputSize);
-            writer.Write(data.Bits, data.InputSize);
-        }
+    public void Deserialize(scoped NetworkBufferReader reader)
+    {
+        PeerCount = reader.ReadByte();
+        for (var i = 0; i < PeerCount; i++)
+            PeerConnectStatus[i].Deserialize(reader);
 
-        protected internal override InputMsg Deserialize(scoped NetworkBufferReader reader)
-        {
-            var statusLength = reader.ReadByte();
-            PeerStatusBuffer peerStatus = new();
-            for (var i = 0; i < statusLength; i++)
-                peerStatus[i] =
-                    ConnectStatus.Serializer.Instance.Deserialize(reader);
+        StartFrame = reader.ReadInt();
+        DisconnectRequested = reader.ReadBool();
+        AckFrame = reader.ReadInt();
+        NumBits = reader.ReadUShort();
+        InputSize = reader.ReadByte();
 
-            var startFrame = reader.ReadInt();
-            var disconnectRequested = reader.ReadBool();
-            var ackFrame = reader.ReadInt();
-            var numBits = reader.ReadUShort();
-            var inputSize = reader.ReadByte();
-
-            var bits = new GameInputBuffer();
-            reader.ReadByte(bits, inputSize);
-
-            var input = new InputMsg
-            {
-                StartFrame = startFrame,
-                PeerCount = statusLength,
-                PeerConnectStatus = peerStatus,
-                DisconnectRequested = disconnectRequested,
-                AckFrame = ackFrame,
-                NumBits = numBits,
-                InputSize = inputSize,
-                Bits = new(),
-            };
-
-            reader.ReadByte(input.Bits, inputSize);
-            return input;
-        }
+        reader.ReadByte(Bits, InputSize);
     }
 }

@@ -1,5 +1,4 @@
-﻿using nGGPO.Serialization;
-using nGGPO.Serialization.Buffer;
+﻿using nGGPO.Serialization.Buffer;
 
 namespace nGGPO.Network.Messages;
 
@@ -19,24 +18,17 @@ struct Header
     public const int Size =
         sizeof(byte) + sizeof(ushort) + sizeof(ushort);
 
-    public class Serializer : BinarySerializer<Header>
+    public void Serialize(NetworkBufferWriter writer)
     {
-        public static readonly Serializer Instance = new();
+        writer.Write((byte) Type);
+        writer.Write(Magic);
+        writer.Write(SequenceNumber);
+    }
 
-        protected internal override void Serialize(
-            scoped NetworkBufferWriter writer, in Header data)
-        {
-            writer.Write((byte) data.Type);
-            writer.Write(data.Magic);
-            writer.Write(data.SequenceNumber);
-        }
-
-        protected internal override Header Deserialize(scoped NetworkBufferReader reader) =>
-            new()
-            {
-                Type = (MsgType) reader.ReadByte(),
-                Magic = reader.ReadUShort(),
-                SequenceNumber = reader.ReadUShort(),
-            };
+    public void Deserialize(NetworkBufferReader reader)
+    {
+        Type = (MsgType) reader.ReadByte();
+        Magic = reader.ReadUShort();
+        SequenceNumber = reader.ReadUShort();
     }
 }

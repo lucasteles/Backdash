@@ -55,87 +55,73 @@ struct UdpMsg
             MsgType.QualityReport => QualityReport.Size,
             MsgType.QualityReply => QualityReply.Size,
             MsgType.InputAck => InputAck.Size,
-            MsgType.KeepAlive => KeepAlive.Size,
+            MsgType.KeepAlive => 0,
             MsgType.Input => Input.PacketSize(),
             MsgType.Invalid => throw new InvalidOperationException(),
             _ => throw new ArgumentOutOfRangeException(),
         };
-}
 
-class UdpMsgBinarySerializer : BinarySerializer<UdpMsg>
-{
-    public static readonly UdpMsgBinarySerializer Instance = new();
-
-    protected internal override void Serialize(scoped NetworkBufferWriter writer,
-        scoped in UdpMsg data)
+    public void Serialize(NetworkBufferWriter writer)
     {
-        Header.Serializer.Instance.Serialize(writer, in data.Header);
-        switch (data.Header.Type)
+        Header.Serialize(writer);
+        switch (Header.Type)
         {
             case MsgType.SyncRequest:
-                SyncRequest.Serializer.Instance.Serialize(writer, in data.SyncRequest);
+                SyncRequest.Serialize(writer);
                 break;
             case MsgType.SyncReply:
-                SyncReply.Serializer.Instance.Serialize(writer, in data.SyncReply);
+                SyncReply.Serialize(writer);
                 break;
             case MsgType.QualityReport:
-                QualityReport.Serializer.Instance.Serialize(writer, in data.QualityReport);
+                QualityReport.Serialize(writer);
                 break;
             case MsgType.QualityReply:
-                QualityReply.Serializer.Instance.Serialize(writer, in data.QualityReply);
+                QualityReply.Serialize(writer);
                 break;
             case MsgType.InputAck:
-                InputAck.Serializer.Instance.Serialize(writer, in data.InputAck);
+                InputAck.Serialize(writer);
                 break;
             case MsgType.KeepAlive:
-                KeepAlive.Serializer.Instance.Serialize(writer, in data.KeepAlive);
                 break;
             case MsgType.Input:
-                InputMsg.Serializer.Instance.Serialize(writer, in data.Input);
+                Input.Serialize(writer);
                 break;
             case MsgType.Invalid:
                 throw new InvalidOperationException();
             default:
-                throw new ArgumentOutOfRangeException();
+                throw new InvalidOperationException();
         }
     }
 
-    protected internal override UdpMsg Deserialize(scoped NetworkBufferReader reader)
+    public void Deserialize(NetworkBufferReader reader)
     {
-        UdpMsg data = new()
-        {
-            Header = Header.Serializer.Instance.Deserialize(reader),
-        };
-
-        switch (data.Header.Type)
+        Header.Deserialize(reader);
+        switch (Header.Type)
         {
             case MsgType.SyncRequest:
-                data.SyncRequest = SyncRequest.Serializer.Instance.Deserialize(reader);
+                SyncRequest.Deserialize(reader);
                 break;
             case MsgType.SyncReply:
-                data.SyncReply = SyncReply.Serializer.Instance.Deserialize(reader);
+                SyncReply.Deserialize(reader);
                 break;
             case MsgType.QualityReport:
-                data.QualityReport = QualityReport.Serializer.Instance.Deserialize(reader);
+                QualityReport.Deserialize(reader);
                 break;
             case MsgType.QualityReply:
-                data.QualityReply = QualityReply.Serializer.Instance.Deserialize(reader);
+                QualityReply.Deserialize(reader);
                 break;
             case MsgType.InputAck:
-                data.InputAck = InputAck.Serializer.Instance.Deserialize(reader);
+                InputAck.Deserialize(reader);
                 break;
             case MsgType.KeepAlive:
-                data.KeepAlive = KeepAlive.Serializer.Instance.Deserialize(reader);
                 break;
             case MsgType.Input:
-                data.Input = InputMsg.Serializer.Instance.Deserialize(reader);
+                Input.Deserialize(reader);
                 break;
             case MsgType.Invalid:
                 throw new InvalidOperationException();
             default:
-                throw new ArgumentOutOfRangeException();
+                throw new InvalidOperationException();
         }
-
-        return data;
     }
 }
