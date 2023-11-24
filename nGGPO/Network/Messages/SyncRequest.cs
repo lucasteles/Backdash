@@ -8,11 +8,6 @@ struct SyncRequest
     public ushort RemoteMagic;
     public byte RemoteEndpoint;
 
-    public const int Size =
-        sizeof(uint)
-        + sizeof(ushort)
-        + sizeof(byte);
-
     public void Serialize(NetworkBufferWriter writer)
     {
         writer.Write(RandomRequest);

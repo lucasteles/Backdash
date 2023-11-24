@@ -23,19 +23,6 @@ struct InputMsg
     public byte InputSize;
     public GameInputBuffer Bits;
 
-    [Pure]
-    public int PacketSize() =>
-        sizeof(byte)
-        + ConnectStatus.Size * PeerCount
-        + sizeof(int)
-        + sizeof(bool)
-        + sizeof(int)
-        + sizeof(ushort)
-        + sizeof(byte)
-        + sizeof(byte)
-        + sizeof(byte) * InputSize;
-
-
     public void Serialize(scoped NetworkBufferWriter writer)
     {
         writer.Write(PeerCount);

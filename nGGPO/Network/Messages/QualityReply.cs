@@ -6,8 +6,6 @@ struct QualityReply
 {
     public uint Pong;
 
-    public const int Size = sizeof(uint);
-
     public void Serialize(NetworkBufferWriter writer) =>
         writer.Write(Pong);
 

@@ -1,7 +1,9 @@
-﻿using nGGPO.Serialization.Buffer;
+﻿using System.Runtime.InteropServices;
+using nGGPO.Serialization.Buffer;
 
 namespace nGGPO.Network.Messages;
 
+[StructLayout(LayoutKind.Sequential, Size = Size)]
 struct Header
 {
     public MsgType Type;
@@ -16,7 +18,7 @@ struct Header
     }
 
     public const int Size =
-        sizeof(byte) + sizeof(ushort) + sizeof(ushort);
+        sizeof(MsgType) + sizeof(ushort) * 2;
 
     public void Serialize(NetworkBufferWriter writer)
     {

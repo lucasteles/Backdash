@@ -271,7 +271,6 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
 
         packetsSent++;
         LastSendTime = Platform.GetCurrentTimeMS();
-        bytesSent += msg.PacketSize();
 
         msg.Header.Magic = magicNumber;
         msg.Header.SequenceNumber = nextSendSeq++;
@@ -610,6 +609,8 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
     {
         while (!sendQueue.IsEmpty)
         {
+            // TODO: increment bytesSent
+            // bytesSent += 
             ref var entry = ref sendQueue.Peek();
 
             // TODO: everything else

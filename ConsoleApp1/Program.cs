@@ -16,7 +16,7 @@ byte[] data = {1, 2, 3, 4, 5};
     var packet = long.MaxValue;
     var serializer = BinarySerializers.Get<long>()!;
     using var buffer = MemoryBuffer.Rent(10, true);
-    var size = serializer.Serialize(in packet, buffer);
+    var size = serializer.Serialize(ref packet, buffer);
     var bytes = buffer[..size];
 
     Console.WriteLine($"# Size={size}\n");
@@ -28,7 +28,7 @@ Div();
     var packet = ButtonsInput.UpLeft | ButtonsInput.X;
     var serializer = BinarySerializers.Get<ButtonsInput>()!;
     using var buffer = MemoryBuffer.Rent(10, true);
-    var size = serializer.Serialize(in packet, buffer);
+    var size = serializer.Serialize(ref packet, buffer);
     var bytes = buffer[..size];
     Console.WriteLine($"# Size={size}\n");
     var backPacket = serializer.Deserialize(bytes);
@@ -50,7 +50,7 @@ Div();
 
     var serializer = BinarySerializers.Get<Input>()!;
     using var buffer = MemoryBuffer.Rent(20, true);
-    var size = serializer.Serialize(in packet, buffer);
+    var size = serializer.Serialize(ref packet, buffer);
     var bytes = buffer[..size];
 
     Console.WriteLine($"# Size={size}\n");
@@ -71,7 +71,7 @@ Div();
     var serializer = new CustomInputSerializer {Network = false};
 
     using var buffer = MemoryBuffer.Rent(20, true);
-    var size = serializer.Serialize(in packet, buffer);
+    var size = serializer.Serialize(ref packet, buffer);
     var bytes = buffer[..size];
 
     Console.WriteLine($"# Size={size}\n");

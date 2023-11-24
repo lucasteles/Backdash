@@ -10,7 +10,7 @@ public interface IBinaryReader<out T> where T : struct
 
 public interface IBinaryWriter<T> where T : struct
 {
-    int Serialize(in T data, Span<byte> buffer);
+    int Serialize(ref T data, Span<byte> buffer);
 }
 
 public interface IBinarySerializer<T> : IBinaryReader<T>, IBinaryWriter<T> where T : struct;
@@ -24,7 +24,7 @@ public abstract class BinarySerializer<T> : IBinarySerializer<T>
 
     protected internal abstract T Deserialize(scoped NetworkBufferReader reader);
 
-    public int Serialize(in T data, Span<byte> buffer)
+    public int Serialize(ref T data, Span<byte> buffer)
     {
         var offset = 0;
         NetworkBufferWriter writer = new(buffer, ref offset) {Network = Network};

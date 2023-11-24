@@ -140,9 +140,10 @@ public class UdpPeerClient<T>(
 
         try
         {
-            await foreach (var (peerAddress, msg) in sendQueue.Reader.ReadAllAsync(ct))
+            await foreach (var (peerAddress, nextMsg) in sendQueue.Reader.ReadAllAsync(ct))
             {
-                var bodySize = serializer.Serialize(msg, buffer);
+                var msg = nextMsg;
+                var bodySize = serializer.Serialize(ref msg, buffer);
                 var memory = MemoryMarshal.CreateFromPinnedArray(buffer, 0, bodySize);
                 var sentSize = await SendRaw(memory, peerAddress, ct);
                 Trace.Assert(sentSize == bodySize);

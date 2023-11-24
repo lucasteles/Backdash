@@ -45,22 +45,6 @@ struct UdpMsg
         Input = default;
     }
 
-    [Pure]
-    public int PacketSize() =>
-        Header.Size +
-        Header.Type switch
-        {
-            MsgType.SyncRequest => SyncRequest.Size,
-            MsgType.SyncReply => SyncReply.Size,
-            MsgType.QualityReport => QualityReport.Size,
-            MsgType.QualityReply => QualityReply.Size,
-            MsgType.InputAck => InputAck.Size,
-            MsgType.KeepAlive => 0,
-            MsgType.Input => Input.PacketSize(),
-            MsgType.Invalid => throw new InvalidOperationException(),
-            _ => throw new ArgumentOutOfRangeException(),
-        };
-
     public void Serialize(NetworkBufferWriter writer)
     {
         Header.Serialize(writer);

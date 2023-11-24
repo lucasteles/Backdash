@@ -90,10 +90,10 @@ class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGameState
         return ErrorCode.Ok;
     }
 
-    GameInput ParseInput(in TInput input)
+    GameInput ParseInput(ref TInput input)
     {
         GameInputBuffer buffer = new();
-        var size = inputSerializer.Serialize(in input, buffer);
+        var size = inputSerializer.Serialize(ref input, buffer);
         return new GameInput(ref buffer, size);
     }
 
@@ -109,7 +109,7 @@ class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGameState
         if (!result.IsSuccess())
             return result;
 
-        var input = ParseInput(in localInput);
+        var input = ParseInput(ref localInput);
 
         if (!sync.AddLocalInput(queue, input))
             return ErrorCode.PredictionThreshold;

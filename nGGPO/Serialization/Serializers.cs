@@ -13,7 +13,7 @@ public sealed class StructMarshalBinarySerializer<T> : IBinarySerializer<T> wher
 {
     public T Deserialize(in ReadOnlySpan<byte> data) => Mem.UnmarshallStruct<T>(in data);
 
-    public int Serialize(in T data, Span<byte> buffer) => Mem.MarshallStruct(in data, in buffer);
+    public int Serialize(ref T data, Span<byte> buffer) => Mem.MarshallStruct(in data, in buffer);
 }
 
 public sealed class StructBinarySerializer<T> : IBinarySerializer<T> where T : struct
@@ -21,7 +21,7 @@ public sealed class StructBinarySerializer<T> : IBinarySerializer<T> where T : s
     public T Deserialize(in ReadOnlySpan<byte> data) =>
         Mem.ReadStruct<T>(in data);
 
-    public int Serialize(in T data, Span<byte> buffer) =>
+    public int Serialize(ref T data, Span<byte> buffer) =>
         Mem.WriteStruct(in data, buffer);
 }
 
@@ -45,8 +45,8 @@ public static class BinarySerializers
             return Mem.WriteStruct(reordered, buffer);
         }
 
-        public int Serialize(in T data, Span<byte> buffer) =>
-            SerializeScoped(ref Unsafe.AsRef(in data), buffer);
+        public int Serialize(ref T data, Span<byte> buffer) =>
+            SerializeScoped(ref data, buffer);
     }
 
     sealed class EnumSerializer<TEnum, TInt>
@@ -62,7 +62,7 @@ public static class BinarySerializers
             return Mem.IntegerAsEnum<TEnum, TInt>(underValue);
         }
 
-        public int Serialize(in TEnum data, Span<byte> buffer)
+        public int Serialize(ref TEnum data, Span<byte> buffer)
         {
             var underValue = Mem.EnumAsInteger<TEnum, TInt>(data);
             return ValueBinarySerializer.SerializeScoped(ref underValue, buffer);
