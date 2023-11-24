@@ -167,7 +167,7 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
             Input = input,
         };
 
-        return SendMsg(msg);
+        return SendMsg(ref msg);
 
         int WriteCompressedInput(Span<byte> bits, int startFrame)
         {
@@ -226,14 +226,14 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
         }
     }
 
-    public Task SendInputAck() => SendMsg(
-        new(MsgType.InputAck)
+    public void SendInputAck(out UdpMsg msg) =>
+        msg = new(MsgType.InputAck)
         {
             InputAck = new()
             {
                 AckFrame = lastReceivedInput.Frame,
             },
-        });
+        };
 
     bool GetEvent(out UdpEvent? e)
     {
@@ -253,21 +253,19 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
         ShutdownTimeout = Platform.GetCurrentTimeMS() + UdpShutdownTimer;
     }
 
-    async Task SendSyncRequest()
+    void SendSyncRequest(out UdpMsg msg)
     {
         state.Sync.Random = random.NextUInt();
-
-        await SendMsg(
-            new(MsgType.SyncRequest)
+        msg = new(MsgType.SyncRequest)
+        {
+            SyncRequest = new()
             {
-                SyncRequest = new()
-                {
-                    RandomRequest = state.Sync.Random,
-                },
-            });
+                RandomRequest = state.Sync.Random,
+            },
+        };
     }
 
-    Task SendMsg(UdpMsg msg)
+    Task SendMsg(ref UdpMsg msg)
     {
         LogMsg("send", msg);
 
@@ -313,25 +311,28 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
         nextRecvSeq = seq;
         LogMsg("recv", msg);
         var handled = false;
+        var sendReply = false;
+        UdpMsg replyMsg = new();
+
         switch (msg.Header.Type)
         {
             case MsgType.SyncRequest:
-                handled = await OnSyncRequest(msg, len);
+                handled = OnSyncRequest(ref msg, ref replyMsg, out sendReply);
                 break;
             case MsgType.SyncReply:
-                handled = await OnSyncReply(msg, len);
+                handled = OnSyncReply(msg, ref replyMsg, out sendReply);
                 break;
             case MsgType.Input:
                 handled = OnInput(msg);
                 break;
             case MsgType.QualityReport:
-                handled = await OnQualityReport(msg, len);
+                handled = OnQualityReport(msg, out replyMsg, out sendReply);
                 break;
             case MsgType.QualityReply:
-                handled = OnQualityReply(msg, len);
+                handled = OnQualityReply(msg);
                 break;
             case MsgType.InputAck:
-                handled = OnInputAck(msg, len);
+                handled = OnInputAck(msg);
                 break;
             case MsgType.KeepAlive:
                 handled = true;
@@ -343,6 +344,9 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
                 Tracer.Fail("Unknown UdpMsg type.");
                 break;
         }
+
+        if (sendReply)
+            await SendMsg(ref replyMsg);
 
         if (handled)
         {
@@ -488,7 +492,7 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
         return true;
     }
 
-    bool OnInputAck(UdpMsg msg, int len)
+    bool OnInputAck(UdpMsg msg)
     {
         while (!pendingOutput.IsEmpty && pendingOutput.Peek().Frame < msg.InputAck.AckFrame)
         {
@@ -499,15 +503,15 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
         return true;
     }
 
-    bool OnQualityReply(UdpMsg msg, int len)
+    bool OnQualityReply(UdpMsg msg)
     {
         roundTripTime = (int) (Platform.GetCurrentTimeMS() - msg.QualityReply.Pong);
         return true;
     }
 
-    async Task<bool> OnQualityReport(UdpMsg msg, int len)
+    bool OnQualityReport(UdpMsg msg, out UdpMsg newMsg, out bool sendMsg)
     {
-        UdpMsg reply = new(MsgType.QualityReply)
+        newMsg = new(MsgType.QualityReply)
         {
             QualityReply = new()
             {
@@ -515,9 +519,10 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
             },
         };
 
-        await SendMsg(reply);
+        sendMsg = true;
 
         remoteFrameAdvantage = msg.QualityReport.FrameAdvantage;
+
         return true;
     }
 
@@ -527,8 +532,9 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
         eventQueue.Push(evt);
     }
 
-    async Task<bool> OnSyncReply(UdpMsg msg, int len)
+    bool OnSyncReply(UdpMsg msg, ref UdpMsg replyMsg, out bool sendReply)
     {
+        sendReply = false;
         if (currentState is not StateEnum.Syncing)
         {
             Tracer.Log("Ignoring SyncReply while not synching.\n");
@@ -569,31 +575,34 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
                     Count = NumSyncPackets - (int) state.Sync.RoundtripsRemaining,
                 },
             };
+
             QueueEvent(evt);
-            await SendSyncRequest();
+            sendReply = true;
+            SendSyncRequest(out replyMsg);
         }
 
         return true;
     }
 
-    public async Task<bool> OnSyncRequest(UdpMsg msg, int len)
+    public bool OnSyncRequest(ref UdpMsg msg, ref UdpMsg replyMsg, out bool sendReply)
     {
         if (remoteMagicNumber is not 0 && msg.Header.Magic != remoteMagicNumber)
         {
             Tracer.Log("Ignoring sync request from unknown endpoint ({0} != {1}).\n",
                 msg.Header.Magic, remoteMagicNumber);
+            sendReply = false;
             return false;
         }
 
-        await SendMsg(new(MsgType.SyncReply)
+        replyMsg = new UdpMsg(MsgType.SyncReply)
         {
             SyncReply = new()
             {
                 RandomReply = msg.SyncRequest.RandomRequest,
             },
-        });
+        };
 
-
+        sendReply = true;
         return true;
     }
 
