@@ -2,7 +2,6 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using nGGPO.Network;
-using nGGPO.Utils;
 
 namespace nGGPO.Serialization.Buffer;
 
