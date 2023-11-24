@@ -2,6 +2,7 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using nGGPO.Network;
+using nGGPO.Utils;
 
 namespace nGGPO.Serialization.Buffer;
 
@@ -15,7 +16,7 @@ public ref struct NetworkBufferWriter
     public int Capacity => buffer.Length;
     public int FreeCapacity => Capacity - WrittenCount;
 
-    public NetworkBufferWriter(scoped ref Span<byte> buffer, int offset = 0)
+    public NetworkBufferWriter(ref Span<byte> buffer, int offset = 0)
     {
         this.buffer = buffer;
         this.offset = offset;
@@ -24,12 +25,6 @@ public ref struct NetworkBufferWriter
     public void Advance(int count) => offset += count;
 
     public void Write(byte value) => buffer[offset++] = value;
-
-    public void WriteBytes(scoped ref ReadOnlySpan<byte> value)
-    {
-        value.CopyTo(buffer[offset..]);
-        offset += value.Length;
-    }
 
     public void Write(in ReadOnlySpan<byte> value)
     {

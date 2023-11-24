@@ -57,8 +57,10 @@ struct InputMsg
             writer.Write(data.AckFrame);
             writer.Write(data.NumBits);
             writer.Write(data.InputSize);
-            ReadOnlySpan<byte> bits = data.Bits;
-            writer.WriteBytes(ref bits);
+
+            var bits = Mem.InlineArrayAsReadOnlySpan<GameInputBuffer, byte>(
+                in data.Bits, data.InputSize);
+            writer.Write(bits);
         }
 
         protected internal override InputMsg Deserialize(ref NetworkBufferReader reader)
@@ -87,7 +89,8 @@ struct InputMsg
                 Bits = new(),
             };
 
-            // reader.ReadByte(in input.Bits);
+            var bits = Mem.InlineArrayAsSpan<GameInputBuffer, byte>(ref input.Bits, inputSize);
+            reader.ReadByte(in bits);
 
             return input;
         }
