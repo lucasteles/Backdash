@@ -41,9 +41,11 @@ readonly ref struct BitVector(scoped ref Span<byte> bits)
 
     public static implicit operator Span<byte>(BitVector @this) => @this.Buffer;
 
-    public struct BitOffset(Memory<byte> bytes, int offset = 0)
+    public ref struct BitOffset(in Span<byte> buffer, int offset = 0)
     {
         public const int NibbleSize = 4;
+
+        readonly Span<byte> bytes = buffer;
 
         public int Offset { get; private set; } = offset;
 
@@ -51,20 +53,20 @@ readonly ref struct BitVector(scoped ref Span<byte> bits)
 
         public void SetNext()
         {
-            SetBit(bytes.Span, Offset);
+            SetBit(bytes, Offset);
             Inc();
         }
 
         public bool Read()
         {
-            var ret = GetBit(bytes.Span, Offset);
+            var ret = GetBit(bytes, Offset);
             Inc();
             return ret;
         }
 
         public void ClearNext()
         {
-            ClearBit(bytes.Span, Offset);
+            ClearBit(bytes, Offset);
             Inc();
         }
 

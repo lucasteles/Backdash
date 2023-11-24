@@ -8,7 +8,7 @@ using nGGPO.Serialization.Buffer;
 namespace nGGPO.Network;
 
 [StructLayout(LayoutKind.Explicit)]
-struct UdpMsg : IDisposable
+struct UdpMsg
 {
     [FieldOffset(0)]
     public Header Header;
@@ -60,12 +60,6 @@ struct UdpMsg : IDisposable
             MsgType.Invalid => throw new InvalidOperationException(),
             _ => throw new ArgumentOutOfRangeException(),
         };
-
-    public void Dispose()
-    {
-        if (Header.Type is MsgType.Input)
-            Input.Dispose();
-    }
 }
 
 class UdpMsgBinarySerializer : BinarySerializer<UdpMsg>
@@ -74,7 +68,7 @@ class UdpMsgBinarySerializer : BinarySerializer<UdpMsg>
 
     public override int SizeOf(in UdpMsg data) => data.PacketSize();
 
-    protected internal override void Serialize(ref NetworkBufferWriter writer, in UdpMsg data)
+    protected internal override void Serialize(scoped ref NetworkBufferWriter writer, in UdpMsg data)
     {
         Header.Serializer.Instance.Serialize(ref writer, in data.Header);
         switch (data.Header.Type)
@@ -107,7 +101,7 @@ class UdpMsgBinarySerializer : BinarySerializer<UdpMsg>
         }
     }
 
-    protected internal override UdpMsg Deserialize(ref NetworkBufferReader reader)
+    protected internal override UdpMsg Deserialize(scoped ref NetworkBufferReader reader)
     {
         UdpMsg data = new()
         {

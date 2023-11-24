@@ -169,7 +169,7 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
 
         return SendMsg(msg);
 
-        int WriteCompressedInput(Memory<byte> bits, int startFrame)
+        int WriteCompressedInput(Span<byte> bits, int startFrame)
         {
             BitVector.BitOffset bitWriter = new(bits);
             var last = lastAckedInput;
@@ -208,17 +208,17 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
         InputMsg GetInputMsg()
         {
             if (pendingOutput.IsEmpty)
-                return new(peerCount: Max.UdpMsgPlayers);
+                return new();
 
             ref var front = ref pendingOutput.Peek();
 
-            InputMsg inputMsg = new(front.Size, Max.UdpMsgPlayers)
+            InputMsg inputMsg = new()
             {
                 InputSize = (byte) front.Size,
                 StartFrame = front.Frame,
             };
 
-            var offset = WriteCompressedInput(inputMsg.Bits.Memory, inputMsg.StartFrame);
+            var offset = WriteCompressedInput(inputMsg.Bits, inputMsg.StartFrame);
             inputMsg.NumBits = (ushort) offset;
             Tracer.Assert(offset < Max.CompressedBits);
 
@@ -397,7 +397,7 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
         //  */
         var lastReceivedFrameNumber = lastAckedInput.Frame;
 
-        if (msg.Input.Bits.Length > 0)
+        if (msg.Input.InputSize > 0)
         {
             var numBits = msg.Input.NumBits;
             var currentFrame = msg.Input.StartFrame;
@@ -407,7 +407,7 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
             if (lastReceivedInput.Frame < 0)
                 lastReceivedInput.SetFrame(new(msg.Input.StartFrame - 1));
 
-            BitVector.BitOffset bitVector = new(msg.Input.Bits.Memory);
+            BitVector.BitOffset bitVector = new(msg.Input.Bits);
             var lastInputBits = lastReceivedInput.GetBitVector();
 
             while (bitVector.Offset < numBits)
@@ -606,7 +606,6 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
             // TODO: everything else
 
             sendQueue.Pop();
-            entry.Msg.Dispose();
         }
 
         throw new NotImplementedException();

@@ -25,6 +25,12 @@ public ref struct NetworkBufferWriter
 
     public void Write(byte value) => buffer[offset++] = value;
 
+    public void WriteBytes(scoped ref ReadOnlySpan<byte> value)
+    {
+        value.CopyTo(buffer[offset..]);
+        offset += value.Length;
+    }
+
     public void Write(in ReadOnlySpan<byte> value)
     {
         value.CopyTo(buffer[offset..]);

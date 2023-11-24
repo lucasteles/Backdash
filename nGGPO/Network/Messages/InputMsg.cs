@@ -1,61 +1,41 @@
 ﻿using System;
 using System.Diagnostics.Contracts;
+using System.Runtime.CompilerServices;
+using nGGPO.Input;
 using nGGPO.Serialization;
 using nGGPO.Serialization.Buffer;
 using nGGPO.Utils;
 
 namespace nGGPO.Network.Messages;
 
-struct InputMsg : IDisposable
+[InlineArray(Max.Players)]
+public struct PeerStatusBuffer
 {
-    public MemoryBuffer<ConnectStatus> PeerConnectStatus;
+    ConnectStatus element0;
+}
+
+struct InputMsg
+{
+    public byte PeerCount;
+    public PeerStatusBuffer PeerConnectStatus;
     public int StartFrame;
     public bool DisconnectRequested;
     public int AckFrame;
     public ushort NumBits;
     public byte InputSize;
-    public MemoryBuffer<byte> Bits;
-
-    public InputMsg(
-        MemoryBuffer<ConnectStatus> peerConnectStatus,
-        MemoryBuffer<byte> bits
-    )
-    {
-        PeerConnectStatus = peerConnectStatus;
-        Bits = bits;
-
-        StartFrame = default;
-        DisconnectRequested = default;
-        AckFrame = default;
-        NumBits = default;
-        InputSize = default;
-    }
-
-    public InputMsg(int peerCount, int bitsSize = 0) :
-        this(
-            Mem.Rent<ConnectStatus>(peerCount),
-            bitsSize is 0 ? MemoryBuffer<byte>.Empty : Mem.Rent(bitsSize)
-        )
-    {
-    }
-
-    public void Dispose()
-    {
-        PeerConnectStatus.Dispose();
-        Bits.Dispose();
-    }
+    public GameInputBuffer Bits;
 
     [Pure]
     public int PacketSize() =>
-        sizeof(byte) // PeerConnectStatus size
-        + ConnectStatus.Size * PeerConnectStatus.Length
+        sizeof(byte)
+        + ConnectStatus.Size * PeerCount
         + sizeof(int)
         + sizeof(bool)
         + sizeof(int)
         + sizeof(ushort)
         + sizeof(byte)
-        + sizeof(byte) // Bits size
-        + sizeof(byte) * Bits.Length;
+        + sizeof(byte)
+        + sizeof(byte) * InputSize;
 
     public class Serializer : BinarySerializer<InputMsg>
     {
@@ -66,24 +46,25 @@ struct InputMsg : IDisposable
         protected internal override void Serialize(
             ref NetworkBufferWriter writer, in InputMsg data)
         {
-            writer.Write((byte) data.PeerConnectStatus.Length);
-            for (var i = 0; i < data.PeerConnectStatus.Length; i++)
+            writer.Write(data.PeerCount);
+            var statuses = data.PeerConnectStatus;
+            for (var i = 0; i < data.PeerCount; i++)
                 ConnectStatus.Serializer.Instance
-                    .Serialize(ref writer, in data.PeerConnectStatus[i]);
+                    .Serialize(ref writer, in statuses[i]);
 
             writer.Write(data.StartFrame);
             writer.Write(data.DisconnectRequested);
             writer.Write(data.AckFrame);
             writer.Write(data.NumBits);
             writer.Write(data.InputSize);
-            writer.Write((byte) data.Bits.Length);
-            writer.Write(data.Bits);
+            ReadOnlySpan<byte> bits = data.Bits;
+            writer.WriteBytes(ref bits);
         }
 
         protected internal override InputMsg Deserialize(ref NetworkBufferReader reader)
         {
             var statusLength = reader.ReadByte();
-            var peerStatus = Mem.Rent<ConnectStatus>(statusLength);
+            PeerStatusBuffer peerStatus = new();
             for (var i = 0; i < statusLength; i++)
                 peerStatus[i] =
                     ConnectStatus.Serializer.Instance.Deserialize(ref reader);
@@ -94,18 +75,21 @@ struct InputMsg : IDisposable
             var numBits = reader.ReadUShort();
             var inputSize = reader.ReadByte();
 
-            var bitsLength = reader.ReadByte();
-            var bits = Mem.Rent(bitsLength);
-            reader.ReadByte(bits);
-
-            return new(peerStatus, bits)
+            var input = new InputMsg
             {
                 StartFrame = startFrame,
+                PeerCount = statusLength,
+                PeerConnectStatus = peerStatus,
                 DisconnectRequested = disconnectRequested,
                 AckFrame = ackFrame,
                 NumBits = numBits,
                 InputSize = inputSize,
+                Bits = new(),
             };
+
+            // reader.ReadByte(in input.Bits);
+
+            return input;
         }
     }
 }

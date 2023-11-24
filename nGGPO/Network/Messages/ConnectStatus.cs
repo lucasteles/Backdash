@@ -16,13 +16,13 @@ struct ConnectStatus
         public override int SizeOf(in ConnectStatus data) => Size;
 
         protected internal override void Serialize(
-            ref NetworkBufferWriter writer, in ConnectStatus data)
+            scoped ref NetworkBufferWriter writer, in ConnectStatus data)
         {
             writer.Write(data.Disconnected);
             writer.Write(data.LastFrame);
         }
 
-        protected internal override ConnectStatus Deserialize(ref NetworkBufferReader reader) =>
+        protected internal override ConnectStatus Deserialize(scoped ref NetworkBufferReader reader) =>
             new()
             {
                 Disconnected = reader.ReadBool(),
