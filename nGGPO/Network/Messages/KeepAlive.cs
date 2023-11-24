@@ -12,8 +12,6 @@ readonly struct KeepAlive
     {
         public static readonly Serializer Instance = new();
 
-        public override int SizeOf(in KeepAlive data) => Size;
-
         protected internal override void Serialize(
             ref NetworkBufferWriter writer,
             in KeepAlive data)

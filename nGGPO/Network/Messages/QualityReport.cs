@@ -15,8 +15,6 @@ struct QualityReport
     {
         public static readonly Serializer Instance = new();
 
-        public override int SizeOf(in QualityReport data) => Size;
-
         protected internal override void Serialize(
             ref NetworkBufferWriter writer, in QualityReport data)
         {

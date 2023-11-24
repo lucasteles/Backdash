@@ -13,7 +13,6 @@ struct ConnectStatus
     public class Serializer : BinarySerializer<ConnectStatus>
     {
         public static readonly Serializer Instance = new();
-        public override int SizeOf(in ConnectStatus data) => Size;
 
         protected internal override void Serialize(
             scoped ref NetworkBufferWriter writer, in ConnectStatus data)

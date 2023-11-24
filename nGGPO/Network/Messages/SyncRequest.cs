@@ -18,8 +18,6 @@ struct SyncRequest
     {
         public static readonly Serializer Instance = new();
 
-        public override int SizeOf(in SyncRequest data) => Size;
-
         protected internal override void Serialize(
             ref NetworkBufferWriter writer, in SyncRequest data)
         {

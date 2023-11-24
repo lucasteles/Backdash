@@ -23,8 +23,6 @@ struct Header
     {
         public static readonly Serializer Instance = new();
 
-        public override int SizeOf(in Header data) => Size;
-
         protected internal override void Serialize(
             ref NetworkBufferWriter writer, in Header data)
         {

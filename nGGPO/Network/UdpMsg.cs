@@ -66,8 +66,6 @@ class UdpMsgBinarySerializer : BinarySerializer<UdpMsg>
 {
     public static readonly UdpMsgBinarySerializer Instance = new();
 
-    public override int SizeOf(in UdpMsg data) => data.PacketSize();
-
     protected internal override void Serialize(scoped ref NetworkBufferWriter writer, in UdpMsg data)
     {
         Header.Serializer.Instance.Serialize(ref writer, in data.Header);

@@ -40,8 +40,6 @@ struct InputMsg
     {
         public static readonly Serializer Instance = new();
 
-        public override int SizeOf(in InputMsg data) => data.PacketSize();
-
         protected internal override void Serialize(
             ref NetworkBufferWriter writer, in InputMsg data)
         {

@@ -13,8 +13,6 @@ struct QualityReply
     {
         public static readonly Serializer Instance = new();
 
-        public override int SizeOf(in QualityReply data) => Size;
-
         protected internal override void Serialize(
             ref NetworkBufferWriter writer,
             in QualityReply data)

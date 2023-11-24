@@ -18,7 +18,6 @@ public interface IBinarySerializer<T> : IBinaryReader<T>, IBinaryWriter<T> where
 public abstract class BinarySerializer<T> : IBinarySerializer<T>
     where T : struct
 {
-    public abstract int SizeOf(in T data);
 
     public bool Network { get; init; } = true;
 

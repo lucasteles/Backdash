@@ -12,8 +12,6 @@ struct InputAck
     {
         public static readonly Serializer Instance = new();
 
-        public override int SizeOf(in InputAck data) => Size;
-
         protected internal override void Serialize(
             ref NetworkBufferWriter writer,
             in InputAck data)

@@ -13,8 +13,6 @@ struct SyncReply
     {
         public static readonly Serializer Instance = new();
 
-        public override int SizeOf(in SyncReply data) => Size;
-
         protected internal override void Serialize(
             ref NetworkBufferWriter writer,
             in SyncReply data)
