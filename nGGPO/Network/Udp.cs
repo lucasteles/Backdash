@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Threading.Tasks;
 using nGGPO.Serialization;
 using nGGPO.Serialization.Buffer;
 
 namespace nGGPO.Network;
 
-class Udp(int bindingPort) :
-    UdpPeerClient<UdpMsg>(bindingPort, new UdpMsgBinarySerializer()),
-    IPollLoopSink
+class Udp(int bindingPort) : UdpPeerClient<UdpMsg>(bindingPort, new UdpMsgBinarySerializer())
 {
     class UdpMsgBinarySerializer : IBinarySerializer<UdpMsg>
     {
@@ -29,10 +26,6 @@ class Udp(int bindingPort) :
             return offset;
         }
     }
-
-    public Task<bool> OnLoopPoll(object? cookie)
-    {
-        // TODO: precisa?
-        return Task.FromResult(true);
-    }
+    
+    
 }

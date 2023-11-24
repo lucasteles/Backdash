@@ -11,7 +11,7 @@ using nGGPO.Utils;
 
 namespace nGGPO.Network;
 
-partial class UdpProtocol : IPollLoopSink, IDisposable
+partial class UdpProtocol : IDisposable
 {
     /*
      * Network transmission information
@@ -156,31 +156,37 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
         return SendPendingOutput();
     }
 
-    ValueTask SendPendingOutput()
+    InputMsg CreateInputMsg()
     {
-        Tracer.Assert(
-            Max.InputBytes * Max.Players * Mem.ByteSize
-            <
-            1 << BitVector.BitOffset.NibbleSize
-        );
-
         var input = GetInputMsg();
 
         input.AckFrame = lastReceivedInput.Frame;
         input.DisconnectRequested = currentState is not StateEnum.Disconnected;
+
         if (localConnectStatus.Length > 0)
             localConnectStatus.CopyTo(input.PeerConnectStatus);
 
-        UdpMsg msg = new()
-        {
-            Header =
-            {
-                Type = MsgType.Input,
-            },
-            Input = input,
-        };
+        return input;
 
-        return SendMsg(ref msg);
+        InputMsg GetInputMsg()
+        {
+            if (pendingOutput.IsEmpty)
+                return new();
+
+            ref var front = ref pendingOutput.Peek();
+
+            InputMsg inputMsg = new()
+            {
+                InputSize = (byte) front.Size,
+                StartFrame = front.Frame,
+            };
+
+            var offset = WriteCompressedInput(inputMsg.Bits, inputMsg.StartFrame);
+            inputMsg.NumBits = (ushort) offset;
+            Tracer.Assert(offset < Max.CompressedBits);
+
+            return inputMsg;
+        }
 
         int WriteCompressedInput(Span<byte> bits, int startFrame)
         {
@@ -217,26 +223,28 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
 
             return bitWriter.Offset;
         }
+    }
 
-        InputMsg GetInputMsg()
+    ValueTask SendPendingOutput()
+    {
+        Tracer.Assert(
+            Max.InputBytes * Max.Players * Mem.ByteSize
+            <
+            1 << BitVector.BitOffset.NibbleSize
+        );
+
+        var input = CreateInputMsg();
+
+        UdpMsg msg = new()
         {
-            if (pendingOutput.IsEmpty)
-                return new();
-
-            ref var front = ref pendingOutput.Peek();
-
-            InputMsg inputMsg = new()
+            Header =
             {
-                InputSize = (byte) front.Size,
-                StartFrame = front.Frame,
-            };
+                Type = MsgType.Input,
+            },
+            Input = input,
+        };
 
-            var offset = WriteCompressedInput(inputMsg.Bits, inputMsg.StartFrame);
-            inputMsg.NumBits = (ushort) offset;
-            Tracer.Assert(offset < Max.CompressedBits);
-
-            return inputMsg;
-        }
+        return SendMsg(ref msg);
     }
 
     public void SendInputAck(out UdpMsg msg) =>
@@ -703,17 +711,11 @@ partial class UdpProtocol : IPollLoopSink, IDisposable
 
     public void Synchronize()
     {
-        if (udp is null) return;
         currentState = StateEnum.Syncing;
         throw new NotImplementedException();
     }
 
     public bool IsInitialized()
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<bool> OnLoopPoll(object? value)
     {
         throw new NotImplementedException();
     }

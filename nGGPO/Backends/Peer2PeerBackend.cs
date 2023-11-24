@@ -23,7 +23,6 @@ class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGameState
     readonly IBinarySerializer<TInput> inputSerializer;
     readonly ISessionCallbacks<TGameState> callbacks;
 
-    readonly Poll poll;
     readonly Udp udp;
     readonly Synchronizer sync;
     readonly ConnectStatus[] localConnectStatus = new ConnectStatus[Max.UdpMsgPlayers];
@@ -51,11 +50,8 @@ class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGameState
 
         endpoints = new(numPlayers);
         sync = new(localConnectStatus);
-        poll = new();
 
         udp = new(localPort);
-
-        poll.RegisterLoop(udp);
     }
 
     public ErrorCode AddPlayer(Player player)
@@ -175,7 +171,6 @@ class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGameState
             DisconnectNotifyStart = disconnectNotifyStart,
         };
 
-        poll.RegisterLoop(protocol);
         protocol.Synchronize();
         return protocol;
     }
