@@ -49,7 +49,6 @@ class Poll
         HandleSinks[HandleCount] = new(sink, cookie);
         HandleCount++;
     }
-
     public void RegisterMsgLoop(IPollMsgSink sink, object? cookie = null) =>
         MsgSinks.Add(new(sink, cookie));
 
