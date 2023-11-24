@@ -10,7 +10,7 @@ public static class Endianness
     public static readonly bool IsLittleEndian = BitConverter.IsLittleEndian;
 
     public static char ToHost(char value) => IsLittleEndian
-        ? (char) BinaryPrimitives.ReverseEndianness(value)
+        ? (char)BinaryPrimitives.ReverseEndianness(value)
         : value;
 
     public static void ToHost(ReadOnlySpan<char> value, Span<char> destination)

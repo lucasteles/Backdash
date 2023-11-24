@@ -91,7 +91,7 @@ public static class BinarySerializers
         if (inputType.IsPrimitive || inputType.IsEnum)
             throw new ArgumentException("Struct input expected");
 
-        if (inputType is {IsLayoutSequential: false, IsExplicitLayout: false})
+        if (inputType is { IsLayoutSequential: false, IsExplicitLayout: false })
             throw new ArgumentException("Input struct should have explicit or sequential layout ");
 
         return marshall
@@ -105,7 +105,7 @@ public static class BinarySerializers
 
         return inputType switch
         {
-            {IsEnum: true} => typeof(BinarySerializers)
+            { IsEnum: true } => typeof(BinarySerializers)
                 .GetMethod(nameof(ForEnum),
                     genericParameterCount: 2,
                     BindingFlags.Static | BindingFlags.Public,
@@ -114,12 +114,12 @@ public static class BinarySerializers
                 .MakeGenericMethod(inputType, inputType.GetEnumUnderlyingType())
                 .Invoke(null, Array.Empty<object>()) as IBinarySerializer<TInput>,
 
-            {IsPrimitive: true} => typeof(BinarySerializers)
+            { IsPrimitive: true } => typeof(BinarySerializers)
                 .GetMethod(nameof(ForPrimitive), BindingFlags.Static | BindingFlags.Public)?
                 .MakeGenericMethod(inputType)
                 .Invoke(null, Array.Empty<object>()) as IBinarySerializer<TInput>,
 
-            {IsExplicitLayout: true} or {IsLayoutSequential: true} => typeof(BinarySerializers)
+            { IsExplicitLayout: true } or { IsLayoutSequential: true } => typeof(BinarySerializers)
                 .GetMethod(nameof(ForStructure), BindingFlags.Static | BindingFlags.Public)?
                 .MakeGenericMethod(inputType)
                 .Invoke(null, new object[]

@@ -49,7 +49,7 @@ public static class MemoryBuffer
     {
         if (size == -1)
             size = 1 + 4095 / Unsafe.SizeOf<T>();
-        else if ((uint) size > MaximumBufferSize)
+        else if ((uint)size > MaximumBufferSize)
             throw new ArgumentOutOfRangeException(nameof(size));
 
         return new(size, clearArray);

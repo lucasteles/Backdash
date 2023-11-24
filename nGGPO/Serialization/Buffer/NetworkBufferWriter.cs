@@ -52,7 +52,7 @@ public ref struct NetworkBufferWriter
         Advance(sliceSize);
     }
 
-    public void Write(sbyte value) => buffer[offset++] = unchecked((byte) value);
+    public void Write(sbyte value) => buffer[offset++] = unchecked((byte)value);
 
     public void Write(in ReadOnlySpan<sbyte> value, int size = FullSize) => WriteSpan(value, size);
 

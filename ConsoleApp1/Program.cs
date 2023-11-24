@@ -10,7 +10,7 @@ using nGGPO.Utils;
 
 void Div() => Console.WriteLine(new string('-', 10));
 
-byte[] data = {1, 2, 3, 4, 5};
+byte[] data = { 1, 2, 3, 4, 5 };
 
 {
     var packet = long.MaxValue;
@@ -40,7 +40,7 @@ Div();
     Input packet = new()
     {
         S = data.Length,
-        A = (byte) 'a',
+        A = (byte)'a',
         B = 2,
         Bits = new(),
     };
@@ -62,13 +62,13 @@ Div();
     Input packet = new()
     {
         S = data.Length,
-        A = (byte) 'a',
+        A = (byte)'a',
         B = 2,
         Bits = new(),
     };
     data.CopyTo(packet.Bits);
 
-    var serializer = new CustomInputSerializer {Network = false};
+    var serializer = new CustomInputSerializer { Network = false };
 
     using var buffer = MemoryBuffer.Rent(20, true);
     var size = serializer.Serialize(ref packet, buffer);
@@ -90,7 +90,7 @@ public struct ValueBuffer
     public override string ToString()
     {
         ReadOnlySpan<byte> bytes = this;
-        return $"[{string.Join(", ", bytes.ToArray().Select(x => (int) x))}]";
+        return $"[{string.Join(", ", bytes.ToArray().Select(x => (int)x))}]";
     }
 }
 
@@ -108,7 +108,7 @@ public struct Input
     // public byte[] Bits; /* must be last */
 
     public override string ToString() =>
-        $"{JsonSerializer.Serialize(this, new JsonSerializerOptions {IncludeFields = true})}; Buffer: {Bits}";
+        $"{JsonSerializer.Serialize(this, new JsonSerializerOptions { IncludeFields = true })}; Buffer: {Bits}";
 }
 
 class CustomInputSerializer : BinarySerializer<Input>

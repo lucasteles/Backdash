@@ -48,13 +48,13 @@ sealed class TimeSync
         for (i = 0; i < local.Length; i++)
             sum += local[i];
 
-        advantage = sum / (float) local.Length;
+        advantage = sum / (float)local.Length;
 
         sum = 0;
         for (i = 0; i < remote.Length; i++)
             sum += remote[i];
 
-        radvantage = sum / (float) remote.Length;
+        radvantage = sum / (float)remote.Length;
         _counter++;
 
         // See if someone should take action.  The person furthest ahead
@@ -66,7 +66,7 @@ sealed class TimeSync
         // Both clients agree that we're the one ahead.  Split
         // the difference between the two to figure out how long to
         // sleep for.
-        var sleepFrames = (int) ((radvantage - advantage) / 2 + 0.5f);
+        var sleepFrames = (int)((radvantage - advantage) / 2 + 0.5f);
 
         Tracer.Log("iteration {}:  sleep frames is {}", _counter, sleepFrames);
 

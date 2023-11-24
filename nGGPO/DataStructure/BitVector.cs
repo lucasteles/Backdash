@@ -10,13 +10,13 @@ readonly ref struct BitVector(scoped ref Span<byte> bits)
     public Span<byte> Buffer { get; } = bits;
 
     public static void SetBit(in Span<byte> vector, int index) =>
-        vector[index / 8] |= (byte) (1 << (index % 8));
+        vector[index / 8] |= (byte)(1 << (index % 8));
 
     public static bool GetBit(in Span<byte> vector, int index) =>
         (vector[index / 8] & (1 << (index % 8))) != 0;
 
     public static void ClearBit(in Span<byte> vector, int index) =>
-        vector[index / 8] &= (byte) ~(1 << (index % 8));
+        vector[index / 8] &= (byte)~(1 << (index % 8));
 
     public bool Get(int i) => GetBit(Buffer, i);
     public void Set(int i) => SetBit(Buffer, i);

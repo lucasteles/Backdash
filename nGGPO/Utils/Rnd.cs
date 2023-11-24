@@ -15,5 +15,5 @@ public static class Rnd
         return BitConverter.ToUInt16(buff);
     }
 
-    public static uint NextUInt(this Random random) => (uint) random.Next() & 0xFFFF;
+    public static uint NextUInt(this Random random) => (uint)random.Next() & 0xFFFF;
 }

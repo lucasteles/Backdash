@@ -27,7 +27,7 @@ public abstract class BinarySerializer<T> : IBinarySerializer<T>
     public int Serialize(ref T data, Span<byte> buffer)
     {
         var offset = 0;
-        NetworkBufferWriter writer = new(buffer, ref offset) {Network = Network};
+        NetworkBufferWriter writer = new(buffer, ref offset) { Network = Network };
         Serialize(writer, in data);
         return offset;
     }
@@ -35,7 +35,7 @@ public abstract class BinarySerializer<T> : IBinarySerializer<T>
     public T Deserialize(in ReadOnlySpan<byte> data)
     {
         var offset = 0;
-        NetworkBufferReader reader = new(data, ref offset) {Network = Network};
+        NetworkBufferReader reader = new(data, ref offset) { Network = Network };
         return Deserialize(reader);
     }
 }

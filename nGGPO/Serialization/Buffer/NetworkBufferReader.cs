@@ -49,7 +49,7 @@ public ref struct NetworkBufferReader
         slice.CopyTo(data[..length]);
     }
 
-    public sbyte ReadSByte() => unchecked((sbyte) buffer[offset++]);
+    public sbyte ReadSByte() => unchecked((sbyte)buffer[offset++]);
 
     public void ReadSByte(in Span<sbyte> values, int size = FullSize) => ReadSpan(values, size);
 

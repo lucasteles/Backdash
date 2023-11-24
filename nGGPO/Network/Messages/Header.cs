@@ -22,14 +22,14 @@ struct Header
 
     public void Serialize(NetworkBufferWriter writer)
     {
-        writer.Write((byte) Type);
+        writer.Write((byte)Type);
         writer.Write(Magic);
         writer.Write(SequenceNumber);
     }
 
     public void Deserialize(NetworkBufferReader reader)
     {
-        Type = (MsgType) reader.ReadByte();
+        Type = (MsgType)reader.ReadByte();
         Magic = reader.ReadUShort();
         SequenceNumber = reader.ReadUShort();
     }
