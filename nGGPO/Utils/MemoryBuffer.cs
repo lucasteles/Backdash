@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 
 namespace nGGPO.Utils;
 
-public readonly struct MemoryBuffer<T> : IDisposable
+readonly struct MemoryBuffer<T> : IDisposable
 {
     readonly bool clearArray;
 
@@ -39,7 +39,7 @@ public readonly struct MemoryBuffer<T> : IDisposable
     public static implicit operator ReadOnlySpan<T>(MemoryBuffer<T> @this) => @this.Span;
 }
 
-public static class MemoryBuffer
+static class MemoryBuffer
 {
     const int MaximumBufferSize = int.MaxValue;
 

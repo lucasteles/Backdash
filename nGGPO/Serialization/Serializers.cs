@@ -9,14 +9,14 @@ using nGGPO.Utils;
 
 namespace nGGPO.Serialization;
 
-public sealed class StructMarshalBinarySerializer<T> : IBinarySerializer<T> where T : struct
+sealed class StructMarshalBinarySerializer<T> : IBinarySerializer<T> where T : struct
 {
     public T Deserialize(in ReadOnlySpan<byte> data) => Mem.UnmarshallStruct<T>(in data);
 
     public int Serialize(ref T data, Span<byte> buffer) => Mem.MarshallStruct(in data, in buffer);
 }
 
-public sealed class StructBinarySerializer<T> : IBinarySerializer<T> where T : struct
+sealed class StructBinarySerializer<T> : IBinarySerializer<T> where T : struct
 {
     public T Deserialize(in ReadOnlySpan<byte> data) =>
         Mem.ReadStruct<T>(in data);
@@ -25,7 +25,7 @@ public sealed class StructBinarySerializer<T> : IBinarySerializer<T> where T : s
         Mem.WriteStruct(in data, buffer);
 }
 
-public static class BinarySerializers
+static class BinarySerializers
 {
     sealed class PrimitiveBinarySerializer<T> : IBinarySerializer<T> where T : unmanaged
     {
