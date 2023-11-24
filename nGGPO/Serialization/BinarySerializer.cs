@@ -20,9 +20,9 @@ public abstract class BinarySerializer<T> : IBinarySerializer<T>
 {
     public bool Network { get; init; } = true;
 
-    protected internal abstract void Serialize(scoped NetworkBufferWriter writer, scoped in T data);
+    protected abstract void Serialize(scoped NetworkBufferWriter writer, scoped in T data);
 
-    protected internal abstract T Deserialize(scoped NetworkBufferReader reader);
+    protected abstract T Deserialize(scoped NetworkBufferReader reader);
 
     public int Serialize(ref T data, Span<byte> buffer)
     {

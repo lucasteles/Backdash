@@ -1,7 +1,9 @@
-﻿using nGGPO.Serialization.Buffer;
+﻿using System.Runtime.InteropServices;
+using nGGPO.Serialization.Buffer;
 
 namespace nGGPO.Network.Messages;
 
+[StructLayout(LayoutKind.Sequential)]
 struct InputAck
 {
     public int AckFrame;

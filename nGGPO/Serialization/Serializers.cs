@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using nGGPO.Network;
+using nGGPO.Serialization.Buffer;
 using nGGPO.Utils;
 
 namespace nGGPO.Serialization;
@@ -23,6 +24,29 @@ sealed class StructBinarySerializer<T> : IBinarySerializer<T> where T : struct
 
     public int Serialize(ref T data, Span<byte> buffer) =>
         Mem.WriteStruct(in data, buffer);
+}
+
+class UdpMsgBinarySerializer : IBinarySerializer<UdpMsg>
+{
+    public bool Network { get; init; }
+
+    public UdpMsg Deserialize(in ReadOnlySpan<byte> data)
+    {
+        var offset = 0;
+        NetworkBufferReader reader = new(data, ref offset) {Network = Network};
+
+        var msg = new UdpMsg();
+        msg.Deserialize(reader);
+        return msg;
+    }
+
+    public int Serialize(ref UdpMsg data, Span<byte> buffer)
+    {
+        var offset = 0;
+        NetworkBufferWriter writer = new(buffer, ref offset) {Network = Network};
+        data.Serialize(writer);
+        return offset;
+    }
 }
 
 static class BinarySerializers
@@ -91,7 +115,7 @@ static class BinarySerializers
         if (inputType.IsPrimitive || inputType.IsEnum)
             throw new ArgumentException("Struct input expected");
 
-        if (inputType is { IsLayoutSequential: false, IsExplicitLayout: false })
+        if (inputType is {IsLayoutSequential: false, IsExplicitLayout: false})
             throw new ArgumentException("Input struct should have explicit or sequential layout ");
 
         return marshall
@@ -105,7 +129,7 @@ static class BinarySerializers
 
         return inputType switch
         {
-            { IsEnum: true } => typeof(BinarySerializers)
+            {IsEnum: true} => typeof(BinarySerializers)
                 .GetMethod(nameof(ForEnum),
                     genericParameterCount: 2,
                     BindingFlags.Static | BindingFlags.Public,
@@ -114,12 +138,12 @@ static class BinarySerializers
                 .MakeGenericMethod(inputType, inputType.GetEnumUnderlyingType())
                 .Invoke(null, Array.Empty<object>()) as IBinarySerializer<TInput>,
 
-            { IsPrimitive: true } => typeof(BinarySerializers)
+            {IsPrimitive: true} => typeof(BinarySerializers)
                 .GetMethod(nameof(ForPrimitive), BindingFlags.Static | BindingFlags.Public)?
                 .MakeGenericMethod(inputType)
                 .Invoke(null, Array.Empty<object>()) as IBinarySerializer<TInput>,
 
-            { IsExplicitLayout: true } or { IsLayoutSequential: true } => typeof(BinarySerializers)
+            {IsExplicitLayout: true} or {IsLayoutSequential: true} => typeof(BinarySerializers)
                 .GetMethod(nameof(ForStructure), BindingFlags.Static | BindingFlags.Public)?
                 .MakeGenericMethod(inputType)
                 .Invoke(null, new object[]

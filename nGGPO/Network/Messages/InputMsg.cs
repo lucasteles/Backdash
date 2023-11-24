@@ -1,5 +1,4 @@
-﻿using System.Diagnostics.Contracts;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using nGGPO.Input;
 using nGGPO.Serialization.Buffer;
 using nGGPO.Utils;

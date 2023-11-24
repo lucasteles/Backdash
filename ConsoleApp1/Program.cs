@@ -1,17 +1,15 @@
 ﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Text.Json;
-using System.Text.Json.Serialization;
+using ConsoleApp1;
 using nGGPO.Inputs;
+using nGGPO.Network;
+using nGGPO.Network.Messages;
 using nGGPO.Serialization;
-using nGGPO.Serialization.Buffer;
 using nGGPO.Utils;
 
 void Div() => Console.WriteLine(new string('-', 10));
 
 byte[] data = {1, 2, 3, 4, 5};
-
 {
     var packet = long.MaxValue;
     var serializer = BinarySerializers.Get<long>()!;
@@ -79,61 +77,34 @@ Div();
     Console.WriteLine($"# Pkg={backPacket}\n");
 }
 
-[InlineArray(10)]
-[DebuggerDisplay("Buffer {ToString()}")]
-public struct ValueBuffer
+Div();
 {
-#pragma warning disable CS0169 // Field is never used
-    byte element0;
-#pragma warning restore CS0169 // Field is never used
-
-    public override string ToString()
+    UdpMsg packet = new()
     {
-        ReadOnlySpan<byte> bytes = this;
-        return $"[{string.Join(", ", bytes.ToArray().Select(x => (int) x))}]";
-    }
-}
-
-[StructLayout(LayoutKind.Sequential, Pack = 1)]
-public struct Input
-{
-    public int S;
-    public byte A;
-    public uint B;
-
-    [JsonIgnore]
-    public ValueBuffer Bits;
-
-    // [MarshalAs(UnmanagedType.ByValArray, SizeConst = 5)]
-    // public byte[] Bits; /* must be last */
-
-    public override string ToString() =>
-        $"{JsonSerializer.Serialize(this, new JsonSerializerOptions {IncludeFields = true})}; Buffer: {Bits}";
-}
-
-class CustomInputSerializer : BinarySerializer<Input>
-{
-    protected internal override void Serialize(scoped NetworkBufferWriter writer, in Input data)
-    {
-        writer.Write(data.S);
-        writer.Write(data.Bits, data.S);
-        writer.Write(data.A);
-        writer.Write(data.B);
-    }
-
-    protected internal override Input Deserialize(scoped NetworkBufferReader reader)
-    {
-        var size = reader.ReadInt();
-
-        var bits = new ValueBuffer();
-        reader.ReadByte(bits, size);
-
-        return new()
+        Header = new(MsgType.SyncRequest)
         {
-            S = size,
-            Bits = bits,
-            A = reader.ReadByte(),
-            B = reader.ReadUInt(),
-        };
-    }
+            Magic = 42,
+            SequenceNumber = 10,
+        },
+        SyncRequest = new()
+        {
+            // RandomRequest = 99,
+            RemoteMagic = 24,
+            RemoteEndpoint = 128,
+        },
+    };
+    packet.Header.Dump();
+    packet.SyncRequest.Dump();
+
+    var serializer = new UdpMsgBinarySerializer {Network = false};
+    using var buffer = MemoryBuffer.Rent(Max.UdpPacketSize, true);
+
+    var size = serializer.Serialize(ref packet, buffer);
+    var bytes = buffer[..size];
+
+    Console.WriteLine($"# Size={size}\n");
+    var backPacket = serializer.Deserialize(bytes);
+    Console.WriteLine("# Pkg=\n");
+    backPacket.Header.Dump();
+    backPacket.SyncRequest.Dump();
 }
