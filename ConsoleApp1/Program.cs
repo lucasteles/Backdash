@@ -2,6 +2,8 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.Json;
+using System.Text.Json.Serialization;
+using nGGPO.Inputs;
 using nGGPO.Serialization;
 using nGGPO.Serialization.Buffer;
 using static ConsoleApp1.Helpers;
@@ -10,29 +12,53 @@ using nGGPO.Utils;
 
 var data = new byte[] {1, 2, 3, 4, 5};
 
-Input packet = new()
 {
-    S = data.Length,
-    A = (byte) 'a',
-    B = 2,
-    Values = new(),
-    // Bits = data,
-};
+    Input packet = new()
+    {
+        S = data.Length,
+        A = (byte) 'a',
+        B = 2,
+        Values = new(),
+        // Bits = data,
+    };
 
-Span<byte> values = packet.Values;
-data.CopyTo(values);
+    Span<byte> values = packet.Values;
+    data.CopyTo(values);
 
-var serializers = BinarySerializers.Get<Input>();
+    var serializer = BinarySerializers.Get<Input>()!;
+    using var buffer = Mem.Rent(20, true);
+    var size = serializer.Serialize(in packet, buffer);
+    var bytes = buffer.Span[..size];
 
-using var buffer = Mem.Rent(20);
-var size = serializers.Serialize(in packet, buffer);
-var bytes = buffer.Span[..size];
+    Console.WriteLine($"# Size={size}\n");
+    var backPacket = serializer.Deserialize(bytes);
+    Console.WriteLine($"# Pkg={backPacket}\n");
+}
 
-Console.WriteLine($"# Size={size}\n");
-var backPacket = serializers.Deserialize(bytes);
+{
+    var packet = long.MaxValue;
+    var serializer = BinarySerializers.Get<long>()!;
+    using var buffer = Mem.Rent(10, true);
+    var size = serializer.Serialize(in packet, buffer);
+    var bytes = buffer.Span[..size];
 
-Console.WriteLine($"# Pkg={backPacket}\n");
-Console.Clear();
+    Console.WriteLine($"# Size={size}\n");
+    var backPacket = serializer.Deserialize(bytes);
+    Console.WriteLine($"# Pkg={backPacket}\n");
+}
+
+{
+    var packet = ButtonsInput.UpLeft | ButtonsInput.X;
+    var serializer = BinarySerializers.Get<ButtonsInput>()!;
+    using var buffer = Mem.Rent(10, true);
+    var size = serializer.Serialize(in packet, buffer);
+    var bytes = buffer.Span[..size];
+    Console.WriteLine($"# Size={size}\n");
+    var backPacket = serializer.Deserialize(bytes);
+    var buttons = new ButtonsInputEditor(backPacket);
+    Console.WriteLine($"# Pkg= {buttons}\n");
+}
+
 
 // Console.WriteLine($"# Size={size}, SizeM={sizeM}\n");
 
@@ -66,12 +92,6 @@ public struct ValueBuffer
 #pragma warning disable CS0169 // Field is never used
     byte element0;
 #pragma warning restore CS0169 // Field is never used
-
-    public override string ToString()
-    {
-        ReadOnlySpan<byte> bytes = this;
-        return $"[{string.Join(", ", bytes.ToArray())}]";
-    }
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
@@ -81,9 +101,19 @@ public struct Input
     public byte A;
     public uint B;
 
+    [JsonIgnore]
     public ValueBuffer Values;
     // [MarshalAs(UnmanagedType.ByValArray, SizeConst = 5)]
     // public byte[] Bits; /* must be last */
+
+    public byte[] BufferValues
+    {
+        get
+        {
+            ReadOnlySpan<byte> bytes = this.Values;
+            return bytes.ToArray();
+        }
+    }
 
     public override string ToString() =>
         JsonSerializer.Serialize(this, new JsonSerializerOptions {IncludeFields = true});

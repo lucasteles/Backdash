@@ -33,15 +33,17 @@ public enum ButtonsInput : short
     DownRight = Down | Right,
 }
 
-public struct ButtonsInputEditor
+public sealed class ButtonsInputEditor(ButtonsInput input)
 {
-    ButtonsInput Input;
-
-    public ButtonsInputEditor(ButtonsInput input) => Input = input;
+    ButtonsInput Input = input;
 
     public void Reset() => Input = ButtonsInput.None;
 
     public bool IsEmpty => Input is ButtonsInput.None;
+
+    public ButtonsInputEditor() : this(ButtonsInput.None)
+    {
+    }
 
     public bool Up
     {
@@ -163,23 +165,23 @@ public struct ButtonsInputEditor
 
     public override string ToString()
     {
-        var builder = new StringBuilder("[");
-        var dpad = new string[4];
-        if (Left) dpad[0] = "←";
-        if (Up) dpad[1] = "↑";
-        if (Down) dpad[2] = "↓";
-        if (Right) dpad[3] = "→";
+        var builder = new StringBuilder();
+        Span<char> dpad = stackalloc char[4];
+        if (Left) dpad[0] = '←';
+        if (Up) dpad[1] = '↑';
+        if (Down) dpad[2] = '↓';
+        if (Right) dpad[3] = '→';
 
-        builder.Append(string.Concat(dpad) switch
+        builder.Append(dpad switch
         {
-            "↑→" => "↗",
-            "←↑" => "↖",
-            "←↓" => "↙",
-            "↓→" => "↘",
-            var other => other,
+            ['\0', '↑', '\0', '→'] => "↗",
+            ['←', '↑', '\0', '\0'] => "↖",
+            ['←', '\0', '↓', '\0'] => "↙",
+            ['\0', '\0', '↓', '→'] => "↘",
+            _ => string.Concat(string.Empty, dpad),
         });
 
-        builder.Append("] {");
+        builder.Append(" + ");
 
         List<string> buttons = new();
         if (X) buttons.Add(nameof(X));
@@ -196,7 +198,6 @@ public struct ButtonsInputEditor
 
         builder.Append(string.Join(',', buttons));
 
-        builder.Append("}");
         return builder.ToString();
     }
 }

@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using nGGPO.Network;
+using nGGPO.Utils;
 
 namespace nGGPO.Serialization.Buffer;
 
@@ -191,4 +193,15 @@ public ref struct NetworkBufferReader
         for (var i = 0; i < values.Length; i++)
             values[i] = ReadSByte();
     }
+
+    // public TEnum ReadEnum<TEnum, TUnderType>()
+    //     where TEnum : unmanaged, Enum
+    //     where TUnderType : unmanaged, IBinaryInteger<TUnderType>
+    // {
+    //     var size = Unsafe.SizeOf<TUnderType>();
+    //     var value = Mem.SpanAsStruct<TUnderType>(buffer[offset..(offset + size)]);
+    //     offset += size;
+    //     var reordered = network ? Endianness.TryNetworkToHostOrder(value) : value;
+    //     return Mem.IntegerAsEnum<TEnum, TUnderType>(reordered);
+    // }
 }

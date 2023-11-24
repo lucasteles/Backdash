@@ -5,13 +5,14 @@ namespace nGGPO.Utils;
 
 public readonly struct MemoryBuffer<T> : IDisposable
 {
+    readonly bool clearArray;
     public static readonly MemoryBuffer<T> Empty = new(0);
 
     readonly T[] array;
     public int Length { get; }
     public Memory<T> Memory { get; }
 
-    public MemoryBuffer(int size)
+    public MemoryBuffer(int size, bool clearArray = false)
     {
         var buffer =
             size is 0
@@ -21,6 +22,7 @@ public readonly struct MemoryBuffer<T> : IDisposable
         array = buffer;
         Memory = buffer;
         Length = size;
+        this.clearArray = clearArray;
     }
 
     public Span<T> Span => Memory.Span;
@@ -29,7 +31,7 @@ public readonly struct MemoryBuffer<T> : IDisposable
     public void Dispose()
     {
         if (array?.Length > 0)
-            ArrayPool<T>.Shared.Return(array);
+            ArrayPool<T>.Shared.Return(array, clearArray);
     }
 
     public static implicit operator Span<T>(MemoryBuffer<T> @this) => @this.Span;

@@ -13,23 +13,9 @@ public interface IBinaryWriter<T> where T : struct
     int Serialize(in T data, Span<byte> buffer);
 }
 
-public interface IBinaryParser<T> where T : struct
-{
-    Span<byte> Serialize(in T data);
-}
+public interface IBinarySerializer<T> : IBinaryReader<T>, IBinaryWriter<T> where T : struct;
 
-public interface IBinarySerializer<T> : IBinaryReader<T>, IBinaryWriter<T>, IBinaryParser<T>
-    where T : struct
-{
-    int IBinaryWriter<T>.Serialize(in T data, Span<byte> buffer)
-    {
-        var bytes = Serialize(data);
-        bytes.CopyTo(buffer);
-        return bytes.Length;
-    }
-}
-
-public abstract class BinarySerializer<T> : IBinaryReader<T>, IBinaryWriter<T>
+public abstract class BinarySerializer<T> : IBinarySerializer<T>
     where T : struct
 {
     public abstract int SizeOf(in T data);

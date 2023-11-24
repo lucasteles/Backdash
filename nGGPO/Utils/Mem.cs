@@ -13,19 +13,20 @@ public static class Mem
     const int MaxStackLimit = 1024;
     const int MaximumBufferSize = int.MaxValue;
 
-    public static MemoryBuffer<T> Rent<T>(int size = -1)
+    public static MemoryBuffer<T> Rent<T>(int size = -1, bool clearArray = false)
     {
         if (size == -1)
             size = 1 + 4095 / Unsafe.SizeOf<T>();
         else if ((uint) size > MaximumBufferSize)
             throw new ArgumentOutOfRangeException(nameof(size));
 
-        return new(size);
+        return new(size, clearArray);
     }
 
-    public static MemoryBuffer<byte> Rent(int size) => Rent<byte>(size);
+    public static MemoryBuffer<byte> Rent(int size, bool clearArray = false) =>
+        Rent<byte>(size, clearArray);
 
-    public static unsafe Span<byte> MarshallStructure<T>(in T message)
+    public static unsafe int MarshallStructure<T>(in T message, in Span<byte> body)
         where T : struct
     {
         var size = Marshal.SizeOf(message);
@@ -42,15 +43,21 @@ public static class Mem
 
         try
         {
-            Marshal.StructureToPtr(message, ptr, true);
-            Span<byte> source = new((void*) ptr, size);
-            return source;
+            fixed (byte* bodyPtr = body)
+            {
+                Marshal.StructureToPtr(message, ptr, true);
+                Span<byte> source = new((void*) ptr, size);
+                Span<byte> dest = new(bodyPtr, size);
+                source.CopyTo(dest);
+            }
         }
         finally
         {
             if (size > MaxStackLimit)
                 Marshal.FreeHGlobal(ptr);
         }
+
+        return size;
     }
 
     public static unsafe T UnmarshallStructure<T>(in ReadOnlySpan<byte> body) where T : struct
@@ -112,6 +119,22 @@ public static class Mem
             throw new ArgumentOutOfRangeException(nameof(data));
 
         return Unsafe.ReadUnaligned<T>(ref MemoryMarshal.GetReference(data));
+    }
+
+    public static TInt EnumAsInteger<TEnum, TInt>(TEnum enumValue)
+        where TEnum : unmanaged, Enum
+        where TInt : unmanaged, IBinaryInteger<TInt>
+    {
+        if (Unsafe.SizeOf<TEnum>() != Unsafe.SizeOf<TInt>()) throw new Exception("type mismatch");
+        return Unsafe.As<TEnum, TInt>(ref enumValue);
+    }
+
+    public static TEnum IntegerAsEnum<TEnum, TInt>(TInt intValue)
+        where TEnum : unmanaged, Enum
+        where TInt : unmanaged, IBinaryInteger<TInt>
+    {
+        if (Unsafe.SizeOf<TEnum>() != Unsafe.SizeOf<TInt>()) throw new Exception("type mismatch");
+        return Unsafe.As<TInt, TEnum>(ref intValue);
     }
 
     // TODO: create non alloc version of this

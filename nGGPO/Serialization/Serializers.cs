@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Numerics;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using nGGPO.Network;
@@ -10,10 +11,9 @@ namespace nGGPO.Serialization;
 
 public sealed class StructMarshalBinarySerializer<T> : IBinarySerializer<T> where T : struct
 {
-    public T Deserialize(in ReadOnlySpan<byte> data) =>
-        Mem.UnmarshallStructure<T>(in data);
+    public T Deserialize(in ReadOnlySpan<byte> data) => Mem.UnmarshallStructure<T>(in data);
 
-    public Span<byte> Serialize(in T data) => Mem.MarshallStructure(in data);
+    public int Serialize(in T data, Span<byte> buffer) => Mem.MarshallStructure(in data, in buffer);
 }
 
 public sealed class StructBinarySerializer<T> : IBinarySerializer<T> where T : struct
@@ -22,6 +22,13 @@ public sealed class StructBinarySerializer<T> : IBinarySerializer<T> where T : s
         Mem.SpanAsStruct<T>(in data);
 
     public Span<byte> Serialize(in T data) => Mem.StructAsSpan(ref Unsafe.AsRef(in data));
+
+    public int Serialize(in T data, Span<byte> buffer)
+    {
+        var bytes = Mem.StructAsSpan(ref Unsafe.AsRef(in data));
+        bytes.CopyTo(buffer);
+        return bytes.Length;
+    }
 }
 
 public static class BinarySerializers
@@ -38,13 +45,16 @@ public static class BinarySerializers
             return Network ? Endianness.TryNetworkToHostOrder(value) : value;
         }
 
-        public Span<byte> Serialize(in T data) => SerializeScoped(ref Unsafe.AsRef(in data));
-
-        public Span<byte> SerializeScoped(scoped ref T data)
+        public int SerializeScoped(scoped ref T data, Span<byte> buffer)
         {
             var reordered = Network ? Endianness.TryHostToNetworkOrder(data) : data;
-            return Mem.StructAsSpan(ref reordered);
+            var bytes = Mem.StructAsSpan(ref reordered);
+            bytes.CopyTo(buffer);
+            return bytes.Length;
         }
+
+        public int Serialize(in T data, Span<byte> buffer) =>
+            SerializeScoped(ref Unsafe.AsRef(in data), buffer);
     }
 
     sealed class EnumSerializer<TEnum, TInt>
@@ -57,20 +67,13 @@ public static class BinarySerializers
         public TEnum Deserialize(in ReadOnlySpan<byte> data)
         {
             var underValue = ValueBinarySerializer.Deserialize(in data);
-
-            if (Unsafe.SizeOf<TEnum>() != Unsafe.SizeOf<TInt>())
-                throw new Exception("type mismatch");
-
-            return Unsafe.As<TInt, TEnum>(ref underValue);
+            return Mem.IntegerAsEnum<TEnum, TInt>(underValue);
         }
 
-        public Span<byte> Serialize(in TEnum data)
+        public int Serialize(in TEnum data, Span<byte> buffer)
         {
-            if (Unsafe.SizeOf<TEnum>() != Unsafe.SizeOf<TInt>())
-                throw new Exception("type mismatch");
-
-            var underValue = Unsafe.As<TEnum, TInt>(ref Unsafe.AsRef(in data));
-            return ValueBinarySerializer.SerializeScoped(ref underValue);
+            var underValue = Mem.EnumAsInteger<TEnum, TInt>(data);
+            return ValueBinarySerializer.SerializeScoped(ref underValue, buffer);
         }
     }
 
@@ -110,20 +113,28 @@ public static class BinarySerializers
 
         return inputType switch
         {
-            {IsPrimitive: true, IsEnum: true} => inputType
-                .GetMethod(nameof(ForEnum))?
+            {IsEnum: true} => typeof(BinarySerializers)
+                .GetMethod(nameof(ForEnum),
+                    genericParameterCount: 2,
+                    BindingFlags.Static | BindingFlags.Public,
+                    null, CallingConventions.Any, Type.EmptyTypes, null
+                )?
                 .MakeGenericMethod(inputType, inputType.GetEnumUnderlyingType())
                 .Invoke(null, Array.Empty<object>()) as IBinarySerializer<TInput>,
 
-            {IsPrimitive: true} => inputType
-                .GetMethod(nameof(ForPrimitive))?
+            {IsPrimitive: true} => typeof(BinarySerializers)
+                .GetMethod(nameof(ForPrimitive), BindingFlags.Static | BindingFlags.Public)?
                 .MakeGenericMethod(inputType)
                 .Invoke(null, Array.Empty<object>()) as IBinarySerializer<TInput>,
 
-            {IsExplicitLayout: true} or {IsLayoutSequential: true} => inputType
-                .GetMembers().Any(m => Attribute.IsDefined(m, typeof(MarshalAsAttribute)))
-                ? new StructMarshalBinarySerializer<TInput>()
-                : new StructBinarySerializer<TInput>(),
+            {IsExplicitLayout: true} or {IsLayoutSequential: true} => typeof(BinarySerializers)
+                .GetMethod(nameof(ForStructure), BindingFlags.Static | BindingFlags.Public)?
+                .MakeGenericMethod(inputType)
+                .Invoke(null, new object[]
+                {
+                    inputType.GetMembers()
+                        .Any(m => Attribute.IsDefined(m, typeof(MarshalAsAttribute)))
+                }) as IBinarySerializer<TInput>,
 
             _ => null,
         };
