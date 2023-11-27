@@ -10,7 +10,6 @@ public class InputCompressorTests
     public void Test1()
     {
         var lastAcked = CreateInput(0, 1);
-
         var lastSent = GameInput.Empty;
 
         var pendingInputs = CreateBuffer(

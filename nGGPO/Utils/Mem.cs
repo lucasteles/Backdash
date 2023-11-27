@@ -129,7 +129,8 @@ static class Mem
     public static string GetBitString(
         in ReadOnlySpan<byte> bytes,
         int splitAt = 0,
-        int bytePad = ByteSize)
+        int bytePad = ByteSize
+    )
     {
         StringBuilder builder = new();
 
@@ -138,16 +139,12 @@ static class Mem
             if (i > 0 && splitAt > 0 && i % splitAt is 0) builder.Append('|');
             if (i > 0 && i % splitAt > 0) builder.Append('-');
 
-            var bin = Convert.ToString(bytes[i], 2);
-
-            for (var k = 0; k < bytePad - bin.Length; k++)
-                builder.Append('0');
+            var bin = Convert.ToString(bytes[i], 2).PadLeft(bytePad, '0');
 
             for (var j = 0; j < bin.Length; j++)
                 builder.Append(bin[j]);
         }
 
-        // builder.Reverse();
         return builder.ToString();
     }
 }
