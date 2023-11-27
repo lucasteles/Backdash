@@ -157,7 +157,14 @@ partial class UdpProtocol : IDisposable
 
     InputMsg CreateInputMsg()
     {
-        var input = GetInputMsg();
+        if (pendingOutput.IsEmpty)
+            return new();
+
+        var input = InputCompressor.WriteCompressed(
+            ref lastAckedInput,
+            in pendingOutput,
+            ref lastSentInput
+        );
 
         input.AckFrame = lastReceivedInput.Frame;
         input.DisconnectRequested = currentState is not StateEnum.Disconnected;
@@ -166,62 +173,6 @@ partial class UdpProtocol : IDisposable
             localConnectStatus.CopyTo(input.PeerConnectStatus);
 
         return input;
-
-        InputMsg GetInputMsg()
-        {
-            if (pendingOutput.IsEmpty)
-                return new();
-
-            ref var front = ref pendingOutput.Peek();
-
-            InputMsg inputMsg = new()
-            {
-                InputSize = (byte)front.Size,
-                StartFrame = front.Frame,
-            };
-
-            var offset = WriteCompressedInput(inputMsg.Bits, inputMsg.StartFrame);
-            inputMsg.NumBits = (ushort)offset;
-            Tracer.Assert(offset < Max.CompressedBits);
-
-            return inputMsg;
-        }
-
-        int WriteCompressedInput(Span<byte> bits, int startFrame)
-        {
-            BitVector.BitOffset bitWriter = new(bits);
-            var last = lastAckedInput;
-            var lastBits = last.GetBitVector();
-            Tracer.Assert(last.Frame.IsNull || last.Frame.Next == startFrame);
-
-            for (var i = 0; i < pendingOutput.Size; i++)
-            {
-                ref var current = ref pendingOutput[i];
-                if (current.Equals(last, bitsOnly: true))
-                {
-                    var currentBits = current.GetBitVector();
-                    for (var j = 0; j < currentBits.BitCount; j++)
-                    {
-                        if (currentBits[j] == lastBits[j])
-                            continue;
-
-                        bitWriter.SetNext();
-
-                        if (currentBits[j])
-                            bitWriter.SetNext();
-                        else
-                            bitWriter.ClearNext();
-
-                        bitWriter.WriteNibble(j);
-                    }
-                }
-
-                bitWriter.ClearNext();
-                last = lastSentInput = current;
-            }
-
-            return bitWriter.Offset;
-        }
     }
 
     ValueTask SendPendingOutput()
@@ -418,78 +369,8 @@ partial class UdpProtocol : IDisposable
 
         if (msg.Input.InputSize > 0)
         {
-            var numBits = msg.Input.NumBits;
-            var currentFrame = msg.Input.StartFrame;
-
-            lastReceivedInput.Size = msg.Input.InputSize;
-
-            if (lastReceivedInput.Frame < 0)
-                lastReceivedInput.SetFrame(new(msg.Input.StartFrame - 1));
-
-            BitVector.BitOffset bitVector = new(msg.Input.Bits);
-            var lastInputBits = lastReceivedInput.GetBitVector();
-
-            while (bitVector.Offset < numBits)
-            {
-                /*
-                 * Keep walking through the frames (parsing bits) until we reach
-                 * the inputs for the frame right after the one we're on.
-                 */
-                Trace.Assert(currentFrame <= lastReceivedInput.Frame.Next);
-                var useInputs = currentFrame == lastReceivedInput.Frame.Next;
-
-                while (bitVector.Read())
-                {
-                    var on = bitVector.Read();
-                    var button = bitVector.ReadNibble();
-                    if (!useInputs) continue;
-                    if (on)
-                        lastInputBits.Set(button);
-                    else
-                        lastInputBits.Clear(button);
-                }
-
-                Tracer.Assert(bitVector.Offset <= numBits);
-
-                /*
-                 * Now if we want to use these inputs, go ahead and send them to
-                 * the emulator.
-                 */
-
-                if (useInputs)
-                {
-                    /*
-                     * Move forward 1 frame in the stream.
-                     */
-                    Tracer.Assert(currentFrame == lastReceivedInput.Frame.Next);
-                    lastReceivedInput.SetFrame(new(currentFrame));
-
-                    /*
-                     * Send the event to the emualtor
-                     */
-                    UdpEvent evt = new(UdpEventType.Input)
-                    {
-                        Input = lastAckedInput,
-                    };
-
-                    state.Running.LastInputPacketRecvTime = (uint)Platform.GetCurrentTimeMS();
-
-                    Tracer.Log("Sending frame {0} to emu queue {1} ({2}).\n",
-                        lastReceivedInput.Frame, queue, lastInputBits.ToString());
-
-                    QueueEvent(evt);
-                }
-                else
-                {
-                    Tracer.Log("Skipping past frame:(%d) current is %d.\n",
-                        currentFrame, lastReceivedInput.Frame);
-                }
-
-                /*
-                 * Move forward 1 frame in the input stream.
-                 */
-                currentFrame++;
-            }
+            // TODO: remove delegate allocation with OnParsedInput
+            InputCompressor.DecompressInput(ref msg.Input, ref lastReceivedInput, OnParsedInput);
         }
 
         Tracer.Assert(lastReceivedInput.Frame >= lastReceivedFrameNumber);
@@ -505,6 +386,30 @@ partial class UdpProtocol : IDisposable
         }
 
         return true;
+    }
+
+    void OnParsedInput(int currentFrame, string inputBits)
+    {
+        /*
+         * Move forward 1 frame in the stream.
+         */
+        Tracer.Assert(currentFrame == lastReceivedInput.Frame.Next);
+        lastReceivedInput.SetFrame(new(currentFrame));
+
+        /*
+         * Send the event to the emulator
+         */
+        UdpEvent evt = new(UdpEventType.Input)
+        {
+            Input = lastAckedInput,
+        };
+
+        state.Running.LastInputPacketRecvTime = (uint)Platform.GetCurrentTimeMS();
+
+        Tracer.Log("Sending frame {0} to emu queue {1} ({2}).\n",
+            lastReceivedInput.Frame, queue, inputBits);
+
+        QueueEvent(evt);
     }
 
     bool OnInputAck(UdpMsg msg)
