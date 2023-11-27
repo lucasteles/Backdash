@@ -12,7 +12,7 @@ public struct GameInputBuffer
     byte element0;
 
     public override string ToString() =>
-        Mem.GetBitString(this, splitAt:  Max.InputBytes);
+        Mem.GetBitString(this, splitAt: Max.InputBytes);
 
     public bool Equals(GameInputBuffer other)
     {
@@ -26,6 +26,12 @@ public struct GameInputBuffer
     }
 
     public GameInputBuffer(ReadOnlySpan<byte> bits) => bits.CopyTo(this);
+
+    public static Span<byte> GetPlayer(ref GameInputBuffer buffer, int playerIndex)
+    {
+        var byteIndex = playerIndex * Max.InputBytes;
+        return buffer[byteIndex..(byteIndex + Max.InputBytes)];
+    }
 }
 
 struct GameInput : IEquatable<GameInput>

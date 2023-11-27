@@ -12,21 +12,33 @@ public class GameInputTests
         var buffer = NewBuffer(2);
 
         var strValue = buffer.ToString();
-        var expected = MountBin("10");
+        const string expected =
+            "00000010-00000000-00000000-00000000-00000000-00000000-00000000-00000000-00000000"
+            + "|" +
+            "00000000-00000000-00000000-00000000-00000000-00000000-00000000-00000000-00000000";
+
+        strValue.Should().Be(expected);
+    }
+
+
+    [Fact]
+    public void InputString2Players()
+    {
+        GameInputBuffer buffer = new();
+        var p1 = GameInputBuffer.GetPlayer(ref buffer, 0);
+        var p2 = GameInputBuffer.GetPlayer(ref buffer, 1);
+
+        p1[0] = 2;
+        p2[0] = 7;
+
+        var strValue = buffer.ToString();
+        const string expected =
+            "00000010-00000000-00000000-00000000-00000000-00000000-00000000-00000000-00000000"
+            + "|" +
+            "00000111-00000000-00000000-00000000-00000000-00000000-00000000-00000000-00000000";
 
         strValue.Should().Be(expected);
     }
 
     public static GameInputBuffer NewBuffer(params byte[] bytes) => new(bytes);
-
-    public static string ZeroBlock = new('0', Max.InputBytes * Mem.ByteSize);
-
-    public static string MountBin(params string[] block)
-    {
-        block.Should().HaveCountLessOrEqualTo(Max.InputPlayers);
-        var padding = Enumerable.Repeat(ZeroBlock, Max.InputPlayers - block.Length);
-        var segments = padding.Concat(block
-            .Select(n => n.PadLeft(Max.InputBytes * Mem.ByteSize, '0')));
-        return string.Join('-', segments);
-    }
 }
