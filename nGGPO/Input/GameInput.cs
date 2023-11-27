@@ -6,10 +6,12 @@ using nGGPO.Utils;
 
 namespace nGGPO.Input;
 
-[InlineArray(Max.InputBytes * Max.InputPlayers)]
+[InlineArray(Capacity)]
 public struct GameInputBuffer
 {
     byte element0;
+
+    public const int Capacity = Max.InputBytes * Max.InputPlayers;
 
     public override string ToString() =>
         Mem.GetBitString(this, splitAt: Max.InputBytes);
@@ -48,10 +50,10 @@ struct GameInput : IEquatable<GameInput>
         Size = 0,
     };
 
-    public GameInput(int size)
+    public GameInput()
     {
-        Size = size;
         Buffer = new();
+        Size = GameInputBuffer.Capacity;
     }
 
     public GameInput(ref GameInputBuffer inputBuffer, int size)

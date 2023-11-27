@@ -16,9 +16,9 @@ public class InputCompressorTests
         var lastSent = GameInput.Empty;
 
         var pendingInputs = CreateBuffer(
-            CreateInput(1, [2]),
-            CreateInput(2, [4]),
-            CreateInput(3, [6])
+            CreateInput(1, [2], [1]),
+            CreateInput(2, [4], [3]),
+            CreateInput(3, [6], [7])
         );
 
         var compressed = InputCompressor.WriteCompressed(
@@ -27,8 +27,7 @@ public class InputCompressorTests
             ref lastSent
         );
 
-
-        List<string> decompressedInputs = new();
+        List<string> decompressedInputs = [];
         InputCompressor.DecompressInput(
             ref compressed,
             ref lastRecv,
@@ -36,16 +35,16 @@ public class InputCompressorTests
 
         decompressedInputs.Should().BeEquivalentTo(
             "00000010-00000000-00000000-00000000-00000000-00000000-00000000-00000000-00000000"
-            + "|00000000-00000000-00000000-00000000-00000000-00000000-00000000-00000000-00000000",
+            + "|00000001-00000000-00000000-00000000-00000000-00000000-00000000-00000000-00000000",
             "00000100-00000000-00000000-00000000-00000000-00000000-00000000-00000000-00000000"
-            + "|00000000-00000000-00000000-00000000-00000000-00000000-00000000-00000000-00000000",
+            + "|00000011-00000000-00000000-00000000-00000000-00000000-00000000-00000000-00000000",
             "00000110-00000000-00000000-00000000-00000000-00000000-00000000-00000000-00000000"
-            + "|00000000-00000000-00000000-00000000-00000000-00000000-00000000-00000000-00000000");
+            + "|00000111-00000000-00000000-00000000-00000000-00000000-00000000-00000000-00000000");
     }
 
     static GameInput CreateInput(int frame, byte[] player1, byte[]? player2 = null)
     {
-        var result = new GameInput(player1.Length + (player2?.Length ?? 0));
+        var result = new GameInput();
         var p1 = GameInputBuffer.GetPlayer(ref result.Buffer, 0);
         player1.CopyTo(p1);
 

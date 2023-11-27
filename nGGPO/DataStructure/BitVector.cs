@@ -37,7 +37,7 @@ readonly ref struct BitVector(scoped ref Span<byte> bits)
 
     public ref struct BitOffset(ref Span<byte> buffer, int offset = 0)
     {
-        public const int NibbleSize = 4;
+        public const int NibbleSize = 8;
 
         readonly Span<byte> bytes = buffer;
 
