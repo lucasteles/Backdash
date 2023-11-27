@@ -20,7 +20,7 @@ class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGameState
     readonly ISessionCallbacks<TGameState> callbacks;
 
     readonly Udp udp;
-    readonly Synchronizer sync;
+    readonly Synchronizer<TGameState> sync;
     readonly ConnectStatus[] localConnectStatus = new ConnectStatus[Max.MsgPlayers];
 
     int numPlayers;
