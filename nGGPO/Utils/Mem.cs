@@ -76,7 +76,7 @@ static class Mem
         else
         {
             var stackPointer = stackalloc byte[size];
-            ptr = (nint) stackPointer;
+            ptr = (nint)stackPointer;
         }
 
         try
@@ -84,7 +84,7 @@ static class Mem
             fixed (byte* bodyPtr = body)
             {
                 Marshal.StructureToPtr(message, ptr, true);
-                Span<byte> source = new((void*) ptr, size);
+                Span<byte> source = new((void*)ptr, size);
                 Span<byte> dest = new(bodyPtr, size);
                 source.CopyTo(dest);
             }
@@ -109,12 +109,12 @@ static class Mem
         else
         {
             var stackPointer = stackalloc byte[size];
-            ptr = (nint) stackPointer;
+            ptr = (nint)stackPointer;
         }
 
         try
         {
-            Span<byte> dest = new((void*) ptr, body.Length);
+            Span<byte> dest = new((void*)ptr, body.Length);
             body.CopyTo(dest);
             return Marshal.PtrToStructure<T>(ptr);
         }
@@ -131,7 +131,7 @@ static class Mem
         int splitAt = 0,
         int bytePad = ByteSize)
     {
-        var builder = new StringBuilder();
+        StringBuilder builder = new();
 
         for (var i = 0; i < bytes.Length; i++)
         {
@@ -142,6 +142,7 @@ static class Mem
                 builder.Append(bin[j]);
         }
 
+        builder.Reverse();
         return builder.ToString();
     }
 }

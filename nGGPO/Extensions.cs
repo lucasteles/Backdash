@@ -1,9 +1,10 @@
 ﻿using System.Runtime.CompilerServices;
+using System.Text;
 using nGGPO.Inputs;
 
 namespace nGGPO;
 
-public static class Extensions
+static class Extensions
 {
     public static bool IsSuccess(this ErrorCode code) => code is ErrorCode.Ok;
 
@@ -23,4 +24,17 @@ public static class Extensions
         this PadInput.PadButtons flags,
         PadInput.PadButtons flag, bool value) =>
         value ? flags | flag : flags & ~flag;
+
+    public static void Reverse(this StringBuilder sb)
+    {
+        var end = sb.Length - 1;
+        var start = 0;
+
+        while (end - start > 0)
+        {
+            (sb[end], sb[start]) = (sb[start], sb[end]);
+            start++;
+            end--;
+        }
+    }
 }

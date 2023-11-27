@@ -23,14 +23,16 @@ static class InputCompressor
 
         var last = lastAcked;
         var lastBits = last.GetBitVector();
+        Span<byte> bits = inputMsg.Bits;
 
-        BitVector.BitOffset bitWriter = new(inputMsg.Bits);
+        BitVector.BitOffset bitWriter = new(ref bits);
         Tracer.Assert(last.Frame.IsNull || last.Frame.Next == inputMsg.StartFrame);
 
         for (var i = 0; i < pendingOutput.Size; i++)
         {
             ref var current = ref pendingOutput[i];
-            if (current.Equals(last, bitsOnly: true))
+
+            if (!current.Equals(last, bitsOnly: true))
             {
                 var currentBits = current.GetBitVector();
                 for (var j = 0; j < currentBits.BitCount; j++)
@@ -63,7 +65,7 @@ static class InputCompressor
     public static void DecompressInput(
         ref InputMsg msg,
         ref GameInput lastReceivedInput,
-        Action<int, string> onParsedInput
+        Action<int> onParsedInput
     )
     {
         var numBits = msg.NumBits;
@@ -74,7 +76,8 @@ static class InputCompressor
         if (lastReceivedInput.Frame < 0)
             lastReceivedInput.SetFrame(new(msg.StartFrame - 1));
 
-        BitVector.BitOffset bitVector = new(msg.Bits);
+        Span<byte> bits = msg.Bits;
+        BitVector.BitOffset bitVector = new(ref bits);
         var lastInputBits = lastReceivedInput.GetBitVector();
 
         while (bitVector.Offset < numBits)
@@ -106,7 +109,7 @@ static class InputCompressor
 
             if (useInputs)
             {
-                onParsedInput(currentFrame, lastInputBits.ToString());
+                onParsedInput(currentFrame);
             }
             else
             {

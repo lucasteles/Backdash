@@ -388,7 +388,7 @@ partial class UdpProtocol : IDisposable
         return true;
     }
 
-    void OnParsedInput(int currentFrame, string inputBits)
+    void OnParsedInput(int currentFrame)
     {
         /*
          * Move forward 1 frame in the stream.
@@ -407,7 +407,10 @@ partial class UdpProtocol : IDisposable
         state.Running.LastInputPacketRecvTime = (uint)Platform.GetCurrentTimeMS();
 
         Tracer.Log("Sending frame {0} to emu queue {1} ({2}).\n",
-            lastReceivedInput.Frame, queue, inputBits);
+            lastReceivedInput.Frame,
+            queue,
+            lastAckedInput.Buffer.ToString()
+        );
 
         QueueEvent(evt);
     }

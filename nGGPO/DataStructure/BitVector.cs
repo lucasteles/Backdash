@@ -33,14 +33,9 @@ readonly ref struct BitVector(scoped ref Span<byte> bits)
         }
     }
 
-    public override string ToString() => ToString(splitAt: 0);
-
-    public string ToString(int splitAt, int bytePad = Mem.ByteSize) =>
-        Mem.GetBitString(Buffer, splitAt, bytePad);
-
     public static implicit operator Span<byte>(BitVector @this) => @this.Buffer;
 
-    public ref struct BitOffset(in Span<byte> buffer, int offset = 0)
+    public ref struct BitOffset(ref Span<byte> buffer, int offset = 0)
     {
         public const int NibbleSize = 4;
 

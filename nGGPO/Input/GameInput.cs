@@ -10,14 +10,36 @@ namespace nGGPO.Input;
 public struct GameInputBuffer
 {
     byte element0;
+
+    public override string ToString() =>
+        Mem.GetBitString(this, splitAt:  Max.InputBytes);
+
+    public bool Equals(GameInputBuffer other)
+    {
+        ReadOnlySpan<byte> me = this;
+        ReadOnlySpan<byte> you = other;
+
+        if (you.Length > me.Length)
+            return false;
+
+        return me.SequenceEqual(you[..me.Length]);
+    }
+
+    public GameInputBuffer(ReadOnlySpan<byte> bits) => bits.CopyTo(this);
 }
 
 struct GameInput : IEquatable<GameInput>
 {
     public Frame Frame { get; private set; } = Frame.Null;
-    public static GameInput Empty => new();
 
-    GameInputBuffer buffer;
+    public static readonly GameInput Empty = new()
+    {
+        Frame = Frame.Null,
+        Size = 0,
+    };
+
+    public GameInputBuffer Buffer;
+
     public int Size { get; set; }
 
     public GameInput(ref GameInputBuffer inputBuffer, int size)
@@ -26,7 +48,7 @@ struct GameInput : IEquatable<GameInput>
         Tracer.Assert(bits.Length <= Max.InputBytes * Max.MsgPlayers);
         Tracer.Assert(bits.Length > 0);
         Size = size;
-        buffer = inputBuffer;
+        Buffer = inputBuffer;
     }
 
     public GameInput(ReadOnlySpan<byte> bits)
@@ -34,18 +56,17 @@ struct GameInput : IEquatable<GameInput>
         Tracer.Assert(bits.Length <= Max.InputBytes * Max.MsgPlayers);
         Tracer.Assert(bits.Length > 0);
         Size = bits.Length;
-        buffer = new();
-        bits.CopyTo(buffer);
+        Buffer = new(bits);
     }
 
     [Pure]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Span<byte> AsSpan() => Mem.InlineArrayAsSpan<GameInputBuffer, byte>(ref buffer, Size);
+    public Span<byte> AsSpan() => Mem.InlineArrayAsSpan<GameInputBuffer, byte>(ref Buffer, Size);
 
     [Pure]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ReadOnlySpan<byte> AsReadOnlySpan() =>
-        Mem.InlineArrayAsReadOnlySpan<GameInputBuffer, byte>(in buffer, Size);
+        Mem.InlineArrayAsReadOnlySpan<GameInputBuffer, byte>(in Buffer, Size);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public BitVector GetBitVector()
@@ -54,7 +75,7 @@ struct GameInput : IEquatable<GameInput>
         return new(ref span);
     }
 
-    public bool IsEmpty => Size is 0;
+    public readonly bool IsEmpty => Size is 0;
     public void IncrementFrame() => Frame = Frame.Next;
     public void SetFrame(Frame frame) => Frame = frame;
     public void ResetFrame() => Frame = Frame.Null;
@@ -62,22 +83,12 @@ struct GameInput : IEquatable<GameInput>
 
     public override string ToString()
     {
-        var builder = new StringBuilder();
-
+        StringBuilder builder = new();
         builder.Append($"{{ Frame: {Frame},");
         builder.Append($" Size: {Size}, Input: ");
-
-        builder.Append(GetBitVector().ToString(splitAt: Max.MsgPlayers));
-
+        builder.Append(Buffer.ToString());
         builder.Append(" }");
-
         return builder.ToString();
-    }
-
-    public bool EqualBits(in GameInput other)
-    {
-        var bytes = AsReadOnlySpan();
-        return bytes.SequenceEqual(other.AsReadOnlySpan()[..bytes.Length]);
     }
 
     public bool Equals(in GameInput other, bool bitsOnly)
@@ -88,12 +99,10 @@ struct GameInput : IEquatable<GameInput>
         if (Size != other.Size)
             Tracer.Log("sizes don't match: {}, {}", Size, other.Size);
 
-        var sameBits = EqualBits(other);
+        var sameBits = Buffer.Equals(other.Buffer);
 
         if (sameBits)
             Tracer.Log("bits don't match");
-
-        Tracer.Assert(Size > 0 && other.Size > 0);
 
         return (bitsOnly || Frame == other.Frame)
                && Size == other.Size
@@ -101,7 +110,7 @@ struct GameInput : IEquatable<GameInput>
     }
 
     // ReSharper disable once NonReadonlyMemberInGetHashCode
-    public override int GetHashCode() => HashCode.Combine(Size, buffer, Frame);
+    public override int GetHashCode() => HashCode.Combine(Size, Buffer, Frame);
     public bool Equals(GameInput other) => Equals(other, false);
     public override bool Equals(object? obj) => obj is GameInput gi && Equals(gi);
     public static bool operator ==(GameInput a, GameInput b) => a.Equals(b);
