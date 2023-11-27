@@ -38,15 +38,21 @@ struct GameInput : IEquatable<GameInput>
 {
     public Frame Frame { get; private set; } = Frame.Null;
 
-    public static readonly GameInput Empty = new()
+    public GameInputBuffer Buffer;
+
+    public int Size { get; set; }
+
+    public static GameInput Empty => new()
     {
         Frame = Frame.Null,
         Size = 0,
     };
 
-    public GameInputBuffer Buffer;
-
-    public int Size { get; set; }
+    public GameInput(int size)
+    {
+        Size = size;
+        Buffer = new();
+    }
 
     public GameInput(ref GameInputBuffer inputBuffer, int size)
     {

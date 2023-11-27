@@ -388,21 +388,16 @@ partial class UdpProtocol : IDisposable
         return true;
     }
 
-    void OnParsedInput(int currentFrame)
+    void OnParsedInput()
     {
-        /*
-         * Move forward 1 frame in the stream.
-         */
-        Tracer.Assert(currentFrame == lastReceivedInput.Frame.Next);
-        lastReceivedInput.SetFrame(new(currentFrame));
-
         /*
          * Send the event to the emulator
          */
         UdpEvent evt = new(UdpEventType.Input)
         {
-            Input = lastAckedInput,
+            Input = lastReceivedInput,
         };
+
 
         state.Running.LastInputPacketRecvTime = (uint)Platform.GetCurrentTimeMS();
 

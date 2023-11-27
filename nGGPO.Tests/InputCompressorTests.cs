@@ -1,3 +1,4 @@
+using FluentAssertions;
 using nGGPO.DataStructure;
 using nGGPO.Input;
 using nGGPO.Network;
@@ -6,15 +7,18 @@ namespace nGGPO.Tests;
 
 public class InputCompressorTests
 {
+    GameInput lastRecv = GameInput.Empty;
+
     [Fact]
     public void Test1()
     {
-        var lastAcked = CreateInput(0, 1);
+        var lastAcked = CreateInput(0, [1]);
         var lastSent = GameInput.Empty;
 
         var pendingInputs = CreateBuffer(
-            CreateInput(1, 2),
-            CreateInput(2, 4)
+            CreateInput(1, [2]),
+            CreateInput(2, [4]),
+            CreateInput(3, [6])
         );
 
         var compressed = InputCompressor.WriteCompressed(
@@ -22,11 +26,36 @@ public class InputCompressorTests
             in pendingInputs,
             ref lastSent
         );
+
+
+        List<string> decompressedInputs = new();
+        InputCompressor.DecompressInput(
+            ref compressed,
+            ref lastRecv,
+            () => decompressedInputs.Add(lastRecv.Buffer.ToString()));
+
+        decompressedInputs.Should().BeEquivalentTo(
+            "00000010-00000000-00000000-00000000-00000000-00000000-00000000-00000000-00000000"
+            + "|00000000-00000000-00000000-00000000-00000000-00000000-00000000-00000000-00000000",
+            "00000100-00000000-00000000-00000000-00000000-00000000-00000000-00000000-00000000"
+            + "|00000000-00000000-00000000-00000000-00000000-00000000-00000000-00000000-00000000",
+            "00000110-00000000-00000000-00000000-00000000-00000000-00000000-00000000-00000000"
+            + "|00000000-00000000-00000000-00000000-00000000-00000000-00000000-00000000-00000000");
     }
 
-    static GameInput CreateInput(int frame, params byte[] value)
+    static GameInput CreateInput(int frame, byte[] player1, byte[]? player2 = null)
     {
-        var result = new GameInput(value);
+        var result = new GameInput(player1.Length + (player2?.Length ?? 0));
+        var p1 = GameInputBuffer.GetPlayer(ref result.Buffer, 0);
+        player1.CopyTo(p1);
+
+        if (player2 is {Length: > 0})
+        {
+            var p2 = GameInputBuffer.GetPlayer(ref result.Buffer, 1);
+            player2.CopyTo(p2);
+        }
+
+
         result.SetFrame(new(frame));
         return result;
     }

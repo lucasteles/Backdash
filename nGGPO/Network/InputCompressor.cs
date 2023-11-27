@@ -65,7 +65,7 @@ static class InputCompressor
     public static void DecompressInput(
         ref InputMsg msg,
         ref GameInput lastReceivedInput,
-        Action<int> onParsedInput
+        Action onParsedInput
     )
     {
         var numBits = msg.NumBits;
@@ -109,7 +109,13 @@ static class InputCompressor
 
             if (useInputs)
             {
-                onParsedInput(currentFrame);
+                /*
+                 * Move forward 1 frame in the stream.
+                 */
+                Tracer.Assert(currentFrame == lastReceivedInput.Frame.Next);
+                lastReceivedInput.SetFrame(new(currentFrame));
+
+                onParsedInput();
             }
             else
             {
