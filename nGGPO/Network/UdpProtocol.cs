@@ -1,9 +1,6 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Net;
-using System.Threading;
 using System.Threading.Channels;
-using System.Threading.Tasks;
 using nGGPO.DataStructure;
 using nGGPO.Input;
 using nGGPO.Network.Messages;
@@ -18,6 +15,7 @@ partial class UdpProtocol : IDisposable
      */
     readonly Udp udp;
     readonly IPEndPoint peerAddress;
+    readonly SocketAddress peerSocketAddress;
     readonly ushort magicNumber;
     readonly int queue;
     ushort remoteMagicNumber;
@@ -115,6 +113,7 @@ partial class UdpProtocol : IDisposable
         this.udp = udp;
         this.queue = queue;
         this.peerAddress = peerAddress;
+        this.peerSocketAddress = peerAddress.Serialize();
         this.localConnectStatus = localConnectStatus;
 
         this.udp.OnMessage += OnMsgEventHandler;
@@ -122,7 +121,7 @@ partial class UdpProtocol : IDisposable
 
     async ValueTask OnMsgEventHandler(UdpMsg msg, SocketAddress from, CancellationToken ct)
     {
-        if (peerAddress.Equals(from))
+        if (peerSocketAddress.Equals(from))
             await OnMsg(msg);
     }
 
@@ -627,7 +626,7 @@ partial class UdpProtocol : IDisposable
         await foreach (var entry in sendQueue.Reader.ReadAllAsync(sendQueueCancellation.Token))
         {
             // TODO: increment bytesSent
-            // bytesSent += 
+            // bytesSent +=
 
             // if (_send_latency) {
             //       // should really come up with a gaussian distributation based on the configured

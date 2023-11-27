@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using nGGPO.Network.Messages;
+﻿using nGGPO.Network.Messages;
 
 namespace nGGPO.Input;
 

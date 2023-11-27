@@ -1,5 +1,4 @@
-﻿using System;
-using nGGPO.Serialization.Buffer;
+﻿using nGGPO.Serialization.Buffer;
 
 namespace nGGPO.Serialization;
 

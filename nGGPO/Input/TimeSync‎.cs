@@ -1,5 +1,4 @@
-﻿using System;
-using nGGPO.Utils;
+﻿using nGGPO.Utils;
 
 namespace nGGPO.Input;
 

@@ -1,5 +1,4 @@
-﻿using System;
-using nGGPO.Backends;
+﻿using nGGPO.Backends;
 using nGGPO.Serialization;
 
 namespace nGGPO;
