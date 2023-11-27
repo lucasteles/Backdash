@@ -1,4 +1,4 @@
-namespace ConsoleApp1;
+namespace nGGPO.Playground;
 
 public static class Helpers
 {

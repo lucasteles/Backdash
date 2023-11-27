@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using ConsoleApp1;
+using nGGPO.Playground;
 using nGGPO.Inputs;
 using nGGPO.Network;
 using nGGPO.Network.Messages;

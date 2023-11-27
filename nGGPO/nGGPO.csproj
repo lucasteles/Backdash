@@ -5,6 +5,7 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
     <ItemGroup>
-        <InternalsVisibleTo Include="ConsoleApp1"/>
+        <InternalsVisibleTo Include="$(AssemblyName).Playground"/>
+        <InternalsVisibleTo Include="$(AssemblyName).Tests"/>
     </ItemGroup>
 </Project>

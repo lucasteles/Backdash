@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading.Channels;
+﻿using System.Threading.Channels;
 
 namespace nGGPO.DataStructure;
 
@@ -8,13 +7,10 @@ sealed class CircularBuffer<T> where T : notnull
     readonly T[] elements;
     int head, tail;
 
-    public CircularBuffer(int capacity = 64)
-    {
-        elements = new T[capacity];
-    }
+    public CircularBuffer(int capacity = 64) => elements = new T[capacity];
 
     public int Capacity => elements.Length;
-    public int Size { get; private set; } = 0;
+    public int Size { get; private set; }
 
     public bool IsEmpty => Size is 0;
 
@@ -36,7 +32,7 @@ sealed class CircularBuffer<T> where T : notnull
         tail = (tail + 1) % Capacity;
         Size--;
 
-        return ref value;
+        return ref value!;
     }
 
     public void Push(in T val)

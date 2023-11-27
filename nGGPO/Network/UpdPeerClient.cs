@@ -48,12 +48,12 @@ public class UdpPeerClient<T>(
 
     public int Port => port;
 
-    public async Task Start(CancellationToken cancellationToken = default)
+    public Task Start(CancellationToken cancellationToken = default)
     {
         var cts = CancellationTokenSource
             .CreateLinkedTokenSource(cancellationToken, cancellation.Token);
 
-        await Task.WhenAll(
+        return Task.WhenAll(
             Produce(cts.Token),
             Consume(cts.Token),
             ProcessSendQueue(cts.Token)
@@ -155,12 +155,12 @@ public class UdpPeerClient<T>(
         }
     }
 
-    public async ValueTask<int> SendRaw(
+    public ValueTask<int> SendRaw(
         ReadOnlyMemory<byte> payload,
         SocketAddress peerAddress,
         CancellationToken ct = default
     ) =>
-        await socket.SendToAsync(payload, SocketFlags.None, peerAddress, ct);
+        socket.SendToAsync(payload, SocketFlags.None, peerAddress, ct);
 
     public ValueTask SendTo(T payload, IPEndPoint dest, CancellationToken ct = default) =>
         SendTo(payload, dest.Serialize(), ct);
