@@ -12,7 +12,7 @@ sealed class TimeSync
         public int MaxFrameAdvantage { get; set; } = 9;
     }
 
-    static int _counter;
+    static int counter;
 
     readonly int minFrameAdvantage;
     readonly int maxFrameAdvantage;
@@ -43,18 +43,17 @@ sealed class TimeSync
     {
         // Average our local and remote frame advantages
         int i, sum = 0;
-        float advantage, radvantage;
         for (i = 0; i < local.Length; i++)
             sum += local[i];
 
-        advantage = sum / (float)local.Length;
+        var advantage = sum / (float)local.Length;
 
         sum = 0;
         for (i = 0; i < remote.Length; i++)
             sum += remote[i];
 
-        radvantage = sum / (float)remote.Length;
-        _counter++;
+        var radvantage = sum / (float)remote.Length;
+        counter++;
 
         // See if someone should take action.  The person furthest ahead
         // needs to slow down so the other user can catch up.
@@ -67,7 +66,7 @@ sealed class TimeSync
         // sleep for.
         var sleepFrames = (int)((radvantage - advantage) / 2 + 0.5f);
 
-        Tracer.Log("iteration {}:  sleep frames is {}", _counter, sleepFrames);
+        Tracer.Log("iteration {}:  sleep frames is {}", counter, sleepFrames);
 
         // Some things just aren't worth correcting for.  Make sure
         // the difference is relevant before proceeding.
@@ -78,17 +77,15 @@ sealed class TimeSync
         // a sleep.  This tries to make the emulator sleep while the
         // user's input isn't sweeping in arcs (e.g. fireball motions in
         // Street Fighter), which could cause the player to miss moves.
-        if (requireIdleInput)
-            for (i = 1; i < lastInputs.Length; i++)
-            {
-                if (!lastInputs[i].Equals(lastInputs[0], true))
-                {
-                    Tracer.Log(
-                        "iteration {}:  rejecting due to input stuff at position {}...!!!",
-                        _counter, i);
-                    return 0;
-                }
-            }
+        if (!requireIdleInput) return Math.Min(sleepFrames, maxFrameAdvantage);
+        for (i = 1; i < lastInputs.Length; i++)
+        {
+            if (lastInputs[i].Equals(lastInputs[0], true)) continue;
+            Tracer.Log("iteration {}:  rejecting due to input stuff at position {}...!!!",
+                counter, i);
+
+            return 0;
+        }
 
         // Success!!! Recommend the number of frames to sleep and adjust
         return Math.Min(sleepFrames, maxFrameAdvantage);
