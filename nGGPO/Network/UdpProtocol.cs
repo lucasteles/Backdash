@@ -21,8 +21,6 @@ partial class UdpProtocol : IDisposable
     ushort remoteMagicNumber;
     bool connected;
     int sendLatency;
-    int oopPercent;
-    Packet ooPacket;
 
     Channel<QueueEntry> sendQueue;
     CancellationTokenSource sendQueueCancellation = new();
@@ -32,9 +30,6 @@ partial class UdpProtocol : IDisposable
      */
     int roundTripTime;
     int packetsSent;
-    int bytesSent;
-    int kbpsSent;
-    int statsStartTime;
 
     /*
      * The state machine
@@ -94,7 +89,6 @@ partial class UdpProtocol : IDisposable
         lastReceivedInput = GameInput.Empty;
         lastSentInput = GameInput.Empty;
         lastAckedInput = GameInput.Empty;
-        ooPacket = new();
         sendQueue = CircularBuffer.CreateChannel<QueueEntry>();
         pendingOutput = new();
         eventQueue = new();
@@ -106,7 +100,6 @@ partial class UdpProtocol : IDisposable
             peerConnectStatus[i].LastFrame = Frame.NullValue;
 
         sendLatency = Platform.GetConfigInt("ggpo.network.delay");
-        oopPercent = Platform.GetConfigInt("ggpo.oop.percent");
 
         this.timesync = timesync;
         this.random = random;
@@ -249,7 +242,7 @@ partial class UdpProtocol : IDisposable
         return sendQueue.Writer.WriteAsync(new()
         {
             QueueTime = Platform.GetCurrentTimeMS(),
-            DestAddr = peerAddress,
+            DestAddr = peerSocketAddress,
             Msg = msg,
         }, sendQueueCancellation.Token);
     }
@@ -365,25 +358,18 @@ partial class UdpProtocol : IDisposable
         // /*
         //  * Decompress the input.
         //  */
-        var lastReceivedFrameNumber = lastAckedInput.Frame;
-
         if (msg.Input.InputSize > 0)
         {
             // TODO: remove delegate allocation with OnParsedInput
             InputCompressor.DecompressInput(ref msg.Input, ref lastReceivedInput, OnParsedInput);
         }
 
-        Tracer.Assert(lastReceivedInput.Frame >= lastReceivedFrameNumber);
+        Tracer.Assert(lastReceivedInput.Frame >= lastAckedInput.Frame);
 
         /*
          * Get rid of our buffered input
          */
-
-        while (!pendingOutput.IsEmpty && pendingOutput.Peek().Frame < msg.Input.AckFrame)
-        {
-            Tracer.Log("Throwing away pending output frame %d\n", pendingOutput.Peek().Frame);
-            lastAckedInput = pendingOutput.Pop();
-        }
+        OnInputAck(msg);
 
         return true;
     }
@@ -410,7 +396,7 @@ partial class UdpProtocol : IDisposable
         QueueEvent(evt);
     }
 
-    bool OnInputAck(UdpMsg msg)
+    bool OnInputAck(in UdpMsg msg)
     {
         while (!pendingOutput.IsEmpty && pendingOutput.Peek().Frame < msg.InputAck.AckFrame)
         {
@@ -421,13 +407,13 @@ partial class UdpProtocol : IDisposable
         return true;
     }
 
-    bool OnQualityReply(UdpMsg msg)
+    bool OnQualityReply(in UdpMsg msg)
     {
         roundTripTime = (int)(Platform.GetCurrentTimeMS() - msg.QualityReply.Pong);
         return true;
     }
 
-    bool OnQualityReport(UdpMsg msg, out UdpMsg newMsg, out bool sendMsg)
+    bool OnQualityReport(in UdpMsg msg, out UdpMsg newMsg, out bool sendMsg)
     {
         newMsg = new(MsgType.QualityReply)
         {
@@ -528,44 +514,18 @@ partial class UdpProtocol : IDisposable
     {
         await foreach (var entry in sendQueue.Reader.ReadAllAsync(sendQueueCancellation.Token))
         {
-            // TODO: increment bytesSent
-            // bytesSent +=
+            if (sendLatency > 0)
+            {
+                // should really come up with a gaussian distributation based on the configured
+                // value, but this will do for now.
+                int jitter = (sendLatency * 2 / 3) + ((random.Next() % sendLatency) / 3);
+                if (Platform.GetCurrentTimeMS() < entry.QueueTime + jitter)
+                    break;
+            }
 
-            // if (_send_latency) {
-            //       // should really come up with a gaussian distributation based on the configured
-            //       // value, but this will do for now.
-            //       int jitter = (_send_latency * 2 / 3) + ((rand() % _send_latency) / 3);
-            //       if (Platform::GetCurrentTimeMS() < _send_queue.front().queue_time + jitter) {
-            //          break;
-            //       }
-            //    }
-            //    if (_oop_percent && !_oo_packet.msg && ((rand() % 100) < _oop_percent)) {
-            //       int delay = rand() % (_send_latency * 10 + 1000);
-            //       Log("creating rogue oop (seq: %d  delay: %d)\n", entry.msg->hdr.sequence_number, delay);
-            //       _oo_packet.send_time = Platform::GetCurrentTimeMS() + delay;
-            //       _oo_packet.msg = entry.msg;
-            //       _oo_packet.dest_addr = entry.dest_addr;
-            //    } else {
-            //       ASSERT(entry.dest_addr.sin_addr.s_addr);
-            //
-            //       _udp->SendTo((char *)entry.msg, entry.msg->PacketSize(), 0,
-            //                    (struct sockaddr *)&entry.dest_addr, sizeof entry.dest_addr);
-            //
-            //       delete entry.msg;
-            //    }
-            //    _send_queue.pop();
-            // }
-            // if (_oo_packet.msg && _oo_packet.send_time < Platform::GetCurrentTimeMS()) {
-            //    Log("sending rogue oop!");
-            //    _udp->SendTo((char *)_oo_packet.msg, _oo_packet.msg->PacketSize(), 0,
-            //                   (struct sockaddr *)&_oo_packet.dest_addr, sizeof _oo_packet.dest_addr);
-            //
-            //    delete _oo_packet.msg;
-            //    _oo_packet.msg = NULL;
-            // }
+            await udp.SendTo(entry.Msg, entry.DestAddr, sendQueueCancellation.Token);
         }
     }
-
 
     public int RecommendFrameDelay()
     {
@@ -596,7 +556,6 @@ partial class UdpProtocol : IDisposable
     {
         stats.Ping = roundTripTime;
         stats.SendQueueLen = pendingOutput.Size;
-        stats.KbpsSent = kbpsSent;
         stats.RemoteFramesBehind = remoteFrameAdvantage;
         stats.LocalFramesBehind = localFrameAdvantage;
     }

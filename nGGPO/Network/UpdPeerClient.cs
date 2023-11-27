@@ -38,6 +38,8 @@ public class UdpPeerClient<T>(
     readonly Channel<(SocketAddress, T)> sendQueue =
         Channel.CreateBounded<(SocketAddress, T)>(ChannelOptions);
 
+    public int TotalBytesSent;
+
     public event Func<T, SocketAddress, CancellationToken, ValueTask> OnMessage = delegate
     {
         return ValueTask.CompletedTask;
@@ -156,11 +158,11 @@ public class UdpPeerClient<T>(
         ReadOnlyMemory<byte> payload,
         SocketAddress peerAddress,
         CancellationToken ct = default
-    ) =>
-        socket.SendToAsync(payload, SocketFlags.None, peerAddress, ct);
-
-    public ValueTask SendTo(T payload, IPEndPoint dest, CancellationToken ct = default) =>
-        SendTo(payload, dest.Serialize(), ct);
+    )
+    {
+        TotalBytesSent += payload.Length;
+        return socket.SendToAsync(payload, SocketFlags.None, peerAddress, ct);
+    }
 
     public ValueTask SendTo(T payload, SocketAddress peerAddress, CancellationToken ct = default) =>
         sendQueue.Writer.WriteAsync((peerAddress, payload), ct);
