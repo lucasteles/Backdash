@@ -12,6 +12,7 @@ using static UdpPeerClient;
 
 static class UdpPeerClient
 {
+    public const int UdpPacketSize = 65_527;
     const int MaxQueuedPackages = 60 * Max.MsgPlayers;
 
     public static readonly BoundedChannelOptions ChannelOptions =
@@ -37,6 +38,7 @@ public class UdpPeerClient<T>(
 
     readonly Channel<(SocketAddress, T)> sendQueue =
         Channel.CreateBounded<(SocketAddress, T)>(ChannelOptions);
+
 
     public int TotalBytesSent;
 
@@ -80,7 +82,7 @@ public class UdpPeerClient<T>(
     async Task Produce(CancellationToken ct)
     {
         var buffer = GC.AllocateArray<byte>(
-            length: Max.UdpPacketSize,
+            length: UdpPacketSize,
             pinned: true
         );
 
@@ -131,7 +133,7 @@ public class UdpPeerClient<T>(
     async Task ProcessSendQueue(CancellationToken ct)
     {
         var buffer = GC.AllocateArray<byte>(
-            length: Max.UdpPacketSize,
+            length: UdpPacketSize,
             pinned: true
         );
 

@@ -7,7 +7,10 @@ using nGGPO.Utils;
 
 void Div() => Console.WriteLine(new string('-', 10));
 
-byte[] data = {1, 2, 3, 4, 5};
+byte[] data =
+{
+    1, 2, 3, 4, 5
+};
 {
     var packet = long.MaxValue;
     var serializer = BinarySerializers.Get<long>()!;
@@ -36,7 +39,7 @@ Div();
     Input packet = new()
     {
         S = data.Length,
-        A = (byte) 'a',
+        A = (byte)'a',
         B = 2,
         Bits = new(),
     };
@@ -58,13 +61,16 @@ Div();
     Input packet = new()
     {
         S = data.Length,
-        A = (byte) 'a',
+        A = (byte)'a',
         B = 2,
         Bits = new(),
     };
     data.CopyTo(packet.Bits);
 
-    var serializer = new CustomInputSerializer {Network = false};
+    var serializer = new CustomInputSerializer
+    {
+        Network = false
+    };
 
     using var buffer = MemoryBuffer.Rent(20, true);
     var size = serializer.Serialize(ref packet, buffer);
@@ -94,8 +100,11 @@ Div();
     packet.Header.Dump();
     packet.SyncRequest.Dump();
 
-    var serializer = new UdpMsgBinarySerializer {Network = false};
-    using var buffer = MemoryBuffer.Rent(Max.UdpPacketSize, true);
+    var serializer = new UdpMsgBinarySerializer
+    {
+        Network = false,
+    };
+    using var buffer = MemoryBuffer.Rent(UdpPeerClient.UdpPacketSize, true);
 
     var size = serializer.Serialize(ref packet, buffer);
     var bytes = buffer[..size];
