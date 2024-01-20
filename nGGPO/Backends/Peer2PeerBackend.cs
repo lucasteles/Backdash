@@ -40,6 +40,9 @@ class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGameState
         int numPlayers
     )
     {
+        ExceptionHelper.ThrowIfArgumentIsNegativeOrZero(localPort);
+        ExceptionHelper.ThrowIfArgumentIsNegativeOrZero(numPlayers);
+
         this.inputSerializer = inputSerializer;
         this.callbacks = callbacks;
         this.numPlayers = numPlayers;

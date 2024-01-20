@@ -31,7 +31,10 @@ class UdpMsgBinarySerializer : IBinarySerializer<UdpMsg>
     public UdpMsg Deserialize(in ReadOnlySpan<byte> data)
     {
         var offset = 0;
-        NetworkBufferReader reader = new(data, ref offset) {Network = Network};
+        NetworkBufferReader reader = new(data, ref offset)
+        {
+            Network = Network
+        };
 
         var msg = new UdpMsg();
         msg.Deserialize(reader);
@@ -41,7 +44,10 @@ class UdpMsgBinarySerializer : IBinarySerializer<UdpMsg>
     public int Serialize(ref UdpMsg data, Span<byte> buffer)
     {
         var offset = 0;
-        NetworkBufferWriter writer = new(buffer, ref offset) {Network = Network};
+        NetworkBufferWriter writer = new(buffer, ref offset)
+        {
+            Network = Network
+        };
         data.Serialize(writer);
         return offset;
     }
@@ -76,18 +82,18 @@ static class BinarySerializers
         where TEnum : unmanaged, Enum
         where TInt : unmanaged, IBinaryInteger<TInt>
     {
-        static readonly PrimitiveBinarySerializer<TInt> ValueBinarySerializer = new();
+        static readonly PrimitiveBinarySerializer<TInt> valueBinarySerializer = new();
 
         public TEnum Deserialize(in ReadOnlySpan<byte> data)
         {
-            var underValue = ValueBinarySerializer.Deserialize(in data);
+            var underValue = valueBinarySerializer.Deserialize(in data);
             return Mem.IntegerAsEnum<TEnum, TInt>(underValue);
         }
 
         public int Serialize(ref TEnum data, Span<byte> buffer)
         {
             var underValue = Mem.EnumAsInteger<TEnum, TInt>(data);
-            return ValueBinarySerializer.SerializeScoped(ref underValue, buffer);
+            return valueBinarySerializer.SerializeScoped(ref underValue, buffer);
         }
     }
 

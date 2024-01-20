@@ -1,6 +1,5 @@
 using FluentAssertions;
 using nGGPO.Input;
-using nGGPO.Utils;
 
 namespace nGGPO.Tests;
 

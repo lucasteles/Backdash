@@ -13,7 +13,7 @@ using static UdpPeerClient;
 static class UdpPeerClient
 {
     public const int UdpPacketSize = 65_527;
-    const int MaxQueuedPackages = 60 * Max.MsgPlayers;
+    const int MaxQueuedPackages = 60 * 2 * Max.MsgPlayers;
 
     public static readonly BoundedChannelOptions ChannelOptions =
         new(MaxQueuedPackages)
@@ -21,7 +21,7 @@ static class UdpPeerClient
             SingleWriter = true,
             SingleReader = true,
             AllowSynchronousContinuations = false,
-            FullMode = BoundedChannelFullMode.DropOldest,
+            FullMode = BoundedChannelFullMode.Wait,
         };
 }
 
