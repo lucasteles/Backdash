@@ -106,7 +106,19 @@ static class BinarySerializers
         new EnumSerializer<TInput, TUnderType>();
 
     public static IBinarySerializer<TInput> ForEnum<TInput>()
-        where TInput : unmanaged, Enum => ForEnum<TInput, int>();
+        where TInput : unmanaged, Enum =>
+        Type.GetTypeCode(typeof(TInput)) switch
+        {
+            TypeCode.Int32 => ForEnum<TInput, int>(),
+            TypeCode.UInt32 => ForEnum<TInput, uint>(),
+            TypeCode.UInt64 => ForEnum<TInput, ulong>(),
+            TypeCode.Int64 => ForEnum<TInput, long>(),
+            TypeCode.Int16 => ForEnum<TInput, short>(),
+            TypeCode.UInt16 => ForEnum<TInput, ushort>(),
+            TypeCode.Byte => ForEnum<TInput, byte>(),
+            TypeCode.SByte => ForEnum<TInput, sbyte>(),
+            _ => throw new ArgumentOutOfRangeException(nameof(TInput)),
+        };
 
     public static IBinarySerializer<TInput> ForStructure<TInput>(bool marshall = false)
         where TInput : struct

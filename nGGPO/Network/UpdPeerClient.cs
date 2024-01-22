@@ -13,16 +13,6 @@ using static UdpPeerClient;
 static class UdpPeerClient
 {
     public const int UdpPacketSize = 65_527;
-    const int MaxQueuedPackages = 60 * 2 * Max.MsgPlayers;
-
-    public static readonly BoundedChannelOptions ChannelOptions =
-        new(MaxQueuedPackages)
-        {
-            SingleWriter = true,
-            SingleReader = true,
-            AllowSynchronousContinuations = false,
-            FullMode = BoundedChannelFullMode.Wait,
-        };
 }
 
 public class UdpPeerClient<T>(
@@ -41,11 +31,15 @@ public class UdpPeerClient<T>(
     public delegate ValueTask OnMessageDelegate(T message, SocketAddress sender,
         CancellationToken stoppingToken);
 
-    readonly Channel<(SocketAddress, ReadOnlyMemory<byte>)> channel =
-        Channel.CreateBounded<(SocketAddress, ReadOnlyMemory<byte>)>(ChannelOptions);
-
     readonly Channel<(SocketAddress, T)> sendQueue =
-        Channel.CreateBounded<(SocketAddress, T)>(ChannelOptions);
+        Channel.CreateUnbounded<(SocketAddress, T)>(
+            new()
+            {
+                SingleWriter = true,
+                SingleReader = true,
+                AllowSynchronousContinuations = false,
+            }
+        );
 
     public event OnMessageDelegate OnMessage = delegate
     {
@@ -58,8 +52,7 @@ public class UdpPeerClient<T>(
             .CreateLinkedTokenSource(cancellationToken, cancellation.Token);
 
         return Task.WhenAll(
-            Produce(cts.Token),
-            Consume(cts.Token),
+            ReadSocket(cts.Token),
             ProcessSendQueue(cts.Token)
         );
     }
@@ -77,12 +70,11 @@ public class UdpPeerClient<T>(
 
         IPEndPoint localEp = new(IPAddress.Any, port);
         socket.Bind(localEp);
-
         Tracer.Log("binding udp socket to port {0}.\n", port);
         return socket;
     }
 
-    async Task Produce(CancellationToken ct)
+    async Task ReadSocket(CancellationToken ct)
     {
         var buffer = GC.AllocateArray<byte>(
             length: UdpPacketSize,
@@ -97,10 +89,12 @@ public class UdpPeerClient<T>(
                 var receivedSize = await socket
                     .ReceiveFromAsync(buffer, SocketFlags.None, address, ct);
 
-                if (receivedSize is 0) continue;
+                if (receivedSize is 0)
+                    continue;
 
                 var memory = MemoryMarshal.CreateFromPinnedArray(buffer, 0, receivedSize);
-                await channel.Writer.WriteAsync((address, memory), ct);
+                var parsed = serializer.Deserialize(memory.Span);
+                await OnMessage.Invoke(parsed, address, ct);
             }
             catch (SocketException ex)
             {
@@ -113,26 +107,6 @@ public class UdpPeerClient<T>(
             {
                 break;
             }
-
-        channel.Writer.Complete();
-    }
-
-    async Task Consume(CancellationToken ct)
-    {
-        try
-        {
-            await foreach (var (peerAddress, pkg) in channel.Reader.ReadAllAsync(ct))
-            {
-                var parsed = serializer.Deserialize(pkg.Span);
-                await OnMessage.Invoke(parsed, peerAddress, ct);
-            }
-        }
-        catch (OperationCanceledException)
-        {
-        }
-        catch (ChannelClosedException)
-        {
-        }
     }
 
     async Task ProcessSendQueue(CancellationToken ct)
