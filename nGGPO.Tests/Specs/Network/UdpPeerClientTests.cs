@@ -1,4 +1,6 @@
-﻿using nGGPO.Serialization;
+﻿using System.Net;
+using nGGPO.Network;
+using nGGPO.Serialization;
 
 #pragma warning disable AsyncFixer01
 
@@ -35,13 +37,13 @@ public class UdpPeerClientTests
         using Peer2PeerFixture<StringValue> context = new(new StringBinarySerializer());
         var (client, server) = context;
 
-        var totalProcessed = 0;
+        AsyncCounter counter = new();
 
         server.Socket.OnMessage += async (message, sender, token) =>
         {
             message.Value.Should().Be("hello server");
             sender.Should().Be(client.Address);
-            Interlocked.Increment(ref totalProcessed);
+            counter.Inc();
             await server.Socket.SendTo(sender, "hello client", token);
         };
 
@@ -49,19 +51,36 @@ public class UdpPeerClientTests
         {
             message.Value.Should().Be("hello client");
             sender.Should().Be(server.Address);
-            Interlocked.Increment(ref totalProcessed);
+            counter.Inc();
             return ValueTask.CompletedTask;
         };
 
         await client.Socket.SendTo(server.Address, "hello server");
 
-        await WaitFor.BeTrue(() => totalProcessed is 2);
+        await WaitFor.BeTrue(() => counter.Value is 2);
     }
 
-    public enum OpMessage : short
+    enum OpMessage : short
     {
         Increment = 1,
         Decrement = 2,
+        IncrementCallback = 3,
+        DecrementCallback = 4,
+    }
+
+    void HandleMessage(ref int totalResult, OpMessage message)
+    {
+        switch (message)
+        {
+            case OpMessage.Increment:
+                Interlocked.Increment(ref totalResult);
+                break;
+            case OpMessage.Decrement:
+                Interlocked.Decrement(ref totalResult);
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(message), message, null);
+        }
     }
 
     [Fact]
@@ -76,7 +95,7 @@ public class UdpPeerClientTests
         server.Socket.OnMessage += (message, sender, token) =>
         {
             sender.Should().Be(client.Address);
-            HandleMessage(message);
+            HandleMessage(ref totalResult, message);
             counter.Inc();
             return ValueTask.CompletedTask;
         };
@@ -84,7 +103,7 @@ public class UdpPeerClientTests
         client.Socket.OnMessage += (message, sender, token) =>
         {
             sender.Should().Be(server.Address);
-            HandleMessage(message);
+            HandleMessage(ref totalResult, message);
             counter.Inc();
             return ValueTask.CompletedTask;
         };
@@ -104,18 +123,72 @@ public class UdpPeerClientTests
 
         await WaitFor.BeTrue(() => counter.Value is messageCount);
         totalResult.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task ShouldSendReceiveBetween()
+    {
+        using Peer2PeerFixture<OpMessage> context = new(
+            BinarySerializers.ForEnum<OpMessage>()
+        );
+
+        var (client, server) = context;
+
+        var totalResult = 0;
+        AsyncCounter counter = new();
+        server.Socket.OnMessage += async (message, sender, token) =>
+        {
+            sender.Should().Be(client.Address);
+            await HandleMessageAsync(message, server.Socket, sender, token);
+            counter.Inc();
+        };
+
+        client.Socket.OnMessage += async (message, sender, token) =>
+        {
+            sender.Should().Be(server.Address);
+            await HandleMessageAsync(message, client.Socket, sender, token);
+            counter.Inc();
+        };
+
+        const int messageCount = 50_000;
+        Random rnd = new(42);
+
+        var tasks = Task.WhenAll(Enumerable.Range(0, messageCount).Select(i => Task.Run(async () =>
+        {
+            var msg = i % 2 is 0
+                ? OpMessage.IncrementCallback
+                : OpMessage.DecrementCallback;
+
+            if (rnd.Next() % 2 is 0)
+                await client.Socket.SendTo(server.Address, msg);
+            else
+                await server.Socket.SendTo(client.Address, msg);
+        })));
+
+        await WaitFor.BeTrue(() => counter.Value is messageCount * 2);
+        totalResult.Should().Be(0);
 
         return;
 
-        void HandleMessage(OpMessage message)
+        async ValueTask HandleMessageAsync(
+            OpMessage message,
+            UdpPeerClient<OpMessage> udpClient,
+            SocketAddress sender,
+            CancellationToken ct
+        )
         {
             switch (message)
             {
-                case OpMessage.Increment:
-                    Interlocked.Increment(ref totalResult);
+                case OpMessage.Increment or OpMessage.Decrement:
+                    HandleMessage(ref totalResult, message);
                     break;
-                case OpMessage.Decrement:
+                case OpMessage.IncrementCallback:
+                    Interlocked.Increment(ref totalResult);
+                    await udpClient.SendTo(sender, OpMessage.Decrement, ct);
+                    break;
+                case OpMessage.DecrementCallback:
                     Interlocked.Decrement(ref totalResult);
+                    await udpClient.SendTo(sender, OpMessage.Increment, ct);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(message), message, null);

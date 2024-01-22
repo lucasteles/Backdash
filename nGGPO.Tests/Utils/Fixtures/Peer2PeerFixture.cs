@@ -8,12 +8,13 @@ public sealed class Peer2PeerFixture<T> : IDisposable where T : struct
     public readonly UdpClientContext<T> Server;
     public readonly UdpClientContext<T> Client;
 
-    readonly Task tasks;
+    Task tasks = Task.CompletedTask;
 
     public Peer2PeerFixture(
         IBinarySerializer<T> serializer,
         int? serverPort = null,
-        int? clientPort = null
+        int? clientPort = null,
+        bool start = true
     )
     {
         Server = new(serializer, serverPort);
@@ -22,8 +23,10 @@ public sealed class Peer2PeerFixture<T> : IDisposable where T : struct
         Server.Socket.LogsEnabled = false;
         Client.Socket.LogsEnabled = false;
 
-        tasks = Task.WhenAll(Server.Socket.Start(), Client.Socket.Start());
+        if (start) Start();
     }
+
+    public void Start() => tasks = Task.WhenAll(Server.Socket.Start(), Client.Socket.Start());
 
     public void Deconstruct(out UdpClientContext<T> client, out UdpClientContext<T> server) =>
         (client, server) = (Client, Server);

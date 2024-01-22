@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "nGGPO.Playground", "nGGPO.P
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "nGGPO.Tests", "nGGPO.Tests\nGGPO.Tests.csproj", "{11989C5D-AF11-49B9-A8AD-1D21482B5A68}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "nGGPO.TestApp", "nGGPO.TestApp\nGGPO.TestApp.csproj", "{5CED0E41-5FA2-4555-A0A3-A2E24FAADC37}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{11989C5D-AF11-49B9-A8AD-1D21482B5A68}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{11989C5D-AF11-49B9-A8AD-1D21482B5A68}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{11989C5D-AF11-49B9-A8AD-1D21482B5A68}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5CED0E41-5FA2-4555-A0A3-A2E24FAADC37}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5CED0E41-5FA2-4555-A0A3-A2E24FAADC37}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5CED0E41-5FA2-4555-A0A3-A2E24FAADC37}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5CED0E41-5FA2-4555-A0A3-A2E24FAADC37}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
