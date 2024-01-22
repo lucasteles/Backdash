@@ -10,14 +10,10 @@ public sealed class Peer2PeerFixture<T> : IDisposable where T : struct
 
     readonly Task tasks;
 
-    public Peer2PeerFixture() : this(BinarySerializerFactory.Create<T>(), 9000, 9001)
-    {
-    }
-
-    Peer2PeerFixture(
+    public Peer2PeerFixture(
         IBinarySerializer<T> serializer,
-        int serverPort,
-        int clientPort
+        int? serverPort = null,
+        int? clientPort = null
     )
     {
         Server = new(serializer, serverPort);

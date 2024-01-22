@@ -2,15 +2,14 @@
 
 namespace nGGPO.Tests.UdpPeerClientTests;
 
-[Collection(TestCollection.Network)]
-public class Peer2PeerStringTests(
-    Peer2PeerFixture<StringValue> context
-) : IClassFixture<Peer2PeerFixture<StringValue>>
+public class Peer2PeerStringTests
 {
     [Fact]
     public async Task ShouldSend()
     {
+        using Peer2PeerFixture<StringValue> context = new(new StringBinarySerializer());
         var (client, server) = context;
+
         StringValue msg = "hello server";
 
         SemaphoreSlim sem = new(0, 1);
@@ -32,6 +31,7 @@ public class Peer2PeerStringTests(
     [Fact]
     public async Task ShouldSendAndReceive()
     {
+        using Peer2PeerFixture<StringValue> context = new(new StringBinarySerializer());
         var (client, server) = context;
 
         var totalProcessed = 0;

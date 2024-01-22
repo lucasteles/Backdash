@@ -16,8 +16,14 @@ public sealed record UdpClientContext<T>(
     {
     }
 
-    public UdpClientContext(IBinarySerializer<T> serializer, int port) :
-        this(new UdpPeerClient<T>(port, serializer), IPAddress.Loopback)
+    public UdpClientContext(IBinarySerializer<T> serializer, int? port = null) :
+        this(
+            new UdpPeerClient<T>(
+                port ?? PortUtils.FindFreePort(),
+                serializer
+            ),
+            IPAddress.Loopback
+        )
     {
     }
 
