@@ -18,7 +18,7 @@ partial class UdpProtocol
     enum StateEnum
     {
         Syncing,
-        Synchronzied,
+        Synchronized,
         Running,
         Disconnected,
     }
