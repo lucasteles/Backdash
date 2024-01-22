@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Net;
+﻿using System.Net;
 using System.Threading.Channels;
 using nGGPO.DataStructure;
 using nGGPO.Input;
@@ -523,7 +522,7 @@ partial class UdpProtocol : IDisposable
                     break;
             }
 
-            await udp.SendTo(entry.Msg, entry.DestAddr, sendQueueCancellation.Token);
+            await udp.SendTo(entry.DestAddr, entry.Msg, sendQueueCancellation.Token);
         }
     }
 

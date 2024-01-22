@@ -140,21 +140,20 @@ static class BinarySerializers
                     null, CallingConventions.Any, Type.EmptyTypes, null
                 )?
                 .MakeGenericMethod(inputType, inputType.GetEnumUnderlyingType())
-                .Invoke(null, Array.Empty<object>()) as IBinarySerializer<TInput>,
+                .Invoke(null, []) as IBinarySerializer<TInput>,
 
             {IsPrimitive: true} => typeof(BinarySerializers)
                 .GetMethod(nameof(ForPrimitive), BindingFlags.Static | BindingFlags.Public)?
                 .MakeGenericMethod(inputType)
-                .Invoke(null, Array.Empty<object>()) as IBinarySerializer<TInput>,
+                .Invoke(null, []) as IBinarySerializer<TInput>,
 
             {IsExplicitLayout: true} or {IsLayoutSequential: true} => typeof(BinarySerializers)
                 .GetMethod(nameof(ForStructure), BindingFlags.Static | BindingFlags.Public)?
                 .MakeGenericMethod(inputType)
-                .Invoke(null, new object[]
-                {
+                .Invoke(null, [
                     inputType.GetMembers()
-                        .Any(m => Attribute.IsDefined(m, typeof(MarshalAsAttribute)))
-                }) as IBinarySerializer<TInput>,
+                        .Any(m => Attribute.IsDefined(m, typeof(MarshalAsAttribute))),
+                ]) as IBinarySerializer<TInput>,
 
             _ => null,
         };

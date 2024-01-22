@@ -1,4 +1,3 @@
-using FluentAssertions;
 using nGGPO.DataStructure;
 using nGGPO.Input;
 using nGGPO.Network;

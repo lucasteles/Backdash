@@ -1,4 +1,3 @@
-using FluentAssertions;
 using nGGPO.Input;
 
 namespace nGGPO.Tests;

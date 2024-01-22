@@ -28,10 +28,18 @@ static class UdpPeerClient
 public class UdpPeerClient<T>(
     int port,
     IBinarySerializer<T> serializer
-) : IDisposable where T : struct
+) : IDisposable
+    where T : struct
 {
+    uint totalBytesSent;
+    public bool LogsEnabled = true;
     readonly Socket socket = CreateSocket(port);
     readonly CancellationTokenSource cancellation = new();
+    public int Port => port;
+    public uint TotalBytesSent => totalBytesSent;
+
+    public delegate ValueTask OnMessageDelegate(T message, SocketAddress sender,
+        CancellationToken stoppingToken);
 
     readonly Channel<(SocketAddress, ReadOnlyMemory<byte>)> channel =
         Channel.CreateBounded<(SocketAddress, ReadOnlyMemory<byte>)>(ChannelOptions);
@@ -39,15 +47,10 @@ public class UdpPeerClient<T>(
     readonly Channel<(SocketAddress, T)> sendQueue =
         Channel.CreateBounded<(SocketAddress, T)>(ChannelOptions);
 
-
-    public int TotalBytesSent;
-
-    public event Func<T, SocketAddress, CancellationToken, ValueTask> OnMessage = delegate
+    public event OnMessageDelegate OnMessage = delegate
     {
         return ValueTask.CompletedTask;
     };
-
-    public int Port => port;
 
     public Task Start(CancellationToken cancellationToken = default)
     {
@@ -101,7 +104,9 @@ public class UdpPeerClient<T>(
             }
             catch (SocketException ex)
             {
-                await Console.Out.WriteLineAsync($"Socket error: {ex}");
+                if (LogsEnabled)
+                    Tracer.Warn(ex, "Socket error");
+
                 break;
             }
             catch (OperationCanceledException)
@@ -144,7 +149,7 @@ public class UdpPeerClient<T>(
                 var msg = nextMsg;
                 var bodySize = serializer.Serialize(ref msg, buffer);
                 var memory = MemoryMarshal.CreateFromPinnedArray(buffer, 0, bodySize);
-                var sentSize = await SendRaw(memory, peerAddress, ct);
+                var sentSize = await SendRawBytes(peerAddress, memory, ct);
                 Trace.Assert(sentSize == bodySize);
             }
         }
@@ -156,17 +161,21 @@ public class UdpPeerClient<T>(
         }
     }
 
-    public ValueTask<int> SendRaw(
-        ReadOnlyMemory<byte> payload,
+    public ValueTask<int> SendRawBytes(
         SocketAddress peerAddress,
+        ReadOnlyMemory<byte> payload,
         CancellationToken ct = default
     )
     {
-        TotalBytesSent += payload.Length;
+        totalBytesSent += (uint)payload.Length;
         return socket.SendToAsync(payload, SocketFlags.None, peerAddress, ct);
     }
 
-    public ValueTask SendTo(T payload, SocketAddress peerAddress, CancellationToken ct = default) =>
+    public ValueTask SendTo(
+        SocketAddress peerAddress,
+        T payload,
+        CancellationToken ct = default
+    ) =>
         sendQueue.Writer.WriteAsync((peerAddress, payload), ct);
 
     public void Dispose()
