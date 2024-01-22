@@ -7,7 +7,6 @@ Console.WriteLine("Starting...");
 UdpPeerClient<Message> peer1 = new(9000, BinarySerializers.ForEnum<Message>());
 peer1.OnMessage += async (message, sender, token) =>
 {
-    // await Task.Delay(100, token);
     if (token.IsCancellationRequested)
         return;
 
@@ -27,7 +26,6 @@ peer1.OnMessage += async (message, sender, token) =>
 UdpPeerClient<Message> peer2 = new(9001, BinarySerializers.ForEnum<Message>());
 peer2.OnMessage += async (message, sender, token) =>
 {
-    // await Task.Delay(100, token);
     if (token.IsCancellationRequested)
         return;
 
