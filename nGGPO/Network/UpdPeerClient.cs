@@ -28,6 +28,11 @@ public class UdpPeerClient<T>(
     public int Port => port;
     public uint TotalBytesSent => totalBytesSent;
 
+    readonly byte[] sendBuffer = GC.AllocateArray<byte>(
+        length: UdpPacketSize,
+        pinned: true
+    );
+
     public delegate ValueTask OnMessageDelegate(T message, SocketAddress sender,
         CancellationToken stoppingToken);
 
@@ -111,21 +116,10 @@ public class UdpPeerClient<T>(
 
     async Task ProcessSendQueue(CancellationToken ct)
     {
-        var buffer = GC.AllocateArray<byte>(
-            length: UdpPacketSize,
-            pinned: true
-        );
-
         try
         {
             await foreach (var (peerAddress, nextMsg) in sendQueue.Reader.ReadAllAsync(ct))
-            {
-                var msg = nextMsg;
-                var bodySize = serializer.Serialize(ref msg, buffer);
-                var memory = MemoryMarshal.CreateFromPinnedArray(buffer, 0, bodySize);
-                var sentSize = await SendRawBytes(peerAddress, memory, ct);
-                Trace.Assert(sentSize == bodySize);
-            }
+                await SendRaw(peerAddress, nextMsg, ct);
         }
         catch (OperationCanceledException)
         {
@@ -135,7 +129,20 @@ public class UdpPeerClient<T>(
         }
     }
 
-    public ValueTask<int> SendRawBytes(
+    public async ValueTask<int> SendRaw(
+        SocketAddress peerAddress,
+        T msg,
+        CancellationToken ct = default
+    )
+    {
+        var bodySize = serializer.Serialize(ref msg, sendBuffer);
+        var memory = MemoryMarshal.CreateFromPinnedArray(sendBuffer, 0, bodySize);
+        var sentSize = await SendRaw(peerAddress, memory, ct);
+        Trace.Assert(sentSize == bodySize);
+        return sentSize;
+    }
+
+    public ValueTask<int> SendRaw(
         SocketAddress peerAddress,
         ReadOnlyMemory<byte> payload,
         CancellationToken ct = default
@@ -147,7 +154,7 @@ public class UdpPeerClient<T>(
 
     public ValueTask SendTo(
         SocketAddress peerAddress,
-        T payload,
+        in T payload,
         CancellationToken ct = default
     ) =>
         sendQueue.Writer.WriteAsync((peerAddress, payload), ct);
