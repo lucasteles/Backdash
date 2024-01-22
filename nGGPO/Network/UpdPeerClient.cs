@@ -52,7 +52,7 @@ public class UdpPeerClient<T>(
             .CreateLinkedTokenSource(cancellationToken, cancellation.Token);
 
         return Task.WhenAll(
-            ReadSocket(cts.Token),
+            StartRead(cts.Token),
             ProcessSendQueue(cts.Token)
         );
     }
@@ -74,7 +74,7 @@ public class UdpPeerClient<T>(
         return socket;
     }
 
-    async Task ReadSocket(CancellationToken ct)
+    async Task StartRead(CancellationToken ct)
     {
         var buffer = GC.AllocateArray<byte>(
             length: UdpPacketSize,
