@@ -15,6 +15,11 @@ static class UdpPeerClient
     public const int UdpPacketSize = 65_527;
 }
 
+public delegate ValueTask OnMessageDelegate<in T>(
+    T message, SocketAddress sender,
+    CancellationToken stoppingToken
+) where T : struct;
+
 public class UdpPeerClient<T>(
     int port,
     IBinarySerializer<T> serializer
@@ -24,17 +29,9 @@ public class UdpPeerClient<T>(
     uint totalBytesSent;
     public bool LogsEnabled = true;
     readonly Socket socket = CreateSocket(port);
-    readonly CancellationTokenSource cancellation = new();
+    CancellationTokenSource? cancellation;
     public int Port => port;
     public uint TotalBytesSent => totalBytesSent;
-
-    readonly byte[] sendBuffer = GC.AllocateArray<byte>(
-        length: UdpPacketSize,
-        pinned: true
-    );
-
-    public delegate ValueTask OnMessageDelegate(T message, SocketAddress sender,
-        CancellationToken stoppingToken);
 
     readonly Channel<(SocketAddress, T)> sendQueue =
         Channel.CreateUnbounded<(SocketAddress, T)>(
@@ -46,20 +43,31 @@ public class UdpPeerClient<T>(
             }
         );
 
-    public event OnMessageDelegate OnMessage = delegate
-    {
-        return ValueTask.CompletedTask;
-    };
+    public event OnMessageDelegate<T>? OnMessage;
 
-    public Task Start(CancellationToken cancellationToken = default)
+    public Task StartPumping(CancellationToken cancellationToken = default)
     {
+        if (cancellation is not null)
+            return Task.CompletedTask;
+
+        cancellation = new();
+
         var cts = CancellationTokenSource
             .CreateLinkedTokenSource(cancellationToken, cancellation.Token);
 
         return Task.WhenAll(
-            StartRead(cts.Token),
-            ProcessSendQueue(cts.Token)
+            StartRead(cts.Token).AsTask(),
+            ProcessSendQueue(cts.Token).AsTask()
         );
+    }
+
+    public async ValueTask StopPumping()
+    {
+        if (cancellation is null)
+            return;
+
+        await cancellation.CancelAsync();
+        cancellation = null;
     }
 
     static Socket CreateSocket(int port)
@@ -79,7 +87,7 @@ public class UdpPeerClient<T>(
         return socket;
     }
 
-    async Task StartRead(CancellationToken ct)
+    async ValueTask StartRead(CancellationToken ct)
     {
         var buffer = GC.AllocateArray<byte>(
             length: UdpPacketSize,
@@ -99,7 +107,9 @@ public class UdpPeerClient<T>(
 
                 var memory = MemoryMarshal.CreateFromPinnedArray(buffer, 0, receivedSize);
                 var parsed = serializer.Deserialize(memory.Span);
-                await OnMessage.Invoke(parsed, address, ct);
+
+                if (OnMessage is not null)
+                    await OnMessage.Invoke(parsed, address, ct);
             }
             catch (SocketException ex)
             {
@@ -114,12 +124,23 @@ public class UdpPeerClient<T>(
             }
     }
 
-    async Task ProcessSendQueue(CancellationToken ct)
+    async ValueTask ProcessSendQueue(CancellationToken ct)
     {
+        var sendBuffer = GC.AllocateArray<byte>(
+            length: UdpPacketSize,
+            pinned: true
+        );
+
         try
         {
             await foreach (var (peerAddress, nextMsg) in sendQueue.Reader.ReadAllAsync(ct))
-                await SendRaw(peerAddress, nextMsg, ct);
+            {
+                var msg = nextMsg;
+                var bodySize = serializer.Serialize(ref msg, sendBuffer);
+                var memory = MemoryMarshal.CreateFromPinnedArray(sendBuffer, 0, bodySize);
+                var sentSize = await SendBytes(peerAddress, memory, ct);
+                Trace.Assert(sentSize == bodySize);
+            }
         }
         catch (OperationCanceledException)
         {
@@ -129,20 +150,7 @@ public class UdpPeerClient<T>(
         }
     }
 
-    public async ValueTask<int> SendRaw(
-        SocketAddress peerAddress,
-        T msg,
-        CancellationToken ct = default
-    )
-    {
-        var bodySize = serializer.Serialize(ref msg, sendBuffer);
-        var memory = MemoryMarshal.CreateFromPinnedArray(sendBuffer, 0, bodySize);
-        var sentSize = await SendRaw(peerAddress, memory, ct);
-        Trace.Assert(sentSize == bodySize);
-        return sentSize;
-    }
-
-    public ValueTask<int> SendRaw(
+    ValueTask<int> SendBytes(
         SocketAddress peerAddress,
         ReadOnlyMemory<byte> payload,
         CancellationToken ct = default
@@ -161,8 +169,12 @@ public class UdpPeerClient<T>(
 
     public void Dispose()
     {
-        cancellation.Cancel();
-        cancellation.Dispose();
+        if (cancellation is not null)
+        {
+            cancellation.Cancel();
+            cancellation.Dispose();
+        }
+
         socket.Dispose();
         sendQueue.Writer.Complete();
     }

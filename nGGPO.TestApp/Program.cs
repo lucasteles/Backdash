@@ -56,7 +56,7 @@ Stopwatch watch = new();
 CancellationTokenSource source = new();
 
 Console.WriteLine("Started.");
-var tasks = Task.WhenAll(peer1.Start(source.Token), peer2.Start(source.Token));
+var tasks = Task.WhenAll(peer1.StartPumping(source.Token), peer2.StartPumping(source.Token));
 var address2 = new IPEndPoint(IPAddress.Loopback, 9001).Serialize();
 
 var gcCount = new[]
@@ -101,7 +101,7 @@ Console.WriteLine(
     sizeof(Message), totalSent, totalSent / 1024.0
 );
 
-public enum Message : short
+public enum Message : byte
 {
     Ping = 2,
     Pong = 4,
