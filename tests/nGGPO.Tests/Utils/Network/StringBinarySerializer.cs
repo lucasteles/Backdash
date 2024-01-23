@@ -1,7 +1,7 @@
 using System.Text;
 using nGGPO.Serialization;
 
-namespace nGGPO.Tests;
+namespace nGGPO.Tests.Utils.Network;
 
 public readonly record struct StringValue(string Value)
 {

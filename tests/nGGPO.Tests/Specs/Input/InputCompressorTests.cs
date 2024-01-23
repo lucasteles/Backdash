@@ -2,7 +2,7 @@ using nGGPO.DataStructure;
 using nGGPO.Input;
 using nGGPO.Network;
 
-namespace nGGPO.Tests;
+namespace nGGPO.Tests.Specs.Input;
 
 public class InputCompressorTests
 {

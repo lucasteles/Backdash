@@ -2,7 +2,7 @@ using System.Net;
 using nGGPO.Network;
 using nGGPO.Serialization;
 
-namespace nGGPO.Tests;
+namespace nGGPO.Tests.Utils.Network;
 
 public sealed record UdpClientContext<T>(
     UdpPeerClient<T> Socket,

@@ -16,16 +16,8 @@ public struct GameInputBuffer
     public override readonly string ToString() =>
         Mem.GetBitString(this, splitAt: Max.InputBytes);
 
-    public readonly bool Equals(GameInputBuffer other)
-    {
-        ReadOnlySpan<byte> me = this;
-        ReadOnlySpan<byte> you = other;
-
-        if (you.Length > me.Length)
-            return false;
-
-        return me.SequenceEqual(you[..me.Length]);
-    }
+    public readonly bool Equals(GameInputBuffer other) =>
+        Mem.SpanEqual<byte>(this, other, truncate: true);
 
     public GameInputBuffer(ReadOnlySpan<byte> bits) => bits.CopyTo(this);
 

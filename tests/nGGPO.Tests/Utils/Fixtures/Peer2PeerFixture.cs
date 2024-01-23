@@ -1,6 +1,6 @@
 using nGGPO.Serialization;
 
-namespace nGGPO.Tests;
+namespace nGGPO.Tests.Utils.Fixtures;
 
 [Serializable]
 public sealed class Peer2PeerFixture<T> : IDisposable where T : struct

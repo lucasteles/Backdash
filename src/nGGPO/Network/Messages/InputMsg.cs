@@ -1,18 +1,14 @@
 using System.Runtime.CompilerServices;
+using System.Text;
 using nGGPO.Input;
+using nGGPO.Serialization;
 using nGGPO.Serialization.Buffer;
 using nGGPO.Utils;
 
 namespace nGGPO.Network.Messages;
 
-[InlineArray(Max.MsgPlayers)]
-public struct PeerStatusBuffer
-{
-    ConnectStatus element0;
-}
-
 [Serializable]
-struct InputMsg
+record struct InputMsg : IBinarySerializable
 {
     public byte PeerCount;
     public PeerStatusBuffer PeerConnectStatus;
@@ -50,5 +46,34 @@ struct InputMsg
         InputSize = reader.ReadByte();
 
         reader.ReadByte(Bits, InputSize);
+    }
+}
+
+[Serializable, InlineArray(Max.MsgPlayers)]
+struct PeerStatusBuffer
+{
+    ConnectStatus element0;
+
+    public PeerStatusBuffer(ReadOnlySpan<ConnectStatus> buffer) => buffer.CopyTo(this);
+
+    public override readonly string ToString()
+    {
+        ReadOnlySpan<ConnectStatus> values = this;
+        StringBuilder builder = new();
+        for (int i = 0; i < values.Length; i++)
+        {
+            if (i > 0)
+                builder.Append(',');
+
+            var curr = values[i];
+
+            builder.Append(curr.Disconnected ? "ON" : "OFF");
+            builder.Append('(');
+            builder.Append(curr.LastFrame);
+            builder.Append(')');
+            builder.Append(' ');
+        }
+
+        return builder.ToString();
     }
 }

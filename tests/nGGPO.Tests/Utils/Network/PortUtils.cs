@@ -1,7 +1,7 @@
 using System.Net;
 using System.Net.Sockets;
 
-namespace nGGPO.Tests.Utils;
+namespace nGGPO.Tests.Utils.Network;
 
 static class PortUtils
 {

@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Net;
 using nGGPO.Network;
+using nGGPO.PingTest;
 using nGGPO.Serialization;
 
 var msgCount = 0UL;
@@ -102,8 +103,11 @@ Console.WriteLine(
 );
 
 #pragma warning disable S3903
-public enum Message : byte
+namespace nGGPO.PingTest
 {
-    Ping = 2,
-    Pong = 4,
+    public enum Message : byte
+    {
+        Ping = 2,
+        Pong = 4,
+    }
 }

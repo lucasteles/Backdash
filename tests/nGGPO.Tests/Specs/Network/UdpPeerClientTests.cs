@@ -4,7 +4,7 @@ using nGGPO.Serialization;
 
 #pragma warning disable AsyncFixer01
 
-namespace nGGPO.Tests.UdpPeerClientTests;
+namespace nGGPO.Tests.Specs.Network;
 
 public class UdpPeerClientTests
 {

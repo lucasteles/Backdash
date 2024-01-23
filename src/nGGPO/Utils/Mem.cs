@@ -64,6 +64,23 @@ static class Mem
         return Unsafe.As<TInt, TEnum>(ref intValue);
     }
 
+    public static bool SpanEqual<T>(
+        ReadOnlySpan<T> you,
+        ReadOnlySpan<T> me,
+        bool truncate = false
+    ) =>
+        you.Length <= me.Length && me.SequenceEqual(truncate ? you[..me.Length] : you);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int GetHashCode<T>(ReadOnlySpan<T> buffer, int size = 0)
+    {
+        size = Math.Min(size, buffer.Length);
+        HashCode hash = new();
+        for (int i = 0; i < size; i++)
+            hash.Add(buffer[i]);
+        return hash.ToHashCode();
+    }
+
     public static unsafe int MarshallStruct<T>(in T message, in Span<byte> body)
         where T : struct
     {

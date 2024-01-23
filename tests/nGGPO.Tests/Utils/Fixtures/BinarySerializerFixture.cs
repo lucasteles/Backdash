@@ -2,7 +2,7 @@ using nGGPO.Network;
 using nGGPO.Serialization.Buffer;
 using nGGPO.Utils;
 
-namespace nGGPO.Tests.Messages;
+namespace nGGPO.Tests.Utils.Fixtures;
 
 readonly ref struct BinarySerializerFixture
 {

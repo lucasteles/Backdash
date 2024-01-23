@@ -1,12 +1,13 @@
 using System.Runtime.InteropServices;
+using nGGPO.Serialization;
 using nGGPO.Serialization.Buffer;
 
 namespace nGGPO.Network.Messages;
 
 [StructLayout(LayoutKind.Sequential, Size = Size)]
-struct Header(MsgType type)
+record struct Header(MsgType Type) : IBinarySerializable
 {
-    public MsgType Type = type;
+    public MsgType Type = Type;
     public ushort Magic;
     public ushort SequenceNumber;
 

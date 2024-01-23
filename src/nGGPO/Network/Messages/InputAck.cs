@@ -1,10 +1,11 @@
 using System.Runtime.InteropServices;
+using nGGPO.Serialization;
 using nGGPO.Serialization.Buffer;
 
 namespace nGGPO.Network.Messages;
 
 [StructLayout(LayoutKind.Sequential)]
-struct InputAck
+record struct InputAck : IBinarySerializable
 {
     public int AckFrame;
 

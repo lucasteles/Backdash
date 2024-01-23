@@ -1,4 +1,4 @@
-namespace nGGPO.Tests.Utils;
+namespace nGGPO.Tests.Utils.Types;
 
 public sealed class AsyncCounter
 {

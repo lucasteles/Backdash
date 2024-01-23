@@ -1,6 +1,6 @@
 using nGGPO.Input;
 
-namespace nGGPO.Tests;
+namespace nGGPO.Tests.Specs.Input;
 
 public class GameInputTests
 {

@@ -1,6 +1,6 @@
 using nGGPO.Serialization.Buffer;
 
-namespace nGGPO.Network.Messages;
+namespace nGGPO.Serialization;
 
 interface IBinarySerializable
 {

@@ -1,4 +1,4 @@
-namespace nGGPO.Tests.Utils;
+namespace nGGPO.Tests.Utils.Assertions;
 
 public sealed class MemoryUsage : IDisposable
 {

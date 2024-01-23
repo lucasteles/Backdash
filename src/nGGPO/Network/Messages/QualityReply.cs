@@ -1,10 +1,11 @@
 using System.Runtime.InteropServices;
+using nGGPO.Serialization;
 using nGGPO.Serialization.Buffer;
 
 namespace nGGPO.Network.Messages;
 
 [StructLayout(LayoutKind.Sequential)]
-struct QualityReply
+record struct QualityReply : IBinarySerializable
 {
     public uint Pong;
 

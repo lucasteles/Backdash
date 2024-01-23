@@ -2,7 +2,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using nGGPO.Serialization;
 
-namespace nGGPO.Tests.Serialization;
+namespace nGGPO.Tests.Specs.Serialization;
 
 public class SerializersTests
 {

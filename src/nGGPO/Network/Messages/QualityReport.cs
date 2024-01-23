@@ -1,10 +1,11 @@
 using System.Runtime.InteropServices;
+using nGGPO.Serialization;
 using nGGPO.Serialization.Buffer;
 
 namespace nGGPO.Network.Messages;
 
 [StructLayout(LayoutKind.Sequential)]
-struct QualityReport
+record struct QualityReport : IBinarySerializable
 {
     public byte FrameAdvantage; /* what's the other guy's frame advantage? */
     public uint Ping;

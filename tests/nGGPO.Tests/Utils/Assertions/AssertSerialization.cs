@@ -1,6 +1,6 @@
-using nGGPO.Network.Messages;
+using nGGPO.Serialization;
 
-namespace nGGPO.Tests.Messages;
+namespace nGGPO.Tests.Utils.Assertions;
 
 static class AssertSerialization
 {

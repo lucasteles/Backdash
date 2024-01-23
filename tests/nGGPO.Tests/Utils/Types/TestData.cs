@@ -1,7 +1,7 @@
 using System.Drawing;
 using System.Runtime.InteropServices;
 
-namespace nGGPO.Tests.Utils;
+namespace nGGPO.Tests.Utils.Types;
 
 public enum IntEnum { A, B, C }
 

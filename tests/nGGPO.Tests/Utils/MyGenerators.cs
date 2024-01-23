@@ -156,21 +156,24 @@ class MyGenerators
             .ToArbitrary();
 
     public static Arbitrary<InputMsg> InputMsgGenerator() => Arb.From(
-        from peerCount in Arb.From<byte>().Generator
-        from peerConnectStats in Arb.From<PeerStatusBuffer>().Generator
         from startFrame in Arb.From<int>().Generator
         from disconnectReq in Arb.From<bool>().Generator
         from ackFrame in Arb.From<int>().Generator
         from numBits in Arb.From<ushort>().Generator
+        from peerConnectStats in Gen.Sized(testSize =>
+        {
+            var size = Math.Min(testSize, Max.MsgPlayers);
+            return Gen.ArrayOf(size, Arb.From<ConnectStatus>().Generator);
+        })
         from inputBuffer in Gen.Sized(testSize =>
         {
-            var size = Math.Max(testSize, GameInputBuffer.Capacity);
+            var size = Math.Min(testSize, GameInputBuffer.Capacity);
             return Gen.ArrayOf(size, Arb.From<byte>().Generator);
         })
         select new InputMsg
         {
-            PeerCount = peerCount,
-            PeerConnectStatus = peerConnectStats,
+            PeerCount = (byte)peerConnectStats.Length,
+            PeerConnectStatus = new(peerConnectStats),
             StartFrame = startFrame,
             DisconnectRequested = disconnectReq,
             AckFrame = ackFrame,

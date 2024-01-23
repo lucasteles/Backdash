@@ -1,10 +1,11 @@
 using System.Runtime.InteropServices;
+using nGGPO.Serialization;
 using nGGPO.Serialization.Buffer;
 
 namespace nGGPO.Network.Messages;
 
 [StructLayout(LayoutKind.Sequential)]
-struct SyncRequest
+record struct SyncRequest : IBinarySerializable
 {
     public uint RandomRequest; /* please reply back with this random data */
     public ushort RemoteMagic;
