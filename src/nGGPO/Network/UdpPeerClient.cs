@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading.Channels;
 using nGGPO.Serialization;
@@ -9,7 +8,7 @@ using nGGPO.Utils;
 
 namespace nGGPO.Network;
 
-public delegate ValueTask OnMessageDelegate<in T>(
+delegate ValueTask OnMessageDelegate<in T>(
     T message, SocketAddress sender,
     CancellationToken stoppingToken
 ) where T : struct;
