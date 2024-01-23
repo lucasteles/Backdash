@@ -1,6 +1,6 @@
 using nGGPO.Utils;
 
-namespace nGGPO.DataStructure;
+namespace nGGPO.Data;
 
 readonly ref struct BitVector(scoped ref Span<byte> bits)
 {

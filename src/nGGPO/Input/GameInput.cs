@@ -1,7 +1,7 @@
 using System.Diagnostics.Contracts;
 using System.Runtime.CompilerServices;
 using System.Text;
-using nGGPO.DataStructure;
+using nGGPO.Data;
 using nGGPO.Utils;
 
 namespace nGGPO.Input;

@@ -1,6 +1,6 @@
 using System.Net;
 using System.Threading.Channels;
-using nGGPO.DataStructure;
+using nGGPO.Data;
 using nGGPO.Input;
 using nGGPO.Network.Messages;
 using nGGPO.Utils;
