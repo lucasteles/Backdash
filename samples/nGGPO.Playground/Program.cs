@@ -39,7 +39,7 @@ Div();
     Input packet = new()
     {
         S = data.Length,
-        A = (byte)'a',
+        A = (byte) 'a',
         B = 2,
         Bits = new(),
     };
@@ -61,7 +61,7 @@ Div();
     Input packet = new()
     {
         S = data.Length,
-        A = (byte)'a',
+        A = (byte) 'a',
         B = 2,
         Bits = new(),
     };
@@ -104,7 +104,7 @@ Div();
     {
         Network = false,
     };
-    using var buffer = MemoryBuffer.Rent(UdpPeerClient.UdpPacketSize, true);
+    using var buffer = MemoryBuffer.Rent(Max.UdpPacketSize, true);
 
     var size = serializer.Serialize(ref packet, buffer);
     var bytes = buffer[..size];

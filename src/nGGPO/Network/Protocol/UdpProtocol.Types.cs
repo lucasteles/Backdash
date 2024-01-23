@@ -1,6 +1,6 @@
 using System.Net;
 
-namespace nGGPO.Network;
+namespace nGGPO.Network.Protocol;
 
 partial class UdpProtocol
 {
@@ -14,14 +14,6 @@ partial class UdpProtocol
     const int NetworkStatsInterval = 1000;
     const long UdpShutdownTimer = 5000;
     const int MaxSeqDistance = 1 << 15;
-
-    enum StateEnum
-    {
-        Syncing,
-        Synchronized,
-        Running,
-        Disconnected,
-    }
 
     struct QueueEntry
     {

@@ -1,4 +1,3 @@
-using nGGPO.Network;
 using nGGPO.Serialization.Buffer;
 using nGGPO.Utils;
 
@@ -22,7 +21,7 @@ readonly ref struct BinarySerializerFixture
     {
         ReadOffset = ref offset.Read;
         WriteOffset = ref offset.Write;
-        Buffer = MemoryBuffer.Rent(UdpPeerClient.UdpPacketSize, true);
+        Buffer = MemoryBuffer.Rent(Max.UdpPacketSize, true);
         Reader = new(Buffer, ref ReadOffset);
         Writer = new(Buffer, ref WriteOffset);
     }

@@ -8,13 +8,6 @@ using nGGPO.Utils;
 
 namespace nGGPO.Network;
 
-using static UdpPeerClient;
-
-static class UdpPeerClient
-{
-    public const int UdpPacketSize = 65_527;
-}
-
 public delegate ValueTask OnMessageDelegate<in T>(
     T message, SocketAddress sender,
     CancellationToken stoppingToken
@@ -89,7 +82,7 @@ class UdpPeerClient<T>(
     async ValueTask StartRead(CancellationToken ct)
     {
         var buffer = GC.AllocateArray<byte>(
-            length: UdpPacketSize,
+            length: Max.UdpPacketSize,
             pinned: true
         );
 
@@ -126,7 +119,7 @@ class UdpPeerClient<T>(
     async ValueTask ProcessSendQueue(CancellationToken ct)
     {
         var sendBuffer = GC.AllocateArray<byte>(
-            length: UdpPacketSize,
+            length: Max.UdpPacketSize,
             pinned: true
         );
 

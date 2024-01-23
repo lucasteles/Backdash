@@ -4,6 +4,7 @@ using nGGPO.Network;
 using nGGPO.Network.Messages;
 using nGGPO.Serialization;
 using nGGPO.Utils;
+using UdpProtocol = nGGPO.Network.Protocol.UdpProtocol;
 
 namespace nGGPO.Backends;
 

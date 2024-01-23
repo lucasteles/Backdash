@@ -8,7 +8,7 @@ public enum UdpEventType : sbyte
     Unknown = -1,
     Connected,
     Synchronizing,
-    Synchronzied,
+    Synchronized,
     Input,
     Disconnected,
     NetworkInterrupted,

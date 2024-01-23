@@ -3,48 +3,32 @@ using nGGPO.Utils;
 
 namespace nGGPO.Input;
 
-class Synchronizer<TGameState> where TGameState : struct
+static class Synchronizer
 {
-    public struct SavedFrame
+    public struct SavedFrame<TGameState>() where TGameState : struct
     {
-        public TGameState Buf;
-        public int Cbuf;
-        public int Frame;
-        public int Checksum;
+        public int Frame = -1;
+        public TGameState Buf = default;
+        public int Cbuf = 0;
+        public int Checksum = 0;
+    }
 
-        public SavedFrame()
-        {
-            Buf = default;
-            Cbuf = 0;
-            Checksum = 0;
-            Frame = -1;
-        }
-    };
-
-    public struct SavedState
+    public class SavedState<TGameState> where TGameState : struct
     {
-        public SavedFrame[] Frames;
-        public int Head;
+        public int Head = 0;
+        public SavedFrame<TGameState>[] Frames = new SavedFrame<TGameState>[Max.PredictionFrames + 2];
+    }
+}
 
-        public SavedState()
-        {
-            Frames = new SavedFrame[Max.PredictionFrames + 2];
-            Head = 0;
-        }
-    };
+sealed class Synchronizer<TGameState>(IReadOnlyList<ConnectStatus> connectStatus)
+    where TGameState : struct
+{
+    readonly IReadOnlyList<ConnectStatus> connectStatus = connectStatus;
+    readonly Synchronizer.SavedState<TGameState> savedState = new();
 
-    readonly IReadOnlyList<ConnectStatus> connectStatus;
-
-    // LATER: check this fields usage
-#pragma warning disable S125
-    // int frameCount;
-    // int lastConfirmedFrame = -1;
-    // int maxPredictionFrames = 0;
-    // SavedState? savedstate;
-#pragma warning restore S125
-
-    public Synchronizer(IReadOnlyList<ConnectStatus> connectStatus) =>
-        this.connectStatus = connectStatus;
+    Frame lastConfirmedFrame = Frame.Null;
+    uint frameCount;
+    uint maxPredictionFrames = 0;
 
     public void SetFrameDelay(int queue, int delay)
     {

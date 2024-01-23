@@ -5,7 +5,7 @@ using nGGPO.Input;
 using nGGPO.Network.Messages;
 using nGGPO.Utils;
 
-namespace nGGPO.Network;
+namespace nGGPO.Network.Protocol;
 
 sealed partial class UdpProtocol : IDisposable
 {
@@ -34,7 +34,7 @@ sealed partial class UdpProtocol : IDisposable
     readonly ConnectStatus[] localConnectStatus;
     readonly ConnectStatus[] peerConnectStatus;
     readonly UdpProtocolState state = new();
-    StateEnum currentState;
+    ProtocolState currentProtocolState;
 
     /*
      * Fairness.
@@ -126,7 +126,7 @@ sealed partial class UdpProtocol : IDisposable
 
     public ValueTask SendInput(in GameInput input)
     {
-        if (currentState is StateEnum.Running)
+        if (currentProtocolState is ProtocolState.Running)
         {
             /*
              * Check to see if this is a good time to adjust for the rift...
@@ -159,7 +159,7 @@ sealed partial class UdpProtocol : IDisposable
         );
 
         input.AckFrame = lastReceivedInput.Frame;
-        input.DisconnectRequested = currentState is not StateEnum.Disconnected;
+        input.DisconnectRequested = currentProtocolState is not ProtocolState.Disconnected;
 
         if (localConnectStatus.Length > 0)
             localConnectStatus.CopyTo(input.PeerConnectStatus);
@@ -208,7 +208,7 @@ sealed partial class UdpProtocol : IDisposable
 
     public void Disconnect()
     {
-        currentState = StateEnum.Disconnected;
+        currentProtocolState = ProtocolState.Disconnected;
         ShutdownTimeout = Platform.GetCurrentTimeMS() + UdpShutdownTimer;
     }
 
@@ -305,7 +305,7 @@ sealed partial class UdpProtocol : IDisposable
         if (handled)
         {
             LastRecvTime = Platform.GetCurrentTimeMS();
-            if (DisconnectNotifySent && currentState is StateEnum.Running)
+            if (DisconnectNotifySent && currentProtocolState is ProtocolState.Running)
             {
                 QueueEvent(new(UdpEventType.NetworkResumed));
                 DisconnectNotifySent = false;
@@ -322,7 +322,7 @@ sealed partial class UdpProtocol : IDisposable
 
         if (disconnectRequested)
         {
-            if (currentState is not StateEnum.Disconnected && !DisconnectEventSent)
+            if (currentProtocolState is not ProtocolState.Disconnected && !DisconnectEventSent)
             {
                 Tracer.Log("Disconnecting endpoint on remote request.\n");
                 QueueEvent(new(UdpEventType.Disconnected));
@@ -437,7 +437,7 @@ sealed partial class UdpProtocol : IDisposable
     bool OnSyncReply(UdpMsg msg, ref UdpMsg replyMsg, out bool sendReply)
     {
         sendReply = false;
-        if (currentState is not StateEnum.Syncing)
+        if (currentProtocolState is not ProtocolState.Syncing)
         {
             Tracer.Log("Ignoring SyncReply while not synching.\n");
             return msg.Header.Magic == remoteMagicNumber;
@@ -462,8 +462,8 @@ sealed partial class UdpProtocol : IDisposable
         if (--state.Sync.RoundtripsRemaining == 0)
         {
             Tracer.Log("Synchronized!\n");
-            QueueEvent(new(UdpEventType.Synchronzied));
-            currentState = StateEnum.Running;
+            QueueEvent(new(UdpEventType.Synchronized));
+            currentProtocolState = ProtocolState.Running;
             lastReceivedInput.ResetFrame();
             remoteMagicNumber = msg.Header.Magic;
         }
@@ -570,7 +570,7 @@ sealed partial class UdpProtocol : IDisposable
 
     public void Synchronize()
     {
-        currentState = StateEnum.Syncing;
+        currentProtocolState = ProtocolState.Syncing;
         throw new NotImplementedException();
     }
 

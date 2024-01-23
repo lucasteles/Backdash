@@ -2,16 +2,14 @@ using System.Net;
 
 namespace nGGPO;
 
-public enum PlayerType
-{
-    Local,
-    Remote,
-    Spectator,
-}
-
-public readonly struct LocalEndPoint(int playerNumber)
+readonly struct LocalEndPoint(int playerNumber)
 {
     public int PlayerNumber { get; } = playerNumber;
+}
+
+interface IRemote
+{
+    IPEndPoint EndPoint { get; }
 }
 
 public readonly record struct PlayerHandle(int Value)
@@ -19,9 +17,16 @@ public readonly record struct PlayerHandle(int Value)
     public static PlayerHandle Empty { get; } = new(-1);
 }
 
-public abstract class Player(int playerNumber)
+public enum PlayerType
 {
-    public abstract PlayerType Type { get; }
+    Local,
+    Remote,
+    Spectator,
+}
+
+public abstract class Player(PlayerType type, int playerNumber)
+{
+    public PlayerType Type { get; } = type;
     public int PlayerNumber { get; } = playerNumber;
 
     public PlayerHandle Handle { get; private set; } = PlayerHandle.Empty;
@@ -30,36 +35,22 @@ public abstract class Player(int playerNumber)
 
     public static implicit operator PlayerHandle(Player player) => player.Handle;
 
-    public class Local(int playerNumber) : Player(playerNumber)
+    public sealed class Local(int playerNumber) : Player(PlayerType.Local, playerNumber);
+
+    public class Remote(int playerNumber, IPEndPoint endpoint) : Player(PlayerType.Remote, playerNumber), IRemote
     {
-        public override PlayerType Type => PlayerType.Local;
+        public IPEndPoint EndPoint { get; } = endpoint;
+
+        public Remote(int playerNumber, IPAddress ipAddress, int port) :
+            this(playerNumber, new IPEndPoint(ipAddress, port)) { }
     }
 
-    public class Remote : Player
+    public sealed class Spectator(int playerNumber, IPEndPoint endpoint)
+        : Player(PlayerType.Spectator, playerNumber), IRemote
     {
-        public override PlayerType Type => PlayerType.Remote;
-        public IPEndPoint EndPoint { get; }
+        public IPEndPoint EndPoint { get; } = endpoint;
 
-        public Remote(int playerNumber, IPEndPoint endpoint) : base(playerNumber) =>
-            EndPoint = endpoint;
-
-        public Remote(int playerNumber, IPAddress ipAddress, int port)
-            : this(playerNumber, new IPEndPoint(ipAddress, port))
-        {
-        }
-    }
-
-    public sealed class Spectator : Remote
-    {
-        public override PlayerType Type => PlayerType.Spectator;
-
-        public Spectator(int playerNumber, IPEndPoint endpoint) : base(playerNumber, endpoint)
-        {
-        }
-
-        public Spectator(int playerNumber, IPAddress ipAddress, int port) : base(playerNumber,
-            ipAddress, port)
-        {
-        }
+        public Spectator(int playerNumber, IPAddress ipAddress, int port) : this(playerNumber,
+            new IPEndPoint(ipAddress, port)) { }
     }
 }
