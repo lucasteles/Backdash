@@ -48,13 +48,10 @@ class UdpPeerClient<T>(
         using var cts = CancellationTokenSource
             .CreateLinkedTokenSource(cancellationToken, cancellation.Token);
 
-        await Task.WhenAll(
-            StartRead(cts.Token).AsTask(),
-            ProcessSendQueue(cts.Token).AsTask()
-        );
+        await Task.WhenAll(ReadLoop(cts.Token), SendLoop(cts.Token));
     }
 
-    public async ValueTask StopPumping()
+    public async Task StopPumping()
     {
         if (cancellation is null)
             return;
@@ -80,14 +77,7 @@ class UdpPeerClient<T>(
         return newSocket;
     }
 
-    async ValueTask StartRead(CancellationToken ct)
-    {
-        await foreach (var (msg, address) in ReadAllAsync(ct))
-            if (OnMessage is not null)
-                await OnMessage.Invoke(msg, address, ct);
-    }
-
-    async IAsyncEnumerable<(T Msg, SocketAddress Address)> ReadAllAsync([EnumeratorCancellation] CancellationToken ct)
+    async Task ReadLoop(CancellationToken ct)
     {
         var buffer = GC.AllocateArray<byte>(
             length: Max.UdpPacketSize,
@@ -108,23 +98,25 @@ class UdpPeerClient<T>(
                 if (LogsEnabled)
                     Tracer.Warn(ex, "Socket error");
 
-                yield break;
+                break;
             }
             catch (OperationCanceledException)
             {
-                yield break;
+                break;
             }
 
             if (receivedSize is 0)
                 continue;
 
             var memory = MemoryMarshal.CreateFromPinnedArray(buffer, 0, receivedSize);
-            var parsed = serializer.Deserialize(memory.Span);
-            yield return (parsed, address);
+            var msg = serializer.Deserialize(memory.Span);
+
+            if (OnMessage is not null)
+                await OnMessage.Invoke(msg, address, ct);
         }
     }
 
-    async ValueTask ProcessSendQueue(CancellationToken ct)
+    async Task SendLoop(CancellationToken ct)
     {
         var sendBuffer = GC.AllocateArray<byte>(
             length: Max.UdpPacketSize,
