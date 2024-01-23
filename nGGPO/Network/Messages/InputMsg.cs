@@ -11,6 +11,7 @@ public struct PeerStatusBuffer
     ConnectStatus element0;
 }
 
+[Serializable]
 struct InputMsg
 {
     public byte PeerCount;
