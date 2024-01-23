@@ -20,18 +20,17 @@ public delegate ValueTask OnMessageDelegate<in T>(
     CancellationToken stoppingToken
 ) where T : struct;
 
-public class UdpPeerClient<T>(
+class UdpPeerClient<T>(
     int port,
     IBinarySerializer<T> serializer
 ) : IDisposable
     where T : struct
 {
-    uint totalBytesSent;
     public bool LogsEnabled = true;
     readonly Socket socket = CreateSocket(port);
     CancellationTokenSource? cancellation;
     public int Port => port;
-    public uint TotalBytesSent => totalBytesSent;
+    public uint TotalBytesSent { get; private set; }
 
     readonly Channel<(SocketAddress, T)> sendQueue =
         Channel.CreateUnbounded<(SocketAddress, T)>(
@@ -158,7 +157,7 @@ public class UdpPeerClient<T>(
         CancellationToken ct = default
     )
     {
-        totalBytesSent += (uint)payload.Length;
+        TotalBytesSent += (uint)payload.Length;
         return socket.SendToAsync(payload, SocketFlags.None, peerAddress, ct);
     }
 
@@ -169,15 +168,24 @@ public class UdpPeerClient<T>(
     ) =>
         sendQueue.Writer.WriteAsync((peerAddress, payload), ct);
 
-    public void Dispose()
+    protected virtual void Dispose(bool disposing)
     {
-        if (cancellation is not null)
+        if (disposing)
         {
-            cancellation.Cancel();
-            cancellation.Dispose();
+            cancellation?.Cancel();
+            cancellation?.Dispose();
+            socket.Dispose();
+            sendQueue.Writer.Complete();
         }
 
-        socket.Dispose();
-        sendQueue.Writer.Complete();
+        cancellation = null;
     }
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    ~UdpPeerClient() => Dispose(false);
 }

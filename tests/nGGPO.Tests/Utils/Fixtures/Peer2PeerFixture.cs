@@ -3,7 +3,7 @@ using nGGPO.Serialization;
 namespace nGGPO.Tests.Utils.Fixtures;
 
 [Serializable]
-public sealed class Peer2PeerFixture<T> : IDisposable where T : struct
+sealed class Peer2PeerFixture<T> : IDisposable where T : struct
 {
     public readonly UdpClientContext<T> Server;
     public readonly UdpClientContext<T> Client;
