@@ -177,8 +177,6 @@ public ref struct NetworkBufferWriter
         WriteInt128(CurrentBuffer, reordered).AssertTrue();
         Advance(Unsafe.SizeOf<Int128>());
 
-        return;
-
         static bool WriteInt128(Span<byte> destination, Int128 value)
         {
             if (destination.Length < Unsafe.SizeOf<Int128>()) return false;
@@ -200,8 +198,6 @@ public ref struct NetworkBufferWriter
         var reordered = Network ? Endianness.ToNetwork(value) : value;
         WriteUInt128(CurrentBuffer, reordered).AssertTrue();
         Advance(Unsafe.SizeOf<UInt128>());
-
-        return;
 
         static bool WriteUInt128(Span<byte> destination, UInt128 value)
         {

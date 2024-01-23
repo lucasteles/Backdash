@@ -144,9 +144,11 @@ public class UdpPeerClient<T>(
         }
         catch (OperationCanceledException)
         {
+            // Ignore when cancelled
         }
         catch (ChannelClosedException)
         {
+            // Ignore when channel closed
         }
     }
 

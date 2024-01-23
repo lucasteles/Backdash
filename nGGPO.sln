@@ -8,6 +8,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "nGGPO.Tests", "nGGPO.Tests\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "nGGPO.TestApp", "nGGPO.TestApp\nGGPO.TestApp.csproj", "{5CED0E41-5FA2-4555-A0A3-A2E24FAADC37}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "_build", "build\_build.csproj", "{1389CDD8-0C2E-42A9-9FDB-0950893D1D76}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +32,7 @@ Global
 		{5CED0E41-5FA2-4555-A0A3-A2E24FAADC37}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5CED0E41-5FA2-4555-A0A3-A2E24FAADC37}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5CED0E41-5FA2-4555-A0A3-A2E24FAADC37}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1389CDD8-0C2E-42A9-9FDB-0950893D1D76}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1389CDD8-0C2E-42A9-9FDB-0950893D1D76}.Release|Any CPU.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -32,7 +32,7 @@ static class BinarySerializerFactory
             TypeCode.UInt16 => ForEnum<TInput, ushort>(),
             TypeCode.Byte => ForEnum<TInput, byte>(),
             TypeCode.SByte => ForEnum<TInput, sbyte>(),
-            _ => throw new ArgumentOutOfRangeException(nameof(TInput)),
+            _ => throw InvalidTypeArgumentException.For<TInput>(),
         };
 
     public static IBinarySerializer<TInput> ForStruct<TInput>(bool marshall = false)
@@ -46,7 +46,7 @@ static class BinarySerializerFactory
         if (inputType.IsPrimitive || inputType.IsEnum)
             throw new ArgumentException("Struct input expected");
 
-        if (inputType is {IsLayoutSequential: false, IsExplicitLayout: false})
+        if (inputType is { IsLayoutSequential: false, IsExplicitLayout: false })
             throw new ArgumentException("Input struct should have explicit or sequential layout ");
 
         return marshall
@@ -60,7 +60,7 @@ static class BinarySerializerFactory
 
         return inputType switch
         {
-            {IsEnum: true} => typeof(BinarySerializerFactory)
+            { IsEnum: true } => typeof(BinarySerializerFactory)
                 .GetMethod(nameof(ForEnum),
                     genericParameterCount: 2,
                     BindingFlags.Static | BindingFlags.Public,
@@ -69,12 +69,12 @@ static class BinarySerializerFactory
                 .MakeGenericMethod(inputType, inputType.GetEnumUnderlyingType())
                 .Invoke(null, []) as IBinarySerializer<TInput>,
 
-            {IsPrimitive: true} => typeof(BinarySerializerFactory)
+            { IsPrimitive: true } => typeof(BinarySerializerFactory)
                 .GetMethod(nameof(ForPrimitive), BindingFlags.Static | BindingFlags.Public)?
                 .MakeGenericMethod(inputType)
                 .Invoke(null, []) as IBinarySerializer<TInput>,
 
-            {IsExplicitLayout: true} or {IsLayoutSequential: true} =>
+            { IsExplicitLayout: true } or { IsLayoutSequential: true } =>
                 typeof(BinarySerializerFactory)
                     .GetMethod(nameof(ForStruct), BindingFlags.Static | BindingFlags.Public)?
                     .MakeGenericMethod(inputType)

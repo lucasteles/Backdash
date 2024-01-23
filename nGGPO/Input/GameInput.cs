@@ -13,10 +13,10 @@ public struct GameInputBuffer
 
     public const int Capacity = Max.InputBytes * Max.InputPlayers;
 
-    public override string ToString() =>
+    public override readonly string ToString() =>
         Mem.GetBitString(this, splitAt: Max.InputBytes);
 
-    public bool Equals(GameInputBuffer other)
+    public readonly bool Equals(GameInputBuffer other)
     {
         ReadOnlySpan<byte> me = this;
         ReadOnlySpan<byte> you = other;
@@ -79,7 +79,7 @@ struct GameInput : IEquatable<GameInput>
 
     [Pure]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ReadOnlySpan<byte> AsReadOnlySpan() =>
+    public readonly ReadOnlySpan<byte> AsReadOnlySpan() =>
         Mem.InlineArrayAsReadOnlySpan<GameInputBuffer, byte>(in Buffer, Size);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -95,7 +95,7 @@ struct GameInput : IEquatable<GameInput>
     public void ResetFrame() => Frame = Frame.Null;
     public void Clear() => AsSpan().Clear();
 
-    public override string ToString()
+    public override readonly string ToString()
     {
         StringBuilder builder = new();
         builder.Append($"{{ Frame: {Frame},");
@@ -105,7 +105,7 @@ struct GameInput : IEquatable<GameInput>
         return builder.ToString();
     }
 
-    public bool Equals(in GameInput other, bool bitsOnly)
+    public readonly bool Equals(in GameInput other, bool bitsOnly)
     {
         if (!bitsOnly && Frame != other.Frame)
             Tracer.Log("frames don't match: {}, {}", Frame, other.Frame);
@@ -123,10 +123,13 @@ struct GameInput : IEquatable<GameInput>
                && sameBits;
     }
 
-    // ReSharper disable once NonReadonlyMemberInGetHashCode
-    public override int GetHashCode() => HashCode.Combine(Size, Buffer, Frame);
-    public bool Equals(GameInput other) => Equals(other, false);
-    public override bool Equals(object? obj) => obj is GameInput gi && Equals(gi);
+    public readonly bool Equals(GameInput other) => Equals(other, false);
+    public override readonly bool Equals(object? obj) => obj is GameInput gi && Equals(gi);
+
+#pragma warning disable S2328
+    public override readonly int GetHashCode() => HashCode.Combine(Size, Buffer, Frame);
+#pragma warning restore S2328
+
     public static bool operator ==(GameInput a, GameInput b) => a.Equals(b);
     public static bool operator !=(GameInput a, GameInput b) => !(a == b);
 }

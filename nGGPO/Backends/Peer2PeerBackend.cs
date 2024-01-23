@@ -7,7 +7,7 @@ using nGGPO.Utils;
 
 namespace nGGPO.Backends;
 
-class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGameState>
+sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGameState>
     where TInput : struct
     where TGameState : struct
 {
@@ -23,15 +23,15 @@ class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGameState
     readonly Synchronizer<TGameState> sync;
     readonly ConnectStatus[] localConnectStatus = new ConnectStatus[Max.MsgPlayers];
 
-    int numPlayers;
+    readonly int numPlayers;
     int numSpectators;
     bool synchronizing = true;
 
     readonly List<UdpProtocol> spectators = new(Max.Spectators);
     readonly List<UdpProtocol> endpoints;
 
-    int disconnectTimeout = DefaultDisconnectTimeout;
-    int disconnectNotifyStart = DefaultDisconnectNotifyStart;
+    readonly int disconnectTimeout = DefaultDisconnectTimeout;
+    readonly int disconnectNotifyStart = DefaultDisconnectNotifyStart;
 
     public Peer2PeerBackend(
         IBinarySerializer<TInput> inputSerializer,
@@ -150,9 +150,9 @@ class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGameState
         return ErrorCode.Ok;
     }
 
-    protected PlayerHandle QueueToPlayerHandle(int queue) => new(queue + 1);
+    PlayerHandle QueueToPlayerHandle(int queue) => new(queue + 1);
 
-    protected PlayerHandle QueueToSpectatorHandle(int queue) =>
+    PlayerHandle QueueToSpectatorHandle(int queue) =>
         new(queue + SpectatorOffset); /* out of range of the player array, basically */
 
     UdpProtocol CreateUdpProtocol(IPEndPoint endpoint, int queue)

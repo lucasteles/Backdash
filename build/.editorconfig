@@ -1,0 +1,23 @@
+root = true
+
+[*.cs]
+dotnet_style_qualification_for_field = false:warning
+dotnet_style_qualification_for_property = false:warning
+dotnet_style_qualification_for_method = false:warning
+dotnet_style_qualification_for_event = false:warning
+dotnet_style_require_accessibility_modifiers = never:warning
+
+csharp_style_expression_bodied_methods = true:silent
+csharp_style_expression_bodied_properties = true:warning
+csharp_style_expression_bodied_indexers = true:warning
+csharp_style_expression_bodied_accessors = true:warning
+
+dotnet_naming_symbols.private_field_symbols.applicable_kinds = field
+dotnet_naming_symbols.private_field_symbols.applicable_accessibilities = private
+
+dotnet_naming_rule.private_field_symbols_should_be_camel_case.symbols = private_field_symbols
+dotnet_naming_rule.private_field_symbols_should_be_camel_case.severity = silent
+dotnet_naming_rule.private_field_symbols_should_be_camel_case.style = pascal_case_style
+
+dotnet_naming_style.pascal_case_style.capitalization = pascal_case
+dotnet_naming_style.camel_case_style.capitalization = camel_case

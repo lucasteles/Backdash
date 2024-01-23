@@ -6,19 +6,17 @@
     <InvariantGlobalization>true</InvariantGlobalization>
     <WarningsAsErrors>CS8600;CS8602;CS8603;CS8604;CS8625;CS8618;CS8620</WarningsAsErrors>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>$(NoWarn);CS1591;CS1573</NoWarn>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(MSBuildProjectExtension)' == '.csproj'">
-    <!--    <PackageReference Include="SonarAnalyzer.CSharp" Version="9.12.0.78982">-->
-    <!--      <PrivateAssets>all</PrivateAssets>-->
-    <!--      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>-->
-    <!--    </PackageReference>-->
+    <PackageReference Include="SonarAnalyzer.CSharp" Version="9.17.0.82934">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="AsyncFixer" Version="1.6.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
   </ItemGroup>
 </Project>
-
 

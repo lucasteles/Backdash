@@ -34,10 +34,14 @@ class Synchronizer<TGameState> where TGameState : struct
     };
 
     readonly IReadOnlyList<ConnectStatus> connectStatus;
-    int frameCount;
-    int lastConfirmedFrame = -1;
-    int maxPredictionFrames = 0;
-    SavedState? savedstate;
+
+    // LATER: check this fields usage
+#pragma warning disable S125
+    // int frameCount;
+    // int lastConfirmedFrame = -1;
+    // int maxPredictionFrames = 0;
+    // SavedState? savedstate;
+#pragma warning restore S125
 
     public Synchronizer(IReadOnlyList<ConnectStatus> connectStatus) =>
         this.connectStatus = connectStatus;

@@ -18,12 +18,12 @@ static class Extensions
         this ButtonsInput flags, ButtonsInput flag, bool value) =>
         value ? flags | flag : flags & ~flag;
 
-    public static ButtonsInputEditor GetEditor(this ButtonsInput input) => new(input);
-
     public static PadInput.PadButtons SetFlag(
         this PadInput.PadButtons flags,
         PadInput.PadButtons flag, bool value) =>
         value ? flags | flag : flags & ~flag;
+
+    public static ButtonsInputEditor GetEditor(this ButtonsInput input) => new(input);
 
     public static void Reverse(this StringBuilder sb)
     {

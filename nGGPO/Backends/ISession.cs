@@ -1,6 +1,6 @@
 ﻿namespace nGGPO.Backends;
 
-public interface IRollbackSession<TInput, TGameState> : IDisposable
+public interface IRollbackSession<in TInput, TGameState> : IDisposable
     where TInput : struct
     where TGameState : struct
 {
@@ -9,4 +9,7 @@ public interface IRollbackSession<TInput, TGameState> : IDisposable
     public Task<ErrorCode> AddLocalInput(PlayerHandle player, TInput input);
     public ErrorCode SynchronizeInputs(params TInput[] inputs);
     public ErrorCode SynchronizeInputs(out int[] disconnectFlags, params TInput[] inputs);
+
+    // LATER: remove this
+    public TGameState? GetState() => null;
 }
