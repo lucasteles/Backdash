@@ -153,6 +153,7 @@ dotnet_diagnostic.S1075.severity = suggestion # hardcoded URIs
 dotnet_diagnostic.S3459.severity = suggestion # Unassigned members should be removed
 dotnet_diagnostic.S1210.severity = suggestion # When implementing IComparable , you should also override , =, >, and >=. 
 dotnet_diagnostic.S3237.severity = silent # Use the 'value' contextual keyword in this property set accessor declaration.
+dotnet_diagnostic.S1104.severity = silent # encapsulate fields
 
 ## AsyncFixer
 dotnet_diagnostic.AsyncFixer01.severity = suggestion # The method dont needs async
@@ -173,7 +174,5 @@ dotnet_diagnostic.CS1591.severity = silent
 dotnet_diagnostic.S2094.severity = silent # empty class (false positive)
 dotnet_diagnostic.S3925.severity = silent # Update this implementation of 'ISerializable' to conform to the recommended serialization pattern.
 
-
 [Usings.cs]
 dotnet_diagnostic.IDE0005.severity = silent # Using directive is unnecessary.
-

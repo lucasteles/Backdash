@@ -18,7 +18,7 @@ class BuildProject : NukeBuild
 
     Target Clean => _ => _
         .Description("Clean project directories")
-        .Executes(() => new[] { "src", "tests" }
+        .Executes(() => new[] {"src", "tests"}
             .Select(path => RootDirectory / path)
             .SelectMany(dir => dir
                 .GlobDirectories("**/bin", "**/obj", "**/TestResults"))

@@ -1,4 +1,4 @@
-using System.Numerics;
+﻿using System.Numerics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
@@ -79,8 +79,7 @@ static class BinarySerializerFactory
                     .GetMethod(nameof(ForStruct), BindingFlags.Static | BindingFlags.Public)?
                     .MakeGenericMethod(inputType)
                     .Invoke(null, [
-                        inputType.GetMembers()
-                            .Any(m => Attribute.IsDefined(m, typeof(MarshalAsAttribute))),
+                        Array.Exists(inputType.GetMembers(), m => Attribute.IsDefined(m, typeof(MarshalAsAttribute))),
                     ]) as IBinarySerializer<TInput>,
 
             _ => null,

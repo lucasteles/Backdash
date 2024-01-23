@@ -91,6 +91,7 @@
               "Lint",
               "Report",
               "Restore",
+              "SoftLint",
               "Test"
             ]
           }
@@ -114,6 +115,7 @@
               "Lint",
               "Report",
               "Restore",
+              "SoftLint",
               "Test"
             ]
           }

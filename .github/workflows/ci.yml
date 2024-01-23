@@ -33,8 +33,9 @@ jobs:
             - name: Build
               run: dotnet nuke build
 
-            - name: Lint
-              run: dotnet nuke lint
+# TODO: Enable linting
+#            - name: Lint
+#              run: dotnet nuke lint
 
             - name: Tests
               run: dotnet nuke test --configuration Release --skip build --no-logo

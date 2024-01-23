@@ -1,11 +1,18 @@
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using nGGPO.Network;
 
 namespace nGGPO.Serialization.Buffer;
 
-public ref struct NetworkBufferWriter
+public readonly ref struct NetworkBufferWriter
 {
+    public NetworkBufferWriter(Span<byte> buffer) => this.buffer = buffer;
+
+    public NetworkBufferWriter(Span<byte> buffer, ref int offset) : this(buffer) =>
+        this.offset = ref offset;
+
+    const int FullSize = -1;
+
     readonly ref int offset;
     readonly Span<byte> buffer;
 
@@ -15,14 +22,6 @@ public ref struct NetworkBufferWriter
     public int FreeCapacity => Capacity - WrittenCount;
 
     public Span<byte> CurrentBuffer => buffer[offset..];
-
-    public NetworkBufferWriter(Span<byte> buffer) => this.buffer = buffer;
-
-    public NetworkBufferWriter(Span<byte> buffer, ref int offset) : this(buffer) =>
-        this.offset = ref offset;
-
-
-    const int FullSize = -1;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Advance(int count) => offset += count;

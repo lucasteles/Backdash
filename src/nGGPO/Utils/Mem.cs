@@ -1,4 +1,4 @@
-using System.Numerics;
+﻿using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -52,7 +52,7 @@ static class Mem
         where TEnum : unmanaged, Enum
         where TInt : unmanaged, IBinaryInteger<TInt>
     {
-        if (Unsafe.SizeOf<TEnum>() != Unsafe.SizeOf<TInt>()) throw new Exception("type mismatch");
+        if (Unsafe.SizeOf<TEnum>() != Unsafe.SizeOf<TInt>()) throw new NggpoException("type mismatch");
         return Unsafe.As<TEnum, TInt>(ref enumValue);
     }
 
@@ -60,7 +60,7 @@ static class Mem
         where TEnum : unmanaged, Enum
         where TInt : unmanaged, IBinaryInteger<TInt>
     {
-        if (Unsafe.SizeOf<TEnum>() != Unsafe.SizeOf<TInt>()) throw new Exception("type mismatch");
+        if (Unsafe.SizeOf<TEnum>() != Unsafe.SizeOf<TInt>()) throw new NggpoException("type mismatch");
         return Unsafe.As<TInt, TEnum>(ref intValue);
     }
 

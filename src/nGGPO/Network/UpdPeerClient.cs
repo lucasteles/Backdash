@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
@@ -45,17 +45,17 @@ public class UdpPeerClient<T>(
 
     public event OnMessageDelegate<T>? OnMessage;
 
-    public Task StartPumping(CancellationToken cancellationToken = default)
+    public async Task StartPumping(CancellationToken cancellationToken = default)
     {
         if (cancellation is not null)
-            return Task.CompletedTask;
+            return;
 
         cancellation = new();
 
-        var cts = CancellationTokenSource
+        using var cts = CancellationTokenSource
             .CreateLinkedTokenSource(cancellationToken, cancellation.Token);
 
-        return Task.WhenAll(
+        await Task.WhenAll(
             StartRead(cts.Token).AsTask(),
             ProcessSendQueue(cts.Token).AsTask()
         );
@@ -75,16 +75,16 @@ public class UdpPeerClient<T>(
         if (port is < IPEndPoint.MinPort or > IPEndPoint.MaxPort)
             throw new ArgumentOutOfRangeException(nameof(port));
 
-        Socket socket = new(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp)
+        Socket newSocket = new(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp)
         {
             ExclusiveAddressUse = false,
             Blocking = false,
         };
 
         IPEndPoint localEp = new(IPAddress.Any, port);
-        socket.Bind(localEp);
+        newSocket.Bind(localEp);
         Tracer.Log("binding udp socket to port {0}.\n", port);
-        return socket;
+        return newSocket;
     }
 
     async ValueTask StartRead(CancellationToken ct)

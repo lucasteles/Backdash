@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Threading.Channels;
 using nGGPO.DataStructure;
 using nGGPO.Input;
@@ -359,8 +359,9 @@ partial class UdpProtocol : IDisposable
         //  */
         if (msg.Input.InputSize > 0)
         {
-            // TODO: remove delegate allocation with OnParsedInput
-            InputCompressor.DecompressInput(ref msg.Input, ref lastReceivedInput, OnParsedInput);
+            // LATER: remove delegate allocation with OnParsedInput
+            onParsedInputCache ??= OnParsedInput;
+            InputCompressor.DecompressInput(ref msg.Input, ref lastReceivedInput, onParsedInputCache);
         }
 
         Tracer.Assert(lastReceivedInput.Frame >= lastAckedInput.Frame);
@@ -372,6 +373,8 @@ partial class UdpProtocol : IDisposable
 
         return true;
     }
+
+    Action? onParsedInputCache;
 
     void OnParsedInput()
     {

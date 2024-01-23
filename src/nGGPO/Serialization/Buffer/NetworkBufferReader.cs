@@ -1,11 +1,16 @@
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using nGGPO.Network;
 
 namespace nGGPO.Serialization.Buffer;
 
-public ref struct NetworkBufferReader
+public readonly ref struct NetworkBufferReader
 {
+    public NetworkBufferReader(ReadOnlySpan<byte> buffer) => this.buffer = buffer;
+
+    public NetworkBufferReader(ReadOnlySpan<byte> buffer, ref int offset) : this(buffer) =>
+        this.offset = ref offset;
+
     readonly ref int offset;
     readonly ReadOnlySpan<byte> buffer;
 
@@ -17,11 +22,6 @@ public ref struct NetworkBufferReader
     int FreeCapacity => Capacity - ReadCount;
 
     public ReadOnlySpan<byte> CurrentBuffer => buffer[offset..];
-
-    public NetworkBufferReader(ReadOnlySpan<byte> buffer) => this.buffer = buffer;
-
-    public NetworkBufferReader(ReadOnlySpan<byte> buffer, ref int offset) : this(buffer) =>
-        this.offset = ref offset;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Advance(int count) => offset += count;
@@ -198,16 +198,4 @@ public ref struct NetworkBufferReader
         ReadSpan(values, size);
         if (Network) Endianness.ToHost(values);
     }
-
-
-    // public TEnum ReadEnum<TEnum, TUnderType>()
-    //     where TEnum : unmanaged, Enum
-    //     where TUnderType : unmanaged, IBinaryInteger<TUnderType>
-    // {
-    //     var size = Unsafe.SizeOf<TUnderType>();
-    //     var value = Mem.SpanAsStruct<TUnderType>(buffer[offset..(offset + size)]);
-    //     Advance( size);
-    //     var reordered = network ? Endianness.TryNetworkToHostOrder(value) : value;
-    //     return Mem.IntegerAsEnum<TEnum, TUnderType>(reordered);
-    // }
 }
