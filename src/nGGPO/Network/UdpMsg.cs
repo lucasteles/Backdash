@@ -6,7 +6,7 @@ using nGGPO.Serialization.Buffer;
 namespace nGGPO.Network;
 
 [StructLayout(LayoutKind.Explicit)]
-record struct UdpMsg : IBinarySerializable
+struct UdpMsg : IBinarySerializable, IEquatable<UdpMsg>
 {
     [FieldOffset(0)]
     public Header Header;
@@ -106,4 +106,18 @@ record struct UdpMsg : IBinarySerializable
                 throw new InvalidOperationException();
         }
     }
+
+    public readonly bool Equals(UdpMsg other) =>
+        Header.Type == other.Header.Type && Header.Type switch
+        {
+            MsgType.Invalid => other.Header.Type is MsgType.Invalid,
+            MsgType.SyncRequest => SyncRequest.Equals(other.SyncRequest),
+            MsgType.SyncReply => SyncReply.Equals(other.SyncReply),
+            MsgType.Input => Input.Equals(other.Input),
+            MsgType.QualityReport => QualityReport.Equals(other.QualityReport),
+            MsgType.QualityReply => QualityReply.Equals(other.QualityReply),
+            MsgType.KeepAlive => KeepAlive.Equals(other.KeepAlive),
+            MsgType.InputAck => InputAck.Equals(other.InputAck),
+            _ => throw new ArgumentOutOfRangeException(nameof(other)),
+        };
 }

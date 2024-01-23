@@ -156,8 +156,8 @@ dotnet_diagnostic.S1210.severity = suggestion # When implementing IComparable , 
 dotnet_diagnostic.S2344.severity = suggestion # remove Enum suffix
 dotnet_diagnostic.S3237.severity = silent # Use the 'value' contextual keyword in this property set accessor declaration.
 dotnet_diagnostic.S1104.severity = silent # encapsulate fields
+dotnet_diagnostic.S3877.severity = silent # Remove this 'throw' expression.
 dotnet_diagnostic.S2699.severity = silent # add assert to test (not working with FsCheck)
-
 
 ## AsyncFixer
 dotnet_diagnostic.AsyncFixer01.severity = suggestion # The method dont needs async
