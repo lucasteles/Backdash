@@ -8,7 +8,7 @@ struct QualityReply
 {
     public uint Pong;
 
-    public void Serialize(NetworkBufferWriter writer) =>
+    public readonly void Serialize(NetworkBufferWriter writer) =>
         writer.Write(Pong);
 
     public void Deserialize(NetworkBufferReader reader) =>

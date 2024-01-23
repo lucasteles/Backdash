@@ -12,7 +12,7 @@ struct Header(MsgType type)
 
     public const int Size = sizeof(byte) + sizeof(ushort) + sizeof(ushort);
 
-    public void Serialize(NetworkBufferWriter writer)
+    public readonly void Serialize(NetworkBufferWriter writer)
     {
         writer.Write((byte) Type);
         writer.Write(Magic);

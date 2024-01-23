@@ -10,7 +10,7 @@ struct SyncRequest
     public ushort RemoteMagic;
     public byte RemoteEndpoint;
 
-    public void Serialize(NetworkBufferWriter writer)
+    public readonly void Serialize(NetworkBufferWriter writer)
     {
         writer.Write(RandomRequest);
         writer.Write(RemoteMagic);

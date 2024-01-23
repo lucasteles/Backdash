@@ -23,7 +23,7 @@ struct InputMsg
     public byte InputSize;
     public GameInputBuffer Bits;
 
-    public void Serialize(scoped NetworkBufferWriter writer)
+    public readonly void Serialize(scoped NetworkBufferWriter writer)
     {
         writer.Write(PeerCount);
         for (var i = 0; i < PeerCount; i++)

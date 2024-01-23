@@ -13,6 +13,7 @@ public sealed class PropertyTestAttribute : FsCheck.Xunit.PropertyAttribute
     }
 }
 
+[Serializable]
 public class MyGenerators
 {
     public static Arbitrary<Point> PointGenerator() => Arb.From(

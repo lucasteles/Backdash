@@ -9,7 +9,7 @@ struct QualityReport
     public byte FrameAdvantage; /* what's the other guy's frame advantage? */
     public uint Ping;
 
-    public void Serialize(NetworkBufferWriter writer)
+    public readonly void Serialize(NetworkBufferWriter writer)
     {
         writer.Write(FrameAdvantage);
         writer.Write(Ping);

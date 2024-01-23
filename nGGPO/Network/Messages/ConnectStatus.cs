@@ -7,7 +7,7 @@ struct ConnectStatus
     public bool Disconnected;
     public int LastFrame;
 
-    public void Serialize(NetworkBufferWriter writer)
+    public readonly void Serialize(NetworkBufferWriter writer)
     {
         writer.Write(Disconnected);
         writer.Write(LastFrame);
