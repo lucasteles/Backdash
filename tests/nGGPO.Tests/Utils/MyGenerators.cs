@@ -1,5 +1,6 @@
 using System.Drawing;
 using nGGPO.Input;
+using nGGPO.Network;
 using nGGPO.Network.Messages;
 using nGGPO.Utils;
 
@@ -182,4 +183,54 @@ class MyGenerators
             Bits = new(inputBuffer),
         }
     );
+
+    public static Arbitrary<UdpMsg> UpdMsgGenerator() => Arb.From<Header>().Generator
+        .Where(h => h.Type is not MsgType.Invalid)
+        .SelectMany(header => header.Type switch
+        {
+            MsgType.SyncRequest =>
+                Arb.From<SyncRequest>().Generator.Select(x => new UdpMsg
+                {
+                    Header = header,
+                    SyncRequest = x,
+                }),
+            MsgType.SyncReply =>
+                Arb.From<SyncReply>().Generator.Select(x => new UdpMsg
+                {
+                    Header = header,
+                    SyncReply = x,
+                }),
+            MsgType.Input =>
+                Arb.From<InputMsg>().Generator.Select(x => new UdpMsg
+                {
+                    Header = header,
+                    Input = x,
+                }),
+            MsgType.QualityReport =>
+                Arb.From<QualityReport>().Generator.Select(x => new UdpMsg
+                {
+                    Header = header,
+                    QualityReport = x,
+                }),
+            MsgType.QualityReply =>
+                Arb.From<QualityReply>().Generator.Select(x => new UdpMsg
+                {
+                    Header = header,
+                    QualityReply = x,
+                }),
+            MsgType.KeepAlive =>
+                Arb.From<KeepAlive>().Generator.Select(x => new UdpMsg
+                {
+                    Header = header,
+                    KeepAlive = x,
+                }),
+            MsgType.InputAck =>
+                Arb.From<InputAck>().Generator.Select(x => new UdpMsg
+                {
+                    Header = header,
+                    InputAck = x,
+                }),
+            _ => throw new ArgumentOutOfRangeException(nameof(header)),
+        })
+        .ToArbitrary();
 }

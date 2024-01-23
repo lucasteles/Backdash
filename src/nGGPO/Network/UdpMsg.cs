@@ -1,11 +1,12 @@
 using System.Runtime.InteropServices;
 using nGGPO.Network.Messages;
+using nGGPO.Serialization;
 using nGGPO.Serialization.Buffer;
 
 namespace nGGPO.Network;
 
 [StructLayout(LayoutKind.Explicit)]
-struct UdpMsg
+record struct UdpMsg : IBinarySerializable
 {
     [FieldOffset(0)]
     public Header Header;
