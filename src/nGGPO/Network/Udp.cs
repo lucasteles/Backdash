@@ -2,4 +2,4 @@ using nGGPO.Serialization;
 
 namespace nGGPO.Network;
 
-class Udp(int bindingPort) : UdpPeerClient<UdpMsg>(bindingPort, new UdpMsgBinarySerializer());
+sealed class Udp(int bindingPort) : UdpPeerClient<UdpMsg>(bindingPort, new UdpMsgBinarySerializer());

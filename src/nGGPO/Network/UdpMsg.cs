@@ -6,10 +6,10 @@ using nGGPO.Serialization.Buffer;
 namespace nGGPO.Network;
 
 [StructLayout(LayoutKind.Explicit)]
-struct UdpMsg : IBinarySerializable, IEquatable<UdpMsg>
+struct UdpMsg(MsgType type) : IBinarySerializable, IEquatable<UdpMsg>
 {
     [FieldOffset(0)]
-    public Header Header;
+    public Header Header = new(type);
 
     [FieldOffset(Header.Size)]
     public SyncRequest SyncRequest;
@@ -31,17 +31,6 @@ struct UdpMsg : IBinarySerializable, IEquatable<UdpMsg>
 
     [FieldOffset(Header.Size)]
     public InputMsg Input;
-
-    public UdpMsg(MsgType type)
-    {
-        Header = new(type);
-        SyncRequest = default;
-        SyncReply = default;
-        QualityReport = default;
-        QualityReply = default;
-        InputAck = default;
-        Input = default;
-    }
 
     public readonly void Serialize(NetworkBufferWriter writer)
     {
@@ -120,4 +109,9 @@ struct UdpMsg : IBinarySerializable, IEquatable<UdpMsg>
             MsgType.InputAck => InputAck.Equals(other.InputAck),
             _ => throw new ArgumentOutOfRangeException(nameof(other)),
         };
+
+    public override readonly bool Equals(object? obj) => obj is UdpMsg msg && Equals(msg);
+    public override readonly int GetHashCode() => HashCode.Combine(typeof(UdpMsg));
+    public static bool operator ==(UdpMsg left, UdpMsg right) => left.Equals(right);
+    public static bool operator !=(UdpMsg left, UdpMsg right) => !left.Equals(right);
 }

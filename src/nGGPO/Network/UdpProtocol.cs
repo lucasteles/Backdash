@@ -179,12 +179,8 @@ sealed partial class UdpProtocol : IDisposable
 
         var input = CreateInputMsg();
 
-        UdpMsg msg = new()
+        UdpMsg msg = new(MsgType.Input)
         {
-            Header =
-            {
-                Type = MsgType.Input,
-            },
             Input = input,
         };
 

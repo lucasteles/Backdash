@@ -16,29 +16,21 @@ public enum UdpEventType : sbyte
 };
 
 [StructLayout(LayoutKind.Explicit)]
-struct UdpEvent
+struct UdpEvent(UdpEventType type)
 {
     public record struct SynchronizingData(int Total, int Count);
 
     public record struct NetworkInterruptedData(int DisconnectTimeout);
 
     [FieldOffset(0)]
-    public UdpEventType Type = UdpEventType.Unknown;
+    public UdpEventType Type = type;
 
     [FieldOffset(sizeof(sbyte))]
-    public GameInput Input;
+    public GameInput Input = default;
 
     [FieldOffset(sizeof(sbyte))]
-    public SynchronizingData Synchronizing;
+    public SynchronizingData Synchronizing = default;
 
     [FieldOffset(sizeof(sbyte))]
-    public NetworkInterruptedData NetworkInterrupted;
-
-    public UdpEvent(UdpEventType type)
-    {
-        Type = type;
-        Input = default;
-        Synchronizing = default;
-        NetworkInterrupted = default;
-    }
+    public NetworkInterruptedData NetworkInterrupted = default;
 }
