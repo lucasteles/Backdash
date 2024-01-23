@@ -7,7 +7,7 @@ public static class Commands
         {
             PlatformFamily.Windows => "explorer",
             PlatformFamily.OSX => "open",
-            _ => new[] {"google-chrome", "firefox"}
+            _ => new[] { "google-chrome", "firefox" }
                 .FirstOrDefault(CommandExists),
         });
 
