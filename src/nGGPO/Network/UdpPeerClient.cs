@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading.Channels;
 using nGGPO.Serialization;
@@ -81,6 +82,13 @@ class UdpPeerClient<T>(
 
     async ValueTask StartRead(CancellationToken ct)
     {
+        await foreach (var (msg, address) in ReadAllAsync(ct))
+            if (OnMessage is not null)
+                await OnMessage.Invoke(msg, address, ct);
+    }
+
+    async IAsyncEnumerable<(T Msg, SocketAddress Address)> ReadAllAsync([EnumeratorCancellation] CancellationToken ct)
+    {
         var buffer = GC.AllocateArray<byte>(
             length: Max.UdpPacketSize,
             pinned: true
@@ -89,31 +97,31 @@ class UdpPeerClient<T>(
         SocketAddress address = new(socket.AddressFamily);
 
         while (!ct.IsCancellationRequested)
+        {
+            int receivedSize;
             try
             {
-                var receivedSize = await socket
-                    .ReceiveFromAsync(buffer, SocketFlags.None, address, ct);
-
-                if (receivedSize is 0)
-                    continue;
-
-                var memory = MemoryMarshal.CreateFromPinnedArray(buffer, 0, receivedSize);
-                var parsed = serializer.Deserialize(memory.Span);
-
-                if (OnMessage is not null)
-                    await OnMessage.Invoke(parsed, address, ct);
+                receivedSize = await socket.ReceiveFromAsync(buffer, SocketFlags.None, address, ct);
             }
             catch (SocketException ex)
             {
                 if (LogsEnabled)
                     Tracer.Warn(ex, "Socket error");
 
-                break;
+                yield break;
             }
             catch (OperationCanceledException)
             {
-                break;
+                yield break;
             }
+
+            if (receivedSize is 0)
+                continue;
+
+            var memory = MemoryMarshal.CreateFromPinnedArray(buffer, 0, receivedSize);
+            var parsed = serializer.Deserialize(memory.Span);
+            yield return (parsed, address);
+        }
     }
 
     async ValueTask ProcessSendQueue(CancellationToken ct)
