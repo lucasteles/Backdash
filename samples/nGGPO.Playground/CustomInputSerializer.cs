@@ -1,6 +1,8 @@
 using nGGPO.Serialization;
 using nGGPO.Serialization.Buffer;
 
+namespace nGGPO.Playground;
+
 class CustomInputSerializer : BinarySerializer<Input>
 {
     protected override void Serialize(scoped NetworkBufferWriter writer, in Input data)

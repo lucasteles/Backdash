@@ -4,15 +4,15 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
+namespace nGGPO.Playground;
+
 [InlineArray(10)]
 [DebuggerDisplay("Buffer {ToString()}")]
 public struct ValueBuffer
 {
-#pragma warning disable CS0169 // Field is never used
     byte element0;
-#pragma warning restore CS0169 // Field is never used
 
-    public override string ToString()
+    public readonly override string ToString()
     {
         ReadOnlySpan<byte> bytes = this;
         return $"[{string.Join(", ", bytes.ToArray().Select(x => (int)x))}]";

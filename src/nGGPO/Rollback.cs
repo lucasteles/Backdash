@@ -3,7 +3,7 @@ using nGGPO.Serialization;
 
 namespace nGGPO;
 
-public class Rollback
+public static class Rollback
 {
     public static IRollbackSession<TInput, TGameState> CreateSession<TInput, TGameState>(
         ISessionCallbacks<TGameState> cb,

@@ -42,7 +42,7 @@ struct UdpMsg
         Input = default;
     }
 
-    public void Serialize(NetworkBufferWriter writer)
+    public readonly void Serialize(NetworkBufferWriter writer)
     {
         Header.Serialize(writer);
         switch (Header.Type)

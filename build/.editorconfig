@@ -21,3 +21,5 @@ dotnet_naming_rule.private_field_symbols_should_be_camel_case.style = pascal_cas
 
 dotnet_naming_style.pascal_case_style.capitalization = pascal_case
 dotnet_naming_style.camel_case_style.capitalization = camel_case
+
+dotnet_diagnostic.CS1591.severity = silent

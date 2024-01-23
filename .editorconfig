@@ -143,6 +143,7 @@ csharp_preserve_single_line_blocks = true
 ## dotnet
 dotnet_diagnostic.IDE0011.severity = suggestion # require braces
 dotnet_diagnostic.IDE0005.severity = warning # Using directive is unnecessary.
+dotnet_diagnostic.IDE0251.severity = warning # member can be readonly
 dotnet_diagnostic.CA1860.severity = warning # Prefer comparing 'Length' to 0 rather than using 'Any()'
 
 ## Sonar
@@ -152,8 +153,11 @@ dotnet_diagnostic.S1118.severity = suggestion # Add a 'protected' constructor or
 dotnet_diagnostic.S1075.severity = suggestion # hardcoded URIs
 dotnet_diagnostic.S3459.severity = suggestion # Unassigned members should be removed
 dotnet_diagnostic.S1210.severity = suggestion # When implementing IComparable , you should also override , =, >, and >=. 
+dotnet_diagnostic.S2344.severity = suggestion # remove Enum suffix
 dotnet_diagnostic.S3237.severity = silent # Use the 'value' contextual keyword in this property set accessor declaration.
 dotnet_diagnostic.S1104.severity = silent # encapsulate fields
+dotnet_diagnostic.S2699.severity = silent # add assert to test (not working with FsCheck)
+
 
 ## AsyncFixer
 dotnet_diagnostic.AsyncFixer01.severity = suggestion # The method dont needs async

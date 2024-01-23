@@ -166,6 +166,7 @@ public class UdpPeerClientTests
         })));
 
         await WaitFor.BeTrue(() => counter.Value is messageCount * 2);
+        await tasks;
         totalResult.Should().Be(0);
 
         return;
