@@ -5,7 +5,7 @@ using nGGPO.Serialization;
 
 var msgCount = 0UL;
 
-UdpPeerClient<Message> peer1 = new(9000, BinarySerializers.ForEnum<Message>())
+UdpPeerClient<Message> peer1 = new(9000, BinarySerializerFactory.ForEnum<Message>())
 {
     LogsEnabled = false,
 };
@@ -29,7 +29,7 @@ peer1.OnMessage += async (message, sender, token) =>
     }
 };
 
-UdpPeerClient<Message> peer2 = new(9001, BinarySerializers.ForEnum<Message>())
+UdpPeerClient<Message> peer2 = new(9001, BinarySerializerFactory.ForEnum<Message>())
 {
     LogsEnabled = false,
 };

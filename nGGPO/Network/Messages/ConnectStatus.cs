@@ -2,7 +2,7 @@
 
 namespace nGGPO.Network.Messages;
 
-struct ConnectStatus
+record struct ConnectStatus : IBinarySerializable
 {
     public bool Disconnected;
     public int LastFrame;

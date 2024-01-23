@@ -134,28 +134,3 @@ csharp_space_between_method_call_empty_parameter_list_parentheses = false
 # Wrapping preferences
 csharp_preserve_single_line_statements = true
 csharp_preserve_single_line_blocks = true
-
-
-# Roslynator
-dotnet_analyzer_diagnostic.category-roslynator.severity = default
-roslynator_analyzers.enabled_by_default = true
-roslynator_refactorings.enabled = true
-roslynator_compiler_diagnostic_fixes.enabled = true
-
-dotnet_diagnostic.RCS1214.severity = warning
-dotnet_diagnostic.RCS1036.severity = warning
-dotnet_diagnostic.S3881.severity = suggestion
-dotnet_diagnostic.IDE0011.severity = silent
-dotnet_diagnostic.RCS1001.severity = silent
-dotnet_diagnostic.RCS1194.severity = silent
-dotnet_diagnostic.RCS1163.severity = silent
-dotnet_diagnostic.RCS1118.severity = silent
-dotnet_diagnostic.CA1050.severity = silent
-dotnet_diagnostic.S3925.severity = silent
-dotnet_diagnostic.S1199.severity = silent
-
-# Nunit
-dotnet_diagnostic.NUnit1027.severity = silent
-dotnet_diagnostic.S3903.severity = silent
-dotnet_diagnostic.AsyncFixer05.severity = silent
-dotnet_diagnostic.S3973.severity = silent

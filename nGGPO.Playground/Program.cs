@@ -9,11 +9,11 @@ void Div() => Console.WriteLine(new string('-', 10));
 
 byte[] data =
 {
-    1, 2, 3, 4, 5
+    1, 2, 3, 4, 5,
 };
 {
     var packet = long.MaxValue;
-    var serializer = BinarySerializers.Get<long>()!;
+    var serializer = BinarySerializerFactory.Get<long>()!;
     using var buffer = MemoryBuffer.Rent(10, true);
     var size = serializer.Serialize(ref packet, buffer);
     var bytes = buffer[..size];
@@ -25,7 +25,7 @@ byte[] data =
 Div();
 {
     var packet = ButtonsInput.UpLeft | ButtonsInput.X;
-    var serializer = BinarySerializers.Get<ButtonsInput>()!;
+    var serializer = BinarySerializerFactory.Get<ButtonsInput>()!;
     using var buffer = MemoryBuffer.Rent(10, true);
     var size = serializer.Serialize(ref packet, buffer);
     var bytes = buffer[..size];
@@ -47,7 +47,7 @@ Div();
     Console.WriteLine($"# Ipt: {packet}\n");
 
 
-    var serializer = BinarySerializers.Get<Input>()!;
+    var serializer = BinarySerializerFactory.Get<Input>()!;
     using var buffer = MemoryBuffer.Rent(20, true);
     var size = serializer.Serialize(ref packet, buffer);
     var bytes = buffer[..size];
@@ -69,7 +69,7 @@ Div();
 
     var serializer = new CustomInputSerializer
     {
-        Network = false
+        Network = false,
     };
 
     using var buffer = MemoryBuffer.Rent(20, true);

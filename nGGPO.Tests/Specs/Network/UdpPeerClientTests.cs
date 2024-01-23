@@ -86,7 +86,7 @@ public class UdpPeerClientTests
     [Fact]
     public async Task ShouldProcessConcurrent()
     {
-        using Peer2PeerFixture<OpMessage> context = new(BinarySerializers.ForEnum<OpMessage>());
+        using Peer2PeerFixture<OpMessage> context = new(BinarySerializerFactory.ForEnum<OpMessage>());
         var (client, server) = context;
 
         var totalResult = 0;
@@ -129,7 +129,7 @@ public class UdpPeerClientTests
     public async Task ShouldSendReceiveBetween()
     {
         using Peer2PeerFixture<OpMessage> context = new(
-            BinarySerializers.ForEnum<OpMessage>()
+            BinarySerializerFactory.ForEnum<OpMessage>()
         );
 
         var (client, server) = context;
