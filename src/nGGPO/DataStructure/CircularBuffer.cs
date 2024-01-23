@@ -2,12 +2,11 @@ using System.Threading.Channels;
 
 namespace nGGPO.DataStructure;
 
-sealed class CircularBuffer<T> where T : notnull
+sealed class CircularBuffer<T>(int capacity = 64)
+    where T : notnull
 {
-    readonly T[] elements;
+    readonly T[] elements = new T[capacity];
     int head, tail;
-
-    public CircularBuffer(int capacity = 64) => elements = new T[capacity];
 
     public int Capacity => elements.Length;
     public int Size { get; private set; }

@@ -4,12 +4,12 @@ namespace nGGPO.Input;
 
 sealed class TimeSync
 {
-    public class Options
+    public sealed class Options
     {
-        public int FrameWindowSize { get; set; } = 40;
-        public int MinUniqueFrames { get; set; } = 10;
-        public int MinFrameAdvantage { get; set; } = 3;
-        public int MaxFrameAdvantage { get; set; } = 9;
+        public int FrameWindowSize { get; init; } = 40;
+        public int MinUniqueFrames { get; init; } = 10;
+        public int MinFrameAdvantage { get; init; } = 3;
+        public int MaxFrameAdvantage { get; init; } = 9;
     }
 
     int counter;
@@ -31,12 +31,12 @@ sealed class TimeSync
         maxFrameAdvantage = options.MaxFrameAdvantage;
     }
 
-    public void AdvanceFrame(in GameInput input, int advantage, int radvantage)
+    public void AdvanceFrame(in GameInput input, int advantage, int remoteAdvantage)
     {
         // Remember the last frame and frame advantage
         lastInputs[input.Frame % lastInputs.Length] = input;
         local[input.Frame % local.Length] = advantage;
-        remote[input.Frame % remote.Length] = radvantage;
+        remote[input.Frame % remote.Length] = remoteAdvantage;
     }
 
     public int RecommendFrameWaitDuration(bool requireIdleInput)

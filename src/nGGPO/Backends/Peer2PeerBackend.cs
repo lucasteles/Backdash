@@ -158,7 +158,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
     UdpProtocol CreateUdpProtocol(IPEndPoint endpoint, int queue)
     {
         UdpProtocol protocol = new(
-            timesync: new(),
+            timeSync: new(),
             random: Rnd.Shared,
             udp: udp,
             queue,

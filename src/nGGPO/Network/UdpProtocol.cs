@@ -13,8 +13,6 @@ sealed partial class UdpProtocol : IDisposable
      * Network transmission information
      */
     readonly UdpPeerClient<UdpMsg> udp;
-    readonly IPEndPoint peerAddress;
-    readonly SocketAddress peerSocketAddress;
     readonly ushort magicNumber;
     readonly int queue;
     ushort remoteMagicNumber;
@@ -53,7 +51,6 @@ sealed partial class UdpProtocol : IDisposable
     GameInput lastSentInput;
     GameInput lastAckedInput;
 
-
     ushort nextSendSeq;
     ushort nextRecvSeq;
 
@@ -64,12 +61,13 @@ sealed partial class UdpProtocol : IDisposable
     public int DisconnectNotifyStart { get; set; }
     public bool DisconnectEventSent { get; set; }
     public bool DisconnectNotifySent { get; set; }
-
+    public IPEndPoint PeerEndPoint { get; }
+    public SocketAddress PeerAddress { get; }
 
     /*
      * Rift synchronization.
      */
-    readonly TimeSync timesync;
+    readonly TimeSync timeSync;
     readonly Random random;
 
     /*
@@ -78,7 +76,7 @@ sealed partial class UdpProtocol : IDisposable
     readonly CircularBuffer<UdpEvent> eventQueue;
 
     public UdpProtocol(
-        TimeSync timesync,
+        TimeSync timeSync,
         Random random,
         UdpPeerClient<UdpMsg> udp,
         int queue,
@@ -100,12 +98,12 @@ sealed partial class UdpProtocol : IDisposable
 
         sendLatency = Platform.GetConfigInt("ggpo.network.delay");
 
-        this.timesync = timesync;
+        this.timeSync = timeSync;
         this.random = random;
         this.udp = udp;
         this.queue = queue;
-        this.peerAddress = peerAddress;
-        peerSocketAddress = peerAddress.Serialize();
+        PeerEndPoint = peerAddress;
+        PeerAddress = peerAddress.Serialize();
         this.localConnectStatus = localConnectStatus;
 
         this.udp.OnMessage += OnMsgEventHandler;
@@ -113,7 +111,7 @@ sealed partial class UdpProtocol : IDisposable
 
     async ValueTask OnMsgEventHandler(UdpMsg msg, SocketAddress from, CancellationToken ct)
     {
-        if (peerSocketAddress.Equals(from))
+        if (PeerAddress.Equals(from))
             await OnMsg(msg);
     }
 
@@ -133,7 +131,7 @@ sealed partial class UdpProtocol : IDisposable
             /*
              * Check to see if this is a good time to adjust for the rift...
              */
-            timesync.AdvanceFrame(in input, localFrameAdvantage, remoteFrameAdvantage);
+            timeSync.AdvanceFrame(in input, localFrameAdvantage, remoteFrameAdvantage);
 
             /*
              * Save this input packet
@@ -239,7 +237,7 @@ sealed partial class UdpProtocol : IDisposable
         return sendQueue.Writer.WriteAsync(new()
         {
             QueueTime = Platform.GetCurrentTimeMS(),
-            DestAddr = peerSocketAddress,
+            DestAddr = PeerAddress,
             Msg = msg,
         }, sendQueueCancellation.Token);
     }
@@ -530,7 +528,7 @@ sealed partial class UdpProtocol : IDisposable
     public int RecommendFrameDelay()
     {
         // XXX: require idle input should be a configuration parameter
-        return timesync.RecommendFrameWaitDuration(false);
+        return timeSync.RecommendFrameWaitDuration(false);
     }
 
     void SetLocalFrameNumber(int localFrame)
