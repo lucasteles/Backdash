@@ -72,14 +72,14 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         return ErrorCode.Ok;
     }
 
-    public ErrorCode SetFrameDelay(Player player, int delay)
+    public ErrorCode SetFrameDelay(Player player, int delayInFrames)
     {
         var result = PlayerHandleToQueue(player.Handle, out var queue);
 
         if (result is not ErrorCode.Ok)
             return result;
 
-        sync.SetFrameDelay(queue, delay);
+        sync.SetFrameDelay(queue, delayInFrames);
 
         return ErrorCode.Ok;
     }

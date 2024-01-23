@@ -7,7 +7,7 @@ using nGGPO.Utils;
 
 namespace nGGPO.Network;
 
-partial class UdpProtocol : IDisposable
+sealed partial class UdpProtocol : IDisposable
 {
     /*
      * Network transmission information
@@ -119,6 +119,8 @@ partial class UdpProtocol : IDisposable
 
     public void Dispose()
     {
+        sendQueueCancellation.Cancel();
+        sendQueueCancellation.Dispose();
         sendQueue.Writer.Complete();
         udp.OnMessage -= OnMsgEventHandler;
         Disconnect();

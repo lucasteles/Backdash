@@ -12,7 +12,7 @@ sealed class TimeSync
         public int MaxFrameAdvantage { get; set; } = 9;
     }
 
-    static int counter;
+    int counter;
 
     readonly int minFrameAdvantage;
     readonly int maxFrameAdvantage;
@@ -53,7 +53,7 @@ sealed class TimeSync
             sum += remote[i];
 
         var radvantage = sum / (float)remote.Length;
-        counter++;
+        Interlocked.Increment(ref counter);
 
         // See if someone should take action.  The person furthest ahead
         // needs to slow down so the other user can catch up.

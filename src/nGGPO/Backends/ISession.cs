@@ -5,8 +5,8 @@ public interface IRollbackSession<in TInput, TGameState> : IDisposable
     where TGameState : struct
 {
     public ErrorCode AddPlayer(Player player);
-    public ErrorCode SetFrameDelay(Player player, int frameDelay);
-    public Task<ErrorCode> AddLocalInput(PlayerHandle player, TInput input);
+    public ErrorCode SetFrameDelay(Player player, int delayInFrames);
+    public Task<ErrorCode> AddLocalInput(PlayerHandle player, TInput localInput);
     public ErrorCode SynchronizeInputs(params TInput[] inputs);
     public ErrorCode SynchronizeInputs(out int[] disconnectFlags, params TInput[] inputs);
 

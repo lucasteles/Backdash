@@ -2,9 +2,8 @@ using nGGPO.Utils;
 
 namespace nGGPO.Input;
 
-class InputQueue
+sealed class InputQueue
 {
-    readonly int inputSize;
     int head, tail, length;
     bool firstFrame;
 
@@ -18,11 +17,10 @@ class InputQueue
 
     int PreviousFrame(int offset) => offset == 0 ? inputs.Length - 1 : offset - 1;
 
-    public InputQueue(int queueSize, int inputSize)
+    public InputQueue(int queueSize)
     {
         head = tail = length = FrameDelay = 0;
         firstFrame = true;
-        this.inputSize = inputSize;
         lastUserAddedFrame = Frame.Null;
         firstIncorrectFrame = Frame.Null;
         lastFrameRequested = Frame.Null;

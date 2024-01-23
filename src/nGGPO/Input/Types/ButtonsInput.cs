@@ -33,15 +33,13 @@ public enum ButtonsInput : short
 
 public sealed class ButtonsInputEditor(ButtonsInput input)
 {
-    ButtonsInput Input = input;
+    public ButtonsInput Input = input;
 
     public void Reset() => Input = ButtonsInput.None;
 
     public bool IsEmpty => Input is ButtonsInput.None;
 
-    public ButtonsInputEditor() : this(ButtonsInput.None)
-    {
-    }
+    public ButtonsInputEditor() : this(ButtonsInput.None) { }
 
     public bool Up
     {
@@ -181,20 +179,72 @@ public sealed class ButtonsInputEditor(ButtonsInput input)
 
         builder.Append(" + ");
 
-        List<string> buttons = new();
-        if (X) buttons.Add(nameof(X));
-        if (Y) buttons.Add(nameof(Y));
-        if (A) buttons.Add(nameof(A));
-        if (B) buttons.Add(nameof(B));
-        if (LB) buttons.Add(nameof(LB));
-        if (RB) buttons.Add(nameof(RB));
-        if (LT) buttons.Add(nameof(LT));
-        if (RT) buttons.Add(nameof(RT));
-        if (LSB) buttons.Add(nameof(LSB));
-        if (RSB) buttons.Add(nameof(RSB));
-        if (Select) buttons.Add(nameof(Select));
+        const char sep = ',';
+        if (X)
+        {
+            builder.Append(nameof(X)[0]);
+            builder.Append(sep);
+        }
 
-        builder.Append(string.Join(',', buttons));
+        if (Y)
+        {
+            builder.Append(nameof(Y)[0]);
+            builder.Append(sep);
+        }
+
+        if (A)
+        {
+            builder.Append(nameof(A)[0]);
+            builder.Append(sep);
+        }
+
+        if (B)
+        {
+            builder.Append(nameof(B)[0]);
+            builder.Append(sep);
+        }
+
+        if (LB)
+        {
+            builder.Append(nameof(LB));
+            builder.Append(sep);
+        }
+
+        if (RB)
+        {
+            builder.Append(nameof(RB));
+            builder.Append(sep);
+        }
+
+        if (LT)
+        {
+            builder.Append(nameof(LT));
+            builder.Append(sep);
+        }
+
+        if (RT)
+        {
+            builder.Append(nameof(RT));
+            builder.Append(sep);
+        }
+
+        if (LSB)
+        {
+            builder.Append(nameof(LSB));
+            builder.Append(sep);
+        }
+
+        if (RSB)
+        {
+            builder.Append(nameof(RSB));
+            builder.Append(sep);
+        }
+
+        if (Select)
+        {
+            builder.Append(nameof(Select));
+            builder.Append(sep);
+        }
 
         return builder.ToString();
     }
