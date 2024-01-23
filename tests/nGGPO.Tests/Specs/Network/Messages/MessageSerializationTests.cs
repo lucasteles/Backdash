@@ -11,7 +11,6 @@ public class MessageSerializationTests
     [PropertyTest]
     internal bool ConnectStatusOffset(ConnectStatus value) => AssertSerialization.Offset(ref value);
 
-
     [PropertyTest]
     internal bool HeaderSerialize(Header value) => AssertSerialization.Validate(ref value);
 

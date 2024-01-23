@@ -12,6 +12,7 @@ public sealed class PropertyTestAttribute : FsCheck.Xunit.PropertyAttribute
     public PropertyTestAttribute()
     {
         QuietOnSuccess = true;
+        MaxTest = 1_000;
         Arbitrary = [typeof(MyGenerators)];
     }
 }

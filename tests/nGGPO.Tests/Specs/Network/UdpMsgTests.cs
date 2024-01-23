@@ -4,7 +4,7 @@ namespace nGGPO.Tests.Specs.Network;
 
 public class UdpMsgTests
 {
-    [PropertyTest]
+    [PropertyTest(MaxTest = 10_000)]
     internal bool SerializationAndDeserialization(UdpMsg message) =>
         AssertSerialization.Validate(ref message);
 
