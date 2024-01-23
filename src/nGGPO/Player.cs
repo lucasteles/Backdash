@@ -37,7 +37,7 @@ public abstract class Player(PlayerType type, int playerNumber)
 
     public sealed class Local(int playerNumber) : Player(PlayerType.Local, playerNumber);
 
-    public class Remote(int playerNumber, IPEndPoint endpoint) : Player(PlayerType.Remote, playerNumber), IRemote
+    public sealed class Remote(int playerNumber, IPEndPoint endpoint) : Player(PlayerType.Remote, playerNumber), IRemote
     {
         public IPEndPoint EndPoint { get; } = endpoint;
 
