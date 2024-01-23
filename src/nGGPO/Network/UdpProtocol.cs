@@ -12,7 +12,7 @@ sealed partial class UdpProtocol : IDisposable
     /*
      * Network transmission information
      */
-    readonly Udp udp;
+    readonly UdpPeerClient<UdpMsg> udp;
     readonly IPEndPoint peerAddress;
     readonly SocketAddress peerSocketAddress;
     readonly ushort magicNumber;
@@ -80,7 +80,7 @@ sealed partial class UdpProtocol : IDisposable
     public UdpProtocol(
         TimeSync timesync,
         Random random,
-        Udp udp,
+        UdpPeerClient<UdpMsg> udp,
         int queue,
         IPEndPoint peerAddress,
         ConnectStatus[] localConnectStatus)
@@ -105,7 +105,7 @@ sealed partial class UdpProtocol : IDisposable
         this.udp = udp;
         this.queue = queue;
         this.peerAddress = peerAddress;
-        this.peerSocketAddress = peerAddress.Serialize();
+        peerSocketAddress = peerAddress.Serialize();
         this.localConnectStatus = localConnectStatus;
 
         this.udp.OnMessage += OnMsgEventHandler;

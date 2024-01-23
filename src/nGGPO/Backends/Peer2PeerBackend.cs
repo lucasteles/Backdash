@@ -19,7 +19,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
     readonly IBinarySerializer<TInput> inputSerializer;
     readonly ISessionCallbacks<TGameState> callbacks;
 
-    readonly Udp udp;
+    readonly UdpPeerClient<UdpMsg> udp;
     readonly Synchronizer<TGameState> sync;
     readonly ConnectStatus[] localConnectStatus = new ConnectStatus[Max.MsgPlayers];
 
@@ -37,7 +37,8 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         IBinarySerializer<TInput> inputSerializer,
         ISessionCallbacks<TGameState> callbacks,
         int localPort,
-        int numPlayers
+        int numPlayers,
+        IBinarySerializer<UdpMsg>? udpMsgSerializer = null
     )
     {
         ExceptionHelper.ThrowIfArgumentIsNegativeOrZero(localPort);
@@ -49,8 +50,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
 
         endpoints = new(numPlayers);
         sync = new(localConnectStatus);
-
-        udp = new(localPort);
+        udp = new(localPort, udpMsgSerializer ?? new UdpMsgBinarySerializer());
     }
 
     public ErrorCode AddPlayer(Player player)
@@ -129,7 +129,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
     {
         if (synchronizing)
         {
-            disconnectFlags = Array.Empty<int>();
+            disconnectFlags = [];
             return ErrorCode.NotSynchronized;
         }
 
