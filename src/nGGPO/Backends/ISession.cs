@@ -6,7 +6,7 @@ public interface IRollbackSession<in TInput, TGameState> : IDisposable
 {
     ResultCode AddPlayer(Player player);
     ResultCode SetFrameDelay(Player player, int delayInFrames);
-    ValueTask<ResultCode> AddLocalInput(PlayerHandle player, TInput localInput);
+    ValueTask<ResultCode> AddLocalInput(PlayerId player, TInput localInput);
     ResultCode SynchronizeInputs(params TInput[] inputs);
     ResultCode SynchronizeInputs(out int[] disconnectFlags, params TInput[] inputs);
 

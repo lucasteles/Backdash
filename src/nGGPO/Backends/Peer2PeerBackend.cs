@@ -1,10 +1,11 @@
 using System.Net;
+using nGGPO.Data;
 using nGGPO.Input;
 using nGGPO.Network;
 using nGGPO.Network.Messages;
+using nGGPO.Network.Protocol;
 using nGGPO.Serialization;
 using nGGPO.Utils;
-using UdpProtocol = nGGPO.Network.Protocol.UdpProtocol;
 
 namespace nGGPO.Backends;
 
@@ -46,6 +47,8 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         udp = new(this.options.LocalPort, udpMsgSerializer ?? new UdpMsgBinarySerializer());
     }
 
+    public void Dispose() => udp.Dispose();
+
     public ResultCode AddPlayer(Player player)
     {
         ArgumentNullException.ThrowIfNull(player);
@@ -56,20 +59,19 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         if (player.PlayerNumber < 1 || player.PlayerNumber > options.NumberOfPlayers)
             return ResultCode.PlayerOutOfRange;
 
-        var queue = player.PlayerNumber - 1;
-        player.SetHandle(QueueToPlayerHandle(queue));
-
         if (player is Player.Remote remote)
-            AddRemotePlayer(remote.EndPoint, queue);
+            AddRemotePlayer(remote.EndPoint, player.QueueNumber);
 
         return ResultCode.Ok;
     }
 
     public ResultCode SetFrameDelay(Player player, int delayInFrames)
     {
-        var result = PlayerHandleToQueue(player.Handle, out var queue);
+        ArgumentNullException.ThrowIfNull(player);
 
-        if (result is not ResultCode.Ok)
+        var result = PlayerIdToQueue(player.Id, out var queue);
+
+        if (result.IsFailure())
             return result;
 
         sync.SetFrameDelay(queue, delayInFrames);
@@ -85,9 +87,9 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
     }
 
     public ValueTask<ResultCode> AddLocalInput(Player player, TInput localInput) =>
-        AddLocalInput(player.Handle, localInput);
+        AddLocalInput(player.Id, localInput);
 
-    public async ValueTask<ResultCode> AddLocalInput(PlayerHandle player, TInput localInput)
+    public async ValueTask<ResultCode> AddLocalInput(PlayerId player, TInput localInput)
     {
         if (sync.InRollback())
             return ResultCode.InRollback;
@@ -95,7 +97,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         if (synchronizing)
             return ResultCode.NotSynchronized;
 
-        var result = PlayerHandleToQueue(player, out var queue);
+        var result = PlayerIdToQueue(player, out var queue);
         if (!result.IsSuccess())
             return result;
 
@@ -109,7 +111,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         Tracer.Log("setting local connect status for local queue {0} to {1}",
             queue, input.Frame);
 
-        localConnectStatus[queue].LastFrame = input.Frame;
+        localConnectStatus[queue.Value].LastFrame = input.Frame;
 
         // Send the input to all the remote players.
         for (var i = 0; i < options.NumberOfPlayers; i++)
@@ -133,12 +135,12 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         return ResultCode.Ok;
     }
 
-    ResultCode PlayerHandleToQueue(in PlayerHandle player, out int queue)
+    ResultCode PlayerIdToQueue(in PlayerId player, out QueueIndex queue)
     {
-        var offset = player.Value - 1;
-        if (offset < 0 || offset >= options.NumberOfPlayers)
+        var offset = player.QueueNumber;
+        if (offset.Value < 0 || offset.Value >= options.NumberOfPlayers)
         {
-            queue = PlayerHandle.Empty.Value;
+            queue = PlayerId.Empty.QueueNumber;
             return ResultCode.InvalidPlayerHandle;
         }
 
@@ -146,12 +148,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         return ResultCode.Ok;
     }
 
-    static PlayerHandle QueueToPlayerHandle(int queue) => new(queue + 1);
-
-    PlayerHandle QueueToSpectatorHandle(int queue) =>
-        new(queue + options.SpectatorOffset); /* out of range of the player array, basically */
-
-    UdpProtocol CreateProtocol(IPEndPoint endpoint, int queue)
+    UdpProtocol CreateProtocol(IPEndPoint endpoint, QueueIndex queue)
     {
         UdpProtocol protocol = new(
             timeSync: new(options.TimeSync),
@@ -171,7 +168,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         return protocol;
     }
 
-    void AddRemotePlayer(IPEndPoint endpoint, int queue)
+    void AddRemotePlayer(IPEndPoint endpoint, QueueIndex queue)
     {
         /*
          * Start the state machine (xxx: no)
@@ -195,8 +192,8 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         if (!synchronizing)
             return ResultCode.InvalidRequest;
 
-        var queue = numSpectators + 1;
-        var protocol = CreateProtocol(endpoint, queue + options.SpectatorOffset);
+        QueueIndex queue = new(options.SpectatorOffset + numSpectators + 1);
+        var protocol = CreateProtocol(endpoint, queue);
         spectators.Add(protocol);
 
         return ResultCode.Ok;
@@ -214,5 +211,6 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         );
     }
 
-    public void Dispose() => udp.Dispose();
+    PlayerId QueueToSpectatorHandle(int queue) =>
+        new(queue + options.SpectatorOffset); /* out of range of the player array, basically */
 }

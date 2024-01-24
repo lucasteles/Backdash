@@ -1,4 +1,5 @@
 using System.Net;
+using nGGPO.Data;
 
 namespace nGGPO;
 
@@ -12,9 +13,10 @@ interface IRemote
     IPEndPoint EndPoint { get; }
 }
 
-public readonly record struct PlayerHandle(int Value)
+public readonly record struct PlayerId(int Value)
 {
-    public static PlayerHandle Empty { get; } = new(-1);
+    internal QueueIndex QueueNumber { get; } = new(Value - 1);
+    public static PlayerId Empty { get; } = new(-1);
 }
 
 public enum PlayerType
@@ -28,12 +30,10 @@ public abstract class Player(PlayerType type, int playerNumber)
 {
     public PlayerType Type { get; } = type;
     public int PlayerNumber { get; } = playerNumber;
+    public PlayerId Id { get; private set; } = new(playerNumber);
+    internal QueueIndex QueueNumber => Id.QueueNumber;
 
-    public PlayerHandle Handle { get; private set; } = PlayerHandle.Empty;
-
-    internal void SetHandle(PlayerHandle handle) => Handle = handle;
-
-    public static implicit operator PlayerHandle(Player player) => player.Handle;
+    public static implicit operator PlayerId(Player player) => player.Id;
 
     public sealed class Local(int playerNumber) : Player(PlayerType.Local, playerNumber);
 

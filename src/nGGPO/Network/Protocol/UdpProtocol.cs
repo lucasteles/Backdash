@@ -14,7 +14,7 @@ sealed partial class UdpProtocol : IDisposable
      */
     readonly UdpPeerClient<UdpMsg> udp;
     readonly ushort magicNumber;
-    readonly int queue;
+    readonly QueueIndex queue;
     ushort remoteMagicNumber;
     bool connected;
     public int SendLatency { get; set; }
@@ -79,10 +79,12 @@ sealed partial class UdpProtocol : IDisposable
         TimeSync timeSync,
         Random random,
         UdpPeerClient<UdpMsg> udp,
-        int queue,
+        QueueIndex queue,
         IPEndPoint peerAddress,
         ConnectStatus[] localConnectStatus)
     {
+        magicNumber = MagicNumber.Generate();
+
         lastReceivedInput = GameInput.Empty;
         lastSentInput = GameInput.Empty;
         lastAckedInput = GameInput.Empty;
@@ -90,20 +92,19 @@ sealed partial class UdpProtocol : IDisposable
         pendingOutput = new();
         eventQueue = new();
 
-        magicNumber = MagicNumber.Generate();
-
         peerConnectStatus = new ConnectStatus[Max.MsgPlayers];
         for (var i = 0; i < peerConnectStatus.Length; i++)
             peerConnectStatus[i].LastFrame = Frame.NullValue;
 
         this.timeSync = timeSync;
         this.random = random;
-        this.udp = udp;
         this.queue = queue;
         PeerEndPoint = peerAddress;
         PeerAddress = peerAddress.Serialize();
+
         this.localConnectStatus = localConnectStatus;
 
+        this.udp = udp;
         this.udp.OnMessage += OnMsgEventHandler;
     }
 
@@ -192,7 +193,7 @@ sealed partial class UdpProtocol : IDisposable
             },
         };
 
-    bool GetEvent(out UdpEvent? e)
+    public bool GetEvent(out UdpEvent? e)
     {
         if (eventQueue.IsEmpty)
         {

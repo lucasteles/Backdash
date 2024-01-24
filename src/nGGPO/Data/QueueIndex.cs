@@ -21,6 +21,6 @@ readonly record struct QueueIndex : IComparable<Frame>
     public static QueueIndex operator +(int a, QueueIndex b) => new(a + b.Value);
     public static QueueIndex operator ++(QueueIndex queue) => new(queue.Value + 1);
 
-    public static implicit operator int(QueueIndex queue) => queue.Value;
+    public static explicit operator int(QueueIndex queue) => queue.Value;
     public static explicit operator QueueIndex(int queue) => new(queue);
 }

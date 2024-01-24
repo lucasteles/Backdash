@@ -21,17 +21,17 @@ static class Synchronizer
     }
 }
 
-sealed class Synchronizer<TGameState>(IReadOnlyList<ConnectStatus> connectStatus)
+sealed class Synchronizer<TGameState>(ConnectStatus[] connectStatus)
     where TGameState : struct
 {
-    readonly IReadOnlyList<ConnectStatus> connectStatus = connectStatus;
+    readonly ConnectStatus[] connectStatus = connectStatus;
     readonly Synchronizer.SavedState<TGameState> savedState = new();
 
     Frame lastConfirmedFrame = Frame.Null;
     uint frameCount;
     uint maxPredictionFrames = 0;
 
-    public void SetFrameDelay(int queue, int delay)
+    public void SetFrameDelay(QueueIndex queue, int delay)
     {
         throw new NotImplementedException();
     }
@@ -41,7 +41,7 @@ sealed class Synchronizer<TGameState>(IReadOnlyList<ConnectStatus> connectStatus
         throw new NotImplementedException();
     }
 
-    public bool AddLocalInput(int queue, GameInput input)
+    public bool AddLocalInput(QueueIndex queue, GameInput input)
     {
         throw new NotImplementedException();
     }

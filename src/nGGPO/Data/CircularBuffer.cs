@@ -52,7 +52,7 @@ public static class CircularBuffer
             {
                 SingleWriter = true,
                 SingleReader = true,
-                AllowSynchronousContinuations = false,
+                AllowSynchronousContinuations = true,
                 FullMode = BoundedChannelFullMode.DropOldest,
             });
 }
