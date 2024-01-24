@@ -46,7 +46,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         spectators = new(Max.Spectators);
         endpoints = new(this.options.NumberOfPlayers);
         sync = new(localConnectStatus);
-        udp = new(this.options.LocalPort, udpMsgSerializer ?? new UdpMsgBinarySerializer());
+        udp = new(this.options.LocalPort, udpMsgSerializer ?? new ProtocolMessageBinarySerializer());
     }
 
     public void Dispose() => udp.Dispose();

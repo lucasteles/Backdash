@@ -99,7 +99,7 @@ Div();
     packet.Header.Dump();
     packet.SyncRequest.Dump();
 
-    var serializer = new UdpMsgBinarySerializer
+    var serializer = new ProtocolMessageBinarySerializer
     {
         Network = false,
     };
