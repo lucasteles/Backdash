@@ -1,9 +1,9 @@
 using System.Runtime.InteropServices;
 using nGGPO.Input;
 
-namespace nGGPO.Network;
+namespace nGGPO.Network.Protocol;
 
-public enum UdpEventType : sbyte
+public enum ProtocolEventName : sbyte
 {
     Unknown = -1,
     Connected,
@@ -13,17 +13,17 @@ public enum UdpEventType : sbyte
     Disconnected,
     NetworkInterrupted,
     NetworkResumed,
-};
+}
 
 [StructLayout(LayoutKind.Explicit)]
-struct UdpEvent(UdpEventType type)
+struct ProtocolEvent(ProtocolEventName name)
 {
-    public record struct SynchronizingData(int Total, int Count);
+    public readonly record struct SynchronizingData(int Total, int Count);
 
-    public record struct NetworkInterruptedData(int DisconnectTimeout);
+    public readonly record struct NetworkInterruptedData(int DisconnectTimeout);
 
     [FieldOffset(0)]
-    public UdpEventType Type = type;
+    public ProtocolEventName Name = name;
 
     [FieldOffset(sizeof(sbyte))]
     public GameInput Input = default;

@@ -22,8 +22,8 @@ sealed partial class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDispos
     public IPEndPoint PeerEndPoint { get; }
     public SocketAddress PeerAddress { get; }
 
-    Channel<QueueEntry> sendQueue;
-    CancellationTokenSource sendQueueCancellation = new();
+    readonly Channel<QueueEntry> sendQueue;
+    readonly CancellationTokenSource sendQueueCancellation = new();
 
     /*
      * Stats
@@ -75,7 +75,7 @@ sealed partial class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDispos
     /*
      * Event queue
      */
-    readonly CircularBuffer<UdpEvent> eventQueue;
+    readonly CircularBuffer<ProtocolEvent> eventQueue;
 
     public UdpProtocol(
         TimeSync timeSync,
@@ -199,7 +199,7 @@ sealed partial class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDispos
             },
         };
 
-    public bool GetEvent(out UdpEvent? e)
+    public bool GetEvent(out ProtocolEvent? e)
     {
         if (eventQueue.IsEmpty)
         {
@@ -314,7 +314,7 @@ sealed partial class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDispos
             LastReceivedTime = TimeStamp.GetMilliseconds();
             if (DisconnectNotifySent && currentProtocolState is ProtocolState.Running)
             {
-                QueueEvent(new(UdpEventType.NetworkResumed));
+                QueueEvent(new(ProtocolEventName.NetworkResumed));
                 DisconnectNotifySent = false;
             }
         }
@@ -332,7 +332,7 @@ sealed partial class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDispos
             if (currentProtocolState is not ProtocolState.Disconnected && !DisconnectEventSent)
             {
                 Tracer.Log("Disconnecting endpoint on remote request.\n");
-                QueueEvent(new(UdpEventType.Disconnected));
+                QueueEvent(new(ProtocolEventName.Disconnected));
                 DisconnectEventSent = true;
             }
         }
@@ -384,7 +384,7 @@ sealed partial class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDispos
         /*
          * Send the event to the emulator
          */
-        UdpEvent evt = new(UdpEventType.Input)
+        ProtocolEvent evt = new(ProtocolEventName.Input)
         {
             Input = lastReceivedInput,
         };
@@ -435,7 +435,7 @@ sealed partial class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDispos
         return true;
     }
 
-    void QueueEvent(UdpEvent evt)
+    void QueueEvent(ProtocolEvent evt)
     {
         LogEvent("Queuing event", evt);
         eventQueue.Push(evt);
@@ -459,7 +459,7 @@ sealed partial class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDispos
 
         if (!connected)
         {
-            QueueEvent(new(UdpEventType.Connected));
+            QueueEvent(new(ProtocolEventName.Connected));
             connected = true;
         }
 
@@ -469,14 +469,14 @@ sealed partial class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDispos
         if (--state.Sync.RoundtripsRemaining == 0)
         {
             Tracer.Log("Synchronized!\n");
-            QueueEvent(new(UdpEventType.Synchronized));
+            QueueEvent(new(ProtocolEventName.Synchronized));
             currentProtocolState = ProtocolState.Running;
             lastReceivedInput.ResetFrame();
             remoteMagicNumber = msg.Header.Magic;
         }
         else
         {
-            UdpEvent evt = new(UdpEventType.Synchronizing)
+            ProtocolEvent evt = new(ProtocolEventName.Synchronizing)
             {
                 Synchronizing = new()
                 {
@@ -570,7 +570,7 @@ sealed partial class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDispos
         throw new NotImplementedException();
     }
 
-    void LogEvent(string queuingEvent, UdpEvent evt)
+    void LogEvent(string queuingEvent, ProtocolEvent evt)
     {
         throw new NotImplementedException();
     }
