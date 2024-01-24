@@ -233,7 +233,7 @@ sealed partial class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDispos
     {
         LogMsg("send", msg);
 
-        packetsSent++;
+        Interlocked.Increment(ref packetsSent);
         LastSendTime = TimeStamp.GetMilliseconds();
 
         msg.Header.Magic = magicNumber;
