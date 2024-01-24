@@ -137,6 +137,7 @@ class UdpPeerClient<T>(
                 var memory = MemoryMarshal.CreateFromPinnedArray(sendBuffer, 0, bodySize);
                 var sentSize = await SendBytes(peerAddress, memory, ct).ConfigureAwait(false);
                 Tracer.Assert(sentSize == bodySize);
+                if (ct.IsCancellationRequested) break;
             }
         }
         catch (OperationCanceledException)
