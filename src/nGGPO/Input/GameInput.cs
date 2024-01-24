@@ -6,12 +6,14 @@ using nGGPO.Utils;
 
 namespace nGGPO.Input;
 
-[InlineArray(Capacity)]
+[InlineArray(Capacity), Serializable]
 public struct GameInputBuffer
 {
     byte element0;
 
     public const int Capacity = Max.InputBytes * Max.InputPlayers;
+
+    public GameInputBuffer(ReadOnlySpan<byte> bits) => bits.CopyTo(this);
 
     public override readonly string ToString() =>
         Mem.GetBitString(this, splitAt: Max.InputBytes);
@@ -19,9 +21,7 @@ public struct GameInputBuffer
     public readonly bool Equals(GameInputBuffer other) =>
         Mem.SpanEqual<byte>(this, other, truncate: true);
 
-    public GameInputBuffer(ReadOnlySpan<byte> bits) => bits.CopyTo(this);
-
-    public static Span<byte> GetPlayer(ref GameInputBuffer buffer, int playerIndex)
+    public static Span<byte> ForPlayer(ref GameInputBuffer buffer, int playerIndex)
     {
         var byteIndex = playerIndex * Max.InputBytes;
         return buffer[byteIndex..(byteIndex + Max.InputBytes)];
@@ -36,19 +36,9 @@ struct GameInput : IEquatable<GameInput>
 
     public int Size { get; set; }
 
-    public static GameInput Empty => new()
-    {
-        Frame = Frame.Null,
-        Size = 0,
-    };
+    public static GameInput Empty => new();
 
-    public GameInput()
-    {
-        Buffer = new();
-        Size = GameInputBuffer.Capacity;
-    }
-
-    public GameInput(ref GameInputBuffer inputBuffer, int size)
+    public GameInput(in GameInputBuffer inputBuffer, int size)
     {
         ReadOnlySpan<byte> bits = inputBuffer;
         Tracer.Assert(bits.Length <= Max.InputBytes * Max.MsgPlayers);
@@ -57,13 +47,11 @@ struct GameInput : IEquatable<GameInput>
         Buffer = inputBuffer;
     }
 
-    public GameInput(ReadOnlySpan<byte> bits)
-    {
-        Tracer.Assert(bits.Length <= Max.InputBytes * Max.MsgPlayers);
-        Tracer.Assert(bits.Length > 0);
-        Size = bits.Length;
-        Buffer = new(bits);
-    }
+    public GameInput(int size) : this(new(), size) { }
+
+    public GameInput() : this(0) { }
+
+    public GameInput(ReadOnlySpan<byte> bits) : this(new GameInputBuffer(bits), bits.Length) { }
 
     [Pure]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

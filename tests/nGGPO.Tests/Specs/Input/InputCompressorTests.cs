@@ -43,13 +43,13 @@ public class InputCompressorTests
 
     static GameInput CreateInput(int frame, byte[] player1, byte[]? player2 = null)
     {
-        var result = new GameInput();
-        var p1 = GameInputBuffer.GetPlayer(ref result.Buffer, 0);
+        var result = new GameInput(GameInputBuffer.Capacity);
+        var p1 = GameInputBuffer.ForPlayer(ref result.Buffer, 0);
         player1.CopyTo(p1);
 
         if (player2 is { Length: > 0 })
         {
-            var p2 = GameInputBuffer.GetPlayer(ref result.Buffer, 1);
+            var p2 = GameInputBuffer.ForPlayer(ref result.Buffer, 1);
             player2.CopyTo(p2);
         }
 

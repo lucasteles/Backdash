@@ -23,8 +23,8 @@ public class GameInputTests
     public void InputString2Players()
     {
         GameInputBuffer buffer = new();
-        var p1 = GameInputBuffer.GetPlayer(ref buffer, 0);
-        var p2 = GameInputBuffer.GetPlayer(ref buffer, 1);
+        var p1 = GameInputBuffer.ForPlayer(ref buffer, 0);
+        var p2 = GameInputBuffer.ForPlayer(ref buffer, 1);
 
         p1[0] = 2;
         p2[0] = 7;

@@ -89,7 +89,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
     {
         GameInputBuffer buffer = new();
         var size = inputSerializer.Serialize(ref input, buffer);
-        return new GameInput(ref buffer, size);
+        return new GameInput(in buffer, size);
     }
 
     public ValueTask<ResultCode> AddLocalInput(Player player, TInput localInput) =>

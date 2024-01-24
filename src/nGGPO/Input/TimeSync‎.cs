@@ -12,7 +12,7 @@ sealed class TimeSync
         public int MaxFrameAdvantage { get; init; } = 9;
     }
 
-    int counter;
+    static int counter;
 
     readonly int minFrameAdvantage;
     readonly int maxFrameAdvantage;
@@ -46,25 +46,25 @@ sealed class TimeSync
         for (i = 0; i < local.Length; i++)
             sum += local[i];
 
-        var advantage = sum / (float)local.Length;
+        var localAdvantage = sum / (float)local.Length;
 
         sum = 0;
         for (i = 0; i < remote.Length; i++)
             sum += remote[i];
 
-        var radvantage = sum / (float)remote.Length;
+        var remoteAdvantage = sum / (float)remote.Length;
         Interlocked.Increment(ref counter);
 
         // See if someone should take action.  The person furthest ahead
         // needs to slow down so the other user can catch up.
         // Only do this if both clients agree on who's ahead!!
-        if (advantage >= radvantage)
+        if (localAdvantage >= remoteAdvantage)
             return 0;
 
         // Both clients agree that we're the one ahead.  Split
         // the difference between the two to figure out how long to
         // sleep for.
-        var sleepFrames = (int)((radvantage - advantage) / 2 + 0.5f);
+        var sleepFrames = (int)((remoteAdvantage - localAdvantage) / 2 + 0.5f);
 
         Tracer.Log("iteration {}:  sleep frames is {}", counter, sleepFrames);
 
@@ -77,7 +77,9 @@ sealed class TimeSync
         // a sleep.  This tries to make the emulator sleep while the
         // user's input isn't sweeping in arcs (e.g. fireball motions in
         // Street Fighter), which could cause the player to miss moves.
-        if (!requireIdleInput) return Math.Min(sleepFrames, maxFrameAdvantage);
+        if (!requireIdleInput)
+            return Math.Min(sleepFrames, maxFrameAdvantage);
+
         for (i = 1; i < lastInputs.Length; i++)
         {
             if (lastInputs[i].Equals(lastInputs[0], true)) continue;

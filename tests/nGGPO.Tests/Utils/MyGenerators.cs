@@ -146,7 +146,7 @@ class MyGenerators
     public static Arbitrary<PeerStatusBuffer> PeerStatusBufferGenerator() =>
         Gen.Sized(testSize =>
             {
-                var size = Math.Max(testSize, Max.MsgPlayers);
+                var size = Math.Min(testSize, Max.MsgPlayers);
                 return Gen.ArrayOf(size, Arb.From<ConnectStatus>().Generator);
             })
             .Select(arr =>
@@ -234,4 +234,11 @@ class MyGenerators
             _ => throw new ArgumentOutOfRangeException(nameof(header)),
         })
         .ToArbitrary();
+
+    public static Arbitrary<GameInput> GameInputBufferGenerator() =>
+        Gen.Sized(testSize => Gen.ArrayOf(
+                Math.Max(testSize, GameInputBuffer.Capacity),
+                Arb.From<byte>().Generator))
+            .Select(bytes => new GameInput(bytes))
+            .ToArbitrary();
 }
