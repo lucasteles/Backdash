@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
@@ -23,6 +22,7 @@ class UdpPeerClient<T>(
     readonly Socket socket = CreateSocket(port);
     CancellationTokenSource? cancellation;
     public int Port => port;
+    public SocketAddress Address { get; } = new IPEndPoint(IPAddress.Loopback, port).Serialize();
     public uint TotalBytesSent { get; private set; }
 
     readonly Channel<(SocketAddress, T)> sendQueue =
@@ -44,10 +44,12 @@ class UdpPeerClient<T>(
 
         cancellation = new();
 
-        using var cts = CancellationTokenSource
-            .CreateLinkedTokenSource(cancellationToken, cancellation.Token);
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, cancellation.Token);
 
-        await Task.WhenAll(ReadLoop(cts.Token), SendLoop(cts.Token));
+        await Task.WhenAll(
+            ReadLoop(cts.Token),
+            SendLoop(cts.Token)
+        );
     }
 
     public async Task StopPumping()
@@ -73,6 +75,7 @@ class UdpPeerClient<T>(
         IPEndPoint localEp = new(IPAddress.Any, port);
         newSocket.Bind(localEp);
         Tracer.Log("binding udp socket to port {0}.\n", port);
+
         return newSocket;
     }
 
@@ -130,7 +133,7 @@ class UdpPeerClient<T>(
                 var bodySize = serializer.Serialize(ref msg, sendBuffer);
                 var memory = MemoryMarshal.CreateFromPinnedArray(sendBuffer, 0, bodySize);
                 var sentSize = await SendBytes(peerAddress, memory, ct);
-                Trace.Assert(sentSize == bodySize);
+                Tracer.Assert(sentSize == bodySize);
             }
         }
         catch (OperationCanceledException)

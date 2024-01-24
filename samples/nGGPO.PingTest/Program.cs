@@ -1,21 +1,18 @@
 using System.Diagnostics;
-using System.Net;
-using nGGPO.Network;
 using nGGPO.PingTest;
 using nGGPO.Serialization;
+using UdpPeerClient = nGGPO.Network.UdpPeerClient<nGGPO.PingTest.Message>;
 
 var msgCount = 0UL;
 
-UdpPeerClient<Message> peer1 = new(9000, BinarySerializerFactory.ForEnum<Message>())
+UdpPeerClient peer1 = new(9000, BinarySerializerFactory.ForEnum<Message>())
 {
     LogsEnabled = false,
 };
 
 peer1.OnMessage += async (message, sender, token) =>
 {
-    if (token.IsCancellationRequested)
-        return;
-
+    if (token.IsCancellationRequested) return;
     Interlocked.Increment(ref msgCount);
     switch (message)
     {
@@ -30,15 +27,13 @@ peer1.OnMessage += async (message, sender, token) =>
     }
 };
 
-UdpPeerClient<Message> peer2 = new(9001, BinarySerializerFactory.ForEnum<Message>())
+UdpPeerClient peer2 = new(9001, BinarySerializerFactory.ForEnum<Message>())
 {
     LogsEnabled = false,
 };
 peer2.OnMessage += async (message, sender, token) =>
 {
-    if (token.IsCancellationRequested)
-        return;
-
+    if (token.IsCancellationRequested) return;
     Interlocked.Increment(ref msgCount);
     switch (message)
     {
@@ -58,26 +53,21 @@ using CancellationTokenSource source = new();
 
 Console.WriteLine("Started.");
 var tasks = Task.WhenAll(peer1.StartPumping(source.Token), peer2.StartPumping(source.Token));
-var address2 = new IPEndPoint(IPAddress.Loopback, 9001).Serialize();
 
+source.CancelAfter(TimeSpan.FromSeconds(10));
 var gcCount = new[]
 {
     GC.CollectionCount(0), GC.CollectionCount(1), GC.CollectionCount(2),
 };
-double allocs = GC.GetTotalMemory(true);
 var pauseTime = GC.GetTotalPauseDuration();
+double allocs = GC.GetTotalMemory(true);
 watch.Start();
 
-await peer1.SendTo(address2, Message.Ping, source.Token);
-source.CancelAfter(TimeSpan.FromSeconds(10));
-
-// await Console.In.ReadLineAsync(source.Token);
-// if (!source.IsCancellationRequested)
-//     await source.CancelAsync();
-
-await tasks;
+await peer1.SendTo(peer2.Address, Message.Ping);
 
 watch.Stop();
+
+await tasks;
 allocs = (GC.GetTotalMemory(true) - allocs) / 1024.0;
 gcCount[0] = GC.CollectionCount(0) - gcCount[0];
 gcCount[1] = GC.CollectionCount(1) - gcCount[1];
@@ -105,7 +95,7 @@ Console.WriteLine(
 #pragma warning disable S3903
 namespace nGGPO.PingTest
 {
-    public enum Message : byte
+    public enum Message
     {
         Ping = 2,
         Pong = 4,
