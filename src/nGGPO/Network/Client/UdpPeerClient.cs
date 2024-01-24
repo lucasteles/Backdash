@@ -31,7 +31,6 @@ sealed class UdpPeerClient<T>(
             }
         );
 
-
     public async Task StartPumping(CancellationToken cancellationToken = default)
     {
         if (cancellation is not null)
