@@ -53,7 +53,6 @@ public class InputCompressorTests
             player2.CopyTo(p2);
         }
 
-
         result.SetFrame(new(frame));
         return result;
     }
