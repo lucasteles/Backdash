@@ -39,7 +39,7 @@ Div();
     Input packet = new()
     {
         S = data.Length,
-        A = (byte) 'a',
+        A = (byte)'a',
         B = 2,
         Bits = new(),
     };
@@ -61,7 +61,7 @@ Div();
     Input packet = new()
     {
         S = data.Length,
-        A = (byte) 'a',
+        A = (byte)'a',
         B = 2,
         Bits = new(),
     };

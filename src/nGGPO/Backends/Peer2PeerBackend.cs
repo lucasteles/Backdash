@@ -26,6 +26,8 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
     readonly List<UdpProtocol> endpoints;
     readonly RollbackOptions options;
 
+    readonly InputCompressor inputCompressor = new();
+
     public Peer2PeerBackend(
         IBinarySerializer<TInput> inputSerializer,
         ISessionCallbacks<TGameState> callbacks,
@@ -156,7 +158,8 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
             udp: udp,
             queue,
             endpoint,
-            localConnectStatus
+            localConnectStatus,
+            inputCompressor
         )
         {
             DisconnectTimeout = options.DisconnectTimeout,

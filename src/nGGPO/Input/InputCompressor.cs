@@ -1,13 +1,12 @@
 using nGGPO.Data;
-using nGGPO.Input;
 using nGGPO.Network.Messages;
 using nGGPO.Utils;
 
-namespace nGGPO.Network;
+namespace nGGPO.Input;
 
-static class InputCompressor
+class InputCompressor
 {
-    public static InputMsg WriteCompressed(
+    public InputMsg WriteCompressed(
         ref GameInput lastAcked,
         in CircularBuffer<GameInput> pendingOutput,
         ref GameInput lastSent
@@ -62,7 +61,7 @@ static class InputCompressor
         return inputMsg;
     }
 
-    public static void DecompressInput(
+    public void DecompressInput(
         ref InputMsg msg,
         ref GameInput lastReceivedInput,
         Action onParsedInput

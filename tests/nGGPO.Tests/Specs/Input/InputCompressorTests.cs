@@ -1,6 +1,5 @@
 using nGGPO.Data;
 using nGGPO.Input;
-using nGGPO.Network;
 
 namespace nGGPO.Tests.Specs.Input;
 
@@ -11,6 +10,7 @@ public class InputCompressorTests
     [Fact]
     public void Test1()
     {
+        InputCompressor compressor = new();
         var lastAcked = CreateInput(0, [1]);
         var lastSent = GameInput.Empty;
 
@@ -20,14 +20,14 @@ public class InputCompressorTests
             CreateInput(3, [6], [7])
         );
 
-        var compressed = InputCompressor.WriteCompressed(
+        var compressed = compressor.WriteCompressed(
             ref lastAcked,
             in pendingInputs,
             ref lastSent
         );
 
         List<string> decompressedInputs = [];
-        InputCompressor.DecompressInput(
+        compressor.DecompressInput(
             ref compressed,
             ref lastRecv,
             () => decompressedInputs.Add(lastRecv.Buffer.ToString()));

@@ -29,7 +29,7 @@ sealed class Synchronizer<TGameState>(ConnectStatus[] connectStatus)
 
     Frame lastConfirmedFrame = Frame.Null;
     uint frameCount;
-    uint maxPredictionFrames = 0;
+    readonly uint maxPredictionFrames = 0;
 
     public void SetFrameDelay(QueueIndex queue, int delay)
     {

@@ -34,6 +34,7 @@ sealed partial class UdpProtocol : IDisposable
      * The state machine
      */
     readonly ConnectStatus[] localConnectStatus;
+    readonly InputCompressor inputCompressor;
     readonly ConnectStatus[] peerConnectStatus;
     readonly UdpProtocolState state = new();
     ProtocolState currentProtocolState;
@@ -81,7 +82,9 @@ sealed partial class UdpProtocol : IDisposable
         UdpPeerClient<UdpMsg> udp,
         QueueIndex queue,
         IPEndPoint peerAddress,
-        ConnectStatus[] localConnectStatus)
+        ConnectStatus[] localConnectStatus,
+        InputCompressor inputCompressor
+    )
     {
         magicNumber = MagicNumber.Generate();
 
@@ -103,6 +106,7 @@ sealed partial class UdpProtocol : IDisposable
         PeerAddress = peerAddress.Serialize();
 
         this.localConnectStatus = localConnectStatus;
+        this.inputCompressor = inputCompressor;
 
         this.udp = udp;
         this.udp.OnMessage += OnMsgEventHandler;
@@ -151,7 +155,7 @@ sealed partial class UdpProtocol : IDisposable
         if (pendingOutput.IsEmpty)
             return new();
 
-        var input = InputCompressor.WriteCompressed(
+        var input = inputCompressor.WriteCompressed(
             ref lastAckedInput,
             in pendingOutput,
             ref lastSentInput
@@ -356,7 +360,7 @@ sealed partial class UdpProtocol : IDisposable
         {
             // LATER: remove delegate allocation with OnParsedInput
             onParsedInputCache ??= OnParsedInput;
-            InputCompressor.DecompressInput(ref msg.Input, ref lastReceivedInput, onParsedInputCache);
+            inputCompressor.DecompressInput(ref msg.Input, ref lastReceivedInput, onParsedInputCache);
         }
 
         Tracer.Assert(lastReceivedInput.Frame >= lastAckedInput.Frame);

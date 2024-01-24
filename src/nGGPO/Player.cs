@@ -42,7 +42,8 @@ public abstract class Player(PlayerType type, int playerNumber)
         public IPEndPoint EndPoint { get; } = endpoint;
 
         public Remote(int playerNumber, IPAddress ipAddress, int port) :
-            this(playerNumber, new IPEndPoint(ipAddress, port)) { }
+            this(playerNumber, new IPEndPoint(ipAddress, port))
+        { }
     }
 
     public sealed class Spectator(int playerNumber, IPEndPoint endpoint)
@@ -51,6 +52,7 @@ public abstract class Player(PlayerType type, int playerNumber)
         public IPEndPoint EndPoint { get; } = endpoint;
 
         public Spectator(int playerNumber, IPAddress ipAddress, int port) : this(playerNumber,
-            new IPEndPoint(ipAddress, port)) { }
+            new IPEndPoint(ipAddress, port))
+        { }
     }
 }

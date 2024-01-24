@@ -12,7 +12,8 @@ sealed record UdpClientContext<T>(
     where T : struct
 {
     public UdpClientContext(UdpPeerClient<T> socket, IPAddress address) :
-        this(socket, new IPEndPoint(address, socket.Port)) { }
+        this(socket, new IPEndPoint(address, socket.Port))
+    { }
 
     public UdpClientContext(IBinarySerializer<T> serializer, int? port = null) :
         this(
@@ -21,7 +22,8 @@ sealed record UdpClientContext<T>(
                 serializer
             ),
             IPAddress.Loopback
-        ) { }
+        )
+    { }
 
     public SocketAddress Address => Socket.Address;
     public int Port => Socket.Port;
