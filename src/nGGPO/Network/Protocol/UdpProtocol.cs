@@ -2,12 +2,13 @@ using System.Net;
 using System.Threading.Channels;
 using nGGPO.Data;
 using nGGPO.Input;
+using nGGPO.Network.Client;
 using nGGPO.Network.Messages;
 using nGGPO.Utils;
 
 namespace nGGPO.Network.Protocol;
 
-sealed partial class UdpProtocol : IDisposable
+sealed partial class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDisposable
 {
     /*
      * Network transmission information
@@ -109,25 +110,26 @@ sealed partial class UdpProtocol : IDisposable
         this.inputCompressor = inputCompressor;
 
         this.udp = udp;
-        this.udp.OnMessage += OnMsgEventHandler;
     }
 
-    async ValueTask OnMsgEventHandler(ProtocolMessage msg, SocketAddress from, CancellationToken ct)
-    {
-        if (PeerAddress.Equals(from))
-            await OnMsg(msg).ConfigureAwait(false);
-    }
+    public ValueTask OnMessage(
+        UdpPeerClient<ProtocolMessage> sender,
+        ProtocolMessage message,
+        SocketAddress from,
+        CancellationToken stoppingToken
+    ) => PeerAddress.Equals(from)
+        ? OnMsg(message, stoppingToken)
+        : ValueTask.CompletedTask;
 
     public void Dispose()
     {
         sendQueueCancellation.Cancel();
         sendQueueCancellation.Dispose();
         sendQueue.Writer.Complete();
-        udp.OnMessage -= OnMsgEventHandler;
         Disconnect();
     }
 
-    public ValueTask SendInput(in GameInput input)
+    public ValueTask SendInput(in GameInput input, CancellationToken ct)
     {
         if (currentProtocolState is ProtocolState.Running)
         {
@@ -147,7 +149,7 @@ sealed partial class UdpProtocol : IDisposable
             pendingOutput.Push(in input);
         }
 
-        return SendPendingOutput();
+        return SendPendingOutput(ct);
     }
 
     InputMsg CreateInputMsg()
@@ -170,7 +172,7 @@ sealed partial class UdpProtocol : IDisposable
         return input;
     }
 
-    ValueTask SendPendingOutput()
+    ValueTask SendPendingOutput(CancellationToken ct)
     {
         Tracer.Assert(
             Max.InputBytes * Max.MsgPlayers * Mem.ByteSize
@@ -185,7 +187,7 @@ sealed partial class UdpProtocol : IDisposable
             Input = input,
         };
 
-        return SendMsg(ref msg);
+        return SendMsg(ref msg, ct);
     }
 
     public void SendInputAck(out ProtocolMessage msg) =>
@@ -227,7 +229,7 @@ sealed partial class UdpProtocol : IDisposable
         };
     }
 
-    ValueTask SendMsg(ref ProtocolMessage msg)
+    ValueTask SendMsg(ref ProtocolMessage msg, CancellationToken ct)
     {
         LogMsg("send", msg);
 
@@ -237,15 +239,17 @@ sealed partial class UdpProtocol : IDisposable
         msg.Header.Magic = magicNumber;
         msg.Header.SequenceNumber = nextSendSeq++;
 
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(sendQueueCancellation.Token, ct);
+
         return sendQueue.Writer.WriteAsync(new()
         {
             QueueTime = TimeStamp.GetMilliseconds(),
             DestAddr = PeerAddress,
             Msg = msg,
-        }, sendQueueCancellation.Token);
+        }, cts.Token);
     }
 
-    async Task OnMsg(ProtocolMessage msg)
+    async ValueTask OnMsg(ProtocolMessage msg, CancellationToken ct)
     {
         var seq = msg.Header.SequenceNumber;
         if (msg.Header.Type is not MsgType.SyncRequest and not MsgType.SyncReply)
@@ -303,7 +307,7 @@ sealed partial class UdpProtocol : IDisposable
         }
 
         if (sendReply)
-            await SendMsg(ref replyMsg).ConfigureAwait(false);
+            await SendMsg(ref replyMsg, ct).ConfigureAwait(false);
 
         if (handled)
         {

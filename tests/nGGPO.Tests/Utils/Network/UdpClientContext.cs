@@ -1,32 +1,23 @@
 using System.Net;
-using nGGPO.Network;
+using nGGPO.Network.Client;
 using nGGPO.Serialization;
 
 namespace nGGPO.Tests.Utils.Network;
 
-sealed record UdpClientContext<T>(
-    UdpPeerClient<T> Socket,
-    IPEndPoint EndPoint
-)
+sealed class UdpClientContext<T>
     : IDisposable
     where T : struct
 {
-    public UdpClientContext(UdpPeerClient<T> socket, IPAddress address) :
-        this(socket, new IPEndPoint(address, socket.Port))
-    { }
+    public PeerClientEventObserver<T> Observer { get; }
+    public UdpPeerClient<T> Socket { get; }
 
-    public UdpClientContext(IBinarySerializer<T> serializer, int? port = null) :
-        this(
-            new UdpPeerClient<T>(
-                port ?? PortUtils.FindFreePort(),
-                serializer
-            ),
-            IPAddress.Loopback
-        )
-    { }
+    public UdpClientContext(IBinarySerializer<T> serializer, int? port = null)
+    {
+        Observer = new();
+        Socket = new UdpPeerClient<T>(port ?? PortUtils.FindFreePort(), Observer, serializer);
+    }
 
     public SocketAddress Address => Socket.Address;
     public int Port => Socket.Port;
-
     public void Dispose() => Socket.Dispose();
 }

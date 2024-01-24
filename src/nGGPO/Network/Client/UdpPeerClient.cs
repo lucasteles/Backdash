@@ -5,15 +5,11 @@ using System.Threading.Channels;
 using nGGPO.Serialization;
 using nGGPO.Utils;
 
-namespace nGGPO.Network;
-
-delegate ValueTask OnMessageDelegate<in T>(
-    T message, SocketAddress sender,
-    CancellationToken stoppingToken
-) where T : struct;
+namespace nGGPO.Network.Client;
 
 sealed class UdpPeerClient<T>(
     int port,
+    IPeerClientObserver<T> observer,
     IBinarySerializer<T> serializer
 ) : IDisposable
     where T : struct
@@ -35,7 +31,6 @@ sealed class UdpPeerClient<T>(
             }
         );
 
-    public event OnMessageDelegate<T>? OnMessage;
 
     public async Task StartPumping(CancellationToken cancellationToken = default)
     {
@@ -115,9 +110,7 @@ sealed class UdpPeerClient<T>(
             var memory = MemoryMarshal.CreateFromPinnedArray(buffer, 0, receivedSize);
             var msg = serializer.Deserialize(memory.Span);
 
-            if (OnMessage is not null)
-                await OnMessage.Invoke(msg, address, ct)
-                    .ConfigureAwait(false);
+            await observer.OnMessage(this, msg, address, ct).ConfigureAwait(false);
         }
     }
 

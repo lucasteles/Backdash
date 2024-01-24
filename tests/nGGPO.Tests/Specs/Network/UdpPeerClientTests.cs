@@ -1,5 +1,5 @@
 using System.Net;
-using nGGPO.Network;
+using nGGPO.Network.Client;
 using nGGPO.Serialization;
 
 #pragma warning disable AsyncFixer01
@@ -17,7 +17,7 @@ public class UdpPeerClientTests
         StringValue msg = "hello server";
         SemaphoreSlim sem = new(0, 1);
 
-        server.Socket.OnMessage += (message, sender, token) =>
+        server.Observer.OnMessage += (_, message, sender, token) =>
         {
             message.Value.Should().Be("hello server");
             sender.Should().Be(client.Address);
@@ -39,7 +39,7 @@ public class UdpPeerClientTests
 
         AsyncCounter counter = new();
 
-        server.Socket.OnMessage += async (message, sender, token) =>
+        server.Observer.OnMessage += async (_, message, sender, token) =>
         {
             message.Value.Should().Be("hello server");
             sender.Should().Be(client.Address);
@@ -47,7 +47,7 @@ public class UdpPeerClientTests
             await server.Socket.SendTo(sender, "hello client", token);
         };
 
-        client.Socket.OnMessage += (message, sender, token) =>
+        client.Observer.OnMessage += (_, message, sender, token) =>
         {
             message.Value.Should().Be("hello client");
             sender.Should().Be(server.Address);
@@ -92,7 +92,7 @@ public class UdpPeerClientTests
         var totalResult = 0;
         AsyncCounter counter = new();
 
-        server.Socket.OnMessage += (message, sender, token) =>
+        server.Observer.OnMessage += (_, message, sender, token) =>
         {
             sender.Should().Be(client.Address);
             HandleMessage(ref totalResult, message);
@@ -100,7 +100,7 @@ public class UdpPeerClientTests
             return ValueTask.CompletedTask;
         };
 
-        client.Socket.OnMessage += (message, sender, token) =>
+        client.Observer.OnMessage += (_, message, sender, token) =>
         {
             sender.Should().Be(server.Address);
             HandleMessage(ref totalResult, message);
@@ -136,14 +136,14 @@ public class UdpPeerClientTests
 
         var totalResult = 0;
         AsyncCounter counter = new();
-        server.Socket.OnMessage += async (message, sender, token) =>
+        server.Observer.OnMessage += async (_, message, sender, token) =>
         {
             sender.Should().Be(client.Address);
             await HandleMessageAsync(message, server.Socket, sender, token);
             counter.Inc();
         };
 
-        client.Socket.OnMessage += async (message, sender, token) =>
+        client.Observer.OnMessage += async (_, message, sender, token) =>
         {
             sender.Should().Be(server.Address);
             await HandleMessageAsync(message, client.Socket, sender, token);

@@ -1,51 +1,37 @@
 using System.Diagnostics;
+using System.Net;
+using nGGPO.Network.Client;
 using nGGPO.PingTest;
 using nGGPO.Serialization;
-using UdpPeerClient = nGGPO.Network.UdpPeerClient<nGGPO.PingTest.Message>;
+using UdpPeerClient = nGGPO.Network.Client.UdpPeerClient<nGGPO.PingTest.Message>;
 
 var msgCount = 0UL;
 
-UdpPeerClient peer1 = new(9000, BinarySerializerFactory.ForEnum<Message>())
+ValueTask ProcessMessage(UdpPeerClient client, Message message, SocketAddress sender,
+    CancellationToken ct)
+{
+    if (ct.IsCancellationRequested) return ValueTask.CompletedTask;
+    Interlocked.Increment(ref msgCount);
+    return message switch
+    {
+        Message.Ping => client.SendTo(sender, Message.Pong, ct),
+        Message.Pong => client.SendTo(sender, Message.Ping, ct),
+        _ => throw new ArgumentOutOfRangeException(nameof(message), message, null)
+    };
+}
+
+UdpPeerClient peer1 = new(9000,
+    new PeerClientObserver<Message>(ProcessMessage),
+    BinarySerializerFactory.ForEnum<Message>())
 {
     LogsEnabled = false,
 };
 
-peer1.OnMessage += async (message, sender, token) =>
-{
-    if (token.IsCancellationRequested) return;
-    Interlocked.Increment(ref msgCount);
-    switch (message)
-    {
-        case Message.Ping:
-            await peer1.SendTo(sender, Message.Pong, token);
-            break;
-        case Message.Pong:
-            await peer1.SendTo(sender, Message.Ping, token);
-            break;
-        default:
-            throw new ArgumentOutOfRangeException(nameof(message), message, null);
-    }
-};
-
-UdpPeerClient peer2 = new(9001, BinarySerializerFactory.ForEnum<Message>())
+UdpPeerClient peer2 = new(9001,
+    new PeerClientObserver<Message>(ProcessMessage),
+    BinarySerializerFactory.ForEnum<Message>())
 {
     LogsEnabled = false,
-};
-peer2.OnMessage += async (message, sender, token) =>
-{
-    if (token.IsCancellationRequested) return;
-    Interlocked.Increment(ref msgCount);
-    switch (message)
-    {
-        case Message.Ping:
-            await peer2.SendTo(sender, Message.Pong, token);
-            break;
-        case Message.Pong:
-            await peer2.SendTo(sender, Message.Ping, token);
-            break;
-        default:
-            throw new ArgumentOutOfRangeException(nameof(message), message, null);
-    }
 };
 
 Stopwatch watch = new();
@@ -60,14 +46,14 @@ var gcCount = new[]
     GC.CollectionCount(0), GC.CollectionCount(1), GC.CollectionCount(2),
 };
 var pauseTime = GC.GetTotalPauseDuration();
-double allocs = GC.GetTotalMemory(true);
+double totalMemory = GC.GetTotalMemory(true);
 watch.Start();
 
 await peer1.SendTo(peer2.Address, Message.Ping);
 await tasks;
 
 watch.Stop();
-allocs = (GC.GetTotalMemory(true) - allocs) / 1024.0;
+totalMemory = (GC.GetTotalMemory(true) - totalMemory) / 1024.0;
 gcCount[0] = GC.CollectionCount(0) - gcCount[0];
 gcCount[1] = GC.CollectionCount(1) - gcCount[1];
 gcCount[2] = GC.CollectionCount(2) - gcCount[2];
@@ -86,7 +72,7 @@ Console.WriteLine(
     ---------------
     """,
     msgCount, watch.Elapsed,
-    allocs, allocs / 1024.0,
+    totalMemory, totalMemory / 1024.0,
     pauseTime, gcCount[0], gcCount[1], gcCount[2],
     sizeof(Message), totalSent, totalSent / 1024.0
 );

@@ -1,7 +1,7 @@
 using System.Net;
 using nGGPO.Data;
 using nGGPO.Input;
-using nGGPO.Network;
+using nGGPO.Network.Client;
 using nGGPO.Network.Messages;
 using nGGPO.Network.Protocol;
 using nGGPO.Serialization;
@@ -9,7 +9,8 @@ using nGGPO.Utils;
 
 namespace nGGPO.Backends;
 
-sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGameState>
+sealed class Peer2PeerBackend<TInput, TGameState>
+    : IRollbackSession<TInput, TGameState>
     where TInput : struct
     where TGameState : struct
 {
@@ -24,6 +25,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
 
     readonly List<UdpProtocol> spectators;
     readonly List<UdpProtocol> endpoints;
+    readonly PeerClientObserverGroup<ProtocolMessage> peerObservers = new();
     readonly RollbackOptions options;
 
     readonly InputCompressor inputCompressor = new();
@@ -46,7 +48,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         spectators = new(Max.Spectators);
         endpoints = new(this.options.NumberOfPlayers);
         sync = new(localConnectStatus);
-        udp = new(this.options.LocalPort, udpMsgSerializer ?? new ProtocolMessageBinarySerializer());
+        udp = new(this.options.LocalPort, peerObservers, udpMsgSerializer ?? new ProtocolMessageBinarySerializer());
     }
 
     public void Dispose() => udp.Dispose();
@@ -88,10 +90,12 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         return new GameInput(in buffer, size);
     }
 
-    public ValueTask<ResultCode> AddLocalInput(Player player, TInput localInput) =>
-        AddLocalInput(player.Id, localInput);
+    public ValueTask<ResultCode> AddLocalInput(Player player, TInput localInput,
+        CancellationToken stoppingToken = default)
+        => AddLocalInput(player.Id, localInput, stoppingToken);
 
-    public async ValueTask<ResultCode> AddLocalInput(PlayerId player, TInput localInput)
+    public async ValueTask<ResultCode> AddLocalInput(PlayerId player, TInput localInput,
+        CancellationToken stoppingToken = default)
     {
         if (sync.InRollback())
             return ResultCode.InRollback;
@@ -118,7 +122,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         // Send the input to all the remote players.
         for (var i = 0; i < options.NumberOfPlayers; i++)
             if (endpoints[i].IsInitialized())
-                await endpoints[i].SendInput(in input).ConfigureAwait(false);
+                await endpoints[i].SendInput(in input, stoppingToken).ConfigureAwait(false);
 
         return ResultCode.Ok;
     }
@@ -168,6 +172,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         };
 
         protocol.Synchronize();
+        peerObservers.Add(protocol);
         return protocol;
     }
 
