@@ -76,10 +76,11 @@ sealed class UdpPeerClient<T>(
 
     async Task ReadLoop(CancellationToken ct)
     {
-        var buffer = GC.AllocateArray<byte>(
+        var bufferArray = GC.AllocateArray<byte>(
             length: Max.UdpPacketSize,
             pinned: true
         );
+        var buffer = MemoryMarshal.CreateFromPinnedArray(bufferArray, 0, bufferArray.Length);
 
         SocketAddress address = new(socket.AddressFamily);
 
@@ -107,8 +108,7 @@ sealed class UdpPeerClient<T>(
             if (receivedSize is 0)
                 continue;
 
-            var memory = MemoryMarshal.CreateFromPinnedArray(buffer, 0, receivedSize);
-            var msg = serializer.Deserialize(memory.Span);
+            var msg = serializer.Deserialize(buffer.Span[..receivedSize]);
 
             await observer.OnMessage(this, msg, address, ct).ConfigureAwait(false);
         }
@@ -116,19 +116,19 @@ sealed class UdpPeerClient<T>(
 
     async Task SendLoop(CancellationToken ct)
     {
-        var sendBuffer = GC.AllocateArray<byte>(
+        var bufferArray = GC.AllocateArray<byte>(
             length: Max.UdpPacketSize,
             pinned: true
         );
+        var sendBuffer = MemoryMarshal.CreateFromPinnedArray(bufferArray, 0, bufferArray.Length);
 
         try
         {
             await foreach (var (peerAddress, nextMsg) in sendQueue.Reader.ReadAllAsync(ct).ConfigureAwait(false))
             {
                 var msg = nextMsg;
-                var bodySize = serializer.Serialize(ref msg, sendBuffer);
-                var memory = MemoryMarshal.CreateFromPinnedArray(sendBuffer, 0, bodySize);
-                var sentSize = await SendBytes(peerAddress, memory, ct).ConfigureAwait(false);
+                var bodySize = serializer.Serialize(ref msg, sendBuffer.Span);
+                var sentSize = await SendBytes(peerAddress, sendBuffer[..bodySize], ct).ConfigureAwait(false);
                 Tracer.Assert(sentSize == bodySize);
                 if (ct.IsCancellationRequested) break;
             }
