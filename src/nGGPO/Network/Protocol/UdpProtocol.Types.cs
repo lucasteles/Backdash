@@ -1,4 +1,5 @@
 using System.Net;
+using nGGPO.Network.Messages;
 
 namespace nGGPO.Network.Protocol;
 
@@ -19,7 +20,7 @@ partial class UdpProtocol
     {
         public long QueueTime;
         public SocketAddress DestAddr;
-        public UdpMsg Msg;
+        public ProtocolMessage Msg;
     }
 
     public struct SyncState

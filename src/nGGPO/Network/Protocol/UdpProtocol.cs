@@ -12,7 +12,7 @@ sealed partial class UdpProtocol : IDisposable
     /*
      * Network transmission information
      */
-    readonly UdpPeerClient<UdpMsg> udp;
+    readonly UdpPeerClient<ProtocolMessage> udp;
     readonly ushort magicNumber;
     readonly QueueIndex queue;
     ushort remoteMagicNumber;
@@ -79,7 +79,7 @@ sealed partial class UdpProtocol : IDisposable
     public UdpProtocol(
         TimeSync timeSync,
         Random random,
-        UdpPeerClient<UdpMsg> udp,
+        UdpPeerClient<ProtocolMessage> udp,
         QueueIndex queue,
         IPEndPoint peerAddress,
         ConnectStatus[] localConnectStatus,
@@ -112,7 +112,7 @@ sealed partial class UdpProtocol : IDisposable
         this.udp.OnMessage += OnMsgEventHandler;
     }
 
-    async ValueTask OnMsgEventHandler(UdpMsg msg, SocketAddress from, CancellationToken ct)
+    async ValueTask OnMsgEventHandler(ProtocolMessage msg, SocketAddress from, CancellationToken ct)
     {
         if (PeerAddress.Equals(from))
             await OnMsg(msg).ConfigureAwait(false);
@@ -180,7 +180,7 @@ sealed partial class UdpProtocol : IDisposable
 
         var input = CreateInputMsg();
 
-        UdpMsg msg = new(MsgType.Input)
+        ProtocolMessage msg = new(MsgType.Input)
         {
             Input = input,
         };
@@ -188,7 +188,7 @@ sealed partial class UdpProtocol : IDisposable
         return SendMsg(ref msg);
     }
 
-    public void SendInputAck(out UdpMsg msg) =>
+    public void SendInputAck(out ProtocolMessage msg) =>
         msg = new(MsgType.InputAck)
         {
             InputAck = new()
@@ -215,7 +215,7 @@ sealed partial class UdpProtocol : IDisposable
         ShutdownTimeout = TimeStamp.GetMilliseconds() + UdpShutdownTimer;
     }
 
-    void SendSyncRequest(out UdpMsg msg)
+    void SendSyncRequest(out ProtocolMessage msg)
     {
         state.Sync.Random = random.NextUInt();
         msg = new(MsgType.SyncRequest)
@@ -227,7 +227,7 @@ sealed partial class UdpProtocol : IDisposable
         };
     }
 
-    ValueTask SendMsg(ref UdpMsg msg)
+    ValueTask SendMsg(ref ProtocolMessage msg)
     {
         LogMsg("send", msg);
 
@@ -245,7 +245,7 @@ sealed partial class UdpProtocol : IDisposable
         }, sendQueueCancellation.Token);
     }
 
-    async Task OnMsg(UdpMsg msg)
+    async Task OnMsg(ProtocolMessage msg)
     {
         var seq = msg.Header.SequenceNumber;
         if (msg.Header.Type is not MsgType.SyncRequest and not MsgType.SyncReply)
@@ -269,7 +269,7 @@ sealed partial class UdpProtocol : IDisposable
         LogMsg("recv", msg);
         var handled = false;
         var sendReply = false;
-        UdpMsg replyMsg = new();
+        ProtocolMessage replyMsg = new();
 
         switch (msg.Header.Type)
         {
@@ -316,7 +316,7 @@ sealed partial class UdpProtocol : IDisposable
         }
     }
 
-    bool OnInput(UdpMsg msg)
+    bool OnInput(ProtocolMessage msg)
     {
         /*
          * If a disconnect is requested, go ahead and disconnect now.
@@ -397,7 +397,7 @@ sealed partial class UdpProtocol : IDisposable
         QueueEvent(evt);
     }
 
-    bool OnInputAck(in UdpMsg msg)
+    bool OnInputAck(in ProtocolMessage msg)
     {
         while (!pendingOutput.IsEmpty && pendingOutput.Peek().Frame < msg.InputAck.AckFrame)
         {
@@ -408,13 +408,13 @@ sealed partial class UdpProtocol : IDisposable
         return true;
     }
 
-    bool OnQualityReply(in UdpMsg msg)
+    bool OnQualityReply(in ProtocolMessage msg)
     {
         roundTripTime = (int)(TimeStamp.GetMilliseconds() - msg.QualityReply.Pong);
         return true;
     }
 
-    bool OnQualityReport(in UdpMsg msg, out UdpMsg newMsg, out bool sendMsg)
+    bool OnQualityReport(in ProtocolMessage msg, out ProtocolMessage newMsg, out bool sendMsg)
     {
         newMsg = new(MsgType.QualityReply)
         {
@@ -437,7 +437,7 @@ sealed partial class UdpProtocol : IDisposable
         eventQueue.Push(evt);
     }
 
-    bool OnSyncReply(UdpMsg msg, ref UdpMsg replyMsg, out bool sendReply)
+    bool OnSyncReply(ProtocolMessage msg, ref ProtocolMessage replyMsg, out bool sendReply)
     {
         sendReply = false;
         if (currentProtocolState is not ProtocolState.Syncing)
@@ -489,7 +489,7 @@ sealed partial class UdpProtocol : IDisposable
         return true;
     }
 
-    public bool OnSyncRequest(ref UdpMsg msg, ref UdpMsg replyMsg, out bool sendReply)
+    public bool OnSyncRequest(ref ProtocolMessage msg, ref ProtocolMessage replyMsg, out bool sendReply)
     {
         if (remoteMagicNumber is not 0 && msg.Header.Magic != remoteMagicNumber)
         {
@@ -499,7 +499,7 @@ sealed partial class UdpProtocol : IDisposable
             return false;
         }
 
-        replyMsg = new UdpMsg(MsgType.SyncReply)
+        replyMsg = new ProtocolMessage(MsgType.SyncReply)
         {
             SyncReply = new()
             {
@@ -561,7 +561,7 @@ sealed partial class UdpProtocol : IDisposable
         stats.LocalFramesBehind = localFrameAdvantage;
     }
 
-    void LogMsg(string send, in UdpMsg msg)
+    void LogMsg(string send, in ProtocolMessage msg)
     {
         throw new NotImplementedException();
     }

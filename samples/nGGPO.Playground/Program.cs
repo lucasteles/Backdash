@@ -1,5 +1,4 @@
 using nGGPO.Inputs;
-using nGGPO.Network;
 using nGGPO.Network.Messages;
 using nGGPO.Playground;
 using nGGPO.Serialization;
@@ -83,7 +82,7 @@ Div();
 
 Div();
 {
-    UdpMsg packet = new()
+    ProtocolMessage packet = new()
     {
         Header = new(MsgType.SyncRequest)
         {

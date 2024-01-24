@@ -1,6 +1,5 @@
 using System.Drawing;
 using nGGPO.Input;
-using nGGPO.Network;
 using nGGPO.Network.Messages;
 using nGGPO.Utils;
 
@@ -185,48 +184,48 @@ class MyGenerators
         }
     );
 
-    public static Arbitrary<UdpMsg> UpdMsgGenerator() => Arb.From<Header>().Generator
+    public static Arbitrary<ProtocolMessage> UpdMsgGenerator() => Arb.From<Header>().Generator
         .Where(h => h.Type is not MsgType.Invalid)
         .SelectMany(header => header.Type switch
         {
             MsgType.SyncRequest =>
-                Arb.From<SyncRequest>().Generator.Select(x => new UdpMsg
+                Arb.From<SyncRequest>().Generator.Select(x => new ProtocolMessage
                 {
                     Header = header,
                     SyncRequest = x,
                 }),
             MsgType.SyncReply =>
-                Arb.From<SyncReply>().Generator.Select(x => new UdpMsg
+                Arb.From<SyncReply>().Generator.Select(x => new ProtocolMessage
                 {
                     Header = header,
                     SyncReply = x,
                 }),
             MsgType.Input =>
-                Arb.From<InputMsg>().Generator.Select(x => new UdpMsg
+                Arb.From<InputMsg>().Generator.Select(x => new ProtocolMessage
                 {
                     Header = header,
                     Input = x,
                 }),
             MsgType.QualityReport =>
-                Arb.From<QualityReport>().Generator.Select(x => new UdpMsg
+                Arb.From<QualityReport>().Generator.Select(x => new ProtocolMessage
                 {
                     Header = header,
                     QualityReport = x,
                 }),
             MsgType.QualityReply =>
-                Arb.From<QualityReply>().Generator.Select(x => new UdpMsg
+                Arb.From<QualityReply>().Generator.Select(x => new ProtocolMessage
                 {
                     Header = header,
                     QualityReply = x,
                 }),
             MsgType.KeepAlive =>
-                Arb.From<KeepAlive>().Generator.Select(x => new UdpMsg
+                Arb.From<KeepAlive>().Generator.Select(x => new ProtocolMessage
                 {
                     Header = header,
                     KeepAlive = x,
                 }),
             MsgType.InputAck =>
-                Arb.From<InputAck>().Generator.Select(x => new UdpMsg
+                Arb.From<InputAck>().Generator.Select(x => new ProtocolMessage
                 {
                     Header = header,
                     InputAck = x,

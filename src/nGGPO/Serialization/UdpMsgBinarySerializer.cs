@@ -1,13 +1,13 @@
-using nGGPO.Network;
+using nGGPO.Network.Messages;
 using nGGPO.Serialization.Buffer;
 
 namespace nGGPO.Serialization;
 
-class UdpMsgBinarySerializer : IBinarySerializer<UdpMsg>
+class UdpMsgBinarySerializer : IBinarySerializer<ProtocolMessage>
 {
     public bool Network { get; init; }
 
-    public UdpMsg Deserialize(in ReadOnlySpan<byte> data)
+    public ProtocolMessage Deserialize(in ReadOnlySpan<byte> data)
     {
         var offset = 0;
         NetworkBufferReader reader = new(data, ref offset)
@@ -15,12 +15,12 @@ class UdpMsgBinarySerializer : IBinarySerializer<UdpMsg>
             Network = Network,
         };
 
-        var msg = new UdpMsg();
+        var msg = new ProtocolMessage();
         msg.Deserialize(reader);
         return msg;
     }
 
-    public int Serialize(ref UdpMsg data, Span<byte> buffer)
+    public int Serialize(ref ProtocolMessage data, Span<byte> buffer)
     {
         var offset = 0;
         NetworkBufferWriter writer = new(buffer, ref offset)

@@ -12,7 +12,7 @@ delegate ValueTask OnMessageDelegate<in T>(
     CancellationToken stoppingToken
 ) where T : struct;
 
-class UdpPeerClient<T>(
+sealed class UdpPeerClient<T>(
     int port,
     IBinarySerializer<T> serializer
 ) : IDisposable
@@ -167,24 +167,11 @@ class UdpPeerClient<T>(
     ) =>
         sendQueue.Writer.WriteAsync((peerAddress, payload), ct);
 
-    protected virtual void Dispose(bool disposing)
-    {
-        if (disposing)
-        {
-            cancellation?.Cancel();
-            cancellation?.Dispose();
-            socket.Dispose();
-            sendQueue.Writer.Complete();
-        }
-
-        cancellation = null;
-    }
-
     public void Dispose()
     {
-        Dispose(true);
-        GC.SuppressFinalize(this);
+        cancellation?.Cancel();
+        cancellation?.Dispose();
+        socket.Dispose();
+        sendQueue.Writer.Complete();
     }
-
-    ~UdpPeerClient() => Dispose(false);
 }

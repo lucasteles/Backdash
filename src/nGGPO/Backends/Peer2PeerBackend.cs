@@ -16,7 +16,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
     readonly IBinarySerializer<TInput> inputSerializer;
     readonly ISessionCallbacks<TGameState> callbacks;
 
-    readonly UdpPeerClient<UdpMsg> udp;
+    readonly UdpPeerClient<ProtocolMessage> udp;
     readonly Synchronizer<TGameState> sync;
     readonly ConnectStatus[] localConnectStatus;
 
@@ -32,7 +32,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         IBinarySerializer<TInput> inputSerializer,
         ISessionCallbacks<TGameState> callbacks,
         RollbackOptions options,
-        IBinarySerializer<UdpMsg>? udpMsgSerializer = null
+        IBinarySerializer<ProtocolMessage>? udpMsgSerializer = null
     )
     {
         ExceptionHelper.ThrowIfArgumentIsNegativeOrZero(options.LocalPort);

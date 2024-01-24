@@ -1,14 +1,14 @@
-using nGGPO.Network;
+using nGGPO.Network.Messages;
 
 namespace nGGPO.Tests.Specs.Network;
 
-public class UdpMsgTests
+public class ProtocolMessageTests
 {
     [PropertyTest(MaxTest = 10_000)]
-    internal bool SerializationAndDeserialization(UdpMsg message) =>
+    internal bool SerializationAndDeserialization(ProtocolMessage message) =>
         AssertSerialization.Validate(ref message);
 
     [PropertyTest]
-    internal bool ReadWriteBufferOffset(UdpMsg value) =>
+    internal bool ReadWriteBufferOffset(ProtocolMessage value) =>
         AssertSerialization.Offset(ref value);
 }

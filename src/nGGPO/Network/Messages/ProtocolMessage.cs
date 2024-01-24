@@ -1,12 +1,11 @@
 using System.Runtime.InteropServices;
-using nGGPO.Network.Messages;
 using nGGPO.Serialization;
 using nGGPO.Serialization.Buffer;
 
-namespace nGGPO.Network;
+namespace nGGPO.Network.Messages;
 
 [StructLayout(LayoutKind.Explicit)]
-struct UdpMsg(MsgType type) : IBinarySerializable, IEquatable<UdpMsg>
+struct ProtocolMessage(MsgType type) : IBinarySerializable, IEquatable<ProtocolMessage>
 {
     [FieldOffset(0)]
     public Header Header = new(type);
@@ -96,7 +95,7 @@ struct UdpMsg(MsgType type) : IBinarySerializable, IEquatable<UdpMsg>
         }
     }
 
-    public readonly bool Equals(UdpMsg other) =>
+    public readonly bool Equals(ProtocolMessage other) =>
         Header.Type == other.Header.Type && Header.Type switch
         {
             MsgType.Invalid => other.Header.Type is MsgType.Invalid,
@@ -110,8 +109,8 @@ struct UdpMsg(MsgType type) : IBinarySerializable, IEquatable<UdpMsg>
             _ => throw new ArgumentOutOfRangeException(nameof(other)),
         };
 
-    public override readonly bool Equals(object? obj) => obj is UdpMsg msg && Equals(msg);
-    public override readonly int GetHashCode() => HashCode.Combine(typeof(UdpMsg));
-    public static bool operator ==(UdpMsg left, UdpMsg right) => left.Equals(right);
-    public static bool operator !=(UdpMsg left, UdpMsg right) => !left.Equals(right);
+    public override readonly bool Equals(object? obj) => obj is ProtocolMessage msg && Equals(msg);
+    public override readonly int GetHashCode() => HashCode.Combine(typeof(ProtocolMessage));
+    public static bool operator ==(ProtocolMessage left, ProtocolMessage right) => left.Equals(right);
+    public static bool operator !=(ProtocolMessage left, ProtocolMessage right) => !left.Equals(right);
 }
