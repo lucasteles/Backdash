@@ -64,10 +64,9 @@ double allocs = GC.GetTotalMemory(true);
 watch.Start();
 
 await peer1.SendTo(peer2.Address, Message.Ping);
+await tasks;
 
 watch.Stop();
-
-await tasks;
 allocs = (GC.GetTotalMemory(true) - allocs) / 1024.0;
 gcCount[0] = GC.CollectionCount(0) - gcCount[0];
 gcCount[1] = GC.CollectionCount(1) - gcCount[1];
