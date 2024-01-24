@@ -23,8 +23,8 @@ sealed record UdpClientContext<T>(
             IPAddress.Loopback
         ) { }
 
-    public SocketAddress Address { get; } = EndPoint.Serialize();
-    public int Port => EndPoint.Port;
+    public SocketAddress Address => Socket.Address;
+    public int Port => Socket.Port;
 
     public void Dispose() => Socket.Dispose();
 }
