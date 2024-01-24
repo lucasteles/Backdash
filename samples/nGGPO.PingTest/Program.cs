@@ -1,17 +1,16 @@
 using System.Diagnostics;
 using System.Net;
 using nGGPO.Network.Client;
-using nGGPO.PingTest;
 using nGGPO.Serialization;
-using UdpPeerClient = nGGPO.Network.Client.UdpPeerClient<nGGPO.PingTest.Message>;
+using UdpPeerClient = nGGPO.Network.Client.UdpPeerClient<Message>;
 
-var msgCount = 0UL;
+var processedMessageCount = 0UL;
 
 ValueTask ProcessMessage(UdpPeerClient client, Message message, SocketAddress sender,
     CancellationToken ct)
 {
     if (ct.IsCancellationRequested) return ValueTask.CompletedTask;
-    Interlocked.Increment(ref msgCount);
+    Interlocked.Increment(ref processedMessageCount);
     return message switch
     {
         Message.Ping => client.SendTo(sender, Message.Pong, ct),
@@ -71,18 +70,29 @@ Console.WriteLine(
     Collect Count: G1({5}); G2({6}); G3({7})
     ---------------
     """,
-    msgCount, watch.Elapsed,
+    processedMessageCount, watch.Elapsed,
     totalMemory, totalMemory / 1024.0,
     pauseTime, gcCount[0], gcCount[1], gcCount[2],
     sizeof(Message), totalSent, totalSent / 1024.0
 );
 
-#pragma warning disable S3903
-namespace nGGPO.PingTest
+
+public enum Message
 {
-    public enum Message
-    {
-        Ping = 2,
-        Pong = 4,
-    }
+    Ping = 2,
+    Pong = 4,
+}
+
+sealed class PeerClientObserver<T>(
+    Func<UdpPeerClient<T>, T, SocketAddress, CancellationToken, ValueTask> onMessage)
+    : IPeerClientObserver<T>
+    where T : struct
+{
+    public ValueTask OnMessage(
+        UdpPeerClient<T> sender,
+        T message,
+        SocketAddress from,
+        CancellationToken stoppingToken
+    ) =>
+        onMessage(sender, message, from, stoppingToken);
 }
