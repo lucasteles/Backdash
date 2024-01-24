@@ -152,26 +152,6 @@ sealed partial class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDispos
         return SendPendingOutput(ct);
     }
 
-    InputMsg CreateInputMsg()
-    {
-        if (pendingOutput.IsEmpty)
-            return new();
-
-        var input = inputCompressor.WriteCompressed(
-            ref lastAckedInput,
-            in pendingOutput,
-            ref lastSentInput
-        );
-
-        input.AckFrame = lastReceivedInput.Frame;
-        input.DisconnectRequested = currentProtocolState is not ProtocolState.Disconnected;
-
-        if (localConnectStatus.Length > 0)
-            localConnectStatus.CopyTo(input.PeerConnectStatus);
-
-        return input;
-    }
-
     ValueTask SendPendingOutput(CancellationToken ct)
     {
         Tracer.Assert(
@@ -188,6 +168,26 @@ sealed partial class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDispos
         };
 
         return SendMsg(ref msg, ct);
+
+        InputMsg CreateInputMsg()
+        {
+            if (pendingOutput.IsEmpty)
+                return new();
+
+            var compressedInput = inputCompressor.WriteCompressed(
+                ref lastAckedInput,
+                in pendingOutput,
+                ref lastSentInput
+            );
+
+            compressedInput.AckFrame = lastReceivedInput.Frame;
+            compressedInput.DisconnectRequested = currentProtocolState is not ProtocolState.Disconnected;
+
+            if (localConnectStatus.Length > 0)
+                localConnectStatus.CopyTo(compressedInput.PeerConnectStatus);
+
+            return compressedInput;
+        }
     }
 
     public void SendInputAck(out ProtocolMessage msg) =>
