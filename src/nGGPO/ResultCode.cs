@@ -1,6 +1,6 @@
 namespace nGGPO;
 
-public enum ErrorCode : short
+public enum ResultCode : short
 {
     Ok = 0,
     GeneralFailure = -1,
@@ -16,4 +16,3 @@ public enum ErrorCode : short
     TooManySpectators = 10,
     InvalidRequest = 11,
 }
-

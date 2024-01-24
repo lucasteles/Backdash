@@ -6,7 +6,7 @@ namespace nGGPO;
 
 static class Extensions
 {
-    public static bool IsSuccess(this ErrorCode code) => code is ErrorCode.Ok;
+    public static bool IsSuccess(this ResultCode code) => code is ResultCode.Ok;
 
     public static void AssertTrue(this bool value, [CallerMemberName] string? source = null)
     {
