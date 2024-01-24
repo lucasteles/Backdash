@@ -69,11 +69,6 @@ struct GameInput : IEquatable<GameInput>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Span<byte> AsSpan() => Mem.InlineArrayAsSpan<GameInputBuffer, byte>(ref Buffer, Size);
 
-    [Pure]
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public readonly ReadOnlySpan<byte> AsReadOnlySpan() =>
-        Mem.InlineArrayAsReadOnlySpan<GameInputBuffer, byte>(in Buffer, Size);
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public BitVector GetBitVector()
     {
