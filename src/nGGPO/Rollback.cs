@@ -13,11 +13,29 @@ public static class Rollback
     )
         where TInput : struct
         where TGameState : struct
+        =>
+            CreateSession(cb, new()
+            {
+                LocalPort = localPort,
+                NumberOfPlayers = numPlayers,
+            }, inputSerializer);
+
+    public static IRollbackSession<TInput, TGameState> CreateSession<TInput, TGameState>(
+        ISessionCallbacks<TGameState> cb,
+        RollbackOptions options,
+        IBinarySerializer<TInput>? inputSerializer = null
+    )
+        where TInput : struct
+        where TGameState : struct
     {
         inputSerializer ??= BinarySerializerFactory.Get<TInput>()
                             ?? throw new InvalidOperationException(
                                 $"Unable to infer serializer for type {typeof(TInput).FullName}");
 
-        return new Peer2PeerBackend<TInput, TGameState>(inputSerializer, cb, localPort, numPlayers);
+        return new Peer2PeerBackend<TInput, TGameState>(
+            inputSerializer,
+            cb,
+            options
+        );
     }
 }

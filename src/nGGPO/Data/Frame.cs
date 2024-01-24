@@ -1,4 +1,4 @@
-namespace nGGPO.Input;
+namespace nGGPO.Data;
 
 readonly record struct Frame : IComparable<Frame>, IComparable<int>, IEquatable<int>
 {

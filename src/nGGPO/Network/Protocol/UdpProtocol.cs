@@ -527,11 +527,9 @@ sealed partial class UdpProtocol : IDisposable
         }
     }
 
-    public int RecommendFrameDelay()
-    {
-        // XXX: require idle input should be a configuration parameter
-        return timeSync.RecommendFrameWaitDuration(false);
-    }
+    // require idle input should be a configuration parameter
+    public int RecommendFrameDelay() =>
+        timeSync.RecommendFrameWaitDuration(false);
 
     void SetLocalFrameNumber(int localFrame)
     {

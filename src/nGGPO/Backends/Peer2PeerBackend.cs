@@ -12,46 +12,38 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
     where TInput : struct
     where TGameState : struct
 {
-    const int RecommendationInterval = 240;
-    const int DefaultDisconnectTimeout = 5000;
-    const int DefaultDisconnectNotifyStart = 750;
-    const int SpectatorOffset = 1000;
-
     readonly IBinarySerializer<TInput> inputSerializer;
     readonly ISessionCallbacks<TGameState> callbacks;
 
     readonly UdpPeerClient<UdpMsg> udp;
     readonly Synchronizer<TGameState> sync;
-    readonly ConnectStatus[] localConnectStatus = new ConnectStatus[Max.MsgPlayers];
+    readonly ConnectStatus[] localConnectStatus;
 
-    readonly int numPlayers;
-    int numSpectators;
     bool synchronizing = true;
 
-    readonly List<UdpProtocol> spectators = new(Max.Spectators);
+    readonly List<UdpProtocol> spectators;
     readonly List<UdpProtocol> endpoints;
-
-    readonly int disconnectTimeout = DefaultDisconnectTimeout;
-    readonly int disconnectNotifyStart = DefaultDisconnectNotifyStart;
+    readonly RollbackOptions options;
 
     public Peer2PeerBackend(
         IBinarySerializer<TInput> inputSerializer,
         ISessionCallbacks<TGameState> callbacks,
-        int localPort,
-        int numPlayers,
+        RollbackOptions options,
         IBinarySerializer<UdpMsg>? udpMsgSerializer = null
     )
     {
-        ExceptionHelper.ThrowIfArgumentIsNegativeOrZero(localPort);
-        ExceptionHelper.ThrowIfArgumentIsNegativeOrZero(numPlayers);
+        ExceptionHelper.ThrowIfArgumentIsNegativeOrZero(options.LocalPort);
+        ExceptionHelper.ThrowIfArgumentIsNegativeOrZero(options.NumberOfPlayers);
 
+        this.options = options;
         this.inputSerializer = inputSerializer;
         this.callbacks = callbacks;
-        this.numPlayers = numPlayers;
 
-        endpoints = new(numPlayers);
+        localConnectStatus = new ConnectStatus[Max.MsgPlayers];
+        spectators = new(Max.Spectators);
+        endpoints = new(this.options.NumberOfPlayers);
         sync = new(localConnectStatus);
-        udp = new(localPort, udpMsgSerializer ?? new UdpMsgBinarySerializer());
+        udp = new(this.options.LocalPort, udpMsgSerializer ?? new UdpMsgBinarySerializer());
     }
 
     public ResultCode AddPlayer(Player player)
@@ -61,7 +53,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         if (player is Player.Spectator spectator)
             return AddSpectator(spectator.EndPoint);
 
-        if (player.PlayerNumber < 1 || player.PlayerNumber > numPlayers)
+        if (player.PlayerNumber < 1 || player.PlayerNumber > options.NumberOfPlayers)
             return ResultCode.PlayerOutOfRange;
 
         var queue = player.PlayerNumber - 1;
@@ -120,7 +112,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         localConnectStatus[queue].LastFrame = input.Frame;
 
         // Send the input to all the remote players.
-        for (var i = 0; i < numPlayers; i++)
+        for (var i = 0; i < options.NumberOfPlayers; i++)
             if (endpoints[i].IsInitialized())
                 await endpoints[i].SendInput(in input).ConfigureAwait(false);
 
@@ -144,7 +136,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
     ResultCode PlayerHandleToQueue(in PlayerHandle player, out int queue)
     {
         var offset = player.Value - 1;
-        if (offset < 0 || offset >= numPlayers)
+        if (offset < 0 || offset >= options.NumberOfPlayers)
         {
             queue = PlayerHandle.Empty.Value;
             return ResultCode.InvalidPlayerHandle;
@@ -156,22 +148,22 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
 
     static PlayerHandle QueueToPlayerHandle(int queue) => new(queue + 1);
 
-    static PlayerHandle QueueToSpectatorHandle(int queue) =>
-        new(queue + SpectatorOffset); /* out of range of the player array, basically */
+    PlayerHandle QueueToSpectatorHandle(int queue) =>
+        new(queue + options.SpectatorOffset); /* out of range of the player array, basically */
 
     UdpProtocol CreateProtocol(IPEndPoint endpoint, int queue)
     {
         UdpProtocol protocol = new(
-            timeSync: new(),
-            random: Rnd.Shared,
+            timeSync: new(options.TimeSync),
+            random: options.Random,
             udp: udp,
             queue,
             endpoint,
             localConnectStatus
         )
         {
-            DisconnectTimeout = disconnectTimeout,
-            DisconnectNotifyStart = disconnectNotifyStart,
+            DisconnectTimeout = options.DisconnectTimeout,
+            DisconnectNotifyStart = options.DisconnectNotifyStart,
         };
 
         protocol.Synchronize();
@@ -191,7 +183,9 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
 
     ResultCode AddSpectator(IPEndPoint endpoint)
     {
-        if (numSpectators == Max.Spectators)
+        var numSpectators = spectators.Count;
+
+        if (numSpectators >= Max.Spectators)
             return ResultCode.TooManySpectators;
 
         /*
@@ -200,8 +194,8 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         if (!synchronizing)
             return ResultCode.InvalidRequest;
 
-        var queue = numSpectators++;
-        var protocol = CreateProtocol(endpoint, queue + SpectatorOffset);
+        var queue = numSpectators + 1;
+        var protocol = CreateProtocol(endpoint, queue + options.SpectatorOffset);
         spectators.Add(protocol);
 
         return ResultCode.Ok;

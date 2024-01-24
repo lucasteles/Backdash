@@ -2,16 +2,16 @@ using nGGPO.Utils;
 
 namespace nGGPO.Input;
 
+public sealed class TimeSyncOptions
+{
+    public int FrameWindowSize { get; init; } = 40;
+    public int MinUniqueFrames { get; init; } = 10;
+    public int MinFrameAdvantage { get; init; } = 3;
+    public int MaxFrameAdvantage { get; init; } = 9;
+}
+
 sealed class TimeSync
 {
-    public sealed class Options
-    {
-        public int FrameWindowSize { get; init; } = 40;
-        public int MinUniqueFrames { get; init; } = 10;
-        public int MinFrameAdvantage { get; init; } = 3;
-        public int MaxFrameAdvantage { get; init; } = 9;
-    }
-
     static int counter;
 
     readonly int minFrameAdvantage;
@@ -21,7 +21,7 @@ sealed class TimeSync
     readonly int[] remote;
     readonly GameInput[] lastInputs;
 
-    public TimeSync(Options? options = null)
+    public TimeSync(TimeSyncOptions? options = null)
     {
         options ??= new();
         local = new int[options.FrameWindowSize];
@@ -64,7 +64,7 @@ sealed class TimeSync
         // Both clients agree that we're the one ahead.  Split
         // the difference between the two to figure out how long to
         // sleep for.
-        var sleepFrames = (int)((remoteAdvantage - localAdvantage) / 2 + 0.5f);
+        var sleepFrames = (int)(((remoteAdvantage - localAdvantage) / 2) + 0.5f);
 
         Tracer.Log("iteration {}:  sleep frames is {}", counter, sleepFrames);
 

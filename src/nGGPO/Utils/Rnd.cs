@@ -2,10 +2,8 @@ using System.Security.Cryptography;
 
 namespace nGGPO.Utils;
 
-public static class Rnd
+static class Rnd
 {
-    public static readonly Random Shared = new();
-
     public static ushort MagicNumber()
     {
         using var gen = RandomNumberGenerator.Create();

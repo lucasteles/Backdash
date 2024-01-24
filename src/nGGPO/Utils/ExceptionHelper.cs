@@ -10,6 +10,16 @@ static class ExceptionHelper
         string? paramName = null)
     {
         if (argument <= 0)
-            throw new ArgumentException(argument.ToString(CultureInfo.InvariantCulture), paramName);
+            throw new ArgumentOutOfRangeException(argument.ToString(CultureInfo.InvariantCulture), paramName);
+    }
+
+    public static void ThrowIfArgumentOutOfBounds(int argument,
+        int min = int.MinValue,
+        int max = int.MaxValue,
+        [CallerArgumentExpression(nameof(argument))]
+        string? paramName = null)
+    {
+        if (argument < min || argument > max)
+            throw new ArgumentOutOfRangeException(argument.ToString(CultureInfo.InvariantCulture), paramName);
     }
 }

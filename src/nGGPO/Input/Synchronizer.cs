@@ -1,3 +1,4 @@
+using nGGPO.Data;
 using nGGPO.Network.Messages;
 using nGGPO.Utils;
 
