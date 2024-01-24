@@ -207,5 +207,17 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         return ResultCode.Ok;
     }
 
+    public Task StartPumping(CancellationToken ct = default)
+    {
+        var tasks = endpoints
+            .Select(e => e.StartPumping(ct))
+            .Append(udp.StartPumping(ct));
+
+        return Task.Run(
+            async () => await Task.WhenAll(tasks).ConfigureAwait(false)
+            , ct
+        );
+    }
+
     public void Dispose() => udp.Dispose();
 }

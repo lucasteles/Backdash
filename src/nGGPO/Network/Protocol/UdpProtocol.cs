@@ -112,7 +112,7 @@ sealed partial class UdpProtocol : IDisposable
     async ValueTask OnMsgEventHandler(UdpMsg msg, SocketAddress from, CancellationToken ct)
     {
         if (PeerAddress.Equals(from))
-            await OnMsg(msg);
+            await OnMsg(msg).ConfigureAwait(false);
     }
 
     public void Dispose()
@@ -300,7 +300,7 @@ sealed partial class UdpProtocol : IDisposable
         }
 
         if (sendReply)
-            await SendMsg(ref replyMsg);
+            await SendMsg(ref replyMsg).ConfigureAwait(false);
 
         if (handled)
         {
@@ -508,20 +508,22 @@ sealed partial class UdpProtocol : IDisposable
         return true;
     }
 
-    async Task PumpSendQueue()
+    public async Task StartPumping(CancellationToken cancellation)
     {
-        await foreach (var entry in sendQueue.Reader.ReadAllAsync(sendQueueCancellation.Token))
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(sendQueueCancellation.Token, cancellation);
+
+        await foreach (var entry in sendQueue.Reader.ReadAllAsync(cts.Token).ConfigureAwait(false))
         {
             if (sendLatency > 0)
             {
-                // should really come up with a gaussian distributation based on the configured
+                // should really come up with a gaussian distribution based on the configured
                 // value, but this will do for now.
-                int jitter = (sendLatency * 2 / 3) + ((random.Next() % sendLatency) / 3);
+                int jitter = (sendLatency * 2 / 3) + (random.Next() % sendLatency / 3);
                 if (Platform.GetCurrentTimeMS() < entry.QueueTime + jitter)
                     break;
             }
 
-            await udp.SendTo(entry.DestAddr, entry.Msg, sendQueueCancellation.Token);
+            await udp.SendTo(entry.DestAddr, entry.Msg, sendQueueCancellation.Token).ConfigureAwait(false);
         }
     }
 
