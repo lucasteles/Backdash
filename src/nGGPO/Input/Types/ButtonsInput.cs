@@ -1,4 +1,5 @@
 using System.Text;
+using nGGPO.Input.Types;
 
 // ReSharper disable CheckNamespace
 // ReSharper disable InconsistentNaming

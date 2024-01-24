@@ -17,7 +17,9 @@ sealed partial class UdpProtocol : IDisposable
     readonly int queue;
     ushort remoteMagicNumber;
     bool connected;
-    int sendLatency;
+    public int SendLatency { get; set; }
+    public IPEndPoint PeerEndPoint { get; }
+    public SocketAddress PeerAddress { get; }
 
     Channel<QueueEntry> sendQueue;
     CancellationTokenSource sendQueueCancellation = new();
@@ -55,14 +57,12 @@ sealed partial class UdpProtocol : IDisposable
     ushort nextRecvSeq;
 
     public long LastSendTime { get; private set; }
-    public long LastRecvTime { get; private set; }
+    public long LastReceivedTime { get; private set; }
     public long ShutdownTimeout { get; set; }
     public int DisconnectTimeout { get; set; }
     public int DisconnectNotifyStart { get; set; }
     public bool DisconnectEventSent { get; set; }
     public bool DisconnectNotifySent { get; set; }
-    public IPEndPoint PeerEndPoint { get; }
-    public SocketAddress PeerAddress { get; }
 
     /*
      * Rift synchronization.
@@ -90,13 +90,11 @@ sealed partial class UdpProtocol : IDisposable
         pendingOutput = new();
         eventQueue = new();
 
-        magicNumber = Rnd.MagicNumber();
+        magicNumber = MagicNumber.Generate();
 
         peerConnectStatus = new ConnectStatus[Max.MsgPlayers];
         for (var i = 0; i < peerConnectStatus.Length; i++)
             peerConnectStatus[i].LastFrame = Frame.NullValue;
-
-        sendLatency = Platform.GetConfigInt("ggpo.network.delay");
 
         this.timeSync = timeSync;
         this.random = random;
@@ -209,7 +207,7 @@ sealed partial class UdpProtocol : IDisposable
     public void Disconnect()
     {
         currentProtocolState = ProtocolState.Disconnected;
-        ShutdownTimeout = Platform.GetCurrentTimeMS() + UdpShutdownTimer;
+        ShutdownTimeout = TimeStamp.GetMilliseconds() + UdpShutdownTimer;
     }
 
     void SendSyncRequest(out UdpMsg msg)
@@ -229,14 +227,14 @@ sealed partial class UdpProtocol : IDisposable
         LogMsg("send", msg);
 
         packetsSent++;
-        LastSendTime = Platform.GetCurrentTimeMS();
+        LastSendTime = TimeStamp.GetMilliseconds();
 
         msg.Header.Magic = magicNumber;
         msg.Header.SequenceNumber = nextSendSeq++;
 
         return sendQueue.Writer.WriteAsync(new()
         {
-            QueueTime = Platform.GetCurrentTimeMS(),
+            QueueTime = TimeStamp.GetMilliseconds(),
             DestAddr = PeerAddress,
             Msg = msg,
         }, sendQueueCancellation.Token);
@@ -304,7 +302,7 @@ sealed partial class UdpProtocol : IDisposable
 
         if (handled)
         {
-            LastRecvTime = Platform.GetCurrentTimeMS();
+            LastReceivedTime = TimeStamp.GetMilliseconds();
             if (DisconnectNotifySent && currentProtocolState is ProtocolState.Running)
             {
                 QueueEvent(new(UdpEventType.NetworkResumed));
@@ -383,7 +381,7 @@ sealed partial class UdpProtocol : IDisposable
         };
 
 
-        state.Running.LastInputPacketRecvTime = (uint)Platform.GetCurrentTimeMS();
+        state.Running.LastInputPacketRecvTime = (uint)TimeStamp.GetMilliseconds();
 
         Tracer.Log("Sending frame {0} to emu queue {1} ({2}).\n",
             lastReceivedInput.Frame,
@@ -407,7 +405,7 @@ sealed partial class UdpProtocol : IDisposable
 
     bool OnQualityReply(in UdpMsg msg)
     {
-        roundTripTime = (int)(Platform.GetCurrentTimeMS() - msg.QualityReply.Pong);
+        roundTripTime = (int)(TimeStamp.GetMilliseconds() - msg.QualityReply.Pong);
         return true;
     }
 
@@ -514,12 +512,12 @@ sealed partial class UdpProtocol : IDisposable
 
         await foreach (var entry in sendQueue.Reader.ReadAllAsync(cts.Token).ConfigureAwait(false))
         {
-            if (sendLatency > 0)
+            if (SendLatency > 0)
             {
                 // should really come up with a gaussian distribution based on the configured
                 // value, but this will do for now.
-                int jitter = (sendLatency * 2 / 3) + (random.Next() % sendLatency / 3);
-                if (Platform.GetCurrentTimeMS() < entry.QueueTime + jitter)
+                int jitter = (SendLatency * 2 / 3) + (random.Next() % SendLatency / 3);
+                if (TimeStamp.GetMilliseconds() < entry.QueueTime + jitter)
                     break;
             }
 

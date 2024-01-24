@@ -164,6 +164,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         {
             DisconnectTimeout = options.DisconnectTimeout,
             DisconnectNotifyStart = options.DisconnectNotifyStart,
+            SendLatency = options.NetworkDelay,
         };
 
         protocol.Synchronize();
