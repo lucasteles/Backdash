@@ -27,14 +27,14 @@ partial class UdpProtocol
     {
         public uint RoundtripsRemaining;
         public uint Random;
-    };
+    }
 
     public struct RunningState
     {
         public uint LastQualityReportTime;
         public uint LastNetworkStatsInterval;
         public uint LastInputPacketRecvTime;
-    };
+    }
 
     public sealed class UdpProtocolState
     {
