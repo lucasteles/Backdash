@@ -156,7 +156,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
     PlayerHandle QueueToSpectatorHandle(int queue) =>
         new(queue + SpectatorOffset); /* out of range of the player array, basically */
 
-    UdpProtocol CreateUdpProtocol(IPEndPoint endpoint, int queue)
+    UdpProtocol CreateProtocol(IPEndPoint endpoint, int queue)
     {
         UdpProtocol protocol = new(
             timeSync: new(),
@@ -182,7 +182,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
          */
         synchronizing = true;
 
-        var protocol = CreateUdpProtocol(endpoint, queue);
+        var protocol = CreateProtocol(endpoint, queue);
         endpoints.Add(protocol);
     }
 
@@ -198,7 +198,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
             return ErrorCode.InvalidRequest;
 
         var queue = numSpectators++;
-        var protocol = CreateUdpProtocol(endpoint, queue + SpectatorOffset);
+        var protocol = CreateProtocol(endpoint, queue + SpectatorOffset);
         spectators.Add(protocol);
 
         return ErrorCode.Ok;
