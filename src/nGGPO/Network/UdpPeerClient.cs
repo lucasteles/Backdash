@@ -31,7 +31,7 @@ class UdpPeerClient<T>(
             {
                 SingleWriter = true,
                 SingleReader = true,
-                AllowSynchronousContinuations = false,
+                AllowSynchronousContinuations = true,
             }
         );
 
@@ -49,7 +49,7 @@ class UdpPeerClient<T>(
         await Task.WhenAll(
             ReadLoop(cts.Token),
             SendLoop(cts.Token)
-        );
+        ).ConfigureAwait(false);
     }
 
     public async Task StopPumping()
@@ -57,7 +57,7 @@ class UdpPeerClient<T>(
         if (cancellation is null)
             return;
 
-        await cancellation.CancelAsync();
+        await cancellation.CancelAsync().ConfigureAwait(false);
         cancellation = null;
     }
 
@@ -93,7 +93,9 @@ class UdpPeerClient<T>(
             int receivedSize;
             try
             {
-                receivedSize = await socket.ReceiveFromAsync(buffer, SocketFlags.None, address, ct);
+                receivedSize = await socket
+                    .ReceiveFromAsync(buffer, SocketFlags.None, address, ct)
+                    .ConfigureAwait(false);
             }
             catch (SocketException ex)
             {
@@ -114,7 +116,8 @@ class UdpPeerClient<T>(
             var msg = serializer.Deserialize(memory.Span);
 
             if (OnMessage is not null)
-                await OnMessage.Invoke(msg, address, ct);
+                await OnMessage.Invoke(msg, address, ct)
+                    .ConfigureAwait(false);
         }
     }
 
@@ -127,12 +130,12 @@ class UdpPeerClient<T>(
 
         try
         {
-            await foreach (var (peerAddress, nextMsg) in sendQueue.Reader.ReadAllAsync(ct))
+            await foreach (var (peerAddress, nextMsg) in sendQueue.Reader.ReadAllAsync(ct).ConfigureAwait(false))
             {
                 var msg = nextMsg;
                 var bodySize = serializer.Serialize(ref msg, sendBuffer);
                 var memory = MemoryMarshal.CreateFromPinnedArray(sendBuffer, 0, bodySize);
-                var sentSize = await SendBytes(peerAddress, memory, ct);
+                var sentSize = await SendBytes(peerAddress, memory, ct).ConfigureAwait(false);
                 Tracer.Assert(sentSize == bodySize);
             }
         }
