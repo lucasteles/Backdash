@@ -65,7 +65,8 @@ sealed class ProtocolOutbox(
                 // value, but this will do for now.
                 int jitter = (SendLatency * 2 / 3) + (random.Next() % SendLatency / 3);
                 if (TimeStamp.GetMilliseconds() < entry.QueueTime + jitter)
-                    break;
+                    // TODO: delay would be better?
+                    await Task.Yield();
             }
 
             await udp.SendTo(entry.DestAddr, entry.Msg, sendQueueCancellation.Token).ConfigureAwait(false);
