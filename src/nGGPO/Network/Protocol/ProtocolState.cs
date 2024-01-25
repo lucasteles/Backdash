@@ -1,31 +1,20 @@
 namespace nGGPO.Network.Protocol;
 
-static class ProtocolState
+sealed class ProtocolState
 {
-    internal enum Name
-    {
-        Syncing,
-        Synchronized,
-        Running,
-        Disconnected,
-    }
-
-    internal class Sync
+    internal class SyncState
     {
         public uint RemainingRoundtrips;
         public uint Random;
     }
 
-    internal class Running
+    internal class RunningState
     {
         public uint LastQualityReportTime;
         public uint LastNetworkStatsInterval;
         public uint LastInputPacketRecvTime;
     }
 
-    internal sealed class Udp
-    {
-        public readonly Sync Sync = new();
-        public readonly Running Running = new();
-    }
+    public readonly SyncState Sync = new();
+    public readonly RunningState Running = new();
 }

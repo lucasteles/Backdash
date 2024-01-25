@@ -32,8 +32,8 @@ sealed class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDisposable
      */
     readonly ConnectStatus[] localConnectStatus;
     readonly ConnectStatus[] peerConnectStatus;
-    readonly ProtocolState.Udp state = new();
-    ProtocolState.Name currentProtocolState;
+    readonly ProtocolState state = new();
+    ProtocolStatus currentProtocolState;
 
     /*
      * Fairness.
@@ -71,6 +71,7 @@ sealed class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDisposable
     readonly InputCompressor inputCompressor;
     readonly InputProcessor inputProcessor;
     readonly MessageOutbox outbox;
+    readonly MessageInbox inbox;
 
     public UdpProtocol(TimeSync timeSync,
         Random random,
@@ -105,6 +106,7 @@ sealed class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDisposable
             SendLatency = networkDelay,
         };
         inputProcessor = new(this.timeSync, inputCompressor, this.localConnectStatus, outbox);
+        inbox = new(PeerAddress, this.udp);
     }
 
     public ValueTask OnMessage(
@@ -150,7 +152,7 @@ sealed class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDisposable
 
     public void Disconnect()
     {
-        currentProtocolState = ProtocolState.Name.Disconnected;
+        currentProtocolState = ProtocolStatus.Disconnected;
         ShutdownTimeout = TimeStamp.GetMilliseconds() + UdpShutdownTimer;
     }
 
@@ -229,7 +231,7 @@ sealed class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDisposable
         if (handled)
         {
             LastReceivedTime = TimeStamp.GetMilliseconds();
-            if (DisconnectNotifySent && currentProtocolState is ProtocolState.Name.Running)
+            if (DisconnectNotifySent && currentProtocolState is ProtocolStatus.Running)
             {
                 QueueEvent(new(ProtocolEvent.NetworkResumed));
                 DisconnectNotifySent = false;
@@ -246,7 +248,7 @@ sealed class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDisposable
 
         if (disconnectRequested)
         {
-            if (currentProtocolState is not ProtocolState.Name.Disconnected && !DisconnectEventSent)
+            if (currentProtocolState is not ProtocolStatus.Disconnected && !DisconnectEventSent)
             {
                 Tracer.Log("Disconnecting endpoint on remote request.\n");
                 QueueEvent(new(ProtocolEvent.Disconnected));
@@ -362,7 +364,7 @@ sealed class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDisposable
     bool OnSyncReply(ProtocolMessage msg, ref ProtocolMessage replyMsg, out bool sendReply)
     {
         sendReply = false;
-        if (currentProtocolState is not ProtocolState.Name.Syncing)
+        if (currentProtocolState is not ProtocolStatus.Syncing)
         {
             Tracer.Log("Ignoring SyncReply while not synching.\n");
             return msg.Header.Magic == remoteMagicNumber;
@@ -388,7 +390,7 @@ sealed class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDisposable
         {
             Tracer.Log("Synchronized!\n");
             QueueEvent(new(ProtocolEvent.Synchronized));
-            currentProtocolState = ProtocolState.Name.Running;
+            currentProtocolState = ProtocolStatus.Running;
             lastReceivedInput.ResetFrame();
             remoteMagicNumber = msg.Header.Magic;
         }
@@ -481,7 +483,7 @@ sealed class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDisposable
 
     public void Synchronize()
     {
-        currentProtocolState = ProtocolState.Name.Syncing;
+        currentProtocolState = ProtocolStatus.Syncing;
         throw new NotImplementedException();
     }
 

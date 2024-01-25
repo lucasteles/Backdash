@@ -1,9 +1,16 @@
+using System.Net;
+using nGGPO.Network.Client;
+using nGGPO.Network.Messages;
+
 namespace nGGPO.Network.Protocol.Gear;
 
-sealed class MessageInbox : IDisposable
+sealed class MessageInbox(
+    SocketAddress peer,
+    UdpPeerClient<ProtocolMessage> udp
+) : IDisposable
 {
-    public void Dispose()
-    {
-        // TODO release managed resources here
-    }
+    ushort remoteMagicNumber;
+
+
+    public void Dispose() { }
 }

@@ -33,14 +33,14 @@ sealed class InputProcessor
     public CircularBuffer<GameInput> Pending => pendingOutput;
 
     public ValueTask SendInput(in GameInput input,
-        ProtocolState.Name currentProtocolState,
+        ProtocolStatus currentProtocolState,
         GameInput lastReceivedInput,
         GameInput lastAckedInput,
         int localFrameAdvantage,
         int remoteFrameAdvantage,
         CancellationToken ct)
     {
-        if (currentProtocolState is ProtocolState.Name.Running)
+        if (currentProtocolState is ProtocolStatus.Running)
         {
             /*
              * Check to see if this is a good time to adjust for the rift...
@@ -73,7 +73,7 @@ sealed class InputProcessor
     }
 
     InputMsg CreateInputMsg(
-        ProtocolState.Name currentProtocolState,
+        ProtocolStatus currentProtocolState,
         GameInput lastReceivedInput,
         GameInput lastAckedInput
     )
@@ -88,7 +88,7 @@ sealed class InputProcessor
         );
 
         compressedInput.AckFrame = lastReceivedInput.Frame;
-        compressedInput.DisconnectRequested = currentProtocolState is not ProtocolState.Name.Disconnected;
+        compressedInput.DisconnectRequested = currentProtocolState is not ProtocolStatus.Disconnected;
 
         if (localConnectStatus.Length > 0)
             localConnectStatus.CopyTo(compressedInput.PeerConnectStatus);
