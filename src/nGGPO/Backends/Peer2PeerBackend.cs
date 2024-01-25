@@ -163,12 +163,12 @@ sealed class Peer2PeerBackend<TInput, TGameState>
             queue,
             endpoint,
             localConnectStatus,
-            inputCompressor
+            inputCompressor,
+            options.NetworkDelay
         )
         {
             DisconnectTimeout = options.DisconnectTimeout,
             DisconnectNotifyStart = options.DisconnectNotifyStart,
-            SendLatency = options.NetworkDelay,
         };
 
         protocol.Synchronize();

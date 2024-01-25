@@ -6,7 +6,7 @@ namespace nGGPO.Input;
 
 class InputCompressor
 {
-    public InputMsg WriteCompressed(
+    public InputMsg Compress(
         ref GameInput lastAcked,
         in CircularBuffer<GameInput> pendingOutput,
         ref GameInput lastSent
@@ -61,7 +61,7 @@ class InputCompressor
         return inputMsg;
     }
 
-    public void DecompressInput(
+    public void Decompress(
         ref InputMsg msg,
         ref GameInput lastReceivedInput,
         Action onParsedInput

@@ -13,9 +13,7 @@ sealed class InputProcessor
     readonly ProtocolOutbox outbox;
 
     readonly CircularBuffer<GameInput> pendingOutput;
-    GameInput lastReceivedInput;
     GameInput lastSentInput;
-    GameInput lastAckedInput;
 
     public InputProcessor(
         TimeSync timeSync,
@@ -28,15 +26,16 @@ sealed class InputProcessor
         this.inputCompressor = inputCompressor;
         this.localConnectStatus = localConnectStatus;
         this.outbox = outbox;
-        lastReceivedInput = GameInput.Empty;
         lastSentInput = GameInput.Empty;
-        lastAckedInput = GameInput.Empty;
         pendingOutput = new();
     }
 
+    public CircularBuffer<GameInput> Pending => pendingOutput;
 
     public ValueTask SendInput(in GameInput input,
         ProtocolState currentProtocolState,
+        GameInput lastReceivedInput,
+        GameInput lastAckedInput,
         int localFrameAdvantage,
         int remoteFrameAdvantage,
         CancellationToken ct)
@@ -59,33 +58,30 @@ sealed class InputProcessor
             pendingOutput.Push(in input);
         }
 
-        return SendPendingOutput(currentProtocolState, ct);
-    }
-
-    ValueTask SendPendingOutput(ProtocolState currentProtocolState, CancellationToken ct)
-    {
         Tracer.Assert(
             Max.InputBytes * Max.MsgPlayers * Mem.ByteSize
             <
             1 << BitVector.BitOffset.NibbleSize
         );
 
-        var input = CreateInputMsg(currentProtocolState);
-
         ProtocolMessage msg = new(MsgType.Input)
         {
-            Input = input,
+            Input = CreateInputMsg(currentProtocolState, lastReceivedInput, lastAckedInput),
         };
 
         return outbox.SendMsg(ref msg, ct);
     }
 
-    InputMsg CreateInputMsg(ProtocolState currentProtocolState)
+    InputMsg CreateInputMsg(
+        ProtocolState currentProtocolState,
+        GameInput lastReceivedInput,
+        GameInput lastAckedInput
+    )
     {
         if (pendingOutput.IsEmpty)
             return new();
 
-        var compressedInput = inputCompressor.WriteCompressed(
+        var compressedInput = inputCompressor.Compress(
             ref lastAckedInput,
             in pendingOutput,
             ref lastSentInput

@@ -20,14 +20,14 @@ public class InputCompressorTests
             CreateInput(3, [6], [7])
         );
 
-        var compressed = compressor.WriteCompressed(
+        var compressed = compressor.Compress(
             ref lastAcked,
             in pendingInputs,
             ref lastSent
         );
 
         List<string> decompressedInputs = [];
-        compressor.DecompressInput(
+        compressor.Decompress(
             ref compressed,
             ref lastRecv,
             () => decompressedInputs.Add(lastRecv.Buffer.ToString()));

@@ -28,7 +28,6 @@ sealed partial class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDispos
      * The state machine
      */
     readonly ConnectStatus[] localConnectStatus;
-    readonly InputCompressor inputCompressor;
     readonly ConnectStatus[] peerConnectStatus;
     readonly UdpProtocolState state = new();
     ProtocolState currentProtocolState;
@@ -43,11 +42,8 @@ sealed partial class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDispos
     /*
      * Packet loss...
      */
-    readonly CircularBuffer<GameInput> pendingOutput;
     GameInput lastReceivedInput;
-    GameInput lastSentInput;
     GameInput lastAckedInput;
-
     ushort nextRecvSeq;
 
     public long LastReceivedTime { get; private set; }
@@ -61,29 +57,30 @@ sealed partial class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDispos
      * Rift synchronization.
      */
     readonly TimeSync timeSync;
-    readonly Random random;
 
     /*
      * Event queue
      */
     readonly CircularBuffer<ProtocolEvent> eventQueue;
 
+    // services
+    readonly Random random;
+    readonly InputCompressor inputCompressor;
+    readonly InputProcessor inputProcessor;
     readonly ProtocolOutbox outbox;
 
-    public UdpProtocol(
-        TimeSync timeSync,
+    public UdpProtocol(TimeSync timeSync,
         Random random,
         UdpPeerClient<ProtocolMessage> udp,
         QueueIndex queue,
         IPEndPoint peerAddress,
         ConnectStatus[] localConnectStatus,
-        InputCompressor inputCompressor
+        InputCompressor inputCompressor,
+        int networkDelay = 0
     )
     {
         lastReceivedInput = GameInput.Empty;
-        lastSentInput = GameInput.Empty;
         lastAckedInput = GameInput.Empty;
-        pendingOutput = new();
         eventQueue = new();
 
         peerConnectStatus = new ConnectStatus[Max.MsgPlayers];
@@ -100,7 +97,11 @@ sealed partial class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDispos
         PeerAddress = peerAddress.Serialize();
 
         this.udp = udp;
-        outbox = new(PeerAddress, this.udp, this.random);
+        outbox = new(PeerAddress, this.udp, this.random)
+        {
+            SendLatency = networkDelay,
+        };
+        inputProcessor = new(this.timeSync, inputCompressor, this.localConnectStatus, outbox);
     }
 
     public ValueTask OnMessage(
@@ -114,66 +115,10 @@ sealed partial class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDispos
 
     public void Dispose() => Disconnect();
 
-    public ValueTask SendInput(in GameInput input, CancellationToken ct)
-    {
-        if (currentProtocolState is ProtocolState.Running)
-        {
-            /*
-             * Check to see if this is a good time to adjust for the rift...
-             */
-            timeSync.AdvanceFrame(in input, localFrameAdvantage, remoteFrameAdvantage);
-
-            /*
-             * Save this input packet
-             *
-             * XXX: This queue may fill up for spectators who do not ack input packets in a timely
-             * manner.  When this happens, we can either resize the queue (ug) or disconnect them
-             * (better, but still ug).  For the meantime, make this queue really big to decrease
-             * the odds of this happening...
-             */
-            pendingOutput.Push(in input);
-        }
-
-        return SendPendingOutput(ct);
-    }
-
-    ValueTask SendPendingOutput(CancellationToken ct)
-    {
-        Tracer.Assert(
-            Max.InputBytes * Max.MsgPlayers * Mem.ByteSize
-            <
-            1 << BitVector.BitOffset.NibbleSize
-        );
-
-        var input = CreateInputMsg();
-
-        ProtocolMessage msg = new(MsgType.Input)
-        {
-            Input = input,
-        };
-
-        return outbox.SendMsg(ref msg, ct);
-
-        InputMsg CreateInputMsg()
-        {
-            if (pendingOutput.IsEmpty)
-                return new();
-
-            var compressedInput = inputCompressor.WriteCompressed(
-                ref lastAckedInput,
-                in pendingOutput,
-                ref lastSentInput
-            );
-
-            compressedInput.AckFrame = lastReceivedInput.Frame;
-            compressedInput.DisconnectRequested = currentProtocolState is not ProtocolState.Disconnected;
-
-            if (localConnectStatus.Length > 0)
-                localConnectStatus.CopyTo(compressedInput.PeerConnectStatus);
-
-            return compressedInput;
-        }
-    }
+    public ValueTask SendInput(in GameInput input, CancellationToken ct) =>
+        inputProcessor.SendInput(in input, currentProtocolState,
+            lastReceivedInput, lastAckedInput,
+            localFrameAdvantage, remoteFrameAdvantage, ct);
 
     public void SendInputAck(out ProtocolMessage msg) =>
         msg = new(MsgType.InputAck)
@@ -329,7 +274,7 @@ sealed partial class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDispos
         {
             // LATER: remove delegate allocation with OnParsedInput
             onParsedInputCache ??= OnParsedInput;
-            inputCompressor.DecompressInput(ref msg.Input, ref lastReceivedInput, onParsedInputCache);
+            inputCompressor.Decompress(ref msg.Input, ref lastReceivedInput, onParsedInputCache);
         }
 
         Tracer.Assert(lastReceivedInput.Frame >= lastAckedInput.Frame);
@@ -368,6 +313,7 @@ sealed partial class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDispos
 
     bool OnInputAck(in ProtocolMessage msg)
     {
+        var pendingOutput = inputProcessor.Pending;
         while (!pendingOutput.IsEmpty && pendingOutput.Peek().Frame < msg.InputAck.AckFrame)
         {
             Tracer.Log("Throwing away pending output frame %d\n", pendingOutput.Peek().Frame);
@@ -511,7 +457,7 @@ sealed partial class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDispos
     public void GetNetworkStats(ref NetworkStats stats)
     {
         stats.Ping = roundTripTime;
-        stats.SendQueueLen = pendingOutput.Size;
+        stats.SendQueueLen = inputProcessor.Pending.Size;
         stats.RemoteFramesBehind = remoteFrameAdvantage;
         stats.LocalFramesBehind = localFrameAdvantage;
     }
