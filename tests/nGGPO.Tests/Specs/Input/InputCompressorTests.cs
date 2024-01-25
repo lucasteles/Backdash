@@ -21,7 +21,7 @@ public class InputCompressorTests
         );
 
         var compressed = compressor.Compress(
-            ref lastAcked,
+            in lastAcked,
             in pendingInputs,
             ref lastSent
         );

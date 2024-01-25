@@ -67,7 +67,7 @@ sealed class ProtocolInputQueue(
             return InputMsg.Empty;
 
         var compressedInput = inputCompressor.Compress(
-            ref lastAckedInput,
+            in lastAckedInput,
             in pendingOutput,
             ref lastSentInput
         );
