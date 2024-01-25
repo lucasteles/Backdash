@@ -5,7 +5,7 @@ using nGGPO.Utils;
 
 namespace nGGPO.Network.Protocol.Internal;
 
-sealed class ProtocolInputProcessor(
+sealed class ProtocolInputQueue(
     TimeSync timeSync,
     InputCompressor inputCompressor,
     Connections localConnections,

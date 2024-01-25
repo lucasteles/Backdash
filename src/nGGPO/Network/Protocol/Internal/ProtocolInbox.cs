@@ -11,7 +11,7 @@ using static ProtocolConstants;
 sealed class ProtocolInbox(
     ProtocolState state,
     InputCompressor compressor,
-    ProtocolInputProcessor inputProcessor,
+    ProtocolInputQueue inputQueue,
     ProtocolEventDispatcher events,
     IMessageSender messageSender,
     Random random,
@@ -196,7 +196,7 @@ sealed class ProtocolInbox(
 
     bool OnInputAck(in ProtocolMessage msg)
     {
-        var pendingOutput = inputProcessor.Pending;
+        var pendingOutput = inputQueue.Pending;
         while (!pendingOutput.IsEmpty && pendingOutput.Peek().Frame < msg.InputAck.AckFrame)
         {
             Tracer.Log("Throwing away pending output frame %d\n", pendingOutput.Peek().Frame);

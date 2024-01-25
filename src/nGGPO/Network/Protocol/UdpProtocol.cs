@@ -30,7 +30,7 @@ sealed class UdpProtocol : IUdpObserver<ProtocolMessage>, IDisposable
     // services
     readonly ProtocolInbox inbox;
     readonly ProtocolOutbox outbox;
-    readonly ProtocolInputProcessor inputProcessor;
+    readonly ProtocolInputQueue inputQueue;
 
     public UdpProtocol(TimeSync timeSync,
         Random random,
@@ -55,9 +55,9 @@ sealed class UdpProtocol : IUdpObserver<ProtocolMessage>, IDisposable
         {
             SendLatency = networkDelay,
         };
-        inputProcessor = new(this.timeSync, inputCompressor, localConnections, outbox);
+        inputQueue = new(this.timeSync, inputCompressor, localConnections, outbox);
         inbox = new(state,
-            inputCompressor, inputProcessor, eventDispatcher,
+            inputCompressor, inputQueue, eventDispatcher,
             outbox, random, logger
         );
     }
@@ -69,7 +69,7 @@ sealed class UdpProtocol : IUdpObserver<ProtocolMessage>, IDisposable
     }
 
     public ValueTask SendInput(in GameInput input, CancellationToken ct) =>
-        inputProcessor.SendInput(in input,
+        inputQueue.SendInput(in input,
             state,
             inbox.LastReceivedInput,
             inbox.LastAckedInput,
@@ -116,7 +116,7 @@ sealed class UdpProtocol : IUdpObserver<ProtocolMessage>, IDisposable
     public void GetNetworkStats(ref NetworkStats stats)
     {
         stats.Ping = state.Stats.RoundTripTime;
-        stats.SendQueueLen = inputProcessor.Pending.Size;
+        stats.SendQueueLen = inputQueue.Pending.Size;
         stats.RemoteFramesBehind = state.Fairness.RemoteFrameAdvantage;
         stats.LocalFramesBehind = state.Fairness.LocalFrameAdvantage;
     }
