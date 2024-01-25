@@ -4,17 +4,15 @@ using nGGPO.Serialization;
 
 namespace nGGPO.Tests.Utils.Network;
 
-sealed class UdpClientContext<T>
-    : IDisposable
-    where T : struct
+sealed class UdpClientContext<T> : IDisposable where T : struct
 {
-    public PeerClientEventObserver<T> Observer { get; }
-    public UdpPeerClient<T> Socket { get; }
+    public UdpEventObserver<T> Observer { get; }
+    public UdpClient<T> Socket { get; }
 
     public UdpClientContext(IBinarySerializer<T> serializer, int? port = null)
     {
         Observer = new();
-        Socket = new UdpPeerClient<T>(port ?? PortUtils.FindFreePort(), Observer, serializer);
+        Socket = new UdpClient<T>(port ?? PortUtils.FindFreePort(), Observer, serializer);
     }
 
     public SocketAddress Address => Socket.Address;

@@ -17,7 +17,7 @@ sealed class Peer2PeerBackend<TInput, TGameState>
     readonly IBinarySerializer<TInput> inputSerializer;
     readonly ISessionCallbacks<TGameState> callbacks;
 
-    readonly UdpPeerClient<ProtocolMessage> udp;
+    readonly UdpClient<ProtocolMessage> udp;
     readonly Synchronizer<TGameState> sync;
     readonly ConnectStatus[] localConnectStatus;
 
@@ -25,7 +25,7 @@ sealed class Peer2PeerBackend<TInput, TGameState>
 
     readonly List<UdpProtocol> spectators;
     readonly List<UdpProtocol> endpoints;
-    readonly PeerClientObserverGroup<ProtocolMessage> peerObservers = new();
+    readonly UdpObserverGroup<ProtocolMessage> peerObservers = new();
     readonly RollbackOptions options;
 
     readonly InputCompressor inputCompressor = new();

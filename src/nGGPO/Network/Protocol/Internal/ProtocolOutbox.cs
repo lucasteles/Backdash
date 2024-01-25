@@ -5,13 +5,14 @@ using nGGPO.Network.Client;
 using nGGPO.Network.Messages;
 using nGGPO.Utils;
 
-namespace nGGPO.Network.Protocol.Gear;
+namespace nGGPO.Network.Protocol.Internal;
 
-sealed class MessageOutbox(
-    SocketAddress peer,
-    UdpPeerClient<ProtocolMessage> udp,
+sealed class ProtocolOutbox(
+    Peer peer,
+    UdpClient<ProtocolMessage> udp,
+    ProtocolLogger logger,
     Random random
-) : IDisposable
+) : IDisposable, IMessageSender
 {
     struct QueueEntry
     {
@@ -32,9 +33,9 @@ sealed class MessageOutbox(
 
     public int SendLatency { get; set; }
 
-    public ValueTask SendMsg(ref ProtocolMessage msg, CancellationToken ct)
+    public ValueTask SendMessage(ref ProtocolMessage msg, CancellationToken ct)
     {
-        Tracer.Log("send", msg);
+        logger.LogMsg("send", msg);
 
         Interlocked.Increment(ref packetsSent);
         LastSendTime = TimeStamp.GetMilliseconds();
@@ -48,7 +49,7 @@ sealed class MessageOutbox(
         return sendQueue.Writer.WriteAsync(new()
         {
             QueueTime = TimeStamp.GetMilliseconds(),
-            DestAddr = peer,
+            DestAddr = peer.Address,
             Msg = msg,
         }, cts.Token);
     }

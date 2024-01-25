@@ -6,7 +6,7 @@ using nGGPO.Serialization;
 
 namespace nGGPO.Tests.Specs.Network;
 
-public class UdpPeerClientTests
+public class UdpClientTests
 {
     [Fact]
     public async Task ShouldSend()
@@ -173,7 +173,7 @@ public class UdpPeerClientTests
 
         async ValueTask HandleMessageAsync(
             OpMessage message,
-            UdpPeerClient<OpMessage> udpClient,
+            UdpClient<OpMessage> udpClient,
             SocketAddress sender,
             CancellationToken ct
         )

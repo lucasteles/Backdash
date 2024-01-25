@@ -2,7 +2,7 @@ using System.Diagnostics;
 using System.Net;
 using nGGPO.Network.Client;
 using nGGPO.Serialization;
-using UdpPeerClient = nGGPO.Network.Client.UdpPeerClient<Message>;
+using UdpPeerClient = nGGPO.Network.Client.UdpClient<Message>;
 
 var processedMessageCount = 0UL;
 
@@ -20,14 +20,14 @@ ValueTask ProcessMessage(UdpPeerClient client, Message message, SocketAddress se
 }
 
 UdpPeerClient peer1 = new(9000,
-    new PeerClientObserver<Message>(ProcessMessage),
+    new UdpObserver<Message>(ProcessMessage),
     BinarySerializerFactory.ForEnum<Message>())
 {
     LogsEnabled = false,
 };
 
 UdpPeerClient peer2 = new(9001,
-    new PeerClientObserver<Message>(ProcessMessage),
+    new UdpObserver<Message>(ProcessMessage),
     BinarySerializerFactory.ForEnum<Message>())
 {
     LogsEnabled = false,
@@ -83,13 +83,13 @@ public enum Message
     Pong = 4,
 }
 
-sealed class PeerClientObserver<T>(
-    Func<UdpPeerClient<T>, T, SocketAddress, CancellationToken, ValueTask> onMessage)
-    : IPeerClientObserver<T>
+sealed class UdpObserver<T>(
+    Func<UdpClient<T>, T, SocketAddress, CancellationToken, ValueTask> onMessage)
+    : IUdpObserver<T>
     where T : struct
 {
-    public ValueTask OnMessage(
-        UdpPeerClient<T> sender,
+    public ValueTask OnUdpMessage(
+        UdpClient<T> sender,
         T message,
         SocketAddress from,
         CancellationToken stoppingToken

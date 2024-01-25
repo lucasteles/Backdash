@@ -3,49 +3,34 @@ using nGGPO.Input;
 using nGGPO.Network.Messages;
 using nGGPO.Utils;
 
-namespace nGGPO.Network.Protocol.Gear;
+namespace nGGPO.Network.Protocol.Internal;
 
-sealed class InputProcessor
+sealed class ProtocolInputProcessor(
+    TimeSync timeSync,
+    InputCompressor inputCompressor,
+    ConnectStatus[] localConnectStatus,
+    ProtocolOutbox outbox
+)
 {
-    readonly TimeSync timeSync;
-    readonly InputCompressor inputCompressor;
-    readonly ConnectStatus[] localConnectStatus;
-    readonly MessageOutbox outbox;
-
-    readonly CircularBuffer<GameInput> pendingOutput;
-    GameInput lastSentInput;
-
-    public InputProcessor(
-        TimeSync timeSync,
-        InputCompressor inputCompressor,
-        ConnectStatus[] localConnectStatus,
-        MessageOutbox outbox
-    )
-    {
-        this.timeSync = timeSync;
-        this.inputCompressor = inputCompressor;
-        this.localConnectStatus = localConnectStatus;
-        this.outbox = outbox;
-        lastSentInput = GameInput.Empty;
-        pendingOutput = new();
-    }
+    readonly CircularBuffer<GameInput> pendingOutput = new();
+    GameInput lastSentInput = GameInput.Empty;
 
     public CircularBuffer<GameInput> Pending => pendingOutput;
 
-    public ValueTask SendInput(in GameInput input,
-        ProtocolStatus currentProtocolState,
-        GameInput lastReceivedInput,
-        GameInput lastAckedInput,
-        int localFrameAdvantage,
-        int remoteFrameAdvantage,
-        CancellationToken ct)
+    public ValueTask SendInput(
+        in GameInput input,
+        ProtocolState state,
+        GameInput lastReceived,
+        GameInput lastAcked,
+        CancellationToken ct
+    )
     {
-        if (currentProtocolState is ProtocolStatus.Running)
+        if (state.Status is ProtocolStatus.Running)
         {
             /*
              * Check to see if this is a good time to adjust for the rift...
              */
-            timeSync.AdvanceFrame(in input, localFrameAdvantage, remoteFrameAdvantage);
+            timeSync.AdvanceFrame(in input, state.Fairness);
 
             /*
              * Save this input packet
@@ -66,14 +51,14 @@ sealed class InputProcessor
 
         ProtocolMessage msg = new(MsgType.Input)
         {
-            Input = CreateInputMsg(currentProtocolState, lastReceivedInput, lastAckedInput),
+            Input = CreateInputMsg(state.Status, lastReceived, lastAcked),
         };
 
-        return outbox.SendMsg(ref msg, ct);
+        return outbox.SendMessage(ref msg, ct);
     }
 
     InputMsg CreateInputMsg(
-        ProtocolStatus currentProtocolState,
+        ProtocolStatus protocolStatus,
         GameInput lastReceivedInput,
         GameInput lastAckedInput
     )
@@ -88,7 +73,7 @@ sealed class InputProcessor
         );
 
         compressedInput.AckFrame = lastReceivedInput.Frame;
-        compressedInput.DisconnectRequested = currentProtocolState is not ProtocolStatus.Disconnected;
+        compressedInput.DisconnectRequested = protocolStatus is not ProtocolStatus.Disconnected;
 
         if (localConnectStatus.Length > 0)
             localConnectStatus.CopyTo(compressedInput.PeerConnectStatus);

@@ -7,9 +7,9 @@ using nGGPO.Utils;
 
 namespace nGGPO.Network.Client;
 
-sealed class UdpPeerClient<T>(
+sealed class UdpClient<T>(
     int port,
-    IPeerClientObserver<T> observer,
+    IUdpObserver<T> observer,
     IBinarySerializer<T> serializer
 ) : IDisposable
     where T : struct
@@ -109,7 +109,7 @@ sealed class UdpPeerClient<T>(
 
             var msg = serializer.Deserialize(buffer.Span[..receivedSize]);
 
-            await observer.OnMessage(this, msg, address, ct).ConfigureAwait(false);
+            await observer.OnUdpMessage(this, msg, address, ct).ConfigureAwait(false);
         }
     }
 

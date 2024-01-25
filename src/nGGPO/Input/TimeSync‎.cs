@@ -1,3 +1,4 @@
+using nGGPO.Network.Protocol;
 using nGGPO.Utils;
 
 namespace nGGPO.Input;
@@ -38,6 +39,9 @@ sealed class TimeSync
         local[input.Frame % local.Length] = advantage;
         remote[input.Frame % remote.Length] = remoteAdvantage;
     }
+
+    public void AdvanceFrame(in GameInput input, ProtocolState.AdvantageState state) =>
+        AdvanceFrame(in input, state.LocalFrameAdvantage, state.RemoteFrameAdvantage);
 
     public int RecommendFrameWaitDuration(bool requireIdleInput)
     {
