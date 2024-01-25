@@ -1,6 +1,7 @@
 using System.Net;
 using nGGPO.Data;
 using nGGPO.Input;
+using nGGPO.Network;
 using nGGPO.Network.Client;
 using nGGPO.Network.Messages;
 using nGGPO.Network.Protocol;
@@ -19,7 +20,7 @@ sealed class Peer2PeerBackend<TInput, TGameState>
 
     readonly UdpClient<ProtocolMessage> udp;
     readonly Synchronizer<TGameState> sync;
-    readonly ConnectStatus[] localConnectStatus;
+    readonly Connections localConnections;
 
     bool synchronizing = true;
 
@@ -44,10 +45,10 @@ sealed class Peer2PeerBackend<TInput, TGameState>
         this.inputSerializer = inputSerializer;
         this.callbacks = callbacks;
 
-        localConnectStatus = new ConnectStatus[Max.MsgPlayers];
+        localConnections = new();
         spectators = new(Max.Spectators);
         endpoints = new(this.options.NumberOfPlayers);
-        sync = new(localConnectStatus);
+        sync = new(localConnections);
         udp = new(this.options.LocalPort, peerObservers, udpMsgSerializer ?? new ProtocolMessageBinarySerializer());
     }
 
@@ -117,7 +118,7 @@ sealed class Peer2PeerBackend<TInput, TGameState>
         Tracer.Log("setting local connect status for local queue {0} to {1}",
             queue, input.Frame);
 
-        localConnectStatus[queue.Value].LastFrame = input.Frame;
+        localConnections[queue].LastFrame = input.Frame;
 
         // Send the input to all the remote players.
         for (var i = 0; i < options.NumberOfPlayers; i++)
@@ -162,7 +163,7 @@ sealed class Peer2PeerBackend<TInput, TGameState>
             udp: udp,
             queue,
             endpoint,
-            localConnectStatus,
+            localConnections,
             inputCompressor,
             options.NetworkDelay
         )

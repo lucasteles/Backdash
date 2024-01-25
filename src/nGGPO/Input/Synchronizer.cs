@@ -1,5 +1,5 @@
 using nGGPO.Data;
-using nGGPO.Network.Messages;
+using nGGPO.Network;
 using nGGPO.Utils;
 
 namespace nGGPO.Input;
@@ -21,10 +21,9 @@ static class Synchronizer
     }
 }
 
-sealed class Synchronizer<TGameState>(ConnectStatus[] connectStatus)
+sealed class Synchronizer<TGameState>(Connections connectStatus)
     where TGameState : struct
 {
-    readonly ConnectStatus[] connectStatus = connectStatus;
     readonly Synchronizer.SavedState<TGameState> savedState = new();
 
     Frame lastConfirmedFrame = Frame.Null;

@@ -1,6 +1,4 @@
 using nGGPO.Data;
-using nGGPO.Network.Messages;
-using nGGPO.Utils;
 
 namespace nGGPO.Network.Protocol;
 
@@ -44,18 +42,15 @@ sealed class ProtocolState
     public readonly Statistics Stats = new();
     public readonly Peer PeerAddress;
 
-    public readonly ConnectStatus[] LocalConnectStatus;
-    public readonly ConnectStatus[] PeerConnectStatus;
+    public readonly Connections LocalConnectStatus;
+    public readonly Connections PeerConnectStatus;
     public ProtocolStatus Status;
 
     public required QueueIndex QueueIndex { get; init; }
 
-    public ProtocolState(Peer peer, ConnectStatus[] localConnectStatus)
+    public ProtocolState(Peer peer, Connections localConnectStatus)
     {
-        PeerConnectStatus = new ConnectStatus[Max.MsgPlayers];
-        for (var i = 0; i < PeerConnectStatus.Length; i++)
-            PeerConnectStatus[i].LastFrame = Frame.NullValue;
-
+        PeerConnectStatus = new(Frame.Null);
         LocalConnectStatus = localConnectStatus;
         PeerAddress = peer;
     }

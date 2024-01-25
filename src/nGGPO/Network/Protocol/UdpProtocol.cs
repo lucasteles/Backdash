@@ -37,14 +37,14 @@ sealed class UdpProtocol : IUdpObserver<ProtocolMessage>, IDisposable
         UdpClient<ProtocolMessage> udp,
         QueueIndex queue,
         IPEndPoint peerAddress,
-        ConnectStatus[] localConnectStatus,
+        Connections localConnections,
         InputCompressor inputCompressor,
         int networkDelay = 0
     )
     {
         this.timeSync = timeSync;
 
-        state = new(peerAddress, localConnectStatus)
+        state = new(peerAddress, localConnections)
         {
             QueueIndex = queue,
         };
@@ -55,7 +55,7 @@ sealed class UdpProtocol : IUdpObserver<ProtocolMessage>, IDisposable
         {
             SendLatency = networkDelay,
         };
-        inputProcessor = new(this.timeSync, inputCompressor, localConnectStatus, outbox);
+        inputProcessor = new(this.timeSync, inputCompressor, localConnections, outbox);
         inbox = new(state,
             inputCompressor, inputProcessor, eventDispatcher,
             outbox, random, logger

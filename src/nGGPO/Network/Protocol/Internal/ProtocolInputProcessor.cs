@@ -8,7 +8,7 @@ namespace nGGPO.Network.Protocol.Internal;
 sealed class ProtocolInputProcessor(
     TimeSync timeSync,
     InputCompressor inputCompressor,
-    ConnectStatus[] localConnectStatus,
+    Connections localConnections,
     ProtocolOutbox outbox
 )
 {
@@ -75,8 +75,8 @@ sealed class ProtocolInputProcessor(
         compressedInput.AckFrame = lastReceivedInput.Frame;
         compressedInput.DisconnectRequested = protocolStatus is not ProtocolStatus.Disconnected;
 
-        if (localConnectStatus.Length > 0)
-            localConnectStatus.CopyTo(compressedInput.PeerConnectStatus);
+        if (localConnections.Length > 0)
+            localConnections.Statuses.CopyTo(compressedInput.PeerConnectStatus);
 
         return compressedInput;
     }
