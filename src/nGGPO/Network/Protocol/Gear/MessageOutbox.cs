@@ -5,15 +5,22 @@ using nGGPO.Network.Client;
 using nGGPO.Network.Messages;
 using nGGPO.Utils;
 
-namespace nGGPO.Network.Protocol;
+namespace nGGPO.Network.Protocol.Gear;
 
-sealed class ProtocolOutbox(
+sealed class MessageOutbox(
     SocketAddress peer,
     UdpPeerClient<ProtocolMessage> udp,
     Random random
 ) : IDisposable
 {
-    readonly Channel<UdpProtocol.QueueEntry> sendQueue = CircularBuffer.CreateChannel<UdpProtocol.QueueEntry>();
+    struct QueueEntry
+    {
+        public long QueueTime;
+        public SocketAddress DestAddr;
+        public ProtocolMessage Msg;
+    }
+
+    readonly Channel<QueueEntry> sendQueue = CircularBuffer.CreateChannel<QueueEntry>();
     readonly CancellationTokenSource sendQueueCancellation = new();
 
     readonly ushort magicNumber = MagicNumber.Generate();

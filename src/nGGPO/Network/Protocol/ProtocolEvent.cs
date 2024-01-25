@@ -3,7 +3,7 @@ using nGGPO.Input;
 
 namespace nGGPO.Network.Protocol;
 
-public enum ProtocolEventName : sbyte
+public enum ProtocolEvent : sbyte
 {
     Unknown = -1,
     Connected,
@@ -16,21 +16,23 @@ public enum ProtocolEventName : sbyte
 }
 
 [StructLayout(LayoutKind.Explicit)]
-struct ProtocolEvent(ProtocolEventName name)
+struct ProtocolEventData(ProtocolEvent name)
 {
     public readonly record struct SynchronizingData(int Total, int Count);
 
     public readonly record struct NetworkInterruptedData(int DisconnectTimeout);
 
-    [FieldOffset(0)]
-    public ProtocolEventName Name = name;
+    const int HeaderSize = sizeof(ProtocolEvent);
 
-    [FieldOffset(sizeof(sbyte))]
+    [FieldOffset(0)]
+    public ProtocolEvent Name = name;
+
+    [FieldOffset(HeaderSize)]
     public GameInput Input = default;
 
-    [FieldOffset(sizeof(sbyte))]
+    [FieldOffset(HeaderSize)]
     public SynchronizingData Synchronizing = default;
 
-    [FieldOffset(sizeof(sbyte))]
+    [FieldOffset(HeaderSize)]
     public NetworkInterruptedData NetworkInterrupted = default;
 }

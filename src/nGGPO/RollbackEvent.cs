@@ -12,7 +12,7 @@ public enum EventCode : short
     ConnectionResumed = 1007,
 }
 
-public interface INetCodeEvent
+public interface IRollbackEvent
 {
     EventCode Code { get; }
 }

@@ -3,14 +3,14 @@ using nGGPO.Input;
 using nGGPO.Network.Messages;
 using nGGPO.Utils;
 
-namespace nGGPO.Network.Protocol;
+namespace nGGPO.Network.Protocol.Gear;
 
 sealed class InputProcessor
 {
     readonly TimeSync timeSync;
     readonly InputCompressor inputCompressor;
     readonly ConnectStatus[] localConnectStatus;
-    readonly ProtocolOutbox outbox;
+    readonly MessageOutbox outbox;
 
     readonly CircularBuffer<GameInput> pendingOutput;
     GameInput lastSentInput;
@@ -19,7 +19,7 @@ sealed class InputProcessor
         TimeSync timeSync,
         InputCompressor inputCompressor,
         ConnectStatus[] localConnectStatus,
-        ProtocolOutbox outbox
+        MessageOutbox outbox
     )
     {
         this.timeSync = timeSync;
@@ -33,14 +33,14 @@ sealed class InputProcessor
     public CircularBuffer<GameInput> Pending => pendingOutput;
 
     public ValueTask SendInput(in GameInput input,
-        ProtocolState currentProtocolState,
+        ProtocolState.Name currentProtocolState,
         GameInput lastReceivedInput,
         GameInput lastAckedInput,
         int localFrameAdvantage,
         int remoteFrameAdvantage,
         CancellationToken ct)
     {
-        if (currentProtocolState is ProtocolState.Running)
+        if (currentProtocolState is ProtocolState.Name.Running)
         {
             /*
              * Check to see if this is a good time to adjust for the rift...
@@ -73,7 +73,7 @@ sealed class InputProcessor
     }
 
     InputMsg CreateInputMsg(
-        ProtocolState currentProtocolState,
+        ProtocolState.Name currentProtocolState,
         GameInput lastReceivedInput,
         GameInput lastAckedInput
     )
@@ -88,7 +88,7 @@ sealed class InputProcessor
         );
 
         compressedInput.AckFrame = lastReceivedInput.Frame;
-        compressedInput.DisconnectRequested = currentProtocolState is not ProtocolState.Disconnected;
+        compressedInput.DisconnectRequested = currentProtocolState is not ProtocolState.Name.Disconnected;
 
         if (localConnectStatus.Length > 0)
             localConnectStatus.CopyTo(compressedInput.PeerConnectStatus);

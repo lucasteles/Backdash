@@ -3,11 +3,14 @@ using nGGPO.Data;
 using nGGPO.Input;
 using nGGPO.Network.Client;
 using nGGPO.Network.Messages;
+using nGGPO.Network.Protocol.Gear;
 using nGGPO.Utils;
 
 namespace nGGPO.Network.Protocol;
 
-sealed partial class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDisposable
+using static ProtocolConstants;
+
+sealed class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDisposable
 {
     /*
      * Network transmission information
@@ -29,8 +32,8 @@ sealed partial class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDispos
      */
     readonly ConnectStatus[] localConnectStatus;
     readonly ConnectStatus[] peerConnectStatus;
-    readonly UdpProtocolState state = new();
-    ProtocolState currentProtocolState;
+    readonly ProtocolState.Udp state = new();
+    ProtocolState.Name currentProtocolState;
 
     /*
      * Fairness.
@@ -61,13 +64,13 @@ sealed partial class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDispos
     /*
      * Event queue
      */
-    readonly CircularBuffer<ProtocolEvent> eventQueue;
+    readonly CircularBuffer<ProtocolEventData> eventQueue;
 
     // services
     readonly Random random;
     readonly InputCompressor inputCompressor;
     readonly InputProcessor inputProcessor;
-    readonly ProtocolOutbox outbox;
+    readonly MessageOutbox outbox;
 
     public UdpProtocol(TimeSync timeSync,
         Random random,
@@ -129,7 +132,7 @@ sealed partial class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDispos
             },
         };
 
-    public bool GetEvent(out ProtocolEvent? e)
+    public bool GetEvent(out ProtocolEventData? e)
     {
         if (eventQueue.IsEmpty)
         {
@@ -143,7 +146,7 @@ sealed partial class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDispos
 
     public void Disconnect()
     {
-        currentProtocolState = ProtocolState.Disconnected;
+        currentProtocolState = ProtocolState.Name.Disconnected;
         ShutdownTimeout = TimeStamp.GetMilliseconds() + UdpShutdownTimer;
     }
 
@@ -222,9 +225,9 @@ sealed partial class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDispos
         if (handled)
         {
             LastReceivedTime = TimeStamp.GetMilliseconds();
-            if (DisconnectNotifySent && currentProtocolState is ProtocolState.Running)
+            if (DisconnectNotifySent && currentProtocolState is ProtocolState.Name.Running)
             {
-                QueueEvent(new(ProtocolEventName.NetworkResumed));
+                QueueEvent(new(ProtocolEvent.NetworkResumed));
                 DisconnectNotifySent = false;
             }
         }
@@ -239,10 +242,10 @@ sealed partial class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDispos
 
         if (disconnectRequested)
         {
-            if (currentProtocolState is not ProtocolState.Disconnected && !DisconnectEventSent)
+            if (currentProtocolState is not ProtocolState.Name.Disconnected && !DisconnectEventSent)
             {
                 Tracer.Log("Disconnecting endpoint on remote request.\n");
-                QueueEvent(new(ProtocolEventName.Disconnected));
+                QueueEvent(new(ProtocolEvent.Disconnected));
                 DisconnectEventSent = true;
             }
         }
@@ -294,7 +297,7 @@ sealed partial class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDispos
         /*
          * Send the event to the emulator
          */
-        ProtocolEvent evt = new(ProtocolEventName.Input)
+        ProtocolEventData evt = new(ProtocolEvent.Input)
         {
             Input = lastReceivedInput,
         };
@@ -346,7 +349,7 @@ sealed partial class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDispos
         return true;
     }
 
-    void QueueEvent(ProtocolEvent evt)
+    void QueueEvent(ProtocolEventData evt)
     {
         LogEvent("Queuing event", evt);
         eventQueue.Push(evt);
@@ -355,7 +358,7 @@ sealed partial class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDispos
     bool OnSyncReply(ProtocolMessage msg, ref ProtocolMessage replyMsg, out bool sendReply)
     {
         sendReply = false;
-        if (currentProtocolState is not ProtocolState.Syncing)
+        if (currentProtocolState is not ProtocolState.Name.Syncing)
         {
             Tracer.Log("Ignoring SyncReply while not synching.\n");
             return msg.Header.Magic == remoteMagicNumber;
@@ -370,29 +373,29 @@ sealed partial class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDispos
 
         if (!connected)
         {
-            QueueEvent(new(ProtocolEventName.Connected));
+            QueueEvent(new(ProtocolEvent.Connected));
             connected = true;
         }
 
         Tracer.Log("Checking sync state ({0} round trips remaining).\n",
-            state.Sync.RoundtripsRemaining);
+            state.Sync.RemainingRoundtrips);
 
-        if (--state.Sync.RoundtripsRemaining == 0)
+        if (--state.Sync.RemainingRoundtrips == 0)
         {
             Tracer.Log("Synchronized!\n");
-            QueueEvent(new(ProtocolEventName.Synchronized));
-            currentProtocolState = ProtocolState.Running;
+            QueueEvent(new(ProtocolEvent.Synchronized));
+            currentProtocolState = ProtocolState.Name.Running;
             lastReceivedInput.ResetFrame();
             remoteMagicNumber = msg.Header.Magic;
         }
         else
         {
-            ProtocolEvent evt = new(ProtocolEventName.Synchronizing)
+            ProtocolEventData evt = new(ProtocolEvent.Synchronizing)
             {
                 Synchronizing = new()
                 {
                     Total = NumSyncPackets,
-                    Count = NumSyncPackets - (int)state.Sync.RoundtripsRemaining,
+                    Count = NumSyncPackets - (int)state.Sync.RemainingRoundtrips,
                 },
             };
 
@@ -467,14 +470,14 @@ sealed partial class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDispos
         throw new NotImplementedException();
     }
 
-    void LogEvent(string queuingEvent, ProtocolEvent evt)
+    void LogEvent(string queuingEvent, ProtocolEventData evt)
     {
         throw new NotImplementedException();
     }
 
     public void Synchronize()
     {
-        currentProtocolState = ProtocolState.Syncing;
+        currentProtocolState = ProtocolState.Name.Syncing;
         throw new NotImplementedException();
     }
 
