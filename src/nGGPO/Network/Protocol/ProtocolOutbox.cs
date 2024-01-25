@@ -46,9 +46,9 @@ sealed class ProtocolOutbox(
         }, cts.Token);
     }
 
-    public async Task StartPumping(CancellationToken cancellation)
+    public async Task StartPumping(CancellationToken ct)
     {
-        using var cts = CancellationTokenSource.CreateLinkedTokenSource(sendQueueCancellation.Token, cancellation);
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(sendQueueCancellation.Token, ct);
 
         await foreach (var entry in sendQueue.Reader.ReadAllAsync(cts.Token).ConfigureAwait(false))
         {

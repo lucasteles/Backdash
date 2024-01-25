@@ -1,5 +1,4 @@
 using System.Net;
-using System.Threading.Channels;
 using nGGPO.Data;
 using nGGPO.Input;
 using nGGPO.Network.Client;
@@ -14,22 +13,16 @@ sealed partial class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDispos
      * Network transmission information
      */
     readonly UdpPeerClient<ProtocolMessage> udp;
-    readonly ushort magicNumber;
     readonly QueueIndex queue;
     ushort remoteMagicNumber;
     bool connected;
-    public int SendLatency { get; set; }
     public IPEndPoint PeerEndPoint { get; }
     public SocketAddress PeerAddress { get; }
-
-    readonly Channel<QueueEntry> sendQueue;
-    readonly CancellationTokenSource sendQueueCancellation = new();
 
     /*
      * Stats
      */
     int roundTripTime;
-    int packetsSent;
 
     /*
      * The state machine
@@ -55,10 +48,8 @@ sealed partial class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDispos
     GameInput lastSentInput;
     GameInput lastAckedInput;
 
-    ushort nextSendSeq;
     ushort nextRecvSeq;
 
-    public long LastSendTime { get; private set; }
     public long LastReceivedTime { get; private set; }
     public long ShutdownTimeout { get; set; }
     public int DisconnectTimeout { get; set; }
@@ -77,6 +68,8 @@ sealed partial class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDispos
      */
     readonly CircularBuffer<ProtocolEvent> eventQueue;
 
+    readonly ProtocolOutbox outbox;
+
     public UdpProtocol(
         TimeSync timeSync,
         Random random,
@@ -87,12 +80,9 @@ sealed partial class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDispos
         InputCompressor inputCompressor
     )
     {
-        magicNumber = MagicNumber.Generate();
-
         lastReceivedInput = GameInput.Empty;
         lastSentInput = GameInput.Empty;
         lastAckedInput = GameInput.Empty;
-        sendQueue = CircularBuffer.CreateChannel<QueueEntry>();
         pendingOutput = new();
         eventQueue = new();
 
@@ -100,16 +90,17 @@ sealed partial class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDispos
         for (var i = 0; i < peerConnectStatus.Length; i++)
             peerConnectStatus[i].LastFrame = Frame.NullValue;
 
+        this.localConnectStatus = localConnectStatus;
+        this.inputCompressor = inputCompressor;
         this.timeSync = timeSync;
         this.random = random;
         this.queue = queue;
+
         PeerEndPoint = peerAddress;
         PeerAddress = peerAddress.Serialize();
 
-        this.localConnectStatus = localConnectStatus;
-        this.inputCompressor = inputCompressor;
-
         this.udp = udp;
+        outbox = new(PeerAddress, this.udp, this.random);
     }
 
     public ValueTask OnMessage(
@@ -121,13 +112,7 @@ sealed partial class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDispos
         ? OnMsg(message, stoppingToken)
         : ValueTask.CompletedTask;
 
-    public void Dispose()
-    {
-        sendQueueCancellation.Cancel();
-        sendQueueCancellation.Dispose();
-        sendQueue.Writer.Complete();
-        Disconnect();
-    }
+    public void Dispose() => Disconnect();
 
     public ValueTask SendInput(in GameInput input, CancellationToken ct)
     {
@@ -167,7 +152,7 @@ sealed partial class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDispos
             Input = input,
         };
 
-        return SendMsg(ref msg, ct);
+        return outbox.SendMsg(ref msg, ct);
 
         InputMsg CreateInputMsg()
         {
@@ -229,26 +214,6 @@ sealed partial class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDispos
         };
     }
 
-    ValueTask SendMsg(ref ProtocolMessage msg, CancellationToken ct)
-    {
-        LogMsg("send", msg);
-
-        Interlocked.Increment(ref packetsSent);
-        LastSendTime = TimeStamp.GetMilliseconds();
-
-        msg.Header.Magic = magicNumber;
-        msg.Header.SequenceNumber = nextSendSeq++;
-
-        using var cts = CancellationTokenSource.CreateLinkedTokenSource(sendQueueCancellation.Token, ct);
-
-        return sendQueue.Writer.WriteAsync(new()
-        {
-            QueueTime = TimeStamp.GetMilliseconds(),
-            DestAddr = PeerAddress,
-            Msg = msg,
-        }, cts.Token);
-    }
-
     async ValueTask OnMsg(ProtocolMessage msg, CancellationToken ct)
     {
         var seq = msg.Header.SequenceNumber;
@@ -307,7 +272,7 @@ sealed partial class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDispos
         }
 
         if (sendReply)
-            await SendMsg(ref replyMsg, ct).ConfigureAwait(false);
+            await outbox.SendMsg(ref replyMsg, ct).ConfigureAwait(false);
 
         if (handled)
         {
@@ -515,23 +480,9 @@ sealed partial class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDispos
         return true;
     }
 
-    public async Task StartPumping(CancellationToken cancellation)
+    public async Task StartPumping(CancellationToken ct)
     {
-        using var cts = CancellationTokenSource.CreateLinkedTokenSource(sendQueueCancellation.Token, cancellation);
-
-        await foreach (var entry in sendQueue.Reader.ReadAllAsync(cts.Token).ConfigureAwait(false))
-        {
-            if (SendLatency > 0)
-            {
-                // should really come up with a gaussian distribution based on the configured
-                // value, but this will do for now.
-                int jitter = (SendLatency * 2 / 3) + (random.Next() % SendLatency / 3);
-                if (TimeStamp.GetMilliseconds() < entry.QueueTime + jitter)
-                    break;
-            }
-
-            await udp.SendTo(entry.DestAddr, entry.Msg, sendQueueCancellation.Token).ConfigureAwait(false);
-        }
+        await outbox.StartPumping(ct);
     }
 
     // require idle input should be a configuration parameter
