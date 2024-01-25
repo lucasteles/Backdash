@@ -12,9 +12,9 @@ sealed class ProtocolInputProcessor(
     IMessageSender sender
 )
 {
-    readonly CircularBuffer<GameInput> pendingOutput = new();
     GameInput lastSentInput = GameInput.Empty;
 
+    readonly CircularBuffer<GameInput> pendingOutput = new();
     public CircularBuffer<GameInput> Pending => pendingOutput;
 
     public ValueTask SendInput(
