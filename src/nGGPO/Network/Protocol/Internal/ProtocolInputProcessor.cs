@@ -9,7 +9,7 @@ sealed class ProtocolInputProcessor(
     TimeSync timeSync,
     InputCompressor inputCompressor,
     Connections localConnections,
-    ProtocolOutbox outbox
+    IMessageSender sender
 )
 {
     readonly CircularBuffer<GameInput> pendingOutput = new();
@@ -54,7 +54,7 @@ sealed class ProtocolInputProcessor(
             Input = CreateInputMsg(state.Status, lastReceived, lastAcked),
         };
 
-        return outbox.SendMessage(ref msg, ct);
+        return sender.SendMessage(ref msg, ct);
     }
 
     InputMsg CreateInputMsg(
