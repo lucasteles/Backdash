@@ -116,7 +116,11 @@ sealed class UdpProtocol : IPeerClientObserver<ProtocolMessage>, IDisposable
         ? OnMsg(message, stoppingToken)
         : ValueTask.CompletedTask;
 
-    public void Dispose() => Disconnect();
+    public void Dispose()
+    {
+        Disconnect();
+        outbox.Dispose();
+    }
 
     public ValueTask SendInput(in GameInput input, CancellationToken ct) =>
         inputProcessor.SendInput(in input, currentProtocolState,
