@@ -19,6 +19,8 @@ record struct InputMsg : IBinarySerializable
     public byte InputSize;
     public GameInputBuffer Bits;
 
+    public static readonly InputMsg Empty = new();
+
     public readonly void Serialize(scoped NetworkBufferWriter writer)
     {
         writer.Write(PeerCount);

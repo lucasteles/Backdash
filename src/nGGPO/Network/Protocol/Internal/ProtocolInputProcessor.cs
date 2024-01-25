@@ -64,7 +64,7 @@ sealed class ProtocolInputProcessor(
     )
     {
         if (pendingOutput.IsEmpty)
-            return new();
+            return InputMsg.Empty;
 
         var compressedInput = inputCompressor.Compress(
             ref lastAckedInput,
