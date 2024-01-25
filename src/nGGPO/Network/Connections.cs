@@ -19,13 +19,4 @@ sealed class Connections
 
     public ref ConnectStatus this[QueueIndex queue] => ref Statuses[queue.Value];
     public ref ConnectStatus this[int index] => ref Statuses[index];
-
-    public bool HasStatuses()
-    {
-        for (var i = 0; i < Statuses.Length; i++)
-            if (Statuses[i].LastFrame is Frame.NullValue)
-                return false;
-
-        return true;
-    }
 }
