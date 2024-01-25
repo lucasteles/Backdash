@@ -16,7 +16,7 @@ partial class UdpProtocol
     const long UdpShutdownTimer = 5000;
     const int MaxSeqDistance = 1 << 15;
 
-    struct QueueEntry
+    public struct QueueEntry
     {
         public long QueueTime;
         public SocketAddress DestAddr;
