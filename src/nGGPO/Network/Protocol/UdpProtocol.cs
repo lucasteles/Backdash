@@ -121,6 +121,19 @@ sealed class UdpProtocol : IUdpObserver<ProtocolMessage>, IDisposable
         stats.LocalFramesBehind = state.Fairness.LocalFrameAdvantage;
     }
 
+    public ValueTask SendInputAck(CancellationToken ct)
+    {
+        ProtocolMessage msg = new(MsgType.InputAck)
+        {
+            InputAck = new()
+            {
+                AckFrame = inbox.LastReceivedInput.Frame,
+            },
+        };
+
+        return outbox.SendMessage(ref msg, ct);
+    }
+
     public void Synchronize()
     {
         state.Status = ProtocolStatus.Syncing;

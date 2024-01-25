@@ -6,6 +6,8 @@ sealed class ProtocolEventDispatcher(ProtocolLogger logger)
 {
     readonly CircularBuffer<ProtocolEventData> eventQueue = new();
 
+    public void Enqueue(ProtocolEvent evt) => Enqueue(new ProtocolEventData(evt));
+
     public void Enqueue(ProtocolEventData evt)
     {
         logger.LogEvent("Queuing event", evt);

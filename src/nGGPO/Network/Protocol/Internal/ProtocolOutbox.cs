@@ -30,8 +30,7 @@ sealed class ProtocolOutbox(
     int nextSendSeq;
 
     public long LastSendTime { get; private set; }
-
-    public int SendLatency { get; set; }
+    public int SendLatency { get; init; }
 
     public ValueTask SendMessage(ref ProtocolMessage msg, CancellationToken ct)
     {

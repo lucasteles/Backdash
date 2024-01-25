@@ -60,29 +60,45 @@ sealed class ProtocolInbox(
 
         nextRecvSeq = seqNum;
         logger.LogMsg("recv", message);
+
+        if (HandleMessage(ref message, out var replyMsg))
+        {
+            if (replyMsg.Header.Type is not MsgType.Invalid)
+                await messageSender.SendMessage(ref replyMsg, stoppingToken).ConfigureAwait(false);
+
+            LastReceivedTime = TimeStamp.GetMilliseconds();
+            if (state.Connection.DisconnectNotifySent && state.Status is ProtocolStatus.Running)
+            {
+                events.Enqueue(ProtocolEvent.NetworkResumed);
+                state.Connection.DisconnectNotifySent = false;
+            }
+        }
+    }
+
+    bool HandleMessage(ref ProtocolMessage message, out ProtocolMessage replyMsg)
+    {
         var handled = false;
-        var sendReply = false;
-        ProtocolMessage replyMsg = new();
+        replyMsg = new(MsgType.Invalid);
 
         switch (message.Header.Type)
         {
             case MsgType.SyncRequest:
-                handled = OnSyncRequest(ref message, ref replyMsg, out sendReply);
+                handled = OnSyncRequest(in message, ref replyMsg);
                 break;
             case MsgType.SyncReply:
-                handled = OnSyncReply(message, ref replyMsg, out sendReply);
+                handled = OnSyncReply(in message, ref replyMsg);
                 break;
             case MsgType.Input:
-                handled = OnInput(message);
+                handled = OnInput(ref message);
                 break;
             case MsgType.QualityReport:
-                handled = OnQualityReport(message, out replyMsg, out sendReply);
+                handled = OnQualityReport(in message, out replyMsg);
                 break;
             case MsgType.QualityReply:
-                handled = OnQualityReply(message);
+                handled = OnQualityReply(in message);
                 break;
             case MsgType.InputAck:
-                handled = OnInputAck(message);
+                handled = OnInputAck(in message);
                 break;
             case MsgType.KeepAlive:
                 handled = true;
@@ -95,21 +111,10 @@ sealed class ProtocolInbox(
                 break;
         }
 
-        if (sendReply)
-            await messageSender.SendMessage(ref replyMsg, stoppingToken).ConfigureAwait(false);
-
-        if (handled)
-        {
-            LastReceivedTime = TimeStamp.GetMilliseconds();
-            if (state.Connection.DisconnectNotifySent && state.Status is ProtocolStatus.Running)
-            {
-                events.Enqueue(new(ProtocolEvent.NetworkResumed));
-                state.Connection.DisconnectNotifySent = false;
-            }
-        }
+        return handled;
     }
 
-    bool OnInput(ProtocolMessage msg)
+    bool OnInput(ref ProtocolMessage msg)
     {
         /*
          * If a disconnect is requested, go ahead and disconnect now.
@@ -121,7 +126,7 @@ sealed class ProtocolInbox(
             if (state.Status is not ProtocolStatus.Disconnected && !state.Connection.DisconnectEventSent)
             {
                 Tracer.Log("Disconnecting endpoint on remote request.\n");
-                events.Enqueue(new(ProtocolEvent.Disconnected));
+                events.Enqueue(ProtocolEvent.Disconnected);
                 state.Connection.DisconnectEventSent = true;
             }
         }
@@ -207,7 +212,7 @@ sealed class ProtocolInbox(
         return true;
     }
 
-    bool OnQualityReport(in ProtocolMessage msg, out ProtocolMessage newMsg, out bool sendMsg)
+    bool OnQualityReport(in ProtocolMessage msg, out ProtocolMessage newMsg)
     {
         newMsg = new(MsgType.QualityReply)
         {
@@ -217,15 +222,13 @@ sealed class ProtocolInbox(
             },
         };
 
-        sendMsg = true;
         state.Fairness.RemoteFrameAdvantage = msg.QualityReport.FrameAdvantage;
 
         return true;
     }
 
-    bool OnSyncReply(ProtocolMessage msg, ref ProtocolMessage replyMsg, out bool sendReply)
+    bool OnSyncReply(in ProtocolMessage msg, ref ProtocolMessage replyMsg)
     {
-        sendReply = false;
         if (state.Status is not ProtocolStatus.Syncing)
         {
             Tracer.Log("Ignoring SyncReply while not synching.\n");
@@ -241,7 +244,7 @@ sealed class ProtocolInbox(
 
         if (!state.Connection.IsConnected)
         {
-            events.Enqueue(new(ProtocolEvent.Connected));
+            events.Enqueue(ProtocolEvent.Connected);
             state.Connection.IsConnected = true;
         }
 
@@ -251,7 +254,7 @@ sealed class ProtocolInbox(
         if (--state.Sync.RemainingRoundtrips == 0)
         {
             Tracer.Log("Synchronized!\n");
-            events.Enqueue(new(ProtocolEvent.Synchronized));
+            events.Enqueue(ProtocolEvent.Synchronized);
             state.Status = ProtocolStatus.Running;
             lastReceivedInput.ResetFrame();
             remoteMagicNumber = msg.Header.Magic;
@@ -268,24 +271,30 @@ sealed class ProtocolInbox(
             };
 
             events.Enqueue(evt);
-            sendReply = true;
-            SendSyncRequest(out replyMsg);
+
+            state.Sync.Random = random.NextUInt();
+            replyMsg = new(MsgType.SyncRequest)
+            {
+                SyncRequest = new()
+                {
+                    RandomRequest = state.Sync.Random,
+                },
+            };
         }
 
         return true;
     }
 
-    public bool OnSyncRequest(ref ProtocolMessage msg, ref ProtocolMessage replyMsg, out bool sendReply)
+    public bool OnSyncRequest(in ProtocolMessage msg, ref ProtocolMessage replyMsg)
     {
         if (remoteMagicNumber is not 0 && msg.Header.Magic != remoteMagicNumber)
         {
             Tracer.Log("Ignoring sync request from unknown endpoint ({0} != {1}).\n",
                 msg.Header.Magic, remoteMagicNumber);
-            sendReply = false;
             return false;
         }
 
-        replyMsg = new ProtocolMessage(MsgType.SyncReply)
+        replyMsg = new(MsgType.SyncReply)
         {
             SyncReply = new()
             {
@@ -293,28 +302,6 @@ sealed class ProtocolInbox(
             },
         };
 
-        sendReply = true;
         return true;
     }
-
-    void SendSyncRequest(out ProtocolMessage msg)
-    {
-        state.Sync.Random = random.NextUInt();
-        msg = new(MsgType.SyncRequest)
-        {
-            SyncRequest = new()
-            {
-                RandomRequest = state.Sync.Random,
-            },
-        };
-    }
-
-    public void SendInputAck(out ProtocolMessage msg) =>
-        msg = new(MsgType.InputAck)
-        {
-            InputAck = new()
-            {
-                AckFrame = LastReceivedInput.Frame,
-            },
-        };
 }
