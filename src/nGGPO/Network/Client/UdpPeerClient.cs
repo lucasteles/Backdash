@@ -124,27 +124,27 @@ sealed class UdpClient<T>(
 
         try
         {
-            while (!ct.IsCancellationRequested)
-            {
-                await sendQueue.Reader.WaitToReadAsync(ct).ConfigureAwait(false);
-
-                while (sendQueue.Reader.TryRead(out var result))
-                {
-                    var (peerAddress, msg) = result;
-                    var bodySize = serializer.Serialize(ref msg, sendBuffer.Span);
-                    var sentSize = await SendBytes(peerAddress, sendBuffer[..bodySize], ct).ConfigureAwait(false);
-                    Tracer.Assert(sentSize == bodySize);
-                }
-            }
-
-            // await foreach (var (peerAddress, nextMsg) in sendQueue.Reader.ReadAllAsync(ct).ConfigureAwait(false))
+            // while (!ct.IsCancellationRequested)
             // {
-            //     var msg = nextMsg;
-            //     var bodySize = serializer.Serialize(ref msg, sendBuffer.Span);
-            //     var sentSize = await SendBytes(peerAddress, sendBuffer[..bodySize], ct).ConfigureAwait(false);
-            //     Tracer.Assert(sentSize == bodySize);
-            //     if (ct.IsCancellationRequested) break;
+            //     await sendQueue.Reader.WaitToReadAsync(ct).ConfigureAwait(false);
+            //
+            //     while (sendQueue.Reader.TryRead(out var result))
+            //     {
+            //         var (peerAddress, msg) = result;
+            //         var bodySize = serializer.Serialize(ref msg, sendBuffer.Span);
+            //         var sentSize = await SendBytes(peerAddress, sendBuffer[..bodySize], ct).ConfigureAwait(false);
+            //         Tracer.Assert(sentSize == bodySize);
+            //     }
             // }
+
+            await foreach (var (peerAddress, nextMsg) in sendQueue.Reader.ReadAllAsync(ct).ConfigureAwait(false))
+            {
+                var msg = nextMsg;
+                var bodySize = serializer.Serialize(ref msg, sendBuffer.Span);
+                var sentSize = await SendBytes(peerAddress, sendBuffer[..bodySize], ct).ConfigureAwait(false);
+                Tracer.Assert(sentSize == bodySize);
+                if (ct.IsCancellationRequested) break;
+            }
         }
         catch (OperationCanceledException)
         {
