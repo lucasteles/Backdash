@@ -1,4 +1,3 @@
-using System.Diagnostics.Contracts;
 using System.Runtime.CompilerServices;
 using System.Text;
 using nGGPO.Data;
@@ -20,6 +19,9 @@ public struct GameInputBuffer
 
     public readonly bool Equals(GameInputBuffer other) =>
         Mem.SpanEqual<byte>(this, other, truncate: true);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Span<byte> AsSpan(int size) => Mem.InlineArrayAsSpan<GameInputBuffer, byte>(ref this, size);
 
     public static Span<byte> ForPlayer(ref GameInputBuffer buffer, int playerIndex)
     {
@@ -53,22 +55,14 @@ struct GameInput : IEquatable<GameInput>
 
     public GameInput(ReadOnlySpan<byte> bits) : this(new GameInputBuffer(bits), bits.Length) { }
 
-    [Pure]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Span<byte> AsSpan() => Mem.InlineArrayAsSpan<GameInputBuffer, byte>(ref Buffer, Size);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public BitVector GetBitVector()
-    {
-        var span = AsSpan();
-        return new(ref span);
-    }
+    public BitVector GetBitVector() => new(Buffer.AsSpan(Size));
 
     public readonly bool IsEmpty => Size is 0;
     public void IncrementFrame() => Frame = Frame.Next;
     public void SetFrame(Frame frame) => Frame = frame;
     public void ResetFrame() => Frame = Frame.Null;
-    public void Clear() => AsSpan().Clear();
+    public void Clear() => Buffer.AsSpan(Size).Clear();
 
     public override readonly string ToString()
     {

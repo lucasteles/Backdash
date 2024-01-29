@@ -24,7 +24,7 @@ class InputCompressor
         var lastBits = last.GetBitVector();
         Span<byte> bits = inputMsg.Bits;
 
-        BitVector.BitOffset bitWriter = new(ref bits);
+        BitVector.BitOffset bitWriter = new(bits);
         Tracer.Assert(last.Frame.IsNull || last.Frame.Next == inputMsg.StartFrame);
 
         for (var i = 0; i < pendingOutput.Size; i++)
@@ -76,7 +76,7 @@ class InputCompressor
             lastReceivedInput.SetFrame(new(msg.StartFrame - 1));
 
         Span<byte> bits = msg.Bits;
-        BitVector.BitOffset bitVector = new(ref bits);
+        BitVector.BitOffset bitVector = new(bits);
         var lastInputBits = lastReceivedInput.GetBitVector();
 
         while (bitVector.Offset < numBits)

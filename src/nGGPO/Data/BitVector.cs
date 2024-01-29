@@ -2,11 +2,12 @@ using nGGPO.Utils;
 
 namespace nGGPO.Data;
 
-readonly ref struct BitVector(scoped ref Span<byte> bits)
+readonly ref struct BitVector(Span<byte> bits)
 {
+    public readonly Span<byte> Buffer = bits;
+
     public int Size => Buffer.Length;
     public int BitCount => Size * Mem.ByteSize;
-    public Span<byte> Buffer { get; } = bits;
 
     public static void SetBit(in Span<byte> vector, int index) =>
         vector[index / 8] |= (byte)(1 << (index % 8));
@@ -35,7 +36,7 @@ readonly ref struct BitVector(scoped ref Span<byte> bits)
 
     public static implicit operator Span<byte>(BitVector @this) => @this.Buffer;
 
-    public ref struct BitOffset(ref Span<byte> buffer, int offset = 0)
+    public ref struct BitOffset(Span<byte> buffer, int offset = 0)
     {
         public const int NibbleSize = 8;
 
