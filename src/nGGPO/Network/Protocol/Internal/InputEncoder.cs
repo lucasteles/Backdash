@@ -22,7 +22,7 @@ sealed class InputEncoder
         };
 
         var last = lastAcked;
-        BitVector lastBits = new(last.Buffer);
+        var lastBits = last.GetBitVector();
         BitVector.BitOffset bitWriter = new(inputMsg.Bits);
         Tracer.Assert(last.Frame.IsNull || last.Frame.Next == inputMsg.StartFrame);
 
@@ -32,7 +32,7 @@ sealed class InputEncoder
 
             if (!current.Equals(last, bitsOnly: true))
             {
-                BitVector currentBits = new(current.Buffer);
+                var currentBits = current.GetBitVector();
                 for (var j = 0; j < currentBits.BitCount; j++)
                 {
                     if (currentBits[j] == lastBits[j])
@@ -84,7 +84,7 @@ sealed class InputEncoder
             if (lastReceivedInput.Frame < 0)
                 lastReceivedInput.SetFrame(new(inputMsg.StartFrame - 1));
 
-            lastInputBits = new(nextInput.Buffer);
+            lastInputBits = nextInput.GetBitVector();
 
             Span<byte> bits = inputMsg.Bits;
             bitVector = new(bits);
