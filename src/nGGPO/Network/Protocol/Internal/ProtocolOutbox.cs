@@ -67,7 +67,6 @@ sealed class ProtocolOutbox(
                 while (TimeStamp.GetMilliseconds() < entry.QueueTime + jitter)
                 {
                     // TODO: would delay be better?
-                    // await Task.Yield();
                     spinWait.SpinOnce();
                 }
             }
