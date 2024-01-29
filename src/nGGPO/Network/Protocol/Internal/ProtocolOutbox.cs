@@ -56,7 +56,7 @@ sealed class ProtocolOutbox(
     public async Task StartPumping(CancellationToken ct)
     {
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(sendQueueCancellation.Token, ct);
-
+        SpinWait spinWait = new();
         await foreach (var entry in sendQueue.Reader.ReadAllAsync(cts.Token).ConfigureAwait(false))
         {
             if (SendLatency > 0)
@@ -65,8 +65,11 @@ sealed class ProtocolOutbox(
                 // value, but this will do for now.
                 int jitter = (SendLatency * 2 / 3) + (random.Next() % SendLatency / 3);
                 while (TimeStamp.GetMilliseconds() < entry.QueueTime + jitter)
+                {
                     // TODO: would delay be better?
-                    await Task.Yield();
+                    // await Task.Yield();
+                    spinWait.SpinOnce();
+                }
             }
 
             await udp.SendTo(entry.DestAddr, entry.Msg, sendQueueCancellation.Token).ConfigureAwait(false);
