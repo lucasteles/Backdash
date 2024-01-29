@@ -2,7 +2,7 @@ using nGGPO.Utils;
 
 namespace nGGPO.Data;
 
-readonly record struct QueueIndex : IComparable<Frame>
+readonly record struct QueueIndex : IComparable<QueueIndex>
 {
     public int Value { get; }
 
@@ -12,7 +12,7 @@ readonly record struct QueueIndex : IComparable<Frame>
         Value = value;
     }
 
-    public int CompareTo(Frame other) => Value.CompareTo(other.Number);
+    public int CompareTo(QueueIndex other) => Value.CompareTo(other.Value);
 
     public override string ToString() => Value.ToString();
 
