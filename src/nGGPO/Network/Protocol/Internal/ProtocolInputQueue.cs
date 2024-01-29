@@ -58,8 +58,8 @@ sealed class ProtocolInputQueue(
 
     InputMsg CreateInputMsg(
         ProtocolStatus protocolStatus,
-        GameInput lastReceivedInput,
-        GameInput lastAckedInput
+        in GameInput lastReceivedInput,
+        in GameInput lastAckedInput
     )
     {
         if (pendingOutput.IsEmpty)
