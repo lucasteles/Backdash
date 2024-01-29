@@ -10,7 +10,6 @@ using static ProtocolConstants;
 
 sealed class ProtocolInbox(
     ProtocolState state,
-    InputCompressor compressor,
     ProtocolInputQueue inputQueue,
     ProtocolEventDispatcher events,
     IMessageSender messageSender,
@@ -20,8 +19,6 @@ sealed class ProtocolInbox(
 {
     ushort remoteMagicNumber;
     ushort nextRecvSeq;
-
-    Action? onParsedInputCache;
 
     GameInput lastReceivedInput = GameInput.Empty;
     public long LastReceivedTime { get; private set; }
@@ -157,9 +154,9 @@ sealed class ProtocolInbox(
         //  */
         if (msg.Input.InputSize > 0)
         {
-            // LATER: remove delegate allocation with OnParsedInput
-            onParsedInputCache ??= OnParsedInput;
-            compressor.Decompress(ref msg.Input, ref lastReceivedInput, onParsedInputCache);
+            var decompressor = InputEncoder.Decompress(ref msg.Input, ref lastReceivedInput);
+            while (decompressor.NextInput())
+                OnParsedInput();
         }
 
         Tracer.Assert(lastReceivedInput.Frame >= lastAckedInput.Frame);

@@ -7,7 +7,6 @@ namespace nGGPO.Network.Protocol.Internal;
 
 sealed class ProtocolInputQueue(
     TimeSync timeSync,
-    InputCompressor inputCompressor,
     Connections localConnections,
     IMessageSender sender
 )
@@ -20,8 +19,8 @@ sealed class ProtocolInputQueue(
     public ValueTask SendInput(
         in GameInput input,
         ProtocolState state,
-        GameInput lastReceived,
-        GameInput lastAcked,
+        in GameInput lastReceived,
+        in GameInput lastAcked,
         CancellationToken ct
     )
     {
@@ -66,7 +65,7 @@ sealed class ProtocolInputQueue(
         if (pendingOutput.IsEmpty)
             return InputMsg.Empty;
 
-        var compressedInput = inputCompressor.Compress(
+        var compressedInput = InputEncoder.Compress(
             in lastAckedInput,
             in pendingOutput,
             ref lastSentInput

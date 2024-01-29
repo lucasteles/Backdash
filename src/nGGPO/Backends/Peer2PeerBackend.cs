@@ -29,8 +29,6 @@ sealed class Peer2PeerBackend<TInput, TGameState>
     readonly UdpObserverGroup<ProtocolMessage> peerObservers = new();
     readonly RollbackOptions options;
 
-    readonly InputCompressor inputCompressor = new();
-
     public Peer2PeerBackend(
         IBinarySerializer<TInput> inputSerializer,
         ISessionCallbacks<TGameState> callbacks,
@@ -164,7 +162,6 @@ sealed class Peer2PeerBackend<TInput, TGameState>
             queue,
             endpoint,
             localConnections,
-            inputCompressor,
             options.NetworkDelay
         )
         {

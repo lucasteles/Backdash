@@ -38,7 +38,6 @@ sealed class UdpProtocol : IUdpObserver<ProtocolMessage>, IDisposable
         QueueIndex queue,
         IPEndPoint peerAddress,
         Connections localConnections,
-        InputCompressor inputCompressor,
         int networkDelay = 0
     )
     {
@@ -55,11 +54,8 @@ sealed class UdpProtocol : IUdpObserver<ProtocolMessage>, IDisposable
         {
             SendLatency = networkDelay,
         };
-        inputQueue = new(this.timeSync, inputCompressor, localConnections, outbox);
-        inbox = new(state,
-            inputCompressor, inputQueue, eventDispatcher,
-            outbox, random, logger
-        );
+        inputQueue = new(this.timeSync, localConnections, outbox);
+        inbox = new(state, inputQueue, eventDispatcher, outbox, random, logger);
     }
 
     public void Dispose()
