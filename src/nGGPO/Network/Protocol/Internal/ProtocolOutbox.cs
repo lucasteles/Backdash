@@ -62,7 +62,7 @@ sealed class ProtocolOutbox(
             {
                 // should really come up with a gaussian distribution based on the configured
                 // value, but this will do for now.
-                int jitter = (SendLatency * 2 / 3) + (random.Next() % SendLatency / 3);
+                var jitter = (SendLatency * 2 / 3) + (random.Next() % SendLatency / 3);
 
                 var delayDiff = TimeStamp.GetMilliseconds() - entry.QueueTime + jitter;
                 if (delayDiff > 0)
