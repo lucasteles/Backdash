@@ -1,6 +1,6 @@
 namespace nGGPO.Lifecycle;
 
-sealed class BackgroundJobManager : IAsyncDisposable, IBackgroundJob
+sealed class BackgroundJobManager : IAsyncDisposable
 {
     readonly List<IBackgroundJob> jobs = [];
     readonly Dictionary<Task, IBackgroundJob> tasks = [];
