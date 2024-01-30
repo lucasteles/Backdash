@@ -20,11 +20,12 @@ interface IUdpClient<T> : IBackgroundJob where T : struct
 sealed class UdpClient<T>(
     int port,
     IUdpObserver<T> observer,
-    IBinarySerializer<T> serializer
+    IBinarySerializer<T> serializer,
+    ILogger logger
 ) : IDisposable, IUdpClient<T> where T : struct
 {
     public bool LogsEnabled = true;
-    readonly Socket socket = CreateSocket(port);
+    readonly Socket socket = CreateSocket(port, logger);
     CancellationTokenSource? cancellation;
     public int Port => port;
     public SocketAddress Address { get; } = new IPEndPoint(IPAddress.Loopback, port).Serialize();
@@ -64,7 +65,7 @@ sealed class UdpClient<T>(
         cancellation = null;
     }
 
-    static Socket CreateSocket(int port)
+    static Socket CreateSocket(int port, ILogger logger)
     {
         if (port is < IPEndPoint.MinPort or > IPEndPoint.MaxPort)
             throw new ArgumentOutOfRangeException(nameof(port));
@@ -77,7 +78,7 @@ sealed class UdpClient<T>(
 
         IPEndPoint localEp = new(IPAddress.Any, port);
         newSocket.Bind(localEp);
-        Tracer.Log("binding udp socket to port {0}.\n", port);
+        logger.Info($"binding udp socket to port {port}.\n");
 
         return newSocket;
     }
@@ -104,7 +105,7 @@ sealed class UdpClient<T>(
             catch (SocketException ex)
             {
                 if (LogsEnabled)
-                    Tracer.Warn(ex, "Socket error");
+                    logger.Error(ex, $"Socket error");
 
                 break;
             }

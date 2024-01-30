@@ -51,13 +51,17 @@ sealed class Peer2PeerBackend<TInput, TGameState>
         spectators = new(Max.Spectators);
         endpoints = new(this.options.NumberOfPlayers);
         sync = new(localConnections);
-        udpClient = new(this.options.LocalPort, peerObservers,
-            udpMsgSerializer ?? new ProtocolMessageBinarySerializer());
 
         logger = new ConsoleLogger
         {
             EnabledLevel = this.options.LogLevel,
         };
+
+        udpClient = new(
+            this.options.LocalPort, peerObservers,
+            udpMsgSerializer ?? new ProtocolMessageBinarySerializer(),
+            logger
+        );
 
         backgroundJobManager.Register(udpClient);
     }
@@ -125,8 +129,7 @@ sealed class Peer2PeerBackend<TInput, TGameState>
 
         if (input.Frame.IsNull) return ResultCode.Ok;
 
-        Tracer.Log("setting local connect status for local queue {0} to {1}",
-            queue, input.Frame);
+        logger.Info($"setting local connect status for local queue {queue} to {input.Frame}");
 
         localConnections[queue].LastFrame = input.Frame;
 
@@ -178,11 +181,13 @@ sealed class Peer2PeerBackend<TInput, TGameState>
         };
 
         var protocol = UdpProtocolFactory.CreateDefault(
+            logger,
             backgroundJobManager,
             peerObservers,
-            protocolOptions,
             udpClient,
-            localConnections
+            localConnections,
+            protocolOptions,
+            options.TimeSync
         );
 
         protocol.Synchronize();

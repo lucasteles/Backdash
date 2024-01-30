@@ -12,7 +12,10 @@ sealed class UdpClientContext<T> : IDisposable where T : struct
     public UdpClientContext(IBinarySerializer<T> serializer, int? port = null)
     {
         Observer = new();
-        Socket = new UdpClient<T>(port ?? PortUtils.FindFreePort(), Observer, serializer);
+        Socket = new UdpClient<T>(port ?? PortUtils.FindFreePort(), Observer, serializer, new ConsoleLogger
+        {
+            EnabledLevel = LogLevel.Trace
+        });
     }
 
     public SocketAddress Address => Socket.Address;

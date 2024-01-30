@@ -1,13 +1,14 @@
 using System.Diagnostics;
 using System.Net;
+using nGGPO;
 using nGGPO.Network.Client;
 using nGGPO.Serialization;
 using UdpPeerClient = nGGPO.Network.Client.UdpClient<Message>;
 
 var processedMessageCount = 0UL;
 
-ValueTask ProcessMessage(IUdpClient<Message> client, Message message, SocketAddress sender,
-    CancellationToken ct)
+ValueTask ProcessMessage(IUdpClient<Message> client, Message message,
+    SocketAddress sender, CancellationToken ct)
 {
     if (ct.IsCancellationRequested) return ValueTask.CompletedTask;
     Interlocked.Increment(ref processedMessageCount);
@@ -19,19 +20,21 @@ ValueTask ProcessMessage(IUdpClient<Message> client, Message message, SocketAddr
     };
 }
 
+ConsoleLogger logger = new() { EnabledLevel = LogLevel.Trace };
+
 UdpPeerClient peer1 = new(9000,
     new UdpObserver<Message>(ProcessMessage),
-    BinarySerializerFactory.ForEnum<Message>())
-{
-    LogsEnabled = false,
-};
+    BinarySerializerFactory.ForEnum<Message>(),
+    logger
+)
+{ LogsEnabled = false };
 
 UdpPeerClient peer2 = new(9001,
     new UdpObserver<Message>(ProcessMessage),
-    BinarySerializerFactory.ForEnum<Message>())
-{
-    LogsEnabled = false,
-};
+    BinarySerializerFactory.ForEnum<Message>(),
+    logger
+)
+{ LogsEnabled = false };
 
 Stopwatch watch = new();
 using CancellationTokenSource source = new();

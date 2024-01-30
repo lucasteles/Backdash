@@ -28,7 +28,8 @@ sealed class ProtocolInbox(
     IMessageSender messageSender,
     IInputEncoder inputEncoder,
     IProtocolEventDispatcher events,
-    IProtocolLogger logger
+    IProtocolLogger protocolLogger,
+    ILogger logger
 ) : IUdpObserver<ProtocolMessage>, IProtocolInbox
 {
     ushort remoteMagicNumber;
@@ -56,21 +57,20 @@ sealed class ProtocolInbox(
         {
             if (message.Header.Magic != remoteMagicNumber)
             {
-                logger.LogMsg("recv rejecting", in message);
+                protocolLogger.LogMsg("recv rejecting", in message);
                 return;
             }
 
             var skipped = (ushort)(seqNum - nextRecvSeq);
             if (skipped > MaxSeqDistance)
             {
-                Tracer.Log("dropping out of order packet (seq: %d, last seq:%d)\n",
-                    seqNum, nextRecvSeq);
+                logger.Info($"dropping out of order packet (seq: {seqNum}, last seq:{nextRecvSeq})");
                 return;
             }
         }
 
         nextRecvSeq = seqNum;
-        logger.LogMsg("recv", message);
+        protocolLogger.LogMsg("recv", message);
 
         if (HandleMessage(ref message, out var replyMsg))
         {
@@ -115,7 +115,7 @@ sealed class ProtocolInbox(
                 handled = true;
                 break;
             case MsgType.Invalid:
-                Tracer.Error("Invalid UdpProtocol message");
+                logger.Error($"Invalid UdpProtocol message");
                 break;
             default:
                 throw new NggpoException($"Unknown UdpMsg type: {message.Header.Type}");
@@ -135,7 +135,7 @@ sealed class ProtocolInbox(
         {
             if (state.Status is not ProtocolStatus.Disconnected && !state.Connection.DisconnectEventSent)
             {
-                Tracer.Log("Disconnecting endpoint on remote request.\n");
+                logger.Info($"Disconnecting endpoint on remote request");
                 events.Enqueue(ProtocolEvent.Disconnected);
                 state.Connection.DisconnectEventSent = true;
             }
@@ -195,12 +195,7 @@ sealed class ProtocolInbox(
 
         state.Running.LastInputPacketRecvTime = (uint)TimeStamp.GetMilliseconds();
 
-        Tracer.Log("Sending frame {0} to emu queue {1} ({2}).\n",
-            lastReceivedInput.Frame,
-            options.Queue,
-            lastAckedFrame
-        );
-
+        logger.Info($"Sending frame {lastReceivedInput.Frame} to emu queue {options.Queue} (frame: {lastAckedFrame})");
         events.Enqueue(evt);
     }
 
@@ -235,14 +230,13 @@ sealed class ProtocolInbox(
     {
         if (state.Status is not ProtocolStatus.Syncing)
         {
-            Tracer.Log("Ignoring SyncReply while not synching.\n");
+            logger.Info($"Ignoring SyncReply while not syncing");
             return msg.Header.Magic == remoteMagicNumber;
         }
 
         if (msg.SyncReply.RandomReply != state.Sync.Random)
         {
-            Tracer.Log("sync reply {0} != {1}.  Keep looking...\n",
-                msg.SyncReply.RandomReply, state.Sync.Random);
+            logger.Info($"Sync reply {msg.SyncReply.RandomReply} != {state.Sync.Random}.  Keep looking...");
             return false;
         }
 
@@ -252,12 +246,11 @@ sealed class ProtocolInbox(
             state.Connection.IsConnected = true;
         }
 
-        Tracer.Log("Checking sync state ({0} round trips remaining).\n",
-            state.Sync.RemainingRoundtrips);
+        logger.Info($"Checking sync state ({state.Sync.RemainingRoundtrips} round trips remaining)");
 
         if (--state.Sync.RemainingRoundtrips == 0)
         {
-            Tracer.Log("Synchronized!\n");
+            logger.Info($"Synchronized!");
             events.Enqueue(ProtocolEvent.Synchronized);
             state.Status = ProtocolStatus.Running;
             lastReceivedInput.ResetFrame();
@@ -293,8 +286,7 @@ sealed class ProtocolInbox(
     {
         if (remoteMagicNumber is not 0 && msg.Header.Magic != remoteMagicNumber)
         {
-            Tracer.Log("Ignoring sync request from unknown endpoint ({0} != {1}).\n",
-                msg.Header.Magic, remoteMagicNumber);
+            logger.Warn($"Ignoring sync request from unknown endpoint ({msg.Header.Magic} != {remoteMagicNumber})");
             return false;
         }
 

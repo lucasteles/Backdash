@@ -1,5 +1,4 @@
 using nGGPO.Network.Protocol.Internal;
-using nGGPO.Utils;
 
 namespace nGGPO.Input;
 
@@ -18,26 +17,19 @@ interface ITimeSync
     int RecommendFrameWaitDuration(bool requireIdleInput);
 }
 
-sealed class TimeSync : ITimeSync
+sealed class TimeSync(
+    TimeSyncOptions options,
+    ILogger logger
+) : ITimeSync
 {
     static int counter;
 
-    readonly int minFrameAdvantage;
-    readonly int maxFrameAdvantage;
+    readonly int minFrameAdvantage = options.MinFrameAdvantage;
+    readonly int maxFrameAdvantage = options.MaxFrameAdvantage;
 
-    readonly int[] local;
-    readonly int[] remote;
-    readonly GameInput[] lastInputs;
-
-    public TimeSync(TimeSyncOptions? options = null)
-    {
-        options ??= new();
-        local = new int[options.FrameWindowSize];
-        remote = new int[options.FrameWindowSize];
-        lastInputs = new GameInput[options.MinUniqueFrames];
-        minFrameAdvantage = options.MinFrameAdvantage;
-        maxFrameAdvantage = options.MaxFrameAdvantage;
-    }
+    readonly int[] local = new int[options.FrameWindowSize];
+    readonly int[] remote = new int[options.FrameWindowSize];
+    readonly GameInput[] lastInputs = new GameInput[options.MinUniqueFrames];
 
     public void AdvanceFrame(in GameInput input, int advantage, int remoteAdvantage)
     {
@@ -77,7 +69,7 @@ sealed class TimeSync : ITimeSync
         // sleep for.
         var sleepFrames = (int)(((remoteAdvantage - localAdvantage) / 2) + 0.5f);
 
-        Tracer.Log("iteration {}:  sleep frames is {}", counter, sleepFrames);
+        logger.Info($"iteration {counter}:  sleep frames is {sleepFrames}");
 
         // Some things just aren't worth correcting for.  Make sure
         // the difference is relevant before proceeding.
@@ -93,9 +85,8 @@ sealed class TimeSync : ITimeSync
 
         for (i = 1; i < lastInputs.Length; i++)
         {
-            if (lastInputs[i].Equals(lastInputs[0], true)) continue;
-            Tracer.Log("iteration {}:  rejecting due to input stuff at position {}...!!!",
-                counter, i);
+            if (lastInputs[i].Equals(lastInputs[0], true, logger)) continue;
+            logger.Info($"iteration {counter}:  rejecting due to input stuff at position {i}...!!!");
 
             return 0;
         }

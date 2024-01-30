@@ -6,10 +6,10 @@ namespace nGGPO;
 public enum LogLevel : byte
 {
     Off,
-    Error,
-    Warning,
-    Information,
     Trace,
+    Information,
+    Warning,
+    Error,
 }
 
 [InterpolatedStringHandler]
@@ -49,7 +49,7 @@ sealed class ConsoleLogger : ILogger
 
     public void Message(LogLevel level, LogStringHandler builder)
     {
-        if (EnabledLevel is LogLevel.Off || EnabledLevel < level) return;
+        if (EnabledLevel is LogLevel.Off || level < EnabledLevel) return;
         Console.WriteLine(builder.GetFormattedText());
     }
 }

@@ -82,18 +82,22 @@ struct GameInput : IEquatable<GameInput>
         return builder.ToString();
     }
 
-    public readonly bool Equals(in GameInput other, bool bitsOnly)
+    public readonly bool Equals(in GameInput other, bool bitsOnly, ILogger? logger = null)
     {
-        if (!bitsOnly && Frame != other.Frame)
-            Tracer.Log("frames don't match: {}, {}", Frame, other.Frame);
-
-        if (Size != other.Size)
-            Tracer.Log("sizes don't match: {}, {}", Size, other.Size);
-
         var sameBits = Buffer.Equals(other.Buffer);
 
-        if (sameBits)
-            Tracer.Log("bits don't match");
+        if (logger is { EnabledLevel: >= LogLevel.Trace })
+        {
+            if (!bitsOnly && Frame != other.Frame)
+                logger.Trace($"frames don't match: {Frame}, {other.Frame}");
+
+            if (Size != other.Size)
+                logger.Trace($"sizes don't match: {Size}, {other.Size}");
+
+            if (!sameBits)
+                logger.Trace($"bits don't match");
+        }
+
 
         return (bitsOnly || Frame == other.Frame)
                && Size == other.Size

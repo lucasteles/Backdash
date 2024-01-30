@@ -108,7 +108,7 @@ ref struct InputDecompressor
         bitVector = new(bits);
     }
 
-    public bool NextInput()
+    public bool NextInput(ILogger? logger = null)
     {
         while (bitVector.Offset < numBits)
         {
@@ -149,7 +149,7 @@ ref struct InputDecompressor
                 return true;
             }
 
-            Tracer.Log("Skipping past frame:(%d) current is %d.\n", currentFrame, nextInput.Frame);
+            logger?.Info($"Skipping past frame:{currentFrame} current is {nextInput.Frame}");
 
             /*
              * Move forward 1 frame in the input stream.

@@ -9,23 +9,25 @@ namespace nGGPO.Network.Protocol;
 static class UdpProtocolFactory
 {
     public static UdpProtocol CreateDefault(
+        ILogger logger,
         BackgroundJobManager jobManager,
         UdpObserverGroup<ProtocolMessage> peerObservers,
-        ProtocolOptions options,
         IUdpClient<ProtocolMessage> udp,
-        Connections localConnections
+        Connections localConnections,
+        ProtocolOptions options,
+        TimeSyncOptions timeSyncOptions
     )
     {
-        TimeSync timeSync = new();
+        TimeSync timeSync = new(timeSyncOptions, logger);
         InputEncoder inputEncoder = new();
         ProtocolState state = new(localConnections);
-        ProtocolLogger logger = new();
-        ProtocolEventDispatcher eventDispatcher = new(logger);
+        ProtocolLogger udpLogger = new();
+        ProtocolEventDispatcher eventDispatcher = new(udpLogger);
         DelayStrategy delayStrategy = new(options.Random);
 
-        ProtocolOutbox outbox = new(options, udp, delayStrategy, logger);
-        ProtocolInbox inbox = new(options, state, outbox, inputEncoder, eventDispatcher, logger);
-        ProtocolInputProcessor inputProcessor = new(options, state, localConnections,
+        ProtocolOutbox outbox = new(options, udp, delayStrategy, udpLogger);
+        ProtocolInbox inbox = new(options, state, outbox, inputEncoder, eventDispatcher, udpLogger, logger);
+        ProtocolInputProcessor inputProcessor = new(options, state, localConnections, logger,
             inputEncoder, timeSync, outbox, inbox);
 
         peerObservers.Add(inbox);

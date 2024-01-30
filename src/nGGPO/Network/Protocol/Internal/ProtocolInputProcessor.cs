@@ -22,6 +22,7 @@ sealed class ProtocolInputProcessor(
     ProtocolOptions options,
     ProtocolState state,
     Connections localConnections,
+    ILogger logger,
     IInputEncoder inputEncoder,
     ITimeSync timeSync,
     IMessageSender sender,
@@ -103,6 +104,7 @@ sealed class ProtocolInputProcessor(
         {
             if (lastAckedInput.Frame < inbox.LastAckedFrame)
             {
+                logger.Info($"Skipping past frame:{lastAckedInput.Frame} current is {inbox.LastAckedFrame}");
                 lastAckedInput = nextInput;
                 compressor.Last = lastAckedInput;
                 continue;
