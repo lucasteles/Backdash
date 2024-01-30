@@ -159,7 +159,7 @@ sealed class InputQueue
         // forward the prediction frame contents.  Be sure to return the
         // frame number requested by the client, though.
         input = prediction;
-        input.SetFrame(requestedFrame);
+        input.Frame = requestedFrame;
         logger.Info($"returning prediction frame number {input.Frame} ({prediction.Frame}).");
 
         return false;
@@ -186,7 +186,7 @@ sealed class InputQueue
         // Update the frame number for the input.  This will also set the
         // frame to GameInput.NullFrame for frames that get dropped (by
         // design).
-        input.SetFrame(newFrame);
+        input.Frame = newFrame;
     }
 
     void AddDelayedInputToQueue(ref GameInput input, Frame frameNumber)
@@ -200,7 +200,7 @@ sealed class InputQueue
 
         // Add the frame to the back of the queue
         inputs[head] = input;
-        inputs[head].SetFrame(frameNumber);
+        inputs[head].Frame = frameNumber;
         head = (head + 1) % inputs.Length;
         length++;
         firstFrame = false;

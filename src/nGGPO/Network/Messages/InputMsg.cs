@@ -17,7 +17,7 @@ record struct InputMsg : IBinarySerializable
     public int AckFrame;
     public ushort NumBits;
     public byte InputSize;
-    public GameInputBuffer Bits;
+    public InputMsgBuffer Bits;
 
     public static readonly InputMsg Empty = new();
 
@@ -78,4 +78,11 @@ struct PeerStatusBuffer
 
         return builder.ToString();
     }
+}
+
+[Serializable, InlineArray(Max.CompressedBytes)]
+public struct InputMsgBuffer
+{
+    byte element0;
+    public InputMsgBuffer(ReadOnlySpan<byte> bits) => bits.CopyTo(this);
 }

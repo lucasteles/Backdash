@@ -100,7 +100,7 @@ ref struct InputDecompressor
         nextInput.Size = inputMsg.InputSize;
 
         if (lastReceivedInput.Frame < 0)
-            lastReceivedInput.SetFrame(new(inputMsg.StartFrame - 1));
+            lastReceivedInput.Frame = new(inputMsg.StartFrame - 1);
 
         lastInputBits = nextInput.GetBitVector();
 
@@ -144,7 +144,7 @@ ref struct InputDecompressor
                  * Move forward 1 frame in the stream.
                  */
                 Tracer.Assert(currentFrame == nextInput.Frame.Next);
-                nextInput.SetFrame(new(currentFrame));
+                nextInput.Frame = new(currentFrame);
                 currentFrame++;
                 return true;
             }

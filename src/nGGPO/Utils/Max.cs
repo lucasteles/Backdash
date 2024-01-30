@@ -4,7 +4,8 @@ public static class Max
 {
     public const int MsgPlayers = 4;
     public const int Spectators = 32;
-    public const int CompressedBits = 4096;
+    public const int CompressedBytes = 512;
+    public const int CompressedBits = CompressedBytes * 8;
     public const int InputBytes = 9;
     public const int InputPlayers = 2;
     public const int PredictionFrames = 8;

@@ -1,4 +1,5 @@
 using System.Drawing;
+using nGGPO.Data;
 using nGGPO.Input;
 using nGGPO.Network.Messages;
 using nGGPO.Utils;
@@ -11,7 +12,7 @@ public sealed class PropertyTestAttribute : FsCheck.Xunit.PropertyAttribute
     public PropertyTestAttribute()
     {
         QuietOnSuccess = true;
-        MaxTest = 1_000;
+        MaxTest = 1000;
         Arbitrary = [typeof(MyGenerators)];
     }
 }
@@ -168,7 +169,7 @@ class MyGenerators
         })
         from inputBuffer in Gen.Sized(testSize =>
         {
-            var size = Math.Min(testSize, GameInputBuffer.Capacity);
+            var size = Math.Min(testSize, Max.CompressedBytes);
             return Gen.ArrayOf(size, Arb.From<byte>().Generator);
         })
         select new InputMsg
@@ -234,10 +235,39 @@ class MyGenerators
         })
         .ToArbitrary();
 
-    public static Arbitrary<GameInput> GameInputBufferGenerator() =>
-        Gen.Sized(testSize => Gen.ArrayOf(
-                Math.Max(testSize, GameInputBuffer.Capacity),
-                Arb.From<byte>().Generator))
-            .Select(bytes => new GameInput(bytes))
+    public static Arbitrary<Frame> FrameGenerator() => Arb.From(
+        from frame in Arb.From<PositiveInt>().Generator
+        select new Frame(frame.Item)
+    );
+
+    public static Arbitrary<GameInput> GameInputBufferGenerator() => Arb.From(
+        from frame in Arb.From<Frame>().Generator
+        from bytes in Gen.ArrayOf(GameInputBuffer.Capacity / 2, Arb.From<byte>().Generator)
+        // Gen.Sized(testSize => Gen.ArrayOf(Math.Min(testSize, GameInputBuffer.Capacity), Arb.From<byte>().Generator))
+        select new GameInput(bytes)
+        {
+            Frame = frame,
+        }
+    );
+
+    public const int InputMsgCount = Max.CompressedBytes / GameInputBuffer.Capacity;
+
+    public static Arbitrary<PendingGameInputs> PendingGameInputBufferGenerator() =>
+        Gen.Sized(testSize =>
+            {
+                var size = Math.Clamp(testSize, 1, 5);
+                var index = 1;
+                var indexed = Arb.From<GameInput>().Generator.Select(gi =>
+                {
+                    gi.Frame = new(index);
+                    Interlocked.Increment(ref index);
+                    return gi;
+                });
+
+                return Gen.ArrayOf(size, indexed);
+            })
+            .Select(gis => new PendingGameInputs(gis))
             .ToArbitrary();
 }
+
+record class PendingGameInputs(GameInput[] Values);

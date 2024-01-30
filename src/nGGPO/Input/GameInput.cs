@@ -29,7 +29,7 @@ public struct GameInputBuffer
 
 struct GameInput : IEquatable<GameInput>
 {
-    public Frame Frame { get; private set; } = Frame.Null;
+    public Frame Frame { get; set; } = Frame.Null;
 
     public GameInputBuffer Buffer;
 
@@ -68,7 +68,6 @@ struct GameInput : IEquatable<GameInput>
 
     public readonly bool IsEmpty => Size is 0;
     public void IncrementFrame() => Frame = Frame.Next;
-    public void SetFrame(Frame frame) => Frame = frame;
     public void ResetFrame() => Frame = Frame.Null;
     public void Clear() => AsSpan().Clear();
 

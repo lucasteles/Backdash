@@ -1,4 +1,5 @@
 using System.Threading.Channels;
+using nGGPO.Data;
 using nGGPO.Input;
 using nGGPO.Network.Messages;
 using nGGPO.Network.Protocol.Internal;
@@ -8,7 +9,7 @@ namespace nGGPO.Tests.Specs.Input;
 public class InputEncoderTests
 {
     [Fact]
-    public void ShouldCompressAndDecompress()
+    public void ShouldCompressAndDecompressSample()
     {
         var lastAcked = CreateInput(0, [1]);
 
@@ -19,10 +20,7 @@ public class InputEncoderTests
             CreateInput(3, [6], [7])
         ];
 
-        var compressed = GetCompressedMsg(
-            in lastAcked,
-            inputList
-        );
+        var compressed = GetCompressedMsg(in lastAcked, inputList);
 
         var decompressedInputs = DecompressToList(compressed);
 
@@ -37,6 +35,21 @@ public class InputEncoderTests
                 "00000110-00000000-00000000-00000000-00000000-00000000-00000000-00000000-00000000"
                 + "|00000111-00000000-00000000-00000000-00000000-00000000-00000000-00000000-00000000"
             );
+    }
+
+    [PropertyTest(Replay = "1982901546,297288611", MaxTest = 1)]
+    internal void ShouldCompressAndDecompress(PendingGameInputs gameInput)
+    {
+        GameInput lastAcked = new(new byte[GameInputBuffer.Capacity])
+        {
+            Frame = Frame.Zero,
+        };
+
+        var compressed = GetCompressedMsg(in lastAcked, gameInput.Values);
+
+        var decompressedInputs = DecompressToList(compressed);
+
+        decompressedInputs.Should().BeEquivalentTo(gameInput.Values);
     }
 
     static InputMsg GetCompressedMsg(in GameInput lastAcked, params GameInput[] pendingInputs)
@@ -77,16 +90,7 @@ public class InputEncoderTests
             player2.CopyTo(p2);
         }
 
-        result.SetFrame(new(frame));
+        result.Frame = new(frame);
         return result;
-    }
-
-    static async Task<ChannelReader<T>> CreateBuffer<T>(params T[] values) where T : notnull
-    {
-        var res = Channel.CreateUnbounded<T>();
-        foreach (var v in values) await res.Writer.WriteAsync(v);
-        await res.Reader.WaitToReadAsync();
-        res.Writer.Complete();
-        return res;
     }
 }
