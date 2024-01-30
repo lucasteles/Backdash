@@ -1,4 +1,5 @@
 using System.Net;
+using nGGPO.Data;
 using nGGPO.Input;
 using nGGPO.Network.Client;
 using nGGPO.Network.Messages;
@@ -10,7 +11,6 @@ using static ProtocolConstants;
 
 sealed class ProtocolInbox(
     ProtocolState state,
-    ProtocolInputQueue inputQueue,
     ProtocolEventDispatcher events,
     IMessageSender messageSender,
     Random random,
@@ -24,9 +24,11 @@ sealed class ProtocolInbox(
     public long LastReceivedTime { get; private set; }
 
     GameInput lastAckedInput = GameInput.Empty;
+    Frame lastAckedFrame = Frame.Null;
 
     public GameInput LastReceivedInput => lastReceivedInput;
     public GameInput LastAckedInput => lastAckedInput;
+    public Frame LastAckedFrame => lastAckedFrame;
 
     public async ValueTask OnUdpMessage(
         UdpClient<ProtocolMessage> _,
@@ -193,13 +195,7 @@ sealed class ProtocolInbox(
 
     bool OnInputAck(in ProtocolMessage msg)
     {
-        var pendingOutput = inputQueue.Pending;
-        while (!pendingOutput.IsEmpty && pendingOutput.Peek().Frame < msg.InputAck.AckFrame)
-        {
-            Tracer.Log("Throwing away pending output frame %d\n", pendingOutput.Peek().Frame);
-            lastAckedInput = pendingOutput.Pop();
-        }
-
+        lastAckedFrame = new Frame(msg.InputAck.AckFrame);
         return true;
     }
 

@@ -54,8 +54,8 @@ sealed class UdpProtocol : IUdpObserver<ProtocolMessage>, IDisposable
         {
             SendLatency = networkDelay,
         };
-        inputQueue = new(this.timeSync, localConnections, outbox);
-        inbox = new(state, inputQueue, eventDispatcher, outbox, random, logger);
+        inbox = new(state, eventDispatcher, outbox, random, logger);
+        inputQueue = new(this.timeSync, localConnections, outbox, inbox, state);
     }
 
     public void Dispose()
@@ -65,12 +65,7 @@ sealed class UdpProtocol : IUdpObserver<ProtocolMessage>, IDisposable
     }
 
     public ValueTask SendInput(in GameInput input, CancellationToken ct) =>
-        inputQueue.SendInput(in input,
-            state,
-            inbox.LastReceivedInput,
-            inbox.LastAckedInput,
-            ct
-        );
+        inputQueue.SendInput(input, ct);
 
     public void Disconnect()
     {
@@ -112,7 +107,7 @@ sealed class UdpProtocol : IUdpObserver<ProtocolMessage>, IDisposable
     public void GetNetworkStats(ref NetworkStats stats)
     {
         stats.Ping = state.Stats.RoundTripTime;
-        stats.SendQueueLen = inputQueue.Pending.Size;
+        stats.SendQueueLen = inputQueue.PendingNumber;
         stats.RemoteFramesBehind = state.Fairness.RemoteFrameAdvantage;
         stats.LocalFramesBehind = state.Fairness.LocalFrameAdvantage;
     }

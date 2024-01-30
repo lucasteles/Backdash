@@ -41,18 +41,3 @@ sealed class CircularBuffer<T>(int capacity = 64)
         Size++;
     }
 }
-
-public static class CircularBuffer
-{
-    const int DefaultSize = 64;
-
-    public static Channel<T> CreateChannel<T>(int size = DefaultSize) =>
-        Channel.CreateBounded<T>(
-            new BoundedChannelOptions(size)
-            {
-                SingleWriter = true,
-                SingleReader = true,
-                AllowSynchronousContinuations = true,
-                FullMode = BoundedChannelFullMode.DropOldest,
-            });
-}

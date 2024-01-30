@@ -1,4 +1,4 @@
-using nGGPO.Data;
+using System.Threading.Channels;
 using nGGPO.Input;
 using nGGPO.Network.Messages;
 using nGGPO.Network.Protocol.Internal;
@@ -8,7 +8,7 @@ namespace nGGPO.Tests.Specs.Input;
 public class InputEncoderTests
 {
     [Fact]
-    public void Test1()
+    public async Task Test1()
     {
         var lastAcked = CreateInput(0, [1]);
         var lastSent = GameInput.Empty;
@@ -20,18 +20,19 @@ public class InputEncoderTests
             CreateInput(3, [6], [7])
         ];
 
-        var pendingInputs = CreateBuffer(inputList);
+        var pendingInputs = await CreateBuffer(inputList);
 
         var compressed = InputEncoder.Compress(
+            pendingInputs,
             in lastAcked,
-            in pendingInputs,
-            ref lastSent
+            ref lastSent,
+            out var count
         );
 
         var decompressedInputs = DecompressToList(compressed);
 
         decompressedInputs.Should().BeEquivalentTo(inputList);
-
+        count.Should().Be(inputList.Length);
         decompressedInputs
             .Select(x => x.Buffer.ToString())
             .Should().BeEquivalentTo(
@@ -60,10 +61,12 @@ public class InputEncoderTests
         return result;
     }
 
-    static CircularBuffer<T> CreateBuffer<T>(params T[] values) where T : notnull
+    static async Task<ChannelReader<T>> CreateBuffer<T>(params T[] values) where T : notnull
     {
-        CircularBuffer<T> res = new();
-        foreach (var v in values) res.Push(v);
+        var res = Channel.CreateUnbounded<T>();
+        foreach (var v in values) await res.Writer.WriteAsync(v);
+        await res.Reader.WaitToReadAsync();
+        res.Writer.Complete();
         return res;
     }
 

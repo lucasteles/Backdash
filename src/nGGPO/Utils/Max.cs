@@ -10,5 +10,5 @@ public static class Max
     public const int PredictionFrames = 8;
     public const int UdpPacketSize = 65_527;
     public const int UdpEndpoints = 16;
-    public const int PollableHandles = 64;
+    public const int InputQueue = 64;
 }

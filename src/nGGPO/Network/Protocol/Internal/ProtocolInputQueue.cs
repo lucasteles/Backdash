@@ -1,3 +1,4 @@
+using System.Threading.Channels;
 using nGGPO.Data;
 using nGGPO.Input;
 using nGGPO.Network.Messages;
@@ -8,22 +9,43 @@ namespace nGGPO.Network.Protocol.Internal;
 sealed class ProtocolInputQueue(
     TimeSync timeSync,
     Connections localConnections,
-    IMessageSender sender
+    IMessageSender sender,
+    ProtocolInbox inbox,
+    ProtocolState state
 )
 {
     GameInput lastSentInput = GameInput.Empty;
+    GameInput lastAckedInput = GameInput.Empty;
 
     readonly CircularBuffer<GameInput> pendingOutput = new();
-    public CircularBuffer<GameInput> Pending => pendingOutput;
 
-    public ValueTask SendInput(
-        in GameInput input,
-        ProtocolState state,
-        in GameInput lastReceived,
-        in GameInput lastAcked,
+    readonly Channel<GameInput> inputQueue =
+        Channel.CreateBounded<GameInput>(
+            new BoundedChannelOptions(Max.InputQueue)
+            {
+                SingleWriter = true,
+                SingleReader = true,
+                AllowSynchronousContinuations = true,
+                FullMode = BoundedChannelFullMode.Wait,
+            });
+
+    int pendingNumber;
+
+    public int PendingNumber => pendingNumber;
+
+
+    public async ValueTask SendInput(
+        GameInput input,
         CancellationToken ct
     )
     {
+        Tracer.Assert(
+            Max.InputBytes * Max.MsgPlayers * Mem.ByteSize
+            <
+            1 << BitVector.BitOffset.NibbleSize
+        );
+
+
         if (state.Status is ProtocolStatus.Running)
         {
             /*
@@ -39,40 +61,42 @@ sealed class ProtocolInputQueue(
              * (better, but still ug).  For the meantime, make this queue really big to decrease
              * the odds of this happening...
              */
-            pendingOutput.Push(in input);
+            Interlocked.Increment(ref pendingNumber);
+            await inputQueue.Writer.WriteAsync(input, ct).ConfigureAwait(false);
         }
-
-        Tracer.Assert(
-            Max.InputBytes * Max.MsgPlayers * Mem.ByteSize
-            <
-            1 << BitVector.BitOffset.NibbleSize
-        );
-
-        ProtocolMessage msg = new(MsgType.Input)
-        {
-            Input = CreateInputMsg(state.Status, lastReceived, lastAcked),
-        };
-
-        return sender.SendMessage(ref msg, ct);
     }
 
-    InputMsg CreateInputMsg(
-        ProtocolStatus protocolStatus,
-        in GameInput lastReceivedInput,
-        in GameInput lastAckedInput
-    )
+    public async Task StartPumping(CancellationToken ct)
+    {
+        while (!ct.IsCancellationRequested)
+        {
+            await inputQueue.Reader.WaitToReadAsync(ct).ConfigureAwait(false);
+
+            ProtocolMessage msg = new(MsgType.Input)
+            {
+                Input = CreateInputMsg(inputQueue.Reader),
+            };
+
+            await sender.SendMessage(ref msg, ct).ConfigureAwait(false);
+        }
+    }
+
+    InputMsg CreateInputMsg(ChannelReader<GameInput> reader)
     {
         if (pendingOutput.IsEmpty)
             return InputMsg.Empty;
 
+        // inbox.LastAckedFrame,
         var compressedInput = InputEncoder.Compress(
-            in lastAckedInput,
-            in pendingOutput,
-            ref lastSentInput
+            reader,
+            lastAckedInput,
+            ref lastSentInput,
+            out int count
         );
 
-        compressedInput.AckFrame = lastReceivedInput.Frame;
-        compressedInput.DisconnectRequested = protocolStatus is not ProtocolStatus.Disconnected;
+        Interlocked.Add(ref pendingNumber, count);
+        compressedInput.AckFrame = inbox.LastReceivedInput.Frame;
+        compressedInput.DisconnectRequested = state.Status is not ProtocolStatus.Disconnected;
 
         if (localConnections.Length > 0)
             localConnections.Statuses.CopyTo(compressedInput.PeerConnectStatus);

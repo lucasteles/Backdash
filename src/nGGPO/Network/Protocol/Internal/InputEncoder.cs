@@ -1,3 +1,4 @@
+using System.Threading.Channels;
 using nGGPO.Data;
 using nGGPO.Input;
 using nGGPO.Network.Messages;
@@ -8,27 +9,29 @@ namespace nGGPO.Network.Protocol.Internal;
 sealed class InputEncoder
 {
     public static InputMsg Compress(
+        ChannelReader<GameInput> pendingReader,
         in GameInput lastAcked,
-        in CircularBuffer<GameInput> pendingOutput,
-        ref GameInput lastSent
+        ref GameInput lastSent,
+        out int counter
     )
     {
-        ref var front = ref pendingOutput.Peek();
-
-        InputMsg inputMsg = new()
-        {
-            InputSize = (byte)front.Size,
-            StartFrame = front.Frame,
-        };
-
+        counter = 0;
+        InputMsg inputMsg = new();
         var last = lastAcked;
         var lastBits = last.GetBitVector();
         BitVector.BitOffset bitWriter = new(inputMsg.Bits);
-        Tracer.Assert(last.Frame.IsNull || last.Frame.Next == inputMsg.StartFrame);
 
-        for (var i = 0; i < pendingOutput.Size; i++)
+        var first = true;
+        while (pendingReader.TryRead(out var current))
         {
-            ref var current = ref pendingOutput[i];
+            counter++;
+            if (first)
+            {
+                inputMsg.InputSize = (byte)current.Size;
+                inputMsg.StartFrame = current.Frame;
+                Tracer.Assert(last.Frame.IsNull || last.Frame.Next == inputMsg.StartFrame);
+                first = false;
+            }
 
             if (!current.Equals(last, bitsOnly: true))
             {
@@ -60,10 +63,78 @@ sealed class InputEncoder
         return inputMsg;
     }
 
-    public static DecompressReader Decompress(ref InputMsg inputMsg, ref GameInput lastReceivedInput) =>
+    public static CompressorReader Decompress(ref InputMsg inputMsg, ref GameInput lastReceivedInput) =>
         new(ref inputMsg, ref lastReceivedInput);
 
-    public ref struct DecompressReader
+
+    public ref struct CompressorWriter
+    {
+        readonly BitVector lastBits;
+
+        ref GameInput last;
+        ref GameInput lastSent;
+        ref InputMsg inputMsg;
+        BitVector.BitOffset bitWriter;
+        int counter;
+
+        public int Count => counter;
+
+        public CompressorWriter(
+            ref GameInput lastAcked,
+            ref GameInput lastSent,
+            ref InputMsg msg
+        )
+        {
+            counter = 0;
+            last = ref lastAcked;
+            this.lastSent = ref lastSent;
+            lastBits = last.GetBitVector();
+            inputMsg = ref msg;
+            bitWriter = new(msg.Bits);
+
+            msg.StartFrame = Frame.NullValue;
+        }
+
+        public void WriteInput(ref GameInput current)
+        {
+            counter++;
+            if (inputMsg.StartFrame is Frame.NullValue)
+            {
+                inputMsg.InputSize = (byte)current.Size;
+                inputMsg.StartFrame = current.Frame;
+                Tracer.Assert(last.Frame.IsNull || last.Frame.Next == inputMsg.StartFrame);
+            }
+
+            if (!current.Equals(last, bitsOnly: true))
+            {
+                var currentBits = current.GetBitVector();
+                for (var j = 0; j < currentBits.BitCount; j++)
+                {
+                    if (currentBits[j] == lastBits[j])
+                        continue;
+
+                    bitWriter.SetNext();
+
+                    if (currentBits[j])
+                        bitWriter.SetNext();
+                    else
+                        bitWriter.ClearNext();
+
+                    bitWriter.WriteNibble(j);
+                }
+            }
+
+            bitWriter.ClearNext();
+            last = current;
+            lastSent = current;
+
+
+            inputMsg.NumBits = (ushort)bitWriter.Offset;
+            Tracer.Assert(inputMsg.NumBits < Max.CompressedBits);
+        }
+    }
+
+    public ref struct CompressorReader
     {
         readonly ushort numBits;
         readonly BitVector lastInputBits;
@@ -71,7 +142,7 @@ sealed class InputEncoder
         BitVector.BitOffset bitVector;
         int currentFrame;
 
-        public DecompressReader(
+        public CompressorReader(
             ref InputMsg inputMsg,
             ref GameInput lastReceivedInput
         )

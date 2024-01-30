@@ -1,6 +1,5 @@
 using System.Net;
 using System.Threading.Channels;
-using nGGPO.Data;
 using nGGPO.Network.Client;
 using nGGPO.Network.Messages;
 using nGGPO.Utils;
@@ -21,7 +20,16 @@ sealed class ProtocolOutbox(
         public ProtocolMessage Msg;
     }
 
-    readonly Channel<QueueEntry> sendQueue = CircularBuffer.CreateChannel<QueueEntry>();
+    readonly Channel<QueueEntry> sendQueue =
+        Channel.CreateBounded<QueueEntry>(
+            new BoundedChannelOptions(64)
+            {
+                SingleWriter = true,
+                SingleReader = true,
+                AllowSynchronousContinuations = true,
+                FullMode = BoundedChannelFullMode.DropOldest,
+            });
+
     readonly CancellationTokenSource sendQueueCancellation = new();
 
     readonly ushort magicNumber = MagicNumber.Generate();
