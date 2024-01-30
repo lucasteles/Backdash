@@ -1,5 +1,3 @@
-using nGGPO.Data;
-
 namespace nGGPO.Network.Protocol.Internal;
 
 interface IProtocolEventDispatcher
@@ -11,25 +9,25 @@ interface IProtocolEventDispatcher
 
 sealed class ProtocolEventDispatcher(IProtocolLogger logger) : IProtocolEventDispatcher
 {
-    readonly CircularBuffer<ProtocolEventData> eventQueue = new();
+    readonly Queue<ProtocolEventData> eventQueue = new(64);
 
     public void Enqueue(ProtocolEvent evt) => Enqueue(new ProtocolEventData(evt));
 
     public void Enqueue(ProtocolEventData evt)
     {
         logger.LogEvent("Queuing event", evt);
-        eventQueue.Push(evt);
+        eventQueue.Enqueue(evt);
     }
 
     public bool GetEvent(out ProtocolEventData? evt)
     {
-        if (eventQueue.IsEmpty)
+        if (eventQueue.Count is 0)
         {
             evt = default;
             return false;
         }
 
-        evt = eventQueue.Pop();
+        evt = eventQueue.Dequeue();
         return true;
     }
 }
