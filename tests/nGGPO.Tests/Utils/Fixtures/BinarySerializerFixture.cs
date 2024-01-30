@@ -26,7 +26,7 @@ readonly ref struct BinarySerializerFixture
         Writer = new(Buffer, ref WriteOffset);
     }
 
-    public readonly void Dispose() => Buffer.Dispose();
+    public void Dispose() => Buffer.Dispose();
 
     class Offset(int write = 0, int read = 0)
     {

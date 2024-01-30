@@ -1,4 +1,4 @@
-namespace nGGPO.Network.Protocol;
+namespace nGGPO.Utils;
 
 public interface IBackgroundTask
 {
