@@ -5,7 +5,7 @@ namespace nGGPO.Network.Client;
 interface IUdpObserver<T> where T : struct
 {
     ValueTask OnUdpMessage(
-        UdpClient<T> sender,
+        IUdpClient<T> sender,
         T message,
         SocketAddress from,
         CancellationToken stoppingToken
@@ -20,7 +20,7 @@ sealed class UdpObserverGroup<T> : IUdpObserver<T>
     public void Add(IUdpObserver<T> observer) => observers.Add(observer);
     public void Remove(IUdpObserver<T> observer) => observers.Remove(observer);
 
-    public async ValueTask OnUdpMessage(UdpClient<T> sender, T message, SocketAddress from,
+    public async ValueTask OnUdpMessage(IUdpClient<T> sender, T message, SocketAddress from,
         CancellationToken stoppingToken)
     {
         for (var i = 0; i < observers.Count; i++)

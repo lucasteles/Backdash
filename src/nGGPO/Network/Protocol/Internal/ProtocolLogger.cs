@@ -2,15 +2,21 @@ using nGGPO.Network.Messages;
 
 namespace nGGPO.Network.Protocol.Internal;
 
-sealed class ProtocolLogger
+interface IProtocolLogger
+{
+    void LogMsg(string send, in ProtocolMessage msg);
+    void LogEvent(string queuingEvent, ProtocolEventData evt);
+}
+
+sealed class ProtocolLogger : IProtocolLogger
 {
     public void LogMsg(string send, in ProtocolMessage msg)
     {
-        throw new NotImplementedException();
+        // Implement later
     }
 
     public void LogEvent(string queuingEvent, ProtocolEventData evt)
     {
-        throw new NotImplementedException();
+        // Implement later
     }
 }

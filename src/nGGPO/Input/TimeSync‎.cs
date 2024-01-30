@@ -1,4 +1,4 @@
-using nGGPO.Network.Protocol;
+using nGGPO.Network.Protocol.Internal;
 using nGGPO.Utils;
 
 namespace nGGPO.Input;
@@ -11,7 +11,14 @@ public sealed class TimeSyncOptions
     public int MaxFrameAdvantage { get; init; } = 9;
 }
 
-sealed class TimeSync
+interface ITimeSync
+{
+    void AdvanceFrame(in GameInput input, ProtocolState.AdvantageState state);
+
+    int RecommendFrameWaitDuration(bool requireIdleInput);
+}
+
+sealed class TimeSync : ITimeSync
 {
     static int counter;
 

@@ -2,17 +2,26 @@ using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Threading.Channels;
+using nGGPO.Network.Protocol;
 using nGGPO.Serialization;
 using nGGPO.Utils;
 
 namespace nGGPO.Network.Client;
 
+interface IUdpClient<T> : IBackgroundTask where T : struct
+{
+    ValueTask SendTo(
+        SocketAddress peerAddress,
+        in T payload,
+        CancellationToken ct = default
+    );
+}
+
 sealed class UdpClient<T>(
     int port,
     IUdpObserver<T> observer,
     IBinarySerializer<T> serializer
-) : IDisposable
-    where T : struct
+) : IDisposable, IUdpClient<T> where T : struct
 {
     public bool LogsEnabled = true;
     readonly Socket socket = CreateSocket(port);
@@ -31,14 +40,14 @@ sealed class UdpClient<T>(
             }
         );
 
-    public async Task Start(CancellationToken cancellationToken = default)
+    public async Task Start(CancellationToken ct)
     {
         if (cancellation is not null)
             return;
 
         cancellation = new();
 
-        using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, cancellation.Token);
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct, cancellation.Token);
 
         await Task.WhenAll(
             ReadLoop(cts.Token),

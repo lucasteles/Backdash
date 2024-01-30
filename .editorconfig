@@ -158,6 +158,7 @@ dotnet_diagnostic.S3237.severity = silent # Use the 'value' contextual keyword i
 dotnet_diagnostic.S1104.severity = silent # encapsulate fields
 dotnet_diagnostic.S3877.severity = silent # Remove this 'throw' expression.
 dotnet_diagnostic.S2699.severity = silent # add assert to test (not working with FsCheck)
+dotnet_diagnostic.S1117.severity = silent # hiding field
 
 ## AsyncFixer
 dotnet_diagnostic.AsyncFixer01.severity = suggestion # The method dont needs async

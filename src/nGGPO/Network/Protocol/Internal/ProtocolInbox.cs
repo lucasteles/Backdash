@@ -9,13 +9,26 @@ namespace nGGPO.Network.Protocol.Internal;
 
 using static ProtocolConstants;
 
+interface IProtocolInbox
+{
+    GameInput LastReceivedInput { get; }
+    long LastReceivedTime { get; }
+    Frame LastAckedFrame { get; }
+
+    public ValueTask OnUdpMessage(
+        IUdpClient<ProtocolMessage> sender,
+        ProtocolMessage message,
+        SocketAddress from,
+        CancellationToken stoppingToken);
+}
+
 sealed class ProtocolInbox(
+    ProtocolOptions options,
     ProtocolState state,
-    ProtocolEventDispatcher events,
+    IProtocolEventDispatcher events,
     IMessageSender messageSender,
-    Random random,
-    ProtocolLogger logger
-) : IUdpObserver<ProtocolMessage>
+    IProtocolLogger logger
+) : IUdpObserver<ProtocolMessage>, IProtocolInbox
 {
     ushort remoteMagicNumber;
     ushort nextRecvSeq;
@@ -29,12 +42,12 @@ sealed class ProtocolInbox(
     public Frame LastAckedFrame => lastAckedFrame;
 
     public async ValueTask OnUdpMessage(
-        UdpClient<ProtocolMessage> _,
+        IUdpClient<ProtocolMessage> sender,
         ProtocolMessage message,
         SocketAddress from,
         CancellationToken stoppingToken)
     {
-        if (!from.Equals(state.PeerAddress.Address))
+        if (!from.Equals(options.Peer.Address))
             return;
 
         var seqNum = message.Header.SequenceNumber;
@@ -184,7 +197,7 @@ sealed class ProtocolInbox(
 
         Tracer.Log("Sending frame {0} to emu queue {1} ({2}).\n",
             lastReceivedInput.Frame,
-            state.QueueIndex,
+            options.Queue,
             lastAckedFrame
         );
 
@@ -263,7 +276,7 @@ sealed class ProtocolInbox(
 
             events.Enqueue(evt);
 
-            state.Sync.Random = random.NextUInt();
+            state.Sync.Random = options.Random.NextUInt();
             replyMsg = new(MsgType.SyncRequest)
             {
                 SyncRequest = new()

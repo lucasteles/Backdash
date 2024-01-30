@@ -6,12 +6,13 @@ using nGGPO.Utils;
 
 namespace nGGPO.Network.Protocol.Internal;
 
+interface IProtocolOutbox : IMessageSender, IBackgroundTask, IDisposable;
+
 sealed class ProtocolOutbox(
-    Peer peer,
-    UdpClient<ProtocolMessage> udp,
-    ProtocolLogger logger,
-    Random random
-) : IDisposable, IMessageSender
+    ProtocolOptions options,
+    IUdpClient<ProtocolMessage> udp,
+    IProtocolLogger logger
+) : IProtocolOutbox
 {
     struct QueueEntry
     {
@@ -38,7 +39,7 @@ sealed class ProtocolOutbox(
     int nextSendSeq;
 
     public long LastSendTime { get; private set; }
-    public int SendLatency { get; init; }
+    readonly int sendLatency = options.NetworkDelay;
 
     public ValueTask SendMessage(ref ProtocolMessage msg, CancellationToken ct)
     {
@@ -56,7 +57,7 @@ sealed class ProtocolOutbox(
         return sendQueue.Writer.WriteAsync(new()
         {
             QueueTime = TimeStamp.GetMilliseconds(),
-            DestAddr = peer.Address,
+            DestAddr = options.Peer.Address,
             Msg = msg,
         }, cts.Token);
     }
@@ -66,11 +67,11 @@ sealed class ProtocolOutbox(
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(sendQueueCancellation.Token, ct);
         await foreach (var entry in sendQueue.Reader.ReadAllAsync(cts.Token).ConfigureAwait(false))
         {
-            if (SendLatency > 0)
+            if (sendLatency > 0)
             {
                 // should really come up with a gaussian distribution based on the configured
                 // value, but this will do for now.
-                var jitter = (SendLatency * 2 / 3) + (random.Next() % SendLatency / 3);
+                var jitter = (sendLatency * 2 / 3) + (options.Random.Next() % sendLatency / 3);
 
                 var delayDiff = TimeStamp.GetMilliseconds() - entry.QueueTime + jitter;
                 if (delayDiff > 0)

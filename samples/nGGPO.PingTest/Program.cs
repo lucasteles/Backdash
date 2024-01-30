@@ -6,7 +6,7 @@ using UdpPeerClient = nGGPO.Network.Client.UdpClient<Message>;
 
 var processedMessageCount = 0UL;
 
-ValueTask ProcessMessage(UdpPeerClient client, Message message, SocketAddress sender,
+ValueTask ProcessMessage(IUdpClient<Message> client, Message message, SocketAddress sender,
     CancellationToken ct)
 {
     if (ct.IsCancellationRequested) return ValueTask.CompletedTask;
@@ -84,15 +84,13 @@ public enum Message
 }
 
 sealed class UdpObserver<T>(
-    Func<UdpClient<T>, T, SocketAddress, CancellationToken, ValueTask> onMessage)
+    Func<IUdpClient<T>, T, SocketAddress, CancellationToken, ValueTask> onMessage)
     : IUdpObserver<T>
     where T : struct
 {
-    public ValueTask OnUdpMessage(
-        UdpClient<T> sender,
+    public ValueTask OnUdpMessage(IUdpClient<T> sender,
         T message,
         SocketAddress from,
-        CancellationToken stoppingToken
-    ) =>
+        CancellationToken stoppingToken) =>
         onMessage(sender, message, from, stoppingToken);
 }

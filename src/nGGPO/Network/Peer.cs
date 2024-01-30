@@ -8,6 +8,8 @@ sealed class Peer(IPEndPoint endPoint) : IEquatable<Peer>
     public SocketAddress Address { get; } = endPoint.Serialize();
 
     public static implicit operator Peer(IPEndPoint endPoint) => new(endPoint);
+    public static implicit operator IPEndPoint(Peer peer) => peer.EndPoint;
+    public static implicit operator SocketAddress(Peer peer) => peer.Address;
 
     public bool Equals(Peer? other)
     {

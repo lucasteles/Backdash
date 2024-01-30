@@ -2,7 +2,14 @@ using nGGPO.Data;
 
 namespace nGGPO.Network.Protocol.Internal;
 
-sealed class ProtocolEventDispatcher(ProtocolLogger logger)
+interface IProtocolEventDispatcher
+{
+    void Enqueue(ProtocolEvent evt);
+    void Enqueue(ProtocolEventData evt);
+    bool GetEvent(out ProtocolEventData? evt);
+}
+
+sealed class ProtocolEventDispatcher(IProtocolLogger logger) : IProtocolEventDispatcher
 {
     readonly CircularBuffer<ProtocolEventData> eventQueue = new();
 

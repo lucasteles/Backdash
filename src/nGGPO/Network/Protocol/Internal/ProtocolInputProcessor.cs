@@ -6,20 +6,32 @@ using nGGPO.Utils;
 
 namespace nGGPO.Network.Protocol.Internal;
 
+interface IProtocolInputProcessor : IBackgroundTask
+{
+    int PendingNumber { get; }
+    GameInput LastSent { get; }
+
+    ValueTask SendInput(
+        GameInput input,
+        CancellationToken ct
+    );
+}
+
 sealed class ProtocolInputProcessor(
-    TimeSync timeSync,
+    ProtocolOptions options,
+    ProtocolState state,
     Connections localConnections,
+    ITimeSync timeSync,
     IMessageSender sender,
-    ProtocolInbox inbox,
-    ProtocolState state
-)
+    IProtocolInbox inbox
+) : IProtocolInputProcessor
 {
     GameInput lastSentInput = GameInput.Empty;
     GameInput lastAckedInput = GameInput.Empty;
 
     readonly Channel<GameInput> inputQueue =
         Channel.CreateBounded<GameInput>(
-            new BoundedChannelOptions(Max.InputQueue)
+            new BoundedChannelOptions(options.MaxInputQueue)
             {
                 SingleWriter = true,
                 SingleReader = true,
@@ -69,6 +81,8 @@ sealed class ProtocolInputProcessor(
         while (!ct.IsCancellationRequested)
         {
             await inputQueue.Reader.WaitToReadAsync(ct).ConfigureAwait(false);
+
+            if (ct.IsCancellationRequested) break;
 
             ProtocolMessage msg = new(MsgType.Input)
             {

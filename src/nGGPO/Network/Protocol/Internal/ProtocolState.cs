@@ -1,9 +1,19 @@
 using nGGPO.Data;
 
-namespace nGGPO.Network.Protocol;
+namespace nGGPO.Network.Protocol.Internal;
 
-sealed class ProtocolState
+sealed class ProtocolState(Connections localConnectStatus)
 {
+    public readonly SyncState Sync = new();
+    public readonly RunningState Running = new();
+    public readonly ConnectionState Connection = new();
+    public readonly AdvantageState Fairness = new();
+    public readonly Statistics Metrics = new();
+
+    public readonly Connections LocalConnectStatus = localConnectStatus;
+    public readonly Connections PeerConnectStatus = new(Frame.Null);
+    public ProtocolStatus Status;
+
     internal class SyncState
     {
         public uint RemainingRoundtrips;
@@ -33,25 +43,5 @@ sealed class ProtocolState
     internal class Statistics
     {
         public int RoundTripTime;
-    }
-
-    public readonly SyncState Sync = new();
-    public readonly RunningState Running = new();
-    public readonly ConnectionState Connection = new();
-    public readonly AdvantageState Fairness = new();
-    public readonly Statistics Metrics = new();
-    public readonly Peer PeerAddress;
-
-    public readonly Connections LocalConnectStatus;
-    public readonly Connections PeerConnectStatus;
-    public ProtocolStatus Status;
-
-    public required QueueIndex QueueIndex { get; init; }
-
-    public ProtocolState(Peer peer, Connections localConnectStatus)
-    {
-        PeerConnectStatus = new(Frame.Null);
-        LocalConnectStatus = localConnectStatus;
-        PeerAddress = peer;
     }
 }

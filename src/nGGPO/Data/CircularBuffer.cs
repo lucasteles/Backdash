@@ -1,5 +1,3 @@
-using System.Threading.Channels;
-
 namespace nGGPO.Data;
 
 sealed class CircularBuffer<T>(int capacity = 64)

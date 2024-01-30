@@ -18,44 +18,59 @@ sealed class UdpProtocol : IUdpObserver<ProtocolMessage>, IDisposable
      * Packet loss...
      */
     public long ShutdownTimeout { get; set; }
-    public int DisconnectTimeout { get; set; }
-    public int DisconnectNotifyStart { get; set; }
 
     /*
      * Rift synchronization.
      */
-    readonly TimeSync timeSync;
+    readonly ITimeSync timeSync;
+    readonly ProtocolOptions options;
 
 
     // services
-    readonly ProtocolInbox inbox;
-    readonly ProtocolOutbox outbox;
-    readonly ProtocolInputProcessor inputProcessor;
+    readonly IProtocolInbox inbox;
+    readonly IProtocolOutbox outbox;
+    readonly IProtocolInputProcessor inputProcessor;
 
-    public UdpProtocol(TimeSync timeSync,
-        Random random,
-        UdpClient<ProtocolMessage> udp,
-        QueueIndex queue,
-        IPEndPoint peerAddress,
-        Connections localConnections,
-        int networkDelay = 0
+
+    public UdpProtocol(
+        ProtocolOptions options,
+        ProtocolState state,
+        ITimeSync timeSync,
+        IProtocolInbox inbox,
+        IProtocolOutbox outbox,
+        IProtocolInputProcessor inputProcessor
     )
     {
+        this.state = state;
+        this.options = options;
         this.timeSync = timeSync;
+        this.outbox = outbox;
+        this.inbox = inbox;
+        this.inputProcessor = inputProcessor;
+    }
 
-        state = new(peerAddress, localConnections)
-        {
-            QueueIndex = queue,
-        };
-
+    public static UdpProtocol CreateDefault(
+        ProtocolOptions options,
+        UdpClient<ProtocolMessage> udp,
+        Connections localConnections
+    )
+    {
+        TimeSync timeSync = new();
+        ProtocolState state = new(localConnections);
         ProtocolLogger logger = new();
         ProtocolEventDispatcher eventDispatcher = new(logger);
-        outbox = new(state.PeerAddress, udp, logger, random)
-        {
-            SendLatency = networkDelay,
-        };
-        inbox = new(state, eventDispatcher, outbox, random, logger);
-        inputProcessor = new(this.timeSync, localConnections, outbox, inbox, state);
+        ProtocolOutbox outbox = new(options, udp, logger);
+        ProtocolInbox inbox = new(options, state, eventDispatcher, outbox, logger);
+        ProtocolInputProcessor inputProcessor = new(options, state, localConnections, timeSync, outbox, inbox);
+
+        return new(
+            options,
+            state,
+            timeSync,
+            inbox,
+            outbox,
+            inputProcessor
+        );
     }
 
     public void Dispose()
@@ -73,12 +88,10 @@ sealed class UdpProtocol : IUdpObserver<ProtocolMessage>, IDisposable
         ShutdownTimeout = TimeStamp.GetMilliseconds() + UdpShutdownTimer;
     }
 
-    public ValueTask OnUdpMessage(
-        UdpClient<ProtocolMessage> sender,
+    public ValueTask OnUdpMessage(IUdpClient<ProtocolMessage> sender,
         ProtocolMessage message,
         SocketAddress from,
-        CancellationToken stoppingToken
-    ) => inbox.OnUdpMessage(sender, message, from, stoppingToken);
+        CancellationToken stoppingToken) => inbox.OnUdpMessage(sender, message, from, stoppingToken);
 
     public Task Start(CancellationToken ct) =>
         Task.WhenAll(

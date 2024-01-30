@@ -155,19 +155,17 @@ sealed class Peer2PeerBackend<TInput, TGameState>
 
     UdpProtocol CreateProtocol(IPEndPoint endpoint, QueueIndex queue)
     {
-        UdpProtocol protocol = new(
-            timeSync: new(options.TimeSync),
-            random: options.Random,
-            udp: udp,
-            queue,
-            endpoint,
-            localConnections,
-            options.NetworkDelay
-        )
+        ProtocolOptions protocolOptions = new()
         {
+            Random = options.Random,
+            Queue = queue,
             DisconnectTimeout = options.DisconnectTimeout,
             DisconnectNotifyStart = options.DisconnectNotifyStart,
+            NetworkDelay = options.NetworkDelay,
+            Peer = endpoint,
         };
+
+        var protocol = UdpProtocol.CreateDefault(protocolOptions, udp, localConnections);
 
         protocol.Synchronize();
         peerObservers.Add(protocol);

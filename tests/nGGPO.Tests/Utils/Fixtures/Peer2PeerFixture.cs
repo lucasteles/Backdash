@@ -10,6 +10,8 @@ sealed class Peer2PeerFixture<T> : IDisposable where T : struct
 
     Task tasks = Task.CompletedTask;
 
+    readonly CancellationTokenSource cts = new();
+
     public Peer2PeerFixture(
         IBinarySerializer<T> serializer,
         int? serverPort = null,
@@ -23,10 +25,10 @@ sealed class Peer2PeerFixture<T> : IDisposable where T : struct
         Server.Socket.LogsEnabled = false;
         Client.Socket.LogsEnabled = false;
 
-        if (start) Start();
+        if (start) Start(cts.Token);
     }
 
-    public void Start() => tasks = Task.WhenAll(Server.Socket.Start(), Client.Socket.Start());
+    public void Start(CancellationToken ct) => tasks = Task.WhenAll(Server.Socket.Start(ct), Client.Socket.Start(ct));
 
     public void Deconstruct(out UdpClientContext<T> client, out UdpClientContext<T> server) =>
         (client, server) = (Client, Server);
