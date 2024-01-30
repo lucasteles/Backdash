@@ -56,12 +56,14 @@ sealed class UdpProtocol : IUdpObserver<ProtocolMessage>, IDisposable
     )
     {
         TimeSync timeSync = new();
+        InputEncoder inputEncoder = new();
         ProtocolState state = new(localConnections);
         ProtocolLogger logger = new();
         ProtocolEventDispatcher eventDispatcher = new(logger);
         ProtocolOutbox outbox = new(options, udp, logger);
-        ProtocolInbox inbox = new(options, state, eventDispatcher, outbox, logger);
-        ProtocolInputProcessor inputProcessor = new(options, state, localConnections, timeSync, outbox, inbox);
+        ProtocolInbox inbox = new(options, state, outbox, inputEncoder, eventDispatcher, logger);
+        ProtocolInputProcessor inputProcessor =
+            new(options, state, localConnections, inputEncoder, timeSync, outbox, inbox);
 
         return new(
             options,

@@ -43,7 +43,8 @@ public class InputEncoderTests
     {
         InputMsg inputMsg = new();
 
-        var compressor = InputEncoder.Compress(in lastAcked, ref inputMsg);
+        InputEncoder encoder = new();
+        var compressor = encoder.Compress(in lastAcked, ref inputMsg);
 
         foreach (var t in pendingInputs)
             compressor.WriteInput(in t);
@@ -56,7 +57,8 @@ public class InputEncoderTests
     {
         List<GameInput> inputs = [];
         GameInput lastRecv = GameInput.Empty;
-        var decompressor = InputEncoder.Decompress(ref inputMsg, ref lastRecv);
+        InputEncoder encoder = new();
+        var decompressor = encoder.Decompress(ref inputMsg, ref lastRecv);
         while (decompressor.NextInput())
             inputs.Add(lastRecv);
 

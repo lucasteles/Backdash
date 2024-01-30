@@ -21,10 +21,10 @@ sealed class ProtocolInputProcessor(
     ProtocolOptions options,
     ProtocolState state,
     Connections localConnections,
+    IInputEncoder inputEncoder,
     ITimeSync timeSync,
     IMessageSender sender,
-    IProtocolInbox inbox
-) : IProtocolInputProcessor
+    IProtocolInbox inbox) : IProtocolInputProcessor
 {
     GameInput lastSentInput = GameInput.Empty;
     GameInput lastAckedInput = GameInput.Empty;
@@ -96,7 +96,7 @@ sealed class ProtocolInputProcessor(
     public InputMsg CreateInputMsg(ChannelReader<GameInput> reader)
     {
         InputMsg compressedInput = new();
-        var compressor = InputEncoder.Compress(in lastAckedInput, ref compressedInput);
+        var compressor = inputEncoder.Compress(in lastAckedInput, ref compressedInput);
 
         while (reader.TryRead(out var nextInput))
         {

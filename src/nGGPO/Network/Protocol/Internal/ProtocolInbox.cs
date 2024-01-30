@@ -25,8 +25,9 @@ interface IProtocolInbox
 sealed class ProtocolInbox(
     ProtocolOptions options,
     ProtocolState state,
-    IProtocolEventDispatcher events,
     IMessageSender messageSender,
+    IInputEncoder inputEncoder,
+    IProtocolEventDispatcher events,
     IProtocolLogger logger
 ) : IUdpObserver<ProtocolMessage>, IProtocolInbox
 {
@@ -167,7 +168,7 @@ sealed class ProtocolInbox(
         //  */
         if (msg.Input.InputSize > 0)
         {
-            var decompressor = InputEncoder.Decompress(ref msg.Input, ref lastReceivedInput);
+            var decompressor = inputEncoder.Decompress(ref msg.Input, ref lastReceivedInput);
             while (decompressor.NextInput())
                 OnParsedInput();
         }
