@@ -29,6 +29,8 @@ sealed class Peer2PeerBackend<TInput, TGameState>
     readonly List<UdpProtocol> endpoints;
     readonly UdpObserverGroup<ProtocolMessage> peerObservers = new();
     readonly BackgroundJobManager backgroundJobManager = new();
+    readonly ILogger logger;
+
     readonly RollbackOptions options;
 
     public Peer2PeerBackend(
@@ -51,6 +53,11 @@ sealed class Peer2PeerBackend<TInput, TGameState>
         sync = new(localConnections);
         udpClient = new(this.options.LocalPort, peerObservers,
             udpMsgSerializer ?? new ProtocolMessageBinarySerializer());
+
+        logger = new ConsoleLogger
+        {
+            EnabledLevel = this.options.LogLevel,
+        };
 
         backgroundJobManager.Register(udpClient);
     }

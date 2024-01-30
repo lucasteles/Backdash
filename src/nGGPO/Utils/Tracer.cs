@@ -28,11 +28,10 @@ public static class Tracer
         // Method intentionally left empty.
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Fail(string msg) => Assert(false, msg);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Fail(Exception e, string msg) => Assert(false, msg);
+    public static void Error(string message)
+    {
+        throw new NotImplementedException();
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void Assert(bool condition, string? msg = null)

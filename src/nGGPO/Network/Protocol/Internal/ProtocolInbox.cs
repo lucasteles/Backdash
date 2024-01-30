@@ -115,11 +115,10 @@ sealed class ProtocolInbox(
                 handled = true;
                 break;
             case MsgType.Invalid:
-                Tracer.Fail("Invalid msg in UdpProtocol");
+                Tracer.Error("Invalid UdpProtocol message");
                 break;
             default:
-                Tracer.Fail("Unknown UdpMsg type.");
-                break;
+                throw new NggpoException($"Unknown UdpMsg type: {message.Header.Type}");
         }
 
         return handled;
