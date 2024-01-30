@@ -60,7 +60,7 @@ class BuildProject : NukeBuild
         .Description("Run tests with coverage")
         .DependsOn(Build)
         .Executes(() => DotNetTest(s => s
-            .SetVerbosity(DotNetVerbosity.Minimal)
+            .SetVerbosity(DotNetVerbosity.minimal)
             .SetFilter("FullyQualifiedName!~Acceptance")
             .EnableNoBuild()
             .EnableNoRestore()
