@@ -21,8 +21,9 @@ static class UdpProtocolFactory
         ProtocolState state = new(localConnections);
         ProtocolLogger logger = new();
         ProtocolEventDispatcher eventDispatcher = new(logger);
+        DelayStrategy delayStrategy = new(options.Random);
 
-        ProtocolOutbox outbox = new(options, udp, logger);
+        ProtocolOutbox outbox = new(options, udp, delayStrategy, logger);
         ProtocolInbox inbox = new(options, state, outbox, inputEncoder, eventDispatcher, logger);
         ProtocolInputProcessor inputProcessor = new(options, state, localConnections,
             inputEncoder, timeSync, outbox, inbox);
