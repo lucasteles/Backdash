@@ -199,7 +199,7 @@ sealed class ProtocolInbox(
 
     bool OnQualityReply(in ProtocolMessage msg)
     {
-        state.Stats.RoundTripTime = (int)(TimeStamp.GetMilliseconds() - msg.QualityReply.Pong);
+        state.Metrics.RoundTripTime = (int)(TimeStamp.GetMilliseconds() - msg.QualityReply.Pong);
         return true;
     }
 

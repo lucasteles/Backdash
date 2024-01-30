@@ -39,7 +39,7 @@ sealed class ProtocolState
     public readonly RunningState Running = new();
     public readonly ConnectionState Connection = new();
     public readonly AdvantageState Fairness = new();
-    public readonly Statistics Stats = new();
+    public readonly Statistics Metrics = new();
     public readonly Peer PeerAddress;
 
     public readonly Connections LocalConnectStatus;

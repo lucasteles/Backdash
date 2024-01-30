@@ -97,7 +97,7 @@ sealed class UdpProtocol : IUdpObserver<ProtocolMessage>, IDisposable
          * last frame they gave us plus some delta for the one-way packet
          * trip time.
          */
-        var remoteFrame = inbox.LastReceivedInput.Frame + (state.Stats.RoundTripTime * 60 / 1000);
+        var remoteFrame = inbox.LastReceivedInput.Frame + (state.Metrics.RoundTripTime * 60 / 1000);
 
         /*
          * Our frame advantage is how many frames *behind* the other guy
@@ -110,7 +110,7 @@ sealed class UdpProtocol : IUdpObserver<ProtocolMessage>, IDisposable
 
     public void GetNetworkStats(ref NetworkStats stats)
     {
-        stats.Ping = state.Stats.RoundTripTime;
+        stats.Ping = state.Metrics.RoundTripTime;
         stats.SendQueueLen = inputProcessor.PendingNumber;
         stats.RemoteFramesBehind = state.Fairness.RemoteFrameAdvantage;
         stats.LocalFramesBehind = state.Fairness.LocalFrameAdvantage;
