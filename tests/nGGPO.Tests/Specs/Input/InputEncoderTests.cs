@@ -8,10 +8,9 @@ namespace nGGPO.Tests.Specs.Input;
 public class InputEncoderTests
 {
     [Fact]
-    public async Task Test1()
+    public void ShouldCompressAndDecompress()
     {
         var lastAcked = CreateInput(0, [1]);
-        var lastSent = GameInput.Empty;
 
         GameInput[] inputList =
         [
@@ -20,19 +19,14 @@ public class InputEncoderTests
             CreateInput(3, [6], [7])
         ];
 
-        var pendingInputs = await CreateBuffer(inputList);
-
-        var compressed = InputEncoder.Compress(
-            pendingInputs,
+        var compressed = GetCompressedMsg(
             in lastAcked,
-            ref lastSent,
-            out var count
+            inputList
         );
 
         var decompressedInputs = DecompressToList(compressed);
 
         decompressedInputs.Should().BeEquivalentTo(inputList);
-        count.Should().Be(inputList.Length);
         decompressedInputs
             .Select(x => x.Buffer.ToString())
             .Should().BeEquivalentTo(
@@ -43,6 +37,30 @@ public class InputEncoderTests
                 "00000110-00000000-00000000-00000000-00000000-00000000-00000000-00000000-00000000"
                 + "|00000111-00000000-00000000-00000000-00000000-00000000-00000000-00000000-00000000"
             );
+    }
+
+    static InputMsg GetCompressedMsg(in GameInput lastAcked, params GameInput[] pendingInputs)
+    {
+        InputMsg inputMsg = new();
+
+        var compressor = InputEncoder.Compress(in lastAcked, ref inputMsg);
+
+        foreach (var t in pendingInputs)
+            compressor.WriteInput(in t);
+
+        compressor.Count.Should().Be(pendingInputs.Length);
+        return inputMsg;
+    }
+
+    static IReadOnlyList<GameInput> DecompressToList(InputMsg inputMsg)
+    {
+        List<GameInput> inputs = [];
+        GameInput lastRecv = GameInput.Empty;
+        var decompressor = InputEncoder.Decompress(ref inputMsg, ref lastRecv);
+        while (decompressor.NextInput())
+            inputs.Add(lastRecv);
+
+        return inputs;
     }
 
     static GameInput CreateInput(int frame, byte[] player1, byte[]? player2 = null)
@@ -68,16 +86,5 @@ public class InputEncoderTests
         await res.Reader.WaitToReadAsync();
         res.Writer.Complete();
         return res;
-    }
-
-    static IReadOnlyList<GameInput> DecompressToList(InputMsg inputMsg)
-    {
-        List<GameInput> inputs = [];
-        GameInput lastRecv = GameInput.Empty;
-        var decompressor = InputEncoder.Decompress(ref inputMsg, ref lastRecv);
-        while (decompressor.NextInput())
-            inputs.Add(lastRecv);
-
-        return inputs;
     }
 }

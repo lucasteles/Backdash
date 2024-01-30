@@ -205,11 +205,11 @@ sealed class Peer2PeerBackend<TInput, TGameState>
         return ResultCode.Ok;
     }
 
-    public Task StartPumping(CancellationToken ct = default)
+    public Task Start(CancellationToken ct = default)
     {
         var tasks = endpoints
-            .Select(e => e.StartPumping(ct))
-            .Append(udp.StartPumping(ct));
+            .Select(e => e.Start(ct))
+            .Append(udp.Start(ct));
 
         return Task.Run(
             async () => await Task.WhenAll(tasks).ConfigureAwait(false)

@@ -13,5 +13,5 @@ public interface IRollbackSession<in TInput, TGameState> : IDisposable
     // LATER: remove this
     TGameState? GetState() => null;
 
-    Task StartPumping(CancellationToken ct = default);
+    Task Start(CancellationToken ct = default);
 }

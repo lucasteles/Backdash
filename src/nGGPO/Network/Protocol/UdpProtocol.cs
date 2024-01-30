@@ -30,7 +30,7 @@ sealed class UdpProtocol : IUdpObserver<ProtocolMessage>, IDisposable
     // services
     readonly ProtocolInbox inbox;
     readonly ProtocolOutbox outbox;
-    readonly ProtocolInputQueue inputQueue;
+    readonly ProtocolInputProcessor inputProcessor;
 
     public UdpProtocol(TimeSync timeSync,
         Random random,
@@ -55,7 +55,7 @@ sealed class UdpProtocol : IUdpObserver<ProtocolMessage>, IDisposable
             SendLatency = networkDelay,
         };
         inbox = new(state, eventDispatcher, outbox, random, logger);
-        inputQueue = new(this.timeSync, localConnections, outbox, inbox, state);
+        inputProcessor = new(this.timeSync, localConnections, outbox, inbox, state);
     }
 
     public void Dispose()
@@ -65,7 +65,7 @@ sealed class UdpProtocol : IUdpObserver<ProtocolMessage>, IDisposable
     }
 
     public ValueTask SendInput(in GameInput input, CancellationToken ct) =>
-        inputQueue.SendInput(input, ct);
+        inputProcessor.SendInput(input, ct);
 
     public void Disconnect()
     {
@@ -80,7 +80,11 @@ sealed class UdpProtocol : IUdpObserver<ProtocolMessage>, IDisposable
         CancellationToken stoppingToken
     ) => inbox.OnUdpMessage(sender, message, from, stoppingToken);
 
-    public Task StartPumping(CancellationToken ct) => outbox.StartPumping(ct);
+    public Task Start(CancellationToken ct) =>
+        Task.WhenAll(
+            outbox.Start(ct),
+            inputProcessor.Start(ct)
+        );
 
     // require idle input should be a configuration parameter
     public int RecommendFrameDelay() =>
@@ -107,7 +111,7 @@ sealed class UdpProtocol : IUdpObserver<ProtocolMessage>, IDisposable
     public void GetNetworkStats(ref NetworkStats stats)
     {
         stats.Ping = state.Stats.RoundTripTime;
-        stats.SendQueueLen = inputQueue.PendingNumber;
+        stats.SendQueueLen = inputProcessor.PendingNumber;
         stats.RemoteFramesBehind = state.Fairness.RemoteFrameAdvantage;
         stats.LocalFramesBehind = state.Fairness.LocalFrameAdvantage;
     }

@@ -26,7 +26,7 @@ sealed class Peer2PeerFixture<T> : IDisposable where T : struct
         if (start) Start();
     }
 
-    public void Start() => tasks = Task.WhenAll(Server.Socket.StartPumping(), Client.Socket.StartPumping());
+    public void Start() => tasks = Task.WhenAll(Server.Socket.Start(), Client.Socket.Start());
 
     public void Deconstruct(out UdpClientContext<T> client, out UdpClientContext<T> server) =>
         (client, server) = (Client, Server);

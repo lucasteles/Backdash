@@ -6,7 +6,7 @@ using nGGPO.Utils;
 
 namespace nGGPO.Network.Protocol.Internal;
 
-sealed class ProtocolInputQueue(
+sealed class ProtocolInputProcessor(
     TimeSync timeSync,
     Connections localConnections,
     IMessageSender sender,
@@ -16,8 +16,6 @@ sealed class ProtocolInputQueue(
 {
     GameInput lastSentInput = GameInput.Empty;
     GameInput lastAckedInput = GameInput.Empty;
-
-    readonly CircularBuffer<GameInput> pendingOutput = new();
 
     readonly Channel<GameInput> inputQueue =
         Channel.CreateBounded<GameInput>(
@@ -32,7 +30,7 @@ sealed class ProtocolInputQueue(
     int pendingNumber;
 
     public int PendingNumber => pendingNumber;
-
+    public GameInput LastSent => lastSentInput;
 
     public async ValueTask SendInput(
         GameInput input,
@@ -66,7 +64,7 @@ sealed class ProtocolInputQueue(
         }
     }
 
-    public async Task StartPumping(CancellationToken ct)
+    public async Task Start(CancellationToken ct)
     {
         while (!ct.IsCancellationRequested)
         {
@@ -81,20 +79,26 @@ sealed class ProtocolInputQueue(
         }
     }
 
-    InputMsg CreateInputMsg(ChannelReader<GameInput> reader)
+    public InputMsg CreateInputMsg(ChannelReader<GameInput> reader)
     {
-        if (pendingOutput.IsEmpty)
-            return InputMsg.Empty;
+        InputMsg compressedInput = new();
+        var compressor = InputEncoder.Compress(in lastAckedInput, ref compressedInput);
 
-        // inbox.LastAckedFrame,
-        var compressedInput = InputEncoder.Compress(
-            reader,
-            lastAckedInput,
-            ref lastSentInput,
-            out int count
-        );
+        while (reader.TryRead(out var nextInput))
+        {
+            if (lastAckedInput.Frame < inbox.LastAckedFrame)
+            {
+                lastAckedInput = nextInput;
+                compressor.Last = lastAckedInput;
+                continue;
+            }
 
-        Interlocked.Add(ref pendingNumber, count);
+            compressor.WriteInput(nextInput);
+            lastSentInput = nextInput;
+        }
+
+        Interlocked.Add(ref pendingNumber, compressor.Count);
+
         compressedInput.AckFrame = inbox.LastReceivedInput.Frame;
         compressedInput.DisconnectRequested = state.Status is not ProtocolStatus.Disconnected;
 

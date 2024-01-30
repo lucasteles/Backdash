@@ -31,7 +31,7 @@ sealed class UdpClient<T>(
             }
         );
 
-    public async Task StartPumping(CancellationToken cancellationToken = default)
+    public async Task Start(CancellationToken cancellationToken = default)
     {
         if (cancellation is not null)
             return;
@@ -46,7 +46,7 @@ sealed class UdpClient<T>(
         ).ConfigureAwait(false);
     }
 
-    public async Task StopPumping()
+    public async Task Stop()
     {
         if (cancellation is null)
             return;

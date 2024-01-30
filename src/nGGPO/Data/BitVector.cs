@@ -2,6 +2,18 @@ using nGGPO.Utils;
 
 namespace nGGPO.Data;
 
+readonly ref struct ReadOnlyBitVector(ReadOnlySpan<byte> bits)
+{
+    public readonly ReadOnlySpan<byte> Buffer = bits;
+
+    public int Size => Buffer.Length;
+    public int BitCount => Size * Mem.ByteSize;
+
+    public bool Get(int i) => BitVector.GetBit(Buffer, i);
+
+    public bool this[int bit] => Get(bit);
+}
+
 readonly ref struct BitVector(Span<byte> bits)
 {
     public readonly Span<byte> Buffer = bits;
@@ -12,7 +24,7 @@ readonly ref struct BitVector(Span<byte> bits)
     public static void SetBit(in Span<byte> vector, int index) =>
         vector[index / 8] |= (byte)(1 << (index % 8));
 
-    public static bool GetBit(in Span<byte> vector, int index) =>
+    public static bool GetBit(in ReadOnlySpan<byte> vector, int index) =>
         (vector[index / 8] & (1 << (index % 8))) != 0;
 
     public static void ClearBit(in Span<byte> vector, int index) =>
@@ -34,15 +46,15 @@ readonly ref struct BitVector(Span<byte> bits)
         }
     }
 
-    public static implicit operator Span<byte>(BitVector @this) => @this.Buffer;
+    public static implicit operator ReadOnlyBitVector(BitVector @this) => new(@this.Buffer);
 
-    public ref struct BitOffset(Span<byte> buffer, int offset = 0)
+    public ref struct BitOffset(Span<byte> buffer, ushort offset = 0)
     {
         public const int NibbleSize = 8;
 
         readonly Span<byte> bytes = buffer;
 
-        public int Offset { get; private set; } = offset;
+        public ushort Offset { get; private set; } = offset;
 
         public void Inc() => Offset++;
 

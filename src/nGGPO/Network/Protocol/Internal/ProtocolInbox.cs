@@ -23,11 +23,9 @@ sealed class ProtocolInbox(
     GameInput lastReceivedInput = GameInput.Empty;
     public long LastReceivedTime { get; private set; }
 
-    GameInput lastAckedInput = GameInput.Empty;
     Frame lastAckedFrame = Frame.Null;
 
     public GameInput LastReceivedInput => lastReceivedInput;
-    public GameInput LastAckedInput => lastAckedInput;
     public Frame LastAckedFrame => lastAckedFrame;
 
     public async ValueTask OnUdpMessage(
@@ -161,7 +159,7 @@ sealed class ProtocolInbox(
                 OnParsedInput();
         }
 
-        Tracer.Assert(lastReceivedInput.Frame >= lastAckedInput.Frame);
+        Tracer.Assert(lastReceivedInput.Frame >= lastAckedFrame);
 
         /*
          * Get rid of our buffered input
@@ -187,7 +185,7 @@ sealed class ProtocolInbox(
         Tracer.Log("Sending frame {0} to emu queue {1} ({2}).\n",
             lastReceivedInput.Frame,
             state.QueueIndex,
-            lastAckedInput.Buffer.ToString()
+            lastAckedFrame
         );
 
         events.Enqueue(evt);

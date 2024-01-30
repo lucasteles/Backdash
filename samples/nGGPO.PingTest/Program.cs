@@ -37,7 +37,7 @@ Stopwatch watch = new();
 using CancellationTokenSource source = new();
 
 Console.WriteLine("Started.");
-var tasks = Task.WhenAll(peer1.StartPumping(source.Token), peer2.StartPumping(source.Token));
+var tasks = Task.WhenAll(peer1.Start(source.Token), peer2.Start(source.Token));
 
 source.CancelAfter(TimeSpan.FromSeconds(10));
 var gcCount = new[]

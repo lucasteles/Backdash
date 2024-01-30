@@ -8,133 +8,75 @@ namespace nGGPO.Network.Protocol.Internal;
 
 sealed class InputEncoder
 {
-    public static InputMsg Compress(
-        ChannelReader<GameInput> pendingReader,
-        in GameInput lastAcked,
-        ref GameInput lastSent,
-        out int counter
-    )
-    {
-        counter = 0;
-        InputMsg inputMsg = new();
-        var last = lastAcked;
-        var lastBits = last.GetBitVector();
-        BitVector.BitOffset bitWriter = new(inputMsg.Bits);
+    public static Compressor Compress(in GameInput lastAcked, ref InputMsg msg) =>
+        new(in lastAcked, ref msg);
 
-        var first = true;
-        while (pendingReader.TryRead(out var current))
-        {
-            counter++;
-            if (first)
-            {
-                inputMsg.InputSize = (byte)current.Size;
-                inputMsg.StartFrame = current.Frame;
-                Tracer.Assert(last.Frame.IsNull || last.Frame.Next == inputMsg.StartFrame);
-                first = false;
-            }
-
-            if (!current.Equals(last, bitsOnly: true))
-            {
-                var currentBits = current.GetBitVector();
-                for (var j = 0; j < currentBits.BitCount; j++)
-                {
-                    if (currentBits[j] == lastBits[j])
-                        continue;
-
-                    bitWriter.SetNext();
-
-                    if (currentBits[j])
-                        bitWriter.SetNext();
-                    else
-                        bitWriter.ClearNext();
-
-                    bitWriter.WriteNibble(j);
-                }
-            }
-
-            bitWriter.ClearNext();
-            last = current;
-            lastSent = current;
-        }
-
-        inputMsg.NumBits = (ushort)bitWriter.Offset;
-        Tracer.Assert(inputMsg.NumBits < Max.CompressedBits);
-
-        return inputMsg;
-    }
-
-    public static CompressorReader Decompress(ref InputMsg inputMsg, ref GameInput lastReceivedInput) =>
+    public static Decompressor Decompress(ref InputMsg inputMsg, ref GameInput lastReceivedInput) =>
         new(ref inputMsg, ref lastReceivedInput);
 
 
-    public ref struct CompressorWriter
+    public ref struct Compressor
     {
-        readonly BitVector lastBits;
-
-        ref GameInput last;
-        ref GameInput lastSent;
-        ref InputMsg inputMsg;
         BitVector.BitOffset bitWriter;
-        int counter;
 
-        public int Count => counter;
+        ref InputMsg inputMsg;
 
-        public CompressorWriter(
-            ref GameInput lastAcked,
-            ref GameInput lastSent,
+        public GameInput Last;
+
+        public Compressor(
+            in GameInput lastAcked,
             ref InputMsg msg
         )
         {
-            counter = 0;
-            last = ref lastAcked;
-            this.lastSent = ref lastSent;
-            lastBits = last.GetBitVector();
+            Count = 0;
+            Last = lastAcked;
+
             inputMsg = ref msg;
             bitWriter = new(msg.Bits);
-
-            msg.StartFrame = Frame.NullValue;
+            inputMsg.StartFrame = Frame.NullValue;
         }
 
-        public void WriteInput(ref GameInput current)
+        public int Count { get; private set; }
+
+        public void WriteInput(in GameInput current)
         {
-            counter++;
+            Count++;
             if (inputMsg.StartFrame is Frame.NullValue)
             {
                 inputMsg.InputSize = (byte)current.Size;
                 inputMsg.StartFrame = current.Frame;
-                Tracer.Assert(last.Frame.IsNull || last.Frame.Next == inputMsg.StartFrame);
+                Tracer.Assert(Last.Frame.IsNull || Last.Frame.Next == inputMsg.StartFrame);
             }
 
-            if (!current.Equals(last, bitsOnly: true))
+            if (!current.Equals(Last, bitsOnly: true))
             {
-                var currentBits = current.GetBitVector();
-                for (var j = 0; j < currentBits.BitCount; j++)
+                var currentBits = current.GetReadOnlyBitVector();
+                var lastBits = Last.GetReadOnlyBitVector();
+                for (var i = 0; i < currentBits.BitCount; i++)
                 {
-                    if (currentBits[j] == lastBits[j])
+                    if (currentBits[i] == lastBits[i])
                         continue;
 
                     bitWriter.SetNext();
 
-                    if (currentBits[j])
+                    if (currentBits[i])
                         bitWriter.SetNext();
                     else
                         bitWriter.ClearNext();
 
-                    bitWriter.WriteNibble(j);
+                    bitWriter.WriteNibble(i);
                 }
             }
 
             bitWriter.ClearNext();
-            last = current;
-            lastSent = current;
+            Last = current;
 
-
-            inputMsg.NumBits = (ushort)bitWriter.Offset;
+            inputMsg.NumBits = bitWriter.Offset;
             Tracer.Assert(inputMsg.NumBits < Max.CompressedBits);
         }
     }
 
-    public ref struct CompressorReader
+    public ref struct Decompressor
     {
         readonly ushort numBits;
         readonly BitVector lastInputBits;
@@ -142,7 +84,7 @@ sealed class InputEncoder
         BitVector.BitOffset bitVector;
         int currentFrame;
 
-        public CompressorReader(
+        public Decompressor(
             ref InputMsg inputMsg,
             ref GameInput lastReceivedInput
         )
