@@ -18,7 +18,7 @@ class BuildProject : NukeBuild
 
     Target Clean => _ => _
         .Description("Clean project directories")
-        .Executes(() => new[] { "src", "tests" }
+        .Executes(() => new[] {"src", "tests"}
             .Select(path => RootDirectory / path)
             .SelectMany(dir => dir
                 .GlobDirectories("**/bin", "**/obj", "**/TestResults"))
@@ -125,6 +125,31 @@ class BuildProject : NukeBuild
             Badges.ForTests(output, TestResultFile);
         });
 
+    Target UpdateTools => _ => _
+        .Description("Update all project .NET tools")
+        .Executes(() => DotNet($"tool list", logOutput: false)
+            .Skip(2)
+            .Select(c => c.Text.Split(' ',
+                StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            .ForEach(line =>
+            {
+                try
+                {
+                    if (line is not [{ } tool, { } version, ..]) return;
+                    Log.Information("* Updating {Tool}:", tool);
+                    var isPre =
+                        new[] {"rc", "preview", "beta", "alpha"}.Any(version.ToLower().Contains)
+                            ? "--prerelease"
+                            : string.Empty;
+
+                    DotNet($"tool update {tool} {isPre}");
+                }
+                catch (Exception e)
+                {
+                    Log.Warning("Tool Update: {Message}", e.Message);
+                }
+            })
+        );
 
     public static int Main() => Execute<BuildProject>();
 
