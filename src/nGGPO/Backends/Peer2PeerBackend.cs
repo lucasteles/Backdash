@@ -1,6 +1,7 @@
 using System.Net;
 using nGGPO.Data;
 using nGGPO.Input;
+using nGGPO.Lifecycle;
 using nGGPO.Network;
 using nGGPO.Network.Client;
 using nGGPO.Network.Messages;
@@ -18,7 +19,7 @@ sealed class Peer2PeerBackend<TInput, TGameState>
     readonly IBinarySerializer<TInput> inputSerializer;
     readonly ISessionCallbacks<TGameState> callbacks;
 
-    readonly UdpClient<ProtocolMessage> udp;
+    readonly UdpClient<ProtocolMessage> udpClient;
     readonly Synchronizer<TGameState> sync;
     readonly Connections localConnections;
 
@@ -27,6 +28,7 @@ sealed class Peer2PeerBackend<TInput, TGameState>
     readonly List<UdpProtocol> spectators;
     readonly List<UdpProtocol> endpoints;
     readonly UdpObserverGroup<ProtocolMessage> peerObservers = new();
+    readonly BackgroundJobManager backgroundJobManager = new();
     readonly RollbackOptions options;
 
     public Peer2PeerBackend(
@@ -47,10 +49,13 @@ sealed class Peer2PeerBackend<TInput, TGameState>
         spectators = new(Max.Spectators);
         endpoints = new(this.options.NumberOfPlayers);
         sync = new(localConnections);
-        udp = new(this.options.LocalPort, peerObservers, udpMsgSerializer ?? new ProtocolMessageBinarySerializer());
+        udpClient = new(this.options.LocalPort, peerObservers,
+            udpMsgSerializer ?? new ProtocolMessageBinarySerializer());
+
+        backgroundJobManager.Register(udpClient);
     }
 
-    public void Dispose() => udp.Dispose();
+    public void Dispose() => udpClient.Dispose();
 
     public ResultCode AddPlayer(Player player)
     {
@@ -165,10 +170,15 @@ sealed class Peer2PeerBackend<TInput, TGameState>
             Peer = endpoint,
         };
 
-        var protocol = UdpProtocol.CreateDefault(protocolOptions, udp, localConnections);
+        var protocol = UdpProtocolFactory.CreateDefault(
+            backgroundJobManager,
+            peerObservers,
+            protocolOptions,
+            udpClient,
+            localConnections
+        );
 
         protocol.Synchronize();
-        peerObservers.Add(protocol);
         return protocol;
     }
 
@@ -203,17 +213,7 @@ sealed class Peer2PeerBackend<TInput, TGameState>
         return ResultCode.Ok;
     }
 
-    public Task Start(CancellationToken ct = default)
-    {
-        var tasks = endpoints
-            .Select(e => e.Start(ct))
-            .Append(udp.Start(ct));
-
-        return Task.Run(
-            async () => await Task.WhenAll(tasks).ConfigureAwait(false)
-            , ct
-        );
-    }
+    public Task Start(CancellationToken ct = default) => backgroundJobManager.Start(ct);
 
     PlayerId QueueToSpectatorHandle(int queue) =>
         new(queue + options.SpectatorOffset); /* out of range of the player array, basically */

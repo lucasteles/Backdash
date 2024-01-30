@@ -1,12 +1,13 @@
 using System.Threading.Channels;
 using nGGPO.Data;
 using nGGPO.Input;
+using nGGPO.Lifecycle;
 using nGGPO.Network.Messages;
 using nGGPO.Utils;
 
 namespace nGGPO.Network.Protocol.Internal;
 
-interface IProtocolInputProcessor : IBackgroundTask
+interface IProtocolInputProcessor : IBackgroundJob
 {
     int PendingNumber { get; }
     GameInput LastSent { get; }

@@ -1,13 +1,13 @@
 namespace nGGPO.Network;
 
-public class UdpStats
+public sealed class UdpStats
 {
     public int BytesSent { get; internal set; }
     public int PacketsSent { get; internal set; }
     public float KbpsSent { get; internal set; }
 }
 
-public class ProtocolStats
+public sealed class ProtocolStats
 {
     public int Ping { get; internal set; }
     public int RemoteFrameAdvantage { get; internal set; }
@@ -16,7 +16,7 @@ public class ProtocolStats
     public UdpStats Udp { get; internal set; } = new();
 }
 
-public record NetworkStats
+public sealed class NetworkStats
 {
     public int SendQueueLen { get; internal set; }
     public int RecvQueueLen { get; internal set; }

@@ -1,7 +1,5 @@
-using System.Net;
 using nGGPO.Data;
 using nGGPO.Input;
-using nGGPO.Network.Client;
 using nGGPO.Network.Messages;
 using nGGPO.Network.Protocol.Internal;
 using nGGPO.Utils;
@@ -10,7 +8,7 @@ namespace nGGPO.Network.Protocol;
 
 using static ProtocolConstants;
 
-sealed class UdpProtocol : IUdpObserver<ProtocolMessage>, IDisposable
+sealed class UdpProtocol : IDisposable
 {
     readonly ProtocolState state;
 
@@ -49,32 +47,6 @@ sealed class UdpProtocol : IUdpObserver<ProtocolMessage>, IDisposable
         this.inputProcessor = inputProcessor;
     }
 
-    public static UdpProtocol CreateDefault(
-        ProtocolOptions options,
-        UdpClient<ProtocolMessage> udp,
-        Connections localConnections
-    )
-    {
-        TimeSync timeSync = new();
-        InputEncoder inputEncoder = new();
-        ProtocolState state = new(localConnections);
-        ProtocolLogger logger = new();
-        ProtocolEventDispatcher eventDispatcher = new(logger);
-        ProtocolOutbox outbox = new(options, udp, logger);
-        ProtocolInbox inbox = new(options, state, outbox, inputEncoder, eventDispatcher, logger);
-        ProtocolInputProcessor inputProcessor =
-            new(options, state, localConnections, inputEncoder, timeSync, outbox, inbox);
-
-        return new(
-            options,
-            state,
-            timeSync,
-            inbox,
-            outbox,
-            inputProcessor
-        );
-    }
-
     public void Dispose()
     {
         Disconnect();
@@ -89,11 +61,6 @@ sealed class UdpProtocol : IUdpObserver<ProtocolMessage>, IDisposable
         state.Status = ProtocolStatus.Disconnected;
         ShutdownTimeout = TimeStamp.GetMilliseconds() + UdpShutdownTimer;
     }
-
-    public ValueTask OnUdpMessage(IUdpClient<ProtocolMessage> sender,
-        ProtocolMessage message,
-        SocketAddress from,
-        CancellationToken stoppingToken) => inbox.OnUdpMessage(sender, message, from, stoppingToken);
 
     public Task Start(CancellationToken ct) =>
         Task.WhenAll(

@@ -2,13 +2,13 @@ using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Threading.Channels;
-using nGGPO.Network.Protocol;
+using nGGPO.Lifecycle;
 using nGGPO.Serialization;
 using nGGPO.Utils;
 
 namespace nGGPO.Network.Client;
 
-interface IUdpClient<T> : IBackgroundTask where T : struct
+interface IUdpClient<T> : IBackgroundJob where T : struct
 {
     ValueTask SendTo(
         SocketAddress peerAddress,

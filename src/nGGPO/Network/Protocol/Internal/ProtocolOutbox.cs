@@ -1,12 +1,13 @@
 using System.Net;
 using System.Threading.Channels;
+using nGGPO.Lifecycle;
 using nGGPO.Network.Client;
 using nGGPO.Network.Messages;
 using nGGPO.Utils;
 
 namespace nGGPO.Network.Protocol.Internal;
 
-interface IProtocolOutbox : IMessageSender, IBackgroundTask, IDisposable;
+interface IProtocolOutbox : IMessageSender, IBackgroundJob, IDisposable;
 
 sealed class ProtocolOutbox(
     ProtocolOptions options,
