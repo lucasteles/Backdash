@@ -21,7 +21,7 @@ static class UdpProtocolFactory
         TimeSync timeSync = new(timeSyncOptions, logger);
         InputEncoder inputEncoder = new();
         ProtocolState state = new(localConnections);
-        ProtocolLogger udpLogger = new();
+        ProtocolLogger udpLogger = new(logger);
         ProtocolEventDispatcher eventDispatcher = new(udpLogger);
         DelayStrategy delayStrategy = new(options.Random);
 

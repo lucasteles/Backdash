@@ -8,7 +8,7 @@ interface IProtocolLogger
     void LogEvent(string queuingEvent, ProtocolEventData evt);
 }
 
-sealed class ProtocolLogger : IProtocolLogger
+sealed class ProtocolLogger(ILogger logger) : IProtocolLogger
 {
     public void LogMsg(string send, in ProtocolMessage msg)
     {

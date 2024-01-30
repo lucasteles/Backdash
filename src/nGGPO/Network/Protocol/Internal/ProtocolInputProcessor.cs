@@ -26,9 +26,9 @@ sealed class ProtocolInputProcessor(
     IInputEncoder inputEncoder,
     ITimeSync timeSync,
     IMessageSender sender,
-    IProtocolInbox inbox) : IProtocolInputProcessor
+    IProtocolInbox inbox
+) : IProtocolInputProcessor
 {
-    GameInput lastSentInput = GameInput.Empty;
     GameInput lastAckedInput = GameInput.Empty;
 
     readonly Channel<GameInput> inputQueue =
@@ -44,7 +44,7 @@ sealed class ProtocolInputProcessor(
     int pendingNumber;
 
     public int PendingNumber => pendingNumber;
-    public GameInput LastSent => lastSentInput;
+    public GameInput LastSent { get; private set; } = GameInput.Empty;
 
     public async ValueTask SendInput(
         GameInput input,
@@ -111,7 +111,7 @@ sealed class ProtocolInputProcessor(
             }
 
             compressor.WriteInput(nextInput);
-            lastSentInput = nextInput;
+            LastSent = nextInput;
         }
 
         Interlocked.Add(ref pendingNumber, compressor.Count);
