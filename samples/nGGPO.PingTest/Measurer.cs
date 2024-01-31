@@ -21,8 +21,8 @@ public sealed class Measurer
 
         public TimeSpan PauseTime = GC.GetTotalPauseDuration();
         public int GcCount0 = GC.CollectionCount(0);
-        public int GcCount1 = GC.CollectionCount(0);
-        public int GcCount2 = GC.CollectionCount(0);
+        public int GcCount1 = GC.CollectionCount(1);
+        public int GcCount2 = GC.CollectionCount(2);
 
         public static MeasureSnapshot Diff(MeasureSnapshot a, MeasureSnapshot b) => new()
         {
