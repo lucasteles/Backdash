@@ -2,6 +2,8 @@ using System.Diagnostics;
 using System.Text;
 using nGGPO.Data;
 
+#pragma warning disable S1215
+
 namespace nGGPO.PingTest;
 
 public sealed class Measurer
@@ -38,9 +40,10 @@ public sealed class Measurer
 
         public readonly override string ToString() =>
             $"""
-               TimeStamp: {(int) TimeSpan.FromTicks(Timestamp).TotalMilliseconds}
-               Duration: {TimeSpan.FromTicks(Elapsed):g}
-               GC Pause: {PauseTime:g}
+               TimeStamp: {TimeSpan.FromTicks(Timestamp):c}
+               Duration: {TimeSpan.FromTicks(Elapsed):c}
+               Msg Count: {PingMessageHandler.TotalProcessed}
+               GC Pause: {PauseTime:c}
                Collect Count: G1({GcCount0}); G2({GcCount1}); G3({GcCount2})
                Total Memory: {FormatByteSize(TotalMemory)}
                Total Alloc: {FormatByteSize(TotalAllocatedBytes)}
@@ -57,6 +60,7 @@ public sealed class Measurer
     public void Start()
     {
         snapshots.Clear();
+        GC.Collect();
         start = new();
         watch.Start();
     }
@@ -69,29 +73,44 @@ public sealed class Measurer
         Snapshot();
     }
 
-    public string Summary(ByteSize totalSent)
+    public string Summary(ByteSize totalSent, bool showSnapshots = true)
     {
         StringBuilder builder = new();
 
         builder.AppendLine(
             $"""
              --- Summary ---
-             Total Duration: {watch.Elapsed:g}
+             Duration: {watch.Elapsed:c}
+             Snapshots: {snapshots.Count}
              Msg Count: {PingMessageHandler.TotalProcessed}
+             Msg Size: {ByteSize.SizeOf<Message>()}
              Total Sent: {FormatByteSize(totalSent)}
-             Msg Size: {sizeof(Message)} Bytes
+             Avg Sent: {FormatByteSize(totalSent / PingMessageHandler.TotalProcessed)}
              """
         );
+
+        if (snapshots is [.., var last])
+            builder.AppendLine(
+                $"""
+                 GC Pause: {last.PauseTime:c}
+                 Collect Count: G1({last.GcCount0}); G2({last.GcCount1}); G3({last.GcCount2})
+                 Total Memory: {FormatByteSize(last.TotalMemory)}
+                 Total Alloc: {FormatByteSize(last.TotalAllocatedBytes)}
+                 Thread Alloc: {FormatByteSize(last.TotalAllocatedBytes)}
+                 """
+            );
+
         builder.AppendLine();
 
-        for (var index = 0; index < snapshots.Count; index++)
-        {
-            var shot = snapshots[index];
-            builder.AppendLine($"=== Snapshot #{index + 1}:");
-            builder.AppendLine(shot.ToString());
-            builder.AppendLine("======");
-            builder.AppendLine();
-        }
+        if (showSnapshots)
+            for (var index = 0; index < snapshots.Count; index++)
+            {
+                var shot = snapshots[index];
+                builder.AppendLine($"=== Snapshot #{index + 1}:");
+                builder.AppendLine(shot.ToString());
+                builder.AppendLine("======");
+                builder.AppendLine();
+            }
 
         builder.AppendLine("------------");
         return builder.ToString();

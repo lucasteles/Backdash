@@ -4,9 +4,9 @@ using nGGPO.PingTest;
 
 sealed class PingMessageHandler(Measurer? measurer = null) : IUdpObserver<Message>
 {
-    public static ulong TotalProcessed => processedCount;
+    public static long TotalProcessed => processedCount;
 
-    static ulong processedCount;
+    static long processedCount;
 
     public ValueTask OnUdpMessage(IUdpClient<Message> sender, Message message, SocketAddress from,
         CancellationToken stoppingToken)

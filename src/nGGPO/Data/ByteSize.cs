@@ -1,4 +1,5 @@
 using System.Numerics;
+using System.Runtime.CompilerServices;
 
 namespace nGGPO.Data;
 
@@ -127,14 +128,19 @@ public readonly record struct ByteSize(long ByteCount)
     public string ToString(Measure measure) => ToString(FindSymbol(measure));
     public override string ToString() => ToString(null, null);
 
+    public static ByteSize SizeOf<T>() where T : struct => (ByteSize)Unsafe.SizeOf<T>();
+
     public static bool operator >(ByteSize left, ByteSize right) => left.ByteCount > right.ByteCount;
     public static bool operator >=(ByteSize left, ByteSize right) => left.ByteCount >= right.ByteCount;
     public static bool operator <(ByteSize left, ByteSize right) => left.ByteCount < right.ByteCount;
     public static bool operator <=(ByteSize left, ByteSize right) => left.ByteCount <= right.ByteCount;
-    public static ByteSize operator +(ByteSize left, ByteSize right) => new(left.ByteCount + right.ByteCount);
-    public static ByteSize operator -(ByteSize left, ByteSize right) => new(left.ByteCount - right.ByteCount);
     public static ByteSize operator ++(ByteSize value) => new(value.ByteCount + 1);
     public static ByteSize operator --(ByteSize value) => new(value.ByteCount - 1);
+    public static ByteSize operator +(ByteSize left, ByteSize right) => new(left.ByteCount + right.ByteCount);
+    public static ByteSize operator -(ByteSize left, ByteSize right) => new(left.ByteCount - right.ByteCount);
+    public static ByteSize operator /(ByteSize left, long right) => new(left.ByteCount / right);
+    public static ByteSize operator *(ByteSize left, long right) => new(left.ByteCount * right);
+    public static ByteSize operator *(long left, ByteSize right) => new(left * right.ByteCount);
     public static explicit operator ByteSize(long value) => new(value);
     public static explicit operator ByteSize(int value) => new(value);
     public static explicit operator ByteSize(uint value) => new(value);

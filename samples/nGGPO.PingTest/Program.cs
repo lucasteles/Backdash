@@ -24,6 +24,7 @@ measurer.Stop();
 
 var totalSent = peer1.TotalBytesSent + peer2.TotalBytesSent;
 Console.WriteLine(measurer.Summary(totalSent));
+Console.WriteLine("Finished.");
 
 IUdpClient<Message> CreateClient(int port, Measurer? m = null)
 {
