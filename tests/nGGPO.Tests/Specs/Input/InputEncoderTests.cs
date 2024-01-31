@@ -37,7 +37,8 @@ public class InputEncoderTests
             );
     }
 
-    [PropertyTest(Replay = "1982901546,297288611", MaxTest = 1)]
+    [PropertyTest]
+    // [PropertyTest(Replay = "1982901546,297288611", MaxTest = 1)]
     internal void ShouldCompressAndDecompress(PendingGameInputs gameInput)
     {
         GameInput lastAcked = new(new byte[GameInputBuffer.Capacity])

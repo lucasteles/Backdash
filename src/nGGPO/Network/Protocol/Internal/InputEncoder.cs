@@ -103,9 +103,7 @@ ref struct InputDecompressor
             lastReceivedInput.Frame = new(inputMsg.StartFrame - 1);
 
         lastInputBits = nextInput.GetBitVector();
-
-        Span<byte> bits = inputMsg.Bits;
-        bitVector = new(bits);
+        bitVector = new(inputMsg.Bits);
     }
 
     public bool NextInput(ILogger? logger = null)

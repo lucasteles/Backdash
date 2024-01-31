@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using nGGPO.Utils;
 
 namespace nGGPO.Data;
@@ -48,6 +50,7 @@ readonly ref struct BitVector(Span<byte> bits)
 
     public static implicit operator ReadOnlyBitVector(BitVector @this) => new(@this.Buffer);
 
+    [DebuggerDisplay("{ToString()}")]
     public ref struct BitOffset(Span<byte> buffer, ushort offset = 0)
     {
         public const int NibbleSize = 8;
@@ -58,14 +61,30 @@ readonly ref struct BitVector(Span<byte> bits)
 
         public void Inc() => Offset++;
 
+        public override readonly string ToString()
+        {
+            var byteOffset = Offset / 8;
+            return
+                $"{{TotalWrite: {byteOffset}, Offset: {Offset}}} [{(Offset is 0 ? "" : Mem.GetBitString(bytes[..byteOffset]))}]";
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        readonly void CheckOffset()
+        {
+            if (Offset >= bytes.Length * NibbleSize)
+                throw new NggpoException($"BitOffset index overflow: {Offset} (Buffer: {bytes.Length * NibbleSize})");
+        }
+
         public void SetNext()
         {
+            CheckOffset();
             SetBit(bytes, Offset);
             Inc();
         }
 
         public bool Read()
         {
+            CheckOffset();
             var ret = GetBit(bytes, Offset);
             Inc();
             return ret;
@@ -73,6 +92,7 @@ readonly ref struct BitVector(Span<byte> bits)
 
         public void ClearNext()
         {
+            CheckOffset();
             ClearBit(bytes, Offset);
             Inc();
         }
@@ -96,6 +116,4 @@ readonly ref struct BitVector(Span<byte> bits)
             return nibble;
         }
     }
-
-    public bool IsEmpty => Buffer.Length is 0;
 }

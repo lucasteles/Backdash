@@ -250,12 +250,10 @@ class MyGenerators
         }
     );
 
-    public const int InputMsgCount = Max.CompressedBytes / GameInputBuffer.Capacity;
-
     public static Arbitrary<PendingGameInputs> PendingGameInputBufferGenerator() =>
         Gen.Sized(testSize =>
             {
-                var size = Math.Clamp(testSize, 1, 5);
+                var size = Math.Clamp(testSize, 1, Max.InputBytes);
                 var index = 1;
                 var indexed = Arb.From<GameInput>().Generator.Select(gi =>
                 {
