@@ -53,7 +53,7 @@ sealed class ProtocolInputProcessor(
     )
     {
         Tracer.Assert(
-            Max.InputBytes * Max.MsgPlayers * Mem.ByteSize
+            Max.InputBytes * Max.MsgPlayers * ByteSize.ByteToBits
             <
             1 << BitVector.BitOffset.NibbleSize
         );

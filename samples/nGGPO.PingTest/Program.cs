@@ -22,7 +22,7 @@ await peer1.SendTo(peer2.Address, Message.Ping);
 await tasks;
 measurer.Stop();
 
-var totalSent = (peer1.TotalBytesSent + peer2.TotalBytesSent) / 1024.0;
+var totalSent = peer1.TotalBytesSent + peer2.TotalBytesSent;
 Console.WriteLine(measurer.Summary(totalSent));
 
 IUdpClient<Message> CreateClient(int port)

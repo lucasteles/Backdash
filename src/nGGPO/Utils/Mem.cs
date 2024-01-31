@@ -2,13 +2,12 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using nGGPO.Data;
 
 namespace nGGPO.Utils;
 
 static class Mem
 {
-    public const int ByteSize = 8;
-
     const int MaxStackLimit = 1024;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -136,7 +135,7 @@ static class Mem
     public static string GetBitString(
         in ReadOnlySpan<byte> bytes,
         int splitAt = 0,
-        int bytePad = ByteSize
+        int bytePad = ByteSize.ByteToBits
     )
     {
         StringBuilder builder = new();

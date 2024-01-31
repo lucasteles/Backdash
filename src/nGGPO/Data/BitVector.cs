@@ -9,7 +9,7 @@ readonly ref struct ReadOnlyBitVector(ReadOnlySpan<byte> bits)
     public readonly ReadOnlySpan<byte> Buffer = bits;
 
     public int Size => Buffer.Length;
-    public int BitCount => Size * Mem.ByteSize;
+    public int BitCount => Size * ByteSize.ByteToBits;
 
     public bool Get(int i) => BitVector.GetBit(Buffer, i);
 
@@ -21,7 +21,7 @@ readonly ref struct BitVector(Span<byte> bits)
     public readonly Span<byte> Buffer = bits;
 
     public int Size => Buffer.Length;
-    public int BitCount => Size * Mem.ByteSize;
+    public int BitCount => Size * ByteSize.ByteToBits;
 
     public static void SetBit(in Span<byte> vector, int index) =>
         vector[index / 8] |= (byte)(1 << (index % 8));
@@ -61,7 +61,7 @@ readonly ref struct BitVector(Span<byte> bits)
 
         public override readonly string ToString()
         {
-            var byteOffset = Offset / Mem.ByteSize;
+            var byteOffset = Offset / ByteSize.ByteToBits;
             return
                 $"{{TotalWrite: {byteOffset}, Offset: {Offset}}} [{(Offset is 0 ? "" : Mem.GetBitString(bytes[..byteOffset]))}]";
         }

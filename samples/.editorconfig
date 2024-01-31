@@ -7,3 +7,4 @@ dotnet_diagnostic.CS016.severity = silent
 dotnet_diagnostic.S1144.severity = silent
 dotnet_diagnostic.S3903.severity = silent # move to namespace
 dotnet_diagnostic.CS1591.severity = silent
+dotnet_diagnostic.S1104.severity = silent

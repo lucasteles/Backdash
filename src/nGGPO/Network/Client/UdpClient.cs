@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Threading.Channels;
+using nGGPO.Data;
 using nGGPO.Lifecycle;
 using nGGPO.Serialization;
 using nGGPO.Utils;
@@ -12,7 +13,7 @@ interface IUdpClient<T> : IBackgroundJob, IDisposable where T : struct
 {
     public int Port { get; }
     public SocketAddress Address { get; }
-    public uint TotalBytesSent { get; }
+    public ByteSize TotalBytesSent { get; }
 
     ValueTask SendTo(
         SocketAddress peerAddress,
@@ -33,7 +34,7 @@ sealed class UdpClient<T>(
     CancellationTokenSource? cancellation;
     public int Port => port;
     public SocketAddress Address { get; } = new IPEndPoint(IPAddress.Loopback, port).Serialize();
-    public uint TotalBytesSent { get; private set; }
+    public ByteSize TotalBytesSent { get; private set; }
 
     readonly Channel<(SocketAddress, T)> sendQueue =
         Channel.CreateUnbounded<(SocketAddress, T)>(
@@ -156,7 +157,8 @@ sealed class UdpClient<T>(
         CancellationToken ct = default
     )
     {
-        TotalBytesSent += (uint)payload.Length;
+        ByteSize payloadSize = new(payload.Length);
+        TotalBytesSent += payloadSize;
         return socket.SendToAsync(payload, SocketFlags.None, peerAddress, ct);
     }
 
