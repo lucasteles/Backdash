@@ -37,17 +37,16 @@ public sealed class Measurer
 
         public static MeasureSnapshot Next(MeasureSnapshot last) => new MeasureSnapshot() - last;
 
-
         public readonly override string ToString() =>
             $"""
                TimeStamp: {TimeSpan.FromTicks(Timestamp):c}
-               Duration: {TimeSpan.FromTicks(Elapsed):c}
-               Msg Count: {PingMessageHandler.TotalProcessed}
-               GC Pause: {PauseTime:c}
-               Collect Count: G1({GcCount0}); G2({GcCount1}); G3({GcCount2})
+               Duration: {TimeSpan.FromTicks(Elapsed).TotalSeconds:F4}s
+               Msg Count: {PingMessageHandler.TotalProcessed:N0}
+               GC Pause: {PauseTime.TotalMilliseconds:F}ms
+               Collect Count: G1({GcCount0:N0}); G2({GcCount1:N0}); G3({GcCount2:N0})
                Total Memory: {FormatByteSize(TotalMemory)}
                Total Alloc: {FormatByteSize(TotalAllocatedBytes)}
-               Thread Alloc: {FormatByteSize(TotalAllocatedBytes)}
+               Thread Alloc: {FormatByteSize(AllocatedThreadMemory)}
              """;
     }
 
@@ -81,22 +80,22 @@ public sealed class Measurer
             $"""
              --- Summary ---
              Duration: {watch.Elapsed:c}
-             Snapshots: {snapshots.Count}
-             Msg Count: {PingMessageHandler.TotalProcessed}
+             Snapshots: {snapshots.Count:N0}
+             Msg Count: {PingMessageHandler.TotalProcessed:N0}
              Msg Size: {ByteSize.SizeOf<Message>()}
+             Avg Msg : {totalSent / PingMessageHandler.TotalProcessed}
              Total Sent: {FormatByteSize(totalSent)}
-             Avg Sent: {FormatByteSize(totalSent / PingMessageHandler.TotalProcessed)}
              """
         );
 
         if (snapshots is [.., var last])
             builder.AppendLine(
                 $"""
-                 GC Pause: {last.PauseTime:c}
-                 Collect Count: G1({last.GcCount0}); G2({last.GcCount1}); G3({last.GcCount2})
+                 GC Pause: {last.PauseTime.TotalMilliseconds:F}ms
+                 Collect Count: G1({last.GcCount0:N0}); G2({last.GcCount1:N0}); G3({last.GcCount2:N0})
                  Total Memory: {FormatByteSize(last.TotalMemory)}
                  Total Alloc: {FormatByteSize(last.TotalAllocatedBytes)}
-                 Thread Alloc: {FormatByteSize(last.TotalAllocatedBytes)}
+                 Thread Alloc: {FormatByteSize(last.AllocatedThreadMemory)}
                  """
             );
 

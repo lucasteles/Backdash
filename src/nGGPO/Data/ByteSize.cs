@@ -138,7 +138,8 @@ public readonly record struct ByteSize(long ByteCount)
     public static ByteSize operator --(ByteSize value) => new(value.ByteCount - 1);
     public static ByteSize operator +(ByteSize left, ByteSize right) => new(left.ByteCount + right.ByteCount);
     public static ByteSize operator -(ByteSize left, ByteSize right) => new(left.ByteCount - right.ByteCount);
-    public static ByteSize operator /(ByteSize left, long right) => new(left.ByteCount / right);
+    public static ByteSize operator /(ByteSize left, double right) => new((long)(left.ByteCount / right));
+    public static ByteSize operator /(ByteSize left, long right) => left / (double)right;
     public static ByteSize operator *(ByteSize left, long right) => new(left.ByteCount * right);
     public static ByteSize operator *(long left, ByteSize right) => new(left * right.ByteCount);
     public static explicit operator ByteSize(long value) => new(value);
