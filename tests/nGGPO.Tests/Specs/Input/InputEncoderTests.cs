@@ -1,4 +1,3 @@
-using System.Threading.Channels;
 using nGGPO.Data;
 using nGGPO.Input;
 using nGGPO.Network.Messages;
@@ -8,6 +7,7 @@ namespace nGGPO.Tests.Specs.Input;
 
 public class InputEncoderTests
 {
+
     [Fact]
     public void ShouldCompressAndDecompressSample()
     {
@@ -51,6 +51,28 @@ public class InputEncoderTests
         var decompressedInputs = DecompressToList(compressed);
 
         decompressedInputs.Should().BeEquivalentTo(gameInput.Values);
+    }
+
+    [PropertyTest]
+    internal bool CompressEmpty(GameInput gameInput)
+    {
+        GameInput lastAcked = gameInput with
+        {
+            Frame = Frame.Zero,
+        };
+        gameInput.Frame = new(1);
+
+        var twinInput = gameInput with
+        {
+            Frame = new(2),
+        };
+
+        GameInput[] inputs = [gameInput, twinInput];
+
+        var compressed = GetCompressedMsg(in lastAcked, inputs);
+
+        ReadOnlySpan<byte> bits = compressed.Bits;
+        return bits.ToArray().All(b => b is 0);
     }
 
     static InputMsg GetCompressedMsg(in GameInput lastAcked, params GameInput[] pendingInputs)

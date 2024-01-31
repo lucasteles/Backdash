@@ -243,7 +243,7 @@ class MyGenerators
     public static Arbitrary<GameInput> GameInputBufferGenerator() => Arb.From(
         from frame in Arb.From<Frame>().Generator
         from bytes in Gen.ArrayOf(GameInputBuffer.Capacity / 2, Arb.From<byte>().Generator)
-        // Gen.Sized(testSize => Gen.ArrayOf(Math.Min(testSize, GameInputBuffer.Capacity), Arb.From<byte>().Generator))
+            // Gen.Sized(testSize => Gen.ArrayOf(Math.Min(testSize, GameInputBuffer.Capacity), Arb.From<byte>().Generator))
         select new GameInput(bytes)
         {
             Frame = frame,
@@ -268,4 +268,4 @@ class MyGenerators
             .ToArbitrary();
 }
 
-record class PendingGameInputs(GameInput[] Values);
+record PendingGameInputs(GameInput[] Values);

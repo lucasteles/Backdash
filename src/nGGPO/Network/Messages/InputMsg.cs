@@ -1,6 +1,5 @@
 using System.Runtime.CompilerServices;
 using System.Text;
-using nGGPO.Input;
 using nGGPO.Serialization;
 using nGGPO.Serialization.Buffer;
 using nGGPO.Utils;
