@@ -91,7 +91,7 @@ public readonly record struct ByteSize(long ByteCount)
         const string defaultFormat = "0.##";
         const string binaryFormat = "binary";
         const string decimalFormat = "decimal";
-        format ??= binaryFormat;
+        format ??= decimalFormat;
 
         if (format.Equals(binaryFormat, StringComparison.OrdinalIgnoreCase))
         {

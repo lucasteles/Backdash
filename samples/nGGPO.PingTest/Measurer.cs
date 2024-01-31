@@ -46,13 +46,11 @@ public sealed class Measurer
                Duration: {TimeSpan.FromTicks(Elapsed).TotalSeconds:F4}s
                GC Pause: {PauseTime.TotalMilliseconds:F}ms
                Collect Count: G1({GcCount0:N0}); G2({GcCount1:N0}); G3({GcCount2:N0})
-               Total Memory: {FormatByteSize(TotalMemory)}
-               Total Alloc: {FormatByteSize(TotalAllocatedBytes)}
-               Thread Alloc: {FormatByteSize(AllocatedThreadMemory)}
+               Total Memory: {TotalMemory}
+               Total Alloc: {TotalAllocatedBytes}
+               Thread Alloc: {AllocatedThreadMemory}
              """;
     }
-
-    static string FormatByteSize(ByteSize size) => $"{size:KB} | {size:MB}";
 
     MeasureSnapshot start;
     readonly List<MeasureSnapshot> snapshots = new(64);
@@ -86,7 +84,7 @@ public sealed class Measurer
              Msg Count: {PingMessageHandler.TotalProcessed:N0}
              Msg Size: {ByteSize.SizeOf<Message>()}
              Avg Msg : {totalSent / PingMessageHandler.TotalProcessed}
-             Total Sent: {FormatByteSize(totalSent)}
+             Total Sent: {totalSent}
              """
         );
 
@@ -95,9 +93,9 @@ public sealed class Measurer
                 $"""
                  GC Pause: {last.PauseTime.TotalMilliseconds:F}ms
                  Collect Count: G1({last.GcCount0:N0}); G2({last.GcCount1:N0}); G3({last.GcCount2:N0})
-                 Total Memory: {FormatByteSize(last.TotalMemory)}
-                 Total Alloc: {FormatByteSize(last.TotalAllocatedBytes)}
-                 Thread Alloc: {FormatByteSize(last.AllocatedThreadMemory)}
+                 Total Memory: {last.TotalMemory}
+                 Total Alloc: {last.TotalAllocatedBytes}
+                 Thread Alloc: {last.AllocatedThreadMemory}
                  """
             );
 
