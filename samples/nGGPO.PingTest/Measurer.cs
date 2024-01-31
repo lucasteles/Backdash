@@ -12,6 +12,7 @@ public sealed class Measurer
     {
         public readonly long Timestamp = Stopwatch.GetTimestamp();
         public long Elapsed = 0;
+        public long MessageCount = PingMessageHandler.TotalProcessed;
         public ByteSize TotalMemory = (ByteSize) GC.GetTotalMemory(true);
         public ByteSize TotalAllocatedBytes = (ByteSize) GC.GetTotalAllocatedBytes(true);
 
@@ -23,7 +24,7 @@ public sealed class Measurer
         public int GcCount1 = GC.CollectionCount(0);
         public int GcCount2 = GC.CollectionCount(0);
 
-        public static MeasureSnapshot operator -(MeasureSnapshot a, MeasureSnapshot b) => new()
+        public static MeasureSnapshot Diff(MeasureSnapshot a, MeasureSnapshot b) => new()
         {
             Elapsed = a.Timestamp - b.Timestamp,
             TotalMemory = a.TotalMemory - b.TotalMemory,
@@ -35,13 +36,14 @@ public sealed class Measurer
             GcCount2 = a.GcCount2 - b.GcCount2,
         };
 
-        public static MeasureSnapshot Next(MeasureSnapshot last) => new MeasureSnapshot() - last;
+        public static MeasureSnapshot Next(MeasureSnapshot last) =>
+            Diff(new MeasureSnapshot(), last);
 
         public readonly override string ToString() =>
             $"""
                TimeStamp: {TimeSpan.FromTicks(Timestamp):c}
+               Msg Count: {MessageCount:N0}
                Duration: {TimeSpan.FromTicks(Elapsed).TotalSeconds:F4}s
-               Msg Count: {PingMessageHandler.TotalProcessed:N0}
                GC Pause: {PauseTime.TotalMilliseconds:F}ms
                Collect Count: G1({GcCount0:N0}); G2({GcCount1:N0}); G3({GcCount2:N0})
                Total Memory: {FormatByteSize(TotalMemory)}
