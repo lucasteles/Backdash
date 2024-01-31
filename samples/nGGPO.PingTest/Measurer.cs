@@ -36,8 +36,8 @@ public sealed class Measurer
             GcCount2 = a.GcCount2 - b.GcCount2,
         };
 
-        public static MeasureSnapshot Next(MeasureSnapshot last) =>
-            Diff(new MeasureSnapshot(), last);
+        public static MeasureSnapshot Next(MeasureSnapshot initial) =>
+            Diff(new MeasureSnapshot(), initial);
 
         public readonly override string ToString() =>
             $"""
@@ -45,7 +45,7 @@ public sealed class Measurer
                Msg Count: {MessageCount:N0}
                Duration: {TimeSpan.FromTicks(Elapsed).TotalSeconds:F4}s
                GC Pause: {PauseTime.TotalMilliseconds:F}ms
-               Collect Count: G1({GcCount0:N0}); G2({GcCount1:N0}); G3({GcCount2:N0})
+               Collect Count: G1({GcCount0}); G2({GcCount1}); G3({GcCount2})
                Total Memory: {TotalMemory}
                Total Alloc: {TotalAllocatedBytes}
                Thread Alloc: {AllocatedThreadMemory}
@@ -59,6 +59,8 @@ public sealed class Measurer
     public void Start()
     {
         snapshots.Clear();
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
         GC.Collect();
         start = new();
         watch.Start();
@@ -92,7 +94,7 @@ public sealed class Measurer
             builder.AppendLine(
                 $"""
                  GC Pause: {last.PauseTime.TotalMilliseconds:F}ms
-                 Collect Count: G1({last.GcCount0:N0}); G2({last.GcCount1:N0}); G3({last.GcCount2:N0})
+                 Collect Count: G1({last.GcCount0}); G2({last.GcCount1}); G3({last.GcCount2})
                  Total Memory: {last.TotalMemory}
                  Total Alloc: {last.TotalAllocatedBytes}
                  Thread Alloc: {last.AllocatedThreadMemory}
