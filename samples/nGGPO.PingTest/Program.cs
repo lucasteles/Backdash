@@ -4,14 +4,14 @@ using nGGPO.Network.Client;
 using nGGPO.PingTest;
 using nGGPO.Serialization;
 
+Measurer measurer = new();
 ConsoleLogger logger = new() {EnabledLevel = LogLevel.Off};
 await using BackgroundJobManager jobs = new(logger);
 
-using var peer1 = CreateClient(9000);
+using var peer1 = CreateClient(9000, measurer);
 using var peer2 = CreateClient(9001);
 
 using CancellationTokenSource source = new();
-Measurer measurer = new();
 
 Console.WriteLine("Started.");
 source.CancelAfter(TimeSpan.FromSeconds(10));
@@ -25,12 +25,12 @@ measurer.Stop();
 var totalSent = peer1.TotalBytesSent + peer2.TotalBytesSent;
 Console.WriteLine(measurer.Summary(totalSent));
 
-IUdpClient<Message> CreateClient(int port)
+IUdpClient<Message> CreateClient(int port, Measurer? m = null)
 {
     UdpObservableClient<Message> udp = new(port,
         BinarySerializerFactory.ForEnum<Message>(), logger);
 
-    udp.Observers.Add(new PingMessageHandler());
+    udp.Observers.Add(new PingMessageHandler(m));
 
     udp.EnableLogs(false);
     jobs.Register(udp);

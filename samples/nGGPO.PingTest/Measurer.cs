@@ -11,8 +11,11 @@ public sealed class Measurer
         public readonly long Timestamp = Stopwatch.GetTimestamp();
         public long Elapsed = 0;
         public ByteSize TotalMemory = (ByteSize) GC.GetTotalMemory(true);
-        public ByteSize TotalAllocatedBytes = (ByteSize) GC.GetTotalAllocatedBytes();
-        public ByteSize AllocatedThreadMemory = (ByteSize) GC.GetAllocatedBytesForCurrentThread();
+        public ByteSize TotalAllocatedBytes = (ByteSize) GC.GetTotalAllocatedBytes(true);
+
+        public ByteSize AllocatedThreadMemory =
+            (ByteSize) GC.GetAllocatedBytesForCurrentThread();
+
         public TimeSpan PauseTime = GC.GetTotalPauseDuration();
         public int GcCount0 = GC.CollectionCount(0);
         public int GcCount1 = GC.CollectionCount(0);
@@ -35,14 +38,13 @@ public sealed class Measurer
 
         public readonly override string ToString() =>
             $"""
-             TimeStamp: {(int) TimeSpan.FromTicks(Timestamp).TotalMilliseconds}
-             Duration: {TimeSpan.FromTicks(Elapsed):g}
-             GC Pause: {PauseTime:g}
-             Collect Count: G1({GcCount0}); G2({GcCount1}); G3({GcCount2})
-             Memory:
-                Total: {FormatByteSize(TotalMemory)}
-                Alloc: {FormatByteSize(TotalAllocatedBytes)}
-                Thread Alloc: {FormatByteSize(TotalAllocatedBytes)}
+               TimeStamp: {(int) TimeSpan.FromTicks(Timestamp).TotalMilliseconds}
+               Duration: {TimeSpan.FromTicks(Elapsed):g}
+               GC Pause: {PauseTime:g}
+               Collect Count: G1({GcCount0}); G2({GcCount1}); G3({GcCount2})
+               Total Memory: {FormatByteSize(TotalMemory)}
+               Total Alloc: {FormatByteSize(TotalAllocatedBytes)}
+               Thread Alloc: {FormatByteSize(TotalAllocatedBytes)}
              """;
     }
 
@@ -59,12 +61,12 @@ public sealed class Measurer
         watch.Start();
     }
 
-    public void Next() => snapshots.Add(MeasureSnapshot.Next(start));
+    public void Snapshot() => snapshots.Add(MeasureSnapshot.Next(start));
 
     public void Stop()
     {
         watch.Stop();
-        Next();
+        Snapshot();
     }
 
     public string Summary(ByteSize totalSent)
