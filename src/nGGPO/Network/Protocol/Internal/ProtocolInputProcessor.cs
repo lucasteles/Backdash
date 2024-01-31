@@ -73,7 +73,8 @@ sealed class ProtocolInputProcessor(
              * (better, but still ug).  For the meantime, make this queue really big to decrease
              * the odds of this happening...
              */
-            Interlocked.Increment(ref pendingNumber);
+            //Interlocked.Increment(ref pendingNumber);
+            pendingNumber++;
             await inputQueue.Writer.WriteAsync(input, ct).ConfigureAwait(false);
         }
     }
@@ -114,7 +115,8 @@ sealed class ProtocolInputProcessor(
             LastSent = nextInput;
         }
 
-        Interlocked.Add(ref pendingNumber, compressor.Count);
+        // Interlocked.Add(ref pendingNumber, compressor.Count);
+        pendingNumber -= compressor.Count;
 
         compressedInput.AckFrame = inbox.LastReceivedInput.Frame;
         compressedInput.DisconnectRequested = state.Status is not ProtocolStatus.Disconnected;
