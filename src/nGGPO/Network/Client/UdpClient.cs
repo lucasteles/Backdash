@@ -10,6 +10,10 @@ namespace nGGPO.Network.Client;
 
 interface IUdpClient<T> : IBackgroundJob, IDisposable where T : struct
 {
+    public int Port { get; }
+    public SocketAddress Address { get; }
+    public uint TotalBytesSent { get; }
+
     ValueTask SendTo(
         SocketAddress peerAddress,
         in T payload,
@@ -40,6 +44,8 @@ sealed class UdpClient<T>(
                 AllowSynchronousContinuations = true,
             }
         );
+
+    public string JobName { get; } = $"{nameof(UdpClient)} ({port})";
 
     public async Task Start(CancellationToken ct)
     {

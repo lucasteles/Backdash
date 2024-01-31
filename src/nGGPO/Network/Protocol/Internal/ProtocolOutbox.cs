@@ -40,6 +40,8 @@ sealed class ProtocolOutbox(
     int packetsSent;
     int nextSendSeq;
 
+    public string JobName { get; } = $"{nameof(ProtocolOutbox)} ({udp.Port})";
+
     public long LastSendTime { get; private set; }
 
     public ValueTask SendMessage(ref ProtocolMessage msg, CancellationToken ct)

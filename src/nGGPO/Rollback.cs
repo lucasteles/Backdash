@@ -50,7 +50,7 @@ public static class Rollback
             callbacks,
             inputSerializer,
             udpClient,
-            new BackgroundJobManager(),
+            new BackgroundJobManager(logger),
             logger
         );
     }

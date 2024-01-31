@@ -2,7 +2,7 @@ using nGGPO.Data;
 
 namespace nGGPO.Network.Protocol.Internal;
 
-sealed class ProtocolState(Connections localConnectStatus)
+sealed class ProtocolState(Connections localConnectStatus, int localPort)
 {
     public readonly SyncState Sync = new();
     public readonly RunningState Running = new();
@@ -13,6 +13,8 @@ sealed class ProtocolState(Connections localConnectStatus)
     public readonly Connections LocalConnectStatus = localConnectStatus;
     public readonly Connections PeerConnectStatus = new(Frame.Null);
     public ProtocolStatus Status;
+
+    public readonly int LocalPort = localPort;
 
     internal class SyncState
     {

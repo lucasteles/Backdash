@@ -61,7 +61,13 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
     public async ValueTask DisposeAsync()
     {
         udp.Dispose();
-        await backgroundJobManager.DisposeAsync();
+        await backgroundJobManager.DisposeAsync().ConfigureAwait(false);
+
+        foreach (var endpoint in endpoints)
+            endpoint.Dispose();
+
+        foreach (var spectator in spectators)
+            spectator.Dispose();
     }
 
     public ResultCode AddPlayer(Player player)

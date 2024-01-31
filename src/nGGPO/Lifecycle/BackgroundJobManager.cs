@@ -6,9 +6,9 @@ interface IBackgroundJobManager : IAsyncDisposable
     void Register(IBackgroundJob job);
 }
 
-sealed class BackgroundJobManager : IBackgroundJobManager
+sealed class BackgroundJobManager(ILogger logger) : IBackgroundJobManager
 {
-    readonly List<IBackgroundJob> jobs = [];
+    readonly HashSet<IBackgroundJob> jobs = [];
     readonly Dictionary<Task, IBackgroundJob> tasks = [];
     readonly CancellationTokenSource cts = new();
 
@@ -20,9 +20,10 @@ sealed class BackgroundJobManager : IBackgroundJobManager
     public async Task Start(CancellationToken ct)
     {
         if (started) return;
-        if (jobs is []) throw new NggpoException("No jobs registered");
+        if (jobs.Count is 0) throw new NggpoException("No jobs registered");
         linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, ct);
 
+        logger.Info($"Starting background tasks");
         foreach (var job in jobs)
         {
             var task = job.Start(StoppingToken);
@@ -38,9 +39,12 @@ sealed class BackgroundJobManager : IBackgroundJobManager
             if (!tasks.TryGetValue(completed, out var completedJob))
                 continue;
 
+            logger.Trace($"Completed: {completedJob.JobName}");
             jobs.Remove(completedJob);
             tasks.Remove(completed);
         }
+
+        logger.Info($"Finished background tasks");
     }
 
     public void Register(IBackgroundJob job)

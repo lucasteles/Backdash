@@ -43,6 +43,7 @@ sealed class ProtocolInputProcessor(
 
     int pendingNumber;
 
+    public string JobName { get; } = $"{nameof(ProtocolInputProcessor)} ({state.LocalPort})";
     public int PendingNumber => pendingNumber;
     public GameInput LastSent { get; private set; } = GameInput.Empty;
 

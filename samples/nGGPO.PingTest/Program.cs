@@ -1,99 +1,38 @@
-using System.Diagnostics;
-using System.Net;
 using nGGPO;
+using nGGPO.Lifecycle;
 using nGGPO.Network.Client;
+using nGGPO.PingTest;
 using nGGPO.Serialization;
-using UdpPeerClient = nGGPO.Network.Client.UdpClient<Message>;
 
-var processedMessageCount = 0UL;
+ConsoleLogger logger = new() {EnabledLevel = LogLevel.Off};
+await using BackgroundJobManager jobs = new(logger);
 
-ValueTask ProcessMessage(IUdpClient<Message> client, Message message,
-    SocketAddress sender, CancellationToken ct)
-{
-    if (ct.IsCancellationRequested) return ValueTask.CompletedTask;
-    Interlocked.Increment(ref processedMessageCount);
-    return message switch
-    {
-        Message.Ping => client.SendTo(sender, Message.Pong, ct),
-        Message.Pong => client.SendTo(sender, Message.Ping, ct),
-        _ => throw new ArgumentOutOfRangeException(nameof(message), message, null)
-    };
-}
+using var peer1 = CreateClient(9000);
+using var peer2 = CreateClient(9001);
 
-ConsoleLogger logger = new() { EnabledLevel = LogLevel.Trace };
-
-UdpPeerClient peer1 = new(9000,
-    new UdpObserver<Message>(ProcessMessage),
-    BinarySerializerFactory.ForEnum<Message>(),
-    logger
-)
-{ LogsEnabled = false };
-
-UdpPeerClient peer2 = new(9001,
-    new UdpObserver<Message>(ProcessMessage),
-    BinarySerializerFactory.ForEnum<Message>(),
-    logger
-)
-{ LogsEnabled = false };
-
-Stopwatch watch = new();
 using CancellationTokenSource source = new();
+Measurer measurer = new();
 
 Console.WriteLine("Started.");
-var tasks = Task.WhenAll(peer1.Start(source.Token), peer2.Start(source.Token));
-
 source.CancelAfter(TimeSpan.FromSeconds(10));
-var gcCount = new[]
-{
-    GC.CollectionCount(0), GC.CollectionCount(1), GC.CollectionCount(2),
-};
-var pauseTime = GC.GetTotalPauseDuration();
-double totalMemory = GC.GetTotalMemory(true);
-watch.Start();
 
+var tasks = jobs.Start(source.Token);
+measurer.Start();
 await peer1.SendTo(peer2.Address, Message.Ping);
 await tasks;
+measurer.Stop();
 
-watch.Stop();
-totalMemory = (GC.GetTotalMemory(true) - totalMemory) / 1024.0;
-gcCount[0] = GC.CollectionCount(0) - gcCount[0];
-gcCount[1] = GC.CollectionCount(1) - gcCount[1];
-gcCount[2] = GC.CollectionCount(2) - gcCount[2];
-pauseTime = GC.GetTotalPauseDuration() - pauseTime;
 var totalSent = (peer1.TotalBytesSent + peer2.TotalBytesSent) / 1024.0;
-Console.WriteLine(
-    """
-    --- Summary ---
-    Msg Count: {0}
-    Time: {1:g}
-    Msg Size: {8} Bytes
-    Total Sent: {9:F}KB | {10:F}MB
-    Total Alloc: {2:F}KB | {3:F}MB
-    GC Pause: {4:g}
-    Collect Count: G1({5}); G2({6}); G3({7})
-    ---------------
-    """,
-    processedMessageCount, watch.Elapsed,
-    totalMemory, totalMemory / 1024.0,
-    pauseTime, gcCount[0], gcCount[1], gcCount[2],
-    sizeof(Message), totalSent, totalSent / 1024.0
-);
+Console.WriteLine(measurer.Summary(totalSent));
 
-
-public enum Message
+IUdpClient<Message> CreateClient(int port)
 {
-    Ping = 2,
-    Pong = 4,
-}
+    UdpObservableClient<Message> udp = new(port,
+        BinarySerializerFactory.ForEnum<Message>(), logger);
 
-sealed class UdpObserver<T>(
-    Func<IUdpClient<T>, T, SocketAddress, CancellationToken, ValueTask> onMessage)
-    : IUdpObserver<T>
-    where T : struct
-{
-    public ValueTask OnUdpMessage(IUdpClient<T> sender,
-        T message,
-        SocketAddress from,
-        CancellationToken stoppingToken) =>
-        onMessage(sender, message, from, stoppingToken);
+    udp.Observers.Add(new PingMessageHandler());
+
+    udp.EnableLogs(false);
+    jobs.Register(udp);
+    return udp.Client;
 }
