@@ -49,7 +49,7 @@ sealed class BackgroundJobManager : IAsyncDisposable
     {
         try
         {
-            await cts.CancelAsync();
+            await cts.CancelAsync().ConfigureAwait(false);
         }
         finally
         {

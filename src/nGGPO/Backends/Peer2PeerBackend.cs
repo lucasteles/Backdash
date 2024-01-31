@@ -11,8 +11,7 @@ using nGGPO.Utils;
 
 namespace nGGPO.Backends;
 
-sealed class Peer2PeerBackend<TInput, TGameState>
-    : IRollbackSession<TInput, TGameState>
+sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
     where TInput : struct
     where TGameState : struct
 {
@@ -66,7 +65,11 @@ sealed class Peer2PeerBackend<TInput, TGameState>
         backgroundJobManager.Register(udpClient);
     }
 
-    public void Dispose() => udpClient.Dispose();
+    public async ValueTask DisposeAsync()
+    {
+        udpClient.Dispose();
+        await backgroundJobManager.DisposeAsync();
+    }
 
     public ResultCode AddPlayer(Player player)
     {

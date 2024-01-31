@@ -36,8 +36,6 @@ readonly ref struct BitVector(Span<byte> bits)
     public void Set(int i) => SetBit(Buffer, i);
     public void Clear(int i) => ClearBit(Buffer, i);
 
-    public void Erase() => Buffer.Clear();
-
     public bool this[int bit]
     {
         get => Get(bit);
@@ -63,7 +61,7 @@ readonly ref struct BitVector(Span<byte> bits)
 
         public override readonly string ToString()
         {
-            var byteOffset = Offset / 8;
+            var byteOffset = Offset / Mem.ByteSize;
             return
                 $"{{TotalWrite: {byteOffset}, Offset: {Offset}}} [{(Offset is 0 ? "" : Mem.GetBitString(bytes[..byteOffset]))}]";
         }

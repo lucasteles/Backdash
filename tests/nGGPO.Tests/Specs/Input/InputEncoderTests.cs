@@ -7,7 +7,6 @@ namespace nGGPO.Tests.Specs.Input;
 
 public class InputEncoderTests
 {
-
     [Fact]
     public void ShouldCompressAndDecompressSample()
     {
@@ -22,7 +21,7 @@ public class InputEncoderTests
 
         var compressed = GetCompressedMsg(in lastAcked, inputList);
 
-        var decompressedInputs = DecompressToList(compressed);
+        var decompressedInputs = DecompressToList(compressed, lastAcked);
 
         decompressedInputs.Should().BeEquivalentTo(inputList);
         decompressedInputs
@@ -48,7 +47,7 @@ public class InputEncoderTests
 
         var compressed = GetCompressedMsg(in lastAcked, gameInput.Values);
 
-        var decompressedInputs = DecompressToList(compressed);
+        var decompressedInputs = DecompressToList(compressed, lastAcked);
 
         decompressedInputs.Should().BeEquivalentTo(gameInput.Values);
     }
@@ -89,10 +88,9 @@ public class InputEncoderTests
         return inputMsg;
     }
 
-    static IReadOnlyList<GameInput> DecompressToList(InputMsg inputMsg)
+    static IReadOnlyList<GameInput> DecompressToList(InputMsg inputMsg, GameInput lastRecv)
     {
         List<GameInput> inputs = [];
-        GameInput lastRecv = GameInput.Empty;
         InputEncoder encoder = new();
         var decompressor = encoder.Decompress(ref inputMsg, ref lastRecv);
         while (decompressor.NextInput())

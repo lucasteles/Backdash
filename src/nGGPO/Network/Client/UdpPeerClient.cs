@@ -56,15 +56,6 @@ sealed class UdpClient<T>(
         ).ConfigureAwait(false);
     }
 
-    public async Task Stop()
-    {
-        if (cancellation is null)
-            return;
-
-        await cancellation.CancelAsync().ConfigureAwait(false);
-        cancellation = null;
-    }
-
     static Socket CreateSocket(int port, ILogger logger)
     {
         if (port is < IPEndPoint.MinPort or > IPEndPoint.MaxPort)

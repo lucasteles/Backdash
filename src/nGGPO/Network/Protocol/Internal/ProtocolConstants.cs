@@ -1,4 +1,4 @@
-namespace nGGPO.Network.Protocol;
+namespace nGGPO.Network.Protocol.Internal;
 
 static class ProtocolConstants
 {
