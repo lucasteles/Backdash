@@ -10,9 +10,8 @@ static class UdpProtocolFactory
 {
     public static UdpProtocol CreateDefault(
         ILogger logger,
-        BackgroundJobManager jobManager,
-        UdpObserverGroup<ProtocolMessage> peerObservers,
-        IUdpClient<ProtocolMessage> udp,
+        IBackgroundJobManager jobManager,
+        IUdpObservableClient<ProtocolMessage> udp,
         Connections localConnections,
         ProtocolOptions options,
         TimeSyncOptions timeSyncOptions
@@ -25,12 +24,12 @@ static class UdpProtocolFactory
         ProtocolEventDispatcher eventDispatcher = new(udpLogger);
         DelayStrategy delayStrategy = new(options.Random);
 
-        ProtocolOutbox outbox = new(options, udp, delayStrategy, udpLogger);
+        ProtocolOutbox outbox = new(options, udp.Client, delayStrategy, udpLogger);
         ProtocolInbox inbox = new(options, state, outbox, inputEncoder, eventDispatcher, udpLogger, logger);
         ProtocolInputProcessor inputProcessor = new(options, state, localConnections, logger,
             inputEncoder, timeSync, outbox, inbox);
 
-        peerObservers.Add(inbox);
+        udp.Observers.Add(inbox);
         jobManager.Register(outbox);
         jobManager.Register(inputProcessor);
 

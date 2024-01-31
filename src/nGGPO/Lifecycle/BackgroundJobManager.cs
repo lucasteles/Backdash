@@ -1,6 +1,12 @@
 namespace nGGPO.Lifecycle;
 
-sealed class BackgroundJobManager : IAsyncDisposable
+interface IBackgroundJobManager : IAsyncDisposable
+{
+    Task Start(CancellationToken ct);
+    void Register(IBackgroundJob job);
+}
+
+sealed class BackgroundJobManager : IBackgroundJobManager
 {
     readonly List<IBackgroundJob> jobs = [];
     readonly Dictionary<Task, IBackgroundJob> tasks = [];

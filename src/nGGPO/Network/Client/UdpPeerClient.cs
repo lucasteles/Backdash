@@ -8,7 +8,7 @@ using nGGPO.Utils;
 
 namespace nGGPO.Network.Client;
 
-interface IUdpClient<T> : IBackgroundJob where T : struct
+interface IUdpClient<T> : IBackgroundJob, IDisposable where T : struct
 {
     ValueTask SendTo(
         SocketAddress peerAddress,
@@ -22,7 +22,7 @@ sealed class UdpClient<T>(
     IUdpObserver<T> observer,
     IBinarySerializer<T> serializer,
     ILogger logger
-) : IDisposable, IUdpClient<T> where T : struct
+) : IUdpClient<T> where T : struct
 {
     public bool LogsEnabled = true;
     readonly Socket socket = CreateSocket(port, logger);

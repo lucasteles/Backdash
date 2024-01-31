@@ -1,4 +1,7 @@
 using nGGPO.Backends;
+using nGGPO.Lifecycle;
+using nGGPO.Network.Client;
+using nGGPO.Network.Messages;
 using nGGPO.Serialization;
 
 namespace nGGPO;
@@ -6,7 +9,7 @@ namespace nGGPO;
 public static class Rollback
 {
     public static IRollbackSession<TInput> CreateSession<TInput, TGameState>(
-        ISessionCallbacks<TGameState> cb,
+        ISessionCallbacks<TGameState> callbacks,
         int numPlayers,
         int localPort,
         IBinarySerializer<TInput>? inputSerializer = null
@@ -14,16 +17,17 @@ public static class Rollback
         where TInput : struct
         where TGameState : struct
         =>
-            CreateSession(cb, new()
+            CreateSession(callbacks, new()
             {
                 LocalPort = localPort,
                 NumberOfPlayers = numPlayers,
             }, inputSerializer);
 
     public static IRollbackSession<TInput> CreateSession<TInput, TGameState>(
-        ISessionCallbacks<TGameState> cb,
+        ISessionCallbacks<TGameState> callbacks,
         RollbackOptions options,
-        IBinarySerializer<TInput>? inputSerializer = null
+        IBinarySerializer<TInput>? inputSerializer = null,
+        ILogger? logger = null
     )
         where TInput : struct
         where TGameState : struct
@@ -32,10 +36,22 @@ public static class Rollback
                             ?? throw new InvalidOperationException(
                                 $"Unable to infer serializer for type {typeof(TInput).FullName}");
 
+        logger ??= new ConsoleLogger
+        {
+            EnabledLevel = options.LogLevel,
+        };
+
+        UdpObservableClient<ProtocolMessage> udpClient = new(
+            options.LocalPort, new ProtocolMessageBinarySerializer(), logger
+        );
+
         return new Peer2PeerBackend<TInput, TGameState>(
+            options,
+            callbacks,
             inputSerializer,
-            cb,
-            options
+            udpClient,
+            new BackgroundJobManager(),
+            logger
         );
     }
 }

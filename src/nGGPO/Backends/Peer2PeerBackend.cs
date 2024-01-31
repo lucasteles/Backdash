@@ -18,7 +18,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
     readonly IBinarySerializer<TInput> inputSerializer;
     readonly ISessionCallbacks<TGameState> callbacks;
 
-    readonly UdpClient<ProtocolMessage> udpClient;
+    readonly IUdpObservableClient<ProtocolMessage> udp;
     readonly Synchronizer<TGameState> sync;
     readonly Connections localConnections;
 
@@ -26,17 +26,18 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
 
     readonly List<UdpProtocol> spectators;
     readonly List<UdpProtocol> endpoints;
-    readonly UdpObserverGroup<ProtocolMessage> peerObservers = new();
-    readonly BackgroundJobManager backgroundJobManager = new();
+    readonly IBackgroundJobManager backgroundJobManager;
     readonly ILogger logger;
 
     readonly RollbackOptions options;
 
     public Peer2PeerBackend(
-        IBinarySerializer<TInput> inputSerializer,
-        ISessionCallbacks<TGameState> callbacks,
         RollbackOptions options,
-        IBinarySerializer<ProtocolMessage>? udpMsgSerializer = null
+        ISessionCallbacks<TGameState> callbacks,
+        IBinarySerializer<TInput> inputSerializer,
+        IUdpObservableClient<ProtocolMessage> udpClient,
+        IBackgroundJobManager backgroundJobManager,
+        ILogger logger
     )
     {
         ExceptionHelper.ThrowIfArgumentIsNegativeOrZero(options.LocalPort);
@@ -45,29 +46,21 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
         this.options = options;
         this.inputSerializer = inputSerializer;
         this.callbacks = callbacks;
+        this.backgroundJobManager = backgroundJobManager;
+        this.logger = logger;
 
         localConnections = new();
+        sync = new(localConnections);
         spectators = new(Max.Spectators);
         endpoints = new(this.options.NumberOfPlayers);
-        sync = new(localConnections);
+        udp = udpClient;
 
-        logger = new ConsoleLogger
-        {
-            EnabledLevel = this.options.LogLevel,
-        };
-
-        udpClient = new(
-            this.options.LocalPort, peerObservers,
-            udpMsgSerializer ?? new ProtocolMessageBinarySerializer(),
-            logger
-        );
-
-        backgroundJobManager.Register(udpClient);
+        backgroundJobManager.Register(udp.Client);
     }
 
     public async ValueTask DisposeAsync()
     {
-        udpClient.Dispose();
+        udp.Dispose();
         await backgroundJobManager.DisposeAsync();
     }
 
@@ -186,8 +179,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
         var protocol = UdpProtocolFactory.CreateDefault(
             logger,
             backgroundJobManager,
-            peerObservers,
-            udpClient,
+            udp,
             localConnections,
             protocolOptions,
             options.TimeSync
