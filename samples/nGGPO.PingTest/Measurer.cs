@@ -130,7 +130,7 @@ public sealed class Measurer
              Duration: {watch.Elapsed:c}
              Snapshots: {snapshots.Count:N0}
              Msg Count: {PingMessageHandler.TotalProcessed:N0}
-             Msg Size: {ByteSize.SizeOf<Message>()}
+             Msg Size: {ByteSize.SizeOf<PingMessage>()}
              Avg Msg : {totalSent / PingMessageHandler.TotalProcessed}
              Total Sent: {totalSent}
              """

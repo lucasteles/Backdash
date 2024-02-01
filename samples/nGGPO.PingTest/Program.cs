@@ -18,7 +18,7 @@ Console.WriteLine("Running.");
 var tasks = jobs.Start(stopToken);
 
 measurer.Start();
-_ = peer1.SendTo(peer2.Address, Message.Ping);
+_ = peer1.SendTo(peer2.Address, PingMessage.Ping);
 
 Console.WriteLine("Press enter to stop.");
 SpinWait.SpinUntil(() => Console.KeyAvailable || stopToken.IsCancellationRequested);
@@ -31,10 +31,10 @@ var totalSent = peer1.TotalBytesSent + peer2.TotalBytesSent;
 Console.Clear();
 Console.WriteLine(measurer.Summary(totalSent));
 
-IUdpClient<Message> CreateClient(int port, Measurer? m = null)
+IUdpClient<PingMessage> CreateClient(int port, Measurer? m = null)
 {
-    UdpObservableClient<Message> udp = new(port,
-        BinarySerializerFactory.ForEnum<Message>(), logger);
+    UdpObservableClient<PingMessage> udp = new(port,
+        BinarySerializerFactory.ForEnum<PingMessage>(), logger);
 
     udp.Observers.Add(new PingMessageHandler(m));
 

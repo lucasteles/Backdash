@@ -2,13 +2,13 @@ using System.Net;
 using nGGPO.Network.Client;
 using nGGPO.PingTest;
 
-sealed class PingMessageHandler(Measurer? measurer = null) : IUdpObserver<Message>
+sealed class PingMessageHandler(Measurer? measurer = null) : IUdpObserver<PingMessage>
 {
     public static long TotalProcessed => processedCount;
 
     static long processedCount;
 
-    public ValueTask OnUdpMessage(IUdpClient<Message> sender, Message message, SocketAddress from,
+    public ValueTask OnUdpMessage(IUdpClient<PingMessage> sender, PingMessage message, SocketAddress from,
         CancellationToken stoppingToken)
     {
         if (stoppingToken.IsCancellationRequested) return ValueTask.CompletedTask;
@@ -19,8 +19,8 @@ sealed class PingMessageHandler(Measurer? measurer = null) : IUdpObserver<Messag
 
         return message switch
         {
-            Message.Ping => sender.SendTo(from, Message.Pong, stoppingToken),
-            Message.Pong => sender.SendTo(from, Message.Ping, stoppingToken),
+            PingMessage.Ping => sender.SendTo(from, PingMessage.Pong, stoppingToken),
+            PingMessage.Pong => sender.SendTo(from, PingMessage.Ping, stoppingToken),
             _ => throw new ArgumentOutOfRangeException(nameof(message), message, null),
         };
     }
