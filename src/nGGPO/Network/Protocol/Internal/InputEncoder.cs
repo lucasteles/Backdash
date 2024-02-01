@@ -22,7 +22,7 @@ sealed class InputEncoder : IInputEncoder
 
 ref struct InputCompressor
 {
-    BitVector.BitOffset bitWriter;
+    BitOffsetWriter bitWriter;
 
     ref InputMsg inputMsg;
 
@@ -55,8 +55,8 @@ ref struct InputCompressor
 
         if (!current.Equals(Last, bitsOnly: true))
         {
-            var currentBits = current.GetReadOnlyBitVector();
-            var lastBits = Last.GetReadOnlyBitVector();
+            var currentBits = ReadOnlyBitVector.FromSpan(current.Buffer);
+            var lastBits = ReadOnlyBitVector.FromSpan(Last.Buffer);
             for (var i = 0; i < currentBits.BitCount; i++)
             {
                 if (currentBits[i] == lastBits[i])
@@ -86,7 +86,7 @@ ref struct InputDecompressor
     readonly ushort numBits;
     readonly BitVector lastInputBits;
     ref GameInput nextInput;
-    BitVector.BitOffset bitVector;
+    BitOffsetWriter bitVector;
     int currentFrame;
 
     public InputDecompressor(
@@ -102,7 +102,7 @@ ref struct InputDecompressor
         if (lastReceivedInput.Frame < 0)
             lastReceivedInput.Frame = new(inputMsg.StartFrame - 1);
 
-        lastInputBits = nextInput.GetBitVector();
+        lastInputBits = BitVector.FromSpan(nextInput.Buffer);
         bitVector = new(inputMsg.Bits);
     }
 

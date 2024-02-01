@@ -13,17 +13,6 @@ static class Mem
     public static void Clear(in Span<byte> bytes) => bytes.Clear();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Span<TElement> InlineArrayAsSpan<TBuffer, TElement>(
-        scoped ref TBuffer buffer, int size) where TBuffer : struct =>
-        MemoryMarshal.CreateSpan(ref Unsafe.As<TBuffer, TElement>(ref buffer), size);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ReadOnlySpan<TElement> InlineArrayAsReadOnlySpan<TBuffer, TElement>(
-        scoped in TBuffer buffer, int size) where TBuffer : struct =>
-        MemoryMarshal.CreateReadOnlySpan(
-            ref Unsafe.As<TBuffer, TElement>(ref Unsafe.AsRef(in buffer)), size);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static TValue ReadStruct<TValue>(in ReadOnlySpan<byte> bytes)
         where TValue : struct =>
         MemoryMarshal.Read<TValue>(bytes);
