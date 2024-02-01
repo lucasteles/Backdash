@@ -14,7 +14,7 @@ sealed class PingMessageHandler(Measurer? measurer = null) : IUdpObserver<Messag
         if (stoppingToken.IsCancellationRequested) return ValueTask.CompletedTask;
         Interlocked.Increment(ref processedCount);
 
-        if (measurer is not null && processedCount % 50_000 == 0)
+        if (measurer is not null && processedCount % Measurer.Factor == 0)
             measurer.Snapshot();
 
         return message switch

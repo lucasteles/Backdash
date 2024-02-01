@@ -8,57 +8,89 @@ namespace nGGPO.PingTest;
 
 public sealed class Measurer
 {
-    public struct MeasureSnapshot()
+    public struct MeasureSnapshot
     {
-        public readonly long Timestamp = Stopwatch.GetTimestamp();
         public long Elapsed = 0;
+        public readonly long Timestamp = Stopwatch.GetTimestamp();
         public long MessageCount = PingMessageHandler.TotalProcessed;
-        public ByteSize TotalMemory = (ByteSize) GC.GetTotalMemory(true);
-        public ByteSize TotalAllocatedBytes = (ByteSize) GC.GetTotalAllocatedBytes(true);
-
-        public int ThreadId = Environment.CurrentManagedThreadId;
-
-        public ByteSize AllocatedThreadMemory =
-            (ByteSize) GC.GetAllocatedBytesForCurrentThread();
-
+        public ByteSize TotalMemory;
+        public ByteSize TotalAllocatedBytes;
+        public readonly int ThreadId = Environment.CurrentManagedThreadId;
+        public ByteSize AllocatedThreadMemory = (ByteSize) GC.GetAllocatedBytesForCurrentThread();
         public TimeSpan PauseTime = GC.GetTotalPauseDuration();
         public int GcCount0 = GC.CollectionCount(0);
         public int GcCount1 = GC.CollectionCount(1);
         public int GcCount2 = GC.CollectionCount(2);
 
-        public static MeasureSnapshot Diff(MeasureSnapshot a, MeasureSnapshot b) => new()
+        public ByteSize DeltaAllocatedBytes;
+        public ByteSize DeltaTotalMemory;
+
+        public MeasureSnapshot()
         {
-            Elapsed = a.Timestamp - b.Timestamp,
-            TotalMemory = a.TotalMemory - b.TotalMemory,
-            TotalAllocatedBytes = a.TotalAllocatedBytes - b.TotalAllocatedBytes,
-            AllocatedThreadMemory = a.ThreadId == b.ThreadId
-                ? a.AllocatedThreadMemory - b.AllocatedThreadMemory
-                : b.AllocatedThreadMemory,
-            PauseTime = a.PauseTime - b.PauseTime,
-            GcCount0 = a.GcCount0 - b.GcCount0,
-            GcCount1 = a.GcCount1 - b.GcCount1,
-            GcCount2 = a.GcCount2 - b.GcCount2,
+            TotalAllocatedBytes = (ByteSize) GC.GetTotalAllocatedBytes(true);
+            TotalMemory = (ByteSize) GC.GetTotalMemory(true);
+        }
+
+        public static MeasureSnapshot Diff(
+            MeasureSnapshot next,
+            MeasureSnapshot first,
+            MeasureSnapshot previous
+        ) => new()
+        {
+            Elapsed = next.Timestamp - first.Timestamp,
+            TotalMemory = next.TotalMemory - first.TotalMemory,
+            TotalAllocatedBytes = next.TotalAllocatedBytes - first.TotalAllocatedBytes,
+            AllocatedThreadMemory = next.ThreadId == first.ThreadId
+                ? next.AllocatedThreadMemory - first.AllocatedThreadMemory
+                : first.AllocatedThreadMemory,
+            PauseTime = next.PauseTime - first.PauseTime,
+            GcCount0 = next.GcCount0 - first.GcCount0,
+            GcCount1 = next.GcCount1 - first.GcCount1,
+            GcCount2 = next.GcCount2 - first.GcCount2,
+
+            DeltaAllocatedBytes =
+                next.TotalAllocatedBytes - previous.TotalAllocatedBytes - first.TotalAllocatedBytes,
+
+            DeltaTotalMemory = next.TotalMemory - previous.TotalMemory - first.TotalMemory,
         };
 
-        public static MeasureSnapshot Next(MeasureSnapshot initial) =>
-            Diff(new MeasureSnapshot(), initial);
+        public static MeasureSnapshot Next(MeasureSnapshot initial, MeasureSnapshot previous) =>
+            Diff(new MeasureSnapshot(), initial, previous);
+
+        public static MeasureSnapshot Zero { get; } = new()
+        {
+            Elapsed = 0,
+            MessageCount = 0,
+            TotalMemory = ByteSize.Zero,
+            TotalAllocatedBytes = ByteSize.Zero,
+            AllocatedThreadMemory = ByteSize.Zero,
+            PauseTime = TimeSpan.Zero,
+            GcCount0 = 0,
+            GcCount1 = 0,
+            GcCount2 = 0,
+            DeltaAllocatedBytes = ByteSize.Zero,
+            DeltaTotalMemory = ByteSize.Zero,
+        };
 
         public readonly override string ToString() =>
             $"""
                TimeStamp: {TimeSpan.FromTicks(Timestamp):c}
                Msg Count: {MessageCount:N0}
                Duration: {TimeSpan.FromTicks(Elapsed).TotalSeconds:F4}s
+               Total Memory: {TotalMemory}
+               Delta Memory: {DeltaTotalMemory}
+               Total Alloc: {TotalAllocatedBytes}
+               Delta Alloc: {DeltaAllocatedBytes}
+               Thread Alloc: {AllocatedThreadMemory} ({ThreadId})
                GC Pause: {PauseTime.TotalMilliseconds:F}ms
                Collect Count: G1({GcCount0}); G2({GcCount1}); G3({GcCount2})
-               Total Memory: {TotalMemory}
-               Total Alloc: {TotalAllocatedBytes}
-               Thread Alloc: {AllocatedThreadMemory} ({ThreadId})
              """;
     }
 
     MeasureSnapshot start;
     readonly List<MeasureSnapshot> snapshots = new(64);
     readonly Stopwatch watch = new();
+    public const long Factor = 10_000;
 
     public void Start()
     {
@@ -70,7 +102,17 @@ public sealed class Measurer
         watch.Start();
     }
 
-    public void Snapshot() => snapshots.Add(MeasureSnapshot.Next(start));
+    readonly object lockObj = new();
+
+    public void Snapshot()
+        
+    {
+        lock (lockObj)
+            snapshots.Add(MeasureSnapshot.Next(
+                start,
+                snapshots.Count is 0 ? MeasureSnapshot.Zero : snapshots[^1])
+            );
+    }
 
     public void Stop()
     {
@@ -95,15 +137,18 @@ public sealed class Measurer
         );
 
         if (snapshots is [.., var last])
+        {
             builder.AppendLine(
                 $"""
-                 GC Pause: {last.PauseTime.TotalMilliseconds:F}ms
-                 Collect Count: G1({last.GcCount0}); G2({last.GcCount1}); G3({last.GcCount2})
                  Total Memory: {last.TotalMemory}
                  Total Alloc: {last.TotalAllocatedBytes}
+                 Avg Alloc: {(ByteSize) snapshots.Select(x => x.DeltaAllocatedBytes.ByteCount).Average()} (per {Factor:N})
                  Thread Alloc: {last.AllocatedThreadMemory}
+                 GC Pause: {last.PauseTime.TotalMilliseconds:F}ms
+                 Collect Count: G1({last.GcCount0}); G2({last.GcCount1}); G3({last.GcCount2})
                  """
             );
+        }
 
         builder.AppendLine();
 
