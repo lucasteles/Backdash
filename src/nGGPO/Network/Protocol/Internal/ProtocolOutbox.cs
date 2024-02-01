@@ -84,7 +84,8 @@ sealed class ProtocolOutbox(
                     var jitter = delayStrategy.Jitter(sendLatency);
                     var delayDiff = TimeStamp.GetMilliseconds() - entry.QueueTime + jitter;
                     if (delayDiff > 0)
-                        await Delay.Of((int)delayDiff, cts.Token).ConfigureAwait(false);
+                        // TODO: allocations here
+                        await Task.Delay((int)delayDiff, cts.Token).ConfigureAwait(false);
                 }
 
                 await udp.SendTo(entry.DestAddr, entry.Msg, sendQueueCancellation.Token).ConfigureAwait(false);

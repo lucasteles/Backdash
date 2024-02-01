@@ -137,7 +137,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
         localConnections[queue].LastFrame = input.Frame;
 
         // Send the input to all the remote players.
-        for (var i = 0; i < options.NumberOfPlayers; i++)
+        for (var i = 0; i < endpoints.Count; i++)
             if (endpoints[i].IsInitialized())
                 await endpoints[i].SendInput(in input, stoppingToken).ConfigureAwait(false);
 

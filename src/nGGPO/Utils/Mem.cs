@@ -124,6 +124,30 @@ static class Mem
         }
     }
 
+    public static string JoinString<T>(
+        in ReadOnlySpan<T> values,
+        ReadOnlySpan<char> separator = default,
+        ReadOnlySpan<char> prefix = default,
+        ReadOnlySpan<char> suffix = default
+    )
+    {
+        separator = separator.IsEmpty ? ", " : separator;
+        prefix = prefix.IsEmpty ? "[" : separator;
+        suffix = suffix.IsEmpty ? "]" : suffix;
+
+        StringBuilder builder = new();
+        builder.Append(prefix);
+
+        for (var i = 0; i < values.Length; i++)
+        {
+            if (i > 0) builder.Append(separator);
+            builder.Append(values[i]);
+        }
+
+        builder.Append(suffix);
+        return builder.ToString();
+    }
+
     // TODO: create non alloc version of this
     public static string GetBitString(
         in ReadOnlySpan<byte> bytes,
