@@ -11,20 +11,25 @@ await using BackgroundJobManager jobs = new(logger);
 using var peer1 = CreateClient(9000, measurer);
 using var peer2 = CreateClient(9001);
 
-using CancellationTokenSource source = new();
+using CancellationTokenSource cts = new();
+cts.CancelAfter(TimeSpan.FromSeconds(10));
+var stopToken = cts.Token;
+Console.WriteLine("Running.");
+var tasks = jobs.Start(stopToken);
 
-Console.WriteLine("Started.");
-source.CancelAfter(TimeSpan.FromSeconds(10));
-
-var tasks = jobs.Start(source.Token);
 measurer.Start();
-await peer1.SendTo(peer2.Address, Message.Ping);
-await tasks;
+_ = peer1.SendTo(peer2.Address, Message.Ping);
+
+Console.WriteLine("Press enter to stop.");
+SpinWait.SpinUntil(() => Console.KeyAvailable || stopToken.IsCancellationRequested);
+cts.Cancel();
+measurer.Snapshot();
+await tasks.ConfigureAwait(false);
 measurer.Stop();
 
 var totalSent = peer1.TotalBytesSent + peer2.TotalBytesSent;
+Console.Clear();
 Console.WriteLine(measurer.Summary(totalSent));
-Console.WriteLine("Finished.");
 
 IUdpClient<Message> CreateClient(int port, Measurer? m = null)
 {

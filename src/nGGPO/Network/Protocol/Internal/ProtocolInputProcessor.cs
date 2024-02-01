@@ -41,10 +41,8 @@ sealed class ProtocolInputProcessor(
                 FullMode = BoundedChannelFullMode.Wait,
             });
 
-    int pendingNumber;
-
     public string JobName { get; } = $"{nameof(ProtocolInputProcessor)} ({state.LocalPort})";
-    public int PendingNumber => pendingNumber;
+    public int PendingNumber => inputQueue.Reader.Count;
     public GameInput LastSent { get; private set; } = GameInput.Empty;
 
     public async ValueTask SendInput(
@@ -74,8 +72,6 @@ sealed class ProtocolInputProcessor(
              * (better, but still ug).  For the meantime, make this queue really big to decrease
              * the odds of this happening...
              */
-            //Interlocked.Increment(ref pendingNumber);
-            pendingNumber++;
             await inputQueue.Writer.WriteAsync(input, ct).ConfigureAwait(false);
         }
     }
@@ -84,6 +80,8 @@ sealed class ProtocolInputProcessor(
     {
         while (!ct.IsCancellationRequested)
         {
+            // TODO: Too many allocation leak when using cancelable read async on channel
+            // bug? https://github.com/dotnet/runtime/issues/761
             await inputQueue.Reader.WaitToReadAsync(ct).ConfigureAwait(false);
 
             if (ct.IsCancellationRequested) break;
@@ -115,9 +113,6 @@ sealed class ProtocolInputProcessor(
             compressor.WriteInput(nextInput);
             LastSent = nextInput;
         }
-
-        // Interlocked.Add(ref pendingNumber, compressor.Count);
-        pendingNumber -= compressor.Count;
 
         compressedInput.AckFrame = inbox.LastReceivedInput.Frame;
         compressedInput.DisconnectRequested = state.Status is not ProtocolStatus.Disconnected;

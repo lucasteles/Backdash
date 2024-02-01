@@ -36,7 +36,7 @@ sealed class UdpClient<T>(
     public SocketAddress Address { get; } = new IPEndPoint(IPAddress.Loopback, port).Serialize();
     public ByteSize TotalBytesSent { get; private set; }
 
-    readonly Channel<(SocketAddress, T)> sendQueue =
+    readonly Channel<(SocketAddress Address, T Payload)> sendQueue =
         Channel.CreateUnbounded<(SocketAddress, T)>(
             new()
             {
@@ -56,10 +56,11 @@ sealed class UdpClient<T>(
         cancellation = new();
 
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct, cancellation.Token);
+        var token = cts.Token;
 
         await Task.WhenAll(
-            ReadLoop(cts.Token),
-            SendLoop(cts.Token)
+            Task.Run(() => ReadLoop(token), token),
+            Task.Run(() => SendLoop(token), token)
         ).ConfigureAwait(false);
     }
 
@@ -128,17 +129,26 @@ sealed class UdpClient<T>(
             pinned: true
         );
         var sendBuffer = MemoryMarshal.CreateFromPinnedArray(bufferArray, 0, bufferArray.Length);
-
+        var reader = sendQueue.Reader;
 
         try
         {
-            await foreach (var (peerAddress, nextMsg) in sendQueue.Reader.ReadAllAsync(ct).ConfigureAwait(false))
+            while (!ct.IsCancellationRequested)
             {
-                var msg = nextMsg;
-                var bodySize = serializer.Serialize(ref msg, sendBuffer.Span);
-                var sentSize = await SendBytes(peerAddress, sendBuffer[..bodySize], ct).ConfigureAwait(false);
-                Tracer.Assert(sentSize == bodySize);
-                if (ct.IsCancellationRequested) break;
+                await reader.WaitToReadAsync(ct).ConfigureAwait(false);
+
+                while (reader.TryRead(out var msg))
+                {
+                    if (ct.IsCancellationRequested) break;
+                    var bodySize = serializer.Serialize(ref msg.Payload, sendBuffer.Span);
+                    var sentSize = await SendBytes(msg.Address, sendBuffer[..bodySize], ct).ConfigureAwait(false);
+                    Tracer.Assert(sentSize == bodySize);
+                }
+
+                // Check: https://github.com/dotnet/runtime/issues/761
+                // Allocation leak when using cancelable read async on channel
+                // await Async.OneFrameDelay(ct).ConfigureAwait(false);
+                // await Task.Delay(1000 / 60, ct);
             }
         }
         catch (OperationCanceledException)

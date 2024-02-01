@@ -69,18 +69,26 @@ sealed class ProtocolOutbox(
     {
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(sendQueueCancellation.Token, ct);
         var sendLatency = options.NetworkDelay;
+        var reader = sendQueue.Reader;
 
-        await foreach (var entry in sendQueue.Reader.ReadAllAsync(cts.Token).ConfigureAwait(false))
+        while (!ct.IsCancellationRequested)
         {
-            if (sendLatency > 0)
-            {
-                var jitter = delayStrategy.Jitter(sendLatency);
-                var delayDiff = TimeStamp.GetMilliseconds() - entry.QueueTime + jitter;
-                if (delayDiff > 0)
-                    await Task.Delay((int)delayDiff, cts.Token);
-            }
+            // TODO: Too many allocation leak when using cancelable read async on channel
+            // bug? https://github.com/dotnet/runtime/issues/761
+            await reader.WaitToReadAsync(ct).ConfigureAwait(false);
 
-            await udp.SendTo(entry.DestAddr, entry.Msg, sendQueueCancellation.Token).ConfigureAwait(false);
+            while (reader.TryRead(out var entry))
+            {
+                if (sendLatency > 0)
+                {
+                    var jitter = delayStrategy.Jitter(sendLatency);
+                    var delayDiff = TimeStamp.GetMilliseconds() - entry.QueueTime + jitter;
+                    if (delayDiff > 0)
+                        await Task.Delay((int)delayDiff, cts.Token).ConfigureAwait(false);
+                }
+
+                await udp.SendTo(entry.DestAddr, entry.Msg, sendQueueCancellation.Token).ConfigureAwait(false);
+            }
         }
     }
 

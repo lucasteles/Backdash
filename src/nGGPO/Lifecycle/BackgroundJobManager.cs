@@ -26,7 +26,7 @@ sealed class BackgroundJobManager(ILogger logger) : IBackgroundJobManager
         logger.Info($"Starting background tasks");
         foreach (var job in jobs)
         {
-            var task = job.Start(StoppingToken);
+            var task = Task.Run(() => job.Start(StoppingToken), StoppingToken);
             tasks.Add(task, job);
         }
 
@@ -52,7 +52,7 @@ sealed class BackgroundJobManager(ILogger logger) : IBackgroundJobManager
         jobs.Add(job);
 
         if (started)
-            tasks.Add(job.Start(StoppingToken), job);
+            tasks.Add(Task.Run(() => job.Start(StoppingToken), StoppingToken), job);
     }
 
     public async ValueTask DisposeAsync()
