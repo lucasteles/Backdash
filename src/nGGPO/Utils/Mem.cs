@@ -10,6 +10,8 @@ static class Mem
 {
     const int MaxStackLimit = 1024;
 
+    public static void Clear(in Span<byte> bytes) => bytes.Clear();
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Span<TElement> InlineArrayAsSpan<TBuffer, TElement>(
         scoped ref TBuffer buffer, int size) where TBuffer : struct =>
@@ -20,11 +22,6 @@ static class Mem
         scoped in TBuffer buffer, int size) where TBuffer : struct =>
         MemoryMarshal.CreateReadOnlySpan(
             ref Unsafe.As<TBuffer, TElement>(ref Unsafe.AsRef(in buffer)), size);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ReadOnlySpan<byte> AsReadOnlySpan<TValue>(scoped in TValue value)
-        where TValue : struct =>
-        MemoryMarshal.AsBytes(MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in value), 1));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static TValue ReadStruct<TValue>(in ReadOnlySpan<byte> bytes)
