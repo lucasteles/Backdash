@@ -5,8 +5,9 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
-    <InternalsVisibleTo Include="$(AssemblyName).Playground"/>
     <InternalsVisibleTo Include="$(AssemblyName).Tests"/>
+    <InternalsVisibleTo Include="$(AssemblyName).Benchmarks"/>
     <InternalsVisibleTo Include="$(AssemblyName).PingTest"/>
+    <InternalsVisibleTo Include="$(AssemblyName).Playground"/>
   </ItemGroup>
 </Project>
