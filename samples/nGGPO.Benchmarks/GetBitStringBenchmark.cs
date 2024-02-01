@@ -2,10 +2,8 @@
 
 namespace nGGPO.Benchmarks;
 
-[InProcess]
-[SimpleJob(RuntimeMoniker.Net80)]
-[RPlotExporter]
-[MemoryDiagnoser]
+[RPlotExporter, CsvMeasurementsExporter]
+[InProcess, MemoryDiagnoser]
 public class GetBitStringBenchmark
 {
     byte[] data = [];
