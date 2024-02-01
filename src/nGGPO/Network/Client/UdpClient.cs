@@ -50,7 +50,9 @@ sealed class UdpClient<T>(
 
     public string JobName { get; } = $"{nameof(UdpClient)} ({port})";
 
-    public async Task Start(CancellationToken ct)
+    public Task Start(CancellationToken ct) => Start(UdpClientFeatureFlags.WaitAsync, ct);
+
+    public async Task Start(UdpClientFeatureFlags flags, CancellationToken ct)
     {
         if (cancellation is not null)
             return;
@@ -62,7 +64,7 @@ sealed class UdpClient<T>(
 
         await Task.WhenAll(
             Task.Run(() => ReadLoop(token), token),
-            Task.Run(() => SendLoop(token), token)
+            Task.Run(() => SendLoop(token, flags), token)
         ).ConfigureAwait(false);
     }
 
@@ -124,7 +126,7 @@ sealed class UdpClient<T>(
         }
     }
 
-    async Task SendLoop(CancellationToken ct)
+    async Task SendLoop(CancellationToken ct, UdpClientFeatureFlags flags)
     {
         var bufferArray = GC.AllocateArray<byte>(
             length: UdpPacketSize,
@@ -139,9 +141,23 @@ sealed class UdpClient<T>(
             {
                 // TODO: Too many allocation leak when using cancelable read async on channel
                 // bug? https://github.com/dotnet/runtime/issues/761
-                // await reader.WaitToReadAsync(ct).ConfigureAwait(false)
-                // Thread.Yield
-                await reader.WaitToReadAsync(nonCancellableToken).AsTask().WaitAsync(ct).ConfigureAwait(false);
+                switch (flags)
+                {
+                    case UdpClientFeatureFlags.CancellableChannel:
+                        await reader.WaitToReadAsync(ct).ConfigureAwait(false);
+                        break;
+                    case UdpClientFeatureFlags.WaitAsync:
+                        await reader.WaitToReadAsync(nonCancellableToken).AsTask().WaitAsync(ct).ConfigureAwait(false);
+                        break;
+                    case UdpClientFeatureFlags.TaskYield:
+                        await Task.Yield();
+                        break;
+                    case UdpClientFeatureFlags.ThreadYield:
+                        Thread.Yield();
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(flags), flags, null);
+                }
 
                 while (reader.TryRead(out var msg))
                 {
@@ -187,4 +203,12 @@ sealed class UdpClient<T>(
         socket.Dispose();
         sendQueue.Writer.Complete();
     }
+}
+
+enum UdpClientFeatureFlags
+{
+    CancellableChannel,
+    WaitAsync,
+    TaskYield,
+    ThreadYield,
 }

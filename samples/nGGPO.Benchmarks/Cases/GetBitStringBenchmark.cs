@@ -1,8 +1,8 @@
 // ReSharper disable UnassignedField.Global
 
-namespace nGGPO.Benchmarks;
+namespace nGGPO.Benchmarks.Cases;
 
-[RPlotExporter, CsvMeasurementsExporter]
+[RPlotExporter]
 [InProcess, MemoryDiagnoser]
 public class GetBitStringBenchmark
 {
