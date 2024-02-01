@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
@@ -29,6 +30,8 @@ sealed class UdpClient<T>(
     ILogger logger
 ) : IUdpClient<T> where T : struct
 {
+    const int UdpPacketSize = Max.UdpPacketSize;
+
     public bool LogsEnabled = true;
     readonly Socket socket = CreateSocket(port, logger);
     CancellationTokenSource? cancellation;
@@ -85,7 +88,7 @@ sealed class UdpClient<T>(
     async Task ReadLoop(CancellationToken ct)
     {
         var bufferArray = GC.AllocateArray<byte>(
-            length: Max.UdpPacketSize,
+            length: UdpPacketSize,
             pinned: true
         );
         var buffer = MemoryMarshal.CreateFromPinnedArray(bufferArray, 0, bufferArray.Length);
@@ -125,12 +128,12 @@ sealed class UdpClient<T>(
     async Task SendLoop(CancellationToken ct)
     {
         var bufferArray = GC.AllocateArray<byte>(
-            length: Max.UdpPacketSize,
+            length: UdpPacketSize,
             pinned: true
         );
         var sendBuffer = MemoryMarshal.CreateFromPinnedArray(bufferArray, 0, bufferArray.Length);
         var reader = sendQueue.Reader;
-
+        var nonCancellableToken = CancellationToken.None;
         try
         {
             while (!ct.IsCancellationRequested)
@@ -138,7 +141,8 @@ sealed class UdpClient<T>(
                 // TODO: Too many allocation leak when using cancelable read async on channel
                 // bug? https://github.com/dotnet/runtime/issues/761
                 // await reader.WaitToReadAsync(ct).ConfigureAwait(false)
-                Thread.Yield();
+                // Thread.Yield
+                await reader.WaitToReadAsync(nonCancellableToken).AsTask().WaitAsync(ct).ConfigureAwait(false);
 
                 while (reader.TryRead(out var msg))
                 {

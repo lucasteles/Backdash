@@ -105,7 +105,7 @@ public sealed class Measurer
     readonly object lockObj = new();
 
     public void Snapshot()
-        
+
     {
         lock (lockObj)
             snapshots.Add(MeasureSnapshot.Next(
@@ -137,18 +137,17 @@ public sealed class Measurer
         );
 
         if (snapshots is [.., var last])
-        {
             builder.AppendLine(
                 $"""
                  Total Memory: {last.TotalMemory}
                  Total Alloc: {last.TotalAllocatedBytes}
                  Avg Alloc: {(ByteSize) snapshots.Select(x => x.DeltaAllocatedBytes.ByteCount).Average()} (per {Factor:N})
+                 Alloc p/ Msg: {last.TotalAllocatedBytes / PingMessageHandler.TotalProcessed}
                  Thread Alloc: {last.AllocatedThreadMemory}
                  GC Pause: {last.PauseTime.TotalMilliseconds:F}ms
                  Collect Count: G1({last.GcCount0}); G2({last.GcCount1}); G3({last.GcCount2})
                  """
             );
-        }
 
         builder.AppendLine();
 
