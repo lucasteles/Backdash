@@ -12,8 +12,8 @@ public class NggpoException : Exception
 
     internal NggpoException(LogStringHandler builder) : base(builder.GetFormattedText()) { }
 
-    internal NggpoException(LogStringHandler builder, Exception innerException) : base(builder.GetFormattedText(),
-        innerException) { }
+    internal NggpoException(LogStringHandler builder, Exception innerException)
+        : base(builder.GetFormattedText(), innerException) { }
 }
 
 public sealed class InvalidTypeArgumentException : NggpoException

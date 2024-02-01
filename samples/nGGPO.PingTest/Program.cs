@@ -9,7 +9,7 @@ var snapshotInterval = TimeSpan.FromSeconds(1);
 var printSnapshots = false;
 
 Measurer measurer = new(snapshotInterval);
-ConsoleLogger logger = new() {EnabledLevel = LogLevel.Off};
+ConsoleLogger logger = new() { EnabledLevel = LogLevel.Off };
 await using BackgroundJobManager jobs = new(logger);
 
 using var peer1 = CreateClient(9000);

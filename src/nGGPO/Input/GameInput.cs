@@ -55,7 +55,9 @@ struct GameInput : IEquatable<GameInput>
     public readonly bool IsEmpty => Size is 0;
     public void IncrementFrame() => Frame = Frame.Next;
     public void ResetFrame() => Frame = Frame.Null;
+#pragma warning disable IDE0251
     public void Clear() => Mem.Clear(Buffer);
+#pragma warning restore IDE0251
 
     public override readonly string ToString()
     {
@@ -92,9 +94,8 @@ struct GameInput : IEquatable<GameInput>
     public readonly bool Equals(GameInput other) => Equals(other, false);
     public override readonly bool Equals(object? obj) => obj is GameInput gi && Equals(gi);
 
-#pragma warning disable S2328
-    public override readonly int GetHashCode() => HashCode.Combine(Size, Buffer, Frame);
-#pragma warning restore S2328
+    // ReSharper disable once BaseObjectGetHashCodeCallInGetHashCode
+    public override readonly int GetHashCode() => base.GetHashCode();
 
     public static bool operator ==(GameInput a, GameInput b) => a.Equals(b);
     public static bool operator !=(GameInput a, GameInput b) => !(a == b);

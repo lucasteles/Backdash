@@ -93,7 +93,7 @@ public sealed class Measurer : IAsyncDisposable
 
         if (snapshots is [.., var last])
         {
-            var avgAlloc = (ByteSize) snapshots
+            var avgAlloc = (ByteSize)snapshots
                 .Select(x => x.DeltaAllocatedBytes.ByteCount)
                 .Average();
 
@@ -130,10 +130,10 @@ public sealed class Measurer : IAsyncDisposable
         public long Elapsed = 0;
         public readonly long Timestamp = Stopwatch.GetTimestamp();
         public long MessageCount = PingMessageHandler.TotalProcessed;
-        public ByteSize TotalMemory = (ByteSize) GC.GetTotalMemory(true);
-        public ByteSize TotalAllocatedBytes = (ByteSize) GC.GetTotalAllocatedBytes(true);
+        public ByteSize TotalMemory = (ByteSize)GC.GetTotalMemory(true);
+        public ByteSize TotalAllocatedBytes = (ByteSize)GC.GetTotalAllocatedBytes(true);
         public readonly int ThreadId = Environment.CurrentManagedThreadId;
-        public ByteSize AllocatedThreadMemory = (ByteSize) GC.GetAllocatedBytesForCurrentThread();
+        public ByteSize AllocatedThreadMemory = (ByteSize)GC.GetAllocatedBytesForCurrentThread();
         public TimeSpan PauseTime = GC.GetTotalPauseDuration();
         public int GcCount0 = GC.CollectionCount(0);
         public int GcCount1 = GC.CollectionCount(1);
