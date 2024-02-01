@@ -83,7 +83,7 @@ public class UdpClientBenchmark
         UdpClientFeatureFlags.TaskYield,
         UdpClientFeatureFlags.ThreadYield
     )]
-    internal UdpClientFeatureFlags Feature;
+    public UdpClientFeatureFlags Feature;
 
     [GlobalSetup] public void Setup() => data = new();
     [GlobalCleanup] public void Cleanup() => data.Dispose();

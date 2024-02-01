@@ -205,7 +205,7 @@ sealed class UdpClient<T>(
     }
 }
 
-enum UdpClientFeatureFlags
+public enum UdpClientFeatureFlags
 {
     CancellableChannel,
     WaitAsync,
