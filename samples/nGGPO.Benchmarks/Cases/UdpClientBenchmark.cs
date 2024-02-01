@@ -2,11 +2,35 @@ using System.Diagnostics;
 using nGGPO.Benchmarks.Network;
 using nGGPO.Network.Client;
 
-// ReSharper disable once UnassignedField.Global
 #pragma warning disable CS0649
 #pragma warning disable AsyncFixer02
 
 namespace nGGPO.Benchmarks.Cases;
+
+[InProcess]
+[RPlotExporter]
+[MemoryDiagnoser, ThreadingDiagnoser]
+public class UdpClientBenchmark
+{
+    UdpClientBenchmarkState data = default!;
+
+    [Params(10)]
+    public int N;
+
+    [Params(
+        UdpClientFeatureFlags.CancellableChannel,
+        UdpClientFeatureFlags.WaitAsync,
+        UdpClientFeatureFlags.TaskYield,
+        UdpClientFeatureFlags.ThreadYield
+    )]
+    public UdpClientFeatureFlags Feature;
+
+    [GlobalSetup] public void Setup() => data = new();
+    [GlobalCleanup] public void Cleanup() => data.Dispose();
+
+    [Benchmark]
+    public Task SingleMessage() => data.Start(N, Feature);
+}
 
 sealed class UdpClientBenchmarkState : IDisposable
 {
@@ -66,31 +90,4 @@ sealed class UdpClientBenchmarkState : IDisposable
         // Trace.Assert(ReceiverHandler.PendingCount is 0, "Receiver with pending messages");
         // Trace.Assert(ReceiverHandler.ProcessedCount is 0, "Receiver should be empty");
     }
-}
-
-[RPlotExporter]
-[InProcess, MemoryDiagnoser]
-public class UdpClientBenchmark
-{
-    UdpClientBenchmarkState data = default!;
-
-    [Params(1000)]
-    public int N;
-
-    [Params(
-        UdpClientFeatureFlags.CancellableChannel,
-        UdpClientFeatureFlags.WaitAsync,
-        UdpClientFeatureFlags.TaskYield,
-        UdpClientFeatureFlags.ThreadYield
-    )]
-    public UdpClientFeatureFlags Feature;
-
-    [GlobalSetup] public void Setup() => data = new();
-    [GlobalCleanup] public void Cleanup() => data.Dispose();
-
-    [Benchmark(Baseline = true)]
-    public Task BaseLine() => data.Start(0, Feature);
-
-    [Benchmark]
-    public Task SingleMessage() => data.Start(N, Feature);
 }
