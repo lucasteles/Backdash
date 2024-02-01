@@ -148,7 +148,6 @@ static class Mem
         return builder.ToString();
     }
 
-    // TODO: create non alloc version of this
     public static string GetBitString(
         in ReadOnlySpan<byte> bytes,
         int splitAt = 0,
@@ -157,16 +156,25 @@ static class Mem
     {
         StringBuilder builder = new();
 
+        Span<char> binary = stackalloc char[bytePad];
         for (var i = 0; i < bytes.Length; i++)
         {
             if (i > 0)
                 if (splitAt > 0 && i % splitAt is 0) builder.Append('|');
                 else builder.Append('-');
 
-            var bin = Convert.ToString(bytes[i], 2).PadLeft(bytePad, '0');
+            binary.Clear();
+            var base10 = bytes[i];
+            var binSize = Math.Clamp((int)Math.Ceiling(Math.Log(base10 + 1, 2)), 1, bytePad);
+            var padSize = bytePad - binSize;
+            binary[..padSize].Fill('0');
+            for (var j = binSize - 1; j >= 0; j--)
+            {
+                binary[padSize + j] = base10 % 2 is 0 ? '0' : '1';
+                base10 /= 2;
+            }
 
-            for (var j = 0; j < bin.Length; j++)
-                builder.Append(bin[j]);
+            builder.Append(binary);
         }
 
         return builder.ToString();

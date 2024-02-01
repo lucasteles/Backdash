@@ -8,8 +8,7 @@ var totalDuration = TimeSpan.FromSeconds(10);
 var snapshotInterval = TimeSpan.FromSeconds(1);
 var printSnapshots = false;
 
-Measurer measurer = new(snapshotInterval);
-ConsoleLogger logger = new() { EnabledLevel = LogLevel.Off };
+ConsoleLogger logger = new() {EnabledLevel = LogLevel.Off};
 await using BackgroundJobManager jobs = new(logger);
 
 using var peer1 = CreateClient(9000);
@@ -21,18 +20,19 @@ var stopToken = cts.Token;
 Console.WriteLine("Running.");
 var tasks = jobs.Start(stopToken);
 
+await using Measurer measurer = new(snapshotInterval);
 measurer.Start();
-_ = peer1.SendTo(peer2.Address, PingMessage.Ping);
+_ = peer1.SendTo(peer2.Address, PingMessage.Ping).AsTask();
 
 Console.WriteLine("Press enter to stop.");
 SpinWait.SpinUntil(() => Console.KeyAvailable || stopToken.IsCancellationRequested);
 cts.Cancel();
 await tasks.ConfigureAwait(false);
 measurer.Stop();
-
 var totalSent = peer1.TotalBytesSent + peer2.TotalBytesSent;
 Console.Clear();
 Console.WriteLine(measurer.Summary(totalSent, printSnapshots));
+
 
 IUdpClient<PingMessage> CreateClient(int port)
 {
