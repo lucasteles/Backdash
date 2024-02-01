@@ -16,6 +16,8 @@ public sealed class Measurer
         public ByteSize TotalMemory = (ByteSize) GC.GetTotalMemory(true);
         public ByteSize TotalAllocatedBytes = (ByteSize) GC.GetTotalAllocatedBytes(true);
 
+        public int ThreadId = Environment.CurrentManagedThreadId;
+
         public ByteSize AllocatedThreadMemory =
             (ByteSize) GC.GetAllocatedBytesForCurrentThread();
 
@@ -29,7 +31,9 @@ public sealed class Measurer
             Elapsed = a.Timestamp - b.Timestamp,
             TotalMemory = a.TotalMemory - b.TotalMemory,
             TotalAllocatedBytes = a.TotalAllocatedBytes - b.TotalAllocatedBytes,
-            AllocatedThreadMemory = a.AllocatedThreadMemory - b.AllocatedThreadMemory,
+            AllocatedThreadMemory = a.ThreadId == b.ThreadId
+                ? a.AllocatedThreadMemory - b.AllocatedThreadMemory
+                : b.AllocatedThreadMemory,
             PauseTime = a.PauseTime - b.PauseTime,
             GcCount0 = a.GcCount0 - b.GcCount0,
             GcCount1 = a.GcCount1 - b.GcCount1,
@@ -48,7 +52,7 @@ public sealed class Measurer
                Collect Count: G1({GcCount0}); G2({GcCount1}); G3({GcCount2})
                Total Memory: {TotalMemory}
                Total Alloc: {TotalAllocatedBytes}
-               Thread Alloc: {AllocatedThreadMemory}
+               Thread Alloc: {AllocatedThreadMemory} ({ThreadId})
              """;
     }
 
