@@ -8,6 +8,94 @@ namespace nGGPO.PingTest;
 
 public sealed class Measurer
 {
+    MeasureSnapshot start;
+    readonly List<MeasureSnapshot> snapshots = new(64);
+    readonly Stopwatch watch = new();
+
+    public const long DefaultFactor = 10_000;
+    public bool EnableSnapshots { get; init; } = true;
+    public long SnapshotCountFactor { get; init; } = DefaultFactor;
+
+    public void Start()
+    {
+        snapshots.Clear();
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
+        start = new();
+        watch.Start();
+    }
+
+    readonly object lockObj = new();
+
+    public bool IsSnapshotTime(long count) => EnableSnapshots && count % DefaultFactor == 0;
+
+    public void Snapshot()
+    {
+        lock (lockObj)
+            snapshots.Add(MeasureSnapshot.Next(
+                start,
+                snapshots.Count is 0 ? MeasureSnapshot.Zero : snapshots[^1])
+            );
+    }
+
+    public void Snapshot(long count)
+    {
+        if (IsSnapshotTime(count))
+            Snapshot();
+    }
+
+    public void Stop()
+    {
+        watch.Stop();
+        Snapshot();
+    }
+
+    public string Summary(ByteSize totalSent, bool showSnapshots = true)
+    {
+        StringBuilder builder = new();
+
+        builder.AppendLine(
+            $"""
+             --- Summary ---
+             Duration: {watch.Elapsed:c}
+             Snapshots: {snapshots.Count:N0}
+             Msg Count: {PingMessageHandler.TotalProcessed:N0}
+             Msg Size: {ByteSize.SizeOf<PingMessage>()}
+             Avg Msg : {totalSent / PingMessageHandler.TotalProcessed}
+             Total Sent: {totalSent}
+             """
+        );
+
+        if (snapshots is [.., var last])
+            builder.AppendLine(
+                $"""
+                 Total Memory: {last.TotalMemory}
+                 Total Alloc: {last.TotalAllocatedBytes}
+                 Avg Alloc: {(ByteSize) snapshots.Select(x => x.DeltaAllocatedBytes.ByteCount).Average()} (per {DefaultFactor:N})
+                 Alloc p/ Msg: {last.TotalAllocatedBytes / PingMessageHandler.TotalProcessed}
+                 Thread Alloc: {last.AllocatedThreadMemory}
+                 GC Pause: {last.PauseTime.TotalMilliseconds:F}ms
+                 GC Collection: G1({last.GcCount0}) / G2({last.GcCount1}) / G3({last.GcCount2})
+                 """
+            );
+
+        builder.AppendLine();
+
+        if (showSnapshots)
+            for (var index = 0; index < snapshots.Count; index++)
+            {
+                var shot = snapshots[index];
+                builder.AppendLine($"=== Snapshot #{index + 1}:");
+                builder.AppendLine(shot.ToString());
+                builder.AppendLine("======");
+                builder.AppendLine();
+            }
+
+        builder.AppendLine("------------");
+        return builder.ToString();
+    }
+
     public struct MeasureSnapshot()
     {
         public long Elapsed = 0;
@@ -79,83 +167,5 @@ public sealed class Measurer
                GC Pause: {PauseTime.TotalMilliseconds:F}ms
                GC Collection: G1({GcCount0}) / G2({GcCount1}) / G3({GcCount2})
              """;
-    }
-
-    MeasureSnapshot start;
-    readonly List<MeasureSnapshot> snapshots = new(64);
-    readonly Stopwatch watch = new();
-    public const long Factor = 10_000;
-
-    public void Start()
-    {
-        snapshots.Clear();
-        GC.Collect();
-        GC.WaitForPendingFinalizers();
-        GC.Collect();
-        start = new();
-        watch.Start();
-    }
-
-    readonly object lockObj = new();
-
-    public void Snapshot()
-
-    {
-        lock (lockObj)
-            snapshots.Add(MeasureSnapshot.Next(
-                start,
-                snapshots.Count is 0 ? MeasureSnapshot.Zero : snapshots[^1])
-            );
-    }
-
-    public void Stop()
-    {
-        watch.Stop();
-        Snapshot();
-    }
-
-    public string Summary(ByteSize totalSent, bool showSnapshots = true)
-    {
-        StringBuilder builder = new();
-
-        builder.AppendLine(
-            $"""
-             --- Summary ---
-             Duration: {watch.Elapsed:c}
-             Snapshots: {snapshots.Count:N0}
-             Msg Count: {PingMessageHandler.TotalProcessed:N0}
-             Msg Size: {ByteSize.SizeOf<PingMessage>()}
-             Avg Msg : {totalSent / PingMessageHandler.TotalProcessed}
-             Total Sent: {totalSent}
-             """
-        );
-
-        if (snapshots is [.., var last])
-            builder.AppendLine(
-                $"""
-                 Total Memory: {last.TotalMemory}
-                 Total Alloc: {last.TotalAllocatedBytes}
-                 Avg Alloc: {(ByteSize) snapshots.Select(x => x.DeltaAllocatedBytes.ByteCount).Average()} (per {Factor:N})
-                 Alloc p/ Msg: {last.TotalAllocatedBytes / PingMessageHandler.TotalProcessed}
-                 Thread Alloc: {last.AllocatedThreadMemory}
-                 GC Pause: {last.PauseTime.TotalMilliseconds:F}ms
-                 GC Collection: G1({last.GcCount0}) / G2({last.GcCount1}) / G3({last.GcCount2})
-                 """
-            );
-
-        builder.AppendLine();
-
-        if (showSnapshots)
-            for (var index = 0; index < snapshots.Count; index++)
-            {
-                var shot = snapshots[index];
-                builder.AppendLine($"=== Snapshot #{index + 1}:");
-                builder.AppendLine(shot.ToString());
-                builder.AppendLine("======");
-                builder.AppendLine();
-            }
-
-        builder.AppendLine("------------");
-        return builder.ToString();
     }
 }

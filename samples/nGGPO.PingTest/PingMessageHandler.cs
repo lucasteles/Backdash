@@ -8,14 +8,19 @@ sealed class PingMessageHandler(Measurer? measurer = null) : IUdpObserver<PingMe
 
     static long processedCount;
 
-    public ValueTask OnUdpMessage(IUdpClient<PingMessage> sender, PingMessage message, SocketAddress from,
-        CancellationToken stoppingToken)
+    public ValueTask OnUdpMessage(
+        IUdpClient<PingMessage> sender,
+        PingMessage message,
+        SocketAddress from,
+        CancellationToken stoppingToken
+    )
     {
-        if (stoppingToken.IsCancellationRequested) return ValueTask.CompletedTask;
+        if (stoppingToken.IsCancellationRequested)
+            return ValueTask.CompletedTask;
+
         Interlocked.Increment(ref processedCount);
 
-        if (measurer is not null && processedCount % Measurer.Factor == 0)
-            measurer.Snapshot();
+        measurer?.Snapshot(processedCount);
 
         return message switch
         {
