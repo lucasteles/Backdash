@@ -1,3 +1,4 @@
+using System.Buffers;
 using nGGPO.Inputs;
 using nGGPO.Network.Messages;
 using nGGPO.Playground;
@@ -5,6 +6,7 @@ using nGGPO.Serialization;
 using nGGPO.Utils;
 
 void Div() => Console.WriteLine(new string('-', 10));
+var pool = ArrayPool<byte>.Shared;
 
 byte[] data =
 {
@@ -13,32 +15,33 @@ byte[] data =
 {
     var packet = long.MaxValue;
     var serializer = BinarySerializerFactory.Get<long>()!;
-    using var buffer = MemoryBuffer.Rent(10, true);
+    var buffer = pool.Rent(10);
     var size = serializer.Serialize(ref packet, buffer);
     var bytes = buffer[..size];
-
     Console.WriteLine($"# Size={size}\n");
     var backPacket = serializer.Deserialize(bytes);
     Console.WriteLine($"# Pkg={backPacket}\n");
+    pool.Return(buffer, true);
 }
 Div();
 {
     var packet = ButtonsInput.UpLeft | ButtonsInput.X;
     var serializer = BinarySerializerFactory.Get<ButtonsInput>()!;
-    using var buffer = MemoryBuffer.Rent(10, true);
+    var buffer = pool.Rent(10);
     var size = serializer.Serialize(ref packet, buffer);
     var bytes = buffer[..size];
     Console.WriteLine($"# Size={size}\n");
     var backPacket = serializer.Deserialize(bytes);
     var buttons = new ButtonsInputEditor(backPacket);
     Console.WriteLine($"# Pkg= {buttons}\n");
+    pool.Return(buffer, true);
 }
 Div();
 {
     Input packet = new()
     {
         S = data.Length,
-        A = (byte)'a',
+        A = (byte) 'a',
         B = 2,
         Bits = new(),
     };
@@ -47,20 +50,21 @@ Div();
 
 
     var serializer = BinarySerializerFactory.Get<Input>()!;
-    using var buffer = MemoryBuffer.Rent(20, true);
+    var buffer = pool.Rent(20);
     var size = serializer.Serialize(ref packet, buffer);
     var bytes = buffer[..size];
 
     Console.WriteLine($"# Size={size}\n");
     var backPacket = serializer.Deserialize(bytes);
     Console.WriteLine($"# Pkg: {backPacket}\n");
+    pool.Return(buffer, true);
 }
 Div();
 {
     Input packet = new()
     {
         S = data.Length,
-        A = (byte)'a',
+        A = (byte) 'a',
         B = 2,
         Bits = new(),
     };
@@ -71,13 +75,14 @@ Div();
         Network = false,
     };
 
-    using var buffer = MemoryBuffer.Rent(20, true);
+    var buffer = pool.Rent(20);
     var size = serializer.Serialize(ref packet, buffer);
     var bytes = buffer[..size];
 
     Console.WriteLine($"# Size={size}\n");
     var backPacket = serializer.Deserialize(bytes);
     Console.WriteLine($"# Pkg={backPacket}\n");
+    pool.Return(buffer, true);
 }
 
 Div();
@@ -103,8 +108,7 @@ Div();
     {
         Network = false,
     };
-    using var buffer = MemoryBuffer.Rent(Max.UdpPacketSize, true);
-
+    var buffer = pool.Rent(Max.UdpPacketSize);
     var size = serializer.Serialize(ref packet, buffer);
     var bytes = buffer[..size];
 
@@ -113,4 +117,5 @@ Div();
     Console.WriteLine("# Pkg=\n");
     backPacket.Header.Dump();
     backPacket.SyncRequest.Dump();
+    pool.Return(buffer, true);
 }
