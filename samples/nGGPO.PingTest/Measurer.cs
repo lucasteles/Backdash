@@ -6,15 +6,32 @@ using nGGPO.Data;
 
 namespace nGGPO.PingTest;
 
-public sealed class Measurer
+public sealed class Measurer : IAsyncDisposable
 {
     MeasureSnapshot start;
-    readonly List<MeasureSnapshot> snapshots = new(64);
+    readonly List<MeasureSnapshot> snapshots = new(128);
     readonly Stopwatch watch = new();
 
-    public const long DefaultFactor = 10_000;
-    public bool EnableSnapshots { get; init; } = true;
-    public long SnapshotCountFactor { get; init; } = DefaultFactor;
+    readonly CancellationTokenSource cts = new();
+    readonly TimeSpan snapshotInterval;
+    readonly PeriodicTimer timer;
+
+
+    public Measurer(TimeSpan? snapshotInterval = null)
+    {
+        this.snapshotInterval = snapshotInterval ?? TimeSpan.Zero;
+        timer = new(this.snapshotInterval);
+
+        if (snapshotInterval > TimeSpan.Zero)
+            _ = Task.Run(TimerLoop);
+    }
+
+    async Task TimerLoop()
+    {
+        while (await timer.WaitForNextTickAsync(cts.Token))
+            if (watch.IsRunning)
+                Snapshot();
+    }
 
     public void Start()
     {
@@ -28,8 +45,6 @@ public sealed class Measurer
 
     readonly object lockObj = new();
 
-    public bool IsSnapshotTime(long count) => EnableSnapshots && count % DefaultFactor == 0;
-
     public void Snapshot()
     {
         lock (lockObj)
@@ -39,16 +54,22 @@ public sealed class Measurer
             );
     }
 
-    public void Snapshot(long count)
-    {
-        if (IsSnapshotTime(count))
-            Snapshot();
-    }
-
     public void Stop()
     {
         watch.Stop();
         Snapshot();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        try
+        {
+            await cts.CancelAsync();
+        }
+        finally
+        {
+            cts.Dispose();
+        }
     }
 
     public string Summary(ByteSize totalSent, bool showSnapshots = true)
@@ -67,18 +88,26 @@ public sealed class Measurer
              """
         );
 
+        if (snapshotInterval > TimeSpan.Zero)
+            builder.AppendLine($"Snapshot Interval: {snapshotInterval:c})");
+
         if (snapshots is [.., var last])
+        {
+            var avgAlloc = (ByteSize) snapshots
+                .Select(x => x.DeltaAllocatedBytes.ByteCount)
+                .Average();
+
             builder.AppendLine(
                 $"""
                  Total Memory: {last.TotalMemory}
                  Total Alloc: {last.TotalAllocatedBytes}
-                 Avg Alloc: {(ByteSize) snapshots.Select(x => x.DeltaAllocatedBytes.ByteCount).Average()} (per {DefaultFactor:N})
                  Alloc p/ Msg: {last.TotalAllocatedBytes / PingMessageHandler.TotalProcessed}
+                 Avg Alloc: {avgAlloc}
                  Thread Alloc: {last.AllocatedThreadMemory}
                  GC Pause: {last.PauseTime.TotalMilliseconds:F}ms
                  GC Collection: G1({last.GcCount0}) / G2({last.GcCount1}) / G3({last.GcCount2})
-                 """
-            );
+                 """);
+        }
 
         builder.AppendLine();
 
@@ -156,7 +185,7 @@ public sealed class Measurer
 
         public readonly override string ToString() =>
             $"""
-               TimeStamp: {TimeSpan.FromTicks(Timestamp):c}
+               TimeStamp: {new DateTime(Timestamp, DateTimeKind.Utc):h:mm:ss.ffffff}
                Msg Count: {MessageCount:N0}
                Duration: {TimeSpan.FromTicks(Elapsed).TotalSeconds:F4}s
                Total Memory: {TotalMemory}

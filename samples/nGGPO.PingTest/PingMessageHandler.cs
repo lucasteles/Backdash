@@ -1,8 +1,7 @@
 using System.Net;
 using nGGPO.Network.Client;
-using nGGPO.PingTest;
 
-sealed class PingMessageHandler(Measurer? measurer = null) : IUdpObserver<PingMessage>
+sealed class PingMessageHandler : IUdpObserver<PingMessage>
 {
     public static long TotalProcessed => processedCount;
 
@@ -19,8 +18,6 @@ sealed class PingMessageHandler(Measurer? measurer = null) : IUdpObserver<PingMe
             return ValueTask.CompletedTask;
 
         Interlocked.Increment(ref processedCount);
-
-        measurer?.Snapshot(processedCount);
 
         return message switch
         {
