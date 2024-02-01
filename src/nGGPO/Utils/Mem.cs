@@ -154,7 +154,7 @@ static class Mem
         int bytePad = ByteSize.ByteToBits
     )
     {
-        StringBuilder builder = new();
+        StringBuilder builder = new(bytes.Length * bytePad * sizeof(char));
 
         Span<char> binary = stackalloc char[bytePad];
         for (var i = 0; i < bytes.Length; i++)
