@@ -8,13 +8,13 @@ namespace nGGPO.PingTest;
 
 public sealed class Measurer
 {
-    public struct MeasureSnapshot
+    public struct MeasureSnapshot()
     {
         public long Elapsed = 0;
         public readonly long Timestamp = Stopwatch.GetTimestamp();
         public long MessageCount = PingMessageHandler.TotalProcessed;
-        public ByteSize TotalMemory;
-        public ByteSize TotalAllocatedBytes;
+        public ByteSize TotalMemory = (ByteSize) GC.GetTotalMemory(true);
+        public ByteSize TotalAllocatedBytes = (ByteSize) GC.GetTotalAllocatedBytes(true);
         public readonly int ThreadId = Environment.CurrentManagedThreadId;
         public ByteSize AllocatedThreadMemory = (ByteSize) GC.GetAllocatedBytesForCurrentThread();
         public TimeSpan PauseTime = GC.GetTotalPauseDuration();
@@ -24,12 +24,6 @@ public sealed class Measurer
 
         public ByteSize DeltaAllocatedBytes;
         public ByteSize DeltaTotalMemory;
-
-        public MeasureSnapshot()
-        {
-            TotalAllocatedBytes = (ByteSize) GC.GetTotalAllocatedBytes(true);
-            TotalMemory = (ByteSize) GC.GetTotalMemory(true);
-        }
 
         public static MeasureSnapshot Diff(
             MeasureSnapshot next,
@@ -83,7 +77,7 @@ public sealed class Measurer
                Delta Alloc: {DeltaAllocatedBytes}
                Thread Alloc: {AllocatedThreadMemory} ({ThreadId})
                GC Pause: {PauseTime.TotalMilliseconds:F}ms
-               Collect Count: G1({GcCount0}); G2({GcCount1}); G3({GcCount2})
+               GC Collection: G1({GcCount0}) / G2({GcCount1}) / G3({GcCount2})
              """;
     }
 
@@ -145,7 +139,7 @@ public sealed class Measurer
                  Alloc p/ Msg: {last.TotalAllocatedBytes / PingMessageHandler.TotalProcessed}
                  Thread Alloc: {last.AllocatedThreadMemory}
                  GC Pause: {last.PauseTime.TotalMilliseconds:F}ms
-                 Collect Count: G1({last.GcCount0}); G2({last.GcCount1}); G3({last.GcCount2})
+                 GC Collection: G1({last.GcCount0}) / G2({last.GcCount1}) / G3({last.GcCount2})
                  """
             );
 
