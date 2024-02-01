@@ -12,8 +12,6 @@ namespace nGGPO.Benchmarks.Cases;
 [MemoryDiagnoser, ThreadingDiagnoser]
 public class UdpClientBenchmark
 {
-    UdpClientBenchmarkState data = default!;
-
     [Params(10)]
     public int N;
 
@@ -25,11 +23,16 @@ public class UdpClientBenchmark
     )]
     public UdpClientFeatureFlags Feature;
 
-    [GlobalSetup] public void Setup() => data = new();
-    [GlobalCleanup] public void Cleanup() => data.Dispose();
+    // UdpClientBenchmarkState data = default!;
+    // [GlobalSetup] public void Setup() => data = new();
+    // [GlobalCleanup] public void Cleanup() => data.Dispose();
 
     [Benchmark]
-    public Task SingleMessage() => data.Start(N, Feature);
+    public async Task PingLoop()
+    {
+        using UdpClientBenchmarkState data = new();
+        await data.Start(N, Feature);
+    }
 }
 
 sealed class UdpClientBenchmarkState : IDisposable
