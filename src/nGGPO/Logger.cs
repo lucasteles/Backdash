@@ -1,3 +1,4 @@
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -17,13 +18,21 @@ public readonly ref struct LogStringHandler
 {
     readonly StringBuilder? builder;
 
-    public LogStringHandler(int literalLength, int formattedCount) => builder = new(literalLength);
+    public LogStringHandler(int literalLength, int formattedCount)
+    {
+        builder = new(literalLength);
+
+        builder.Append('[');
+        builder.Append(Environment.CurrentManagedThreadId);
+        builder.Append(']');
+        builder.Append(' ');
+    }
 
     public void AppendLiteral(string s) => builder?.Append(s);
 
     public void AppendFormatted<T>(T t) => builder?.Append(t);
 
-    internal string GetFormattedText() => builder?.ToString() ?? string.Empty;
+    internal string GetFormattedText() => builder is null ? string.Empty : builder.ToString();
 }
 
 public interface ILogger

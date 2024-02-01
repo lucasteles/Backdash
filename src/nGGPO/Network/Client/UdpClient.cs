@@ -135,7 +135,10 @@ sealed class UdpClient<T>(
         {
             while (!ct.IsCancellationRequested)
             {
-                // await reader.WaitToReadAsync(ct).ConfigureAwait(false);
+                // TODO: Too many allocation leak when using cancelable read async on channel
+                // bug? https://github.com/dotnet/runtime/issues/761
+                // await reader.WaitToReadAsync(ct).ConfigureAwait(false)
+                Thread.Yield();
 
                 while (reader.TryRead(out var msg))
                 {
@@ -144,8 +147,6 @@ sealed class UdpClient<T>(
                     var sentSize = await SendBytes(msg.Address, sendBuffer[..bodySize], ct).ConfigureAwait(false);
                     Tracer.Assert(sentSize == bodySize);
                 }
-
-                await Task.Yield();
             }
         }
         catch (OperationCanceledException)
