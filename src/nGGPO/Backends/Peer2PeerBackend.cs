@@ -1,4 +1,5 @@
 using System.Net;
+using System.Runtime.CompilerServices;
 using nGGPO.Data;
 using nGGPO.Input;
 using nGGPO.Lifecycle;
@@ -42,6 +43,9 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
     {
         ExceptionHelper.ThrowIfArgumentIsNegativeOrZero(options.LocalPort);
         ExceptionHelper.ThrowIfArgumentIsNegativeOrZero(options.NumberOfPlayers);
+
+        if (!Mem.IsValidSizeOnStack<GameInput>(Max.InputBytes * Max.InputPlayers * 2))
+            throw new NggpoException($"{nameof(GameInput)} size too big: {Unsafe.SizeOf<GameInput>()}");
 
         this.options = options;
         this.inputSerializer = inputSerializer;
@@ -100,18 +104,13 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
         return ResultCode.Ok;
     }
 
-    GameInput ParseInput(ref TInput input)
-    {
-        GameInputBuffer buffer = new();
-        var size = inputSerializer.Serialize(ref input, buffer);
-        return new GameInput(in buffer, size);
-    }
-
     public ValueTask<ResultCode> AddLocalInput(Player player, TInput localInput,
         CancellationToken stoppingToken = default)
         => AddLocalInput(player.Id, localInput, stoppingToken);
 
-    public async ValueTask<ResultCode> AddLocalInput(PlayerId player, TInput localInput,
+    public async ValueTask<ResultCode> AddLocalInput(
+        PlayerId player,
+        TInput localInput,
         CancellationToken stoppingToken = default)
     {
         if (sync.InRollback())
@@ -124,7 +123,9 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
         if (!result.IsSuccess())
             return result;
 
-        var input = ParseInput(ref localInput);
+        GameInputBuffer buffer = new();
+        var size = inputSerializer.Serialize(ref localInput, buffer);
+        GameInput input = new(in buffer, size);
 
         if (!sync.AddLocalInput(queue, input))
             return ResultCode.PredictionThreshold;

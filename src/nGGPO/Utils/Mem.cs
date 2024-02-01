@@ -49,6 +49,13 @@ static class Mem
         return Unsafe.As<TInt, TEnum>(ref intValue);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool IsValidSizeOnStack<T>(int maxSize = 0) where T : struct
+    {
+        var size = Unsafe.SizeOf<T>();
+        return size <= MaxStackLimit && (maxSize <= 0 || size < maxSize);
+    }
+
     public static bool SpanEqual<T>(
         ReadOnlySpan<T> you,
         ReadOnlySpan<T> me,
