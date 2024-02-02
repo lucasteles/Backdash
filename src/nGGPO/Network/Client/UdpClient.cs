@@ -50,9 +50,9 @@ sealed class UdpClient<T>(
 
     public string JobName { get; } = $"{nameof(UdpClient)} ({port})";
 
-    public Task Start(CancellationToken ct) => Start(UdpClientFeatureFlags.WaitAsync, ct);
+    public Task Start(CancellationToken ct) => Start(UdpClientFeatureFlags.CancellableChannel, ct);
 
-    public async Task Start(UdpClientFeatureFlags flags, CancellationToken ct)
+    public async Task Start(UdpClientFeatureFlags featureFlag, CancellationToken ct)
     {
         if (cancellation is not null)
             return;
@@ -62,10 +62,7 @@ sealed class UdpClient<T>(
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct, cancellation.Token);
         var token = cts.Token;
 
-        await Task.WhenAll(
-            Task.Run(() => ReadLoop(token), token),
-            Task.Run(() => SendLoop(token, flags), token)
-        ).ConfigureAwait(false);
+        await Task.WhenAll(ReadLoop(token), SendLoop(token, featureFlag)).ConfigureAwait(false);
     }
 
     static Socket CreateSocket(int port, ILogger logger)
@@ -139,10 +136,10 @@ sealed class UdpClient<T>(
         {
             while (!ct.IsCancellationRequested)
             {
-                // TODO: Too many allocation leak when using cancelable read async on channel
-                // bug? https://github.com/dotnet/runtime/issues/761
                 switch (flags)
                 {
+                    // TODO: Too many allocation leak when using cancelable read async on channel
+                    // bug? https://github.com/dotnet/runtime/issues/761
                     case UdpClientFeatureFlags.CancellableChannel:
                         await reader.WaitToReadAsync(ct).ConfigureAwait(false);
                         break;
@@ -152,8 +149,8 @@ sealed class UdpClient<T>(
                     case UdpClientFeatureFlags.TaskYield:
                         await Task.Yield();
                         break;
-                    case UdpClientFeatureFlags.ThreadYield:
-                        Thread.Yield();
+                    case UdpClientFeatureFlags.TaskDelay:
+                        await Task.Delay(0, ct).ConfigureAwait(false);
                         break;
                     default:
                         throw new ArgumentOutOfRangeException(nameof(flags), flags, null);
@@ -210,5 +207,5 @@ public enum UdpClientFeatureFlags
     CancellableChannel,
     WaitAsync,
     TaskYield,
-    ThreadYield,
+    TaskDelay,
 }

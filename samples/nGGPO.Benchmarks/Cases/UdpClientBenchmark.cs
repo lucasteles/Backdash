@@ -9,17 +9,17 @@ namespace nGGPO.Benchmarks.Cases;
 
 [InProcess]
 [RPlotExporter]
-[MemoryDiagnoser, ThreadingDiagnoser]
+[MemoryDiagnoser, ThreadingDiagnoser, ExceptionDiagnoser]
 public class UdpClientBenchmark
 {
-    [Params(1000)]
+    [Params(2000)]
     public int N;
 
     [Params(
         UdpClientFeatureFlags.CancellableChannel,
         UdpClientFeatureFlags.WaitAsync,
         UdpClientFeatureFlags.TaskYield,
-        UdpClientFeatureFlags.ThreadYield
+        UdpClientFeatureFlags.TaskDelay
     )]
     public UdpClientFeatureFlags Feature;
 
