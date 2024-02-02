@@ -16,8 +16,8 @@ sealed class UdpProtocol(
     ITimeSync timeSync,
     IProtocolInbox inbox,
     IProtocolOutbox outbox,
-    IProtocolInputProcessor inputProcessor)
-    : IDisposable
+    IProtocolInputProcessor inputProcessor
+) : IDisposable
 {
     public long ShutdownTimeout { get; set; }
 
@@ -43,8 +43,7 @@ sealed class UdpProtocol(
         );
 
     // require idle input should be a configuration parameter
-    public int RecommendFrameDelay() =>
-        timeSync.RecommendFrameWaitDuration(false);
+    public int RecommendFrameDelay() => timeSync.RecommendFrameWaitDuration(false);
 
     void SetLocalFrameNumber(Frame localFrame)
     {
