@@ -60,3 +60,10 @@ sealed class ProtocolState(Connections localConnectStatus, int localPort)
         public int RoundTripTime;
     }
 }
+
+enum ProtocolStatus
+{
+    Syncing,
+    Running,
+    Disconnected,
+}
