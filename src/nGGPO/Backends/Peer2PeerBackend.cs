@@ -104,9 +104,11 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
         return ResultCode.Ok;
     }
 
-    public ValueTask<ResultCode> AddLocalInput(Player player, TInput localInput,
-        CancellationToken stoppingToken = default)
-        => AddLocalInput(player.Id, localInput, stoppingToken);
+    public ValueTask<ResultCode> AddLocalInput(
+        Player player,
+        TInput localInput,
+        CancellationToken stoppingToken = default
+    ) => AddLocalInput(player.Id, localInput, stoppingToken);
 
     public async ValueTask<ResultCode> AddLocalInput(
         PlayerId player,
