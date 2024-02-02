@@ -14,6 +14,7 @@ sealed class ProtocolOutbox(
     IUdpClient<ProtocolMessage> udp,
     IDelayStrategy delayStrategy,
     IRandomNumberGenerator random,
+    IClock clock,
     IProtocolLogger logger
 ) : IProtocolOutbox
 {
@@ -50,7 +51,7 @@ sealed class ProtocolOutbox(
         logger.LogMsg("send", msg);
 
         Interlocked.Increment(ref packetsSent);
-        LastSendTime = TimeStamp.GetMilliseconds();
+        LastSendTime = clock.GetMilliseconds();
 
         msg.Header.Magic = magicNumber;
         Interlocked.Increment(ref nextSendSeq);
@@ -60,7 +61,7 @@ sealed class ProtocolOutbox(
 
         return sendQueue.Writer.WriteAsync(new()
         {
-            QueueTime = TimeStamp.GetMilliseconds(),
+            QueueTime = clock.GetMilliseconds(),
             DestAddr = options.Peer.Address,
             Msg = msg,
         }, cts.Token);
@@ -74,8 +75,6 @@ sealed class ProtocolOutbox(
 
         while (!ct.IsCancellationRequested)
         {
-            // TODO: Too many allocation leak when using cancelable read async on channel
-            // bug? https://github.com/dotnet/runtime/issues/761
             await reader.WaitToReadAsync(ct).ConfigureAwait(false);
 
             while (reader.TryRead(out var entry))
@@ -83,9 +82,9 @@ sealed class ProtocolOutbox(
                 if (sendLatency > 0)
                 {
                     var jitter = delayStrategy.Jitter(sendLatency);
-                    var delayDiff = TimeStamp.GetMilliseconds() - entry.QueueTime + jitter;
+                    var delayDiff = clock.GetMilliseconds() - entry.QueueTime + jitter;
                     if (delayDiff > 0)
-                        // TODO: allocations here
+                        // LATER: allocations here
                         await Task.Delay((int)delayDiff, cts.Token).ConfigureAwait(false);
                 }
 

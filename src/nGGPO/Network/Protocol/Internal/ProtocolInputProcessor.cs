@@ -80,10 +80,7 @@ sealed class ProtocolInputProcessor(
     {
         while (!ct.IsCancellationRequested)
         {
-            // TODO: Too many allocation leak when using cancelable read async on channel
-            // bug? https://github.com/dotnet/runtime/issues/761
             await inputQueue.Reader.WaitToReadAsync(ct).ConfigureAwait(false);
-
             if (ct.IsCancellationRequested) break;
 
             ProtocolMessage msg = new(MsgType.Input)

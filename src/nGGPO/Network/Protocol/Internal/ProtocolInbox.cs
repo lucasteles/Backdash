@@ -26,6 +26,7 @@ sealed class ProtocolInbox(
     ProtocolOptions options,
     ProtocolState state,
     IRandomNumberGenerator random,
+    IClock clock,
     IMessageSender messageSender,
     IInputEncoder inputEncoder,
     IProtocolEventDispatcher events,
@@ -78,7 +79,7 @@ sealed class ProtocolInbox(
             if (replyMsg.Header.Type is not MsgType.Invalid)
                 await messageSender.SendMessage(ref replyMsg, stoppingToken).ConfigureAwait(false);
 
-            LastReceivedTime = TimeStamp.GetMilliseconds();
+            LastReceivedTime = clock.GetMilliseconds();
             if (state.Connection.DisconnectNotifySent && state.Status is ProtocolStatus.Running)
             {
                 events.Enqueue(ProtocolEvent.NetworkResumed);
@@ -194,7 +195,7 @@ sealed class ProtocolInbox(
         };
 
 
-        state.Running.LastInputPacketRecvTime = (uint)TimeStamp.GetMilliseconds();
+        state.Running.LastInputPacketRecvTime = (uint)clock.GetMilliseconds();
 
         logger.Info($"Sending frame {lastReceivedInput.Frame} to emu queue {options.Queue} (frame: {lastAckedFrame})");
         events.Enqueue(evt);
@@ -208,7 +209,7 @@ sealed class ProtocolInbox(
 
     bool OnQualityReply(in ProtocolMessage msg)
     {
-        state.Metrics.RoundTripTime = (int)(TimeStamp.GetMilliseconds() - msg.QualityReply.Pong);
+        state.Metrics.RoundTripTime = (int)(clock.GetMilliseconds() - msg.QualityReply.Pong);
         return true;
     }
 

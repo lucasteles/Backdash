@@ -12,6 +12,7 @@ sealed class UdpProtocol(
     ProtocolOptions options,
     ProtocolState state,
     IRandomNumberGenerator random,
+    IClock clock,
     ITimeSync timeSync,
     IProtocolInbox inbox,
     IProtocolOutbox outbox,
@@ -32,7 +33,7 @@ sealed class UdpProtocol(
     public void Disconnect()
     {
         state.Status = ProtocolStatus.Disconnected;
-        ShutdownTimeout = TimeStamp.GetMilliseconds() + UdpShutdownTimer;
+        ShutdownTimeout = clock.GetMilliseconds() + UdpShutdownTimer;
     }
 
     public Task Start(CancellationToken ct) =>

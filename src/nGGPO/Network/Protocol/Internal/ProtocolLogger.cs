@@ -4,19 +4,17 @@ namespace nGGPO.Network.Protocol.Internal;
 
 interface IProtocolLogger
 {
-    void LogMsg(string send, in ProtocolMessage msg);
-    void LogEvent(string queuingEvent, ProtocolEventData evt);
+    void LogMsg(in string log, in ProtocolMessage msg);
+    void LogEvent(in string log, in ProtocolEventData evt);
 }
 
 sealed class ProtocolLogger(ILogger logger) : IProtocolLogger
 {
-    public void LogMsg(string send, in ProtocolMessage msg)
-    {
-        // Implement later
-    }
+    public void LogMsg(in string log, in ProtocolMessage msg) =>
+        // LATER: check original source
+        logger.Info($"{log}: {msg}");
 
-    public void LogEvent(string queuingEvent, ProtocolEventData evt)
-    {
-        // Implement later
-    }
+    public void LogEvent(in string log, in ProtocolEventData evt) =>
+        // LATER: check original source
+        logger.Info($"{log}: {evt}");
 }

@@ -22,10 +22,13 @@ static class UdpProtocolFactory
         ProtocolLogger udpLogger = new(logger);
         ProtocolEventDispatcher eventDispatcher = new(udpLogger);
         CryptographyRandomNumberGenerator random = new(defaultRandom);
+        Clock clock = new();
         DelayStrategy delayStrategy = new(random);
 
-        ProtocolOutbox outbox = new(options, udp.Client, delayStrategy, random, udpLogger);
-        ProtocolInbox inbox = new(options, state, random, outbox, inputEncoder, eventDispatcher, udpLogger, logger);
+        ProtocolOutbox outbox = new(options, udp.Client, delayStrategy, random, clock, udpLogger);
+        ProtocolInbox inbox = new(
+            options, state, random, clock, outbox, inputEncoder, eventDispatcher, udpLogger, logger
+        );
         ProtocolInputProcessor inputProcessor = new(options, state, localConnections, logger,
             inputEncoder, timeSync, outbox, inbox);
 
@@ -37,6 +40,7 @@ static class UdpProtocolFactory
             options,
             state,
             random,
+            clock,
             timeSync,
             inbox,
             outbox,

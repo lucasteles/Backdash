@@ -29,8 +29,8 @@ sealed class Synchronizer<TGameState>(Connections connections)
     readonly Synchronizer.SavedState<TGameState> savedState = new();
 
     Frame lastConfirmedFrame = Frame.Null;
-    uint frameCount;
-    readonly uint maxPredictionFrames = 0;
+    // uint frameCount
+    // readonly uint maxPredictionFrames = 0
 
     public void SetFrameDelay(QueueIndex queue, int delay)
     {
