@@ -138,8 +138,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
 
         // Send the input to all the remote players.
         for (var i = 0; i < endpoints.Count; i++)
-            if (endpoints[i].IsInitialized())
-                await endpoints[i].SendInput(in input, stoppingToken).ConfigureAwait(false);
+            await endpoints[i].SendInput(in input, stoppingToken).ConfigureAwait(false);
 
         return ResultCode.Ok;
     }

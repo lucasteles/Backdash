@@ -118,9 +118,4 @@ sealed class UdpProtocol : IDisposable
         state.Sync.CreateSyncMessage(options.Random, out var syncMsg);
         await outbox.SendMessage(ref syncMsg, ct);
     }
-
-    public bool IsInitialized()
-    {
-        throw new NotImplementedException();
-    }
 }
