@@ -12,7 +12,7 @@ namespace nGGPO.Benchmarks.Cases;
 [MemoryDiagnoser, ThreadingDiagnoser]
 public class UdpClientBenchmark
 {
-    [Params(10)]
+    [Params(10_000)]
     public int N;
 
     [Params(
@@ -22,10 +22,6 @@ public class UdpClientBenchmark
         UdpClientFeatureFlags.ThreadYield
     )]
     public UdpClientFeatureFlags Feature;
-
-    // UdpClientBenchmarkState data = default!;
-    // [GlobalSetup] public void Setup() => data = new();
-    // [GlobalCleanup] public void Cleanup() => data.Dispose();
 
     [Benchmark]
     public async Task PingLoop()
@@ -37,25 +33,25 @@ public class UdpClientBenchmark
 
 sealed class UdpClientBenchmarkState : IDisposable
 {
-    public PingMessageHandler SenderHandler { get; }
-    public PingMessageHandler ReceiverHandler { get; }
+    public PingMessageHandler PongerHandler { get; }
+    public PingMessageHandler PingerHandler { get; }
 
-    public UdpClient<PingMessage> Sender { get; }
-    public UdpClient<PingMessage> Receiver { get; }
+    public UdpClient<PingMessage> Pinger { get; }
+    public UdpClient<PingMessage> Ponger { get; }
 
-    public UdpClientBenchmarkState()
+    public UdpClientBenchmarkState(long spinCount = 10_000)
     {
-        SenderHandler = new(nameof(Sender));
-        ReceiverHandler = new(nameof(Receiver));
+        PongerHandler = new(nameof(Ponger));
+        PingerHandler = new(nameof(Pinger), spinCount);
 
-        Sender = Factory.CreatePingClient(SenderHandler, 9000);
-        Receiver = Factory.CreatePingClient(ReceiverHandler, 9001);
+        Pinger = Factory.CreatePingClient(PongerHandler, 9000);
+        Ponger = Factory.CreatePingClient(PingerHandler, 9001);
     }
 
     public void Dispose()
     {
-        Sender.Dispose();
-        Receiver.Dispose();
+        Pinger.Dispose();
+        Ponger.Dispose();
     }
 
     public async Task Start(
@@ -74,23 +70,20 @@ sealed class UdpClientBenchmarkState : IDisposable
                 tokenSource.Cancel();
         }
 
-        SenderHandler.OnProcessed += OnProcessed;
+        PingerHandler.OnProcessed += OnProcessed;
 
-        await Task.WhenAll(
-            Sender.Start(flags, ct),
-            Receiver.Start(flags, ct),
-            Task.Run(async () =>
-            {
-                for (var i = 0; i < numberOfMessages; i++)
-                    await Receiver.SendTo(Sender.Address, PingMessage.HandShake, ct);
-            }, ct)
-        );
+        Task[] tasks =
+        [
+            Pinger.Start(flags, ct),
+            Ponger.Start(flags, ct),
+            ..Enumerable.Range(0, numberOfMessages).Select(_ =>
+                Ponger.SendTo(Pinger.Address, PingMessage.Ping, ct).AsTask()),
+        ];
 
-        SenderHandler.OnProcessed -= OnProcessed;
+        await Task.WhenAll(tasks).ConfigureAwait(false);
 
-        Trace.Assert(SenderHandler.PendingCount is 0, "Sender with pending messages");
-        Trace.Assert(SenderHandler.ProcessedCount == numberOfMessages, "Sender incomplete");
-        // Trace.Assert(ReceiverHandler.PendingCount is 0, "Receiver with pending messages");
-        // Trace.Assert(ReceiverHandler.ProcessedCount is 0, "Receiver should be empty");
+        PingerHandler.OnProcessed -= OnProcessed;
+
+        Trace.Assert(PingerHandler.ProcessedCount == numberOfMessages, "Sender incomplete");
     }
 }

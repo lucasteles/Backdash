@@ -5,19 +5,20 @@ using nGGPO.Network.Client;
 
 namespace nGGPO.Benchmarks.Network;
 
-public enum PingMessage
+public enum PingMessage : long
 {
-    HandShake = 2,
-    Ping = 4,
-    Pong = 8,
+    Ping = 111111111,
+    Pong = 999999999,
 }
 
-sealed class PingMessageHandler(string name) : IUdpObserver<PingMessage>
+sealed class PingMessageHandler(
+    string name,
+    long spinCount = 1
+) : IUdpObserver<PingMessage>
 {
-    long pendingResponses;
     long processed;
+    long currentSpins;
 
-    public long PendingCount => pendingResponses;
     public long ProcessedCount => processed;
 
     public event Action<long> OnProcessed = delegate { };
@@ -34,24 +35,29 @@ sealed class PingMessageHandler(string name) : IUdpObserver<PingMessage>
 
         switch (message)
         {
-            case PingMessage.HandShake:
-                Interlocked.Increment(ref pendingResponses);
-                await sender.SendTo(from, PingMessage.Ping, stoppingToken);
-                break;
             case PingMessage.Ping:
                 await sender.SendTo(from, PingMessage.Pong, stoppingToken);
                 break;
             case PingMessage.Pong:
-                Interlocked.Decrement(ref pendingResponses);
-                Interlocked.Increment(ref processed);
-                OnProcessed.Invoke(processed);
+                if (currentSpins >= spinCount)
+                {
+                    Interlocked.Exchange(ref currentSpins, 0);
+                    Interlocked.Increment(ref processed);
+                    OnProcessed.Invoke(processed);
+                    break;
+                }
+
+                Interlocked.Increment(ref currentSpins);
+                await sender.SendTo(from, PingMessage.Ping, stoppingToken);
+
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(message), message, null);
         }
 
 #if DEBUG
-        Console.WriteLine($"{name} [{pendingResponses}|{processed}]: {message} from {from}");
+        Console.WriteLine(
+            $"{DateTime.Now:T} - {name} [{processed}|{currentSpins}]: {message} from {from}");
 #endif
     }
 }
