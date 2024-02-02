@@ -1,7 +1,7 @@
 using nGGPO.Data;
 using nGGPO.Utils;
 
-namespace nGGPO.Network;
+namespace nGGPO.Network.Protocol;
 
 class ProtocolOptions
 {
