@@ -12,7 +12,7 @@ namespace nGGPO.Benchmarks.Cases;
 [MemoryDiagnoser, ThreadingDiagnoser]
 public class UdpClientBenchmark
 {
-    [Params(10_000)]
+    [Params(1000)]
     public int N;
 
     [Params(
@@ -39,7 +39,7 @@ sealed class UdpClientBenchmarkState : IDisposable
     public UdpClient<PingMessage> Pinger { get; }
     public UdpClient<PingMessage> Ponger { get; }
 
-    public UdpClientBenchmarkState(long spinCount = 10_000)
+    public UdpClientBenchmarkState(long spinCount = 10)
     {
         PongerHandler = new(nameof(Ponger));
         PingerHandler = new(nameof(Pinger), spinCount);
@@ -84,6 +84,7 @@ sealed class UdpClientBenchmarkState : IDisposable
 
         PingerHandler.OnProcessed -= OnProcessed;
 
-        Trace.Assert(PingerHandler.ProcessedCount == numberOfMessages, "Sender incomplete");
+        Trace.Assert(PingerHandler.ProcessedCount == numberOfMessages,
+            $"Pinger incomplete (Expected: {numberOfMessages}, Received: {PingerHandler.ProcessedCount})");
     }
 }
