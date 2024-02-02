@@ -30,42 +30,28 @@ public class UdpClientBenchmark
     public async Task BaseLine()
     {
         using UdpClientBenchmarkState data = new();
-        await data.Start(0, UdpClientFeatureFlag.CancellableChannel);
+        await data.Start(0, UdpClientPriorize.Memory);
     }
 
     [Benchmark]
     public async Task CancellableChannel()
     {
         using UdpClientBenchmarkState data = new();
-        await data.Start(N, UdpClientFeatureFlag.CancellableChannel);
+        await data.Start(N, UdpClientPriorize.Memory);
     }
 
     [Benchmark]
     public async Task WaitAsync()
     {
         using UdpClientBenchmarkState data = new();
-        await data.Start(N, UdpClientFeatureFlag.WaitAsync);
+        await data.Start(N, UdpClientPriorize.Memory2);
     }
 
     [Benchmark]
     public async Task TaskYield()
     {
         using UdpClientBenchmarkState data = new();
-        await data.Start(N, UdpClientFeatureFlag.TaskYield);
-    }
-
-    [Benchmark]
-    public async Task TaskDelay()
-    {
-        using UdpClientBenchmarkState data = new();
-        await data.Start(N, UdpClientFeatureFlag.TaskDelay);
-    }
-
-    [Benchmark]
-    public async Task PeriodicTimer()
-    {
-        using UdpClientBenchmarkState data = new();
-        await data.Start(N, UdpClientFeatureFlag.PeriodicTimer);
+        await data.Start(N, UdpClientPriorize.CPU);
     }
 }
 
@@ -94,7 +80,7 @@ sealed class UdpClientBenchmarkState : IDisposable
 
     public async Task Start(
         int numberOfMessages,
-        UdpClientFeatureFlag flag,
+        UdpClientPriorize flag,
         TimeSpan? timeout = null
     )
     {

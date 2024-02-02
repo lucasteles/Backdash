@@ -50,9 +50,9 @@ sealed class UdpClient<T>(
 
     public string JobName { get; } = $"{nameof(UdpClient)} ({port})";
 
-    public Task Start(CancellationToken ct) => Start(UdpClientFeatureFlag.CancellableChannel, ct);
+    public Task Start(CancellationToken ct) => Start(UdpClientPriorize.Memory, ct);
 
-    public async Task Start(UdpClientFeatureFlag featureFlag, CancellationToken ct)
+    public async Task Start(UdpClientPriorize priorize, CancellationToken ct)
     {
         if (cancellation is not null)
             return;
@@ -62,7 +62,7 @@ sealed class UdpClient<T>(
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct, cancellation.Token);
         var token = cts.Token;
 
-        await Task.WhenAll(ReadLoop(token), SendLoop(token, featureFlag)).ConfigureAwait(false);
+        await Task.WhenAll(ReadLoop(token), SendLoop(token, priorize)).ConfigureAwait(false);
     }
 
     static Socket CreateSocket(int port, ILogger logger)
@@ -123,7 +123,7 @@ sealed class UdpClient<T>(
         }
     }
 
-    async Task SendLoop(CancellationToken ct, UdpClientFeatureFlag flag)
+    async Task SendLoop(CancellationToken ct, UdpClientPriorize flag)
     {
         var bufferArray = GC.AllocateArray<byte>(
             length: UdpPacketSize,
@@ -132,10 +132,6 @@ sealed class UdpClient<T>(
 
         var sendBuffer = MemoryMarshal.CreateFromPinnedArray(bufferArray, 0, bufferArray.Length);
         var reader = sendQueue.Reader;
-        var nonCancellableToken = CancellationToken.None;
-
-        var frameTime = TimeSpan.FromSeconds(1000 / 60.0);
-        PeriodicTimer timer = new(frameTime);
 
         try
         {
@@ -145,20 +141,14 @@ sealed class UdpClient<T>(
                 {
                     // TODO: Too many allocation leak when using cancelable read async on channel
                     // bug? https://github.com/dotnet/runtime/issues/761
-                    case UdpClientFeatureFlag.CancellableChannel:
+                    case UdpClientPriorize.Memory:
                         await reader.WaitToReadAsync(ct).ConfigureAwait(false);
                         break;
-                    case UdpClientFeatureFlag.WaitAsync:
-                        await reader.WaitToReadAsync(nonCancellableToken).AsTask().WaitAsync(ct).ConfigureAwait(false);
+                    case UdpClientPriorize.Memory2:
+                        await reader.WaitToReadAsync().AsTask().WaitAsync(ct).ConfigureAwait(false);
                         break;
-                    case UdpClientFeatureFlag.TaskYield:
+                    case UdpClientPriorize.CPU:
                         await Task.Yield();
-                        break;
-                    case UdpClientFeatureFlag.TaskDelay:
-                        await Task.Delay(frameTime, ct).ConfigureAwait(false);
-                        break;
-                    case UdpClientFeatureFlag.PeriodicTimer:
-                        await timer.WaitForNextTickAsync(ct);
                         break;
                     default:
                         throw new ArgumentOutOfRangeException(nameof(flag), flag, null);
@@ -210,11 +200,9 @@ sealed class UdpClient<T>(
     }
 }
 
-public enum UdpClientFeatureFlag
+public enum UdpClientPriorize
 {
-    CancellableChannel,
-    WaitAsync,
-    TaskYield,
-    TaskDelay,
-    PeriodicTimer,
+    Memory,
+    Memory2,
+    CPU,
 }
