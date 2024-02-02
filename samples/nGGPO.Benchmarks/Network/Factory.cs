@@ -7,13 +7,11 @@ static class Factory
 {
     public static UdpClient<PingMessage> CreatePingClient(
         IUdpObserver<PingMessage> observer,
-        int? port = null
+        int port
     )
     {
-        port ??= PortUtils.FindFreePort();
-
         UdpObservableClient<PingMessage> udp = new(
-            port.Value,
+            port,
             BinarySerializerFactory.ForEnum<PingMessage>(),
             new ConsoleLogger {EnabledLevel = LogLevel.Off}
         );
