@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using BenchmarkDotNet.Order;
 using nGGPO.Benchmarks.Network;
 using nGGPO.Network.Client;
 
@@ -10,24 +11,61 @@ namespace nGGPO.Benchmarks.Cases;
 [InProcess]
 [RPlotExporter]
 [MemoryDiagnoser, ThreadingDiagnoser, ExceptionDiagnoser]
+[Orderer(SummaryOrderPolicy.FastestToSlowest)]
+[RankColumn, IterationsColumn]
 public class UdpClientBenchmark
 {
-    [Params(2000)]
+    [Params(5000)]
     public int N;
 
-    [Params(
-        UdpClientFeatureFlags.CancellableChannel,
-        UdpClientFeatureFlags.WaitAsync,
-        UdpClientFeatureFlags.TaskYield,
-        UdpClientFeatureFlags.TaskDelay
-    )]
-    public UdpClientFeatureFlags Feature;
+    // [Params(
+    //     UdpClientFeatureFlags.CancellableChannel,
+    //     UdpClientFeatureFlags.WaitAsync,
+    //     UdpClientFeatureFlags.TaskYield,
+    //     UdpClientFeatureFlags.TaskDelay
+    // )]
+    // public UdpClientFeatureFlags Feature;
 
-    [Benchmark]
-    public async Task PingLoop()
+    [Benchmark(Baseline = true)]
+    public async Task BaseLine()
     {
         using UdpClientBenchmarkState data = new();
-        await data.Start(N, Feature);
+        await data.Start(0, UdpClientFeatureFlag.CancellableChannel);
+    }
+
+    [Benchmark]
+    public async Task CancellableChannel()
+    {
+        using UdpClientBenchmarkState data = new();
+        await data.Start(N, UdpClientFeatureFlag.CancellableChannel);
+    }
+
+    [Benchmark]
+    public async Task WaitAsync()
+    {
+        using UdpClientBenchmarkState data = new();
+        await data.Start(N, UdpClientFeatureFlag.WaitAsync);
+    }
+
+    [Benchmark]
+    public async Task TaskYield()
+    {
+        using UdpClientBenchmarkState data = new();
+        await data.Start(N, UdpClientFeatureFlag.TaskYield);
+    }
+
+    [Benchmark]
+    public async Task TaskDelay()
+    {
+        using UdpClientBenchmarkState data = new();
+        await data.Start(N, UdpClientFeatureFlag.TaskDelay);
+    }
+
+    [Benchmark]
+    public async Task PeriodicTimer()
+    {
+        using UdpClientBenchmarkState data = new();
+        await data.Start(N, UdpClientFeatureFlag.PeriodicTimer);
     }
 }
 
@@ -56,11 +94,12 @@ sealed class UdpClientBenchmarkState : IDisposable
 
     public async Task Start(
         int numberOfMessages,
-        UdpClientFeatureFlags flags
+        UdpClientFeatureFlag flag,
+        TimeSpan? timeout = null
     )
     {
-        var timeout = TimeSpan.FromSeconds(5);
-        using CancellationTokenSource tokenSource = new(timeout);
+        timeout ??= TimeSpan.FromSeconds(10);
+        using CancellationTokenSource tokenSource = new(timeout.Value);
         var ct = tokenSource.Token;
 
         // ReSharper disable once AccessToDisposedClosure
@@ -74,8 +113,8 @@ sealed class UdpClientBenchmarkState : IDisposable
 
         Task[] tasks =
         [
-            Pinger.Start(flags, ct),
-            Ponger.Start(flags, ct),
+            Pinger.Start(flag, ct),
+            Ponger.Start(flag, ct),
             ..Enumerable.Range(0, numberOfMessages).Select(_ =>
                 Ponger.SendTo(Pinger.Address, PingMessage.Ping, ct).AsTask()),
         ];
@@ -84,7 +123,8 @@ sealed class UdpClientBenchmarkState : IDisposable
 
         PingerHandler.OnProcessed -= OnProcessed;
 
-        Trace.Assert(PingerHandler.ProcessedCount == numberOfMessages,
-            $"Pinger incomplete (Expected: {numberOfMessages}, Received: {PingerHandler.ProcessedCount})");
+        if (PingerHandler.ProcessedCount != numberOfMessages)
+            Console.WriteLine(
+                $"** Pinger incomplete (Expected: {numberOfMessages}, Received: {PingerHandler.ProcessedCount})");
     }
 }

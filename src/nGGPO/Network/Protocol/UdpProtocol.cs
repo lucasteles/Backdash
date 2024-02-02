@@ -111,10 +111,12 @@ sealed class UdpProtocol : IDisposable
         return outbox.SendMessage(ref msg, ct);
     }
 
-    public void Synchronize()
+    public async ValueTask Synchronize(CancellationToken ct)
     {
         state.Status = ProtocolStatus.Syncing;
-        throw new NotImplementedException();
+        state.Sync.RemainingRoundtrips = (uint)options.NumberOfSyncPackets;
+        state.Sync.CreateSyncMessage(options.Random, out var syncMsg);
+        await outbox.SendMessage(ref syncMsg, ct);
     }
 
     public bool IsInitialized()

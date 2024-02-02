@@ -14,4 +14,5 @@ class ProtocolOptions
     public required Peer Peer { get; init; }
     public required int DisconnectTimeout { get; init; }
     public required int DisconnectNotifyStart { get; init; }
+    public required int NumberOfSyncPackets { get; init; }
 }

@@ -262,21 +262,14 @@ sealed class ProtocolInbox(
             {
                 Synchronizing = new()
                 {
-                    Total = NumSyncPackets,
-                    Count = NumSyncPackets - (int)state.Sync.RemainingRoundtrips,
+                    Total = (ushort)options.NumberOfSyncPackets,
+                    Count = (ushort)(options.NumberOfSyncPackets - state.Sync.RemainingRoundtrips),
                 },
             };
 
             events.Enqueue(evt);
 
-            state.Sync.Random = options.Random.NextUInt();
-            replyMsg = new(MsgType.SyncRequest)
-            {
-                SyncRequest = new()
-                {
-                    RandomRequest = state.Sync.Random,
-                },
-            };
+            state.Sync.CreateSyncMessage(options.Random, out replyMsg);
         }
 
         return true;

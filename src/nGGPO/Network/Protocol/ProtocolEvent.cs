@@ -18,9 +18,9 @@ public enum ProtocolEvent : sbyte
 [StructLayout(LayoutKind.Explicit)]
 struct ProtocolEventData(ProtocolEvent name)
 {
-    public readonly record struct SynchronizingData(int Total, int Count);
+    public readonly record struct SynchronizingData(ushort Total, ushort Count);
 
-    public readonly record struct NetworkInterruptedData(int DisconnectTimeout);
+    public readonly record struct NetworkInterruptedData(ushort DisconnectTimeout);
 
     const int HeaderSize = sizeof(ProtocolEvent);
 

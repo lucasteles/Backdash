@@ -3,7 +3,6 @@ namespace nGGPO.Network.Protocol.Internal;
 static class ProtocolConstants
 {
     public const int UdpHeaderSize = 28; /* Size of IP + UDP headers */
-    public const int NumSyncPackets = 5;
     public const int SyncRetryInterval = 2000;
     public const int SyncFirstRetryInterval = 500;
     public const int RunningRetryInterval = 200;

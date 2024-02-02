@@ -1,4 +1,5 @@
 using nGGPO.Data;
+using nGGPO.Network.Messages;
 
 namespace nGGPO.Network.Protocol.Internal;
 
@@ -19,7 +20,19 @@ sealed class ProtocolState(Connections localConnectStatus, int localPort)
     internal class SyncState
     {
         public uint RemainingRoundtrips;
-        public uint Random;
+        public uint Random { get; private set; }
+
+        public void CreateSyncMessage(Random random, out ProtocolMessage replyMsg)
+        {
+            Random = random.NextUInt();
+            replyMsg = new(MsgType.SyncRequest)
+            {
+                SyncRequest = new()
+                {
+                    RandomRequest = Random,
+                },
+            };
+        }
     }
 
     internal class RunningState

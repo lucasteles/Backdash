@@ -74,18 +74,18 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
             spectator.Dispose();
     }
 
-    public ResultCode AddPlayer(Player player)
+    public async ValueTask<ResultCode> AddPlayer(Player player, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(player);
 
         if (player is Player.Spectator spectator)
-            return AddSpectator(spectator.EndPoint);
+            return await AddSpectator(spectator.EndPoint, ct);
 
         if (player.PlayerNumber < 1 || player.PlayerNumber > options.NumberOfPlayers)
             return ResultCode.PlayerOutOfRange;
 
         if (player is Player.Remote remote)
-            AddRemotePlayer(remote.EndPoint, player.QueueNumber);
+            await AddRemotePlayer(remote.EndPoint, player.QueueNumber, ct);
 
         return ResultCode.Ok;
     }
@@ -180,10 +180,11 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
             DisconnectTimeout = options.DisconnectTimeout,
             DisconnectNotifyStart = options.DisconnectNotifyStart,
             NetworkDelay = options.NetworkDelay,
+            NumberOfSyncPackets = options.NumberOfSyncPackets,
             Peer = endpoint,
         };
 
-        var protocol = UdpProtocolFactory.CreateDefault(
+        return UdpProtocolFactory.CreateDefault(
             logger,
             backgroundJobManager,
             udp,
@@ -191,23 +192,20 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
             protocolOptions,
             options.TimeSync
         );
-
-        protocol.Synchronize();
-        return protocol;
     }
 
-    void AddRemotePlayer(IPEndPoint endpoint, QueueIndex queue)
+    async ValueTask AddRemotePlayer(IPEndPoint endpoint, QueueIndex queue, CancellationToken ct)
     {
         /*
          * Start the state machine (xxx: no)
          */
         synchronizing = true;
-
         var protocol = CreateProtocol(endpoint, queue);
+        await protocol.Synchronize(ct);
         endpoints.Add(protocol);
     }
 
-    ResultCode AddSpectator(IPEndPoint endpoint)
+    async ValueTask<ResultCode> AddSpectator(IPEndPoint endpoint, CancellationToken ct)
     {
         var numSpectators = spectators.Count;
 
@@ -222,6 +220,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
 
         QueueIndex queue = new(options.SpectatorOffset + numSpectators + 1);
         var protocol = CreateProtocol(endpoint, queue);
+        await protocol.Synchronize(ct);
         spectators.Add(protocol);
 
         return ResultCode.Ok;
