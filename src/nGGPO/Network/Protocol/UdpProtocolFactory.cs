@@ -3,29 +3,29 @@ using nGGPO.Lifecycle;
 using nGGPO.Network.Client;
 using nGGPO.Network.Messages;
 using nGGPO.Network.Protocol.Internal;
+using nGGPO.Utils;
 
 namespace nGGPO.Network.Protocol;
 
 static class UdpProtocolFactory
 {
-    public static UdpProtocol CreateDefault(
-        ILogger logger,
+    public static UdpProtocol CreateDefault(Random defaultRandom, ILogger logger,
         IBackgroundJobManager jobManager,
         IUdpObservableClient<ProtocolMessage> udp,
         Connections localConnections,
         ProtocolOptions options,
-        TimeSyncOptions timeSyncOptions
-    )
+        TimeSyncOptions timeSyncOptions)
     {
         TimeSync timeSync = new(timeSyncOptions, logger);
         InputEncoder inputEncoder = new();
         ProtocolState state = new(localConnections, udp.Client.Port);
         ProtocolLogger udpLogger = new(logger);
         ProtocolEventDispatcher eventDispatcher = new(udpLogger);
-        DelayStrategy delayStrategy = new(options.Random);
+        CryptographyRandomNumberGenerator random = new(defaultRandom);
+        DelayStrategy delayStrategy = new(random);
 
-        ProtocolOutbox outbox = new(options, udp.Client, delayStrategy, udpLogger);
-        ProtocolInbox inbox = new(options, state, outbox, inputEncoder, eventDispatcher, udpLogger, logger);
+        ProtocolOutbox outbox = new(options, udp.Client, delayStrategy, random, udpLogger);
+        ProtocolInbox inbox = new(options, state, random, outbox, inputEncoder, eventDispatcher, udpLogger, logger);
         ProtocolInputProcessor inputProcessor = new(options, state, localConnections, logger,
             inputEncoder, timeSync, outbox, inbox);
 
@@ -36,6 +36,7 @@ static class UdpProtocolFactory
         return new(
             options,
             state,
+            random,
             timeSync,
             inbox,
             outbox,

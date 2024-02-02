@@ -174,7 +174,6 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
     {
         ProtocolOptions protocolOptions = new()
         {
-            Random = options.Random,
             Queue = queue,
             DisconnectTimeout = options.DisconnectTimeout,
             DisconnectNotifyStart = options.DisconnectNotifyStart,
@@ -184,6 +183,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
         };
 
         return UdpProtocolFactory.CreateDefault(
+            options.Random,
             logger,
             backgroundJobManager,
             udp,

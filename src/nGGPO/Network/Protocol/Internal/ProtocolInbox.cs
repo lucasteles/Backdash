@@ -25,6 +25,7 @@ interface IProtocolInbox
 sealed class ProtocolInbox(
     ProtocolOptions options,
     ProtocolState state,
+    IRandomNumberGenerator random,
     IMessageSender messageSender,
     IInputEncoder inputEncoder,
     IProtocolEventDispatcher events,
@@ -268,8 +269,7 @@ sealed class ProtocolInbox(
             };
 
             events.Enqueue(evt);
-
-            state.Sync.CreateSyncMessage(options.Random, out replyMsg);
+            state.Sync.CreateSyncMessage(random.SyncNumber(), out replyMsg);
         }
 
         return true;

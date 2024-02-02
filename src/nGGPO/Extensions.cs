@@ -13,8 +13,6 @@ static class Extensions
             throw new NggpoException($"Invalid assertion at {source}");
     }
 
-    public static uint NextUInt(this Random random) => (uint)random.Next() & 0xFFFF;
-
     public static double NextGaussian(this Random random)
     {
         double u, v, s;

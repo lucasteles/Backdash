@@ -13,6 +13,7 @@ sealed class ProtocolOutbox(
     ProtocolOptions options,
     IUdpClient<ProtocolMessage> udp,
     IDelayStrategy delayStrategy,
+    IRandomNumberGenerator random,
     IProtocolLogger logger
 ) : IProtocolOutbox
 {
@@ -35,7 +36,7 @@ sealed class ProtocolOutbox(
 
     readonly CancellationTokenSource sendQueueCancellation = new();
 
-    readonly ushort magicNumber = MagicNumber.Generate();
+    readonly ushort magicNumber = random.MagicNumber();
 
     int packetsSent;
     int nextSendSeq;

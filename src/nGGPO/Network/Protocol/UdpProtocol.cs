@@ -8,44 +8,17 @@ namespace nGGPO.Network.Protocol;
 
 using static ProtocolConstants;
 
-sealed class UdpProtocol : IDisposable
+sealed class UdpProtocol(
+    ProtocolOptions options,
+    ProtocolState state,
+    IRandomNumberGenerator random,
+    ITimeSync timeSync,
+    IProtocolInbox inbox,
+    IProtocolOutbox outbox,
+    IProtocolInputProcessor inputProcessor)
+    : IDisposable
 {
-    readonly ProtocolState state;
-
-    /*
-     * Packet loss...
-     */
     public long ShutdownTimeout { get; set; }
-
-    /*
-     * Rift synchronization.
-     */
-    readonly ITimeSync timeSync;
-    readonly ProtocolOptions options;
-
-
-    // services
-    readonly IProtocolInbox inbox;
-    readonly IProtocolOutbox outbox;
-    readonly IProtocolInputProcessor inputProcessor;
-
-
-    public UdpProtocol(
-        ProtocolOptions options,
-        ProtocolState state,
-        ITimeSync timeSync,
-        IProtocolInbox inbox,
-        IProtocolOutbox outbox,
-        IProtocolInputProcessor inputProcessor
-    )
-    {
-        this.state = state;
-        this.options = options;
-        this.timeSync = timeSync;
-        this.outbox = outbox;
-        this.inbox = inbox;
-        this.inputProcessor = inputProcessor;
-    }
 
     public void Dispose()
     {
@@ -115,7 +88,7 @@ sealed class UdpProtocol : IDisposable
     {
         state.Status = ProtocolStatus.Syncing;
         state.Sync.RemainingRoundtrips = (uint)options.NumberOfSyncPackets;
-        state.Sync.CreateSyncMessage(options.Random, out var syncMsg);
+        state.Sync.CreateSyncMessage(random.SyncNumber(), out var syncMsg);
         await outbox.SendMessage(ref syncMsg, ct);
     }
 }

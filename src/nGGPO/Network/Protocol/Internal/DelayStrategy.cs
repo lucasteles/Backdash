@@ -1,3 +1,5 @@
+using nGGPO.Utils;
+
 namespace nGGPO.Network.Protocol.Internal;
 
 interface IDelayStrategy
@@ -5,12 +7,12 @@ interface IDelayStrategy
     int Jitter(int sendLatency);
 }
 
-sealed class DelayStrategy(Random random) : IDelayStrategy
+sealed class DelayStrategy(IRandomNumberGenerator random) : IDelayStrategy
 {
     public int Jitter(int sendLatency)
     {
         var mean = sendLatency * 2 / 3;
-        return mean + (random.Next() % sendLatency / 3);
+        return mean + (random.NextInt() % sendLatency / 3);
     }
 }
 

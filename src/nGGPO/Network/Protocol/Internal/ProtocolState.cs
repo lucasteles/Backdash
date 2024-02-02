@@ -22,9 +22,9 @@ sealed class ProtocolState(Connections localConnectStatus, int localPort)
         public uint RemainingRoundtrips;
         public uint Random { get; private set; }
 
-        public void CreateSyncMessage(Random random, out ProtocolMessage replyMsg)
+        public void CreateSyncMessage(uint nextRandom, out ProtocolMessage replyMsg)
         {
-            Random = random.NextUInt();
+            Random = nextRandom;
             replyMsg = new(MsgType.SyncRequest)
             {
                 SyncRequest = new()
