@@ -5,7 +5,7 @@ namespace nGGPO.Network.Client;
 
 static class SocketFactory
 {
-    public static Socket Create(int port, ILogger logger)
+    public static Socket Create(int port)
     {
         if (port is < IPEndPoint.MinPort or > IPEndPoint.MaxPort)
             throw new ArgumentOutOfRangeException(nameof(port));
@@ -18,7 +18,6 @@ static class SocketFactory
 
         IPEndPoint localEp = new(IPAddress.Any, port);
         newSocket.Bind(localEp);
-        logger.Info($"binding udp socket to port {port}.\n");
 
         return newSocket;
     }

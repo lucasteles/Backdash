@@ -31,7 +31,7 @@ sealed class UdpClient<T>(
     const int UdpPacketSize = Max.UdpPacketSize;
 
     public bool LogsEnabled = true;
-    readonly Socket socket = SocketFactory.Create(port, logger);
+    readonly Socket socket = SocketFactory.Create(port);
     CancellationTokenSource? cancellation;
     public int Port => port;
     public SocketAddress Address { get; } = new IPEndPoint(IPAddress.Loopback, port).Serialize();
