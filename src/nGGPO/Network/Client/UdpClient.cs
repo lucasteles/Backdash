@@ -32,8 +32,6 @@ sealed class UdpClient<T>(
 
     public bool LogsEnabled = true;
     CancellationTokenSource? cancellation;
-    public int Port => socket.Port;
-    public SocketAddress Address { get; } = new IPEndPoint(IPAddress.Loopback, socket.Port).Serialize();
     public ByteSize TotalBytesSent { get; private set; }
 
     readonly Channel<(SocketAddress Address, T Payload)> sendQueue =
@@ -47,6 +45,9 @@ sealed class UdpClient<T>(
         );
 
     public string JobName { get; } = $"{nameof(UdpClient)} ({socket.Port})";
+
+    public int Port => socket.Port;
+    public SocketAddress Address => socket.LocalAddress;
 
     public Task Start(CancellationToken ct) => Start(UdpClientPriorize.Memory, ct);
 

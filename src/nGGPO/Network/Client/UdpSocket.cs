@@ -7,6 +7,7 @@ interface IUdpSocket : IDisposable
 {
     public int Port { get; }
     AddressFamily AddressFamily { get; }
+    SocketAddress LocalAddress { get; }
     ValueTask<int> ReceiveFromAsync(Memory<byte> buffer, SocketAddress address, CancellationToken ct);
     ValueTask<int> SendToAsync(ReadOnlyMemory<byte> payload, SocketAddress peerAddress, CancellationToken ct);
 }
@@ -14,13 +15,15 @@ interface IUdpSocket : IDisposable
 sealed class UdpSocket : IUdpSocket
 {
     readonly Socket socket;
-
     public int Port { get; }
+
+    public SocketAddress LocalAddress { get; }
     public AddressFamily AddressFamily => socket.AddressFamily;
 
     public UdpSocket(int port)
     {
         Port = port;
+        LocalAddress = new IPEndPoint(IPAddress.Loopback, port).Serialize();
 
         if (port is < IPEndPoint.MinPort or > IPEndPoint.MaxPort)
             throw new ArgumentOutOfRangeException(nameof(port));
