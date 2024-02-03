@@ -1,6 +1,6 @@
 using nGGPO.Core;
 
-namespace nGGPO.Network.Protocol.Internal;
+namespace nGGPO.Network.Protocol.Messaging;
 
 interface IDelayStrategy
 {

@@ -1,7 +1,7 @@
 using nGGPO.Data;
 using nGGPO.Input;
 using nGGPO.Network.Messages;
-using nGGPO.Network.Protocol.Internal;
+using nGGPO.Network.Protocol.Messaging;
 
 namespace nGGPO.Tests.Specs.Input;
 

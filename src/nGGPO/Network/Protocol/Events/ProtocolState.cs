@@ -1,9 +1,9 @@
 using nGGPO.Data;
 using nGGPO.Network.Messages;
 
-namespace nGGPO.Network.Protocol.Internal;
+namespace nGGPO.Network.Protocol.Events;
 
-sealed class ProtocolState(Connections localConnectStatus, int localPort)
+sealed class ProtocolState(ConnectionStatus localConnectStatus, int localPort)
 {
     public readonly SyncState Sync = new();
     public readonly RunningState Running = new();
@@ -11,8 +11,8 @@ sealed class ProtocolState(Connections localConnectStatus, int localPort)
     public readonly AdvantageState Fairness = new();
     public readonly Statistics Metrics = new();
 
-    public readonly Connections LocalConnectStatus = localConnectStatus;
-    public readonly Connections PeerConnectStatus = new(Frame.Null);
+    public readonly ConnectionStatus LocalConnectStatus = localConnectStatus;
+    public readonly ConnectionStatus PeerConnectStatus = new(Frame.Null);
     public ProtocolStatus Status;
 
     public readonly int LocalPort = localPort;

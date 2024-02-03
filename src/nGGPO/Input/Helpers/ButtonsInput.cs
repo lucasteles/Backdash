@@ -1,12 +1,10 @@
 using System.Text;
-using nGGPO.Input.Types;
+using nGGPO.Input.Helpers;
 
-// ReSharper disable CheckNamespace
 // ReSharper disable InconsistentNaming
-
 namespace nGGPO.Inputs;
 
-[Flags]
+[Flags, Serializable]
 public enum ButtonsInput : short
 {
     None = 0,

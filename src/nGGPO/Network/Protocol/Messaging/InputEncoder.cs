@@ -3,7 +3,7 @@ using nGGPO.Data;
 using nGGPO.Input;
 using nGGPO.Network.Messages;
 
-namespace nGGPO.Network.Protocol.Internal;
+namespace nGGPO.Network.Protocol.Messaging;
 
 interface IInputEncoder
 {

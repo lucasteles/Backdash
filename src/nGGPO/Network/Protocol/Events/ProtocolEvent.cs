@@ -1,7 +1,7 @@
 using System.Runtime.InteropServices;
 using nGGPO.Input;
 
-namespace nGGPO.Network.Protocol;
+namespace nGGPO.Network.Protocol.Events;
 
 public enum ProtocolEvent : sbyte
 {

@@ -1,21 +1,19 @@
-// ReSharper disable InconsistentNaming
-// ReSharper disable CheckNamespace
-
 using System.Runtime.InteropServices;
 
-namespace nGGPO.Inputs;
+// ReSharper disable InconsistentNaming
+namespace nGGPO.Input.Helpers;
 
-[StructLayout(LayoutKind.Sequential, Size = 2)]
+[StructLayout(LayoutKind.Sequential, Size = 2), Serializable]
 public struct Axis
 {
     public sbyte X;
     public sbyte Y;
 }
 
-[StructLayout(LayoutKind.Sequential)]
+[StructLayout(LayoutKind.Sequential), Serializable]
 public struct PadInput
 {
-    [Flags]
+    [Flags, Serializable]
     public enum PadButtons : short
     {
         None = 0,

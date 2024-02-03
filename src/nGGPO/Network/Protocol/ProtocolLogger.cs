@@ -1,6 +1,7 @@
 using nGGPO.Network.Messages;
+using nGGPO.Network.Protocol.Events;
 
-namespace nGGPO.Network.Protocol.Internal;
+namespace nGGPO.Network.Protocol;
 
 interface IProtocolLogger
 {

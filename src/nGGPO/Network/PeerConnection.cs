@@ -2,13 +2,13 @@ using nGGPO.Core;
 using nGGPO.Data;
 using nGGPO.Input;
 using nGGPO.Network.Messages;
-using nGGPO.Network.Protocol.Internal;
+using nGGPO.Network.Protocol;
+using nGGPO.Network.Protocol.Events;
+using nGGPO.Network.Protocol.Messaging;
 
-namespace nGGPO.Network.Protocol;
+namespace nGGPO.Network;
 
-using static ProtocolConstants;
-
-sealed class UdpProtocol(
+sealed class PeerConnection(
     ProtocolOptions options,
     ProtocolState state,
     IRandomNumberGenerator random,
@@ -33,7 +33,7 @@ sealed class UdpProtocol(
     public void Disconnect()
     {
         state.Status = ProtocolStatus.Disconnected;
-        ShutdownTimeout = clock.GetMilliseconds() + UdpShutdownTimer;
+        ShutdownTimeout = clock.GetMilliseconds() + options.UdpShutdownTimer;
     }
 
     public Task Start(CancellationToken ct) =>
@@ -63,12 +63,12 @@ sealed class UdpProtocol(
         state.Fairness.LocalFrameAdvantage = remoteFrame - localFrame;
     }
 
-    public void GetNetworkStats(ref NetworkStats stats)
+    public void GetNetworkStats(ref NetworkInfo metrics)
     {
-        stats.Ping = state.Metrics.RoundTripTime;
-        stats.SendQueueLen = inputProcessor.PendingNumber;
-        stats.RemoteFramesBehind = state.Fairness.RemoteFrameAdvantage;
-        stats.LocalFramesBehind = state.Fairness.LocalFrameAdvantage;
+        metrics.Ping = state.Metrics.RoundTripTime;
+        metrics.SendQueueLen = inputProcessor.PendingNumber;
+        metrics.RemoteFramesBehind = state.Fairness.RemoteFrameAdvantage;
+        metrics.LocalFramesBehind = state.Fairness.LocalFrameAdvantage;
     }
 
     public ValueTask SendInputAck(CancellationToken ct)

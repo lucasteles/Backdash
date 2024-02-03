@@ -2,16 +2,18 @@ using nGGPO.Core;
 using nGGPO.Input;
 using nGGPO.Network.Client;
 using nGGPO.Network.Messages;
-using nGGPO.Network.Protocol.Internal;
+using nGGPO.Network.Protocol;
+using nGGPO.Network.Protocol.Events;
+using nGGPO.Network.Protocol.Messaging;
 
-namespace nGGPO.Network.Protocol;
+namespace nGGPO.Network;
 
-static class UdpProtocolFactory
+static class PeerConnectionFactory
 {
-    public static UdpProtocol CreateDefault(Random defaultRandom, ILogger logger,
+    public static PeerConnection CreateDefault(Random defaultRandom, ILogger logger,
         IBackgroundJobManager jobManager,
         IUdpObservableClient<ProtocolMessage> udp,
-        Connections localConnections,
+        ConnectionStatus localConnections,
         ProtocolOptions options,
         TimeSyncOptions timeSyncOptions)
     {

@@ -1,4 +1,4 @@
-namespace nGGPO.Network.Protocol.Internal;
+namespace nGGPO.Network.Protocol.Events;
 
 interface IProtocolEventDispatcher
 {

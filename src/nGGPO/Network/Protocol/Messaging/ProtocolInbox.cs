@@ -4,10 +4,9 @@ using nGGPO.Data;
 using nGGPO.Input;
 using nGGPO.Network.Client;
 using nGGPO.Network.Messages;
+using nGGPO.Network.Protocol.Events;
 
-namespace nGGPO.Network.Protocol.Internal;
-
-using static ProtocolConstants;
+namespace nGGPO.Network.Protocol.Messaging;
 
 interface IProtocolInbox
 {
@@ -64,7 +63,7 @@ sealed class ProtocolInbox(
             }
 
             var skipped = (ushort)(seqNum - nextRecvSeq);
-            if (skipped > MaxSeqDistance)
+            if (skipped > options.MaxSeqDistance)
             {
                 logger.Info($"dropping out of order packet (seq: {seqNum}, last seq:{nextRecvSeq})");
                 return;

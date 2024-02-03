@@ -3,8 +3,9 @@ using System.Threading.Channels;
 using nGGPO.Core;
 using nGGPO.Network.Client;
 using nGGPO.Network.Messages;
+using nGGPO.Network.Protocol.Events;
 
-namespace nGGPO.Network.Protocol.Internal;
+namespace nGGPO.Network.Protocol.Messaging;
 
 interface IProtocolOutbox : IMessageSender, IBackgroundJob, IDisposable;
 

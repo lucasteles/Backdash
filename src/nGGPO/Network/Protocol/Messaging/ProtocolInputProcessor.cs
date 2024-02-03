@@ -3,8 +3,9 @@ using nGGPO.Core;
 using nGGPO.Data;
 using nGGPO.Input;
 using nGGPO.Network.Messages;
+using nGGPO.Network.Protocol.Events;
 
-namespace nGGPO.Network.Protocol.Internal;
+namespace nGGPO.Network.Protocol.Messaging;
 
 interface IProtocolInputProcessor : IBackgroundJob
 {
@@ -20,7 +21,7 @@ interface IProtocolInputProcessor : IBackgroundJob
 sealed class ProtocolInputProcessor(
     ProtocolOptions options,
     ProtocolState state,
-    Connections localConnections,
+    ConnectionStatus localConnections,
     ILogger logger,
     IInputEncoder inputEncoder,
     ITimeSync timeSync,

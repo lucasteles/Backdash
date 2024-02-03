@@ -1,6 +1,6 @@
 using nGGPO.Inputs;
 
-namespace nGGPO.Input.Types;
+namespace nGGPO.Input.Helpers;
 
 public static class Extensions
 {

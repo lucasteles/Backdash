@@ -20,12 +20,12 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
 
     readonly IUdpObservableClient<ProtocolMessage> udp;
     readonly Synchronizer<TGameState> sync;
-    readonly Connections localConnections;
+    readonly ConnectionStatus localConnections;
 
     bool synchronizing = true;
 
-    readonly List<UdpProtocol> spectators;
-    readonly List<UdpProtocol> endpoints;
+    readonly List<PeerConnection> spectators;
+    readonly List<PeerConnection> endpoints;
     readonly IBackgroundJobManager backgroundJobManager;
     readonly ILogger logger;
 
@@ -171,7 +171,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
         return ResultCode.Ok;
     }
 
-    UdpProtocol CreateProtocol(IPEndPoint endpoint, QueueIndex queue)
+    PeerConnection CreateProtocol(IPEndPoint endpoint, QueueIndex queue)
     {
         ProtocolOptions protocolOptions = new()
         {
@@ -179,11 +179,10 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
             DisconnectTimeout = options.DisconnectTimeout,
             DisconnectNotifyStart = options.DisconnectNotifyStart,
             NetworkDelay = options.NetworkDelay,
-            NumberOfSyncPackets = options.NumberOfSyncPackets,
             Peer = endpoint,
         };
 
-        return UdpProtocolFactory.CreateDefault(
+        return PeerConnectionFactory.CreateDefault(
             options.Random,
             logger,
             backgroundJobManager,

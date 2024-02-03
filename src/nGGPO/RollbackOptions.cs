@@ -11,7 +11,6 @@ public sealed class RollbackOptions
     public int DisconnectTimeout { get; init; } = 5000;
     public int DisconnectNotifyStart { get; init; } = 750;
     public int SpectatorOffset { get; init; } = 1000;
-    public int NumberOfSyncPackets { get; init; } = 5;
     public Random Random { get; init; } = Random.Shared;
     public TimeSyncOptions TimeSync { get; init; } = new();
     public int NetworkDelay { get; init; }
