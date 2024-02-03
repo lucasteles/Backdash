@@ -1,12 +1,16 @@
 using System.Net;
 using System.Threading.Channels;
 using nGGPO.Core;
+using nGGPO.Data;
 using nGGPO.Network.Client;
 using nGGPO.Network.Messages;
 
 namespace nGGPO.Network.Protocol.Messaging;
 
-interface IProtocolOutbox : IMessageSender, IBackgroundJob, IDisposable;
+interface IProtocolOutbox : IMessageSender, IBackgroundJob, IDisposable
+{
+    public ByteSize BytesSent { get; }
+}
 
 sealed class ProtocolOutbox(
     ProtocolOptions options,
@@ -41,9 +45,11 @@ sealed class ProtocolOutbox(
     int packetsSent;
     int nextSendSeq;
 
+
     public string JobName { get; } = $"{nameof(ProtocolOutbox)} ({udp.Port})";
 
     public long LastSendTime { get; private set; }
+    public ByteSize BytesSent { get; private set; }
 
     QueueEntry CreateNextEntry(ref ProtocolMessage msg)
     {
@@ -83,6 +89,8 @@ sealed class ProtocolOutbox(
         var sendLatency = options.NetworkDelay;
         var reader = sendQueue.Reader;
 
+        var buffer = Mem.CreatePinnedBuffer(options.UdpPacketBufferSize);
+
         while (!ct.IsCancellationRequested)
         {
             await reader.WaitToReadAsync(ct).ConfigureAwait(false);
@@ -98,7 +106,11 @@ sealed class ProtocolOutbox(
                         await Task.Delay((int)delayDiff, cts.Token).ConfigureAwait(false);
                 }
 
-                await udp.SendTo(entry.DestAddr, entry.Msg, sendQueueCancellation.Token).ConfigureAwait(false);
+                var bytesSent = await udp
+                    .SendTo(entry.DestAddr, entry.Msg, buffer, sendQueueCancellation.Token)
+                    .ConfigureAwait(false);
+
+                BytesSent += (ByteSize)bytesSent;
             }
         }
     }

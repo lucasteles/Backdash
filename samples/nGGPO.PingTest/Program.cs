@@ -1,4 +1,5 @@
 using nGGPO.Core;
+using nGGPO.Data;
 using nGGPO.Network.Client;
 using nGGPO.PingTest;
 using nGGPO.Serialization;
@@ -21,14 +22,14 @@ var tasks = jobs.Start(stopToken);
 
 await using Measurer measurer = new(snapshotInterval);
 measurer.Start();
-_ = peer1.SendTo(peer2.Address, PingMessage.Ping).AsTask();
+// _ = peer1.SendTo(peer2.Address, PingMessage.Ping).AsTask();
 
 Console.WriteLine("Press enter to stop.");
 SpinWait.SpinUntil(() => Console.KeyAvailable || stopToken.IsCancellationRequested);
 cts.Cancel();
 await tasks.ConfigureAwait(false);
 measurer.Stop();
-var totalSent = peer1.TotalBytesSent + peer2.TotalBytesSent;
+var totalSent = ByteSize.Zero; //peer1.TotalBytesSent + peer2.TotalBytesSent;
 Console.Clear();
 Console.WriteLine(measurer.Summary(totalSent, printSnapshots));
 

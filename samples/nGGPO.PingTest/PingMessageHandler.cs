@@ -9,7 +9,7 @@ sealed class PingMessageHandler : IUdpObserver<PingMessage>
 
     static long processedCount;
 
-    public ValueTask OnUdpMessage(
+    public async ValueTask OnUdpMessage(
         IUdpClient<PingMessage> sender,
         PingMessage message,
         SocketAddress from,
@@ -17,15 +17,20 @@ sealed class PingMessageHandler : IUdpObserver<PingMessage>
     )
     {
         if (stoppingToken.IsCancellationRequested)
-            return ValueTask.CompletedTask;
+            return;
 
         Interlocked.Increment(ref processedCount);
 
-        return message switch
+        switch (message)
         {
-            PingMessage.Ping => sender.SendTo(from, PingMessage.Pong, stoppingToken),
-            PingMessage.Pong => sender.SendTo(from, PingMessage.Ping, stoppingToken),
-            _ => throw new ArgumentOutOfRangeException(nameof(message), message, null),
-        };
+            case PingMessage.Ping:
+                await sender.SendTo(from, PingMessage.Pong, stoppingToken);
+                break;
+            case PingMessage.Pong:
+                await sender.SendTo(from, PingMessage.Ping, stoppingToken);
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(message), message, null);
+        }
     }
 }

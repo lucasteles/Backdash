@@ -1,7 +1,7 @@
+using System.Buffers;
 using System.Net;
 using System.Net.Sockets;
 using nGGPO.Core;
-using nGGPO.Data;
 using nGGPO.Serialization;
 
 namespace nGGPO.Network.Client;
@@ -10,9 +10,9 @@ interface IUdpClient<in T> : IBackgroundJob, IDisposable where T : struct
 {
     public int Port { get; }
     public SocketAddress Address { get; }
-    public ByteSize TotalBytesSent { get; }
 
-    ValueTask SendTo(SocketAddress peerAddress, T payload, CancellationToken ct = default);
+    ValueTask<int> SendTo(SocketAddress peerAddress, T payload, CancellationToken ct = default);
+    ValueTask<int> SendTo(SocketAddress peerAddress, T payload, byte[] buffer, CancellationToken ct = default);
 }
 
 sealed class UdpClient<T> : IUdpClient<T> where T : struct
@@ -25,7 +25,6 @@ sealed class UdpClient<T> : IUdpClient<T> where T : struct
 
     CancellationTokenSource? cancellation;
     readonly SemaphoreSlim semaphore = new(1, 1);
-    byte[] sendBuffer;
 
     public UdpClient(
         IUdpSocket socket,
@@ -45,18 +44,13 @@ sealed class UdpClient<T> : IUdpClient<T> where T : struct
         this.serializer = serializer;
         this.logger = logger;
         this.maxPacketSize = maxPacketSize;
-        sendBuffer = CreateBuffer();
         JobName = $"{nameof(UdpClient)} ({socket.Port})";
     }
-
-    public ByteSize TotalBytesSent { get; private set; }
 
     public string JobName { get; }
 
     public int Port => socket.Port;
     public SocketAddress Address => socket.LocalAddress;
-
-    byte[] CreateBuffer() => GC.AllocateArray<byte>(length: maxPacketSize, pinned: true);
 
     public async Task Start(CancellationToken ct)
     {
@@ -73,7 +67,7 @@ sealed class UdpClient<T> : IUdpClient<T> where T : struct
 
     async Task ReceiveLoop(CancellationToken ct)
     {
-        var buffer = GC.AllocateArray<byte>(length: maxPacketSize, pinned: true);
+        var buffer = Mem.CreatePinnedBuffer(maxPacketSize);
         SocketAddress address = new(socket.AddressFamily);
 
         while (!ct.IsCancellationRequested)
@@ -109,36 +103,44 @@ sealed class UdpClient<T> : IUdpClient<T> where T : struct
         buffer = null;
     }
 
-    async ValueTask<int> SendTo(
+    ValueTask<int> SendTo(
         SocketAddress peerAddress,
         ReadOnlyMemory<byte> payload,
         CancellationToken ct = default
+    ) =>
+        socket.SendToAsync(payload, peerAddress, ct);
+
+    public async ValueTask<int> SendTo(
+        SocketAddress peerAddress,
+        T payload,
+        byte[] buffer,
+        CancellationToken ct = default
     )
     {
-        ByteSize payloadSize = new(payload.Length);
-        TotalBytesSent += payloadSize;
-        return await socket.SendToAsync(payload, peerAddress, ct);
+        var bodySize = serializer.Serialize(ref payload, buffer);
+        var sentSize = await SendTo(peerAddress, buffer.AsMemory()[..bodySize], ct);
+        Tracer.Assert(sentSize == bodySize);
+        return sentSize;
     }
 
-    public async ValueTask SendTo(
+    public async ValueTask<int> SendTo(
         SocketAddress peerAddress,
         T payload,
         CancellationToken ct = default
     )
     {
-        await semaphore.WaitAsync(ct);
-        var bodySize = serializer.Serialize(ref payload, sendBuffer);
-        var sentSize = await SendTo(peerAddress, sendBuffer.AsMemory()[..bodySize], ct);
-        Tracer.Assert(sentSize == bodySize);
-        semaphore.Release();
+        var buffer = ArrayPool<byte>.Shared.Rent(maxPacketSize);
+        var sentBytes = await SendTo(peerAddress, payload, buffer, ct);
+        ArrayPool<byte>.Shared.Return(buffer);
+        return sentBytes;
     }
+
 
     public void Dispose()
     {
         cancellation?.Cancel();
         cancellation?.Dispose();
         semaphore.Dispose();
-        sendBuffer = null!;
         socket.Dispose();
     }
 }

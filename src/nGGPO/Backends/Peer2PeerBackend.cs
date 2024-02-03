@@ -220,6 +220,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
             DisconnectTimeout = options.DisconnectTimeout,
             DisconnectNotifyStart = options.DisconnectNotifyStart,
             NetworkDelay = options.NetworkDelay,
+            UdpPacketBufferSize = options.UdpPacketBufferSize,
             Peer = endpoint,
         };
 

@@ -64,12 +64,13 @@ sealed class PeerConnection(
         state.Fairness.LocalFrameAdvantage = remoteFrame - localFrame;
     }
 
-    public void GetNetworkStats(ref PeerConnectionInfo metrics)
+    public void UpdateNetworkStats(ref PeerConnectionInfo stats)
     {
-        metrics.Ping = state.Metrics.RoundTripTime;
-        metrics.SendQueueLen = inputProcessor.PendingNumber;
-        metrics.RemoteFramesBehind = state.Fairness.RemoteFrameAdvantage;
-        metrics.LocalFramesBehind = state.Fairness.LocalFrameAdvantage;
+        stats.Ping = state.Metrics.RoundTripTime;
+        stats.SendQueueLen = inputProcessor.PendingNumber;
+        stats.BytesSent = outbox.BytesSent;
+        stats.RemoteFramesBehind = state.Fairness.RemoteFrameAdvantage;
+        stats.LocalFramesBehind = state.Fairness.LocalFrameAdvantage;
     }
 
     public ValueTask SendInputAck(CancellationToken ct)

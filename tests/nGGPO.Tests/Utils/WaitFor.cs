@@ -1,11 +1,19 @@
+using System.Runtime.CompilerServices;
+
 namespace nGGPO.Tests.Utils;
 
 public static class WaitFor
 {
-    public static async Task BeTrue(Func<bool> checkTask,
-        TimeSpan timeout, TimeSpan? next = null
+    public static async Task BeTrue(
+        Func<bool> checkTask,
+        TimeSpan? timeout = null,
+        string? because = null,
+        TimeSpan? next = null,
+        [CallerArgumentExpression(nameof(checkTask))]
+        string? source = null
     )
     {
+        timeout ??= TimeSpan.FromSeconds(1);
         next ??= TimeSpan.FromSeconds(1.0 / 60);
 
         async Task WaitLoop()
@@ -14,9 +22,15 @@ public static class WaitFor
                 await Task.Delay(next.Value);
         }
 
-        await WaitLoop().WaitAsync(timeout);
+        try
+        {
+            await WaitLoop().WaitAsync(timeout.Value);
+        }
+        catch (TimeoutException)
+        {
+            because = because is null ? string.Empty : $", {because}";
+            Assert.Fail($"Timeout waiting for {source}{because}");
+            throw;
+        }
     }
-
-    public static Task BeTrue(Func<bool> checkTask) =>
-        BeTrue(checkTask, TimeSpan.FromSeconds(1));
 }

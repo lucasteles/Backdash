@@ -11,6 +11,7 @@ class ProtocolOptions
     public required Peer Peer { get; init; }
     public required int DisconnectTimeout { get; init; }
     public required int DisconnectNotifyStart { get; init; }
+    public required int UdpPacketBufferSize { get; init; }
 
     public int NumberOfSyncPackets { get; init; } = 5;
     public long UdpShutdownTimer { get; init; } = 5000;

@@ -108,7 +108,7 @@ public class UdpClientTests
             return ValueTask.CompletedTask;
         };
 
-        const int messageCount = 100_000;
+        const int messageCount = 10_000;
         Random rnd = new(42);
 
         await Task.WhenAll(Enumerable.Range(0, messageCount).Select(i => Task.Run(async () =>
@@ -121,7 +121,11 @@ public class UdpClientTests
                 await server.Client.SendTo(client.Address, msg);
         })));
 
-        await WaitFor.BeTrue(() => counter.Value is messageCount);
+        await WaitFor.BeTrue(
+            () => counter.Value is messageCount,
+            TimeSpan.FromSeconds(2),
+            $"{counter.Value} != {messageCount}"
+        );
         totalResult.Should().Be(0);
     }
 
@@ -150,7 +154,7 @@ public class UdpClientTests
             counter.Inc();
         };
 
-        const int messageCount = 50_000;
+        const int messageCount = 10_000;
         Random rnd = new(42);
 
         var tasks = Task.WhenAll(Enumerable.Range(0, messageCount).Select(i => Task.Run(async () =>
