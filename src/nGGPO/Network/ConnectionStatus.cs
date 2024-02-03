@@ -4,12 +4,12 @@ using nGGPO.Network.Messages;
 
 namespace nGGPO.Network;
 
-sealed class ConnectionStatus()
+sealed class ConnectionStatuses()
 {
     public ConnectStatus[] Statuses { get; } = new ConnectStatus[Max.MsgPlayers];
     public int Length => Statuses.Length;
 
-    public ConnectionStatus(Frame lastFrame) : this()
+    public ConnectionStatuses(Frame lastFrame) : this()
     {
         for (var i = 0; i < Statuses.Length; i++)
             Statuses[i].LastFrame = lastFrame;

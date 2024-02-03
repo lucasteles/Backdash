@@ -63,7 +63,7 @@ sealed class PeerConnection(
         state.Fairness.LocalFrameAdvantage = remoteFrame - localFrame;
     }
 
-    public void GetNetworkStats(ref NetworkInfo metrics)
+    public void GetNetworkStats(ref PeerConnectionInfo metrics)
     {
         metrics.Ping = state.Metrics.RoundTripTime;
         metrics.SendQueueLen = inputProcessor.PendingNumber;

@@ -13,7 +13,7 @@ static class PeerConnectionFactory
     public static PeerConnection CreateDefault(Random defaultRandom, ILogger logger,
         IBackgroundJobManager jobManager,
         IUdpObservableClient<ProtocolMessage> udp,
-        ConnectionStatus localConnections,
+        ConnectionStatuses localConnections,
         ProtocolOptions options,
         TimeSyncOptions timeSyncOptions)
     {

@@ -2,7 +2,7 @@ using nGGPO.Data;
 
 namespace nGGPO.Network;
 
-public sealed class NetworkInfo
+public sealed class PeerConnectionInfo
 {
     public int Ping { get; internal set; }
     public int RemoteFrameAdvantage { get; internal set; }

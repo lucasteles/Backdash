@@ -21,10 +21,10 @@ static class Synchronizer
     }
 }
 
-sealed class Synchronizer<TGameState>(ConnectionStatus connections)
+sealed class Synchronizer<TGameState>(ConnectionStatuses connections)
     where TGameState : struct
 {
-    public ConnectionStatus Connections => connections;
+    public ConnectionStatuses Connections => connections;
 
     readonly Synchronizer.SavedState<TGameState> savedState = new();
 

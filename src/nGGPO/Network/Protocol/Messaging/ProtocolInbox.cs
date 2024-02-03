@@ -148,7 +148,7 @@ sealed class ProtocolInbox(
              * of the network.
              */
             var remoteStatus = msg.Input.PeerConnectStatus;
-            var peerConnectStatus = state.PeerConnectStatus;
+            var peerConnectStatus = state.PeerConnectStatuses;
             for (var i = 0; i < peerConnectStatus.Length; i++)
             {
                 Tracer.Assert(remoteStatus[i].LastFrame >= peerConnectStatus[i].LastFrame);

@@ -20,7 +20,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
 
     readonly IUdpObservableClient<ProtocolMessage> udp;
     readonly Synchronizer<TGameState> sync;
-    readonly ConnectionStatus localConnections;
+    readonly ConnectionStatuses localConnections;
 
     bool synchronizing = true;
 

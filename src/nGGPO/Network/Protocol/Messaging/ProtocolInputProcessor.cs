@@ -21,7 +21,7 @@ interface IProtocolInputProcessor : IBackgroundJob
 sealed class ProtocolInputProcessor(
     ProtocolOptions options,
     ProtocolState state,
-    ConnectionStatus localConnections,
+    ConnectionStatuses localConnections,
     ILogger logger,
     IInputEncoder inputEncoder,
     ITimeSync timeSync,
