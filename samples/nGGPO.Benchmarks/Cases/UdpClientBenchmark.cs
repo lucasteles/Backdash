@@ -106,7 +106,10 @@ sealed class UdpClientBenchmarkState : IDisposable
 
         PingerHandler.OnProcessed -= OnProcessed;
 
-        Debug.Assert(PingerHandler.ProcessedCount != numberOfMessages,
+        Trace.Assert(PingerHandler.BadMessages is 0,
+            $"** Pinger: {PingerHandler.BadMessages} bad messages");
+
+        Trace.Assert(PingerHandler.ProcessedCount != numberOfMessages,
             $"** Pinger incomplete (Expected: {numberOfMessages}, Received: {PingerHandler.ProcessedCount})");
     }
 }

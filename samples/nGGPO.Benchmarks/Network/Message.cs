@@ -19,8 +19,10 @@ sealed class PingMessageHandler(
 {
     long processed;
     long currentSpins;
+    long badMessages;
 
     public long ProcessedCount => processed;
+    public long BadMessages => badMessages;
 
     public event Action<long> OnProcessed = delegate { };
 
@@ -64,8 +66,13 @@ sealed class PingMessageHandler(
 
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(message), message, null);
+                    badMessages++;
+                    break;
             }
+        }
+        catch (OperationCanceledException)
+        {
+            // Do nothing
         }
         finally
         {
