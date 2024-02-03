@@ -1,5 +1,4 @@
 using System.Numerics;
-using System.Runtime.CompilerServices;
 using nGGPO.Core;
 using nGGPO.Network;
 
@@ -7,7 +6,6 @@ namespace nGGPO.Serialization;
 
 sealed class PrimitiveBinarySerializer<T>(bool network) : IBinarySerializer<T> where T : unmanaged
 {
-    public readonly int Size = Unsafe.SizeOf<T>();
 
     public T Deserialize(in ReadOnlySpan<byte> data)
     {

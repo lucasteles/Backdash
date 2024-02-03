@@ -13,7 +13,7 @@ public enum PingMessage : long
 
 sealed class PingMessageHandler(
     string name,
-    Memory<byte>? sendBuffer = null
+    Memory<byte> sendBuffer
 ) : IUdpObserver<PingMessage>
 {
     long processedCount;
@@ -52,10 +52,10 @@ sealed class PingMessageHandler(
 
         try
         {
-            if (sendBuffer is null)
+            if (sendBuffer.IsEmpty)
                 await sender.SendTo(from, reply, stoppingToken);
             else
-                await sender.SendTo(from, reply, sendBuffer.Value, stoppingToken);
+                await sender.SendTo(from, reply, sendBuffer, stoppingToken);
         }
         catch (OperationCanceledException)
         {

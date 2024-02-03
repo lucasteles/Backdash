@@ -1,7 +1,5 @@
 using System.Diagnostics;
-using BenchmarkDotNet.Order;
 using nGGPO.Benchmarks.Network;
-using nGGPO.Core;
 
 #pragma warning disable CS0649
 #pragma warning disable AsyncFixer01
@@ -12,30 +10,29 @@ namespace nGGPO.Benchmarks.Cases;
 
 [InProcess]
 [RPlotExporter]
-[MemoryDiagnoser, ThreadingDiagnoser, ExceptionDiagnoser]
-[Orderer(SummaryOrderPolicy.FastestToSlowest)]
+[MemoryDiagnoser, ExceptionDiagnoser]
 [RankColumn, IterationsColumn]
 public class UdpClientBenchmark
 {
-    [Params(1000, 50_000)]
+    [Params(1000)]
     public int N;
 
 
     Memory<byte> pingerSendBuffer = Memory<byte>.Empty;
     Memory<byte> pongerSendBuffer = Memory<byte>.Empty;
 
-    [GlobalSetup]
-    public void Setup()
-    {
-        pingerSendBuffer = Mem.CreatePinnedBuffer(Max.UdpPacketSize);
-        pongerSendBuffer = Mem.CreatePinnedBuffer(Max.UdpPacketSize);
-    }
-
-    [Benchmark]
-    public async Task PinnedSendBuffer() => await Start(N, usePinnedBuffers: true);
+    // [GlobalSetup]
+    // public void Setup()
+    // {
+    //     pingerSendBuffer = Mem.CreatePinnedBuffer(Max.UdpPacketSize);
+    //     pongerSendBuffer = Mem.CreatePinnedBuffer(Max.UdpPacketSize);
+    // }
 
     [Benchmark]
     public async Task ArrayPoolBuffer() => await Start(N, usePinnedBuffers: false);
+
+    // [Benchmark]
+    // public async Task PinnedSendBuffer() => await Start(N, usePinnedBuffers: true);
 
     public async Task Start(
         int numberOfSpins,
@@ -64,11 +61,19 @@ public class UdpClientBenchmark
 
         pingerHandler.OnProcessed += OnProcessed;
 
+        async Task StartSending()
+        {
+            if (usePinnedBuffers)
+                await pinger.SendTo(ponger.Address, PingMessage.Ping, pingerSendBuffer, ct);
+            else
+                await pinger.SendTo(ponger.Address, PingMessage.Ping, ct);
+        }
+
         Task[] tasks =
         [
             pinger.Start(ct),
             ponger.Start(ct),
-            pingerHandler.OnUdpMessage(pinger, PingMessage.Pong, ponger.Address, ct).AsTask(),
+            StartSending(),
         ];
 
         await Task.WhenAll(tasks).ConfigureAwait(false);
