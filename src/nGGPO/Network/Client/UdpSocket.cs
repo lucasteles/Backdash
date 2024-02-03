@@ -3,7 +3,7 @@ using System.Net.Sockets;
 
 namespace nGGPO.Network.Client;
 
-static class SocketFactory
+static class UdpSocket
 {
     public static Socket Create(int port)
     {
