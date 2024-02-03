@@ -28,9 +28,16 @@ sealed class PingMessageHandler(byte[]? buffer = null) : IUdpObserver<PingMessag
             _ => throw new ArgumentOutOfRangeException(nameof(message), message, null),
         };
 
-        if (buffer is null)
-            await sender.SendTo(from, reply, stoppingToken);
-        else
-            await sender.SendTo(from, reply, buffer, stoppingToken);
+        try
+        {
+            if (buffer is null)
+                await sender.SendTo(from, reply, stoppingToken);
+            else
+                await sender.SendTo(from, reply, buffer, stoppingToken);
+        }
+        catch (OperationCanceledException)
+        {
+            // skip
+        }
     }
 }
