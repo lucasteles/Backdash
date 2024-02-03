@@ -42,8 +42,8 @@ sealed class UdpClientBenchmarkState : IDisposable
     public UdpClient<PingMessage> Pinger { get; }
     public UdpClient<PingMessage> Ponger { get; }
 
-    public byte[]? PingerSendBuffer { get; private set; }
-    public byte[]? PongerSendBuffer { get; private set; }
+    public Memory<byte>? PingerSendBuffer { get; private set; }
+    public Memory<byte>? PongerSendBuffer { get; private set; }
 
     public UdpClientBenchmarkState(bool pinnedSendBuffer)
     {
@@ -91,7 +91,7 @@ sealed class UdpClientBenchmarkState : IDisposable
             if (PingerSendBuffer is null)
                 await Pinger.SendTo(Ponger.Address, PingMessage.Ping, ct);
             else
-                await Pinger.SendTo(Ponger.Address, PingMessage.Ping, PingerSendBuffer, ct);
+                await Pinger.SendTo(Ponger.Address, PingMessage.Ping, PingerSendBuffer.Value, ct);
         }
 
         Task[] tasks =

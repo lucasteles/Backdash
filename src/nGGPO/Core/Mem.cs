@@ -125,7 +125,11 @@ static class Mem
     }
 
 
-    public static byte[] CreatePinnedBuffer(int size) => GC.AllocateArray<byte>(length: size, pinned: true);
+    public static Memory<byte> CreatePinnedBuffer(int size)
+    {
+        var buffer = GC.AllocateArray<byte>(length: size, pinned: true);
+        return MemoryMarshal.CreateFromPinnedArray(buffer, 0, buffer.Length);
+    }
 
     public static string GetBitString(
         in ReadOnlySpan<byte> bytes,

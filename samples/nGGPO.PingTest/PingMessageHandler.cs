@@ -3,7 +3,7 @@ using nGGPO.Network.Client;
 
 namespace nGGPO.PingTest;
 
-sealed class PingMessageHandler(byte[]? buffer = null) : IUdpObserver<PingMessage>
+sealed class PingMessageHandler(Memory<byte>? buffer = null) : IUdpObserver<PingMessage>
 {
     public static long TotalProcessed => processedCount;
 
@@ -33,7 +33,7 @@ sealed class PingMessageHandler(byte[]? buffer = null) : IUdpObserver<PingMessag
             if (buffer is null)
                 await sender.SendTo(from, reply, stoppingToken);
             else
-                await sender.SendTo(from, reply, buffer, stoppingToken);
+                await sender.SendTo(from, reply, buffer.Value, stoppingToken);
         }
         catch (OperationCanceledException)
         {

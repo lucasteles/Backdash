@@ -34,7 +34,7 @@ measurer.Stop();
 Console.Clear();
 Console.WriteLine(measurer.Summary(printSnapshots));
 
-IUdpClient<PingMessage> CreateClient(int port, byte[]? buffer = null)
+IUdpClient<PingMessage> CreateClient(int port, Memory<byte>? buffer = null)
 {
     UdpObserverGroup<PingMessage> observers = new();
 

@@ -12,7 +12,7 @@ interface IUdpClient<in T> : IBackgroundJob, IDisposable where T : struct
     public SocketAddress Address { get; }
 
     ValueTask<int> SendTo(SocketAddress peerAddress, T payload, CancellationToken ct = default);
-    ValueTask<int> SendTo(SocketAddress peerAddress, T payload, byte[] buffer, CancellationToken ct = default);
+    ValueTask<int> SendTo(SocketAddress peerAddress, T payload, Memory<byte> buffer, CancellationToken ct = default);
 }
 
 sealed class UdpClient<T> : IUdpClient<T> where T : struct
@@ -94,7 +94,7 @@ sealed class UdpClient<T> : IUdpClient<T> where T : struct
             if (receivedSize is 0)
                 continue;
 
-            var msg = serializer.Deserialize(buffer.AsSpan()[..receivedSize]);
+            var msg = serializer.Deserialize(buffer[..receivedSize].Span);
 
             await observer.OnUdpMessage(this, msg, address, ct).ConfigureAwait(false);
         }
@@ -113,12 +113,12 @@ sealed class UdpClient<T> : IUdpClient<T> where T : struct
     public async ValueTask<int> SendTo(
         SocketAddress peerAddress,
         T payload,
-        byte[] buffer,
+        Memory<byte> buffer,
         CancellationToken ct = default
     )
     {
-        var bodySize = serializer.Serialize(ref payload, buffer);
-        var sentSize = await SendTo(peerAddress, buffer.AsMemory()[..bodySize], ct);
+        var bodySize = serializer.Serialize(ref payload, buffer.Span);
+        var sentSize = await SendTo(peerAddress, buffer[..bodySize], ct);
         Tracer.Assert(sentSize == bodySize);
         return sentSize;
     }
