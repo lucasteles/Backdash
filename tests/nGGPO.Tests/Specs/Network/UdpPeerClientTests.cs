@@ -26,7 +26,7 @@ public class UdpClientTests
             return ValueTask.CompletedTask;
         };
 
-        await client.Socket.SendTo(server.Address, msg);
+        await client.Client.SendTo(server.Address, msg);
         var pass = await sem.WaitAsync(TimeSpan.FromSeconds(1));
         pass.Should().BeTrue();
     }
@@ -44,7 +44,7 @@ public class UdpClientTests
             message.Value.Should().Be("hello server");
             sender.Should().Be(client.Address);
             counter.Inc();
-            await server.Socket.SendTo(sender, "hello client", token);
+            await server.Client.SendTo(sender, "hello client", token);
         };
 
         client.Observer.OnMessage += (_, message, sender, token) =>
@@ -55,7 +55,7 @@ public class UdpClientTests
             return ValueTask.CompletedTask;
         };
 
-        await client.Socket.SendTo(server.Address, "hello server");
+        await client.Client.SendTo(server.Address, "hello server");
 
         await WaitFor.BeTrue(() => counter.Value is 2);
     }
@@ -116,9 +116,9 @@ public class UdpClientTests
             var msg = i % 2 is 0 ? OpMessage.Increment : OpMessage.Decrement;
 
             if (rnd.Next() % 2 is 0)
-                await client.Socket.SendTo(server.Address, msg);
+                await client.Client.SendTo(server.Address, msg);
             else
-                await server.Socket.SendTo(client.Address, msg);
+                await server.Client.SendTo(client.Address, msg);
         })));
 
         await WaitFor.BeTrue(() => counter.Value is messageCount);
@@ -139,14 +139,14 @@ public class UdpClientTests
         server.Observer.OnMessage += async (_, message, sender, token) =>
         {
             sender.Should().Be(client.Address);
-            await HandleMessageAsync(message, server.Socket, sender, token);
+            await HandleMessageAsync(message, server.Client, sender, token);
             counter.Inc();
         };
 
         client.Observer.OnMessage += async (_, message, sender, token) =>
         {
             sender.Should().Be(server.Address);
-            await HandleMessageAsync(message, client.Socket, sender, token);
+            await HandleMessageAsync(message, client.Client, sender, token);
             counter.Inc();
         };
 
@@ -160,9 +160,9 @@ public class UdpClientTests
                 : OpMessage.DecrementCallback;
 
             if (rnd.Next() % 2 is 0)
-                await client.Socket.SendTo(server.Address, msg);
+                await client.Client.SendTo(server.Address, msg);
             else
-                await server.Socket.SendTo(client.Address, msg);
+                await server.Client.SendTo(client.Address, msg);
         })));
 
         await WaitFor.BeTrue(() => counter.Value is messageCount * 2);

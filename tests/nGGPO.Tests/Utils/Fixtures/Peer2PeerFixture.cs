@@ -22,13 +22,13 @@ sealed class Peer2PeerFixture<T> : IDisposable where T : struct
         Server = new(serializer, serverPort);
         Client = new(serializer, clientPort);
 
-        Server.Socket.LogsEnabled = false;
-        Client.Socket.LogsEnabled = false;
+        Server.Client.LogsEnabled = false;
+        Client.Client.LogsEnabled = false;
 
         if (start) Start(cts.Token);
     }
 
-    public void Start(CancellationToken ct) => tasks = Task.WhenAll(Server.Socket.Start(ct), Client.Socket.Start(ct));
+    public void Start(CancellationToken ct) => tasks = Task.WhenAll(Server.Client.Start(ct), Client.Client.Start(ct));
 
     public void Deconstruct(out UdpClientContext<T> client, out UdpClientContext<T> server) =>
         (client, server) = (Client, Server);

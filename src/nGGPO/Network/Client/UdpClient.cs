@@ -22,7 +22,7 @@ interface IUdpClient<T> : IBackgroundJob, IDisposable where T : struct
 }
 
 sealed class UdpClient<T>(
-    int port,
+    IUdpSocket socket,
     IUdpObserver<T> observer,
     IBinarySerializer<T> serializer,
     ILogger logger
@@ -31,10 +31,9 @@ sealed class UdpClient<T>(
     const int UdpPacketSize = Max.UdpPacketSize;
 
     public bool LogsEnabled = true;
-    readonly Socket socket = UdpSocket.Create(port);
     CancellationTokenSource? cancellation;
-    public int Port => port;
-    public SocketAddress Address { get; } = new IPEndPoint(IPAddress.Loopback, port).Serialize();
+    public int Port => socket.Port;
+    public SocketAddress Address { get; } = new IPEndPoint(IPAddress.Loopback, socket.Port).Serialize();
     public ByteSize TotalBytesSent { get; private set; }
 
     readonly Channel<(SocketAddress Address, T Payload)> sendQueue =
@@ -47,7 +46,7 @@ sealed class UdpClient<T>(
             }
         );
 
-    public string JobName { get; } = $"{nameof(UdpClient)} ({port})";
+    public string JobName { get; } = $"{nameof(UdpClient)} ({socket.Port})";
 
     public Task Start(CancellationToken ct) => Start(UdpClientPriorize.Memory, ct);
 
@@ -80,7 +79,7 @@ sealed class UdpClient<T>(
             try
             {
                 receivedSize = await socket
-                    .ReceiveFromAsync(buffer, SocketFlags.None, address, ct)
+                    .ReceiveFromAsync(buffer, address, ct)
                     .ConfigureAwait(false);
             }
             catch (SocketException ex)
@@ -162,7 +161,7 @@ sealed class UdpClient<T>(
     {
         ByteSize payloadSize = new(payload.Length);
         TotalBytesSent += payloadSize;
-        return socket.SendToAsync(payload, SocketFlags.None, peerAddress, ct);
+        return socket.SendToAsync(payload, peerAddress, ct);
     }
 
     public ValueTask SendTo(

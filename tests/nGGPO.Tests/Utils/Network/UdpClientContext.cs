@@ -7,18 +7,19 @@ namespace nGGPO.Tests.Utils.Network;
 sealed class UdpClientContext<T> : IDisposable where T : struct
 {
     public UdpEventObserver<T> Observer { get; }
-    public UdpClient<T> Socket { get; }
+    public UdpClient<T> Client { get; }
 
     public UdpClientContext(IBinarySerializer<T> serializer, int? port = null)
     {
         Observer = new();
-        Socket = new UdpClient<T>(port ?? PortUtils.FindFreePort(), Observer, serializer, new ConsoleLogger
+        UdpSocket socket = new(port ?? PortUtils.FindFreePort());
+        Client = new UdpClient<T>(socket, Observer, serializer, new ConsoleLogger
         {
-            EnabledLevel = LogLevel.Trace
+            EnabledLevel = LogLevel.Trace,
         });
     }
 
-    public SocketAddress Address => Socket.Address;
-    public int Port => Socket.Port;
-    public void Dispose() => Socket.Dispose();
+    public SocketAddress Address => Client.Address;
+    public int Port => Client.Port;
+    public void Dispose() => Client.Dispose();
 }

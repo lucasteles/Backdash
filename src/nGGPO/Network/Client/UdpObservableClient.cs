@@ -19,7 +19,13 @@ sealed class UdpObservableClient<T> : IUdpObservableClient<T> where T : struct
     public UdpObservableClient(int port, IBinarySerializer<T> serializer, ILogger logger)
     {
         Observers = new();
-        client = new UdpClient<T>(port, Observers, serializer, logger);
+
+        client = new UdpClient<T>(
+            new UdpSocket(port),
+            Observers,
+            serializer,
+            logger
+        );
     }
 
     public string JobName => client.JobName;
