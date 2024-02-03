@@ -11,15 +11,17 @@ static class Factory
         int port
     )
     {
-        UdpObservableClient<PingMessage> udp = new(
-            port,
+        UdpObserverGroup<PingMessage> observers = new();
+
+        UdpClient<PingMessage> udp = new(
+            new UdpSocket(port),
             BinarySerializerFactory.ForEnum<PingMessage>(),
+            observers,
             new ConsoleLogger {EnabledLevel = LogLevel.Off}
         );
 
-        udp.Observers.Add(observer);
-        udp.EnableLogs(false);
+        observers.Add(observer);
 
-        return (UdpClient<PingMessage>) udp.Client;
+        return udp;
     }
 }

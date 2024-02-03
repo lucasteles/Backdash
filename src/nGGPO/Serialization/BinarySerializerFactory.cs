@@ -36,7 +36,7 @@ static class BinarySerializerFactory
             TypeCode.UInt16 => ForEnum<TInput, ushort>(network),
             TypeCode.Byte => ForEnum<TInput, byte>(network),
             TypeCode.SByte => ForEnum<TInput, sbyte>(network),
-            _ => throw InvalidTypeArgumentException.For<TInput>(),
+            _ => throw new InvalidTypeArgumentException<TInput>(),
         };
 
     public static IBinarySerializer<TInput> ForStruct<TInput>(

@@ -18,7 +18,8 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
     readonly IBinarySerializer<TInput> inputSerializer;
     readonly ISessionCallbacks<TGameState> callbacks;
 
-    readonly IUdpObservableClient<ProtocolMessage> udp;
+    readonly IUdpClient<ProtocolMessage> udp;
+    readonly UdpObserverGroup<ProtocolMessage> udpObservers;
     readonly Synchronizer<TGameState> sync;
     readonly ConnectionStatuses localConnections;
 
@@ -37,13 +38,13 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
         RollbackOptions options,
         ISessionCallbacks<TGameState> callbacks,
         IBinarySerializer<TInput> inputSerializer,
-        IUdpObservableClient<ProtocolMessage> udpClient,
+        IUdpClientFactory udpClientFactory,
         IBackgroundJobManager backgroundJobManager,
         ILogger logger
     )
     {
-        ExceptionHelper.ThrowIfArgumentIsNegativeOrZero(options.LocalPort);
-        ExceptionHelper.ThrowIfArgumentIsNegativeOrZero(options.NumberOfPlayers);
+        ThrowHelpers.ThrowIfArgumentIsNegativeOrZero(options.LocalPort);
+        ThrowHelpers.ThrowIfArgumentIsNegativeOrZero(options.NumberOfPlayers);
 
         if (!Mem.IsValidSizeOnStack<GameInput>(Max.InputBytes * Max.InputPlayers * 2))
             throw new NggpoException($"{nameof(GameInput)} size too big: {Unsafe.SizeOf<GameInput>()}");
@@ -58,9 +59,10 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
         sync = new(localConnections);
         spectators = new(Max.Spectators);
         endpoints = new(this.options.NumberOfPlayers);
-        udp = udpClient;
+        udpObservers = new();
+        udp = udpClientFactory.CreateClient(options.LocalPort, options.EnableEndianness, udpObservers, this.logger);
 
-        backgroundJobManager.Register(udp.Client);
+        backgroundJobManager.Register(udp);
     }
 
     public async ValueTask DisposeAsync()
@@ -221,7 +223,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
             Peer = endpoint,
         };
 
-        return PeerConnectionFactory.CreateDefault(
+        var connection = PeerConnectionFactory.CreateDefault(
             options.Random,
             logger,
             backgroundJobManager,
@@ -230,6 +232,10 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
             protocolOptions,
             options.TimeSync
         );
+
+        udpObservers.Add(connection.GetUdpObserver());
+
+        return connection;
     }
 
     async ValueTask AddRemotePlayer(IPEndPoint endpoint, QueueIndex queue, CancellationToken ct)

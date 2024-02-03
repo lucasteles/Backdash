@@ -1,57 +1,63 @@
 using System.Net;
 using System.Net.Sockets;
-using System.Runtime.InteropServices;
-using System.Threading.Channels;
 using nGGPO.Core;
 using nGGPO.Data;
 using nGGPO.Serialization;
 
 namespace nGGPO.Network.Client;
 
-interface IUdpClient<T> : IBackgroundJob, IDisposable where T : struct
+interface IUdpClient<in T> : IBackgroundJob, IDisposable where T : struct
 {
     public int Port { get; }
     public SocketAddress Address { get; }
     public ByteSize TotalBytesSent { get; }
 
-    ValueTask SendTo(
-        SocketAddress peerAddress,
-        in T payload,
-        CancellationToken ct = default
-    );
+    ValueTask SendTo(SocketAddress peerAddress, T payload, CancellationToken ct = default);
 }
 
-sealed class UdpClient<T>(
-    IUdpSocket socket,
-    IUdpObserver<T> observer,
-    IBinarySerializer<T> serializer,
-    ILogger logger
-) : IUdpClient<T> where T : struct
+sealed class UdpClient<T> : IUdpClient<T> where T : struct
 {
-    const int UdpPacketSize = Max.UdpPacketSize;
+    readonly IUdpSocket socket;
+    readonly IUdpObserver<T> observer;
+    readonly IBinarySerializer<T> serializer;
+    readonly ILogger logger;
+    readonly int maxPacketSize;
 
-    public bool LogsEnabled = true;
     CancellationTokenSource? cancellation;
+    byte[] sendBuffer;
+
+    public UdpClient(
+        IUdpSocket socket,
+        IBinarySerializer<T> serializer,
+        IUdpObserver<T> observer,
+        ILogger logger,
+        int maxPacketSize = Max.UdpPacketSize
+    )
+    {
+        ArgumentNullException.ThrowIfNull(socket);
+        ArgumentNullException.ThrowIfNull(observer);
+        ArgumentNullException.ThrowIfNull(serializer);
+        ArgumentNullException.ThrowIfNull(logger);
+
+        this.socket = socket;
+        this.observer = observer;
+        this.serializer = serializer;
+        this.logger = logger;
+        this.maxPacketSize = maxPacketSize;
+        sendBuffer = CreateBuffer();
+        JobName = $"{nameof(UdpClient)} ({socket.Port})";
+    }
+
     public ByteSize TotalBytesSent { get; private set; }
 
-    readonly Channel<(SocketAddress Address, T Payload)> sendQueue =
-        Channel.CreateUnbounded<(SocketAddress, T)>(
-            new()
-            {
-                SingleWriter = true,
-                SingleReader = true,
-                AllowSynchronousContinuations = true,
-            }
-        );
-
-    public string JobName { get; } = $"{nameof(UdpClient)} ({socket.Port})";
+    public string JobName { get; }
 
     public int Port => socket.Port;
     public SocketAddress Address => socket.LocalAddress;
 
-    public Task Start(CancellationToken ct) => Start(UdpClientPriorize.Memory, ct);
+    byte[] CreateBuffer() => GC.AllocateArray<byte>(length: maxPacketSize, pinned: true);
 
-    public async Task Start(UdpClientPriorize priorize, CancellationToken ct)
+    public async Task Start(CancellationToken ct)
     {
         if (cancellation is not null)
             return;
@@ -61,17 +67,12 @@ sealed class UdpClient<T>(
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct, cancellation.Token);
         var token = cts.Token;
 
-        await Task.WhenAll(ReadLoop(token), SendLoop(token, priorize)).ConfigureAwait(false);
+        await ReceiveLoop(token).ConfigureAwait(false);
     }
 
-    async Task ReadLoop(CancellationToken ct)
+    async Task ReceiveLoop(CancellationToken ct)
     {
-        var bufferArray = GC.AllocateArray<byte>(
-            length: UdpPacketSize,
-            pinned: true
-        );
-        var buffer = MemoryMarshal.CreateFromPinnedArray(bufferArray, 0, bufferArray.Length);
-
+        var buffer = GC.AllocateArray<byte>(length: maxPacketSize, pinned: true);
         SocketAddress address = new(socket.AddressFamily);
 
         while (!ct.IsCancellationRequested)
@@ -85,7 +86,7 @@ sealed class UdpClient<T>(
             }
             catch (SocketException ex)
             {
-                if (LogsEnabled)
+                if (logger.EnabledLevel is not LogLevel.Off)
                     logger.Error(ex, $"Socket error");
 
                 break;
@@ -98,63 +99,16 @@ sealed class UdpClient<T>(
             if (receivedSize is 0)
                 continue;
 
-            var msg = serializer.Deserialize(buffer.Span[..receivedSize]);
+            var msg = serializer.Deserialize(buffer.AsSpan()[..receivedSize]);
 
             await observer.OnUdpMessage(this, msg, address, ct).ConfigureAwait(false);
         }
+
+        // ReSharper disable once RedundantAssignment
+        buffer = null;
     }
 
-    async Task SendLoop(CancellationToken ct, UdpClientPriorize flag)
-    {
-        var bufferArray = GC.AllocateArray<byte>(
-            length: UdpPacketSize,
-            pinned: true
-        );
-
-        var sendBuffer = MemoryMarshal.CreateFromPinnedArray(bufferArray, 0, bufferArray.Length);
-        var reader = sendQueue.Reader;
-
-        try
-        {
-            while (!ct.IsCancellationRequested)
-            {
-                switch (flag)
-                {
-                    // TODO: Too many allocation leak when using cancelable read async on channel
-                    // bug? https://github.com/dotnet/runtime/issues/761
-                    case UdpClientPriorize.Memory:
-                        await reader.WaitToReadAsync(ct).ConfigureAwait(false);
-                        break;
-                    case UdpClientPriorize.Memory2:
-                        await reader.WaitToReadAsync().AsTask().WaitAsync(ct).ConfigureAwait(false);
-                        break;
-                    case UdpClientPriorize.CPU:
-                        await Task.Yield();
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException(nameof(flag), flag, null);
-                }
-
-                while (reader.TryRead(out var msg))
-                {
-                    if (ct.IsCancellationRequested) break;
-                    var bodySize = serializer.Serialize(ref msg.Payload, sendBuffer.Span);
-                    var sentSize = await SendBytes(msg.Address, sendBuffer[..bodySize], ct).ConfigureAwait(false);
-                    Tracer.Assert(sentSize == bodySize);
-                }
-            }
-        }
-        catch (OperationCanceledException)
-        {
-            // Ignore when cancelled
-        }
-        catch (ChannelClosedException)
-        {
-            // Ignore when channel closed
-        }
-    }
-
-    ValueTask<int> SendBytes(
+    async ValueTask<int> SendBytes(
         SocketAddress peerAddress,
         ReadOnlyMemory<byte> payload,
         CancellationToken ct = default
@@ -162,28 +116,25 @@ sealed class UdpClient<T>(
     {
         ByteSize payloadSize = new(payload.Length);
         TotalBytesSent += payloadSize;
-        return socket.SendToAsync(payload, peerAddress, ct);
+        return await socket.SendToAsync(payload, peerAddress, ct);
     }
 
-    public ValueTask SendTo(
+    public async ValueTask SendTo(
         SocketAddress peerAddress,
-        in T payload,
+        T payload,
         CancellationToken ct = default
-    ) =>
-        sendQueue.Writer.WriteAsync((peerAddress, payload), ct);
+    )
+    {
+        var bodySize = serializer.Serialize(ref payload, sendBuffer);
+        var sentSize = await SendBytes(peerAddress, sendBuffer.AsMemory()[..bodySize], ct);
+        Tracer.Assert(sentSize == bodySize);
+    }
 
     public void Dispose()
     {
         cancellation?.Cancel();
         cancellation?.Dispose();
+        sendBuffer = null!;
         socket.Dispose();
-        sendQueue.Writer.Complete();
     }
-}
-
-public enum UdpClientPriorize
-{
-    Memory,
-    Memory2,
-    CPU,
 }

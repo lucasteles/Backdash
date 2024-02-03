@@ -16,9 +16,16 @@ public class NggpoException : Exception
         : base(builder.GetFormattedText(), innerException) { }
 }
 
-public sealed class InvalidTypeArgumentException : NggpoException
+public class InvalidTypeArgumentException : NggpoException
 {
     internal InvalidTypeArgumentException(Type type) : base($"Invalid usage of type {type.FullName}") { }
 
-    internal static InvalidTypeArgumentException For<TArg>() => new(typeof(TArg));
+    internal InvalidTypeArgumentException(Type type, string message) : base($"{type.FullName}: {message}") { }
+}
+
+public sealed class InvalidTypeArgumentException<T> : InvalidTypeArgumentException
+{
+    internal InvalidTypeArgumentException() : base(typeof(T)) { }
+
+    internal InvalidTypeArgumentException(string message) : base(typeof(T), message) { }
 }

@@ -2,6 +2,7 @@ using nGGPO.Backends;
 using nGGPO.Core;
 using nGGPO.Network.Client;
 using nGGPO.Network.Messages;
+using nGGPO.Network.Protocol;
 using nGGPO.Network.Protocol.Messaging;
 using nGGPO.Serialization;
 
@@ -42,20 +43,13 @@ public static class Rollback
             EnabledLevel = options.LogLevel,
         };
 
-        ProtocolMessageBinarySerializer protocolSerializer = new()
-        {
-            Network = options.EnableEndianness,
-        };
-
-        UdpObservableClient<ProtocolMessage> udpClient = new(
-            options.LocalPort, protocolSerializer, logger
-        );
+        UdpClientFactory factory = new();
 
         return new Peer2PeerBackend<TInput, TGameState>(
             options,
             callbacks,
             inputSerializer,
-            udpClient,
+            factory,
             new BackgroundJobManager(logger),
             logger
         );

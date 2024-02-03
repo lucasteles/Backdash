@@ -14,10 +14,15 @@ sealed class UdpClientContext<T> : IDisposable where T : struct
     {
         Observer = new();
         UdpSocket socket = new(port ?? PortUtils.FindFreePort());
-        Client = new UdpClient<T>(socket, Observer, serializer, new ConsoleLogger
-        {
-            EnabledLevel = LogLevel.Trace,
-        });
+
+        Client = new UdpClient<T>(
+            socket,
+            serializer,
+            Observer,
+            new ConsoleLogger
+            {
+                EnabledLevel = LogLevel.Off,
+            });
     }
 
     public SocketAddress Address => Client.Address;

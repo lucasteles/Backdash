@@ -22,28 +22,14 @@ public class UdpClientBenchmark
     public async Task BaseLine()
     {
         using UdpClientBenchmarkState data = new();
-        await data.Start(0, UdpClientPriorize.Memory);
+        await data.Start(0);
     }
 
-    [Benchmark]
-    public async Task CancellableChannel()
+    [Benchmark(Baseline = true)]
+    public async Task PingLoop()
     {
         using UdpClientBenchmarkState data = new();
-        await data.Start(N, UdpClientPriorize.Memory);
-    }
-
-    [Benchmark]
-    public async Task WaitAsync()
-    {
-        using UdpClientBenchmarkState data = new();
-        await data.Start(N, UdpClientPriorize.Memory2);
-    }
-
-    [Benchmark]
-    public async Task TaskYield()
-    {
-        using UdpClientBenchmarkState data = new();
-        await data.Start(N, UdpClientPriorize.CPU);
+        await data.Start(N);
     }
 }
 
@@ -72,7 +58,6 @@ sealed class UdpClientBenchmarkState : IDisposable
 
     public async Task Start(
         int numberOfMessages,
-        UdpClientPriorize flag,
         TimeSpan? timeout = null
     )
     {
@@ -91,8 +76,8 @@ sealed class UdpClientBenchmarkState : IDisposable
 
         Task[] tasks =
         [
-            Pinger.Start(flag, ct),
-            Ponger.Start(flag, ct),
+            Pinger.Start(ct),
+            Ponger.Start(ct),
             ..Enumerable.Range(0, numberOfMessages).Select(_ =>
                 Ponger.SendTo(Pinger.Address, PingMessage.Ping, ct).AsTask()),
         ];

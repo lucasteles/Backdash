@@ -22,9 +22,6 @@ sealed class Peer2PeerFixture<T> : IDisposable where T : struct
         Server = new(serializer, serverPort);
         Client = new(serializer, clientPort);
 
-        Server.Client.LogsEnabled = false;
-        Client.Client.LogsEnabled = false;
-
         if (start) Start(cts.Token);
     }
 

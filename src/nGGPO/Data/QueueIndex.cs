@@ -8,7 +8,7 @@ readonly record struct QueueIndex : IComparable<QueueIndex>
 
     public QueueIndex(int value)
     {
-        ExceptionHelper.ThrowIfArgumentOutOfBounds(value, min: 1);
+        ThrowHelpers.ThrowIfArgumentOutOfBounds(value, min: 1);
         Value = value;
     }
 

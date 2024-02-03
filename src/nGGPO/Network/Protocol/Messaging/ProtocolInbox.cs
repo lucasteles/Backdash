@@ -8,17 +8,11 @@ using nGGPO.Network.Protocol.Events;
 
 namespace nGGPO.Network.Protocol.Messaging;
 
-interface IProtocolInbox
+interface IProtocolInbox : IUdpObserver<ProtocolMessage>
 {
     GameInput LastReceivedInput { get; }
     long LastReceivedTime { get; }
     Frame LastAckedFrame { get; }
-
-    public ValueTask OnUdpMessage(
-        IUdpClient<ProtocolMessage> sender,
-        ProtocolMessage message,
-        SocketAddress from,
-        CancellationToken stoppingToken);
 }
 
 sealed class ProtocolInbox(
@@ -31,16 +25,13 @@ sealed class ProtocolInbox(
     IProtocolEventDispatcher events,
     IProtocolLogger protocolLogger,
     ILogger logger
-) : IUdpObserver<ProtocolMessage>, IProtocolInbox
+) : IProtocolInbox
 {
     ushort remoteMagicNumber;
     ushort nextRecvSeq;
-
     GameInput lastReceivedInput = GameInput.CreateEmpty();
     public long LastReceivedTime { get; private set; }
-
     Frame lastAckedFrame = Frame.Null;
-
     public GameInput LastReceivedInput => lastReceivedInput;
     public Frame LastAckedFrame => lastAckedFrame;
 

@@ -1,6 +1,7 @@
 using nGGPO.Core;
 using nGGPO.Data;
 using nGGPO.Input;
+using nGGPO.Network.Client;
 using nGGPO.Network.Messages;
 using nGGPO.Network.Protocol;
 using nGGPO.Network.Protocol.Events;
@@ -83,6 +84,8 @@ sealed class PeerConnection(
 
         return outbox.SendMessage(ref msg, ct);
     }
+
+    public IUdpObserver<ProtocolMessage> GetUdpObserver() => inbox;
 
     public async ValueTask Synchronize(CancellationToken ct)
     {

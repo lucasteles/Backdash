@@ -1,4 +1,3 @@
-using nGGPO;
 using nGGPO.Core;
 using nGGPO.Network.Client;
 using nGGPO.PingTest;
@@ -33,15 +32,19 @@ var totalSent = peer1.TotalBytesSent + peer2.TotalBytesSent;
 Console.Clear();
 Console.WriteLine(measurer.Summary(totalSent, printSnapshots));
 
-
 IUdpClient<PingMessage> CreateClient(int port)
 {
-    UdpObservableClient<PingMessage> udp = new(port,
-        BinarySerializerFactory.ForEnum<PingMessage>(), logger);
+    UdpObserverGroup<PingMessage> observers = new();
 
-    udp.Observers.Add(new PingMessageHandler());
+    UdpClient<PingMessage> udp = new(
+        new UdpSocket(port),
+        BinarySerializerFactory.ForEnum<PingMessage>(),
+        observers,
+        logger
+    );
 
-    udp.EnableLogs(false);
+    observers.Add(new PingMessageHandler());
     jobs.Register(udp);
-    return udp.Client;
+
+    return udp;
 }
