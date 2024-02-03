@@ -10,6 +10,7 @@ interface IUdpClientFactory
     IUdpClient<ProtocolMessage> CreateClient(
         int port,
         bool enableEndianness,
+        int maxPacketSize,
         IUdpObserver<ProtocolMessage> observer,
         ILogger logger
     );
@@ -20,6 +21,7 @@ sealed class UdpClientFactory : IUdpClientFactory
     public IUdpClient<ProtocolMessage> CreateClient(
         int port,
         bool enableEndianness,
+        int maxPacketSize,
         IUdpObserver<ProtocolMessage> observer,
         ILogger logger
     )
@@ -31,7 +33,8 @@ sealed class UdpClientFactory : IUdpClientFactory
                 Network = enableEndianness,
             },
             observer,
-            logger
+            logger,
+            maxPacketSize
         );
 
         return udpClient;

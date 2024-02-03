@@ -9,9 +9,9 @@ var printSnapshots = false;
 
 ConsoleLogger logger = new() {EnabledLevel = LogLevel.Off};
 await using BackgroundJobManager jobs = new(logger);
-
-var sendBuffer1 = Mem.CreatePinnedBuffer(Max.UdpPacketSize);
-var sendBuffer2 = Mem.CreatePinnedBuffer(Max.UdpPacketSize);
+const int bufferSize = Max.CompressedBytes * Max.MsgPlayers;
+var sendBuffer1 = Mem.CreatePinnedBuffer(bufferSize);
+var sendBuffer2 = Mem.CreatePinnedBuffer(bufferSize);
 
 using var peer1 = CreateClient(9000, sendBuffer1);
 using var peer2 = CreateClient(9001, sendBuffer2);
@@ -42,7 +42,8 @@ IUdpClient<PingMessage> CreateClient(int port, Memory<byte>? buffer = null)
         new UdpSocket(port),
         BinarySerializerFactory.ForEnum<PingMessage>(),
         observers,
-        logger
+        logger,
+        bufferSize
     );
 
     observers.Add(new PingMessageHandler(buffer));

@@ -18,7 +18,7 @@ public sealed class RollbackOptions
     public int NetworkDelay { get; init; }
     public bool EnableEndianness { get; init; }
 
-    public int UdpPacketBufferSize { get; init; } = Max.UdpPacketSize;
+    public int UdpPacketBufferSize { get; init; } = Max.CompressedBytes * Max.MsgPlayers;
 
     public LogLevel LogLevel { get; init; } =
 #if DEBUG

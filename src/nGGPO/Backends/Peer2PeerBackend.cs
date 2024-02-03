@@ -60,7 +60,13 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
         spectators = new(Max.Spectators);
         endpoints = new(this.options.NumberOfPlayers);
         udpObservers = new();
-        udp = udpClientFactory.CreateClient(options.LocalPort, options.EnableEndianness, udpObservers, this.logger);
+        udp = udpClientFactory.CreateClient(
+            options.LocalPort,
+            options.EnableEndianness,
+            options.UdpPacketBufferSize,
+            udpObservers,
+            this.logger
+        );
 
         backgroundJobManager.Register(udp);
     }
