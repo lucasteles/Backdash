@@ -13,20 +13,17 @@ public enum PingMessage : long
 
 sealed class PingMessageHandler(
     string name,
-    byte[]? sendBuffer = null,
-    long spinCount = 1
+    byte[]? sendBuffer = null
 ) : IUdpObserver<PingMessage>
 {
-    long processed;
-    long currentSpins;
+    long processedCount;
     long badMessages;
 
-    public long ProcessedCount => processed;
+    public long ProcessedCount => processedCount;
     public long BadMessages => badMessages;
 
     public event Action<long> OnProcessed = delegate { };
 
-    readonly SemaphoreSlim semaphore = new(1, 1);
 
     public async ValueTask OnUdpMessage(
         IUdpClient<PingMessage> sender,
@@ -38,51 +35,38 @@ sealed class PingMessageHandler(
         if (stoppingToken.IsCancellationRequested)
             return;
 
-        await semaphore.WaitAsync(stoppingToken);
+        if (stoppingToken.IsCancellationRequested)
+            return;
+
+        Interlocked.Increment(ref processedCount);
+
+        if (!Enum.IsDefined(message))
+            Interlocked.Increment(ref badMessages);
+
+        var reply = message switch
+        {
+            PingMessage.Ping => PingMessage.Pong,
+            PingMessage.Pong => PingMessage.Ping,
+            _ => throw new ArgumentOutOfRangeException(nameof(message), message, null),
+        };
+
         try
         {
-            switch (message)
-            {
-                case PingMessage.Ping:
-                    if (sendBuffer is null)
-                        await sender.SendTo(from, PingMessage.Pong, stoppingToken);
-                    else
-                        await sender.SendTo(from, PingMessage.Pong, sendBuffer, stoppingToken);
-                    break;
-                case PingMessage.Pong:
-                    if (currentSpins >= spinCount)
-                    {
-                        currentSpins = 0;
-                        processed++;
-                        OnProcessed.Invoke(processed);
-                        break;
-                    }
-
-                    currentSpins++;
-                    if (sendBuffer is null)
-                        await sender.SendTo(from, PingMessage.Ping, stoppingToken);
-                    else
-                        await sender.SendTo(from, PingMessage.Ping, sendBuffer, stoppingToken);
-
-                    break;
-                default:
-                    badMessages++;
-                    break;
-            }
+            if (sendBuffer is null)
+                await sender.SendTo(from, reply, stoppingToken);
+            else
+                await sender.SendTo(from, reply, sendBuffer, stoppingToken);
         }
         catch (OperationCanceledException)
         {
-            // Do nothing
-        }
-        finally
-        {
-            semaphore.Release();
+            // skip
         }
 
+        OnProcessed(processedCount);
 
 #if DEBUG
         Console.WriteLine(
-            $"{DateTime.Now:T} - {name} [{processed}|{currentSpins}]: {message} from {from}");
+            $"{DateTime.Now:T} - {name} [{processedCount}]: {message} from {from}");
 #endif
     }
 }

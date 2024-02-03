@@ -6,5 +6,5 @@ Console.WriteLine("Start");
 // BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
 
 // BenchmarkRunner.Run<GetBitStringBenchmark>();
-BenchmarkRunner.Run<UdpClientBenchmark>();
-// await new UdpClientBenchmarkState(false, 10).Start(1).ConfigureAwait(false);
+// BenchmarkRunner.Run<UdpClientBenchmark>();
+await new UdpClientBenchmarkState(false).Start(10).ConfigureAwait(false);

@@ -45,7 +45,7 @@ sealed class UdpClientBenchmarkState : IDisposable
     public byte[]? PingerSendBuffer { get; private set; }
     public byte[]? PongerSendBuffer { get; private set; }
 
-    public UdpClientBenchmarkState(bool pinnedSendBuffer, long spinCount = 10)
+    public UdpClientBenchmarkState(bool pinnedSendBuffer)
     {
         if (pinnedSendBuffer)
         {
@@ -54,7 +54,7 @@ sealed class UdpClientBenchmarkState : IDisposable
         }
 
         PongerHandler = new(nameof(Ponger), PongerSendBuffer);
-        PingerHandler = new(nameof(Pinger), PingerSendBuffer, spinCount);
+        PingerHandler = new(nameof(Pinger), PingerSendBuffer);
 
         Pinger = Factory.CreatePingClient(PongerHandler, 9000);
         Ponger = Factory.CreatePingClient(PingerHandler, 9001);
@@ -69,7 +69,7 @@ sealed class UdpClientBenchmarkState : IDisposable
     }
 
     public async Task Start(
-        int numberOfMessages,
+        int numberOfSpins,
         TimeSpan? timeout = null
     )
     {
@@ -80,26 +80,25 @@ sealed class UdpClientBenchmarkState : IDisposable
         // ReSharper disable once AccessToDisposedClosure
         void OnProcessed(long count)
         {
-            if (count >= numberOfMessages)
+            if (count >= numberOfSpins)
                 tokenSource.Cancel();
         }
 
         PingerHandler.OnProcessed += OnProcessed;
 
-        async ValueTask SendMessages()
+        async Task SendMessages()
         {
-            for (var i = 0; i < numberOfMessages; i++)
-                if (PongerSendBuffer is null)
-                    await Ponger.SendTo(Pinger.Address, PingMessage.Ping, ct);
-                else
-                    await Ponger.SendTo(Pinger.Address, PingMessage.Ping, PongerSendBuffer, ct);
+            if (PongerSendBuffer is null)
+                await Ponger.SendTo(Pinger.Address, PingMessage.Ping, ct);
+            else
+                await Ponger.SendTo(Pinger.Address, PingMessage.Ping, PongerSendBuffer, ct);
         }
 
         Task[] tasks =
         [
             Pinger.Start(ct),
             Ponger.Start(ct),
-            SendMessages().AsTask(),
+            SendMessages(),
         ];
 
         await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -109,7 +108,7 @@ sealed class UdpClientBenchmarkState : IDisposable
         Trace.Assert(PingerHandler.BadMessages is 0,
             $"** Pinger: {PingerHandler.BadMessages} bad messages");
 
-        Trace.Assert(PingerHandler.ProcessedCount != numberOfMessages,
-            $"** Pinger incomplete (Expected: {numberOfMessages}, Received: {PingerHandler.ProcessedCount})");
+        Trace.Assert(PingerHandler.ProcessedCount != numberOfSpins,
+            $"** Pinger incomplete (Expected: {numberOfSpins}, Received: {PingerHandler.ProcessedCount})");
     }
 }
