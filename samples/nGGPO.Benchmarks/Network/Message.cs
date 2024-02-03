@@ -24,6 +24,8 @@ sealed class PingMessageHandler(
 
     public event Action<long> OnProcessed = delegate { };
 
+    readonly SemaphoreSlim semaphore = new(1, 1);
+
     public async ValueTask OnUdpMessage(
         IUdpClient<PingMessage> sender,
         PingMessage message,
@@ -34,33 +36,42 @@ sealed class PingMessageHandler(
         if (stoppingToken.IsCancellationRequested)
             return;
 
-        switch (message)
+        await semaphore.WaitAsync(stoppingToken);
+        try
         {
-            case PingMessage.Ping:
-                if (sendBuffer is null)
-                    await sender.SendTo(from, PingMessage.Pong, stoppingToken);
-                else
-                    await sender.SendTo(from, PingMessage.Pong, sendBuffer, stoppingToken);
-                break;
-            case PingMessage.Pong:
-                if (currentSpins >= spinCount)
-                {
-                    Interlocked.Exchange(ref currentSpins, 0);
-                    Interlocked.Increment(ref processed);
-                    OnProcessed.Invoke(processed);
+            switch (message)
+            {
+                case PingMessage.Ping:
+                    if (sendBuffer is null)
+                        await sender.SendTo(from, PingMessage.Pong, stoppingToken);
+                    else
+                        await sender.SendTo(from, PingMessage.Pong, sendBuffer, stoppingToken);
                     break;
-                }
+                case PingMessage.Pong:
+                    if (currentSpins >= spinCount)
+                    {
+                        currentSpins = 0;
+                        processed++;
+                        OnProcessed.Invoke(processed);
+                        break;
+                    }
 
-                Interlocked.Increment(ref currentSpins);
-                if (sendBuffer is null)
-                    await sender.SendTo(from, PingMessage.Ping, stoppingToken);
-                else
-                    await sender.SendTo(from, PingMessage.Ping, sendBuffer, stoppingToken);
+                    currentSpins++;
+                    if (sendBuffer is null)
+                        await sender.SendTo(from, PingMessage.Ping, stoppingToken);
+                    else
+                        await sender.SendTo(from, PingMessage.Ping, sendBuffer, stoppingToken);
 
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(message), message, null);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(message), message, null);
+            }
         }
+        finally
+        {
+            semaphore.Release();
+        }
+
 
 #if DEBUG
         Console.WriteLine(

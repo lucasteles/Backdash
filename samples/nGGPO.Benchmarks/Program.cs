@@ -7,6 +7,4 @@ Console.WriteLine("Start");
 
 // BenchmarkRunner.Run<GetBitStringBenchmark>();
 BenchmarkRunner.Run<UdpClientBenchmark>();
-// await new UdpClientBenchmarkState(10)
-//     .Start(1, UdpClientFeatureFlag.CancellableChannel)
-//     .ConfigureAwait(false);
+// await new UdpClientBenchmarkState(false, 10).Start(1).ConfigureAwait(false);
