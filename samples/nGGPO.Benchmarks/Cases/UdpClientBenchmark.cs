@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using nGGPO.Benchmarks.Network;
+using nGGPO.Core;
 
 #pragma warning disable CS0649
 #pragma warning disable AsyncFixer01
@@ -14,25 +15,25 @@ namespace nGGPO.Benchmarks.Cases;
 [RankColumn, IterationsColumn]
 public class UdpClientBenchmark
 {
-    [Params(1000)]
+    [Params(1000, 50_000)]
     public int N;
 
 
     Memory<byte> pingerSendBuffer = Memory<byte>.Empty;
     Memory<byte> pongerSendBuffer = Memory<byte>.Empty;
 
-    // [GlobalSetup]
-    // public void Setup()
-    // {
-    //     pingerSendBuffer = Mem.CreatePinnedBuffer(Max.UdpPacketSize);
-    //     pongerSendBuffer = Mem.CreatePinnedBuffer(Max.UdpPacketSize);
-    // }
+    [GlobalSetup]
+    public void Setup()
+    {
+        pingerSendBuffer = Mem.CreatePinnedBuffer(Max.UdpPacketSize);
+        pongerSendBuffer = Mem.CreatePinnedBuffer(Max.UdpPacketSize);
+    }
 
     [Benchmark]
     public async Task ArrayPoolBuffer() => await Start(N, usePinnedBuffers: false);
 
-    // [Benchmark]
-    // public async Task PinnedSendBuffer() => await Start(N, usePinnedBuffers: true);
+    [Benchmark]
+    public async Task PinnedSendBuffer() => await Start(N, usePinnedBuffers: true);
 
     public async Task Start(
         int numberOfSpins,
