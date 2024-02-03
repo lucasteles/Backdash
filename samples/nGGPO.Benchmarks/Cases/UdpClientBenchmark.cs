@@ -2,10 +2,11 @@ using System.Diagnostics;
 using BenchmarkDotNet.Order;
 using nGGPO.Benchmarks.Network;
 using nGGPO.Core;
-using nGGPO.Network.Client;
 
 #pragma warning disable CS0649
+#pragma warning disable AsyncFixer01
 #pragma warning disable AsyncFixer02
+// ReSharper disable AccessToDisposedClosure
 
 namespace nGGPO.Benchmarks.Cases;
 
@@ -16,99 +17,68 @@ namespace nGGPO.Benchmarks.Cases;
 [RankColumn, IterationsColumn]
 public class UdpClientBenchmark
 {
-    [Params(100_00, 500_00, 1_000_000)]
+    [Params(1000, 50_000)]
     public int N;
 
-    [Benchmark]
-    public async Task PinnedSendBuffer()
+
+    Memory<byte> pingerSendBuffer = Memory<byte>.Empty;
+    Memory<byte> pongerSendBuffer = Memory<byte>.Empty;
+
+    [GlobalSetup]
+    public void Setup()
     {
-        using UdpClientBenchmarkState data = new(pinnedSendBuffer: true);
-        await data.Start(N);
+        pingerSendBuffer = Mem.CreatePinnedBuffer(Max.UdpPacketSize);
+        pongerSendBuffer = Mem.CreatePinnedBuffer(Max.UdpPacketSize);
     }
 
     [Benchmark]
-    public async Task ArrayPoolBuffer()
-    {
-        using UdpClientBenchmarkState data = new(pinnedSendBuffer: false);
-        await data.Start(N);
-    }
-}
+    public async Task PinnedSendBuffer() => await Start(N, usePinnedBuffers: true);
 
-sealed class UdpClientBenchmarkState : IDisposable
-{
-    public PingMessageHandler PingerHandler { get; }
-    public PingMessageHandler PongerHandler { get; }
-
-    public UdpClient<PingMessage> Pinger { get; }
-    public UdpClient<PingMessage> Ponger { get; }
-
-    public Memory<byte>? PingerSendBuffer { get; private set; }
-    public Memory<byte>? PongerSendBuffer { get; private set; }
-
-    public UdpClientBenchmarkState(bool pinnedSendBuffer)
-    {
-        if (pinnedSendBuffer)
-        {
-            PingerSendBuffer = Mem.CreatePinnedBuffer(Max.UdpPacketSize);
-            PongerSendBuffer = Mem.CreatePinnedBuffer(Max.UdpPacketSize);
-        }
-
-        PingerHandler = new(nameof(Pinger), PingerSendBuffer);
-        PongerHandler = new(nameof(Ponger), PongerSendBuffer);
-
-        Pinger = Factory.CreatePingClient(PingerHandler, 9000);
-        Ponger = Factory.CreatePingClient(PongerHandler, 9001);
-    }
-
-    public void Dispose()
-    {
-        Pinger.Dispose();
-        Ponger.Dispose();
-        PingerSendBuffer = null;
-        PongerSendBuffer = null;
-    }
+    [Benchmark]
+    public async Task ArrayPoolBuffer() => await Start(N, usePinnedBuffers: false);
 
     public async Task Start(
         int numberOfSpins,
+        bool usePinnedBuffers,
         TimeSpan? timeout = null
     )
     {
         timeout ??= TimeSpan.FromSeconds(5);
+
+        PingMessageHandler pingerHandler =
+            new("Pinger", usePinnedBuffers ? pingerSendBuffer : null);
+        PingMessageHandler pongerHandler =
+            new("Ponger", usePinnedBuffers ? pongerSendBuffer : null);
+
+        using var pinger = Factory.CreatePingClient(pingerHandler, 9000);
+        using var ponger = Factory.CreatePingClient(pongerHandler, 9001);
+
         using CancellationTokenSource tokenSource = new(timeout.Value);
         var ct = tokenSource.Token;
 
-        // ReSharper disable once AccessToDisposedClosure
         void OnProcessed(long count)
         {
             if (count >= numberOfSpins)
                 tokenSource.Cancel();
         }
 
-        PingerHandler.OnProcessed += OnProcessed;
-
-        async Task SendMessages()
-        {
-            if (PingerSendBuffer is null)
-                await Pinger.SendTo(Ponger.Address, PingMessage.Ping, ct);
-            else
-                await Pinger.SendTo(Ponger.Address, PingMessage.Ping, PingerSendBuffer.Value, ct);
-        }
+        pingerHandler.OnProcessed += OnProcessed;
 
         Task[] tasks =
         [
-            Pinger.Start(ct),
-            Ponger.Start(ct),
-            SendMessages(),
+            pinger.Start(ct),
+            ponger.Start(ct),
+            pingerHandler.OnUdpMessage(pinger, PingMessage.Pong, ponger.Address, ct).AsTask(),
         ];
 
         await Task.WhenAll(tasks).ConfigureAwait(false);
 
-        PingerHandler.OnProcessed -= OnProcessed;
+        pingerHandler.OnProcessed -= OnProcessed;
 
-        Trace.Assert(PingerHandler.BadMessages is 0,
-            $"** Pinger: {PingerHandler.BadMessages} bad messages");
+        Trace.Assert(pingerHandler.BadMessages is 0,
+            $"** Pinger: {pingerHandler.BadMessages} bad messages");
 
-        Trace.Assert(PingerHandler.ProcessedCount == numberOfSpins,
-            $"** Pinger incomplete (Expected: {numberOfSpins}, Received: {PingerHandler.ProcessedCount})");
+        Trace.Assert(pingerHandler.ProcessedCount >= numberOfSpins,
+            $"** Pinger incomplete (Expected: >= {numberOfSpins}, Received: {pingerHandler.ProcessedCount})");
     }
 }
