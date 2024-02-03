@@ -24,6 +24,7 @@ sealed class UdpClient<T> : IUdpClient<T> where T : struct
     readonly int maxPacketSize;
 
     CancellationTokenSource? cancellation;
+    readonly SemaphoreSlim semaphore = new(1, 1);
     byte[] sendBuffer;
 
     public UdpClient(
@@ -108,7 +109,7 @@ sealed class UdpClient<T> : IUdpClient<T> where T : struct
         buffer = null;
     }
 
-    async ValueTask<int> SendBytes(
+    async ValueTask<int> SendTo(
         SocketAddress peerAddress,
         ReadOnlyMemory<byte> payload,
         CancellationToken ct = default
@@ -125,15 +126,18 @@ sealed class UdpClient<T> : IUdpClient<T> where T : struct
         CancellationToken ct = default
     )
     {
+        await semaphore.WaitAsync(ct);
         var bodySize = serializer.Serialize(ref payload, sendBuffer);
-        var sentSize = await SendBytes(peerAddress, sendBuffer.AsMemory()[..bodySize], ct);
+        var sentSize = await SendTo(peerAddress, sendBuffer.AsMemory()[..bodySize], ct);
         Tracer.Assert(sentSize == bodySize);
+        semaphore.Release();
     }
 
     public void Dispose()
     {
         cancellation?.Cancel();
         cancellation?.Dispose();
+        semaphore.Dispose();
         sendBuffer = null!;
         socket.Dispose();
     }

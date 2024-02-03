@@ -173,7 +173,7 @@ public class UdpClientTests
 
         async ValueTask HandleMessageAsync(
             OpMessage message,
-            UdpClient<OpMessage> udpClient,
+            IUdpClient<OpMessage> udpClient,
             SocketAddress sender,
             CancellationToken ct
         )
