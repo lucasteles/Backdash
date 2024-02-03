@@ -31,7 +31,7 @@ sealed class UdpClient<T>(
     const int UdpPacketSize = Max.UdpPacketSize;
 
     public bool LogsEnabled = true;
-    readonly Socket socket = CreateSocket(port, logger);
+    readonly Socket socket = SocketFactory.Create(port, logger);
     CancellationTokenSource? cancellation;
     public int Port => port;
     public SocketAddress Address { get; } = new IPEndPoint(IPAddress.Loopback, port).Serialize();
@@ -62,24 +62,6 @@ sealed class UdpClient<T>(
         var token = cts.Token;
 
         await Task.WhenAll(ReadLoop(token), SendLoop(token, priorize)).ConfigureAwait(false);
-    }
-
-    static Socket CreateSocket(int port, ILogger logger)
-    {
-        if (port is < IPEndPoint.MinPort or > IPEndPoint.MaxPort)
-            throw new ArgumentOutOfRangeException(nameof(port));
-
-        Socket newSocket = new(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp)
-        {
-            ExclusiveAddressUse = false,
-            Blocking = false,
-        };
-
-        IPEndPoint localEp = new(IPAddress.Any, port);
-        newSocket.Bind(localEp);
-        logger.Info($"binding udp socket to port {port}.\n");
-
-        return newSocket;
     }
 
     async Task ReadLoop(CancellationToken ct)
