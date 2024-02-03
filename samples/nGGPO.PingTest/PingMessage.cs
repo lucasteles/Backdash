@@ -1,7 +1,7 @@
 namespace nGGPO.PingTest;
 
-public enum PingMessage
+public enum PingMessage : long
 {
-    Ping = 2,
-    Pong = 4,
+    Ping = 4444,
+    Pong = 8888,
 }

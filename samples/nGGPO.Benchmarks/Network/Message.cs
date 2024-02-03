@@ -13,6 +13,7 @@ public enum PingMessage : long
 
 sealed class PingMessageHandler(
     string name,
+    byte[]? sendBuffer = null,
     long spinCount = 1
 ) : IUdpObserver<PingMessage>
 {
@@ -36,7 +37,10 @@ sealed class PingMessageHandler(
         switch (message)
         {
             case PingMessage.Ping:
-                await sender.SendTo(from, PingMessage.Pong, stoppingToken);
+                if (sendBuffer is null)
+                    await sender.SendTo(from, PingMessage.Pong, stoppingToken);
+                else
+                    await sender.SendTo(from, PingMessage.Pong, sendBuffer, stoppingToken);
                 break;
             case PingMessage.Pong:
                 if (currentSpins >= spinCount)
@@ -48,7 +52,10 @@ sealed class PingMessageHandler(
                 }
 
                 Interlocked.Increment(ref currentSpins);
-                await sender.SendTo(from, PingMessage.Ping, stoppingToken);
+                if (sendBuffer is null)
+                    await sender.SendTo(from, PingMessage.Ping, stoppingToken);
+                else
+                    await sender.SendTo(from, PingMessage.Ping, sendBuffer, stoppingToken);
 
                 break;
             default:

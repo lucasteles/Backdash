@@ -13,21 +13,21 @@ public sealed class Measurer : IAsyncDisposable
     readonly Stopwatch watch = new();
 
     readonly CancellationTokenSource cts = new();
-    readonly TimeSpan snapshotInterval;
-    readonly PeriodicTimer timer;
+    readonly PeriodicTimer? timer;
 
 
     public Measurer(TimeSpan? snapshotInterval = null)
     {
-        this.snapshotInterval = snapshotInterval ?? TimeSpan.Zero;
-        timer = new(this.snapshotInterval);
+        if (snapshotInterval is null || snapshotInterval == TimeSpan.Zero)
+            return;
 
-        if (snapshotInterval > TimeSpan.Zero)
-            _ = Task.Run(TimerLoop);
+        timer = new(snapshotInterval.Value);
+        _ = Task.Run(TimerLoop, cts.Token);
     }
 
     async Task TimerLoop()
     {
+        if (timer is null) return;
         while (await timer.WaitForNextTickAsync(cts.Token))
             if (watch.IsRunning)
                 Snapshot();
@@ -70,9 +70,11 @@ public sealed class Measurer : IAsyncDisposable
         {
             cts.Dispose();
         }
+
+        timer?.Dispose();
     }
 
-    public string Summary(ByteSize totalSent, bool showSnapshots = true)
+    public string Summary(bool showSnapshots = true)
     {
         StringBuilder builder = new();
 
@@ -83,17 +85,12 @@ public sealed class Measurer : IAsyncDisposable
              Snapshots: {snapshots.Count:N0}
              Msg Count: {PingMessageHandler.TotalProcessed:N0}
              Msg Size: {ByteSize.SizeOf<PingMessage>()}
-             Avg Msg : {totalSent / PingMessageHandler.TotalProcessed}
-             Total Sent: {totalSent}
              """
         );
 
-        if (snapshotInterval > TimeSpan.Zero)
-            builder.AppendLine($"Snapshot Interval: {snapshotInterval:c})");
-
         if (snapshots is [.., var last])
         {
-            var avgAlloc = (ByteSize)snapshots
+            var avgAlloc = (ByteSize) snapshots
                 .Select(x => x.DeltaAllocatedBytes.ByteCount)
                 .Average();
 
@@ -130,10 +127,10 @@ public sealed class Measurer : IAsyncDisposable
         public long Elapsed = 0;
         public readonly long Timestamp = Stopwatch.GetTimestamp();
         public long MessageCount = PingMessageHandler.TotalProcessed;
-        public ByteSize TotalMemory = (ByteSize)GC.GetTotalMemory(true);
-        public ByteSize TotalAllocatedBytes = (ByteSize)GC.GetTotalAllocatedBytes(true);
+        public ByteSize TotalMemory = (ByteSize) GC.GetTotalMemory(true);
+        public ByteSize TotalAllocatedBytes = (ByteSize) GC.GetTotalAllocatedBytes(true);
         public readonly int ThreadId = Environment.CurrentManagedThreadId;
-        public ByteSize AllocatedThreadMemory = (ByteSize)GC.GetAllocatedBytesForCurrentThread();
+        public ByteSize AllocatedThreadMemory = (ByteSize) GC.GetAllocatedBytesForCurrentThread();
         public TimeSpan PauseTime = GC.GetTotalPauseDuration();
         public int GcCount0 = GC.CollectionCount(0);
         public int GcCount1 = GC.CollectionCount(1);

@@ -3,7 +3,7 @@ using nGGPO.Network.Client;
 
 namespace nGGPO.PingTest;
 
-sealed class PingMessageHandler : IUdpObserver<PingMessage>
+sealed class PingMessageHandler(byte[]? buffer = null) : IUdpObserver<PingMessage>
 {
     public static long TotalProcessed => processedCount;
 
@@ -21,16 +21,16 @@ sealed class PingMessageHandler : IUdpObserver<PingMessage>
 
         Interlocked.Increment(ref processedCount);
 
-        switch (message)
+        var reply = message switch
         {
-            case PingMessage.Ping:
-                await sender.SendTo(from, PingMessage.Pong, stoppingToken);
-                break;
-            case PingMessage.Pong:
-                await sender.SendTo(from, PingMessage.Ping, stoppingToken);
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(message), message, null);
-        }
+            PingMessage.Ping => PingMessage.Pong,
+            PingMessage.Pong => PingMessage.Ping,
+            _ => throw new ArgumentOutOfRangeException(nameof(message), message, null),
+        };
+
+        if (buffer is null)
+            await sender.SendTo(from, reply, stoppingToken);
+        else
+            await sender.SendTo(from, reply, buffer, stoppingToken);
     }
 }

@@ -1,5 +1,4 @@
 using nGGPO.Core;
-using nGGPO.Data;
 using nGGPO.Network.Client;
 using nGGPO.PingTest;
 using nGGPO.Serialization;
@@ -11,8 +10,11 @@ var printSnapshots = false;
 ConsoleLogger logger = new() {EnabledLevel = LogLevel.Off};
 await using BackgroundJobManager jobs = new(logger);
 
-using var peer1 = CreateClient(9000);
-using var peer2 = CreateClient(9001);
+var sendBuffer1 = Mem.CreatePinnedBuffer(Max.UdpPacketSize);
+var sendBuffer2 = Mem.CreatePinnedBuffer(Max.UdpPacketSize);
+
+using var peer1 = CreateClient(9000, sendBuffer1);
+using var peer2 = CreateClient(9001, sendBuffer2);
 
 using CancellationTokenSource cts = new();
 cts.CancelAfter(totalDuration);
@@ -22,18 +24,17 @@ var tasks = jobs.Start(stopToken);
 
 await using Measurer measurer = new(snapshotInterval);
 measurer.Start();
-// _ = peer1.SendTo(peer2.Address, PingMessage.Ping).AsTask();
+_ = peer1.SendTo(peer2.Address, PingMessage.Ping, sendBuffer1).AsTask();
 
 Console.WriteLine("Press enter to stop.");
 SpinWait.SpinUntil(() => Console.KeyAvailable || stopToken.IsCancellationRequested);
 cts.Cancel();
 await tasks.ConfigureAwait(false);
 measurer.Stop();
-var totalSent = ByteSize.Zero; //peer1.TotalBytesSent + peer2.TotalBytesSent;
 Console.Clear();
-Console.WriteLine(measurer.Summary(totalSent, printSnapshots));
+Console.WriteLine(measurer.Summary(printSnapshots));
 
-IUdpClient<PingMessage> CreateClient(int port)
+IUdpClient<PingMessage> CreateClient(int port, byte[]? buffer = null)
 {
     UdpObserverGroup<PingMessage> observers = new();
 
@@ -44,7 +45,7 @@ IUdpClient<PingMessage> CreateClient(int port)
         logger
     );
 
-    observers.Add(new PingMessageHandler());
+    observers.Add(new PingMessageHandler(buffer));
     jobs.Register(udp);
 
     return udp;
