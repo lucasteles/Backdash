@@ -18,6 +18,18 @@ record struct InputMsg : IBinarySerializable
     public byte InputSize;
     public InputMsgBuffer Bits;
 
+    public void Clear()
+    {
+        Mem.Clear(Bits);
+        PeerConnectStatus[..].Clear();
+        PeerCount = 0;
+        StartFrame = 0;
+        DisconnectRequested = false;
+        AckFrame = 0;
+        NumBits = 0;
+        InputSize = 0;
+    }
+
     public readonly void Serialize(scoped NetworkBufferWriter writer)
     {
         writer.Write(PeerCount);
