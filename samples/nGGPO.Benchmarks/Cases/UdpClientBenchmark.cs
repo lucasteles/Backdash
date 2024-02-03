@@ -16,7 +16,7 @@ namespace nGGPO.Benchmarks.Cases;
 [RankColumn, IterationsColumn]
 public class UdpClientBenchmark
 {
-    [Params(5000)]
+    [Params(100_00, 500_00, 1_000_000)]
     public int N;
 
     [Benchmark]
@@ -49,15 +49,15 @@ sealed class UdpClientBenchmarkState : IDisposable
     {
         if (pinnedSendBuffer)
         {
-            PongerSendBuffer = Mem.CreatePinnedBuffer(Max.UdpPacketSize);
             PingerSendBuffer = Mem.CreatePinnedBuffer(Max.UdpPacketSize);
+            PongerSendBuffer = Mem.CreatePinnedBuffer(Max.UdpPacketSize);
         }
 
-        PongerHandler = new(nameof(Ponger), PongerSendBuffer);
         PingerHandler = new(nameof(Pinger), PingerSendBuffer);
+        PongerHandler = new(nameof(Ponger), PongerSendBuffer);
 
-        Pinger = Factory.CreatePingClient(PongerHandler, 9000);
-        Ponger = Factory.CreatePingClient(PingerHandler, 9001);
+        Pinger = Factory.CreatePingClient(PingerHandler, 9000);
+        Ponger = Factory.CreatePingClient(PongerHandler, 9001);
     }
 
     public void Dispose()
