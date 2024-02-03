@@ -1,9 +1,9 @@
 using System.Net;
+using nGGPO.Core;
 using nGGPO.Data;
 using nGGPO.Input;
 using nGGPO.Network.Client;
 using nGGPO.Network.Messages;
-using nGGPO.Utils;
 
 namespace nGGPO.Network.Protocol.Internal;
 

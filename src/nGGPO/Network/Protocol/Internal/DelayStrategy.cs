@@ -1,4 +1,4 @@
-using nGGPO.Utils;
+using nGGPO.Core;
 
 namespace nGGPO.Network.Protocol.Internal;
 

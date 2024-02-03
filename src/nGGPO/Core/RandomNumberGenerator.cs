@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 
-namespace nGGPO.Utils;
+namespace nGGPO.Core;
 
 interface IRandomNumberGenerator
 {

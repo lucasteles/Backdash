@@ -1,9 +1,9 @@
 using System.Buffers;
+using nGGPO.Core;
 using nGGPO.Inputs;
 using nGGPO.Network.Messages;
 using nGGPO.Playground;
 using nGGPO.Serialization;
-using nGGPO.Utils;
 
 void Div() => Console.WriteLine(new string('-', 10));
 var pool = ArrayPool<byte>.Shared;

@@ -2,10 +2,9 @@ using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Threading.Channels;
+using nGGPO.Core;
 using nGGPO.Data;
-using nGGPO.Lifecycle;
 using nGGPO.Serialization;
-using nGGPO.Utils;
 
 namespace nGGPO.Network.Client;
 

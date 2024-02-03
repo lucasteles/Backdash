@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using nGGPO.Data;
 
-namespace nGGPO.Utils;
+namespace nGGPO.Core;
 
 static class Mem
 {

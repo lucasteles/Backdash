@@ -1,8 +1,8 @@
 using System.Runtime.CompilerServices;
 using System.Text;
+using nGGPO.Core;
 using nGGPO.Serialization;
 using nGGPO.Serialization.Buffer;
-using nGGPO.Utils;
 
 namespace nGGPO.Network.Messages;
 

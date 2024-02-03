@@ -1,5 +1,5 @@
 using nGGPO.Backends;
-using nGGPO.Lifecycle;
+using nGGPO.Core;
 using nGGPO.Network.Client;
 using nGGPO.Network.Messages;
 using nGGPO.Serialization;

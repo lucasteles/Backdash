@@ -1,9 +1,8 @@
 using System.Net;
 using System.Threading.Channels;
-using nGGPO.Lifecycle;
+using nGGPO.Core;
 using nGGPO.Network.Client;
 using nGGPO.Network.Messages;
-using nGGPO.Utils;
 
 namespace nGGPO.Network.Protocol.Internal;
 

@@ -1,5 +1,7 @@
 // ReSharper disable UnassignedField.Global
 
+using nGGPO.Core;
+
 namespace nGGPO.Benchmarks.Cases;
 
 [RPlotExporter]

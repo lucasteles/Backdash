@@ -1,5 +1,5 @@
 using nGGPO;
-using nGGPO.Lifecycle;
+using nGGPO.Core;
 using nGGPO.Network.Client;
 using nGGPO.PingTest;
 using nGGPO.Serialization;

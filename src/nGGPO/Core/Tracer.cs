@@ -1,6 +1,6 @@
 using System.Runtime.CompilerServices;
 
-namespace nGGPO.Utils;
+namespace nGGPO.Core;
 
 public static class Tracer
 {

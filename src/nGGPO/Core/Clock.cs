@@ -1,6 +1,6 @@
 using System.Diagnostics;
 
-namespace nGGPO.Utils;
+namespace nGGPO.Core;
 
 interface IClock
 {

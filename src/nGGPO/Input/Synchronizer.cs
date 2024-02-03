@@ -1,6 +1,6 @@
+using nGGPO.Core;
 using nGGPO.Data;
 using nGGPO.Network;
-using nGGPO.Utils;
 
 namespace nGGPO.Input;
 

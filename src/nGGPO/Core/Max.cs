@@ -1,4 +1,4 @@
-namespace nGGPO.Utils;
+namespace nGGPO.Core;
 
 public static class Max
 {

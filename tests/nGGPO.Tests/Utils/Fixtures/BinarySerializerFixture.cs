@@ -1,6 +1,6 @@
 using System.Buffers;
+using nGGPO.Core;
 using nGGPO.Serialization.Buffer;
-using nGGPO.Utils;
 
 namespace nGGPO.Tests.Utils.Fixtures;
 

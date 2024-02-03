@@ -1,4 +1,10 @@
-namespace nGGPO.Lifecycle;
+namespace nGGPO.Core;
+
+public interface IBackgroundJob
+{
+    string JobName { get; }
+    Task Start(CancellationToken ct);
+}
 
 interface IBackgroundJobManager : IAsyncDisposable
 {

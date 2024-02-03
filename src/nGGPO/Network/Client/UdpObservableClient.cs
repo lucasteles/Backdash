@@ -1,4 +1,4 @@
-using nGGPO.Lifecycle;
+using nGGPO.Core;
 using nGGPO.Serialization;
 
 namespace nGGPO.Network.Client;

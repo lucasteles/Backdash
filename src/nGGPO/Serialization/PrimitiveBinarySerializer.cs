@@ -1,7 +1,7 @@
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using nGGPO.Core;
 using nGGPO.Network;
-using nGGPO.Utils;
 
 namespace nGGPO.Serialization;
 

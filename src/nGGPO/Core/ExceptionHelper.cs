@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Runtime.CompilerServices;
 
-namespace nGGPO.Utils;
+namespace nGGPO.Core;
 
 static class ExceptionHelper
 {

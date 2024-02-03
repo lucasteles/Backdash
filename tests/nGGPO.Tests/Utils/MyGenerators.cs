@@ -1,8 +1,8 @@
 using System.Drawing;
+using nGGPO.Core;
 using nGGPO.Data;
 using nGGPO.Input;
 using nGGPO.Network.Messages;
-using nGGPO.Utils;
 
 namespace nGGPO.Tests.Utils;
 

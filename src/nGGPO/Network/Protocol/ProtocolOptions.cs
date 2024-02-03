@@ -1,5 +1,5 @@
+using nGGPO.Core;
 using nGGPO.Data;
-using nGGPO.Utils;
 
 namespace nGGPO.Network.Protocol;
 

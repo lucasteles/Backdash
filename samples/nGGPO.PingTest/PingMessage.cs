@@ -1,3 +1,5 @@
+namespace nGGPO.PingTest;
+
 public enum PingMessage
 {
     Ping = 2,

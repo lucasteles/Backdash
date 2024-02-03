@@ -1,6 +1,8 @@
 using System.Net;
 using nGGPO.Network.Client;
 
+namespace nGGPO.PingTest;
+
 sealed class PingMessageHandler : IUdpObserver<PingMessage>
 {
     public static long TotalProcessed => processedCount;

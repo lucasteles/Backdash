@@ -1,6 +1,6 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using nGGPO.Utils;
+using nGGPO.Core;
 
 namespace nGGPO.Data;
 

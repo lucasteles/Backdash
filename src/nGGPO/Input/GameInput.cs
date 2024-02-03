@@ -1,7 +1,7 @@
 using System.Runtime.CompilerServices;
 using System.Text;
+using nGGPO.Core;
 using nGGPO.Data;
-using nGGPO.Utils;
 
 namespace nGGPO.Input;
 

@@ -1,4 +1,4 @@
-using nGGPO.Utils;
+using nGGPO.Core;
 
 namespace nGGPO.Data;
 
