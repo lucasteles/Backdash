@@ -3,7 +3,6 @@ using System.Threading.Channels;
 using nGGPO.Core;
 using nGGPO.Network.Client;
 using nGGPO.Network.Messages;
-using nGGPO.Network.Protocol.Events;
 
 namespace nGGPO.Network.Protocol.Messaging;
 
@@ -46,25 +45,36 @@ sealed class ProtocolOutbox(
 
     public long LastSendTime { get; private set; }
 
-    public ValueTask SendMessage(ref ProtocolMessage msg, CancellationToken ct)
+    QueueEntry CreateNextEntry(ref ProtocolMessage msg)
     {
-        logger.LogMsg("send", msg);
-
-        Interlocked.Increment(ref packetsSent);
+        packetsSent++;
         LastSendTime = clock.GetMilliseconds();
 
         msg.Header.Magic = magicNumber;
-        Interlocked.Increment(ref nextSendSeq);
+        nextSendSeq++;
         msg.Header.SequenceNumber = (ushort)nextSendSeq;
 
-        using var cts = CancellationTokenSource.CreateLinkedTokenSource(sendQueueCancellation.Token, ct);
-
-        return sendQueue.Writer.WriteAsync(new()
+        return new()
         {
             QueueTime = clock.GetMilliseconds(),
             DestAddr = options.Peer.Address,
             Msg = msg,
-        }, cts.Token);
+        };
+    }
+
+    public ValueTask SendMessage(ref ProtocolMessage msg, CancellationToken ct)
+    {
+        logger.LogMsg("send", msg);
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(sendQueueCancellation.Token, ct);
+        var nextEntry = CreateNextEntry(ref msg);
+        return sendQueue.Writer.WriteAsync(nextEntry, cts.Token);
+    }
+
+    public bool TrySendMessage(ref ProtocolMessage msg)
+    {
+        logger.LogMsg("send", msg);
+        var nextEntry = CreateNextEntry(ref msg);
+        return sendQueue.Writer.TryWrite(nextEntry);
     }
 
     public async Task Start(CancellationToken ct)

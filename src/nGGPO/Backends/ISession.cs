@@ -3,11 +3,15 @@ namespace nGGPO.Backends;
 public interface IRollbackSession<in TInput> : IAsyncDisposable
     where TInput : struct
 {
-    ValueTask<ResultCode> AddPlayer(Player player, CancellationToken ct);
+    Task Start(CancellationToken ct = default);
     ResultCode SetFrameDelay(Player player, int delayInFrames);
-    ValueTask<ResultCode> AddLocalInput(PlayerId player, TInput localInput, CancellationToken stoppingToken = default);
     ResultCode SynchronizeInputs(params TInput[] inputs);
     ResultCode SynchronizeInputs(out int[] disconnectFlags, params TInput[] inputs);
+    ValueTask<ResultCode> AddPlayer(Player player, CancellationToken ct);
 
-    Task Start(CancellationToken ct = default);
+    ValueTask<ResultCode> AddLocalInput(
+        PlayerId player, TInput localInput, CancellationToken stoppingToken = default
+    );
+
+    ResultCode TryAddLocalInput(PlayerId player, TInput localInput);
 }

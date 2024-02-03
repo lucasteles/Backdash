@@ -27,8 +27,8 @@ sealed class PeerConnection(
         outbox.Dispose();
     }
 
-    public ValueTask SendInput(in GameInput input, CancellationToken ct) =>
-        inputProcessor.SendInput(input, ct);
+    public ValueTask SendInput(in GameInput input, CancellationToken ct) => inputProcessor.SendInput(input, ct);
+    public bool TrySendInput(in GameInput input) => inputProcessor.TrySendInput(in input);
 
     public void Disconnect()
     {

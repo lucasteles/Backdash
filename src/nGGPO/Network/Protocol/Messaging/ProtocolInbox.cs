@@ -36,7 +36,7 @@ sealed class ProtocolInbox(
     ushort remoteMagicNumber;
     ushort nextRecvSeq;
 
-    GameInput lastReceivedInput = GameInput.Empty;
+    GameInput lastReceivedInput = GameInput.CreateEmpty();
     public long LastReceivedTime { get; private set; }
 
     Frame lastAckedFrame = Frame.Null;

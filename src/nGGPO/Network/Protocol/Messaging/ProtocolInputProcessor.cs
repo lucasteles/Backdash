@@ -11,11 +11,8 @@ interface IProtocolInputProcessor : IBackgroundJob
 {
     int PendingNumber { get; }
     GameInput LastSent { get; }
-
-    ValueTask SendInput(
-        GameInput input,
-        CancellationToken ct
-    );
+    ValueTask SendInput(GameInput input, CancellationToken ct);
+    bool TrySendInput(in GameInput input);
 }
 
 sealed class ProtocolInputProcessor(
@@ -29,7 +26,7 @@ sealed class ProtocolInputProcessor(
     IProtocolInbox inbox
 ) : IProtocolInputProcessor
 {
-    GameInput lastAckedInput = GameInput.Empty;
+    GameInput lastAckedInput = GameInput.CreateEmpty();
 
     readonly Channel<GameInput> inputQueue =
         Channel.CreateBounded<GameInput>(
@@ -43,37 +40,42 @@ sealed class ProtocolInputProcessor(
 
     public string JobName { get; } = $"{nameof(ProtocolInputProcessor)} ({state.LocalPort})";
     public int PendingNumber => inputQueue.Reader.Count;
-    public GameInput LastSent { get; private set; } = GameInput.Empty;
+    public GameInput LastSent { get; private set; } = GameInput.CreateEmpty();
+
+    static ProtocolInputProcessor() =>
+        Tracer.Assert(Max.InputBytes * Max.MsgPlayers * ByteSize.ByteToBits < 1 << BitOffsetWriter.NibbleSize);
 
     public async ValueTask SendInput(
         GameInput input,
         CancellationToken ct
     )
     {
-        Tracer.Assert(
-            Max.InputBytes * Max.MsgPlayers * ByteSize.ByteToBits
-            <
-            1 << BitOffsetWriter.NibbleSize
-        );
+        if (state.Status is not ProtocolStatus.Running)
+            return;
 
+        /*
+         * Check to see if this is a good time to adjust for the rift...
+         */
+        timeSync.AdvanceFrame(in input, state.Fairness);
 
-        if (state.Status is ProtocolStatus.Running)
-        {
-            /*
-             * Check to see if this is a good time to adjust for the rift...
-             */
-            timeSync.AdvanceFrame(in input, state.Fairness);
+        /*
+         * Save this input packet
+         *
+         * XXX: This queue may fill up for spectators who do not ack input packets in a timely
+         * manner.  When this happens, we can either resize the queue (ug) or disconnect them
+         * (better, but still ug).  For the meantime, make this queue really big to decrease
+         * the odds of this happening...
+         */
+        await inputQueue.Writer.WriteAsync(input, ct).ConfigureAwait(false);
+    }
 
-            /*
-             * Save this input packet
-             *
-             * XXX: This queue may fill up for spectators who do not ack input packets in a timely
-             * manner.  When this happens, we can either resize the queue (ug) or disconnect them
-             * (better, but still ug).  For the meantime, make this queue really big to decrease
-             * the odds of this happening...
-             */
-            await inputQueue.Writer.WriteAsync(input, ct).ConfigureAwait(false);
-        }
+    public bool TrySendInput(in GameInput input)
+    {
+        if (state.Status is not ProtocolStatus.Running)
+            return true;
+
+        timeSync.AdvanceFrame(in input, state.Fairness);
+        return inputQueue.Writer.TryWrite(input);
     }
 
     public async Task Start(CancellationToken ct)

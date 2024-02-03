@@ -18,14 +18,6 @@ public class UdpClientBenchmark
     [Params(5000)]
     public int N;
 
-    // [Params(
-    //     UdpClientFeatureFlags.CancellableChannel,
-    //     UdpClientFeatureFlags.WaitAsync,
-    //     UdpClientFeatureFlags.TaskYield,
-    //     UdpClientFeatureFlags.TaskDelay
-    // )]
-    // public UdpClientFeatureFlags Feature;
-
     [Benchmark(Baseline = true)]
     public async Task BaseLine()
     {

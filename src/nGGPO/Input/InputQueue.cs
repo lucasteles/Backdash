@@ -29,13 +29,13 @@ sealed class InputQueue
         lastFrameRequested = Frame.Null;
         lastAddedFrame = Frame.Null;
 
-        prediction = GameInput.Empty;
+        prediction = GameInput.CreateEmpty();
 
         // This is safe because we know the GameInput is a proper structure (as in,
         // no virtual methods, no contained classes, etc.).
         inputs = new GameInput[queueSize];
         for (var i = 0; i < inputs.Length; i++)
-            inputs[i] = GameInput.Empty;
+            inputs[i] = GameInput.CreateEmpty();
     }
 
     public int GetLastConfirmedFrame()

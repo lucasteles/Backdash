@@ -35,7 +35,7 @@ struct GameInput : IEquatable<GameInput>
 
     public int Size { get; set; }
 
-    public static GameInput Empty => new();
+    public static GameInput CreateEmpty() => new();
 
     public GameInput(in GameInputBuffer inputBuffer, int size)
     {

@@ -31,6 +31,8 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
 
     readonly RollbackOptions options;
 
+    readonly GameInput emptyGameInput = GameInput.CreateEmpty();
+
     public Peer2PeerBackend(
         RollbackOptions options,
         ISessionCallbacks<TGameState> callbacks,
@@ -103,44 +105,81 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
         return ResultCode.Ok;
     }
 
-    public ValueTask<ResultCode> AddLocalInput(
-        Player player,
-        TInput localInput,
-        CancellationToken stoppingToken = default
-    ) => AddLocalInput(player.Id, localInput, stoppingToken);
+    public ResultCode TryAddLocalInput(PlayerId player, TInput localInput)
+    {
+        var localInputResult = CreateGameInput(player, localInput, out var input);
+        if (localInputResult.IsFailure())
+            return localInputResult;
+
+        // Send the input to all the remote players.
+        var allSent = true;
+        var anySent = false;
+        for (var i = 0; i < endpoints.Count; i++)
+        {
+            var sent = endpoints[i].TrySendInput(in input);
+            allSent = allSent && sent;
+            anySent = anySent || sent;
+        }
+
+        if (!allSent && anySent)
+            return ResultCode.InputPartiallyDropped;
+
+        if (!allSent)
+            return ResultCode.InputDropped;
+
+        return ResultCode.Ok;
+    }
 
     public async ValueTask<ResultCode> AddLocalInput(
         PlayerId player,
         TInput localInput,
         CancellationToken stoppingToken = default)
     {
-        if (sync.InRollback())
-            return ResultCode.InRollback;
-
-        if (synchronizing)
-            return ResultCode.NotSynchronized;
-
-        var result = PlayerIdToQueue(player, out var queue);
-        if (!result.IsSuccess())
-            return result;
-
-        GameInputBuffer buffer = new();
-        var size = inputSerializer.Serialize(ref localInput, buffer);
-        GameInput input = new(in buffer, size);
-
-        if (!sync.AddLocalInput(queue, input))
-            return ResultCode.PredictionThreshold;
-
-        if (input.Frame.IsNull) return ResultCode.Ok;
-
-        logger.Info($"setting local connect status for local queue {queue} to {input.Frame}");
-
-        localConnections[queue].LastFrame = input.Frame;
+        var localInputResult = CreateGameInput(player, localInput, out var input);
+        if (localInputResult.IsFailure())
+            return localInputResult;
 
         // Send the input to all the remote players.
         for (var i = 0; i < endpoints.Count; i++)
             await endpoints[i].SendInput(in input, stoppingToken).ConfigureAwait(false);
 
+        return ResultCode.Ok;
+    }
+
+    ResultCode CreateGameInput(PlayerId player, TInput localInput, out GameInput input)
+    {
+        if (sync.InRollback())
+        {
+            input = emptyGameInput;
+            return ResultCode.InRollback;
+        }
+
+        if (synchronizing)
+        {
+            input = emptyGameInput;
+            return ResultCode.NotSynchronized;
+        }
+
+        var result = PlayerIdToQueue(player, out var queue);
+        if (result.IsSuccess())
+        {
+            input = emptyGameInput;
+            return result;
+        }
+
+        GameInputBuffer buffer = new();
+        var size = inputSerializer.Serialize(ref localInput, buffer);
+        input = new(in buffer, size);
+
+        if (!sync.AddLocalInput(queue, input))
+            return ResultCode.PredictionThreshold;
+
+        if (input.Frame.IsNull)
+            return ResultCode.Ok;
+
+        logger.Info($"setting local connect status for local queue {queue} to {input.Frame}");
+
+        localConnections[queue].LastFrame = input.Frame;
         return ResultCode.Ok;
     }
 
