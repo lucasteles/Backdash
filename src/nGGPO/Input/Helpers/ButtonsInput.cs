@@ -1,8 +1,7 @@
 using System.Text;
-using nGGPO.Input.Helpers;
 
 // ReSharper disable InconsistentNaming
-namespace nGGPO.Inputs;
+namespace nGGPO.Input.Helpers;
 
 [Flags, Serializable]
 public enum ButtonsInput : short

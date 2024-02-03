@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using nGGPO.Core;
 
 namespace nGGPO;
 

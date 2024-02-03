@@ -1,6 +1,7 @@
 using System.Numerics;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using nGGPO.Core;
 
 namespace nGGPO.Serialization;
 

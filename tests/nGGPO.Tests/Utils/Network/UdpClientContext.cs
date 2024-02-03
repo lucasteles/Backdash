@@ -1,4 +1,5 @@
 using System.Net;
+using nGGPO.Core;
 using nGGPO.Network.Client;
 using nGGPO.Serialization;
 

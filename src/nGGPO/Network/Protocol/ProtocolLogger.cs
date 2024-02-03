@@ -1,3 +1,4 @@
+using nGGPO.Core;
 using nGGPO.Network.Messages;
 using nGGPO.Network.Protocol.Events;
 

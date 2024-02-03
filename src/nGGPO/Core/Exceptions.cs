@@ -1,4 +1,4 @@
-namespace nGGPO;
+namespace nGGPO.Core;
 
 /// <inheritdoc />
 [Serializable]

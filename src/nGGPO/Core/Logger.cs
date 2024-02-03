@@ -1,7 +1,7 @@
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace nGGPO;
+namespace nGGPO.Core;
 
 public enum LogLevel : byte
 {

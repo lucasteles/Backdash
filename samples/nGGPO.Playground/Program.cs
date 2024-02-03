@@ -1,6 +1,6 @@
 using System.Buffers;
 using nGGPO.Core;
-using nGGPO.Inputs;
+using nGGPO.Input.Helpers;
 using nGGPO.Network.Messages;
 using nGGPO.Network.Protocol.Messaging;
 using nGGPO.Playground;

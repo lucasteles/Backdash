@@ -1,3 +1,4 @@
+using nGGPO.Core;
 using nGGPO.Network.Protocol.Events;
 
 namespace nGGPO.Input;

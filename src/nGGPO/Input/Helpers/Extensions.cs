@@ -1,5 +1,3 @@
-using nGGPO.Inputs;
-
 namespace nGGPO.Input.Helpers;
 
 public static class Extensions

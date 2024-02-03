@@ -1,3 +1,4 @@
+using nGGPO.Core;
 using nGGPO.Input;
 
 namespace nGGPO;
