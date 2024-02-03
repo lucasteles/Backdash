@@ -36,8 +36,8 @@ public class UdpClientBenchmark
 
 sealed class UdpClientBenchmarkState : IDisposable
 {
-    public PingMessageHandler PongerHandler { get; }
     public PingMessageHandler PingerHandler { get; }
+    public PingMessageHandler PongerHandler { get; }
 
     public UdpClient<PingMessage> Pinger { get; }
     public UdpClient<PingMessage> Ponger { get; }
@@ -88,10 +88,10 @@ sealed class UdpClientBenchmarkState : IDisposable
 
         async Task SendMessages()
         {
-            if (PongerSendBuffer is null)
-                await Ponger.SendTo(Pinger.Address, PingMessage.Ping, ct);
+            if (PingerSendBuffer is null)
+                await Pinger.SendTo(Ponger.Address, PingMessage.Ping, ct);
             else
-                await Ponger.SendTo(Pinger.Address, PingMessage.Ping, PongerSendBuffer, ct);
+                await Pinger.SendTo(Ponger.Address, PingMessage.Ping, PingerSendBuffer, ct);
         }
 
         Task[] tasks =
