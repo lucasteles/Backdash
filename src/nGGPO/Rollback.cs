@@ -2,6 +2,7 @@ using nGGPO.Backends;
 using nGGPO.Core;
 using nGGPO.Network.Client;
 using nGGPO.Network.Messages;
+using nGGPO.Network.Protocol.Messaging;
 using nGGPO.Serialization;
 
 namespace nGGPO;
@@ -32,7 +33,7 @@ public static class Rollback
         where TInput : struct
         where TGameState : struct
     {
-        inputSerializer ??= BinarySerializerFactory.Get<TInput>()
+        inputSerializer ??= BinarySerializerFactory.Get<TInput>(options.EnableEndianness)
                             ?? throw new InvalidOperationException(
                                 $"Unable to infer serializer for type {typeof(TInput).FullName}");
 
@@ -41,8 +42,13 @@ public static class Rollback
             EnabledLevel = options.LogLevel,
         };
 
+        ProtocolMessageBinarySerializer protocolSerializer = new()
+        {
+            Network = options.EnableEndianness,
+        };
+
         UdpObservableClient<ProtocolMessage> udpClient = new(
-            options.LocalPort, new ProtocolMessageBinarySerializer(), logger
+            options.LocalPort, protocolSerializer, logger
         );
 
         return new Peer2PeerBackend<TInput, TGameState>(

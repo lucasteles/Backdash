@@ -2,7 +2,7 @@ using nGGPO.Serialization.Buffer;
 
 namespace nGGPO.Serialization;
 
-abstract class SerializableTypeBinarySerializer<T> : IBinarySerializer<T>
+class SerializableTypeBinarySerializer<T> : IBinarySerializer<T>
     where T : struct, IBinarySerializable
 {
     public bool Network { get; init; }

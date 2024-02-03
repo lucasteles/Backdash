@@ -6,36 +6,41 @@ namespace nGGPO.Serialization;
 
 static class BinarySerializerFactory
 {
-    public static IBinarySerializer<TInput> ForPrimitive<TInput>() where TInput : unmanaged
+    const bool DefaultEndianness = true;
+
+    public static IBinarySerializer<TInput> ForPrimitive<TInput>(bool useEndianness = DefaultEndianness)
+        where TInput : unmanaged
     {
         if (typeof(TInput).IsEnum)
             throw new InvalidOperationException(
                 "Invalid Serializer: Use BinarySerializerFactory.ForEnum for enum types");
 
-        return new PrimitiveBinarySerializer<TInput>();
+        return new PrimitiveBinarySerializer<TInput>(useEndianness);
     }
 
-    public static IBinarySerializer<TInput> ForEnum<TInput, TUnderType>()
+    public static IBinarySerializer<TInput> ForEnum<TInput, TUnderType>(bool useEndianness = DefaultEndianness)
         where TInput : unmanaged, Enum
         where TUnderType : unmanaged, IBinaryInteger<TUnderType> =>
-        new EnumSerializer<TInput, TUnderType>();
+        new EnumSerializer<TInput, TUnderType>(useEndianness);
 
-    public static IBinarySerializer<TInput> ForEnum<TInput>()
+    public static IBinarySerializer<TInput> ForEnum<TInput>(bool network = false)
         where TInput : unmanaged, Enum =>
         Type.GetTypeCode(typeof(TInput)) switch
         {
-            TypeCode.Int32 => ForEnum<TInput, int>(),
-            TypeCode.UInt32 => ForEnum<TInput, uint>(),
-            TypeCode.UInt64 => ForEnum<TInput, ulong>(),
-            TypeCode.Int64 => ForEnum<TInput, long>(),
-            TypeCode.Int16 => ForEnum<TInput, short>(),
-            TypeCode.UInt16 => ForEnum<TInput, ushort>(),
-            TypeCode.Byte => ForEnum<TInput, byte>(),
-            TypeCode.SByte => ForEnum<TInput, sbyte>(),
+            TypeCode.Int32 => ForEnum<TInput, int>(network),
+            TypeCode.UInt32 => ForEnum<TInput, uint>(network),
+            TypeCode.UInt64 => ForEnum<TInput, ulong>(network),
+            TypeCode.Int64 => ForEnum<TInput, long>(network),
+            TypeCode.Int16 => ForEnum<TInput, short>(network),
+            TypeCode.UInt16 => ForEnum<TInput, ushort>(network),
+            TypeCode.Byte => ForEnum<TInput, byte>(network),
+            TypeCode.SByte => ForEnum<TInput, sbyte>(network),
             _ => throw InvalidTypeArgumentException.For<TInput>(),
         };
 
-    public static IBinarySerializer<TInput> ForStruct<TInput>(bool marshall = false)
+    public static IBinarySerializer<TInput> ForStruct<TInput>(
+        bool marshall = false
+    )
         where TInput : struct
     {
         var inputType = typeof(TInput);
@@ -54,7 +59,8 @@ static class BinarySerializerFactory
             : new StructBinarySerializer<TInput>();
     }
 
-    public static IBinarySerializer<TInput>? Get<TInput>() where TInput : struct
+    public static IBinarySerializer<TInput>? Get<TInput>(bool enableEndianness = DefaultEndianness)
+        where TInput : struct
     {
         var inputType = typeof(TInput);
 
@@ -67,12 +73,12 @@ static class BinarySerializerFactory
                     null, CallingConventions.Any, Type.EmptyTypes, null
                 )?
                 .MakeGenericMethod(inputType, inputType.GetEnumUnderlyingType())
-                .Invoke(null, []) as IBinarySerializer<TInput>,
+                .Invoke(null, [enableEndianness]) as IBinarySerializer<TInput>,
 
             { IsPrimitive: true } => typeof(BinarySerializerFactory)
                 .GetMethod(nameof(ForPrimitive), BindingFlags.Static | BindingFlags.Public)?
                 .MakeGenericMethod(inputType)
-                .Invoke(null, []) as IBinarySerializer<TInput>,
+                .Invoke(null, [enableEndianness]) as IBinarySerializer<TInput>,
 
             { IsExplicitLayout: true } or { IsLayoutSequential: true } =>
                 typeof(BinarySerializerFactory)

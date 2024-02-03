@@ -14,12 +14,14 @@ public sealed class RollbackOptions
     public Random Random { get; init; } = Random.Shared;
     public TimeSyncOptions TimeSync { get; init; } = new();
     public int NetworkDelay { get; init; }
+    public bool EnableEndianness { get; init; }
 
     public LogLevel LogLevel { get; init; } =
 #if DEBUG
         LogLevel.Trace;
 #else
         LogLevel.Error;
+
 
 #endif
 }

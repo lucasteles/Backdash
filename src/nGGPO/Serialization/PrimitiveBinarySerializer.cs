@@ -5,21 +5,19 @@ using nGGPO.Network;
 
 namespace nGGPO.Serialization;
 
-sealed class PrimitiveBinarySerializer<T> : IBinarySerializer<T> where T : unmanaged
+sealed class PrimitiveBinarySerializer<T>(bool network) : IBinarySerializer<T> where T : unmanaged
 {
-    public bool Network { get; init; } = true;
-
     public readonly int Size = Unsafe.SizeOf<T>();
 
     public T Deserialize(in ReadOnlySpan<byte> data)
     {
         var value = Mem.ReadUnaligned<T>(data);
-        return Network ? Endianness.ToHostOrder(value) : value;
+        return network ? Endianness.ToHostOrder(value) : value;
     }
 
     public int SerializeScoped(scoped ref T data, Span<byte> buffer)
     {
-        var reordered = Network ? Endianness.ToNetworkOrder(data) : data;
+        var reordered = network ? Endianness.ToNetworkOrder(data) : data;
         return Mem.WriteStruct(reordered, buffer);
     }
 
@@ -27,12 +25,11 @@ sealed class PrimitiveBinarySerializer<T> : IBinarySerializer<T> where T : unman
         SerializeScoped(ref data, buffer);
 }
 
-sealed class EnumSerializer<TEnum, TInt>
-    : IBinarySerializer<TEnum>
+sealed class EnumSerializer<TEnum, TInt>(bool network) : IBinarySerializer<TEnum>
     where TEnum : unmanaged, Enum
     where TInt : unmanaged, IBinaryInteger<TInt>
 {
-    static readonly PrimitiveBinarySerializer<TInt> valueBinarySerializer = new();
+    readonly PrimitiveBinarySerializer<TInt> valueBinarySerializer = new(network);
 
     public TEnum Deserialize(in ReadOnlySpan<byte> data)
     {
