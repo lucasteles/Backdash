@@ -10,11 +10,9 @@ sealed class Synchronizer<TState>(
 )
     where TState : struct
 {
-    public ConnectionStatuses Connections => connections;
-
     readonly SavedState savedState = new(options.PredictionFrames + options.PredictionFramesOffset);
 
-    Frame lastConfirmedFrame = Frame.Null;
+    // Frame lastConfirmedFrame = Frame.Null
     // uint frameCount
     // readonly uint maxPredictionFrames = 0
 
@@ -57,4 +55,6 @@ public class SynchronizerOptions
 {
     public int PredictionFrames { get; init; } = Max.PredictionFrames;
     public int PredictionFramesOffset { get; init; } = 2;
+
+    public int NumberOfPlayers { get; internal set; }
 }

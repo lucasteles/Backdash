@@ -20,7 +20,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
 
     readonly IUdpClient<ProtocolMessage> udp;
     readonly UdpObserverGroup<ProtocolMessage> udpObservers;
-    readonly Synchronizer<TGameState> sync;
+    readonly Synchronizer<TGameState> synchronizer;
     readonly ConnectionStatuses localConnections;
 
     bool synchronizing = true;
@@ -55,15 +55,16 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
         this.backgroundJobManager = backgroundJobManager;
         this.logger = logger;
 
+        this.options.UpdateChildOptions();
         localConnections = new();
-        sync = new(options.Synchronizer, localConnections);
+        synchronizer = new(this.options.Synchronizer, localConnections);
         spectators = new(Max.Spectators);
         endpoints = new(this.options.NumberOfPlayers);
         udpObservers = new();
         udp = udpClientFactory.CreateClient(
-            options.LocalPort,
-            options.EnableEndianness,
-            options.UdpPacketBufferSize,
+            this.options.LocalPort,
+            this.options.EnableEndianness,
+            this.options.UdpPacketBufferSize,
             udpObservers,
             this.logger
         );
@@ -108,7 +109,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
         if (result.IsFailure())
             return result;
 
-        sync.SetFrameDelay(queue, delayInFrames);
+        synchronizer.SetFrameDelay(queue, delayInFrames);
 
         return ResultCode.Ok;
     }
@@ -156,7 +157,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
 
     ResultCode CreateGameInput(PlayerId player, TInput localInput, out GameInput input)
     {
-        if (sync.InRollback())
+        if (synchronizer.InRollback())
         {
             input = emptyGameInput;
             return ResultCode.InRollback;
@@ -179,7 +180,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
         var size = inputSerializer.Serialize(ref localInput, buffer);
         input = new(in buffer, size);
 
-        if (!sync.AddLocalInput(queue, input))
+        if (!synchronizer.AddLocalInput(queue, input))
             return ResultCode.PredictionThreshold;
 
         if (input.Frame.IsNull)
@@ -201,7 +202,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
             return ResultCode.NotSynchronized;
         }
 
-        disconnectFlags = sync.SynchronizeInputs(inputs);
+        disconnectFlags = synchronizer.SynchronizeInputs(inputs);
         return ResultCode.Ok;
     }
 
