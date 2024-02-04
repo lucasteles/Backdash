@@ -16,7 +16,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
     where TGameState : struct
 {
     readonly IBinarySerializer<TInput> inputSerializer;
-    readonly ISessionCallbacks<TGameState> callbacks;
+    readonly IRollbackHandler<TGameState> callbacks;
 
     readonly IUdpClient<ProtocolMessage> udp;
     readonly UdpObserverGroup<ProtocolMessage> udpObservers;
@@ -36,7 +36,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
 
     public Peer2PeerBackend(
         RollbackOptions options,
-        ISessionCallbacks<TGameState> callbacks,
+        IRollbackHandler<TGameState> callbacks,
         IBinarySerializer<TInput> inputSerializer,
         IUdpClientFactory udpClientFactory,
         IBackgroundJobManager backgroundJobManager,

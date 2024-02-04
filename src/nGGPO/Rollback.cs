@@ -8,7 +8,7 @@ namespace nGGPO;
 public static class Rollback
 {
     public static IRollbackSession<TInput> CreateSession<TInput, TGameState>(
-        ISessionCallbacks<TGameState> callbacks,
+        IRollbackHandler<TGameState> callbacks,
         int numPlayers,
         int localPort,
         IBinarySerializer<TInput>? inputSerializer = null
@@ -23,7 +23,7 @@ public static class Rollback
             }, inputSerializer);
 
     public static IRollbackSession<TInput> CreateSession<TInput, TGameState>(
-        ISessionCallbacks<TGameState> callbacks,
+        IRollbackHandler<TGameState> callbacks,
         RollbackOptions options,
         IBinarySerializer<TInput>? inputSerializer = null,
         ILogger? logger = null

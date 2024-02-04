@@ -1,32 +1,19 @@
 namespace nGGPO.Backends;
 
-public readonly struct SaveGameState<TState> where TState : struct
-{
-    public readonly TState State;
-    public readonly int Checksum;
-
-    public SaveGameState(TState state, int checksum = 0)
-    {
-        State = state;
-        Checksum = checksum;
-    }
-}
-
 /*
  * The SessionCallbacks structure contains the callback functions that
  * your application must implement.  nGGPO will periodically call these
  * functions during the game.  All callback functions must be implemented.
  */
-public interface ISessionCallbacks<TGameState> where TGameState : struct
+public interface IRollbackHandler<TGameState> where TGameState : struct
 {
-
     /*
      The client should allocate a buffer, copy the
      * entire contents of the current game state into it, and copy the
      * length into the *len parameter.  Optionally, the client can compute
      * a checksum of the data and store it in the *checksum argument.
      */
-    bool SaveGameState(int frame, out SaveGameState<TGameState> buffer);
+    bool SaveGameState(int frame, out SavedGameState<TGameState> buffer);
 
     /*
      * nGGPO will call this function at the beginning
