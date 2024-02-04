@@ -196,18 +196,18 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
         return ResultCode.Ok;
     }
 
-    public ResultCode SynchronizeInputs(params TInput[] inputs) => SynchronizeInputs(out _, inputs);
-
-    public ResultCode SynchronizeInputs(out Span<int> disconnectFlags, params TInput[] inputs)
+    public SynchronizeResult SynchronizeInputs(ref TInput[] inputs)
     {
         if (synchronizing)
         {
-            disconnectFlags = [];
-            return ResultCode.NotSynchronized;
+            return new(ResultCode.NotSynchronized, default);
         }
 
-        disconnectFlags = synchronizer.SynchronizeInputs(inputs);
-        return ResultCode.Ok;
+
+        //TODO fix this
+        // disconnectFlags = synchronizer.SynchronizeInputs(input.Buffer);
+
+        return new(ResultCode.Ok, default);
     }
 
     ResultCode PlayerIdToQueue(in PlayerId player, out QueueIndex queue)

@@ -61,7 +61,7 @@ struct GameInput : IEquatable<GameInput>
     public void ResetFrame() => Frame = Frame.Null;
 
 #pragma warning disable IDE0251
-    public void Clear() => Mem.Clear(Buffer);
+    public void Erase() => Mem.Clear(Buffer);
 #pragma warning restore IDE0251
 
     public void ForPlayer(int playerIndex, Span<byte> playerInput)

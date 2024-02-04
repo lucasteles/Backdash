@@ -69,6 +69,7 @@ sealed class Synchronizer<TState> where TState : struct
 
     public void AddRemoteInput(QueueIndex queue, GameInput input) => AddInput(in queue, ref input);
 
+    // TODO: this should actually return the real deserialized inputs
     public DisconnectFlags GetConfirmedInputs(Frame frame, Span<byte> output)
     {
         Tracer.Assert(output.Length >= options.NumberOfPlayers * options.InputSize);
@@ -76,29 +77,43 @@ sealed class Synchronizer<TState> where TState : struct
         var disconnectFlags = 0;
         output.Clear();
 
+        var input = GameInput.OfSize(options.InputSize);
         for (var i = 0; i < options.NumberOfPlayers; i++)
         {
-            var input = GameInput.OfSize(options.InputSize);
             if (localConnections[i].Disconnected && frame > localConnections[i].LastFrame)
-            {
                 disconnectFlags |= 1 << i;
-                input.Clear();
-            }
             else
-            {
                 inputQueues[i].GetConfirmedInput(frame, ref input);
-            }
 
             var playerInput = output.Slice(i * options.InputSize, options.InputSize);
             input.ForPlayer(0, playerInput);
+            input.Erase();
         }
 
         return new(disconnectFlags);
     }
 
-    public Span<int> SynchronizeInputs<TInput>(TInput[] inputs) where TInput : struct
+    // TODO: this should actually return the real deserialized inputs
+    public DisconnectFlags SynchronizeInputs(Span<byte> output)
     {
-        throw new NotImplementedException();
+        var disconnectFlags = 0;
+        Tracer.Assert(output.Length >= options.NumberOfPlayers * options.InputSize);
+        output.Clear();
+
+        var input = GameInput.OfSize(options.InputSize);
+        for (int i = 0; i < options.NumberOfPlayers; i++)
+        {
+            if (localConnections[i].Disconnected && _framecount > localConnections[i].LastFrame)
+                disconnectFlags |= 1 << i;
+            else
+                inputQueues[i].GetInput(_framecount, out input);
+
+            var playerInput = output.Slice(i * options.InputSize, options.InputSize);
+            input.ForPlayer(0, playerInput);
+            input.Erase();
+        }
+
+        return new(disconnectFlags);
     }
 
     void CheckSimulation(int timeout)
@@ -175,5 +190,3 @@ sealed class Synchronizer<TState> where TState : struct
         public SavedFrame[] Frames = new SavedFrame[predictionSize];
     }
 }
-
-public class SynchronizerOptions { }

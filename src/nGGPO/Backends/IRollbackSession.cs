@@ -1,12 +1,13 @@
+using nGGPO.Input;
+
 namespace nGGPO.Backends;
 
-public interface IRollbackSession<in TInput> : IAsyncDisposable
+public interface IRollbackSession<TInput> : IAsyncDisposable
     where TInput : struct
 {
     Task Start(CancellationToken ct = default);
     ResultCode SetFrameDelay(Player player, int delayInFrames);
-    ResultCode SynchronizeInputs(params TInput[] inputs);
-    ResultCode SynchronizeInputs(out Span<int> disconnectFlags, params TInput[] inputs);
+    SynchronizeResult SynchronizeInputs(ref TInput[] inputs);
     ValueTask<ResultCode> AddPlayer(Player player, CancellationToken ct);
 
     ValueTask<ResultCode> AddLocalInput(

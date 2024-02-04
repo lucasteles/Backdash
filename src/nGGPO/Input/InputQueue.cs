@@ -135,12 +135,12 @@ sealed class InputQueue
             if (requestedFrame == 0)
             {
                 logger.Trace($"basing new prediction frame from nothing, you're client wants frame 0.");
-                prediction.Clear();
+                prediction.Erase();
             }
             else if (lastAddedFrame.IsNull)
             {
                 logger.Trace($"basing new prediction frame from nothing, since we have no frames yet.");
-                prediction.Clear();
+                prediction.Erase();
             }
             else
             {
