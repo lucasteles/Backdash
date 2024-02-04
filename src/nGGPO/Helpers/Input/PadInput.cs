@@ -1,7 +1,7 @@
 using System.Runtime.InteropServices;
 
 // ReSharper disable InconsistentNaming
-namespace nGGPO.Input.Helpers;
+namespace nGGPO.Helpers.Input;
 
 [StructLayout(LayoutKind.Sequential, Size = 2), Serializable]
 public struct Axis

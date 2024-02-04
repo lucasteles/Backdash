@@ -1,4 +1,4 @@
-namespace nGGPO.Input.Helpers;
+namespace nGGPO.Helpers.Input;
 
 public static class Extensions
 {
