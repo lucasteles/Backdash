@@ -22,4 +22,19 @@ static class ThrowHelpers
         if (argument < min || argument > max)
             throw new ArgumentOutOfRangeException(argument.ToString(CultureInfo.InvariantCulture), paramName);
     }
+
+    public static void ThrowIfTypeSizeGreaterThan<T>(int maxSize) where T : struct
+    {
+        ThrowIfArgumentIsNegativeOrZero(maxSize);
+        var size = Mem.SizeOf<T>();
+        if (size > maxSize)
+            throw new NggpoException($"{typeof(T).Name} is too big {size}, max: {maxSize}");
+    }
+
+    public static void ThrowIfTypeTooBigForStack<T>() where T : struct
+    {
+        var size = Mem.SizeOf<T>();
+        if (size <= Mem.MaxStackLimit)
+            throw new NggpoException($"{typeof(T).Name} size too big for stack: {size}");
+    }
 }

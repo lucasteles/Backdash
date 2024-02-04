@@ -1,3 +1,4 @@
+using nGGPO.Core;
 using nGGPO.Serialization.Buffer;
 
 namespace nGGPO.Serialization;
@@ -12,7 +13,15 @@ public interface IBinaryWriter<T> where T : struct
     int Serialize(ref T data, Span<byte> buffer);
 }
 
-public interface IBinarySerializer<T> : IBinaryReader<T>, IBinaryWriter<T> where T : struct;
+public interface IBinarySerializer<T> : IBinaryReader<T>, IBinaryWriter<T> where T : struct
+{
+    public int GetTypeSize()
+    {
+        var dummy = new T();
+        Span<byte> buffer = stackalloc byte[Mem.MaxStackLimit];
+        return Serialize(ref dummy, buffer);
+    }
+};
 
 public abstract class BinarySerializer<T> : IBinarySerializer<T>
     where T : struct

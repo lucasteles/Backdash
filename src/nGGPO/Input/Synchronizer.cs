@@ -6,50 +6,94 @@ namespace nGGPO.Input;
 
 sealed class Synchronizer<TState> where TState : struct
 {
+    readonly RollbackOptions options;
+    readonly ILogger logger;
+    readonly ConnectionStatuses localConnections;
     readonly SavedState savedState;
     readonly InputQueue[] inputQueues;
 
-    // uint frameCount
-    // readonly uint maxPredictionFrames = 0
+    bool _rollingback;
+    Frame _last_confirmed_frame;
+    Frame _framecount;
+    int _max_prediction_frames;
 
     Frame lastConfirmedFrame = Frame.Zero;
 
     public Synchronizer(
-        SynchronizerOptions options,
+        RollbackOptions options,
         ILogger logger,
-        ConnectionStatuses connections
+        ConnectionStatuses localConnections
     )
     {
-        savedState = new(options.PredictionFrames + options.PredictionFramesOffset);
+        Tracer.Assert(options.InputSize > 0);
 
+        this.options = options;
+        this.logger = logger;
+        this.localConnections = localConnections;
+
+        savedState = new(options.PredictionFrames + options.PredictionFramesOffset);
         inputQueues = new InputQueue[options.NumberOfPlayers];
         for (var i = 0; i < options.NumberOfPlayers; i++)
-            inputQueues[i] = new(options.InputQueueLength, logger);
+            inputQueues[i] = new(options.InputSize, options.InputQueueLength, logger);
     }
 
     void SetLastConfirmedFrame(Frame frame)
     {
         lastConfirmedFrame = frame;
+
         if (lastConfirmedFrame > Frame.Zero)
             for (var i = 0; i < inputQueues.Length; i++)
-            {
-                inputQueues[i].DiscardConfirmedFrames(frame - 1);
-            }
+                inputQueues[i].DiscardConfirmedFrames(frame.Previous);
     }
+
+    void AddInput(in QueueIndex queue, ref GameInput input) => inputQueues[queue.Value].AddInput(ref input);
 
     public bool AddLocalInput(QueueIndex queue, GameInput input)
     {
-        throw new NotImplementedException();
+        var framesBehind = _framecount - _last_confirmed_frame;
+        if (_framecount >= _max_prediction_frames && framesBehind >= _max_prediction_frames)
+        {
+            logger.Info($"Rejecting input from emulator: reached prediction barrier.");
+            return false;
+        }
+
+        if (_framecount == 0)
+            SaveCurrentFrame();
+
+        logger.Info($"Sending non-delayed local frame {_framecount} to queue {queue}.");
+        input.Frame = _framecount;
+        AddInput(in queue, ref input);
+
+        return true;
     }
 
-    bool AddRemoteInput(QueueIndex queue, GameInput input)
-    {
-        throw new NotImplementedException();
-    }
+    public void AddRemoteInput(QueueIndex queue, GameInput input) => AddInput(in queue, ref input);
 
-    int GetConfirmedInputs(object values, int size, int frame)
+    public DisconnectFlags GetConfirmedInputs(Frame frame, Span<byte> output)
     {
-        throw new NotImplementedException();
+        Tracer.Assert(output.Length >= options.NumberOfPlayers * options.InputSize);
+
+        var disconnectFlags = 0;
+        output.Clear();
+
+        for (var i = 0; i < options.NumberOfPlayers; i++)
+        {
+            var input = GameInput.OfSize(options.InputSize);
+            if (localConnections[i].Disconnected && frame > localConnections[i].LastFrame)
+            {
+                disconnectFlags |= 1 << i;
+                input.Clear();
+            }
+            else
+            {
+                inputQueues[i].GetConfirmedInput(frame, ref input);
+            }
+
+            var playerInput = output.Slice(i * options.InputSize, options.InputSize);
+            input.ForPlayer(0, playerInput);
+        }
+
+        return new(disconnectFlags);
     }
 
     public Span<int> SynchronizeInputs<TInput>(TInput[] inputs) where TInput : struct
@@ -132,11 +176,4 @@ sealed class Synchronizer<TState> where TState : struct
     }
 }
 
-public class SynchronizerOptions
-{
-    public int PredictionFrames { get; init; } = Max.PredictionFrames;
-    public int PredictionFramesOffset { get; init; } = 2;
-    public int NumberOfPlayers { get; internal set; }
-
-    public int InputQueueLength { get; init; }
-}
+public class SynchronizerOptions { }

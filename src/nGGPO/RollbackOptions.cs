@@ -26,8 +26,10 @@ public sealed class RollbackOptions
     public bool EnableEndianness { get; init; }
 
     public TimeSyncOptions TimeSync { get; init; } = new();
-    public SynchronizerOptions Synchronizer { get; init; } = new();
 
+    internal int InputSize { get; set; }
 
-    public void UpdateChildOptions() => Synchronizer.NumberOfPlayers = NumberOfPlayers;
+    public int PredictionFrames { get; init; } = Max.PredictionFrames;
+    public int PredictionFramesOffset { get; init; } = 2;
+    public int InputQueueLength { get; init; } = 128;
 }

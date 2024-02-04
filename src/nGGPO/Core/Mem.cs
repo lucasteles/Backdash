@@ -8,7 +8,7 @@ namespace nGGPO.Core;
 
 static class Mem
 {
-    const int MaxStackLimit = 1024;
+    public const int MaxStackLimit = 1024;
 
     public static void Clear(in Span<byte> bytes) => bytes.Clear();
 
@@ -47,13 +47,6 @@ static class Mem
     {
         if (Unsafe.SizeOf<TEnum>() != Unsafe.SizeOf<TInt>()) throw new NggpoException("type mismatch");
         return Unsafe.As<TInt, TEnum>(ref intValue);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsValidSizeOnStack<T>(int maxSize = 0) where T : struct
-    {
-        var size = Unsafe.SizeOf<T>();
-        return size <= MaxStackLimit && (maxSize <= 0 || size < maxSize);
     }
 
     public static bool SpanEqual<T>(
@@ -162,4 +155,6 @@ static class Mem
 
         return builder.ToString();
     }
+
+    public static int SizeOf<TInput>() where TInput : struct => Unsafe.SizeOf<TInput>();
 }

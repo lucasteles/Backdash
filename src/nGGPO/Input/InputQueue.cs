@@ -20,7 +20,7 @@ sealed class InputQueue
 
     Frame PreviousFrame(in Frame offset) => offset == 0 ? new(inputs.Length - 1) : offset.Previous;
 
-    public InputQueue(int queueSize, ILogger logger)
+    public InputQueue(int inputSize, int queueSize, ILogger logger)
     {
         this.logger = logger;
         length = FrameDelay = 0;
@@ -31,14 +31,13 @@ sealed class InputQueue
         lastFrameRequested = Frame.Null;
         lastAddedFrame = Frame.Null;
 
-        prediction = GameInput.CreateEmpty();
+        prediction = new(inputSize);
 
         // This is safe because we know the GameInput is a proper structure (as in,
         // no virtual methods, no contained classes, etc.).
         inputs = new(queueSize);
-        inputs.Fill(GameInput.CreateEmpty());
+        inputs.Fill(new(inputSize));
     }
-
 
     public Frame GetLastConfirmedFrame()
     {

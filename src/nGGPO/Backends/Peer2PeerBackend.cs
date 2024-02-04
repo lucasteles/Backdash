@@ -1,5 +1,4 @@
 using System.Net;
-using System.Runtime.CompilerServices;
 using nGGPO.Core;
 using nGGPO.Data;
 using nGGPO.Input;
@@ -45,9 +44,12 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
     {
         ThrowHelpers.ThrowIfArgumentIsNegativeOrZero(options.LocalPort);
         ThrowHelpers.ThrowIfArgumentIsNegativeOrZero(options.NumberOfPlayers);
+        ThrowHelpers.ThrowIfTypeTooBigForStack<GameInput>();
+        ThrowHelpers.ThrowIfTypeSizeGreaterThan<GameInput>(Max.InputBytes * Max.InputPlayers * 2);
+        ThrowHelpers.ThrowIfTypeTooBigForStack<TInput>();
 
-        if (!Mem.IsValidSizeOnStack<GameInput>(Max.InputBytes * Max.InputPlayers * 2))
-            throw new NggpoException($"{nameof(GameInput)} size too big: {Unsafe.SizeOf<GameInput>()}");
+        var inputTypeSize = inputSerializer.GetTypeSize();
+        ThrowHelpers.ThrowIfArgumentOutOfBounds(inputTypeSize, 1, Max.InputBytes);
 
         this.options = options;
         this.inputSerializer = inputSerializer;
@@ -55,9 +57,10 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
         this.backgroundJobManager = backgroundJobManager;
         this.logger = logger;
 
-        this.options.UpdateChildOptions();
+        this.options.InputSize = inputTypeSize;
+
         localConnections = new();
-        synchronizer = new(this.options.Synchronizer, this.logger, localConnections);
+        synchronizer = new(this.options, this.logger, localConnections);
         spectators = new(options.NumberOfSpectators);
         endpoints = new(this.options.NumberOfPlayers);
         udpObservers = new();
@@ -178,6 +181,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
 
         GameInputBuffer buffer = new();
         var size = inputSerializer.Serialize(ref localInput, buffer);
+        Tracer.Assert(size == options.InputSize);
         input = new(in buffer, size);
 
         if (!synchronizer.AddLocalInput(queue, input))

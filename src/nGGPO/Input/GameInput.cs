@@ -20,11 +20,14 @@ public struct GameInputBuffer
     public readonly bool Equals(GameInputBuffer other) =>
         Mem.SpanEqual<byte>(this, other, truncate: true);
 
-    public static Span<byte> ForPlayer(ref GameInputBuffer buffer, int playerIndex)
+    public static Span<byte> ForPlayer(ref GameInputBuffer buffer, int inputSize, int playerIndex)
     {
-        var byteIndex = playerIndex * Max.InputBytes;
-        return buffer[byteIndex..(byteIndex + Max.InputBytes)];
+        var byteIndex = playerIndex * inputSize;
+        return buffer[byteIndex..(byteIndex + inputSize)];
     }
+
+    internal static Span<byte> ForPlayer(ref GameInputBuffer buffer, int playerIndex) =>
+        ForPlayer(ref buffer, Max.InputBytes, playerIndex);
 }
 
 struct GameInput : IEquatable<GameInput>
@@ -36,6 +39,7 @@ struct GameInput : IEquatable<GameInput>
     public int Size { get; set; }
 
     public static GameInput CreateEmpty() => new();
+    public static GameInput OfSize(int size) => new(size);
 
     public GameInput(in GameInputBuffer inputBuffer, int size)
     {
@@ -55,9 +59,20 @@ struct GameInput : IEquatable<GameInput>
     public readonly bool IsEmpty => Size is 0;
     public void IncrementFrame() => Frame = Frame.Next;
     public void ResetFrame() => Frame = Frame.Null;
+
 #pragma warning disable IDE0251
     public void Clear() => Mem.Clear(Buffer);
 #pragma warning restore IDE0251
+
+    public void ForPlayer(int playerIndex, Span<byte> playerInput)
+    {
+        Tracer.Assert(playerInput.Length >= Size);
+        Tracer.Assert(playerIndex <= Max.InputPlayers);
+
+        GameInputBuffer
+            .ForPlayer(ref Buffer, Size, playerIndex)
+            .CopyTo(playerInput);
+    }
 
     public override readonly string ToString()
     {
