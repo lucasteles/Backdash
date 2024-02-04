@@ -4,7 +4,7 @@ using nGGPO.PingTest;
 using nGGPO.Serialization;
 
 var totalDuration = TimeSpan.FromSeconds(10);
-var snapshotInterval = TimeSpan.FromSeconds(1);
+var snapshotInterval = TimeSpan.FromSeconds(0);
 var printSnapshots = false;
 
 ConsoleLogger logger = new() {EnabledLevel = LogLevel.Off};

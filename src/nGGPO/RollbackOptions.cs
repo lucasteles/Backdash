@@ -14,11 +14,10 @@ public sealed class RollbackOptions
     public int SpectatorOffset { get; init; } = 1000;
 
     public Random Random { get; init; } = Random.Shared;
-    public TimeSyncOptions TimeSync { get; init; } = new();
+    public int UdpPacketBufferSize { get; init; } = Max.CompressedBytes * Max.MsgPlayers;
+
     public int NetworkDelay { get; init; }
     public bool EnableEndianness { get; init; }
-
-    public int UdpPacketBufferSize { get; init; } = Max.CompressedBytes * Max.MsgPlayers;
 
     public LogLevel LogLevel { get; init; } =
 #if DEBUG
@@ -26,6 +25,8 @@ public sealed class RollbackOptions
 #else
         LogLevel.Error;
 
+    public TimeSyncOptions TimeSync { get; init; } = new();
+    public SynchronizerOptions Synchronizer { get; init; } = new();
 
 #endif
 }

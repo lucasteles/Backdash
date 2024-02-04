@@ -4,29 +4,15 @@ using nGGPO.Network;
 
 namespace nGGPO.Input;
 
-static class Synchronizer
-{
-    public struct SavedFrame<TGameState>() where TGameState : struct
-    {
-        public int Frame = -1;
-        public TGameState Buf = default;
-        public int Cbuf = 0;
-        public int Checksum = 0;
-    }
-
-    public class SavedState<TGameState> where TGameState : struct
-    {
-        public int Head = 0;
-        public SavedFrame<TGameState>[] Frames = new SavedFrame<TGameState>[Max.PredictionFrames + 2];
-    }
-}
-
-sealed class Synchronizer<TGameState>(ConnectionStatuses connections)
-    where TGameState : struct
+sealed class Synchronizer<TState>(
+    SynchronizerOptions options,
+    ConnectionStatuses connections
+)
+    where TState : struct
 {
     public ConnectionStatuses Connections => connections;
 
-    readonly Synchronizer.SavedState<TGameState> savedState = new();
+    readonly SavedState savedState = new(options.PredictionFrames + options.PredictionFramesOffset);
 
     Frame lastConfirmedFrame = Frame.Null;
     // uint frameCount
@@ -51,4 +37,24 @@ sealed class Synchronizer<TGameState>(ConnectionStatuses connections)
     {
         throw new NotImplementedException();
     }
+
+    public struct SavedFrame()
+    {
+        public Frame Frame = Frame.Null;
+        public TState Buf = default;
+        public int Cbuf = 0;
+        public int Checksum = 0;
+    }
+
+    public class SavedState(int predictionSize)
+    {
+        public int Head { get; set; }
+        public SavedFrame[] Frames = new SavedFrame[predictionSize];
+    }
+}
+
+public class SynchronizerOptions
+{
+    public int PredictionFrames { get; init; } = Max.PredictionFrames;
+    public int PredictionFramesOffset { get; init; } = 2;
 }

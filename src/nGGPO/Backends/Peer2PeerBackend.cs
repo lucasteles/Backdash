@@ -56,7 +56,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
         this.logger = logger;
 
         localConnections = new();
-        sync = new(localConnections);
+        sync = new(options.Synchronizer, localConnections);
         spectators = new(Max.Spectators);
         endpoints = new(this.options.NumberOfPlayers);
         udpObservers = new();
