@@ -193,7 +193,7 @@ sealed class ProtocolInbox(
 
     bool OnInputAck(in ProtocolMessage msg)
     {
-        lastAckedFrame = new Frame(msg.InputAck.AckFrame);
+        lastAckedFrame = msg.InputAck.AckFrame;
         return true;
     }
 

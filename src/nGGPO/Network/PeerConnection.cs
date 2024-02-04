@@ -79,7 +79,7 @@ sealed class PeerConnection(
         {
             InputAck = new()
             {
-                AckFrame = inbox.LastReceivedInput.Frame.Number,
+                AckFrame = inbox.LastReceivedInput.Frame,
             },
         };
 

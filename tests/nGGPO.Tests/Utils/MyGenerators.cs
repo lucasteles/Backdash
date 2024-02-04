@@ -100,7 +100,7 @@ class MyGenerators
     );
 
     public static Arbitrary<InputAck> InputAckGenerator() => Arb.From(
-        from frame in Arb.From<int>().Generator
+        from frame in Arb.From<Frame>().Generator
         select new InputAck
         {
             AckFrame = frame,
