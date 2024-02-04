@@ -4,21 +4,37 @@ using nGGPO.Network;
 
 namespace nGGPO.Input;
 
-sealed class Synchronizer<TState>(
-    SynchronizerOptions options,
-    ConnectionStatuses connections
-)
-    where TState : struct
+sealed class Synchronizer<TState> where TState : struct
 {
-    readonly SavedState savedState = new(options.PredictionFrames + options.PredictionFramesOffset);
+    readonly SavedState savedState;
+    readonly InputQueue[] inputQueues;
 
-    // Frame lastConfirmedFrame = Frame.Null
     // uint frameCount
     // readonly uint maxPredictionFrames = 0
 
-    void SetLastConfirmedFrame(int frame)
+    Frame lastConfirmedFrame = Frame.Zero;
+
+    public Synchronizer(
+        SynchronizerOptions options,
+        ILogger logger,
+        ConnectionStatuses connections
+    )
     {
-        throw new NotImplementedException();
+        savedState = new(options.PredictionFrames + options.PredictionFramesOffset);
+
+        inputQueues = new InputQueue[options.NumberOfPlayers];
+        for (var i = 0; i < options.NumberOfPlayers; i++)
+            inputQueues[i] = new(options.InputQueueLength, logger);
+    }
+
+    void SetLastConfirmedFrame(Frame frame)
+    {
+        lastConfirmedFrame = frame;
+        if (lastConfirmedFrame > Frame.Zero)
+            for (var i = 0; i < inputQueues.Length; i++)
+            {
+                inputQueues[i].DiscardConfirmedFrames(frame - 1);
+            }
     }
 
     public bool AddLocalInput(QueueIndex queue, GameInput input)
@@ -86,11 +102,6 @@ sealed class Synchronizer<TState>(
         throw new NotImplementedException();
     }
 
-    bool CreateQueues(SynchronizerOptions options)
-    {
-        throw new NotImplementedException();
-    }
-
     bool CheckSimulationConsistency(ref int seekTo)
     {
         throw new NotImplementedException();
@@ -125,6 +136,7 @@ public class SynchronizerOptions
 {
     public int PredictionFrames { get; init; } = Max.PredictionFrames;
     public int PredictionFramesOffset { get; init; } = 2;
-
     public int NumberOfPlayers { get; internal set; }
+
+    public int InputQueueLength { get; init; }
 }

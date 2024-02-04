@@ -51,8 +51,8 @@ sealed class ProtocolState(ConnectionStatuses localConnectStatuses, int localPor
 
     internal class AdvantageState
     {
-        public int LocalFrameAdvantage;
-        public int RemoteFrameAdvantage;
+        public Frame LocalFrameAdvantage;
+        public Frame RemoteFrameAdvantage;
     }
 
     internal class Statistics

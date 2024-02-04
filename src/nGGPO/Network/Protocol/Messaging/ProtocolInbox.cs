@@ -147,9 +147,9 @@ sealed class ProtocolInbox(
                     peerConnectStatus[i].Disconnected
                     || remoteStatus[i].Disconnected;
 
-                peerConnectStatus[i].LastFrame = Math.Max(
-                    peerConnectStatus[i].LastFrame,
-                    remoteStatus[i].LastFrame
+                peerConnectStatus[i].LastFrame = Frame.Max(
+                    in peerConnectStatus[i].LastFrame,
+                    in remoteStatus[i].LastFrame
                 );
             }
         }
@@ -213,7 +213,7 @@ sealed class ProtocolInbox(
             },
         };
 
-        state.Fairness.RemoteFrameAdvantage = msg.QualityReport.FrameAdvantage;
+        state.Fairness.RemoteFrameAdvantage = new(msg.QualityReport.FrameAdvantage);
 
         return true;
     }

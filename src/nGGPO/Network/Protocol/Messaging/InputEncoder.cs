@@ -38,7 +38,7 @@ ref struct InputCompressor
 
         inputMsg = ref msg;
         bitWriter = new(msg.Bits);
-        inputMsg.StartFrame = Frame.NullValue;
+        inputMsg.StartFrame = Frame.Null;
     }
 
     public int Count { get; private set; }
@@ -46,7 +46,7 @@ ref struct InputCompressor
     public void WriteInput(in GameInput current)
     {
         Count++;
-        if (inputMsg.StartFrame is Frame.NullValue)
+        if (inputMsg.StartFrame.IsNull)
         {
             inputMsg.InputSize = (byte)current.Size;
             inputMsg.StartFrame = current.Frame;
@@ -87,7 +87,7 @@ ref struct InputDecompressor
     readonly BitVector lastInputBits;
     ref GameInput nextInput;
     BitOffsetWriter bitVector;
-    int currentFrame;
+    Frame currentFrame;
 
     public InputDecompressor(
         ref InputMsg inputMsg,
@@ -100,7 +100,7 @@ ref struct InputDecompressor
         nextInput.Size = inputMsg.InputSize;
 
         if (lastReceivedInput.Frame < 0)
-            lastReceivedInput.Frame = new(inputMsg.StartFrame - 1);
+            lastReceivedInput.Frame = inputMsg.StartFrame.Previous;
 
         lastInputBits = BitVector.FromSpan(nextInput.Buffer);
         bitVector = new(inputMsg.Bits);
@@ -115,8 +115,8 @@ ref struct InputDecompressor
              * the inputs for the frame right after the one we're on.
              */
             var nextFrame = nextInput.Frame.Next;
-            Tracer.Assert(currentFrame <= nextFrame);
-            var useInputs = currentFrame == nextFrame;
+            Tracer.Assert(currentFrame <= nextFrame.Number);
+            var useInputs = currentFrame == nextFrame.Number;
 
             while (bitVector.Read())
             {
@@ -141,8 +141,8 @@ ref struct InputDecompressor
                 /*
                  * Move forward 1 frame in the stream.
                  */
-                Tracer.Assert(currentFrame == nextInput.Frame.Next);
-                nextInput.Frame = new(currentFrame);
+                Tracer.Assert(currentFrame == nextInput.Frame.Next.Number);
+                nextInput.Frame = currentFrame;
                 currentFrame++;
                 return true;
             }

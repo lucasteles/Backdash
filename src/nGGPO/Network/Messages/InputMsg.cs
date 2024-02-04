@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using System.Text;
 using nGGPO.Core;
+using nGGPO.Data;
 using nGGPO.Serialization;
 using nGGPO.Serialization.Buffer;
 
@@ -11,9 +12,9 @@ record struct InputMsg : IBinarySerializable
 {
     public byte PeerCount;
     public PeerStatusBuffer PeerConnectStatus;
-    public int StartFrame;
+    public Frame StartFrame;
     public bool DisconnectRequested;
-    public int AckFrame;
+    public Frame AckFrame;
     public ushort NumBits;
     public byte InputSize;
     public InputMsgBuffer Bits;
@@ -23,9 +24,9 @@ record struct InputMsg : IBinarySerializable
         Mem.Clear(Bits);
         PeerConnectStatus[..].Clear();
         PeerCount = 0;
-        StartFrame = 0;
+        StartFrame = Frame.Zero;
         DisconnectRequested = false;
-        AckFrame = 0;
+        AckFrame = Frame.Zero;
         NumBits = 0;
         InputSize = 0;
     }
@@ -36,9 +37,9 @@ record struct InputMsg : IBinarySerializable
         for (var i = 0; i < PeerCount; i++)
             PeerConnectStatus[i].Serialize(writer);
 
-        writer.Write(StartFrame);
+        writer.Write(StartFrame.Number);
         writer.Write(DisconnectRequested);
-        writer.Write(AckFrame);
+        writer.Write(AckFrame.Number);
         writer.Write(NumBits);
         writer.Write(InputSize);
         writer.Write(Bits, InputSize);
@@ -50,9 +51,9 @@ record struct InputMsg : IBinarySerializable
         for (var i = 0; i < PeerCount; i++)
             PeerConnectStatus[i].Deserialize(reader);
 
-        StartFrame = reader.ReadInt();
+        StartFrame = new(reader.ReadInt());
         DisconnectRequested = reader.ReadBool();
-        AckFrame = reader.ReadInt();
+        AckFrame = new(reader.ReadInt());
         NumBits = reader.ReadUShort();
         InputSize = reader.ReadByte();
 

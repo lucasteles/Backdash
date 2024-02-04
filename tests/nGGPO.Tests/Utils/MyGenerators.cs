@@ -72,9 +72,14 @@ class MyGenerators
         return Arb.From(generator);
     }
 
+    public static Arbitrary<Frame> FrameGenerator() => Arb.From(
+        from frame in Arb.From<PositiveInt>().Generator
+        select new Frame(frame.Item)
+    );
+
     public static Arbitrary<ConnectStatus> ConnectStatusGenerator() => Arb.From(
         from disconnected in Arb.From<bool>().Generator
-        from lastFrame in Arb.From<int>().Generator
+        from lastFrame in Arb.From<Frame>().Generator
         select new ConnectStatus
         {
             Disconnected = disconnected,
@@ -158,9 +163,9 @@ class MyGenerators
             .ToArbitrary();
 
     public static Arbitrary<InputMsg> InputMsgGenerator() => Arb.From(
-        from startFrame in Arb.From<int>().Generator
+        from startFrame in Arb.From<Frame>().Generator
         from disconnectReq in Arb.From<bool>().Generator
-        from ackFrame in Arb.From<int>().Generator
+        from ackFrame in Arb.From<Frame>().Generator
         from numBits in Arb.From<ushort>().Generator
         from peerConnectStats in Gen.Sized(testSize =>
         {
@@ -235,15 +240,10 @@ class MyGenerators
         })
         .ToArbitrary();
 
-    public static Arbitrary<Frame> FrameGenerator() => Arb.From(
-        from frame in Arb.From<PositiveInt>().Generator
-        select new Frame(frame.Item)
-    );
-
     public static Arbitrary<GameInput> GameInputBufferGenerator() => Arb.From(
         from frame in Arb.From<Frame>().Generator
         from bytes in Gen.ArrayOf(GameInputBuffer.Capacity / 2, Arb.From<byte>().Generator)
-            // Gen.Sized(testSize => Gen.ArrayOf(Math.Min(testSize, GameInputBuffer.Capacity), Arb.From<byte>().Generator))
+        // Gen.Sized(testSize => Gen.ArrayOf(Math.Min(testSize, GameInputBuffer.Capacity), Arb.From<byte>().Generator))
         select new GameInput(bytes)
         {
             Frame = frame,

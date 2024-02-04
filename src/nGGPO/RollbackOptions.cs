@@ -15,6 +15,7 @@ public sealed class RollbackOptions
     public Random Random { get; init; } = Random.Shared;
     public required int LocalPort { get; init; }
     public int NumberOfPlayers { get; init; }
+    public int NumberOfSpectators { get; init; } = Max.Spectators;
     public int SpectatorOffset { get; init; } = 1000;
 
     public int RecommendationInterval { get; init; } = 240;

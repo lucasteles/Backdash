@@ -6,23 +6,25 @@ namespace nGGPO.Input;
 sealed class InputQueue
 {
     readonly ILogger logger;
-    int head, tail, length;
+    int length;
     bool firstFrame;
+    Frame head, tail;
 
     Frame lastUserAddedFrame, lastAddedFrame, firstIncorrectFrame;
     Frame lastFrameRequested;
 
     public int FrameDelay { get; set; }
 
-    readonly GameInput[] inputs;
+    readonly FrameArray<GameInput> inputs;
     GameInput prediction;
 
-    int PreviousFrame(int offset) => offset == 0 ? inputs.Length - 1 : offset - 1;
+    Frame PreviousFrame(in Frame offset) => offset == 0 ? new(inputs.Length - 1) : offset.Previous;
 
     public InputQueue(int queueSize, ILogger logger)
     {
         this.logger = logger;
-        head = tail = length = FrameDelay = 0;
+        length = FrameDelay = 0;
+        head = tail = Frame.Zero;
         firstFrame = true;
         lastUserAddedFrame = Frame.Null;
         firstIncorrectFrame = Frame.Null;
@@ -33,25 +35,25 @@ sealed class InputQueue
 
         // This is safe because we know the GameInput is a proper structure (as in,
         // no virtual methods, no contained classes, etc.).
-        inputs = new GameInput[queueSize];
-        for (var i = 0; i < inputs.Length; i++)
-            inputs[i] = GameInput.CreateEmpty();
+        inputs = new(queueSize);
+        inputs.Fill(GameInput.CreateEmpty());
     }
 
-    public int GetLastConfirmedFrame()
+
+    public Frame GetLastConfirmedFrame()
     {
         logger.Info($"returning last confirmed frame {lastAddedFrame}.");
         return lastAddedFrame;
     }
 
-    public int GetFirstIncorrectFrame() => firstIncorrectFrame;
+    public Frame GetFirstIncorrectFrame() => firstIncorrectFrame;
 
-    public void DiscardConfirmedFrames(int frame)
+    public void DiscardConfirmedFrames(Frame frame)
     {
-        Tracer.Assert(frame >= 0);
+        Tracer.Assert(frame >= Frame.Zero);
 
         if (lastFrameRequested.IsValid)
-            frame = Math.Min(frame, lastFrameRequested);
+            frame = Frame.Min(in frame, in lastFrameRequested);
 
         logger.Info(
             $"discarding confirmed frames up to {frame} (last_added:{lastAddedFrame} length:{length} [head:{head} tail:{tail}]).");
@@ -60,16 +62,16 @@ sealed class InputQueue
             tail = head;
         else
         {
-            var offset = frame - inputs[tail].Frame.Next;
+            var offset = frame - inputs[in tail].Frame.Next;
 
             logger.Info($"difference of {offset} frames.");
-            Tracer.Assert(offset >= 0);
+            Tracer.Assert(offset >= Frame.Zero);
 
             tail = (tail + offset) % inputs.Length;
-            length -= offset;
+            length -= offset.Number;
         }
 
-        logger.Info($"after discarding, new tail is {tail} (frame:{inputs[tail].Frame}).");
+        logger.Info($"after discarding, new tail is {tail} (frame:{inputs[in tail].Frame}).");
 
         Tracer.Assert(length >= 0);
     }
@@ -93,8 +95,8 @@ sealed class InputQueue
         Tracer.Assert(firstIncorrectFrame.IsNull ||
                       requestedFrame < firstIncorrectFrame);
         var offset = requestedFrame % inputs.Length;
-        if (inputs[offset].Frame != requestedFrame) return false;
-        input = inputs[offset];
+        if (inputs[in offset].Frame != requestedFrame) return false;
+        input = inputs[in offset];
         return true;
     }
 
@@ -111,19 +113,19 @@ sealed class InputQueue
         // this in AddInput() to drop out of prediction mode.
         lastFrameRequested = requestedFrame;
 
-        Tracer.Assert(requestedFrame >= inputs[tail].Frame);
+        Tracer.Assert(requestedFrame >= inputs[in tail].Frame);
 
         if (prediction.Frame.IsNull)
         {
             // If the frame requested is in our range, fetch it out of the queue and
             // return it.
-            var offset = requestedFrame - inputs[tail].Frame;
+            var offset = requestedFrame - inputs[in tail].Frame;
 
             if (offset < length)
             {
                 offset = (offset + tail) % inputs.Length;
-                Tracer.Assert(inputs[offset].Frame == requestedFrame);
-                input = inputs[offset];
+                Tracer.Assert(inputs[in offset].Frame == requestedFrame);
+                input = inputs[in offset];
                 logger.Info($"returning confirmed frame number {input.Frame}.");
                 return true;
             }
@@ -144,10 +146,10 @@ sealed class InputQueue
             else
             {
                 logger.Info(
-                    $"basing new prediction frame from previously added frame (queue entry:{PreviousFrame(head)}, frame:{inputs[PreviousFrame(head)].Frame})"
+                    $"basing new prediction frame from previously added frame (queue entry:{PreviousFrame(in head)}, frame:{inputs[PreviousFrame(in head)].Frame})"
                 );
 
-                prediction = inputs[PreviousFrame(head)];
+                prediction = inputs[PreviousFrame(in head)];
             }
 
             prediction.IncrementFrame();
@@ -196,11 +198,11 @@ sealed class InputQueue
         Tracer.Assert(input.Size == prediction.Size);
         Tracer.Assert(
             lastAddedFrame.IsNull || frameNumber == lastAddedFrame.Next);
-        Tracer.Assert(frameNumber == 0 || inputs[PreviousFrame(head)].Frame == frameNumber - 1);
+        Tracer.Assert(frameNumber == 0 || inputs[PreviousFrame(in head)].Frame == frameNumber - 1);
 
         // Add the frame to the back of the queue
-        inputs[head] = input;
-        inputs[head].Frame = frameNumber;
+        inputs[in head] = input;
+        inputs[in head].Frame = frameNumber;
         head = (head + 1) % inputs.Length;
         length++;
         firstFrame = false;
@@ -243,7 +245,7 @@ sealed class InputQueue
     {
         logger.Info($"advancing queue head to frame {frame}.");
 
-        var expectedFrame = firstFrame ? Frame.Zero : inputs[PreviousFrame(head)].Frame.Next;
+        var expectedFrame = firstFrame ? Frame.Zero : inputs[PreviousFrame(in head)].Frame.Next;
 
         frame += FrameDelay;
 
@@ -263,12 +265,12 @@ sealed class InputQueue
             // last frame in the queue several times in order to fill the space
             // left.
             logger.Info($"Adding padding frame {expectedFrame} to account for change in frame delay.");
-            ref var lastFrame = ref inputs[PreviousFrame(head)];
+            ref var lastFrame = ref inputs[PreviousFrame(in head)];
             AddDelayedInputToQueue(ref lastFrame, expectedFrame);
             expectedFrame++;
         }
 
-        Tracer.Assert(frame == 0 || frame == inputs[PreviousFrame(head)].Frame + 1);
+        Tracer.Assert(frame == 0 || frame == inputs[PreviousFrame(in head)].Frame.Next);
         return frame;
     }
 }

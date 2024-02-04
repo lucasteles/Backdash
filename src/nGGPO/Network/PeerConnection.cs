@@ -69,8 +69,8 @@ sealed class PeerConnection(
         stats.Ping = state.Metrics.RoundTripTime;
         stats.SendQueueLen = inputProcessor.PendingNumber;
         stats.BytesSent = outbox.BytesSent;
-        stats.RemoteFramesBehind = state.Fairness.RemoteFrameAdvantage;
-        stats.LocalFramesBehind = state.Fairness.LocalFrameAdvantage;
+        stats.RemoteFramesBehind = state.Fairness.RemoteFrameAdvantage.Number;
+        stats.LocalFramesBehind = state.Fairness.LocalFrameAdvantage.Number;
     }
 
     public ValueTask SendInputAck(CancellationToken ct)
@@ -79,7 +79,7 @@ sealed class PeerConnection(
         {
             InputAck = new()
             {
-                AckFrame = inbox.LastReceivedInput.Frame,
+                AckFrame = inbox.LastReceivedInput.Frame.Number,
             },
         };
 

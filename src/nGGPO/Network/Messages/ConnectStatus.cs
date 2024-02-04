@@ -1,3 +1,4 @@
+using nGGPO.Data;
 using nGGPO.Serialization;
 using nGGPO.Serialization.Buffer;
 
@@ -6,17 +7,17 @@ namespace nGGPO.Network.Messages;
 record struct ConnectStatus : IBinarySerializable
 {
     public bool Disconnected;
-    public int LastFrame;
+    public Frame LastFrame;
 
     public readonly void Serialize(NetworkBufferWriter writer)
     {
         writer.Write(Disconnected);
-        writer.Write(LastFrame);
+        writer.Write(LastFrame.Number);
     }
 
     public void Deserialize(NetworkBufferReader reader)
     {
         Disconnected = reader.ReadBool();
-        LastFrame = reader.ReadInt();
+        LastFrame = new(reader.ReadInt());
     }
 }
