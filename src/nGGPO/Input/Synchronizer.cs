@@ -16,6 +16,56 @@ sealed class Synchronizer<TState>(
     // uint frameCount
     // readonly uint maxPredictionFrames = 0
 
+    void SetLastConfirmedFrame(int frame)
+    {
+        throw new NotImplementedException();
+    }
+
+    public bool AddLocalInput(QueueIndex queue, GameInput input)
+    {
+        throw new NotImplementedException();
+    }
+
+    bool AddRemoteInput(QueueIndex queue, GameInput input)
+    {
+        throw new NotImplementedException();
+    }
+
+    int GetConfirmedInputs(object values, int size, int frame)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Span<int> SynchronizeInputs<TInput>(TInput[] inputs) where TInput : struct
+    {
+        throw new NotImplementedException();
+    }
+
+    void CheckSimulation(int timeout)
+    {
+        throw new NotImplementedException();
+    }
+
+    void IncrementFrame()
+    {
+        throw new NotImplementedException();
+    }
+
+    void AdjustSimulation(int seekTo)
+    {
+        throw new NotImplementedException();
+    }
+
+    void LoadFrame(int frame)
+    {
+        throw new NotImplementedException();
+    }
+
+    void SaveCurrentFrame()
+    {
+        throw new NotImplementedException();
+    }
+
     public void SetFrameDelay(QueueIndex queue, int delay)
     {
         throw new NotImplementedException();
@@ -26,12 +76,32 @@ sealed class Synchronizer<TState>(
         throw new NotImplementedException();
     }
 
-    public bool AddLocalInput(QueueIndex queue, GameInput input)
+    SavedFrame GetLastSavedFrame()
     {
         throw new NotImplementedException();
     }
 
-    public int[] SynchronizeInputs<TInput>(TInput[] inputs) where TInput : struct
+    int FindSavedFrameIndex(int frame)
+    {
+        throw new NotImplementedException();
+    }
+
+    bool CreateQueues(SynchronizerOptions options)
+    {
+        throw new NotImplementedException();
+    }
+
+    bool CheckSimulationConsistency(ref int seekTo)
+    {
+        throw new NotImplementedException();
+    }
+
+    void SetFrameDelay(int queue, int delay)
+    {
+        throw new NotImplementedException();
+    }
+
+    bool GetEvent(in GameInput e)
     {
         throw new NotImplementedException();
     }

@@ -6,7 +6,7 @@ public interface IRollbackSession<in TInput> : IAsyncDisposable
     Task Start(CancellationToken ct = default);
     ResultCode SetFrameDelay(Player player, int delayInFrames);
     ResultCode SynchronizeInputs(params TInput[] inputs);
-    ResultCode SynchronizeInputs(out int[] disconnectFlags, params TInput[] inputs);
+    ResultCode SynchronizeInputs(out Span<int> disconnectFlags, params TInput[] inputs);
     ValueTask<ResultCode> AddPlayer(Player player, CancellationToken ct);
 
     ValueTask<ResultCode> AddLocalInput(

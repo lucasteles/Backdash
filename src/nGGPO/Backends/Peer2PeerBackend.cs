@@ -194,7 +194,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
 
     public ResultCode SynchronizeInputs(params TInput[] inputs) => SynchronizeInputs(out _, inputs);
 
-    public ResultCode SynchronizeInputs(out int[] disconnectFlags, params TInput[] inputs)
+    public ResultCode SynchronizeInputs(out Span<int> disconnectFlags, params TInput[] inputs)
     {
         if (synchronizing)
         {
