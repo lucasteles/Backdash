@@ -10,24 +10,27 @@ public struct GameInputBuffer
 {
     byte element0;
 
-    public const int Capacity = Max.InputBytes * Max.InputPlayers;
+    public const int Capacity = Max.InputSizeInBytes * Max.LocalPlayers;
 
     public GameInputBuffer(ReadOnlySpan<byte> bits) => bits.CopyTo(this);
 
     public override readonly string ToString() =>
-        Mem.GetBitString(this, splitAt: Max.InputBytes);
+        Mem.GetBitString(this, splitAt: Max.InputSizeInBytes);
 
     public readonly bool Equals(GameInputBuffer other) =>
         Mem.SpanEqual<byte>(this, other, truncate: true);
 
     public static Span<byte> ForPlayer(ref GameInputBuffer buffer, int inputSize, int playerIndex)
     {
+        Tracer.Assert(inputSize <= Max.InputSizeInBytes);
+        Tracer.Assert(playerIndex <= Max.LocalPlayers);
+
         var byteIndex = playerIndex * inputSize;
         return buffer[byteIndex..(byteIndex + inputSize)];
     }
 
     internal static Span<byte> ForPlayer(ref GameInputBuffer buffer, int playerIndex) =>
-        ForPlayer(ref buffer, Max.InputBytes, playerIndex);
+        ForPlayer(ref buffer, Max.InputSizeInBytes, playerIndex);
 }
 
 struct GameInput : IEquatable<GameInput>
@@ -44,7 +47,7 @@ struct GameInput : IEquatable<GameInput>
     public GameInput(in GameInputBuffer inputBuffer, int size)
     {
         ReadOnlySpan<byte> bits = inputBuffer;
-        Tracer.Assert(bits.Length <= Max.InputBytes * Max.MsgPlayers);
+        Tracer.Assert(bits.Length <= Max.InputSizeInBytes * Max.MsgPlayers);
         Tracer.Assert(bits.Length > 0);
         Size = size;
         Buffer = inputBuffer;
@@ -63,16 +66,6 @@ struct GameInput : IEquatable<GameInput>
 #pragma warning disable IDE0251
     public void Erase() => Mem.Clear(Buffer);
 #pragma warning restore IDE0251
-
-    public void ForPlayer(int playerIndex, Span<byte> playerInput)
-    {
-        Tracer.Assert(playerInput.Length >= Size);
-        Tracer.Assert(playerIndex <= Max.InputPlayers);
-
-        GameInputBuffer
-            .ForPlayer(ref Buffer, Size, playerIndex)
-            .CopyTo(playerInput);
-    }
 
     public override readonly string ToString()
     {

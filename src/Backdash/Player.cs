@@ -13,10 +13,10 @@ interface IRemote
     IPEndPoint EndPoint { get; }
 }
 
-public readonly record struct PlayerId(int Value)
+public readonly record struct PlayerIndex(int Value)
 {
     internal QueueIndex QueueNumber { get; } = new(Value - 1);
-    public static PlayerId Empty { get; } = new(-1);
+    public static PlayerIndex Empty { get; } = new(-1);
 }
 
 public enum PlayerType
@@ -30,10 +30,10 @@ public abstract class Player(PlayerType type, int playerNumber)
 {
     public PlayerType Type { get; } = type;
     public int PlayerNumber { get; } = playerNumber;
-    public PlayerId Id { get; private set; } = new(playerNumber);
-    internal QueueIndex QueueNumber => Id.QueueNumber;
+    public PlayerIndex Index { get; private set; } = new(playerNumber);
+    internal QueueIndex QueueNumber => Index.QueueNumber;
 
-    public static implicit operator PlayerId(Player player) => player.Id;
+    public static implicit operator PlayerIndex(Player player) => player.Index;
 
     public sealed class Local(int playerNumber) : Player(PlayerType.Local, playerNumber);
 

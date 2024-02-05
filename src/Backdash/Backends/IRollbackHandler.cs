@@ -13,7 +13,7 @@ public interface IRollbackHandler<TGameState> where TGameState : notnull
      * length into the *len parameter.  Optionally, the client can compute
      * a checksum of the data and store it in the *checksum argument.
      */
-    bool SaveGameState(int frame, out SavedGameState<TGameState> buffer);
+    bool SaveGameState(int frame, ref int checksum, out TGameState buffer);
 
     /*
      * Backdash will call this function at the beginning
@@ -35,10 +35,8 @@ public interface IRollbackHandler<TGameState> where TGameState : notnull
      * to retrieve the inputs you should use for that frame.  After each frame,
      * you should call AdvanceFrame to notify Backdash that you're
      * finished.
-     *
-     * The flags parameter is reserved.  It can safely be ignored at this time.
      */
-    bool AdvanceFrame(int flags);
+    bool AdvanceFrame();
 
     /*
      * Notification that something has happened.

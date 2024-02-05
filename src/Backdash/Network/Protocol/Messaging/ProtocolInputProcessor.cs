@@ -43,7 +43,7 @@ sealed class ProtocolInputProcessor(
     public GameInput LastSent { get; private set; } = GameInput.CreateEmpty();
 
     static ProtocolInputProcessor() =>
-        Tracer.Assert(Max.InputBytes * Max.MsgPlayers * ByteSize.ByteToBits < 1 << BitOffsetWriter.NibbleSize);
+        Tracer.Assert(Max.InputSizeInBytes * Max.MsgPlayers * ByteSize.ByteToBits < 1 << BitOffsetWriter.NibbleSize);
 
     public async ValueTask SendInput(
         GameInput input,

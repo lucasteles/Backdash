@@ -75,7 +75,7 @@ sealed class InputQueue
         Tracer.Assert(length >= 0);
     }
 
-    public void ResetPrediction(Frame frame)
+    public void ResetPrediction(in Frame frame)
     {
         Tracer.Assert(firstIncorrectFrame.IsNull
                       || frame <= firstIncorrectFrame);
@@ -89,12 +89,14 @@ sealed class InputQueue
         lastFrameRequested = Frame.Null;
     }
 
-    public bool GetConfirmedInput(Frame requestedFrame, ref GameInput input)
+    public bool GetConfirmedInput(in Frame requestedFrame, ref GameInput input)
     {
         Tracer.Assert(firstIncorrectFrame.IsNull ||
                       requestedFrame < firstIncorrectFrame);
         var offset = requestedFrame % inputs.Length;
-        if (inputs[in offset].Frame != requestedFrame) return false;
+        if (inputs[in offset].Frame != requestedFrame)
+            return false;
+
         input = inputs[in offset];
         return true;
     }

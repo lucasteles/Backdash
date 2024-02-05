@@ -15,6 +15,6 @@ sealed class ConnectionStatuses()
             Statuses[i].LastFrame = lastFrame;
     }
 
-    public ref ConnectStatus this[QueueIndex queue] => ref Statuses[queue.Value];
+    public ref ConnectStatus this[QueueIndex queue] => ref Statuses[queue.Number];
     public ref ConnectStatus this[int index] => ref Statuses[index];
 }

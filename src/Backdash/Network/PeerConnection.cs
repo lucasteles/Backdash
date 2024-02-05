@@ -69,6 +69,7 @@ sealed class PeerConnection(
         stats.Ping = state.Metrics.RoundTripTime;
         stats.SendQueueLen = inputProcessor.PendingNumber;
         stats.BytesSent = outbox.BytesSent;
+        stats.PacketsSent = outbox.PacketsSent;
         stats.RemoteFramesBehind = state.Fairness.RemoteFrameAdvantage.Number;
         stats.LocalFramesBehind = state.Fairness.LocalFrameAdvantage.Number;
     }

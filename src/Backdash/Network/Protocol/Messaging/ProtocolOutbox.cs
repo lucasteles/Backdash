@@ -10,6 +10,8 @@ namespace Backdash.Network.Protocol.Messaging;
 interface IProtocolOutbox : IMessageSender, IBackgroundJob, IDisposable
 {
     public ByteSize BytesSent { get; }
+
+    public int PacketsSent { get; }
 }
 
 sealed class ProtocolOutbox(
@@ -42,7 +44,8 @@ sealed class ProtocolOutbox(
 
     readonly ushort magicNumber = random.MagicNumber();
 
-    int packetsSent;
+    public int PacketsSent { get; private set; }
+
     int nextSendSeq;
 
 
@@ -53,7 +56,7 @@ sealed class ProtocolOutbox(
 
     QueueEntry CreateNextEntry(ref ProtocolMessage msg)
     {
-        packetsSent++;
+        PacketsSent++;
         LastSendTime = clock.GetMilliseconds();
 
         msg.Header.Magic = magicNumber;

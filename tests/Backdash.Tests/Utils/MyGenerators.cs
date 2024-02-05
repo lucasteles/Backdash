@@ -253,7 +253,7 @@ class MyGenerators
     public static Arbitrary<PendingGameInputs> PendingGameInputBufferGenerator() =>
         Gen.Sized(testSize =>
             {
-                var size = Math.Clamp(testSize, 1, Max.InputBytes);
+                var size = Math.Clamp(testSize, 1, Max.InputSizeInBytes);
                 var index = 1;
                 var indexed = Arb.From<GameInput>().Generator.Select(gi =>
                 {

@@ -15,7 +15,6 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
     where TGameState : notnull
 {
     readonly IBinarySerializer<TInput> inputSerializer;
-    readonly IRollbackHandler<TGameState> callbacks;
 
     readonly IUdpClient<ProtocolMessage> udp;
     readonly UdpObserverGroup<ProtocolMessage> udpObservers;
@@ -45,25 +44,32 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
         ThrowHelpers.ThrowIfArgumentIsNegativeOrZero(options.LocalPort);
         ThrowHelpers.ThrowIfArgumentIsNegativeOrZero(options.NumberOfPlayers);
         ThrowHelpers.ThrowIfTypeTooBigForStack<GameInput>();
-        ThrowHelpers.ThrowIfTypeSizeGreaterThan<GameInput>(Max.InputBytes * Max.InputPlayers * 2);
+        ThrowHelpers.ThrowIfTypeSizeGreaterThan<GameInput>(Max.InputSizeInBytes * Max.LocalPlayers * 2);
         ThrowHelpers.ThrowIfTypeTooBigForStack<TInput>();
 
         var inputTypeSize = inputSerializer.GetTypeSize();
-        ThrowHelpers.ThrowIfArgumentOutOfBounds(inputTypeSize, 1, Max.InputBytes);
+        ThrowHelpers.ThrowIfArgumentOutOfBounds(inputTypeSize, 1, Max.InputSizeInBytes);
 
         this.options = options;
         this.inputSerializer = inputSerializer;
-        this.callbacks = callbacks;
         this.backgroundJobManager = backgroundJobManager;
         this.logger = logger;
 
         this.options.InputSize = inputTypeSize;
 
         localConnections = new();
-        synchronizer = new(this.options, this.logger, localConnections);
+        udpObservers = new();
         spectators = new(options.NumberOfSpectators);
         endpoints = new(this.options.NumberOfPlayers);
-        udpObservers = new();
+
+        synchronizer = new(
+            this.options,
+            callbacks,
+            this.logger,
+            this.inputSerializer,
+            localConnections
+        );
+
         udp = udpClientFactory.CreateClient(
             this.options.LocalPort,
             this.options.EnableEndianness,
@@ -107,7 +113,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
     {
         ArgumentNullException.ThrowIfNull(player);
 
-        var result = PlayerIdToQueue(player.Id, out var queue);
+        var result = PlayerIdToQueue(player.Index, out var queue);
 
         if (result.IsFailure())
             return result;
@@ -117,7 +123,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
         return ResultCode.Ok;
     }
 
-    public ResultCode TryAddLocalInput(PlayerId player, TInput localInput)
+    public ResultCode TryAddLocalInput(PlayerIndex player, TInput localInput)
     {
         var localInputResult = CreateGameInput(player, localInput, out var input);
         if (localInputResult.IsFailure())
@@ -143,7 +149,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
     }
 
     public async ValueTask<ResultCode> AddLocalInput(
-        PlayerId player,
+        PlayerIndex player,
         TInput localInput,
         CancellationToken stoppingToken = default)
     {
@@ -158,7 +164,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
         return ResultCode.Ok;
     }
 
-    ResultCode CreateGameInput(PlayerId player, TInput localInput, out GameInput input)
+    ResultCode CreateGameInput(PlayerIndex player, TInput localInput, out GameInput input)
     {
         if (synchronizer.InRollback())
         {
@@ -196,26 +202,21 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
         return ResultCode.Ok;
     }
 
-    public SynchronizeResult SynchronizeInputs(ref TInput[] inputs)
+    public SynchronizeResult SynchronizeInputs(Span<TInput> inputs)
     {
         if (synchronizing)
-        {
             return new(ResultCode.NotSynchronized, default);
-        }
 
-
-        //TODO fix this
-        // disconnectFlags = synchronizer.SynchronizeInputs(input.Buffer);
-
-        return new(ResultCode.Ok, default);
+        var disconnectFlags = synchronizer.SynchronizeInputs(inputs);
+        return new(ResultCode.Ok, disconnectFlags);
     }
 
-    ResultCode PlayerIdToQueue(in PlayerId player, out QueueIndex queue)
+    ResultCode PlayerIdToQueue(in PlayerIndex player, out QueueIndex queue)
     {
         var offset = player.QueueNumber;
-        if (offset.Value < 0 || offset.Value >= options.NumberOfPlayers)
+        if (offset.Number < 0 || offset.Number >= options.NumberOfPlayers)
         {
-            queue = PlayerId.Empty.QueueNumber;
+            queue = PlayerIndex.Empty.QueueNumber;
             return ResultCode.InvalidPlayerHandle;
         }
 
@@ -284,6 +285,6 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput>
 
     public Task Start(CancellationToken ct = default) => backgroundJobManager.Start(ct);
 
-    PlayerId QueueToSpectatorHandle(int queue) =>
+    PlayerIndex QueueToSpectatorHandle(int queue) =>
         new(queue + options.SpectatorOffset); /* out of range of the player array, basically */
 }
