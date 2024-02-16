@@ -1,5 +1,6 @@
-﻿using System.Net;
+using System.Net;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 
 namespace Backdash.Network.Client;
 
@@ -14,6 +15,12 @@ interface IUdpSocket : IDisposable
 
 sealed class UdpSocket : IUdpSocket
 {
+    // ReSharper disable InconsistentNaming
+    const uint IOC_IN = 0x80000000;
+    const uint IOC_VENDOR = 0x18000000;
+    const uint SIO_UDP_CONN_RESET = IOC_IN | IOC_VENDOR | 12;
+    // ReSharper enable InconsistentNaming
+
     readonly Socket socket;
     public int Port { get; }
 
@@ -34,6 +41,23 @@ sealed class UdpSocket : IUdpSocket
             Blocking = false,
         };
 
+        socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.PacketInformation, true);
+        socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+
+        try
+        {
+            socket.LingerState = new LingerOption(false, 0);
+        }
+        catch
+        {
+            // skip
+        }
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            socket.IOControl((IOControlCode)SIO_UDP_CONN_RESET, [0, 0, 0, 0,], null);
+        }
+
         IPEndPoint localEp = new(IPAddress.Any, port);
         socket.Bind(localEp);
     }
@@ -44,5 +68,11 @@ sealed class UdpSocket : IUdpSocket
     public ValueTask<int> SendToAsync(ReadOnlyMemory<byte> payload, SocketAddress peerAddress, CancellationToken ct) =>
         socket.SendToAsync(payload, SocketFlags.None, peerAddress, ct);
 
-    public void Dispose() => socket.Dispose();
+    public void Dispose()
+    {
+        if (socket.Connected)
+            socket.Close();
+
+        socket.Dispose();
+    }
 }

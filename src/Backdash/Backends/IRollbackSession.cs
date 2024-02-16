@@ -1,18 +1,21 @@
-using Backdash.Input;
+using Backdash.Network;
 
 namespace Backdash.Backends;
 
-public interface IRollbackSession<TInput> : IAsyncDisposable
+public interface IRollbackSession<TInput, TState> : IDisposable
     where TInput : struct
+    where TState : notnull
 {
-    Task Start(CancellationToken ct = default);
-    ResultCode SetFrameDelay(Player player, int delayInFrames);
-    SynchronizeResult SynchronizeInputs(Span<TInput> inputs);
-    ValueTask<ResultCode> AddPlayer(Player player, CancellationToken ct);
+    ResultCode SynchronizeInputs(Span<TInput> inputs);
+    ResultCode AddPlayer(Player player);
+    ResultCode AddLocalInput(PlayerHandle player, TInput localInput);
 
-    ValueTask<ResultCode> AddLocalInput(
-        PlayerIndex player, TInput localInput, CancellationToken stoppingToken = default
-    );
-
-    ResultCode TryAddLocalInput(PlayerIndex player, TInput localInput);
+    void BeginFrame();
+    void AdvanceFrame();
+    bool IsConnected(in PlayerHandle player);
+    bool GetInfo(in PlayerHandle player, ref RollbackSessionInfo info);
+    void SetHandler(IRollbackHandler<TState> handler);
+    void SetFrameDelay(PlayerHandle player, int delayInFrames);
+    void Start(CancellationToken stoppingToken = default);
+    Task WaitToStop(CancellationToken stoppingToken = default);
 }

@@ -65,7 +65,7 @@ public readonly ref struct NetworkBufferReader
     {
         var value = BitConverter.ToInt16(CurrentBuffer);
         Advance(sizeof(short));
-        return Network ? Endianness.ToHost(value) : value;
+        return Network ? Endianness.ToHost(in value) : value;
     }
 
     public void ReadShort(in Span<short> values, int size = FullSize)
@@ -79,7 +79,7 @@ public readonly ref struct NetworkBufferReader
         var value = BitConverter.ToUInt16(CurrentBuffer);
         Advance(sizeof(ushort));
 
-        return Network ? Endianness.ToHost(value) : value;
+        return Network ? Endianness.ToHost(in value) : value;
     }
 
     public void ReadUShort(in Span<ushort> values, int size = FullSize)
@@ -92,7 +92,7 @@ public readonly ref struct NetworkBufferReader
     {
         var value = BitConverter.ToChar(CurrentBuffer);
         Advance(sizeof(char));
-        return Network ? Endianness.ToHost(value) : value;
+        return Network ? Endianness.ToHost(in value) : value;
     }
 
     public void ReadChar(in Span<char> values, int size = FullSize)
@@ -105,7 +105,7 @@ public readonly ref struct NetworkBufferReader
     {
         var value = BitConverter.ToInt32(CurrentBuffer);
         Advance(sizeof(int));
-        return Network ? Endianness.ToHost(value) : value;
+        return Network ? Endianness.ToHost(in value) : value;
     }
 
     public void ReadInt(in Span<int> values, int size = FullSize)
@@ -119,7 +119,7 @@ public readonly ref struct NetworkBufferReader
         var value = BitConverter.ToUInt32(CurrentBuffer);
         Advance(sizeof(uint));
 
-        return Network ? Endianness.ToHost(value) : value;
+        return Network ? Endianness.ToHost(in value) : value;
     }
 
     public void ReadUInt(in Span<uint> values, int size = FullSize)
@@ -132,7 +132,7 @@ public readonly ref struct NetworkBufferReader
     {
         var value = BitConverter.ToInt64(CurrentBuffer);
         Advance(sizeof(long));
-        return Network ? Endianness.ToHost(value) : value;
+        return Network ? Endianness.ToHost(in value) : value;
     }
 
     public void ReadLong(in Span<long> values, int size = FullSize)
@@ -146,7 +146,7 @@ public readonly ref struct NetworkBufferReader
         var value = BitConverter.ToUInt64(CurrentBuffer);
         Advance(sizeof(ulong));
 
-        return Network ? Endianness.ToHost(value) : value;
+        return Network ? Endianness.ToHost(in value) : value;
     }
 
     public void ReadULong(in Span<ulong> values, int size = FullSize)
@@ -160,7 +160,7 @@ public readonly ref struct NetworkBufferReader
         var value = ToInt128(CurrentBuffer);
         Advance(Unsafe.SizeOf<Int128>());
 
-        return Network ? Endianness.ToHost(value) : value;
+        return Network ? Endianness.ToHost(in value) : value;
 
         static Int128 ToInt128(ReadOnlySpan<byte> value)
         {
@@ -182,7 +182,7 @@ public readonly ref struct NetworkBufferReader
         var value = ToUInt128(CurrentBuffer);
         Advance(Unsafe.SizeOf<UInt128>());
 
-        return Network ? Endianness.ToHost(value) : value;
+        return Network ? Endianness.ToHost(in value) : value;
 
         static UInt128 ToUInt128(ReadOnlySpan<byte> value)
         {

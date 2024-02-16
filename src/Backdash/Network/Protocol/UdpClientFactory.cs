@@ -1,4 +1,4 @@
-﻿using Backdash.Core;
+using Backdash.Core;
 using Backdash.Network.Client;
 using Backdash.Network.Messages;
 using Backdash.Network.Protocol.Messaging;
@@ -12,7 +12,7 @@ interface IUdpClientFactory
         bool enableEndianness,
         int maxPacketSize,
         IUdpObserver<ProtocolMessage> observer,
-        ILogger logger
+        Logger logger
     );
 }
 
@@ -23,7 +23,7 @@ sealed class UdpClientFactory : IUdpClientFactory
         bool enableEndianness,
         int maxPacketSize,
         IUdpObserver<ProtocolMessage> observer,
-        ILogger logger
+        Logger logger
     )
     {
         UdpClient<ProtocolMessage> udpClient = new(

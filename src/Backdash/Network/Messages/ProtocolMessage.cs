@@ -4,8 +4,8 @@ using Backdash.Serialization.Buffer;
 
 namespace Backdash.Network.Messages;
 
-[StructLayout(LayoutKind.Explicit)]
-struct ProtocolMessage(MsgType type) : IBinarySerializable, IEquatable<ProtocolMessage>
+[StructLayout(LayoutKind.Explicit, Pack = 2)]
+struct ProtocolMessage(MsgType type) : IBinarySerializable, IEquatable<ProtocolMessage>, IUtf8SpanFormattable
 {
     [FieldOffset(0)]
     public Header Header = new(type);
@@ -29,7 +29,7 @@ struct ProtocolMessage(MsgType type) : IBinarySerializable, IEquatable<ProtocolM
     public KeepAlive KeepAlive;
 
     [FieldOffset(Header.Size)]
-    public InputMsg Input;
+    public InputMessage Input;
 
     public readonly void Serialize(NetworkBufferWriter writer)
     {
@@ -93,6 +93,42 @@ struct ProtocolMessage(MsgType type) : IBinarySerializable, IEquatable<ProtocolM
             default:
                 throw new InvalidOperationException();
         }
+    }
+
+    public override readonly string ToString()
+    {
+        var info =
+            Header.Type switch
+            {
+                MsgType.SyncRequest => SyncRequest.ToString(),
+                MsgType.SyncReply => SyncReply.ToString(),
+                MsgType.Input => Input.ToString(),
+                MsgType.QualityReport => QualityReport.ToString(),
+                MsgType.QualityReply => QualityReply.ToString(),
+                MsgType.KeepAlive => KeepAlive.ToString(),
+                MsgType.InputAck => InputAck.ToString(),
+                MsgType.Invalid => "{}",
+                _ => "unknown",
+            };
+        return $"ProtocolMessage({Header.Type}) = {info}";
+    }
+
+    public readonly string ToString(string? format, IFormatProvider? formatProvider) => ToString();
+
+    public readonly bool TryFormat(
+        Span<byte> utf8Destination, out int bytesWritten,
+        ReadOnlySpan<char> format, IFormatProvider? provider
+    )
+    {
+        bytesWritten = 0;
+        Utf8StringWriter writer = new(in utf8Destination, ref bytesWritten);
+        writer.WriteEnum(Header.Type);
+
+        if (!writer.Write("Msg("u8)) return false;
+        if (!writer.WriteEnum(Header.Type)) return false;
+        if (!writer.Write(")"u8)) return false;
+
+        return true;
     }
 
     public readonly bool Equals(ProtocolMessage other) =>

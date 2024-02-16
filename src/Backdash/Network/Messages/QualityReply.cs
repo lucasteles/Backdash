@@ -7,11 +7,11 @@ namespace Backdash.Network.Messages;
 [StructLayout(LayoutKind.Sequential)]
 record struct QualityReply : IBinarySerializable
 {
-    public uint Pong;
+    public long Pong;
 
     public readonly void Serialize(NetworkBufferWriter writer) =>
-        writer.Write(Pong);
+        writer.Write(in Pong);
 
     public void Deserialize(NetworkBufferReader reader) =>
-        Pong = reader.ReadUInt();
+        Pong = reader.ReadLong();
 }

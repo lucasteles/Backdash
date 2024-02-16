@@ -4,20 +4,20 @@ using Backdash.Serialization.Buffer;
 
 namespace Backdash.Network.Messages;
 
-[StructLayout(LayoutKind.Sequential, Size = Size)]
+[StructLayout(LayoutKind.Sequential, Size = Size, Pack = 2)]
 record struct Header(MsgType Type) : IBinarySerializable
 {
     public MsgType Type = Type;
-    public ushort Magic;
-    public ushort SequenceNumber;
+    public ushort Magic = 0;
+    public ushort SequenceNumber = 0;
 
-    public const int Size = sizeof(byte) + sizeof(ushort) + sizeof(ushort);
+    public const int Size = 6;
 
     public readonly void Serialize(NetworkBufferWriter writer)
     {
         writer.Write((byte)Type);
-        writer.Write(Magic);
-        writer.Write(SequenceNumber);
+        writer.Write(in Magic);
+        writer.Write(in SequenceNumber);
     }
 
     public void Deserialize(NetworkBufferReader reader)

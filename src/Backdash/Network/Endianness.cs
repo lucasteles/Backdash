@@ -8,7 +8,7 @@ public static class Endianness
 {
     public static readonly bool IsLittleEndian = BitConverter.IsLittleEndian;
 
-    public static char ToHost(char value) => IsLittleEndian
+    public static char ToHost(in char value) => IsLittleEndian
         ? (char)BinaryPrimitives.ReverseEndianness(value)
         : value;
 
@@ -22,7 +22,7 @@ public static class Endianness
 
     public static void ToHost(Span<char> value) => ToHost(value, value);
 
-    public static short ToHost(short value) => IsLittleEndian
+    public static short ToHost(in short value) => IsLittleEndian
         ? BinaryPrimitives.ReverseEndianness(value)
         : value;
 
@@ -33,7 +33,7 @@ public static class Endianness
 
     public static void ToHost(Span<short> value) => ToHost(value, value);
 
-    public static ushort ToHost(ushort value) => IsLittleEndian
+    public static ushort ToHost(in ushort value) => IsLittleEndian
         ? BinaryPrimitives.ReverseEndianness(value)
         : value;
 
@@ -44,7 +44,7 @@ public static class Endianness
 
     public static void ToHost(Span<ushort> value) => ToHost(value, value);
 
-    public static int ToHost(int value) => IsLittleEndian
+    public static int ToHost(in int value) => IsLittleEndian
         ? BinaryPrimitives.ReverseEndianness(value)
         : value;
 
@@ -55,7 +55,7 @@ public static class Endianness
 
     public static void ToHost(Span<int> value) => ToHost(value, value);
 
-    public static uint ToHost(uint value) => IsLittleEndian
+    public static uint ToHost(in uint value) => IsLittleEndian
         ? BinaryPrimitives.ReverseEndianness(value)
         : value;
 
@@ -66,7 +66,7 @@ public static class Endianness
 
     public static void ToHost(Span<uint> value) => ToHost(value, value);
 
-    public static long ToHost(long value) => IsLittleEndian
+    public static long ToHost(in long value) => IsLittleEndian
         ? BinaryPrimitives.ReverseEndianness(value)
         : value;
 
@@ -77,7 +77,7 @@ public static class Endianness
 
     public static void ToHost(Span<long> value) => ToHost(value, value);
 
-    public static ulong ToHost(ulong value) => IsLittleEndian
+    public static ulong ToHost(in ulong value) => IsLittleEndian
         ? BinaryPrimitives.ReverseEndianness(value)
         : value;
 
@@ -88,7 +88,7 @@ public static class Endianness
 
     public static void ToHost(Span<ulong> value) => ToHost(value, value);
 
-    public static Int128 ToHost(Int128 value) => IsLittleEndian
+    public static Int128 ToHost(in Int128 value) => IsLittleEndian
         ? BinaryPrimitives.ReverseEndianness(value)
         : value;
 
@@ -99,7 +99,7 @@ public static class Endianness
 
     public static void ToHost(Span<Int128> value) => ToHost(value, value);
 
-    public static UInt128 ToHost(UInt128 value) => IsLittleEndian
+    public static UInt128 ToHost(in UInt128 value) => IsLittleEndian
         ? BinaryPrimitives.ReverseEndianness(value)
         : value;
 
@@ -116,32 +116,32 @@ public static class Endianness
         return Unsafe.As<TFrom, TTo>(ref valueRef);
     }
 
-    public static T ToHostOrder<T>(T value) where T : unmanaged =>
+    public static T ToHostOrder<T>(in T value) where T : unmanaged =>
         value switch
         {
-            char n => As<char, T>(ToHost(n)),
-            short n => As<short, T>(ToHost(n)),
-            ushort n => As<ushort, T>(ToHost(n)),
-            int n => As<int, T>(ToHost(n)),
-            uint n => As<uint, T>(ToHost(n)),
-            long n => As<long, T>(ToHost(n)),
-            ulong n => As<ulong, T>(ToHost(n)),
-            Int128 n => As<Int128, T>(ToHost(n)),
-            UInt128 n => As<UInt128, T>(ToHost(n)),
+            char n => As<char, T>(ToHost(in n)),
+            short n => As<short, T>(ToHost(in n)),
+            ushort n => As<ushort, T>(ToHost(in n)),
+            int n => As<int, T>(ToHost(in n)),
+            uint n => As<uint, T>(ToHost(in n)),
+            long n => As<long, T>(ToHost(in n)),
+            ulong n => As<ulong, T>(ToHost(in n)),
+            Int128 n => As<Int128, T>(ToHost(in n)),
+            UInt128 n => As<UInt128, T>(ToHost(in n)),
             _ => value,
         };
 
     #region HostToNetwork
 
-    public static char ToNetwork(char value) => ToHost(value);
-    public static short ToNetwork(short value) => ToHost(value);
-    public static ushort ToNetwork(ushort value) => ToHost(value);
-    public static int ToNetwork(int value) => ToHost(value);
-    public static uint ToNetwork(uint value) => ToHost(value);
-    public static long ToNetwork(long value) => ToHost(value);
-    public static ulong ToNetwork(ulong value) => ToHost(value);
-    public static Int128 ToNetwork(Int128 value) => ToHost(value);
-    public static UInt128 ToNetwork(UInt128 value) => ToHost(value);
+    public static char ToNetwork(in char value) => ToHost(in value);
+    public static short ToNetwork(in short value) => ToHost(in value);
+    public static ushort ToNetwork(in ushort value) => ToHost(in value);
+    public static int ToNetwork(in int value) => ToHost(in value);
+    public static uint ToNetwork(in uint value) => ToHost(in value);
+    public static long ToNetwork(in long value) => ToHost(in value);
+    public static ulong ToNetwork(in ulong value) => ToHost(in value);
+    public static Int128 ToNetwork(in Int128 value) => ToHost(in value);
+    public static UInt128 ToNetwork(in UInt128 value) => ToHost(in value);
 
     public static void ToNetwork(ReadOnlySpan<char> value, Span<char> destination) =>
         ToHost(value, destination);
@@ -170,7 +170,7 @@ public static class Endianness
     public static void ToNetwork(ReadOnlySpan<UInt128> value, Span<UInt128> destination) =>
         ToHost(value, destination);
 
-    public static T ToNetworkOrder<T>(T value) where T : unmanaged => ToHostOrder(value);
+    public static T ToNetworkOrder<T>(in T value) where T : unmanaged => ToHostOrder(in value);
 
     #endregion
 }

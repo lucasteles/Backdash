@@ -5,13 +5,12 @@ namespace Backdash;
 
 static class Extensions
 {
-    public static bool IsSuccess(this ResultCode code) => code is ResultCode.Ok;
-    public static bool IsFailure(this ResultCode code) => !code.IsSuccess();
+    public static bool IsOk(this ResultCode code) => code is ResultCode.Ok;
 
     public static void AssertTrue(this bool value, [CallerMemberName] string? source = null)
     {
         if (!value)
-            throw new BackdashException($"Invalid assertion at {source}");
+            throw new BackdashException($"Unexpected behavior at {source}");
     }
 
     public static double NextGaussian(this Random random)
@@ -27,5 +26,13 @@ static class Extensions
 
         var fac = Math.Sqrt(-2.0 * Math.Log(s) / s);
         return u * fac;
+    }
+
+    public static void EnqueueNext<T>(this Queue<T> queue, in T value)
+    {
+        var count = queue.Count;
+        queue.Enqueue(value);
+        for (var i = 0; i < count; i++)
+            queue.Enqueue(queue.Dequeue());
     }
 }

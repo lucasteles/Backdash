@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -7,57 +8,77 @@ public enum LogLevel : byte
 {
     Off,
     Trace,
+    Debug,
     Information,
     Warning,
     Error,
 }
 
-[InterpolatedStringHandler]
-public readonly ref struct LogStringHandler
+public interface ILogWriter
 {
-    readonly StringBuilder? builder;
-
-    public LogStringHandler(int literalLength, int formattedCount)
-    {
-        builder = new(literalLength);
-
-        builder.Append('[');
-        builder.Append(Environment.CurrentManagedThreadId);
-        builder.Append(']');
-        builder.Append(' ');
-    }
-
-    public void AppendLiteral(string s) => builder?.Append(s);
-
-    public void AppendFormatted<T>(T t) => builder?.Append(t);
-
-    internal string GetFormattedText() => builder is null ? string.Empty : builder.ToString();
+    void Write(LogLevel level, string text);
+    void Write(LogLevel level, char[] chars, int size);
 }
 
-public interface ILogger
+sealed class Logger(LogLevel level, ILogWriter writer)
 {
-    LogLevel EnabledLevel { get; init; }
-    void Message(LogLevel level, LogStringHandler builder);
+    public readonly LogLevel EnabledLevel = level;
 
-    internal void Trace(LogStringHandler builder) => Message(LogLevel.Trace, builder);
-    internal void Info(LogStringHandler builder) => Message(LogLevel.Information, builder);
-    internal void Warn(LogStringHandler builder) => Message(LogLevel.Warning, builder);
-    internal void Error(LogStringHandler builder) => Message(LogLevel.Error, builder);
+    readonly ArrayPool<char> pool = ArrayPool<char>.Shared;
 
-    internal void Error(Exception e, LogStringHandler builder)
+    public void Write(
+        LogLevel level,
+        [InterpolatedStringHandlerArgument("", "level")]
+        LogInterpolatedStringHandler builder
+    )
     {
-        builder.AppendLiteral(e.Message);
-        Error(builder);
+        if (!builder.Enabled || EnabledLevel is LogLevel.Off || level < EnabledLevel) return;
+        Span<byte> utf8Bytes = builder.Buffer[..builder.Length];
+        var charCount = Encoding.UTF8.GetCharCount(utf8Bytes);
+        var buffer = pool.Rent(charCount);
+        try
+        {
+            Encoding.UTF8.GetChars(utf8Bytes, buffer);
+            writer.Write(level, buffer, builder.Length);
+        }
+        finally
+        {
+            pool.Return(buffer);
+        }
     }
-}
 
-sealed class ConsoleLogger : ILogger
-{
-    public required LogLevel EnabledLevel { get; init; }
-
-    public void Message(LogLevel level, LogStringHandler builder)
+    public void Write(LogLevel level, string text)
     {
         if (EnabledLevel is LogLevel.Off || level < EnabledLevel) return;
-        Console.WriteLine(builder.GetFormattedText());
+        writer.Write(level, text);
     }
+
+    internal static Logger CreateConsoleLogger(LogLevel level) => new(level, new ConsoleLogWriter());
+}
+
+sealed class ConsoleLogWriter : ILogWriter
+{
+    public void Write(LogLevel level, string text)
+    {
+        WriteLevel(in level);
+        Console.Out.WriteLine(text);
+    }
+
+    public void Write(LogLevel level, char[] chars, int size)
+    {
+        WriteLevel(in level);
+        Console.Out.WriteLine(chars, 0, size);
+    }
+
+    void WriteLevel(in LogLevel level) =>
+        Console.Out.Write(level switch
+        {
+            LogLevel.Trace => "trc: ",
+            LogLevel.Debug => "dbg: ",
+            LogLevel.Information => "inf: ",
+            LogLevel.Warning => "warn: ",
+            LogLevel.Error => "err: ",
+            LogLevel.Off => throw new InvalidOperationException(),
+            _ => "",
+        });
 }

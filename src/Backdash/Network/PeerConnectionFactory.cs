@@ -1,50 +1,40 @@
 using Backdash.Core;
-using Backdash.Input;
 using Backdash.Network.Client;
 using Backdash.Network.Messages;
 using Backdash.Network.Protocol;
-using Backdash.Network.Protocol.Events;
 using Backdash.Network.Protocol.Messaging;
+using Backdash.Sync;
 
 namespace Backdash.Network;
 
 static class PeerConnectionFactory
 {
-    public static PeerConnection CreateDefault(Random defaultRandom, ILogger logger,
+    public static PeerConnection CreateDefault(
+        ProtocolState state,
+        Random defaultRandom,
+        Logger logger,
         IBackgroundJobManager jobManager,
         IUdpClient<ProtocolMessage> udp,
-        ConnectionStatuses localConnections,
+        IProtocolEventQueue eventQueue,
         ProtocolOptions options,
-        TimeSyncOptions timeSyncOptions)
+        TimeSyncOptions timeSyncOptions
+    )
     {
         TimeSync timeSync = new(timeSyncOptions, logger);
-        InputEncoder inputEncoder = new();
-        ProtocolState state = new(localConnections, udp.Port);
-        ProtocolLogger udpLogger = new(logger);
-        ProtocolEventDispatcher eventDispatcher = new(udpLogger);
         CryptographyRandomNumberGenerator random = new(defaultRandom);
         Clock clock = new();
         DelayStrategy delayStrategy = new(random);
-
-        ProtocolOutbox outbox = new(options, udp, delayStrategy, random, clock, udpLogger);
+        ProtocolOutbox outbox = new(state, options, udp, delayStrategy, random, clock, logger);
+        ProtocolSyncManager syncManager = new(logger, clock, random, jobManager, state, options, outbox);
         ProtocolInbox inbox = new(
-            options, state, random, clock, outbox, inputEncoder, eventDispatcher, udpLogger, logger
+            options, state, clock, syncManager, outbox, eventQueue, logger
         );
-        ProtocolInputProcessor inputProcessor = new(options, state, localConnections, logger,
-            inputEncoder, timeSync, outbox, inbox);
-
-        jobManager.Register(outbox);
-        jobManager.Register(inputProcessor);
+        ProtocolInputBuffer inputBuffer = new(options, state, logger, timeSync, outbox, inbox);
+        jobManager.Register(outbox, state.StoppingToken);
 
         return new(
-            options,
-            state,
-            random,
-            clock,
-            timeSync,
-            inbox,
-            outbox,
-            inputProcessor
+            options, state, logger, clock, timeSync, eventQueue,
+            syncManager, inbox, outbox, inputBuffer
         );
     }
 }

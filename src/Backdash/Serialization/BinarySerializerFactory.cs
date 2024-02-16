@@ -24,7 +24,7 @@ static class BinarySerializerFactory
         where TUnderType : unmanaged, IBinaryInteger<TUnderType> =>
         new EnumSerializer<TInput, TUnderType>(useEndianness);
 
-    public static IBinarySerializer<TInput> ForEnum<TInput>(bool network = false)
+    public static IBinarySerializer<TInput> ForEnum<TInput>(bool network = DefaultEndianness)
         where TInput : unmanaged, Enum =>
         Type.GetTypeCode(typeof(TInput)) switch
         {
@@ -70,8 +70,10 @@ static class BinarySerializerFactory
             { IsEnum: true } => typeof(BinarySerializerFactory)
                 .GetMethod(nameof(ForEnum),
                     genericParameterCount: 2,
-                    BindingFlags.Static | BindingFlags.Public,
-                    null, CallingConventions.Any, Type.EmptyTypes, null
+                    BindingFlags.Static | BindingFlags.Public, null,
+                    CallingConventions.Any,
+                    [typeof(bool)],
+                    null
                 )?
                 .MakeGenericMethod(inputType, inputType.GetEnumUnderlyingType())
                 .Invoke(null, [enableEndianness]) as IBinarySerializer<TInput>,
@@ -92,4 +94,9 @@ static class BinarySerializerFactory
             _ => null,
         };
     }
+
+    public static IBinarySerializer<TInput> FindOrThrow<TInput>(bool enableEndianness = DefaultEndianness)
+        where TInput : struct =>
+        Get<TInput>(enableEndianness)
+        ?? throw new InvalidOperationException($"Unable to infer serializer for type {typeof(TInput).FullName}");
 }

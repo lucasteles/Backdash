@@ -1,59 +1,55 @@
 using Backdash.Core;
 using Backdash.Data;
-using Backdash.Input;
 using Backdash.Network.Client;
 using Backdash.Network.Messages;
 using Backdash.Network.Protocol;
-using Backdash.Network.Protocol.Events;
 using Backdash.Network.Protocol.Messaging;
+using Backdash.Sync;
 
 namespace Backdash.Network;
 
 sealed class PeerConnection(
     ProtocolOptions options,
     ProtocolState state,
-    IRandomNumberGenerator random,
+    Logger logger,
     IClock clock,
     ITimeSync timeSync,
+    IProtocolEventQueue eventQueue,
+    IProtocolSyncManager syncRequest,
     IProtocolInbox inbox,
     IProtocolOutbox outbox,
-    IProtocolInputProcessor inputProcessor
+    IProtocolInputBuffer inputBuffer
 ) : IDisposable
 {
-    public long ShutdownTimeout { get; set; }
+    public void Dispose() => Disconnect(true);
 
-    public void Dispose()
+    public AddInputResult SendInput(in GameInput input) => inputBuffer.SendInput(in input);
+
+    public bool IsRunning => state.CurrentStatus is ProtocolStatus.Running;
+
+    public PlayerHandle Player => state.Player;
+
+    public void Disconnect(bool force = false)
     {
-        Disconnect();
+        state.CurrentStatus = ProtocolStatus.Disconnected;
+        var shutdownTime = force ? TimeSpan.Zero : options.ShutdownTime;
+        state.StoppingTokenSource.CancelAfter(shutdownTime);
+        eventQueue.Dispose();
         outbox.Dispose();
     }
 
-    public ValueTask SendInput(in GameInput input, CancellationToken ct) => inputProcessor.SendInput(input, ct);
-    public bool TrySendInput(in GameInput input) => inputProcessor.TrySendInput(in input);
-
-    public void Disconnect()
-    {
-        state.Status = ProtocolStatus.Disconnected;
-        ShutdownTimeout = clock.GetMilliseconds() + options.UdpShutdownTimer;
-    }
-
-    public Task Start(CancellationToken ct) =>
-        Task.WhenAll(
-            outbox.Start(ct),
-            inputProcessor.Start(ct)
-        );
-
     // require idle input should be a configuration parameter
-    public int RecommendFrameDelay() => timeSync.RecommendFrameWaitDuration(false);
+    public int RecommendFrameDelay => timeSync.RecommendFrameWaitDuration(false);
 
-    void SetLocalFrameNumber(Frame localFrame)
+    public void SetLocalFrameNumber(Frame localFrame)
     {
         /*
          * Estimate which frame the other guy is one by looking at the
          * last frame they gave us plus some delta for the one-way packet
          * trip time.
          */
-        var remoteFrame = inbox.LastReceivedInput.Frame + (state.Metrics.RoundTripTime * 60 / 1000);
+        var deltaFrame = (int)(state.Stats.RoundTripTime.TotalMilliseconds * 60f / 1000f);
+        var remoteFrame = inbox.LastReceivedInput.Frame + deltaFrame;
 
         /*
          * Our frame advantage is how many frames *behind* the other guy
@@ -62,16 +58,6 @@ sealed class PeerConnection(
          * pop more frequently.
          */
         state.Fairness.LocalFrameAdvantage = remoteFrame - localFrame;
-    }
-
-    public void UpdateNetworkStats(ref PeerConnectionInfo stats)
-    {
-        stats.Ping = state.Metrics.RoundTripTime;
-        stats.SendQueueLen = inputProcessor.PendingNumber;
-        stats.BytesSent = outbox.BytesSent;
-        stats.PacketsSent = outbox.PacketsSent;
-        stats.RemoteFramesBehind = state.Fairness.RemoteFrameAdvantage.Number;
-        stats.LocalFramesBehind = state.Fairness.LocalFrameAdvantage.Number;
     }
 
     public ValueTask SendInputAck(CancellationToken ct)
@@ -84,16 +70,140 @@ sealed class PeerConnection(
             },
         };
 
-        return outbox.SendMessage(ref msg, ct);
+        return outbox.SendMessageAsync(in msg, ct);
+    }
+
+    public void GetNetworkStats(ref RollbackSessionInfo info)
+    {
+        var stats = state.Stats;
+        info.Ping = stats.RoundTripTime;
+        info.BytesSent = stats.BytesSent;
+        info.PacketsSent = stats.PacketsSent;
+        info.LastSendTime = clock.GetElapsedTime(stats.LastSendTime);
+        info.Pps = stats.Pps;
+        info.UdpOverhead = stats.UdpOverhead;
+        info.BandwidthKbps = stats.BandwidthKbps;
+        info.TotalBytesSent = stats.TotalBytesSent;
+        info.LastSendFrame = inputBuffer.LastSent.Frame.Number;
+        info.PendingInputCount = inputBuffer.PendingNumber;
+        info.LastReceivedTime = clock.GetElapsedTime(inbox.LastReceivedTime);
+        info.LastAckedFrame = inbox.LastAckedFrame.Number;
+        info.RemoteFrameBehind = state.Fairness.RemoteFrameAdvantage.Number;
+        info.LocalFrameBehind = state.Fairness.LocalFrameAdvantage.Number;
+    }
+
+    public bool GetPeerConnectStatus(int id, out Frame frame)
+    {
+        frame = state.PeerConnectStatuses[id].LastFrame;
+        return !state.PeerConnectStatuses[id].Disconnected;
     }
 
     public IUdpObserver<ProtocolMessage> GetUdpObserver() => inbox;
 
-    public async ValueTask Synchronize(CancellationToken ct)
+    public void Synchronize() => syncRequest.BeginSynchronization();
+
+    public void Update()
     {
-        state.Status = ProtocolStatus.Syncing;
-        state.Sync.RemainingRoundtrips = (uint)options.NumberOfSyncPackets;
-        state.Sync.CreateSyncMessage(random.SyncNumber(), out var syncMsg);
-        await outbox.SendMessage(ref syncMsg, ct);
+        networkStatsTimer.Update();
+        qualityReportTimer.Update();
+        // keepAliveTimer.Update();
+        // disconnectTimer.Update();
+        // resendInputTimer.Update();
     }
+
+    // --------------
+    // Timers
+    // --------------
+
+    readonly ManualTimer qualityReportTimer = new(clock, options.QualityReportInterval, _ =>
+    {
+        if (state.CurrentStatus is not ProtocolStatus.Running)
+            return;
+
+        outbox
+            .SendMessage(new ProtocolMessage(MsgType.QualityReport)
+            {
+                QualityReport = new()
+                {
+                    Ping = clock.GetTimeStamp(),
+                    FrameAdvantage = state.Fairness.LocalFrameAdvantage.Number,
+                },
+            });
+    });
+
+    readonly ManualTimer networkStatsTimer = new(clock, options.NetworkStatsInterval, elapsed =>
+    {
+        const int udpHeaderSize = 8;
+        const int ipAddressHeaderSize = 20;
+        const int totalHeaderSize = udpHeaderSize + ipAddressHeaderSize;
+
+        if (state.CurrentStatus is not ProtocolStatus.Running)
+            return;
+
+        var stats = state.Stats;
+        var udpHeaderSent = (ByteSize)(totalHeaderSize * stats.PacketsSent);
+        var seconds = elapsed.TotalSeconds;
+
+        stats.TotalBytesSent = stats.BytesSent + udpHeaderSent;
+
+        var bps = stats.TotalBytesSent / seconds;
+        stats.Pps = (float)(stats.PacketsSent * 1000f / elapsed.TotalMilliseconds);
+        stats.BandwidthKbps = (float)bps.KibiBytes;
+        stats.UdpOverhead =
+            (float)(100.0 * (totalHeaderSize * stats.PacketsSent) / stats.BytesSent.ByteCount);
+
+        logger.Write(LogLevel.Information,
+            $"Network Stats -- Bandwidth: {stats.BandwidthKbps:f2} KBps; "
+            + $"Packets Sent: {stats.PacketsSent} ({stats.Pps:f2} pps); "
+            + $"KB Sent: {stats.TotalBytesSent.KibiBytes:f2}; UDP Overhead: {stats.UdpOverhead}"
+        );
+    });
+
+    readonly ManualTimer keepAliveTimer = new(clock, options.KeepAliveInterval, _ =>
+    {
+        if (state.CurrentStatus is not ProtocolStatus.Running)
+            return;
+
+        var lastSend = state.Stats.LastSendTime;
+        if (lastSend is not 0
+            && clock.GetElapsedTime(lastSend) < options.KeepAliveInterval)
+            return;
+
+        logger.Write(LogLevel.Debug, "Sending keep alive packet");
+        outbox.SendMessage(new ProtocolMessage(MsgType.KeepAlive)
+        {
+            KeepAlive = new(),
+        });
+    });
+
+    readonly ManualTimer disconnectTimer = new(clock, options.DisconnectTimeout, _ =>
+    {
+        if (state.CurrentStatus is not ProtocolStatus.Running)
+            return;
+
+        var elapsed = clock.GetElapsedTime(inbox.LastReceivedTime);
+        if (elapsed < options.DisconnectTimeout + options.DisconnectNotifyStart || state.Connection.DisconnectEventSent)
+            return;
+
+        logger.Write(LogLevel.Warning,
+            $"Endpoint has stopped receiving packets for {(int)elapsed.TotalMilliseconds}ms. Disconnecting.");
+
+        eventQueue.Publish(ProtocolEventType.Disconnected, state.Player);
+        state.Connection.DisconnectEventSent = true;
+    });
+
+    readonly ManualTimer resendInputTimer = new(clock, options.ResendInputInterval, _ =>
+    {
+        if (state.CurrentStatus is not ProtocolStatus.Running)
+            return;
+
+        if (state.Stats.LastInputPacketRecvTime is not 0
+            && clock.GetElapsedTime(state.Stats.LastInputPacketRecvTime) < options.ResendInputInterval)
+            return;
+
+        logger.Write(LogLevel.Information,
+            $"Haven't exchanged packets in a while (last received:{inbox.LastReceivedInput.Frame.Number} last sent:{inputBuffer.LastSent.Frame.Number}). Resending");
+
+        inputBuffer.SendPendingInputs();
+    });
 }

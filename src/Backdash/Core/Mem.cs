@@ -33,7 +33,7 @@ static class Mem
         return Unsafe.ReadUnaligned<T>(ref MemoryMarshal.GetReference(data));
     }
 
-    public static TInt EnumAsInteger<TEnum, TInt>(TEnum enumValue)
+    public static TInt EnumAsInteger<TEnum, TInt>(ref TEnum enumValue)
         where TEnum : unmanaged, Enum
         where TInt : unmanaged, IBinaryInteger<TInt>
     {
@@ -41,7 +41,7 @@ static class Mem
         return Unsafe.As<TEnum, TInt>(ref enumValue);
     }
 
-    public static TEnum IntegerAsEnum<TEnum, TInt>(TInt intValue)
+    public static TEnum IntegerAsEnum<TEnum, TInt>(ref TInt intValue)
         where TEnum : unmanaged, Enum
         where TInt : unmanaged, IBinaryInteger<TInt>
     {
@@ -53,8 +53,14 @@ static class Mem
         ReadOnlySpan<T> you,
         ReadOnlySpan<T> me,
         bool truncate = false
-    ) =>
-        you.Length <= me.Length && me.SequenceEqual(truncate ? you[..me.Length] : you);
+    )
+    {
+        if (!truncate)
+            return me.SequenceEqual(you);
+
+        var minLength = Math.Min(you.Length, me.Length);
+        return me[..minLength].SequenceEqual(you[..minLength]);
+    }
 
     public static unsafe int MarshallStruct<T>(in T message, in Span<byte> body)
         where T : struct
@@ -127,17 +133,20 @@ static class Mem
     public static string GetBitString(
         in ReadOnlySpan<byte> bytes,
         int splitAt = 0,
+        bool trimRightZeros = true,
         int bytePad = ByteSize.ByteToBits
     )
     {
         StringBuilder builder = new(bytes.Length * bytePad * sizeof(char));
+        const char byteSep = '-';
+        const char splitSep = '|';
 
         Span<char> binary = stackalloc char[bytePad];
         for (var i = 0; i < bytes.Length; i++)
         {
             if (i > 0)
-                if (splitAt > 0 && i % splitAt is 0) builder.Append('|');
-                else builder.Append('-');
+                if (splitAt > 0 && i % splitAt is 0) builder.Append(splitSep);
+                else builder.Append(byteSep);
 
             binary.Clear();
             var base10 = bytes[i];
@@ -153,8 +162,39 @@ static class Mem
             builder.Append(binary);
         }
 
-        return builder.ToString();
+        if (!trimRightZeros)
+            return builder.ToString();
+
+        int lastNonZero;
+        int lastByteSep = builder.Length;
+        for (lastNonZero = builder.Length - 1; lastNonZero >= 0; lastNonZero--)
+        {
+            if (builder[lastNonZero] is byteSep)
+                lastByteSep = lastNonZero;
+
+            if (builder[lastNonZero] is not ('0' or byteSep or splitSep))
+                break;
+        }
+
+        lastNonZero = Math.Max(lastNonZero, lastByteSep);
+        var trimmed = builder.Remove(lastNonZero, builder.Length - lastNonZero);
+        return trimmed.ToString();
     }
 
     public static int SizeOf<TInput>() where TInput : struct => Unsafe.SizeOf<TInput>();
+
+    public static int Xor<T>(ReadOnlySpan<T> value1, ReadOnlySpan<T> value2, Span<T> result)
+        where T : IBitwiseOperators<T, T, T>
+    {
+        if (value1.Length != value2.Length)
+            throw new ArgumentException($"{nameof(value1)} and {nameof(value2)} must have same size");
+
+        if (result.Length < value2.Length)
+            throw new ArgumentException($"{nameof(result)} is too short");
+
+        for (var i = 0; i < value1.Length; i++)
+            result[i] = value1[i] ^ value2[i];
+
+        return value1.Length;
+    }
 }

@@ -11,8 +11,8 @@ record struct ConnectStatus : IBinarySerializable
 
     public readonly void Serialize(NetworkBufferWriter writer)
     {
-        writer.Write(Disconnected);
-        writer.Write(LastFrame.Number);
+        writer.Write(in Disconnected);
+        writer.Write(in LastFrame.Number);
     }
 
     public void Deserialize(NetworkBufferReader reader)

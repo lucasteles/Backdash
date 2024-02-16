@@ -10,7 +10,7 @@ record struct InputAck : IBinarySerializable
 {
     public Frame AckFrame;
 
-    public readonly void Serialize(NetworkBufferWriter writer) => writer.Write(AckFrame.Number);
+    public readonly void Serialize(NetworkBufferWriter writer) => writer.Write(in AckFrame.Number);
 
     public void Deserialize(NetworkBufferReader reader) =>
         AckFrame = new(reader.ReadInt());

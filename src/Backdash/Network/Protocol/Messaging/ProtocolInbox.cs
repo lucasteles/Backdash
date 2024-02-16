@@ -1,10 +1,10 @@
+using System.Diagnostics;
 using System.Net;
 using Backdash.Core;
 using Backdash.Data;
-using Backdash.Input;
 using Backdash.Network.Client;
 using Backdash.Network.Messages;
-using Backdash.Network.Protocol.Events;
+using Backdash.Sync;
 
 namespace Backdash.Network.Protocol.Messaging;
 
@@ -18,13 +18,11 @@ interface IProtocolInbox : IUdpObserver<ProtocolMessage>
 sealed class ProtocolInbox(
     ProtocolOptions options,
     ProtocolState state,
-    IRandomNumberGenerator random,
     IClock clock,
+    IProtocolSyncManager sync,
     IMessageSender messageSender,
-    IInputEncoder inputEncoder,
-    IProtocolEventDispatcher events,
-    IProtocolLogger protocolLogger,
-    ILogger logger
+    IProtocolEventQueue events,
+    Logger logger
 ) : IProtocolInbox
 {
     ushort remoteMagicNumber;
@@ -39,40 +37,48 @@ sealed class ProtocolInbox(
         IUdpClient<ProtocolMessage> sender,
         ProtocolMessage message,
         SocketAddress from,
-        CancellationToken stoppingToken)
+        CancellationToken stoppingToken
+    )
     {
-        if (!from.Equals(options.Peer.Address))
+        if (!from.Equals(state.Peer.Address))
             return;
 
         var seqNum = message.Header.SequenceNumber;
         if (message.Header.Type is not MsgType.SyncRequest and not MsgType.SyncReply)
         {
+            if (state.CurrentStatus is not ProtocolStatus.Running)
+            {
+                logger.Write(LogLevel.Debug, $"recv skip (not ready): {message}");
+                return;
+            }
+
             if (message.Header.Magic != remoteMagicNumber)
             {
-                protocolLogger.LogMsg("recv rejecting", in message);
+                logger.Write(LogLevel.Debug, $"recv rejecting: {message}");
                 return;
             }
 
             var skipped = (ushort)(seqNum - nextRecvSeq);
             if (skipped > options.MaxSeqDistance)
             {
-                logger.Info($"dropping out of order packet (seq: {seqNum}, last seq:{nextRecvSeq})");
+                logger.Write(LogLevel.Debug,
+                    $"dropping out of order packet (seq: {seqNum}, last seq:{nextRecvSeq})");
                 return;
             }
         }
 
         nextRecvSeq = seqNum;
-        protocolLogger.LogMsg("recv", message);
+        logger.Write(LogLevel.Trace, $"recv: {message}");
 
         if (HandleMessage(ref message, out var replyMsg))
         {
             if (replyMsg.Header.Type is not MsgType.Invalid)
-                await messageSender.SendMessage(ref replyMsg, stoppingToken).ConfigureAwait(false);
+                await messageSender.SendMessageAsync(in replyMsg, stoppingToken).ConfigureAwait(false);
 
-            LastReceivedTime = clock.GetMilliseconds();
-            if (state.Connection.DisconnectNotifySent && state.Status is ProtocolStatus.Running)
+            LastReceivedTime = clock.GetTimeStamp();
+            if (state.Connection.DisconnectNotifySent && state.CurrentStatus is ProtocolStatus.Running)
             {
-                events.Enqueue(ProtocolEvent.NetworkResumed);
+                events.Publish(ProtocolEventType.NetworkResumed, state.Player);
                 state.Connection.DisconnectNotifySent = false;
             }
         }
@@ -107,7 +113,7 @@ sealed class ProtocolInbox(
                 handled = true;
                 break;
             case MsgType.Invalid:
-                logger.Error($"Invalid UdpProtocol message");
+                logger.Write(LogLevel.Error, "Invalid UdpProtocol message");
                 break;
             default:
                 throw new BackdashException($"Unknown UdpMsg type: {message.Header.Type}");
@@ -125,10 +131,10 @@ sealed class ProtocolInbox(
 
         if (disconnectRequested)
         {
-            if (state.Status is not ProtocolStatus.Disconnected && !state.Connection.DisconnectEventSent)
+            if (state.CurrentStatus is not ProtocolStatus.Disconnected && !state.Connection.DisconnectEventSent)
             {
-                logger.Info($"Disconnecting endpoint on remote request");
-                events.Enqueue(ProtocolEvent.Disconnected);
+                logger.Write(LogLevel.Information, "Disconnecting endpoint on remote request");
+                events.Publish(ProtocolEventType.Disconnected, state.Player);
                 state.Connection.DisconnectEventSent = true;
             }
         }
@@ -142,7 +148,7 @@ sealed class ProtocolInbox(
             var peerConnectStatus = state.PeerConnectStatuses;
             for (var i = 0; i < peerConnectStatus.Length; i++)
             {
-                Tracer.Assert(remoteStatus[i].LastFrame >= peerConnectStatus[i].LastFrame);
+                Trace.Assert(remoteStatus[i].LastFrame >= peerConnectStatus[i].LastFrame);
                 peerConnectStatus[i].Disconnected =
                     peerConnectStatus[i].Disconnected
                     || remoteStatus[i].Disconnected;
@@ -154,41 +160,64 @@ sealed class ProtocolInbox(
             }
         }
 
-        // /*
-        //  * Decompress the input.
-        //  */
-        if (msg.Input.InputSize > 0)
+        /*
+         * Decompress the input.
+         */
+        var lastReceivedFrame = lastReceivedInput.Frame;
+        if (msg.Input.NumBits > 0)
         {
-            var decompressor = inputEncoder.Decompress(ref msg.Input, ref lastReceivedInput);
-            while (decompressor.NextInput())
-                OnParsedInput();
+            lastReceivedInput.Size = msg.Input.InputSize;
+            if (lastReceivedInput.Frame < 0)
+                lastReceivedInput.Frame = msg.Input.StartFrame.Previous();
+
+            var nextFrame = lastReceivedInput.Frame.Next();
+            var currentFrame = msg.Input.StartFrame;
+            Trace.Assert(currentFrame <= nextFrame);
+
+            var decompressor = InputEncoder.GetDecompressor(ref msg.Input);
+
+            var framesAhead = nextFrame.Number - currentFrame.Number;
+            if (framesAhead > 0)
+            {
+                logger.Write(LogLevel.Trace,
+                    $"Skipping past {framesAhead} frames (current: {currentFrame}, last: {lastReceivedInput.Frame})");
+
+                if (decompressor.Skip(framesAhead))
+                    currentFrame += framesAhead;
+            }
+
+            Trace.Assert(currentFrame == nextFrame);
+
+            while (decompressor.Read(lastReceivedInput.Buffer))
+            {
+                /*
+                 * Move forward 1 frame in the stream.
+                 */
+                Trace.Assert(currentFrame == lastReceivedInput.Frame.Next());
+                lastReceivedInput.Frame = currentFrame;
+                currentFrame++;
+
+                state.Stats.LastInputPacketRecvTime = clock.GetTimeStamp();
+
+                /*
+                 * Send the event to the emulator
+                 */
+                logger.Write(LogLevel.Debug,
+                    $"Sending frame {lastReceivedInput.Frame} to emulator queue {state.Player} (frame: {lastAckedFrame})");
+
+                events.Publish(
+                    new ProtocolEvent(ProtocolEventType.Input, state.Player)
+                    {
+                        Input = lastReceivedInput,
+                    }
+                );
+            }
         }
 
-        Tracer.Assert(lastReceivedInput.Frame >= lastAckedFrame);
-
-        /*
-         * Get rid of our buffered input
-         */
-        OnInputAck(msg);
-
+        Trace.Assert(lastReceivedInput.Frame >= lastReceivedFrame);
+        lastAckedFrame = msg.Input.AckFrame;
+        logger.Write(LogLevel.Trace, $"Acked Frame: {LastAckedFrame}");
         return true;
-    }
-
-    void OnParsedInput()
-    {
-        /*
-         * Send the event to the emulator
-         */
-        ProtocolEventData evt = new(ProtocolEvent.Input)
-        {
-            Input = lastReceivedInput,
-        };
-
-
-        state.Running.LastInputPacketRecvTime = (uint)clock.GetMilliseconds();
-
-        logger.Info($"Sending frame {lastReceivedInput.Frame} to emu queue {options.Queue} (frame: {lastAckedFrame})");
-        events.Enqueue(evt);
     }
 
     bool OnInputAck(in ProtocolMessage msg)
@@ -199,7 +228,7 @@ sealed class ProtocolInbox(
 
     bool OnQualityReply(in ProtocolMessage msg)
     {
-        state.Metrics.RoundTripTime = (int)(clock.GetMilliseconds() - msg.QualityReply.Pong);
+        state.Stats.RoundTripTime = clock.GetElapsedTime(msg.QualityReply.Pong);
         return true;
     }
 
@@ -220,47 +249,51 @@ sealed class ProtocolInbox(
 
     bool OnSyncReply(in ProtocolMessage msg, ref ProtocolMessage replyMsg)
     {
-        if (state.Status is not ProtocolStatus.Syncing)
+        if (state.CurrentStatus is not ProtocolStatus.Syncing)
         {
-            logger.Info($"Ignoring SyncReply while not syncing");
+            logger.Write(LogLevel.Trace, "Ignoring SyncReply while not syncing");
             return msg.Header.Magic == remoteMagicNumber;
         }
 
-        if (msg.SyncReply.RandomReply != state.Sync.Random)
+        if (msg.SyncReply.RandomReply != state.Sync.CurrentRandom)
         {
-            logger.Info($"Sync reply {msg.SyncReply.RandomReply} != {state.Sync.Random}.  Keep looking...");
+            logger.Write(LogLevel.Debug,
+                $"Sync reply {msg.SyncReply.RandomReply} != {state.Sync.CurrentRandom}. Keep looking.");
             return false;
         }
 
         if (!state.Connection.IsConnected)
         {
-            events.Enqueue(ProtocolEvent.Connected);
+            events.Publish(ProtocolEventType.Connected, state.Player);
             state.Connection.IsConnected = true;
         }
 
-        logger.Info($"Checking sync state ({state.Sync.RemainingRoundtrips} round trips remaining)");
+        logger.Write(LogLevel.Debug,
+            $"Checking sync state ({state.Sync.RemainingRoundtrips} round trips remaining)");
 
         if (--state.Sync.RemainingRoundtrips == 0)
         {
-            logger.Info($"Synchronized!");
-            events.Enqueue(ProtocolEvent.Synchronized);
-            state.Status = ProtocolStatus.Running;
+            logger.Write(LogLevel.Information, $"Player {state.Player.Number} Synchronized!");
+            state.CurrentStatus = ProtocolStatus.Running;
             lastReceivedInput.ResetFrame();
             remoteMagicNumber = msg.Header.Magic;
+            events.Publish(ProtocolEventType.Synchronized, state.Player);
         }
         else
         {
-            ProtocolEventData evt = new(ProtocolEvent.Synchronizing)
-            {
-                Synchronizing = new()
+            events.Publish(
+                new ProtocolEvent(ProtocolEventType.Synchronizing, state.Player)
                 {
-                    Total = (ushort)options.NumberOfSyncPackets,
-                    Count = (ushort)(options.NumberOfSyncPackets - state.Sync.RemainingRoundtrips),
-                },
-            };
+                    Synchronizing = new()
+                    {
+                        Total = (ushort)options.NumberOfSyncPackets,
+                        Count = (ushort)(options.NumberOfSyncPackets - state.Sync.RemainingRoundtrips),
+                    },
+                }
+            );
 
-            events.Enqueue(evt);
-            state.Sync.CreateSyncMessage(random.SyncNumber(), out replyMsg);
+            sync.CreateRequestMessage(out replyMsg);
+            logger.Write(LogLevel.Debug, $"Sync Request Reply: {state.Sync.CurrentRandom}");
         }
 
         return true;
@@ -270,18 +303,13 @@ sealed class ProtocolInbox(
     {
         if (remoteMagicNumber is not 0 && msg.Header.Magic != remoteMagicNumber)
         {
-            logger.Warn($"Ignoring sync request from unknown endpoint ({msg.Header.Magic} != {remoteMagicNumber})");
+            logger.Write(LogLevel.Warning,
+                $"Ignoring sync request from unknown endpoint ({msg.Header.Magic} != {remoteMagicNumber})");
             return false;
         }
 
-        replyMsg = new(MsgType.SyncReply)
-        {
-            SyncReply = new()
-            {
-                RandomReply = msg.SyncRequest.RandomRequest,
-            },
-        };
-
+        sync.CreateReplyMessage(in msg.SyncRequest, out replyMsg);
+        logger.Write(LogLevel.Debug, $"Sync Reply: {msg.SyncRequest.RandomRequest}");
         return true;
     }
 }

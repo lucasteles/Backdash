@@ -1,35 +1,33 @@
 using Backdash.Core;
-using Backdash.Input;
+using Backdash.Network.Protocol;
+using Backdash.Sync;
 
 namespace Backdash;
 
-public sealed class RollbackOptions
+public sealed class RollbackOptions(int port, int numberOfPlayers)
 {
     public LogLevel LogLevel { get; init; } =
 #if DEBUG
-        LogLevel.Trace;
+        LogLevel.Debug;
 #else
         LogLevel.Error;
 #endif
 
+    public int LocalPort { get; } = port;
+    public int NumberOfPlayers { get; } = numberOfPlayers;
     public Random Random { get; init; } = Random.Shared;
-    public required int LocalPort { get; init; }
-    public int NumberOfPlayers { get; init; }
-    public int NumberOfSpectators { get; init; } = Max.Spectators;
-    public int SpectatorOffset { get; init; } = 1000;
+    public int NumberOfSpectators { get; init; }
+    public int SpectatorOffset { get; init; } = Default.SpectatorOffset;
 
-    public int RecommendationInterval { get; init; } = 240;
-    public int DisconnectTimeout { get; init; } = 5000;
-    public int DisconnectNotifyStart { get; init; } = 750;
-    public int UdpPacketBufferSize { get; init; } = Max.CompressedBytes * Max.MsgPlayers;
-    public int NetworkDelay { get; init; }
-    public bool EnableEndianness { get; init; }
+    public int RecommendationInterval { get; init; } = Default.RecommendationInterval;
+    public bool EnableEndianness { get; init; } = true;
 
+    public int PredictionFrames { get; init; } = Default.PredictionFrames;
+    public int PredictionFramesOffset { get; init; } = Default.PredictionFramesOffset;
+    public int FrameDelay { get; init; } = Default.FrameDelay;
+    internal int InputSize { get; set; }
+    internal int TotalInputSize => InputSize * NumberOfPlayers;
     public TimeSyncOptions TimeSync { get; init; } = new();
 
-    internal int InputSize { get; set; }
-
-    public int PredictionFrames { get; init; } = Max.PredictionFrames;
-    public int PredictionFramesOffset { get; init; } = 2;
-    public int InputQueueLength { get; init; } = 128;
+    public ProtocolOptions Protocol { get; init; } = new();
 }

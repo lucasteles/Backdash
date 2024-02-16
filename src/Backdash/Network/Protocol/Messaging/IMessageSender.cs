@@ -4,7 +4,7 @@ namespace Backdash.Network.Protocol.Messaging;
 
 interface IMessageSender
 {
-    ValueTask SendMessage(ref ProtocolMessage msg, CancellationToken ct);
+    ValueTask SendMessageAsync(in ProtocolMessage msg, CancellationToken ct);
 
-    bool TrySendMessage(ref ProtocolMessage msg);
+    bool SendMessage(in ProtocolMessage msg);
 }
