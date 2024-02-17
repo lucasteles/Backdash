@@ -160,7 +160,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         // Hold onto the current frame in our queue of saved states.  We'll need
         // the checksum later to verify that our replay of the same frame got the
         // same results.
-        ref readonly var lastSaved = ref synchronizer.GetLastSavedFrame();
+        var lastSaved = synchronizer.GetLastSavedFrame();
 
         var frame = synchronizer.FrameCount;
         savedFrames.Enqueue(new(
@@ -191,7 +191,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
                         $"Frame number {info.Frame} does not match saved frame number {frame}");
                 }
 
-                ref readonly var last = ref synchronizer.GetLastSavedFrame();
+                var last = synchronizer.GetLastSavedFrame();
                 var checksum = last.Checksum;
                 if (info.Checksum != checksum)
                 {

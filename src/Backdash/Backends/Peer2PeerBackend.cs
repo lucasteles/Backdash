@@ -20,6 +20,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
     readonly RollbackOptions options;
     readonly Logger logger;
     readonly IBinarySerializer<TInput> inputSerializer;
+    readonly IStateStore<TGameState> stateStore;
     readonly IUdpClient<ProtocolMessage> udp;
     readonly UdpObserverGroup<ProtocolMessage> udpObservers;
     readonly Synchronizer<TInput, TGameState> synchronizer;
@@ -69,6 +70,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         this.options = options;
         this.options.InputSize = inputTypeSize;
         this.inputSerializer = inputSerializer;
+        this.stateStore = stateStore;
         this.backgroundJobManager = backgroundJobManager;
         this.peerEventQueue = peerEventQueue;
         this.logger = logger;
@@ -128,6 +130,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
 
         udp.Dispose();
         backgroundJobManager.Dispose();
+        stateStore.Dispose();
     }
 
     public void Start(CancellationToken stoppingToken = default) =>

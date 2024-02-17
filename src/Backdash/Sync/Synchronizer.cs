@@ -165,7 +165,7 @@ sealed class Synchronizer<TInput, TState>
             return;
         }
 
-        ref readonly var savedFrame = ref stateStore.Load(frame);
+        var savedFrame = stateStore.Load(frame);
 
         logger.Write(LogLevel.Debug,
             $"* Loading frame info {savedFrame.Frame} (checksum: {savedFrame.Checksum})");
@@ -178,7 +178,7 @@ sealed class Synchronizer<TInput, TState>
         frameCount = savedFrame.Frame;
     }
 
-    public ref readonly SavedFrame<TState> GetLastSavedFrame() => ref stateStore.Last();
+    public SavedFrame<TState> GetLastSavedFrame() => stateStore.Last();
 
     public void SaveCurrentFrame()
     {

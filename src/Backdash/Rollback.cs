@@ -13,6 +13,7 @@ public static class Rollback
     public static IRollbackSession<TInput, TGameState> CreateSession<TInput, TGameState>(
         RollbackOptions options,
         IBinarySerializer<TInput>? inputSerializer = null,
+        IBinarySerializer<TGameState>? stateSerializer = null,
         ILogWriter? logWriter = null
     )
         where TInput : struct
@@ -21,8 +22,12 @@ public static class Rollback
         inputSerializer ??= BinarySerializerFactory.FindOrThrow<TInput>(options.EnableEndianness);
         UdpClientFactory factory = new();
         Logger logger = new(options.LogLevel, logWriter ?? new ConsoleLogWriter());
-        ArrayStateStore<TGameState> stateStore = new();
         DefaultChecksumProvider<TGameState> checksumProvider = new();
+
+        IStateStore<TGameState> stateStore =
+            stateSerializer is null
+                ? new ArrayStateStore<TGameState>()
+                : new BinaryStateStore<TGameState>(stateSerializer);
 
         return new Peer2PeerBackend<TInput, TGameState>(
             options,

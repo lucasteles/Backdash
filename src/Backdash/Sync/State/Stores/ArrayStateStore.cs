@@ -3,7 +3,7 @@ using Backdash.Data;
 
 namespace Backdash.Sync.State.Stores;
 
-public class ArrayStateStore<TState> : IStateStore<TState> where TState : notnull
+public sealed class ArrayStateStore<TState> : IStateStore<TState> where TState : notnull
 {
     SavedFrame<TState>[] savedStates = [];
     int head;
@@ -20,15 +20,15 @@ public class ArrayStateStore<TState> : IStateStore<TState> where TState : notnul
         AdvanceHead();
     }
 
-    public ref readonly SavedFrame<TState> Load(Frame frame) => ref FindSavedFrame(frame, setHead: true);
+    public  SavedFrame<TState> Load(Frame frame) => FindSavedFrame(frame, setHead: true);
 
-    public ref readonly SavedFrame<TState> Last()
+    public SavedFrame<TState> Last()
     {
         var i = head - 1;
         if (i < 0)
-            return ref savedStates[^1];
+            return savedStates[^1];
 
-        return ref savedStates[i];
+        return savedStates[i];
     }
 
     void AdvanceHead() => head = (head + 1) % savedStates.Length;
@@ -51,4 +51,6 @@ public class ArrayStateStore<TState> : IStateStore<TState> where TState : notnul
 
         throw new BackdashException($"Invalid state frame search: {frame}");
     }
+
+    public void Dispose() => savedStates = null!;
 }
