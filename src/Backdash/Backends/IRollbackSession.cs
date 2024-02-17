@@ -4,7 +4,7 @@ namespace Backdash.Backends;
 
 public interface IRollbackSession<TInput, TState> : IDisposable
     where TInput : struct
-    where TState : notnull
+    where TState : notnull, IEquatable<TState>
 {
     ResultCode SynchronizeInputs(Span<TInput> inputs);
     ResultCode AddPlayer(Player player);

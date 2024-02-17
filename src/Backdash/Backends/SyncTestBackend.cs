@@ -11,7 +11,8 @@ using Backdash.Sync.State;
 namespace Backdash.Backends;
 
 sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGameState>
-    where TInput : struct where TGameState : notnull
+    where TInput : struct
+    where TGameState : notnull, IEquatable<TGameState>
 {
     readonly record struct SavedFrame(Frame Frame, int Checksum, TGameState State, GameInput Input);
 

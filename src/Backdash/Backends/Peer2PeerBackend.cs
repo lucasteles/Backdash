@@ -15,7 +15,7 @@ namespace Backdash.Backends;
 
 sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGameState>
     where TInput : struct
-    where TGameState : notnull
+    where TGameState : notnull, IEquatable<TGameState>
 {
     readonly RollbackOptions options;
     readonly Logger logger;
