@@ -14,7 +14,7 @@ public interface IRollbackHandler<TGameState> where TGameState : notnull
      * Optionally, the client can compute a checksum of the data and store it in
      *  the *checksum argument.
      */
-    void SaveGameState(int frame, ref int checksum, out TGameState state);
+    void SaveGameState(int frame, out TGameState state);
 
     /*
      * Backdash will call this function at the beginning
@@ -43,7 +43,7 @@ public interface IRollbackHandler<TGameState> where TGameState : notnull
 sealed class EmptySessionHandler<TState>(Logger logger)
     : IRollbackHandler<TState> where TState : notnull
 {
-    public void SaveGameState(int frame, ref int checksum, out TState state)
+    public void SaveGameState(int frame, out TState state)
     {
         state = default!;
         logger.Write(LogLevel.Information,

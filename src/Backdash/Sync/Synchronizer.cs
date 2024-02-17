@@ -3,6 +3,7 @@ using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network;
 using Backdash.Serialization;
+using Backdash.Sync.State;
 
 namespace Backdash.Sync;
 
@@ -13,6 +14,8 @@ sealed class Synchronizer<TInput, TState>
     readonly RollbackOptions options;
     readonly Logger logger;
     readonly IBinarySerializer<TInput> inputSerializer;
+    readonly IStateStore<TState> stateStore;
+    readonly IChecksumProvider<TState> checksumProvider;
     readonly ConnectionsState localConnections;
     readonly InputQueue[] inputQueues;
     readonly SavedFrame[] savedStates;
@@ -28,6 +31,8 @@ sealed class Synchronizer<TInput, TState>
         RollbackOptions options,
         Logger logger,
         IBinarySerializer<TInput> inputSerializer,
+        IStateStore<TState> stateStore,
+        IChecksumProvider<TState> checksumProvider,
         ConnectionsState localConnections
     )
     {
@@ -36,6 +41,8 @@ sealed class Synchronizer<TInput, TState>
         this.options = options;
         this.logger = logger;
         this.inputSerializer = inputSerializer;
+        this.stateStore = stateStore;
+        this.checksumProvider = checksumProvider;
         this.localConnections = localConnections;
 
         savedStates = new SavedFrame[options.PredictionFrames + options.PredictionFramesOffset];
@@ -184,9 +191,9 @@ sealed class Synchronizer<TInput, TState>
         ref var next = ref savedStates[head];
         next.Checksum = 0;
         next.Frame = frameCount;
-        Callbacks.SaveGameState(frameCount.Number, ref next.Checksum, out next.GameState);
+        Callbacks.SaveGameState(frameCount.Number, out next.GameState);
         if (next.Checksum is 0)
-            next.Checksum = EqualityComparer<TState>.Default.GetHashCode(next.GameState);
+            next.Checksum = checksumProvider.Compute(in next.GameState);
 
         logger.Write(LogLevel.Debug, $"* Saved frame {next.Frame} (checksum: {next.Checksum}).");
         AdvanceHead();

@@ -5,7 +5,7 @@ using Backdash.Serialization.Buffer;
 namespace Backdash.Data;
 
 [DebuggerDisplay("{ToString()}")]
-readonly record struct Frame :
+public readonly record struct Frame :
     IComparable<Frame>,
     IComparable<int>,
     IEquatable<int>,

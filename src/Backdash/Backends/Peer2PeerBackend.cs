@@ -9,6 +9,7 @@ using Backdash.Network.Protocol;
 using Backdash.Network.Protocol.Messaging;
 using Backdash.Serialization;
 using Backdash.Sync;
+using Backdash.Sync.State;
 
 namespace Backdash.Backends;
 
@@ -40,6 +41,8 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
     public Peer2PeerBackend(
         RollbackOptions options,
         IBinarySerializer<TInput> inputSerializer,
+        IStateStore<TGameState> stateStore,
+        IChecksumProvider<TGameState> checksumProvider,
         IUdpClientFactory udpClientFactory,
         IBackgroundJobManager backgroundJobManager,
         IProtocolEventQueue peerEventQueue,
@@ -84,6 +87,8 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
             this.options,
             this.logger,
             this.inputSerializer,
+            stateStore,
+            checksumProvider,
             localConnections
         )
         {

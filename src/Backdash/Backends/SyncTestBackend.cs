@@ -6,6 +6,7 @@ using Backdash.Data;
 using Backdash.Network;
 using Backdash.Serialization;
 using Backdash.Sync;
+using Backdash.Sync.State;
 
 namespace Backdash.Backends;
 
@@ -43,6 +44,8 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         IRollbackHandler<TGameState> callbacks,
         RollbackOptions options,
         IBinarySerializer<TInput> inputSerializer,
+        IStateStore<TGameState> stateStore,
+        IChecksumProvider<TGameState> checksumProvider,
         Logger logger
     )
     {
@@ -63,7 +66,12 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         this.options.InputSize = inputTypeSize;
 
         this.callbacks = callbacks;
-        synchronizer = new(options, logger, inputSerializer, new(Max.RemoteConnections))
+        synchronizer = new(
+            options, logger, inputSerializer,
+            stateStore,
+            checksumProvider,
+            new(Max.RemoteConnections)
+        )
         {
             Callbacks = this.callbacks,
         };

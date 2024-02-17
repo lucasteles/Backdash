@@ -43,7 +43,7 @@ public class MyStateManager(
 
             case RollbackEventType.SynchronizingWithPeer:
                 syncPercent = evt.Synchronizing.CurrentStep /
-                              (float)evt.Synchronizing.TotalSteps;
+                              (float) evt.Synchronizing.TotalSteps;
                 break;
             case RollbackEventType.TimeSync:
                 var framesAhead = evt.TimeSync.FramesAhead;
@@ -52,7 +52,7 @@ public class MyStateManager(
         }
     }
 
-    public void SaveGameState(int frame, ref int checksum, out MyState state) =>
+    public void SaveGameState(int frame, out MyState state) =>
         state = currentState;
 
     public void LoadGameState(in MyState gameState) =>
@@ -177,7 +177,7 @@ public class MyStateManager(
 
     bool DrawPlayer(Vector2 pos, int col, int row, ConsoleColor color)
     {
-        if ((int)pos.X == col && (int)pos.Y == row)
+        if ((int) pos.X == col && (int) pos.Y == row)
         {
             Console.ForegroundColor = color;
             Console.Write("0");
