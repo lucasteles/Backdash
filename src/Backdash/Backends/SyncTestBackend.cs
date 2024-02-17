@@ -19,9 +19,10 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
     readonly Logger logger;
     readonly RollbackOptions options;
     readonly IBinarySerializer<TInput> inputSerializer;
-    readonly Queue<SavedFrame> savedFrames = [];
     readonly HashSet<PlayerHandle> players = [];
     readonly Synchronizer<TInput, TGameState> synchronizer;
+
+    readonly Queue<SavedFrame> savedFrames = [];
 
     readonly JsonSerializerOptions jsonOptions = new()
     {
@@ -158,7 +159,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         // Hold onto the current frame in our queue of saved states.  We'll need
         // the checksum later to verify that our replay of the same frame got the
         // same results.
-        ref var lastSaved = ref synchronizer.GetLastSavedFrame();
+        ref readonly var lastSaved = ref synchronizer.GetLastSavedFrame();
 
         var frame = synchronizer.FrameCount;
         savedFrames.Enqueue(new(
@@ -189,7 +190,8 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
                         $"Frame number {info.Frame} does not match saved frame number {frame}");
                 }
 
-                int checksum = synchronizer.GetLastSavedFrame().Checksum;
+                ref readonly var last = ref synchronizer.GetLastSavedFrame();
+                var checksum = last.Checksum;
                 if (info.Checksum != checksum)
                 {
                     LogSaveState(info);

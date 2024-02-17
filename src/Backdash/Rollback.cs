@@ -21,7 +21,7 @@ public static class Rollback
         inputSerializer ??= BinarySerializerFactory.FindOrThrow<TInput>(options.EnableEndianness);
         UdpClientFactory factory = new();
         Logger logger = new(options.LogLevel, logWriter ?? new ConsoleLogWriter());
-        ArrayStateStore<TGameState> stateStore = new(options);
+        ArrayStateStore<TGameState> stateStore = new();
         DefaultChecksumProvider<TGameState> checksumProvider = new();
 
         return new Peer2PeerBackend<TInput, TGameState>(
@@ -48,7 +48,7 @@ public static class Rollback
         inputSerializer ??= BinarySerializerFactory.FindOrThrow<TInput>(options.EnableEndianness);
         Logger logger = new(options.LogLevel, logWriter ?? new ConsoleLogWriter());
         callbacks ??= new EmptySessionHandler<TGameState>(logger);
-        ArrayStateStore<TGameState> stateStore = new(options);
+        ArrayStateStore<TGameState> stateStore = new();
         DefaultChecksumProvider<TGameState> checksumProvider = new();
 
         return new SyncTestBackend<TInput, TGameState>(

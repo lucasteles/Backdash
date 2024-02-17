@@ -1,4 +1,4 @@
-﻿using Backdash.Data;
+using Backdash.Data;
 
 namespace Backdash.Sync.State;
 

@@ -18,11 +18,8 @@ sealed class Synchronizer<TInput, TState>
     readonly IChecksumProvider<TState> checksumProvider;
     readonly ConnectionsState localConnections;
     readonly InputQueue[] inputQueues;
-    readonly SavedFrame[] savedStates;
-
     public required IRollbackHandler<TState> Callbacks { get; internal set; }
 
-    int head;
     bool rollingBack;
     Frame frameCount = Frame.Zero;
     Frame lastConfirmedFrame = Frame.Zero;
@@ -45,8 +42,7 @@ sealed class Synchronizer<TInput, TState>
         this.checksumProvider = checksumProvider;
         this.localConnections = localConnections;
 
-        savedStates = new SavedFrame[options.PredictionFrames + options.PredictionFramesOffset];
-        Array.Fill(savedStates, new SavedFrame(Frame.Null, default!, 0));
+        stateStore.Initialize(options.PredictionFrames + options.PredictionFramesOffset);
 
         inputQueues = new InputQueue[options.NumberOfPlayers];
         for (var i = 0; i < inputQueues.Length; i++)
@@ -169,7 +165,7 @@ sealed class Synchronizer<TInput, TState>
             return;
         }
 
-        ref var savedFrame = ref FindSavedFrame(in frame, setHead: true);
+        ref readonly var savedFrame = ref stateStore.Load(frame);
 
         logger.Write(LogLevel.Debug,
             $"* Loading frame info {savedFrame.Frame} (checksum: {savedFrame.Checksum})");
@@ -182,41 +178,21 @@ sealed class Synchronizer<TInput, TState>
         frameCount = savedFrame.Frame;
     }
 
-    public ref SavedFrame GetLastSavedFrame() => ref savedStates[^1];
-
-    void AdvanceHead() => head = (head + 1) % savedStates.Length;
+    public ref readonly SavedFrame<TState> GetLastSavedFrame() => ref stateStore.Last();
 
     public void SaveCurrentFrame()
     {
-        ref var next = ref savedStates[head];
-        next.Checksum = 0;
-        next.Frame = frameCount;
-        Callbacks.SaveGameState(frameCount.Number, out next.GameState);
-        if (next.Checksum is 0)
-            next.Checksum = checksumProvider.Compute(in next.GameState);
+        Callbacks.SaveGameState(frameCount.Number, out var newState);
+
+        SavedFrame<TState> next = new()
+        {
+            Frame = frameCount,
+            GameState = newState,
+            Checksum = checksumProvider.Compute(in newState),
+        };
+        stateStore.Save(in next);
 
         logger.Write(LogLevel.Debug, $"* Saved frame {next.Frame} (checksum: {next.Checksum}).");
-        AdvanceHead();
-    }
-
-    ref SavedFrame FindSavedFrame(in Frame frame, bool setHead = false)
-    {
-        for (var i = 0; i < savedStates.Length; i++)
-        {
-            ref var current = ref savedStates[i];
-            if (current.Frame == frame)
-            {
-                if (setHead)
-                {
-                    head = i;
-                    AdvanceHead();
-                }
-
-                return ref current;
-            }
-        }
-
-        throw new BackdashException($"Invalid state frame search: {frame}");
     }
 
     bool CheckSimulationConsistency(out Frame seekTo)
@@ -248,12 +224,5 @@ sealed class Synchronizer<TInput, TState>
     {
         for (var i = 0; i < inputQueues.Length; i++)
             inputQueues[i].ResetPrediction(in frameNumber);
-    }
-
-    public struct SavedFrame(Frame frame, TState state, int checksum)
-    {
-        public Frame Frame = frame;
-        public TState GameState = state;
-        public int Checksum = checksum;
     }
 }

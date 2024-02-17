@@ -1,4 +1,4 @@
-﻿namespace Backdash.Sync.State;
+namespace Backdash.Sync.State;
 
 public interface IChecksumProvider<T> where T : notnull
 {
