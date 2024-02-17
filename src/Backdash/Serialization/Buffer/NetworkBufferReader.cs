@@ -4,11 +4,11 @@ using Backdash.Network;
 
 namespace Backdash.Serialization.Buffer;
 
-public readonly ref struct NetworkBufferReader
+public readonly ref struct BinaryBufferReader
 {
-    public NetworkBufferReader(ReadOnlySpan<byte> buffer) => this.buffer = buffer;
+    public BinaryBufferReader(ReadOnlySpan<byte> buffer) => this.buffer = buffer;
 
-    public NetworkBufferReader(ReadOnlySpan<byte> buffer, ref int offset) : this(buffer) =>
+    public BinaryBufferReader(ReadOnlySpan<byte> buffer, ref int offset) : this(buffer) =>
         this.offset = ref offset;
 
     readonly ref int offset;

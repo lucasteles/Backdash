@@ -29,7 +29,7 @@ record struct InputMessage : IBinarySerializable
         InputSize = 0;
     }
 
-    public readonly void Serialize(scoped NetworkBufferWriter writer)
+    public readonly void Serialize(scoped BinaryBufferWriter writer)
     {
         ReadOnlySpan<ConnectStatus> peerStatuses = PeerConnectStatus;
         var peerCount = (byte)peerStatuses.Length;
@@ -46,7 +46,7 @@ record struct InputMessage : IBinarySerializable
         writer.Write(Bits, bitCount);
     }
 
-    public void Deserialize(scoped NetworkBufferReader reader)
+    public void Deserialize(scoped BinaryBufferReader reader)
     {
         var peerCount = reader.ReadByte();
         for (var i = 0; i < peerCount; i++)

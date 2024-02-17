@@ -13,14 +13,14 @@ record struct Header(MsgType Type) : IBinarySerializable
 
     public const int Size = 6;
 
-    public readonly void Serialize(NetworkBufferWriter writer)
+    public readonly void Serialize(BinaryBufferWriter writer)
     {
         writer.Write((byte)Type);
         writer.Write(in Magic);
         writer.Write(in SequenceNumber);
     }
 
-    public void Deserialize(NetworkBufferReader reader)
+    public void Deserialize(BinaryBufferReader reader)
     {
         Type = (MsgType)reader.ReadByte();
         Magic = reader.ReadUShort();

@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using Backdash.Core;
+using Backdash.Serialization;
 
 namespace Backdash;
 
@@ -34,5 +35,12 @@ static class Extensions
         queue.Enqueue(value);
         for (var i = 0; i < count; i++)
             queue.Enqueue(queue.Dequeue());
+    }
+
+    public static int GetTypeSize<T>(this IBinarySerializer<T> serializer) where T : struct
+    {
+        var dummy = new T();
+        Span<byte> buffer = stackalloc byte[Mem.MaxStackLimit];
+        return serializer.Serialize(ref dummy, buffer);
     }
 }

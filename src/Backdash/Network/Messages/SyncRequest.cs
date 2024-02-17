@@ -10,13 +10,13 @@ record struct SyncRequest : IBinarySerializable
     public uint RandomRequest; /* please reply back with this random data */
     public ushort RemoteMagic;
 
-    public readonly void Serialize(NetworkBufferWriter writer)
+    public readonly void Serialize(BinaryBufferWriter writer)
     {
         writer.Write(in RandomRequest);
         writer.Write(in RemoteMagic);
     }
 
-    public void Deserialize(NetworkBufferReader reader)
+    public void Deserialize(BinaryBufferReader reader)
     {
         RandomRequest = reader.ReadUInt();
         RemoteMagic = reader.ReadUShort();

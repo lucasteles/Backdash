@@ -4,11 +4,11 @@ using Backdash.Network;
 
 namespace Backdash.Serialization.Buffer;
 
-public readonly ref struct NetworkBufferWriter
+public readonly ref struct BinaryBufferWriter
 {
-    public NetworkBufferWriter(Span<byte> buffer) => this.buffer = buffer;
+    public BinaryBufferWriter(Span<byte> buffer) => this.buffer = buffer;
 
-    public NetworkBufferWriter(Span<byte> buffer, ref int offset) : this(buffer) =>
+    public BinaryBufferWriter(Span<byte> buffer, ref int offset) : this(buffer) =>
         this.offset = ref offset;
 
     const int FullSize = -1;

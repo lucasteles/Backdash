@@ -9,9 +9,9 @@ record struct QualityReply : IBinarySerializable
 {
     public long Pong;
 
-    public readonly void Serialize(NetworkBufferWriter writer) =>
+    public readonly void Serialize(BinaryBufferWriter writer) =>
         writer.Write(in Pong);
 
-    public void Deserialize(NetworkBufferReader reader) =>
+    public void Deserialize(BinaryBufferReader reader) =>
         Pong = reader.ReadLong();
 }

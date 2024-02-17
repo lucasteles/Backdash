@@ -31,7 +31,7 @@ struct ProtocolMessage(MsgType type) : IBinarySerializable, IEquatable<ProtocolM
     [FieldOffset(Header.Size)]
     public InputMessage Input;
 
-    public readonly void Serialize(NetworkBufferWriter writer)
+    public readonly void Serialize(BinaryBufferWriter writer)
     {
         Header.Serialize(writer);
         switch (Header.Type)
@@ -63,7 +63,7 @@ struct ProtocolMessage(MsgType type) : IBinarySerializable, IEquatable<ProtocolM
         }
     }
 
-    public void Deserialize(NetworkBufferReader reader)
+    public void Deserialize(BinaryBufferReader reader)
     {
         Header.Deserialize(reader);
         switch (Header.Type)
