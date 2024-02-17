@@ -1,3 +1,4 @@
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Backdash.Network;
@@ -212,5 +213,57 @@ public readonly ref struct BinaryBufferWriter
             Endianness.ToNetwork(value, GetSpanFor(in value, in size));
         else
             WriteSpan(in value, in size);
+    }
+
+    public void Write(in Half value)
+    {
+        BitConverter.TryWriteBytes(CurrentBuffer, value).AssertTrue();
+        Advance(Unsafe.SizeOf<Half>());
+    }
+
+    public void Write(in ReadOnlySpan<Half> value, int size = FullSize) => WriteSpan(in value, in size);
+    public void Write(in float value)
+    {
+        BitConverter.TryWriteBytes(CurrentBuffer, value).AssertTrue();
+        Advance(sizeof(float));
+    }
+
+    public void Write(in ReadOnlySpan<float> value, int size = FullSize) => WriteSpan(in value, in size);
+
+    public void Write(in double value)
+    {
+        BitConverter.TryWriteBytes(CurrentBuffer, value).AssertTrue();
+        Advance(sizeof(double));
+    }
+
+    public void Write(in ReadOnlySpan<double> value, int size = FullSize) => WriteSpan(in value, in size);
+
+    public void Write(Vector2 value)
+    {
+        Write(value.X);
+        Write(value.Y);
+    }
+
+    public void Write(Vector3 value)
+    {
+        Write(value.X);
+        Write(value.Y);
+        Write(value.Z);
+    }
+
+    public void Write(Vector4 value)
+    {
+        Write(value.X);
+        Write(value.Y);
+        Write(value.Z);
+        Write(value.W);
+    }
+
+    public void Write(Quaternion value)
+    {
+        Write(value.X);
+        Write(value.Y);
+        Write(value.Z);
+        Write(value.W);
     }
 }

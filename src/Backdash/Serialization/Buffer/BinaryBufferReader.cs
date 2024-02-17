@@ -1,3 +1,4 @@
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Backdash.Network;
@@ -197,5 +198,66 @@ public readonly ref struct BinaryBufferReader
     {
         ReadSpan(values, size);
         if (Network) Endianness.ToHost(values);
+    }
+
+
+    public Half ReadHalf()
+    {
+        var value = BitConverter.ToHalf(CurrentBuffer);
+        Advance(Unsafe.SizeOf<Half>());
+        return value;
+    }
+
+    public void ReadHalf(in Span<Half> values, int size = FullSize) => ReadSpan(values, size);
+
+    public float ReadFloat()
+    {
+        var value = BitConverter.ToSingle(CurrentBuffer);
+        Advance(sizeof(float));
+        return value;
+    }
+
+    public void ReadFloat(in Span<float> values, int size = FullSize) => ReadSpan(values, size);
+
+    public double ReadDouble()
+    {
+        var value = BitConverter.ToDouble(CurrentBuffer);
+        Advance(sizeof(double));
+        return value;
+    }
+
+    public void ReadDouble(in Span<double> values, int size = FullSize) => ReadSpan(values, size);
+
+    public Vector2 ReadVector2()
+    {
+        var x = ReadFloat();
+        var y = ReadFloat();
+        return new(x, y);
+    }
+
+    public Vector3 ReadVector3()
+    {
+        var x = ReadFloat();
+        var y = ReadFloat();
+        var z = ReadFloat();
+        return new(x, y, z);
+    }
+
+    public Vector4 ReadVector4()
+    {
+        var x = ReadFloat();
+        var y = ReadFloat();
+        var z = ReadFloat();
+        var w = ReadFloat();
+        return new(x, y, z, w);
+    }
+
+    public Quaternion ReadQuaternion()
+    {
+        var x = ReadFloat();
+        var y = ReadFloat();
+        var z = ReadFloat();
+        var w = ReadFloat();
+        return new Quaternion(x, y, z, w);
     }
 }

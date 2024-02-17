@@ -3,6 +3,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using Backdash;
 using Backdash.Core;
+using Backdash.Serialization;
+using Backdash.Serialization.Buffer;
 
 namespace ConsoleSession;
 
@@ -49,4 +51,20 @@ public sealed class DebuggerLogger : ILogWriter
         });
         Trace.WriteLine(text);
     }
+}
+
+public sealed class StateSerializer : BinarySerializer<MyState>
+{
+    protected override void Serialize(scoped BinaryBufferWriter writer, scoped in MyState data)
+    {
+        writer.Write(data.Position1);
+        writer.Write(data.Position2);
+    }
+
+    protected override MyState Deserialize(scoped BinaryBufferReader reader) =>
+        new()
+        {
+            Position1 = reader.ReadVector2(),
+            Position2 = reader.ReadVector2(),
+        };
 }
