@@ -36,6 +36,7 @@ public sealed class Game : IDisposable
                 },
             },
             logWriter: logger
+            // , stateSerializer: new MyStateSerializer()
         );
 
         gameState = new(localPlayer, remotePlayer, session, logger);

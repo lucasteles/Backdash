@@ -53,7 +53,7 @@ public sealed class DebuggerLogger : ILogWriter
     }
 }
 
-public sealed class StateSerializer : BinarySerializer<MyState>
+public sealed class MyStateSerializer : BinarySerializer<MyState>
 {
     protected override void Serialize(scoped BinaryBufferWriter writer, scoped in MyState data)
     {
