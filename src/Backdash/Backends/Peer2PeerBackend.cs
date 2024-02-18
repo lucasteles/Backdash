@@ -27,6 +27,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
     readonly ConnectionsState localConnections;
     readonly IBackgroundJobManager backgroundJobManager;
     readonly IProtocolEventQueue peerEventQueue;
+    readonly PeerConnectionFactory peerConnectionFactory;
     readonly bool[] knownLocalPlayers;
 
     readonly List<PeerConnection> spectators;
@@ -104,8 +105,17 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
             udpObservers,
             this.logger
         );
-
         backgroundJobManager.Register(udp);
+
+        peerConnectionFactory = new(
+            options.Random,
+            logger,
+            backgroundJobManager,
+            udp,
+            peerEventQueue,
+            options.Protocol,
+            options.TimeSync
+        );
 
         this.peerEventQueue.Router = RouteEvent;
     }
@@ -261,19 +271,8 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
 
     PeerConnection CreatePeerConnection(IPEndPoint endpoint, PlayerHandle player)
     {
-        var connection = PeerConnectionFactory.CreateDefault(
-            new(player, endpoint, localConnections),
-            options.Random,
-            logger,
-            backgroundJobManager,
-            udp,
-            peerEventQueue,
-            options.Protocol,
-            options.TimeSync
-        );
-
+        var connection = peerConnectionFactory.Create(new(player, endpoint, localConnections));
         udpObservers.Add(connection.GetUdpObserver());
-
         return connection;
     }
 

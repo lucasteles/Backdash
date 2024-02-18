@@ -7,10 +7,19 @@ using Backdash.Sync;
 
 namespace Backdash.Network;
 
-static class PeerConnectionFactory
+sealed class PeerConnectionFactory
 {
-    public static PeerConnection CreateDefault(
-        ProtocolState state,
+    readonly IClock clock = new Clock();
+    readonly IRandomNumberGenerator random;
+    readonly IDelayStrategy delayStrategy;
+    readonly Logger logger;
+    readonly IBackgroundJobManager jobManager;
+    readonly IUdpClient<ProtocolMessage> udp;
+    readonly IProtocolEventQueue eventQueue;
+    readonly ProtocolOptions options;
+    readonly TimeSyncOptions timeSyncOptions;
+
+    public PeerConnectionFactory(
         Random defaultRandom,
         Logger logger,
         IBackgroundJobManager jobManager,
@@ -20,15 +29,23 @@ static class PeerConnectionFactory
         TimeSyncOptions timeSyncOptions
     )
     {
+        random = new DefaultRandomNumberGenerator(defaultRandom);
+        delayStrategy = DelayStrategyFactory.Create(random, options.DelayStrategy);
+
+        this.logger = logger;
+        this.jobManager = jobManager;
+        this.udp = udp;
+        this.eventQueue = eventQueue;
+        this.options = options;
+        this.timeSyncOptions = timeSyncOptions;
+    }
+
+    public PeerConnection Create(ProtocolState state)
+    {
         var timeSync = new TimeSync(timeSyncOptions, logger);
-        var random = new DefaultRandomNumberGenerator(defaultRandom);
-        var clock = new Clock();
-        var delayStrategy = DelayStrategyFactory.Create(random, options.DelayStrategy);
         var outbox = new ProtocolOutbox(state, options, udp, delayStrategy, random, clock, logger);
         var syncManager = new ProtocolSyncManager(logger, clock, random, jobManager, state, options, outbox);
-        var inbox = new ProtocolInbox(
-            options, state, clock, syncManager, outbox, eventQueue, logger
-        );
+        var inbox = new ProtocolInbox(options, state, clock, syncManager, outbox, eventQueue, logger);
         var inputBuffer = new ProtocolInputBuffer(options, state, logger, timeSync, outbox, inbox);
 
         jobManager.Register(outbox, state.StoppingToken);
