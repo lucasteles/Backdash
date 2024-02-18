@@ -83,13 +83,16 @@ sealed class ProtocolOutbox(
 
                 logger.Write(LogLevel.Trace, $"send: {message}");
 
-                if (sendLatency > 0)
+                if (sendLatency > TimeSpan.Zero)
                 {
                     var jitter = delayStrategy.Jitter(sendLatency);
-                    var delayDiff = clock.GetElapsedTime(entry.QueueTime) + jitter;
-                    if (delayDiff > TimeSpan.Zero)
+                    SpinWait sw = new();
+                    while (clock.GetElapsedTime(entry.QueueTime) <= jitter)
+                    {
+                        sw.SpinOnce();
                         // LATER: allocations here
-                        await Task.Delay(delayDiff, ct).ConfigureAwait(false);
+                        // await Task.Delay(delayDiff, ct).ConfigureAwait(false)
+                    }
                 }
 
                 var bytesSent = await udp

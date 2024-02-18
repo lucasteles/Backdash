@@ -4,27 +4,29 @@ namespace Backdash.Network.Protocol.Messaging;
 
 interface IDelayStrategy
 {
-    TimeSpan Jitter(int sendLatency);
+    TimeSpan Jitter(TimeSpan sendLatency);
 }
 
 sealed class DelayStrategy(IRandomNumberGenerator random) : IDelayStrategy
 {
-    public TimeSpan Jitter(int sendLatency)
+    public TimeSpan Jitter(TimeSpan sendLatency)
     {
-        var mean = sendLatency * 2 / 3;
-        var ms = mean + (random.NextInt() % sendLatency / 3);
+        var latency = sendLatency.TotalMilliseconds;
+        var mean = latency * 2 / 3;
+        var ms = mean + (random.NextInt() % latency / 3);
         return TimeSpan.FromMilliseconds(ms);
     }
 }
 
 sealed class GaussianDelayStrategy(Random random) : IDelayStrategy
 {
-    public TimeSpan Jitter(int sendLatency)
+    public TimeSpan Jitter(TimeSpan sendLatency)
     {
-        var mean = sendLatency / 2;
-        var sigma = (sendLatency - mean) / 3;
+        var latency = sendLatency.TotalMilliseconds;
+        var mean = latency / 2;
+        var sigma = (latency - mean) / 3;
         var std = random.NextGaussian();
-        var ms = (int)Math.Clamp((std * sigma) + mean, 0, sendLatency);
+        var ms = (int)Math.Clamp((std * sigma) + mean, 0, latency);
         return TimeSpan.FromMilliseconds(ms);
     }
 }

@@ -33,10 +33,13 @@ public sealed class Game : IDisposable
                 Protocol = new()
                 {
                     NumberOfSyncPackets = 100,
+                    NetworkDelay = player2.Type is PlayerType.Local
+                        ? Frames.ToTimeSpan(3)
+                        : default,
                 },
             },
             logWriter: logger
-            // , stateSerializer: new MyStateSerializer()
+            , stateSerializer: new MyStateSerializer()
         );
 
         gameState = new(localPlayer, remotePlayer, session, logger);

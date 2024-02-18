@@ -21,7 +21,7 @@ public sealed class BinaryStateStore<TState>(
     public void Save(in SavedFrame<TState> state)
     {
         if (memory is null)
-            AllocateResources(state.GameState);
+            AllocateResources(state);
         else
         {
             var gameState = state.GameState;
@@ -85,12 +85,12 @@ public sealed class BinaryStateStore<TState>(
     }
 
 
-    void AllocateResources(TState gameState)
+    void AllocateResources(SavedFrame<TState> saved)
     {
         ArrayBufferWriter<byte> bufferWriter = new();
-        serializer.Serialize(ref gameState, bufferWriter.GetSpan());
+        var bufferSpan = bufferWriter.GetSpan();
+        var inputSize = serializer.Serialize(ref saved.GameState, bufferSpan);
 
-        var inputSize = bufferWriter.WrittenCount;
         memory = GC.AllocateArray<byte>(inputSize * saveCount, pinned: true);
         savedStates = new BinarySavedFrame[saveCount];
         for (int i = 0; i < saveCount; i++)
@@ -101,7 +101,12 @@ public sealed class BinaryStateStore<TState>(
             slot.GameState = MemoryMarshal.CreateFromPinnedArray(memory, i * inputSize, inputSize);
         }
 
-        bufferWriter.WrittenMemory.CopyTo(savedStates[0].GameState);
+        ref var first = ref savedStates[0];
+
+        bufferSpan[..inputSize].CopyTo(first.GameState.Span);
+        first.Size = inputSize;
+        first.Frame = saved.Frame;
+        first.Checksum = saved.Checksum;
     }
 
     public void Dispose() => memory = null!;
