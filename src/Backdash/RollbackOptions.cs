@@ -23,8 +23,6 @@ public sealed class RollbackOptions(int port, int numberOfPlayers)
     public int PredictionFrames { get; init; } = Default.PredictionFrames;
     public int PredictionFramesOffset { get; init; } = Default.PredictionFramesOffset;
     public int FrameDelay { get; init; } = Default.FrameDelay;
-    internal int InputSize { get; set; }
-    internal int TotalInputSize => InputSize * NumberOfPlayers;
     public TimeSyncOptions TimeSync { get; init; } = new();
     public ProtocolOptions Protocol { get; init; } = new();
 }

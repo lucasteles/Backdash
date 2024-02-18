@@ -33,6 +33,7 @@ public sealed class Game : IDisposable
                 Protocol = new()
                 {
                     NumberOfSyncPackets = 100,
+                    LogNetworkStats = false,
                     // NetworkDelay = player2.Type is PlayerType.Local
                     //     ? Frames.ToTimeSpan(6)
                     //     : default,

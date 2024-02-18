@@ -2,15 +2,16 @@ using System.Diagnostics;
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network.Messages;
+using Backdash.Serialization;
 using Backdash.Sync;
 
 namespace Backdash.Network.Protocol.Messaging;
 
-interface IProtocolInputBuffer
+interface IProtocolInputBuffer<TInput> where TInput : struct
 {
     int PendingNumber { get; }
-    GameInput LastSent { get; }
-    AddInputResult SendInput(in GameInput input);
+    GameInput<TInput> LastSent { get; }
+    AddInputResult SendInput(in GameInput<TInput> input);
     void SendPendingInputs();
 }
 
@@ -23,29 +24,56 @@ enum AddInputResult : byte
     NotRunning,
 }
 
-sealed class ProtocolInputBuffer(
-    ProtocolOptions options,
-    ProtocolState state,
-    Logger logger,
-    ITimeSync timeSync,
-    IMessageSender sender,
-    IProtocolInbox inbox
-) : IProtocolInputBuffer
+sealed class ProtocolInputBuffer<TInput> : IProtocolInputBuffer<TInput>
+    where TInput : struct
 {
-    GameInput lastAckedInput = GameInput.Create(1, Frame.Null);
+    readonly Queue<GameInput<TInput>> pendingOutput;
+    readonly Memory<byte> workingBufferMemory;
 
-    readonly Queue<GameInput> pendingOutput = new(options.MaxInputQueue);
-    readonly Memory<byte> workingBufferMemory = Mem.CreatePinnedBuffer(WorkingBufferSize);
+    int lastSentSize;
+    int lastAckSize;
 
-    public GameInput LastSent { get; private set; } = GameInput.Create(1, Frame.Null);
+    GameInput<TInput> lastAckedInput = new();
+    public GameInput<TInput> LastSent { get; private set; } = new();
+
+    readonly int inputSize;
+    readonly ProtocolOptions options;
+    readonly IBinaryWriter<TInput> inputSerializer;
+    readonly ProtocolState state;
+    readonly Logger logger;
+    readonly ITimeSync<TInput> timeSync;
+    readonly IMessageSender sender;
+    readonly IProtocolInbox<TInput> inbox;
     public int PendingNumber => pendingOutput.Count;
 
-    static ProtocolInputBuffer() =>
-        Trace.Assert(Max.InputSizeInBytes * ByteSize.ByteToBits < 1 << BitOffsetWriter.NibbleSize);
+    public ProtocolInputBuffer(ProtocolOptions options,
+        IBinaryWriter<TInput> inputSerializer,
+        ProtocolState state,
+        Logger logger,
+        ITimeSync<TInput> timeSync,
+        IMessageSender sender,
+        IProtocolInbox<TInput> inbox)
+    {
+        this.options = options;
+        this.inputSerializer = inputSerializer;
+        this.state = state;
+        this.logger = logger;
+        this.timeSync = timeSync;
+        this.sender = sender;
+        this.inbox = inbox;
 
+        inputSize = inputSerializer.GetTypeSize();
+
+        Trace.Assert(inputSize * ByteSize.ByteToBits < 1 << ByteSize.ByteToBits);
+
+        workingBufferMemory = Mem.CreatePinnedBuffer(WorkingBufferFactor * inputSize);
+        pendingOutput = new(options.MaxInputQueue);
+    }
+
+    const int WorkingBufferFactor = 3;
     bool IsQueueFull() => pendingOutput.Count >= options.MaxInputQueue;
 
-    public AddInputResult SendInput(in GameInput input)
+    public AddInputResult SendInput(in GameInput<TInput> input)
     {
         if (state.CurrentStatus is not ProtocolStatus.Running) return AddInputResult.NotRunning;
         if (IsQueueFull()) return AddInputResult.FullQueue;
@@ -63,8 +91,6 @@ sealed class ProtocolInputBuffer(
         return AddInputResult.Ok;
     }
 
-    public const int WorkingBufferSize = Max.TotalInputSizeInBytes;
-
     public void SendPendingInputs()
     {
         CreateInputMessage(out var inputMessage);
@@ -74,8 +100,10 @@ sealed class ProtocolInputBuffer(
     AddInputResult CreateInputMessage(out ProtocolMessage protocolMessage)
     {
         Span<byte> workingBuffer = workingBufferMemory.Span;
-        Trace.Assert(workingBuffer.Length >= WorkingBufferSize);
-        Span<byte> lastBytes = workingBuffer[..Max.TotalInputSizeInBytes];
+        Trace.Assert(workingBuffer.Length >= WorkingBufferFactor);
+        Span<byte> lastAckBytes = workingBuffer[..inputSize];
+        Span<byte> sendBuffer = workingBuffer.Slice(inputSize, inputSize);
+        Span<byte> currentBytes = workingBuffer.Slice(inputSize * 2, inputSize);
 
         var lastAckFrame = inbox.LastAckedFrame;
         InputMessage inputMessage = new()
@@ -83,53 +111,66 @@ sealed class ProtocolInputBuffer(
             AckFrame = inbox.LastReceivedInput.Frame,
         };
 
-        GameInput next;
-        while (pendingOutput.TryPeek(out next) && next.Frame < lastAckFrame)
+        GameInput<TInput> current;
+        while (pendingOutput.TryPeek(out current) && current.Frame < lastAckFrame)
         {
             var acked = pendingOutput.Dequeue();
-            logger.Write(LogLevel.Trace, $"Skipping past frame:{acked.Frame} current is {lastAckFrame}");
+            logger.Write(LogLevel.Debug, $"Skipping past frame:{acked.Frame} current is {lastAckFrame}");
             lastAckedInput = acked;
+            lastAckSize = inputSerializer.Serialize(ref lastAckedInput.Data, lastAckBytes);
         }
 
-        lastAckedInput.CopyTo(lastBytes);
-
-        if (pendingOutput.TryPeek(out next))
+        var currentSize = 0;
+        if (pendingOutput.TryPeek(out current))
         {
-            inputMessage.InputSize = (byte)next.Size;
-            inputMessage.StartFrame = next.Frame;
+            currentSize = inputSerializer.Serialize(ref current.Data, currentBytes);
+            inputMessage.InputSize = (byte)currentSize;
+            inputMessage.StartFrame = current.Frame;
 
-            Trace.Assert(lastAckedInput.Frame.IsNull || lastAckedInput.Frame.Next() == next.Frame);
+            Trace.Assert(lastAckedInput.Frame.IsNull || lastAckedInput.Frame.Next() == current.Frame);
 
-            if (lastAckedInput.Frame.IsNull && lastAckedInput.Size < next.Size)
-                lastAckedInput.Size = next.Size;
+            if (lastAckedInput.Frame.IsNull && lastSentSize < currentSize)
+                lastSentSize = currentSize;
         }
-        var compressor = InputEncoder.GetCompressor(ref inputMessage, lastBytes);
+
+        if (lastAckSize is 0)
+            sendBuffer.Clear();
+        else
+            lastAckBytes[..lastAckSize].CopyTo(sendBuffer);
+
+        var compressor = InputEncoder.GetCompressor(ref inputMessage, sendBuffer);
 
         var messageBodyOverflow = false;
         var count = pendingOutput.Count;
         var n = 0;
         while (n++ < count)
         {
-            next = pendingOutput.Dequeue();
-            if (compressor.Write(next.Buffer))
+            current = pendingOutput.Dequeue();
+            if (n > 1)
+                currentSize = inputSerializer.Serialize(ref current.Data, currentBytes);
+
+            if (compressor.Write(currentBytes[..currentSize]))
             {
-                LastSent = next;
-                pendingOutput.Enqueue(next);
+                LastSent = current;
+                lastSentSize = currentSize;
+                pendingOutput.Enqueue(current);
             }
             else
             {
                 logger.Write(LogLevel.Warning,
-                    $"Max input size reached. Sending inputs until frame {next.Frame.Previous()}");
-                pendingOutput.EnqueueNext(in next);
+                    $"Max input size reached. Sending inputs until frame {current.Frame.Previous()}");
+                pendingOutput.EnqueueNext(in current);
                 messageBodyOverflow = true;
                 break;
             }
         }
 
-        Trace.Assert(inputMessage.NumBits <= Max.CompressedBytes * ByteSize.ByteToBits);
-        inputMessage.InputSize = (byte)LastSent.Size;
+        inputMessage.InputSize = (byte)lastSentSize;
         inputMessage.NumBits = compressor.BitOffset;
         inputMessage.DisconnectRequested = state.CurrentStatus is ProtocolStatus.Disconnected;
+
+        Trace.Assert(inputMessage.NumBits <= Max.CompressedBytes * ByteSize.ByteToBits);
+        Trace.Assert(lastAckFrame.IsNull || inputMessage.StartFrame == lastAckFrame);
 
         if (state.LocalConnectStatuses.AnyConnected())
             state.LocalConnectStatuses.CopyTo(inputMessage.PeerConnectStatus);
@@ -138,6 +179,7 @@ sealed class ProtocolInputBuffer(
         {
             Input = inputMessage,
         };
+
 
         return messageBodyOverflow
             ? AddInputResult.MessageBodyOverflow

@@ -3,24 +3,24 @@ using Backdash.Network.Protocol;
 
 namespace Backdash.Network;
 
-interface IProtocolEventQueue : IDisposable
+interface IProtocolEventQueue<TInput> : IDisposable where TInput : struct
 {
-    Func<ProtocolEvent, bool> Router { get; set; }
+    Func<ProtocolEvent<TInput>, bool> Router { get; set; }
 
-    bool TryConsume(out ProtocolEvent nextEvent);
+    bool TryConsume(out ProtocolEvent<TInput> nextEvent);
 
-    void Publish(in ProtocolEvent evt);
+    void Publish(in ProtocolEvent<TInput> evt);
 
     void Publish(in ProtocolEventType evt, in PlayerHandle player) =>
-        Publish(new ProtocolEvent(evt, player));
+        Publish(new ProtocolEvent<TInput>(evt, player));
 }
 
-sealed class ProtocolEventQueue : IProtocolEventQueue
+sealed class ProtocolEventQueue<TInput> : IProtocolEventQueue<TInput> where TInput : struct
 {
-    public Func<ProtocolEvent, bool> Router { get; set; } = delegate { return false; };
+    public Func<ProtocolEvent<TInput>, bool> Router { get; set; } = delegate { return false; };
     bool disposed;
 
-    readonly Channel<ProtocolEvent> channel = Channel.CreateUnbounded<ProtocolEvent>(
+    readonly Channel<ProtocolEvent<TInput>> channel = Channel.CreateUnbounded<ProtocolEvent<TInput>>(
         new UnboundedChannelOptions
         {
             SingleWriter = false,
@@ -28,9 +28,9 @@ sealed class ProtocolEventQueue : IProtocolEventQueue
             AllowSynchronousContinuations = true,
         });
 
-    public bool TryConsume(out ProtocolEvent nextEvent) => channel.Reader.TryRead(out nextEvent);
+    public bool TryConsume(out ProtocolEvent<TInput> nextEvent) => channel.Reader.TryRead(out nextEvent);
 
-    public void Publish(in ProtocolEvent evt)
+    public void Publish(in ProtocolEvent<TInput> evt)
     {
         if (disposed) return;
         if (Router(evt)) return;

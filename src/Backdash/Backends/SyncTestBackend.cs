@@ -12,14 +12,13 @@ namespace Backdash.Backends;
 
 sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGameState>
     where TInput : struct
-    where TGameState : notnull, IEquatable<TGameState>
+    where TGameState : IEquatable<TGameState>
 {
-    readonly record struct SavedFrame(Frame Frame, int Checksum, TGameState State, GameInput Input);
+    readonly record struct SavedFrame(Frame Frame, int Checksum, TGameState State, GameInput<TInput> Input);
 
     readonly TaskCompletionSource tsc = new();
     readonly Logger logger;
     readonly RollbackOptions options;
-    readonly IBinarySerializer<TInput> inputSerializer;
     readonly HashSet<PlayerHandle> players = [];
     readonly Synchronizer<TInput, TGameState> synchronizer;
 
@@ -33,8 +32,8 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
     IRollbackHandler<TGameState> callbacks;
 
     bool rollingback;
-    GameInput currentInput;
-    GameInput lastInput;
+    GameInput<TInput> currentInput;
+    GameInput<TInput> lastInput;
 
     Frame checkDistance = Frame.Zero;
     Frame lastVerified = Frame.Zero;
@@ -53,8 +52,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
     {
         ThrowHelpers.ThrowIfArgumentIsZeroOrLess(options.LocalPort);
         ThrowHelpers.ThrowIfArgumentIsZeroOrLess(options.NumberOfPlayers);
-        ThrowHelpers.ThrowIfTypeTooBigForStack<GameInput>();
-        ThrowHelpers.ThrowIfTypeSizeGreaterThan<GameInputBuffer>(Max.InputSizeInBytes);
+        ThrowHelpers.ThrowIfTypeTooBigForStack<GameInput<TInput>>();
         ThrowHelpers.ThrowIfTypeTooBigForStack<TInput>();
 
 
@@ -63,13 +61,11 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         Trace.Assert(options.SpectatorOffset > options.NumberOfPlayers);
 
         this.options = options;
-        this.inputSerializer = inputSerializer;
         this.logger = logger;
-        this.options.InputSize = inputTypeSize;
 
         this.callbacks = callbacks;
         synchronizer = new(
-            options, logger, inputSerializer,
+            options, logger,
             stateStore,
             checksumProvider,
             new(Max.RemoteConnections)
@@ -77,8 +73,8 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         {
             Callbacks = this.callbacks,
         };
-        currentInput = GameInput.Create(this.options.InputSize);
-        lastInput = GameInput.Create(this.options.InputSize);
+        currentInput = new();
+        lastInput = new();
     }
 
     public void Dispose() => tsc.SetResult();
@@ -123,8 +119,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         if (!running)
             return ResultCode.NotSynchronized;
 
-        inputSerializer.Serialize(ref localInput, currentInput.Buffer);
-
+        currentInput.Data = localInput;
         return ResultCode.Ok;
     }
 
@@ -145,7 +140,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
             lastInput = currentInput;
         }
 
-        inputs[0] = inputSerializer.Deserialize(lastInput.Buffer);
+        inputs[0] = lastInput.Data;
 
         return ResultCode.Ok;
     }
@@ -216,8 +211,8 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         StringBuilder builder = new();
         builder.AppendLine($"=== Saved State ({info.Frame}) ");
         var input = info.Input;
-        builder.AppendLine($"--- Input: ({(ByteSize)input.Size})");
-        builder.AppendLine(inputSerializer.Deserialize(input.Buffer).ToString());
+        builder.AppendLine("--- Input");
+        builder.AppendLine(input.Data.ToString());
         builder.AppendLine();
         builder.AppendLine($"--- Game State #{info.Checksum}");
         builder.AppendLine(JsonSerializer.Serialize(info.State, jsonOptions));

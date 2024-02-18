@@ -22,7 +22,7 @@ static class Extensions
             queue.Enqueue(queue.Dequeue());
     }
 
-    public static int GetTypeSize<T>(this IBinarySerializer<T> serializer) where T : struct
+    public static int GetTypeSize<T>(this IBinaryWriter<T> serializer) where T : struct
     {
         var dummy = new T();
         Span<byte> buffer = stackalloc byte[Mem.MaxStackLimit];

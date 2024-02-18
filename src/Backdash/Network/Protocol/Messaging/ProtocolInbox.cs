@@ -4,34 +4,37 @@ using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network.Client;
 using Backdash.Network.Messages;
+using Backdash.Serialization;
 using Backdash.Sync;
 
 namespace Backdash.Network.Protocol.Messaging;
 
-interface IProtocolInbox : IUdpObserver<ProtocolMessage>
+interface IProtocolInbox<TInput> : IUdpObserver<ProtocolMessage> where TInput : struct
 {
-    GameInput LastReceivedInput { get; }
+    GameInput<TInput> LastReceivedInput { get; }
     long LastReceivedTime { get; }
     Frame LastAckedFrame { get; }
 }
 
-sealed class ProtocolInbox(
+sealed class ProtocolInbox<TInput>(
     ProtocolOptions options,
+    IBinaryReader<TInput> inputSerializer,
     ProtocolState state,
     IClock clock,
     IProtocolSyncManager sync,
     IMessageSender messageSender,
-    IProtocolEventQueue events,
+    IProtocolEventQueue<TInput> events,
     Logger logger
-) : IProtocolInbox
+) : IProtocolInbox<TInput> where TInput : struct
 {
     ushort remoteMagicNumber;
     ushort nextRecvSeq;
-    GameInput lastReceivedInput = GameInput.CreateEmpty();
+    GameInput<TInput> lastReceivedInput = new();
+    readonly Memory<byte> lastReceivedInputBuffer = Mem.CreatePinnedBuffer(Max.CompressedBytes);
+
     public long LastReceivedTime { get; private set; }
-    Frame lastAckedFrame = Frame.Null;
-    public GameInput LastReceivedInput => lastReceivedInput;
-    public Frame LastAckedFrame => lastAckedFrame;
+    public GameInput<TInput> LastReceivedInput => lastReceivedInput;
+    public Frame LastAckedFrame { get; private set; } = Frame.Null;
 
     public async ValueTask OnUdpMessage(
         IUdpClient<ProtocolMessage> sender,
@@ -98,7 +101,7 @@ sealed class ProtocolInbox(
                 handled = OnSyncReply(in message, ref replyMsg);
                 break;
             case MsgType.Input:
-                handled = OnInput(ref message);
+                handled = OnInput(ref message.Input);
                 break;
             case MsgType.QualityReport:
                 handled = OnQualityReport(in message, out replyMsg);
@@ -122,12 +125,15 @@ sealed class ProtocolInbox(
         return handled;
     }
 
-    bool OnInput(ref ProtocolMessage msg)
+    bool OnInput(ref InputMessage msg)
     {
+        LastAckedFrame = msg.AckFrame;
+        logger.Write(LogLevel.Trace, $"Acked Frame: {LastAckedFrame}");
+
         /*
          * If a disconnect is requested, go ahead and disconnect now.
          */
-        var disconnectRequested = msg.Input.DisconnectRequested;
+        var disconnectRequested = msg.DisconnectRequested;
 
         if (disconnectRequested)
         {
@@ -144,7 +150,7 @@ sealed class ProtocolInbox(
              * Update the peer connection status if this peer is still considered to be part
              * of the network.
              */
-            var remoteStatus = msg.Input.PeerConnectStatus;
+            var remoteStatus = msg.PeerConnectStatus;
             var peerConnectStatus = state.PeerConnectStatuses;
             for (var i = 0; i < peerConnectStatus.Length; i++)
             {
@@ -164,17 +170,16 @@ sealed class ProtocolInbox(
          * Decompress the input.
          */
         var lastReceivedFrame = lastReceivedInput.Frame;
-        if (msg.Input.NumBits > 0)
+        if (msg.NumBits > 0)
         {
-            lastReceivedInput.Size = msg.Input.InputSize;
             if (lastReceivedInput.Frame < 0)
-                lastReceivedInput.Frame = msg.Input.StartFrame.Previous();
+                lastReceivedInput.Frame = msg.StartFrame.Previous();
 
             var nextFrame = lastReceivedInput.Frame.Next();
-            var currentFrame = msg.Input.StartFrame;
+            var currentFrame = msg.StartFrame;
             Trace.Assert(currentFrame <= nextFrame);
 
-            var decompressor = InputEncoder.GetDecompressor(ref msg.Input);
+            var decompressor = InputEncoder.GetDecompressor(ref msg);
 
             var framesAhead = nextFrame.Number - currentFrame.Number;
             if (framesAhead > 0)
@@ -188,25 +193,21 @@ sealed class ProtocolInbox(
 
             Trace.Assert(currentFrame == nextFrame);
 
-            while (decompressor.Read(lastReceivedInput.Buffer))
+            var lastReceivedBuffer = lastReceivedInputBuffer.Span[..msg.InputSize];
+            while (decompressor.Read(lastReceivedBuffer))
             {
-                /*
-                 * Move forward 1 frame in the stream.
-                 */
+                lastReceivedInput.Data = inputSerializer.Deserialize(lastReceivedBuffer);
                 Trace.Assert(currentFrame == lastReceivedInput.Frame.Next());
                 lastReceivedInput.Frame = currentFrame;
                 currentFrame++;
 
                 state.Stats.LastInputPacketRecvTime = clock.GetTimeStamp();
 
-                /*
-                 * Send the event to the emulator
-                 */
                 logger.Write(LogLevel.Debug,
-                    $"Sending frame {lastReceivedInput.Frame} to emulator queue {state.Player} (frame: {lastAckedFrame})");
+                    $"Received input: frame {lastReceivedInput.Frame}, sending to emulator queue {state.Player} (ack: {LastAckedFrame})");
 
                 events.Publish(
-                    new ProtocolEvent(ProtocolEventType.Input, state.Player)
+                    new ProtocolEvent<TInput>(ProtocolEventType.Input, state.Player)
                     {
                         Input = lastReceivedInput,
                     }
@@ -215,14 +216,12 @@ sealed class ProtocolInbox(
         }
 
         Trace.Assert(lastReceivedInput.Frame >= lastReceivedFrame);
-        lastAckedFrame = msg.Input.AckFrame;
-        logger.Write(LogLevel.Trace, $"Acked Frame: {LastAckedFrame}");
         return true;
     }
 
     bool OnInputAck(in ProtocolMessage msg)
     {
-        lastAckedFrame = msg.InputAck.AckFrame;
+        LastAckedFrame = msg.InputAck.AckFrame;
         return true;
     }
 
@@ -282,7 +281,7 @@ sealed class ProtocolInbox(
         else
         {
             events.Publish(
-                new ProtocolEvent(ProtocolEventType.Synchronizing, state.Player)
+                new ProtocolEvent<TInput>(ProtocolEventType.Synchronizing, state.Player)
                 {
                     Synchronizing = new()
                     {

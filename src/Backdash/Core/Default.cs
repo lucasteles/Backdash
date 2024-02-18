@@ -10,7 +10,7 @@ static class Default
     public const int PredictionFrames = 32;
     public const int DisconnectTimeout = 5_000;
 
-    public const int MaxInputQueue = Max.CompressedBytes / Max.TotalInputSizeInBytes;
+    public const int MaxInputQueue = 64;
     public const int MaxPackageQueue = 128;
     public const int NumberOfSyncPackets = 5;
     public const long UdpShutdownTime = 100;

@@ -12,3 +12,4 @@ global using FluentAssertions;
 global using FsCheck;
 global using Xunit;
 global using Random = System.Random;
+global using GameInput = Backdash.Sync.GameInput<Backdash.Tests.Utils.TestInput>;

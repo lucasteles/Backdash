@@ -58,10 +58,8 @@ readonly ref struct BitVector(scoped in Span<byte> bits)
 }
 
 [DebuggerDisplay("{ToString()}")]
-public ref struct BitOffsetWriter(Span<byte> buffer, ushort offset = 0)
+public ref struct BitOffsetWriter(Span<byte> buffer, ushort offset = 0, int nibbleSize = ByteSize.ByteToBits)
 {
-    public const int NibbleSize = 8;
-
     public readonly Span<byte> Buffer = buffer;
 
     public ushort Offset { get; set; } = offset;
@@ -94,8 +92,8 @@ public ref struct BitOffsetWriter(Span<byte> buffer, ushort offset = 0)
 
     public void WriteNibble(int nibble)
     {
-        Trace.Assert(nibble < 1 << NibbleSize);
-        for (var i = 0; i < NibbleSize; i++)
+        Trace.Assert(nibble < 1 << nibbleSize);
+        for (var i = 0; i < nibbleSize; i++)
             if ((nibble & (1 << i)) != 0)
                 SetNext();
             else
@@ -105,7 +103,7 @@ public ref struct BitOffsetWriter(Span<byte> buffer, ushort offset = 0)
     public int ReadNibble()
     {
         var nibble = 0;
-        for (var i = 0; i < NibbleSize; i++)
+        for (var i = 0; i < nibbleSize; i++)
             nibble |= (Read() ? 1 : 0) << i;
 
         return nibble;

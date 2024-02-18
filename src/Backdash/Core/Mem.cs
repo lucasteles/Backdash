@@ -127,26 +127,24 @@ static class Mem
     public static Memory<byte> CreatePinnedBuffer(int size)
     {
         var buffer = GC.AllocateArray<byte>(length: size, pinned: true);
+        Array.Clear(buffer);
         return MemoryMarshal.CreateFromPinnedArray(buffer, 0, buffer.Length);
     }
 
     public static string GetBitString(
         in ReadOnlySpan<byte> bytes,
-        int splitAt = 0,
         bool trimRightZeros = true,
         int bytePad = ByteSize.ByteToBits
     )
     {
         StringBuilder builder = new(bytes.Length * bytePad * sizeof(char));
         const char byteSep = '-';
-        const char splitSep = '|';
 
         Span<char> binary = stackalloc char[bytePad];
         for (var i = 0; i < bytes.Length; i++)
         {
             if (i > 0)
-                if (splitAt > 0 && i % splitAt is 0) builder.Append(splitSep);
-                else builder.Append(byteSep);
+                builder.Append(byteSep);
 
             binary.Clear();
             var base10 = bytes[i];
@@ -172,7 +170,7 @@ static class Mem
             if (builder[lastNonZero] is byteSep)
                 lastByteSep = lastNonZero;
 
-            if (builder[lastNonZero] is not ('0' or byteSep or splitSep))
+            if (builder[lastNonZero] is not ('0' or byteSep))
                 break;
         }
 
@@ -196,5 +194,14 @@ static class Mem
             result[i] = value1[i] ^ value2[i];
 
         return value1.Length;
+    }
+
+    public static bool IsZeroOnly(ReadOnlySpan<byte> bytes)
+    {
+        for (var i = 0; i < bytes.Length; i++)
+            if (bytes[i] is not 0)
+                return false;
+
+        return true;
     }
 }

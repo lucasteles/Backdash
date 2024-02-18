@@ -75,7 +75,6 @@ readonly ref struct Utf8StringWriter
         if (!Enum.TryFormat(value, charBuffer, out int written, format))
             return false;
 
-        offset += written;
-        return true;
+        return WriteChars(charBuffer[..written]);
     }
 }

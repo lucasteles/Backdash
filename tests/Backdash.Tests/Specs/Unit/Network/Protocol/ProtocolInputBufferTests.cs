@@ -4,7 +4,7 @@ using Backdash.Network;
 using Backdash.Network.Messages;
 using Backdash.Network.Protocol;
 using Backdash.Network.Protocol.Messaging;
-using Backdash.Sync;
+using Backdash.Serialization;
 
 namespace Backdash.Tests.Specs.Unit.Network.Protocol;
 
@@ -44,11 +44,11 @@ public class ProtocolInputBufferTests
     public void ShouldSendSingleInput()
     {
         var faker = GetFaker();
-        var queue = faker.Generate<ProtocolInputBuffer>();
+        var queue = faker.Generate<ProtocolInputBuffer<TestInput>>();
         var sender = faker.Resolve<IMessageSender>();
         var input = Generate.GameInput(0, [0, 0, 0, 2]);
 
-        A.CallTo(() => faker.Resolve<IProtocolInbox>().LastAckedFrame).Returns(Frame.Null);
+        A.CallTo(() => faker.Resolve<IProtocolInbox<TestInput>>().LastAckedFrame).Returns(Frame.Null);
 
         ProtocolMessage message = new(MsgType.Input)
         {
@@ -75,7 +75,7 @@ public class ProtocolInputBufferTests
     public void ShouldCompressMultipleBufferedInputs()
     {
         var faker = GetFakerWithSender();
-        var queue = faker.Generate<ProtocolInputBuffer>();
+        var queue = faker.Generate<ProtocolInputBuffer<TestInput>>();
         var sender = faker.Resolve<IMessageSender>();
 
         var inputs = GetSampleInputs();
@@ -97,7 +97,7 @@ public class ProtocolInputBufferTests
     {
         var faker = GetFakerWithSender();
         var sender = faker.Resolve<IMessageSender>();
-        var queue = faker.Generate<ProtocolInputBuffer>();
+        var queue = faker.Generate<ProtocolInputBuffer<TestInput>>();
 
         // setting up first inputs
         GameInput[] previousInputs =
@@ -111,7 +111,7 @@ public class ProtocolInputBufferTests
 
         // setting up new inputs to check
         const int startFrame = 2;
-        A.CallTo(() => faker.Resolve<IProtocolInbox>().LastAckedFrame).Returns(new(startFrame));
+        A.CallTo(() => faker.Resolve<IProtocolInbox<TestInput>>().LastAckedFrame).Returns(new(startFrame));
         var newInputs = GetSampleInputs(startFrame);
 
         foreach (var input in newInputs)
@@ -133,11 +133,10 @@ public class ProtocolInputBufferTests
     public void ShouldHandleWhenMaxInputSizeReached()
     {
         var faker = GetFakerWithSender();
-        var queue = faker.Generate<ProtocolInputBuffer>();
+        var queue = faker.Generate<ProtocolInputBuffer<TestInput>>();
         var sender = faker.Resolve<IMessageSender>();
 
-        const int maxUncompressedInputCount = Max.CompressedBytes / Max.TotalInputSizeInBytes;
-        var inputs = Generate.GameInputRange(maxUncompressedInputCount * 4);
+        var inputs = Generate.GameInputRange(Max.CompressedBytes * 4);
 
         List<GameInput> successfullySend = [];
 
@@ -174,7 +173,7 @@ public class ProtocolInputBufferTests
         AutoFakeIt faker = new();
         ProtocolOptions options = new()
         {
-            MaxInputQueue = Array.MaxLength,
+            MaxInputQueue = 1024,
         };
 
         ProtocolState state = new(
@@ -187,7 +186,7 @@ public class ProtocolInputBufferTests
         };
 
         faker.Provide(Logger.CreateConsoleLogger(LogLevel.Off));
-
+        faker.Provide<IBinaryWriter<TestInput>>(new TestInputSerializer());
         faker.Provide(options);
         faker.Provide(state);
 
@@ -198,7 +197,7 @@ public class ProtocolInputBufferTests
     {
         var faker = GetFaker();
 
-        A.CallTo(() => faker.Resolve<IProtocolInbox>().LastAckedFrame).Returns(Frame.Null);
+        A.CallTo(() => faker.Resolve<IProtocolInbox<TestInput>>().LastAckedFrame).Returns(Frame.Null);
         A.CallTo(faker.Resolve<IMessageSender>())
             .Where(x => x.Method.Name == nameof(IMessageSender.SendMessage))
             .WithReturnType<bool>()

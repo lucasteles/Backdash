@@ -31,7 +31,7 @@ public class MyStateManager(
 
     public void OnEvent(RollbackEvent evt)
     {
-        logger.Write(LogLevel.Debug, $"GAME => ROLLBACK EVENT {DateTime.UtcNow} = {evt}");
+        logger.Write(LogLevel.Information, $"GAME => ROLLBACK EVENT {DateTime.UtcNow} = {evt}");
 
         switch (evt.Type)
         {
@@ -43,10 +43,11 @@ public class MyStateManager(
 
             case RollbackEventType.SynchronizingWithPeer:
                 syncPercent = evt.Synchronizing.CurrentStep /
-                              (float)evt.Synchronizing.TotalSteps;
+                              (float) evt.Synchronizing.TotalSteps;
                 break;
             case RollbackEventType.TimeSync:
                 var framesAhead = evt.TimeSync.FramesAhead;
+                Console.Write("** Catching up... **");
                 Thread.Sleep(Frames.ToTimeSpan(framesAhead));
                 break;
         }
@@ -177,7 +178,7 @@ public class MyStateManager(
 
     bool DrawPlayer(Vector2 pos, int col, int row, ConsoleColor color)
     {
-        if ((int)pos.X == col && (int)pos.Y == row)
+        if ((int) pos.X == col && (int) pos.Y == row)
         {
             Console.ForegroundColor = color;
             Console.Write("0");

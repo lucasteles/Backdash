@@ -2,57 +2,51 @@ using System.Diagnostics;
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network;
-using Backdash.Serialization;
 using Backdash.Sync.State;
 
 namespace Backdash.Sync;
 
 sealed class Synchronizer<TInput, TState>
     where TInput : struct
-    where TState : notnull
+    where TState : IEquatable<TState>
 {
     readonly RollbackOptions options;
     readonly Logger logger;
-    readonly IBinarySerializer<TInput> inputSerializer;
     readonly IStateStore<TState> stateStore;
     readonly IChecksumProvider<TState> checksumProvider;
     readonly ConnectionsState localConnections;
-    readonly InputQueue[] inputQueues;
+    readonly InputQueue<TInput>[] inputQueues;
     public required IRollbackHandler<TState> Callbacks { get; internal set; }
 
-    bool rollingBack;
     Frame frameCount = Frame.Zero;
     Frame lastConfirmedFrame = Frame.Zero;
 
     public Synchronizer(
         RollbackOptions options,
         Logger logger,
-        IBinarySerializer<TInput> inputSerializer,
         IStateStore<TState> stateStore,
         IChecksumProvider<TState> checksumProvider,
         ConnectionsState localConnections
     )
     {
-        Trace.Assert(options.InputSize > 0);
-
         this.options = options;
         this.logger = logger;
-        this.inputSerializer = inputSerializer;
         this.stateStore = stateStore;
         this.checksumProvider = checksumProvider;
         this.localConnections = localConnections;
 
         stateStore.Initialize(options.PredictionFrames + options.PredictionFramesOffset);
 
-        inputQueues = new InputQueue[options.NumberOfPlayers];
+        inputQueues = new InputQueue<TInput>[options.NumberOfPlayers];
+        var delay = Math.Max(options.FrameDelay, 0);
         for (var i = 0; i < inputQueues.Length; i++)
-            inputQueues[i] = new(options.InputSize, options.Protocol.MaxInputQueue, logger)
+            inputQueues[i] = new(options.Protocol.MaxInputQueue, logger)
             {
-                FrameDelay = Math.Max(options.FrameDelay, 0)
+                FrameDelay = delay,
             };
     }
 
-    public bool InRollback => rollingBack;
+    public bool InRollback { get; private set; }
     public Frame FrameCount => frameCount;
     public Frame FramesBehind => Frame.Max(frameCount - lastConfirmedFrame, Frame.Zero);
 
@@ -67,9 +61,9 @@ sealed class Synchronizer<TInput, TState>
             inputQueues[i].DiscardConfirmedFrames(frame.Previous());
     }
 
-    void AddInput(in PlayerHandle queue, ref GameInput input) => inputQueues[queue.Index].AddInput(ref input);
+    void AddInput(in PlayerHandle queue, ref GameInput<TInput> input) => inputQueues[queue.Index].AddInput(ref input);
 
-    public bool AddLocalInput(in PlayerHandle queue, ref GameInput input)
+    public bool AddLocalInput(in PlayerHandle queue, ref GameInput<TInput> input)
     {
         if (frameCount >= options.PredictionFrames && FramesBehind >= options.PredictionFrames)
         {
@@ -87,11 +81,11 @@ sealed class Synchronizer<TInput, TState>
         return true;
     }
 
-    public void AddRemoteInput(in PlayerHandle player, GameInput input) => AddInput(in player, ref input);
+    public void AddRemoteInput(in PlayerHandle player, GameInput<TInput> input) => AddInput(in player, ref input);
 
-    public bool GetConfirmedInput(in Frame frame, int playerNumber, out GameInput confirmed)
+    public bool GetConfirmedInput(in Frame frame, int playerNumber, out GameInput<TInput> confirmed)
     {
-        confirmed = GameInput.Create(options.InputSize, frame);
+        confirmed = new(frame);
         if (localConnections[playerNumber].Disconnected && frame > localConnections[playerNumber].LastFrame)
             return false;
 
@@ -107,14 +101,16 @@ sealed class Synchronizer<TInput, TState>
 
         for (var i = 0; i < options.NumberOfPlayers; i++)
         {
-            var input = GameInput.Create(options.InputSize);
             if (localConnections[i].Disconnected && frameCount > localConnections[i].LastFrame)
+            {
                 disconnections = true;
+                output[i] = default;
+            }
             else
-                inputQueues[i].GetInput(frameCount, out input);
-
-            ReadOnlySpan<byte> inputBytes = input.Buffer;
-            output[i] = inputSerializer.Deserialize(in inputBytes);
+            {
+                inputQueues[i].GetInput(frameCount, out var input);
+                output[i] = input.Data;
+            }
         }
     }
 
@@ -136,7 +132,7 @@ sealed class Synchronizer<TInput, TState>
         var count = frameCount - seekTo;
 
         logger.Write(LogLevel.Debug, "Catching up");
-        rollingBack = true;
+        InRollback = true;
 
         /*
          * Flush our input queue and load the last frame.
@@ -153,7 +149,7 @@ sealed class Synchronizer<TInput, TState>
             Callbacks.AdvanceFrame();
 
         Trace.Assert(frameCount == currentCount);
-        rollingBack = false;
+        InRollback = false;
     }
 
     public void LoadFrame(in Frame frame)

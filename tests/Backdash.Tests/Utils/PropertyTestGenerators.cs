@@ -13,12 +13,12 @@ public sealed class PropertyTestAttribute : FsCheck.Xunit.PropertyAttribute
     {
         QuietOnSuccess = true;
         MaxTest = 1000;
-        Arbitrary = [typeof(CustomGenerators)];
+        Arbitrary = [typeof(PropertyTestGenerators)];
     }
 }
 
 [Serializable]
-class CustomGenerators
+class PropertyTestGenerators
 {
     public static Arbitrary<Point> PointGenerator() => Arb.From(
         from x in Arb.From<int>().Generator
@@ -238,14 +238,22 @@ class CustomGenerators
         })
         .ToArbitrary();
 
-    public static Arbitrary<GameInput> GameInputBufferGenerator() => Arb.From(
-        from frame in Arb.From<Frame>().Generator
-        from bytes in Gen.ArrayOf(Max.TotalInputSizeInBytes, Gen.Elements(Generate.GoodInputBytes))
-        select new GameInput(bytes)
-        {
-            Frame = frame,
-        }
+    public static Arbitrary<TestInput> TestInputGenerator() => Arb.From(
+        from bytes in Gen.ArrayOf(TestInput.Capacity, Arb.From<byte>().Generator)
+        select new TestInput(bytes)
     );
+
+    public static Arbitrary<GameInput<TInput>> GameInputBufferGenerator<TInput>()
+        where TInput : struct
+        => Arb.From(
+            from frame in Arb.From<Frame>().Generator
+            from data in Arb.From<TInput>().Generator
+            select new GameInput<TInput>()
+            {
+                Frame = frame,
+                Data = data,
+            }
+        );
 
     public static Arbitrary<PendingGameInputs> PendingGameInputBufferGenerator() =>
         Gen.Sized(testSize =>

@@ -1,5 +1,3 @@
-using Backdash.Sync;
-
 namespace Backdash.Tests.Specs.Unit.Input;
 
 public class GameInputTests
@@ -7,7 +5,7 @@ public class GameInputTests
     [Fact]
     public void InputString()
     {
-        GameInputBuffer buffer = new([2]);
+        TestInputBuffer buffer = new([2]);
 
         var strValue = buffer.ToString();
         const string expected = "00000010";
@@ -18,7 +16,7 @@ public class GameInputTests
     [Fact]
     public void InputString2Players()
     {
-        GameInputBuffer buffer = new();
+        TestInputBuffer buffer = new();
         var p1 = buffer[..];
 
         p1[0] = 2;

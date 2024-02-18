@@ -1,6 +1,7 @@
 using System.Net;
 using System.Runtime.CompilerServices;
 using Backdash.Network.Protocol;
+using Backdash.Network.Protocol.Messaging;
 using Backdash.Serialization.Buffer;
 
 #pragma warning disable S4144
@@ -16,7 +17,7 @@ ref struct LogInterpolatedStringHandler
     public LogInterpolatedStringHandler(int literalLength, int formattedCount, Logger logger, LogLevel level,
         out bool isEnabled)
     {
-        isEnabled = logger.EnabledLevel >= level;
+        isEnabled = logger.IsEnabledFor(level);
         Enabled = isEnabled;
         if (!isEnabled) return;
         Buffer = new();
@@ -79,11 +80,18 @@ ref struct LogInterpolatedStringHandler
         writer.Write(t, format);
     }
 
-    public void AppendFormatted(ProtocolStatus t)
+    public void AppendFormatted(ProtocolStatus status)
     {
         if (!Enabled) return;
         Utf8StringWriter writer = new(Buffer, ref Length);
-        writer.WriteEnum(t);
+        writer.WriteEnum(status);
+    }
+
+    public void AppendFormatted(AddInputResult result)
+    {
+        if (!Enabled) return;
+        Utf8StringWriter writer = new(Buffer, ref Length);
+        writer.WriteEnum(result);
     }
 }
 

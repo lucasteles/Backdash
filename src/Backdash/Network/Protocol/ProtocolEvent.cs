@@ -1,4 +1,3 @@
-using System.Runtime.InteropServices;
 using Backdash.Serialization.Buffer;
 using Backdash.Sync;
 
@@ -15,28 +14,19 @@ public enum ProtocolEventType : byte
     NetworkResumed,
 }
 
-[StructLayout(LayoutKind.Explicit)]
-struct ProtocolEvent(ProtocolEventType type, PlayerHandle player) : IUtf8SpanFormattable
+struct ProtocolEvent<TInput>(ProtocolEventType type, PlayerHandle player) : IUtf8SpanFormattable where TInput : struct
 {
     public readonly record struct SynchronizingData(ushort Total, ushort Count);
-
     public readonly record struct NetworkInterruptedData(ushort DisconnectTimeout);
 
-    const int HeaderSize = sizeof(ProtocolEventType) + PlayerHandle.Size;
-
-    [FieldOffset(0)]
     public ProtocolEventType Type = type;
 
-    [FieldOffset(1)]
     public PlayerHandle Player = player;
 
-    [FieldOffset(HeaderSize)]
-    public GameInput Input = default;
+    public GameInput<TInput> Input = default;
 
-    [FieldOffset(HeaderSize)]
     public SynchronizingData Synchronizing = default;
 
-    [FieldOffset(HeaderSize)]
     public NetworkInterruptedData NetworkInterrupted = default;
 
     public readonly bool TryFormat(

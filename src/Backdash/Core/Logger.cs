@@ -26,13 +26,14 @@ sealed class Logger(LogLevel level, ILogWriter writer)
 
     readonly ArrayPool<char> pool = ArrayPool<char>.Shared;
 
+
     public void Write(
         LogLevel level,
         [InterpolatedStringHandlerArgument("", "level")]
         LogInterpolatedStringHandler builder
     )
     {
-        if (!builder.Enabled || EnabledLevel is LogLevel.Off || level < EnabledLevel) return;
+        if (!builder.Enabled || !IsEnabledFor(in level)) return;
         Span<byte> utf8Bytes = builder.Buffer[..builder.Length];
         var charCount = Encoding.UTF8.GetCharCount(utf8Bytes);
         var buffer = pool.Rent(charCount);
@@ -49,25 +50,35 @@ sealed class Logger(LogLevel level, ILogWriter writer)
 
     public void Write(LogLevel level, string text)
     {
-        if (EnabledLevel is LogLevel.Off || level < EnabledLevel) return;
+        if (level < EnabledLevel) return;
         writer.Write(level, text);
     }
+
+    public bool IsEnabledFor(in LogLevel level) => level >= EnabledLevel;
 
     internal static Logger CreateConsoleLogger(LogLevel level) => new(level, new ConsoleLogWriter());
 }
 
 sealed class ConsoleLogWriter : ILogWriter
 {
+    readonly object locker = new();
+
     public void Write(LogLevel level, string text)
     {
-        WriteLevel(in level);
-        Console.Out.WriteLine(text);
+        lock (locker)
+        {
+            WriteLevel(in level);
+            Console.Out.WriteLine(text);
+        }
     }
 
     public void Write(LogLevel level, char[] chars, int size)
     {
-        WriteLevel(in level);
-        Console.Out.WriteLine(chars, 0, size);
+        lock (locker)
+        {
+            WriteLevel(in level);
+            Console.Out.WriteLine(chars, 0, size);
+        }
     }
 
     void WriteLevel(in LogLevel level) =>

@@ -1,8 +1,6 @@
-using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network.Messages;
 using Backdash.Network.Protocol.Messaging;
-using Backdash.Sync;
 
 namespace Backdash.Tests.Specs.Unit.Input;
 
@@ -26,7 +24,7 @@ public class InputEncoderTests
         decompressedInputs.Should().BeEquivalentTo(nextInputs);
 
         decompressedInputs
-            .Select(x => x.Buffer.ToString())
+            .Select(x => x.Data.ToString())
             .Should().BeEquivalentTo(
                 "00000000-00000010",
                 "00000010-00000100",
@@ -58,7 +56,7 @@ public class InputEncoderTests
         ]);
 
         decompressedInputs
-            .Select(x => x.Buffer.ToString())
+            .Select(x => x.Data.ToString())
             .Should().BeEquivalentTo(
                 "00000100-00001000",
                 "00001000-00010000"
@@ -83,11 +81,11 @@ public class InputEncoderTests
         decompressedInputs.Should().BeEquivalentTo(inputList);
     }
 
-    [PropertyTest]
-    // [PropertyTest(Replay = "1982901546,297288611", MaxTest = 1)]
+    // [PropertyTest]
+    [PropertyTest(Replay = "2086077644,297296175", MaxTest = 1)]
     internal void ShouldCompressAndDecompress(PendingGameInputs gameInput)
     {
-        GameInput lastAcked = new(new byte[Max.TotalInputSizeInBytes])
+        GameInput lastAcked = new(new TestInput())
         {
             Frame = Frame.Zero,
         };
@@ -127,18 +125,18 @@ public class InputEncoderTests
 
         if (pendingInputs is [var first, ..])
         {
-            inputMsg.InputSize = (byte)first.Size;
+            inputMsg.InputSize = (byte)first.Data.Length;
             inputMsg.StartFrame = first.Frame;
         }
 
-        Span<byte> lastBytes = stackalloc byte[lastAcked.Size];
-        lastAcked.CopyTo(lastBytes);
+        Span<byte> lastBytes = stackalloc byte[lastAcked.Data.Length];
+        lastAcked.Data.CopyTo(lastBytes);
         var compressor = InputEncoder.GetCompressor(ref inputMsg, lastBytes);
 
         for (var i = 0; i < pendingInputs.Length; i++)
         {
             ref var t = ref pendingInputs[i];
-            if (!compressor.Write(t.Buffer[..t.Size]))
+            if (!compressor.Write(t.Data.Buffer[..t.Data.Length]))
                 throw new InvalidOperationException();
         }
 
@@ -148,17 +146,17 @@ public class InputEncoderTests
     }
 
     internal static IReadOnlyList<GameInput> DecompressToList(InputMessage inputMsg) =>
-        DecompressToList(inputMsg, GameInput.CreateEmpty());
+        DecompressToList(inputMsg, new());
 
     // LATER: after encoding refactoring this ends having too many logic, must be improved
     internal static IReadOnlyList<GameInput> DecompressToList(InputMessage inputMsg, GameInput lastRecv)
     {
         List<GameInput> inputs = [];
 
-        lastRecv.Size = inputMsg.InputSize;
         if (lastRecv.Frame.IsNull)
             lastRecv.Frame = inputMsg.StartFrame.Previous();
 
+        lastRecv.Data.Length = inputMsg.InputSize;
         var currentFrame = inputMsg.StartFrame;
         var nextFrame = lastRecv.Frame.Next();
         currentFrame.Number.Should().BeLessOrEqualTo(nextFrame.Number);
@@ -169,7 +167,7 @@ public class InputEncoderTests
             currentFrame += framesAhead;
 
         currentFrame.Should().Be(nextFrame);
-        while (decompressor.Read(lastRecv.Buffer))
+        while (decompressor.Read(lastRecv.Data.Buffer))
         {
             currentFrame.Number.Should().Be(lastRecv.Frame.Next().Number);
             lastRecv.Frame = currentFrame;

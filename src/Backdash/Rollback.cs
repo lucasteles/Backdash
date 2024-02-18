@@ -17,7 +17,7 @@ public static class Rollback
         ILogWriter? logWriter = null
     )
         where TInput : struct
-        where TGameState : struct, IEquatable<TGameState>
+        where TGameState : IEquatable<TGameState>
     {
         inputSerializer ??= BinarySerializerFactory.FindOrThrow<TInput>(options.EnableEndianness);
         var factory = new UdpClientFactory();
@@ -32,7 +32,7 @@ public static class Rollback
             checksumProvider,
             factory,
             new BackgroundJobManager(logger),
-            new ProtocolEventQueue(),
+            new ProtocolEventQueue<TInput>(),
             logger
         );
     }
@@ -45,7 +45,7 @@ public static class Rollback
         ILogWriter? logWriter = null
     )
         where TInput : struct
-        where TGameState : struct, IEquatable<TGameState>
+        where TGameState : IEquatable<TGameState>
     {
         inputSerializer ??= BinarySerializerFactory.FindOrThrow<TInput>(options.EnableEndianness);
         var logger = new Logger(options.LogLevel, logWriter ?? new ConsoleLogWriter());

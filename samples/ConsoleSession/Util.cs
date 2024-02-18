@@ -33,23 +33,27 @@ static class Util
 public sealed class DebuggerLogger : ILogWriter
 {
     public LogLevel EnabledLevel { get; set; }
+    readonly object locker = new();
 
     public void Write(LogLevel level, char[] chars, int size) =>
         Write(level, new string(chars.AsSpan()[..size]));
 
     public void Write(LogLevel level, string text)
     {
-        Trace.Write(level switch
+        lock (locker)
         {
-            LogLevel.Trace => "trc: ",
-            LogLevel.Debug => "dbg: ",
-            LogLevel.Information => "inf: ",
-            LogLevel.Warning => "warn: ",
-            LogLevel.Error => "err: ",
-            LogLevel.Off => throw new InvalidOperationException(),
-            _ => "",
-        });
-        Trace.WriteLine(text);
+            Trace.Write(level switch
+            {
+                LogLevel.Trace => "trc: ",
+                LogLevel.Debug => "dbg: ",
+                LogLevel.Information => "inf: ",
+                LogLevel.Warning => "warn: ",
+                LogLevel.Error => "err: ",
+                LogLevel.Off => throw new InvalidOperationException(),
+                _ => "",
+            });
+            Trace.WriteLine(text);
+        }
     }
 }
 

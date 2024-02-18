@@ -27,9 +27,6 @@ public readonly record struct PlayerHandle : IUtf8SpanFormattable
         Index = queue >= 0 ? queue : Math.Max(number - 1, -1);
     }
 
-    public string ToString(string? format, IFormatProvider? formatProvider) =>
-        $"{{{Type} Player {Number} at queue {Index}}}";
-
     public bool TryFormat(Span<byte> utf8Destination, out int bytesWritten, ReadOnlySpan<char> format,
         IFormatProvider? provider)
     {

@@ -8,22 +8,23 @@ using Backdash.Sync;
 
 namespace Backdash.Network;
 
-sealed class PeerConnection(
+sealed class PeerConnection<TInput>(
     ProtocolOptions options,
     ProtocolState state,
     Logger logger,
     IClock clock,
-    ITimeSync timeSync,
-    IProtocolEventQueue eventQueue,
+    ITimeSync<TInput> timeSync,
+    IProtocolEventQueue<TInput> eventQueue,
     IProtocolSyncManager syncRequest,
-    IProtocolInbox inbox,
+    IProtocolInbox<TInput> inbox,
     IProtocolOutbox outbox,
-    IProtocolInputBuffer inputBuffer
+    IProtocolInputBuffer<TInput> inputBuffer
 ) : IDisposable
+    where TInput : struct
 {
     public void Dispose() => Disconnect(true);
 
-    public AddInputResult SendInput(in GameInput input) => inputBuffer.SendInput(in input);
+    public AddInputResult SendInput(in GameInput<TInput> input) => inputBuffer.SendInput(in input);
 
     public bool IsRunning => state.CurrentStatus is ProtocolStatus.Running;
 
@@ -152,11 +153,13 @@ sealed class PeerConnection(
         stats.UdpOverhead =
             (float)(100.0 * (totalHeaderSize * stats.PacketsSent) / stats.BytesSent.ByteCount);
 
-        logger.Write(LogLevel.Information,
-            $"Network Stats -- Bandwidth: {stats.BandwidthKbps:f2} KBps; "
-            + $"Packets Sent: {stats.PacketsSent} ({stats.Pps:f2} pps); "
-            + $"KB Sent: {stats.TotalBytesSent.KibiBytes:f2}; UDP Overhead: {stats.UdpOverhead}"
-        );
+
+        if (options.LogNetworkStats)
+            logger.Write(LogLevel.Information,
+                $"Network Stats -- Bandwidth: {stats.BandwidthKbps:f2} KBps; "
+                + $"Packets Sent: {stats.PacketsSent} ({stats.Pps:f2} pps); "
+                + $"KB Sent: {stats.TotalBytesSent.KibiBytes:f2}; UDP Overhead: {stats.UdpOverhead}"
+            );
     });
 
     readonly ManualTimer keepAliveTimer = new(clock, options.KeepAliveInterval, _ =>

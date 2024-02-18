@@ -103,6 +103,5 @@ public struct InputMessageBuffer
     byte element0;
     public InputMessageBuffer(ReadOnlySpan<byte> bits) => bits.CopyTo(this);
 
-    public override readonly string ToString() =>
-        Mem.GetBitString(this, splitAt: Max.InputSizeInBytes);
+    public override readonly string ToString() => Mem.GetBitString(this);
 }

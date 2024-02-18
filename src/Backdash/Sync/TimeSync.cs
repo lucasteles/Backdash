@@ -12,28 +12,35 @@ public sealed class TimeSyncOptions
     public int MaxFrameAdvantage { get; init; } = 9;
 }
 
-interface ITimeSync
+interface ITimeSync<TInput> where TInput : struct
 {
-    void AdvanceFrame(in GameInput input, in ProtocolState.AdvantageState state);
+    void AdvanceFrame(in GameInput<TInput> input, in ProtocolState.AdvantageState state);
 
     int RecommendFrameWaitDuration(bool requireIdleInput);
 }
 
-sealed class TimeSync(
-    TimeSyncOptions options,
-    Logger logger
-) : ITimeSync
+static class TimeSyncCounter
 {
     static int counter;
+    public static int Increment() => Interlocked.Increment(ref counter);
 
+    public static int CurrentValue => counter;
+}
+
+sealed class TimeSync<TInput>(
+    TimeSyncOptions options,
+    Logger logger
+) : ITimeSync<TInput>
+    where TInput : struct
+{
     readonly int minFrameAdvantage = options.MinFrameAdvantage;
     readonly int maxFrameAdvantage = options.MaxFrameAdvantage;
 
     readonly int[] local = new int[options.FrameWindowSize];
     readonly int[] remote = new int[options.FrameWindowSize];
-    readonly FrameArray<GameInput> lastInputs = new(options.MinUniqueFrames);
+    readonly FrameArray<GameInput<TInput>> lastInputs = new(options.MinUniqueFrames);
 
-    public void AdvanceFrame(in GameInput input, int advantage, int remoteAdvantage)
+    public void AdvanceFrame(in GameInput<TInput> input, int advantage, int remoteAdvantage)
     {
         // Remember the last frame and frame advantage
         lastInputs[input.Frame % lastInputs.Length] = input;
@@ -41,7 +48,7 @@ sealed class TimeSync(
         remote[input.Frame.Number % remote.Length] = remoteAdvantage;
     }
 
-    public void AdvanceFrame(in GameInput input, in ProtocolState.AdvantageState state) =>
+    public void AdvanceFrame(in GameInput<TInput> input, in ProtocolState.AdvantageState state) =>
         AdvanceFrame(in input, state.LocalFrameAdvantage.Number, state.RemoteFrameAdvantage.Number);
 
     public int RecommendFrameWaitDuration(bool requireIdleInput)
@@ -58,7 +65,7 @@ sealed class TimeSync(
             sum += remote[i];
 
         var remoteAdvantage = sum / (float)remote.Length;
-        Interlocked.Increment(ref counter);
+        var iteration = TimeSyncCounter.Increment();
 
         // See if someone should take action.  The person furthest ahead
         // needs to slow down so the other user can catch up.
@@ -71,7 +78,7 @@ sealed class TimeSync(
         // sleep for.
         var sleepFrames = (int)(((remoteAdvantage - localAdvantage) / 2) + 0.5f);
 
-        logger.Write(LogLevel.Trace, $"iteration {counter}:  sleep frames is {sleepFrames}");
+        logger.Write(LogLevel.Trace, $"iteration {iteration}:  sleep frames is {sleepFrames}");
 
         // Some things just aren't worth correcting for.  Make sure
         // the difference is relevant before proceeding.
@@ -87,10 +94,11 @@ sealed class TimeSync(
 
         for (i = 1; i < lastInputs.Length; i++)
         {
-            if (Mem.SpanEqual<byte>(lastInputs[i].Buffer, lastInputs[0].Buffer, truncate: true))
+            if (EqualityComparer<TInput>.Default.Equals(lastInputs[i].Data, lastInputs[0].Data))
                 continue;
+
             logger.Write(LogLevel.Debug,
-                $"iteration {counter}:  rejecting due to input stuff at position {i}...!!!");
+                $"iteration {iteration}:  rejecting due to input stuff at position {i}...!!!");
 
             return 0;
         }

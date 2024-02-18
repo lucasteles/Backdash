@@ -1,6 +1,5 @@
 using Backdash.Core;
 using Backdash.Network;
-using Backdash.Sync;
 
 namespace Backdash.Tests.Utils;
 
@@ -20,12 +19,14 @@ static class Generate
 
     public static GameInput GameInput(int frame, byte[] input)
     {
-        if (input.Length > Max.TotalInputSizeInBytes)
+        if (input.Length > Max.CompressedBytes)
             throw new ArgumentOutOfRangeException(nameof(input));
 
-        var result = new GameInput(input.Length);
-        input.CopyTo(result.Buffer);
-        result.Frame = new(frame);
+        TestInput testInputBytes = new(input);
+        GameInput result = new(testInputBytes)
+        {
+            Frame = new(frame),
+        };
         return result;
     }
 

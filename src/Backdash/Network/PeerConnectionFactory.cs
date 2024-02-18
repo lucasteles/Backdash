@@ -3,35 +3,38 @@ using Backdash.Network.Client;
 using Backdash.Network.Messages;
 using Backdash.Network.Protocol;
 using Backdash.Network.Protocol.Messaging;
+using Backdash.Serialization;
 using Backdash.Sync;
 
 namespace Backdash.Network;
 
-sealed class PeerConnectionFactory
+sealed class PeerConnectionFactory<TInput> where TInput : struct
 {
     readonly IClock clock = new Clock();
     readonly IRandomNumberGenerator random;
     readonly IDelayStrategy delayStrategy;
+    readonly IBinarySerializer<TInput> inputSerializer;
     readonly Logger logger;
     readonly IBackgroundJobManager jobManager;
     readonly IUdpClient<ProtocolMessage> udp;
-    readonly IProtocolEventQueue eventQueue;
+    readonly IProtocolEventQueue<TInput> eventQueue;
     readonly ProtocolOptions options;
     readonly TimeSyncOptions timeSyncOptions;
 
     public PeerConnectionFactory(
+        IBinarySerializer<TInput> inputSerializer,
         Random defaultRandom,
         Logger logger,
         IBackgroundJobManager jobManager,
         IUdpClient<ProtocolMessage> udp,
-        IProtocolEventQueue eventQueue,
+        IProtocolEventQueue<TInput> eventQueue,
         ProtocolOptions options,
-        TimeSyncOptions timeSyncOptions
-    )
+        TimeSyncOptions timeSyncOptions)
     {
         random = new DefaultRandomNumberGenerator(defaultRandom);
         delayStrategy = DelayStrategyFactory.Create(random, options.DelayStrategy);
 
+        this.inputSerializer = inputSerializer;
         this.logger = logger;
         this.jobManager = jobManager;
         this.udp = udp;
@@ -40,13 +43,15 @@ sealed class PeerConnectionFactory
         this.timeSyncOptions = timeSyncOptions;
     }
 
-    public PeerConnection Create(ProtocolState state)
+    public PeerConnection<TInput> Create(ProtocolState state)
     {
-        var timeSync = new TimeSync(timeSyncOptions, logger);
+        var timeSync = new TimeSync<TInput>(timeSyncOptions, logger);
         var outbox = new ProtocolOutbox(state, options, udp, delayStrategy, random, clock, logger);
         var syncManager = new ProtocolSyncManager(logger, clock, random, jobManager, state, options, outbox);
-        var inbox = new ProtocolInbox(options, state, clock, syncManager, outbox, eventQueue, logger);
-        var inputBuffer = new ProtocolInputBuffer(options, state, logger, timeSync, outbox, inbox);
+        var inbox = new ProtocolInbox<TInput>(options, inputSerializer, state, clock, syncManager, outbox, eventQueue,
+            logger);
+        var inputBuffer =
+            new ProtocolInputBuffer<TInput>(options, inputSerializer, state, logger, timeSync, outbox, inbox);
 
         jobManager.Register(outbox, state.StoppingToken);
 
