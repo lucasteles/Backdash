@@ -20,16 +20,17 @@ static class PeerConnectionFactory
         TimeSyncOptions timeSyncOptions
     )
     {
-        TimeSync timeSync = new(timeSyncOptions, logger);
-        DefaultRandomNumberGenerator random = new(defaultRandom);
-        Clock clock = new();
-        GaussianDelayStrategy delayStrategy = new(random);
-        ProtocolOutbox outbox = new(state, options, udp, delayStrategy, random, clock, logger);
-        ProtocolSyncManager syncManager = new(logger, clock, random, jobManager, state, options, outbox);
-        ProtocolInbox inbox = new(
+        var timeSync = new TimeSync(timeSyncOptions, logger);
+        var random = new DefaultRandomNumberGenerator(defaultRandom);
+        var clock = new Clock();
+        var delayStrategy = DelayStrategyFactory.Create(random, options.DelayStrategy);
+        var outbox = new ProtocolOutbox(state, options, udp, delayStrategy, random, clock, logger);
+        var syncManager = new ProtocolSyncManager(logger, clock, random, jobManager, state, options, outbox);
+        var inbox = new ProtocolInbox(
             options, state, clock, syncManager, outbox, eventQueue, logger
         );
-        ProtocolInputBuffer inputBuffer = new(options, state, logger, timeSync, outbox, inbox);
+        var inputBuffer = new ProtocolInputBuffer(options, state, logger, timeSync, outbox, inbox);
+
         jobManager.Register(outbox, state.StoppingToken);
 
         return new(

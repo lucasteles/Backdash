@@ -18,16 +18,13 @@ public sealed class RollbackOptions(int port, int numberOfPlayers)
     public Random Random { get; init; } = Random.Shared;
     public int NumberOfSpectators { get; init; }
     public int SpectatorOffset { get; init; } = Default.SpectatorOffset;
-
     public int RecommendationInterval { get; init; } = Default.RecommendationInterval;
     public bool EnableEndianness { get; init; } = true;
-
     public int PredictionFrames { get; init; } = Default.PredictionFrames;
     public int PredictionFramesOffset { get; init; } = Default.PredictionFramesOffset;
     public int FrameDelay { get; init; } = Default.FrameDelay;
     internal int InputSize { get; set; }
     internal int TotalInputSize => InputSize * NumberOfPlayers;
     public TimeSyncOptions TimeSync { get; init; } = new();
-
     public ProtocolOptions Protocol { get; init; } = new();
 }

@@ -1,4 +1,5 @@
 using Backdash.Core;
+using Backdash.Network.Protocol.Messaging;
 
 namespace Backdash.Network.Protocol;
 
@@ -9,6 +10,8 @@ public class ProtocolOptions
     public int MaxPackageQueue { get; init; } = Default.MaxPackageQueue;
     public int NumberOfSyncPackets { get; init; } = Default.NumberOfSyncPackets;
     public int MaxSeqDistance { get; init; } = Default.MaxSeqDistance;
+
+    public DelayStrategy DelayStrategy { get; init; } = DelayStrategy.Gaussian;
     public TimeSpan NetworkDelay { get; init; }
     public TimeSpan DisconnectNotifyStart { get; init; } = TimeSpan.FromMilliseconds(Default.DisconnectNotifyStart);
     public TimeSpan ShutdownTime { get; init; } = TimeSpan.FromMilliseconds(Default.UdpShutdownTime);

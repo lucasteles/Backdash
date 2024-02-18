@@ -20,14 +20,10 @@ public static class Rollback
         where TGameState : struct, IEquatable<TGameState>
     {
         inputSerializer ??= BinarySerializerFactory.FindOrThrow<TInput>(options.EnableEndianness);
-        UdpClientFactory factory = new();
-        Logger logger = new(options.LogLevel, logWriter ?? new ConsoleLogWriter());
-        DefaultChecksumProvider<TGameState> checksumProvider = new();
-
-        IStateStore<TGameState> stateStore =
-            stateSerializer is null
-                ? new ArrayStateStore<TGameState>()
-                : new BinaryStateStore<TGameState>(stateSerializer);
+        var factory = new UdpClientFactory();
+        var logger = new Logger(options.LogLevel, logWriter ?? new ConsoleLogWriter());
+        var checksumProvider = new HashCodeChecksumProvider<TGameState>();
+        var stateStore = StateStoreFactory.Create(stateSerializer);
 
         return new Peer2PeerBackend<TInput, TGameState>(
             options,
@@ -45,16 +41,18 @@ public static class Rollback
         RollbackOptions options,
         IRollbackHandler<TGameState>? callbacks = null,
         IBinarySerializer<TInput>? inputSerializer = null,
+        IBinarySerializer<TGameState>? stateSerializer = null,
         ILogWriter? logWriter = null
     )
         where TInput : struct
         where TGameState : struct, IEquatable<TGameState>
     {
         inputSerializer ??= BinarySerializerFactory.FindOrThrow<TInput>(options.EnableEndianness);
-        Logger logger = new(options.LogLevel, logWriter ?? new ConsoleLogWriter());
+        var logger = new Logger(options.LogLevel, logWriter ?? new ConsoleLogWriter());
+        var stateStore = StateStoreFactory.Create(stateSerializer);
+        var checksumProvider = new HashCodeChecksumProvider<TGameState>();
+
         callbacks ??= new EmptySessionHandler<TGameState>(logger);
-        ArrayStateStore<TGameState> stateStore = new();
-        DefaultChecksumProvider<TGameState> checksumProvider = new();
 
         return new SyncTestBackend<TInput, TGameState>(
             callbacks,
