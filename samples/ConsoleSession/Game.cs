@@ -34,7 +34,7 @@ public sealed class Game : IDisposable
                 {
                     NumberOfSyncPackets = 100,
                     // NetworkDelay = player2.Type is PlayerType.Local
-                    //     ? Frames.ToTimeSpan(3)
+                    //     ? Frames.ToTimeSpan(4)
                     //     : default,
                 },
             },

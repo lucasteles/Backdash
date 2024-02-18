@@ -21,9 +21,9 @@ static class PeerConnectionFactory
     )
     {
         TimeSync timeSync = new(timeSyncOptions, logger);
-        CryptographyRandomNumberGenerator random = new(defaultRandom);
+        DefaultRandomNumberGenerator random = new(defaultRandom);
         Clock clock = new();
-        DelayStrategy delayStrategy = new(random);
+        GaussianDelayStrategy delayStrategy = new(random);
         ProtocolOutbox outbox = new(state, options, udp, delayStrategy, random, clock, logger);
         ProtocolSyncManager syncManager = new(logger, clock, random, jobManager, state, options, outbox);
         ProtocolInbox inbox = new(

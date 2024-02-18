@@ -42,7 +42,6 @@ sealed class ProtocolOutbox(
 
     public string JobName { get; } = $"{nameof(ProtocolOutbox)} ({udp.Port})";
 
-
     QueueEntry CreateNextEntry(in ProtocolMessage msg) =>
         new()
         {

@@ -7,7 +7,7 @@ interface IDelayStrategy
     TimeSpan Jitter(TimeSpan sendLatency);
 }
 
-sealed class DelayStrategy(IRandomNumberGenerator random) : IDelayStrategy
+sealed class DefaultDelayStrategy(IRandomNumberGenerator random) : IDelayStrategy
 {
     public TimeSpan Jitter(TimeSpan sendLatency)
     {
@@ -18,7 +18,7 @@ sealed class DelayStrategy(IRandomNumberGenerator random) : IDelayStrategy
     }
 }
 
-sealed class GaussianDelayStrategy(Random random) : IDelayStrategy
+sealed class GaussianDelayStrategy(IRandomNumberGenerator random) : IDelayStrategy
 {
     public TimeSpan Jitter(TimeSpan sendLatency)
     {
