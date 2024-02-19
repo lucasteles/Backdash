@@ -56,6 +56,7 @@ sealed class ProtocolState(
 
         uint remainingRoundtrips;
         uint currentRandom;
+        TimeSpan totalRoundtripsPing;
 
         public uint CurrentRandom
         {
@@ -66,6 +67,18 @@ sealed class ProtocolState(
             set
             {
                 lock (Locker) currentRandom = value;
+            }
+        }
+
+        public TimeSpan TotalRoundtripsPing
+        {
+            get
+            {
+                lock (Locker) return totalRoundtripsPing;
+            }
+            set
+            {
+                lock (Locker) totalRoundtripsPing = value;
             }
         }
 

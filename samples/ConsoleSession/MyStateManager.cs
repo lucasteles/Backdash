@@ -29,23 +29,23 @@ public class MyStateManager(
         Position2 = new Vector2(GridSize) - Vector2.One,
     };
 
-    public void OnEvent(RollbackEvent evt)
+    public void OnEvent(RollbackEventInfo evt)
     {
         logger.Write(LogLevel.Information, $"GAME => ROLLBACK EVENT {DateTime.UtcNow} = {evt}");
 
         switch (evt.Type)
         {
-            case RollbackEventType.SynchronizedWithPeer:
+            case RollbackEvent.SynchronizedWithPeer:
                 synchronized = true;
                 syncPercent = 0;
                 Draw();
                 break;
 
-            case RollbackEventType.SynchronizingWithPeer:
+            case RollbackEvent.SynchronizingWithPeer:
                 syncPercent = evt.Synchronizing.CurrentStep /
                               (float) evt.Synchronizing.TotalSteps;
                 break;
-            case RollbackEventType.TimeSync:
+            case RollbackEvent.TimeSync:
                 var framesAhead = evt.TimeSync.FramesAhead;
                 Console.Write("** Catching up... **");
                 Thread.Sleep(Frames.ToTimeSpan(framesAhead));

@@ -37,7 +37,6 @@ sealed class ProtocolSyncManager(
 
     bool IsReadyForSend() => clock.GetElapsedTime(lastMessageTimestamp) > options.SyncRetryInterval;
 
-    // TODO: also calculate ping on reply
     public void CreateRequestMessage(out ProtocolMessage requestMessage)
     {
         lock (state.Sync.Locker)
@@ -49,6 +48,7 @@ sealed class ProtocolSyncManager(
                 SyncRequest = new()
                 {
                     RandomRequest = state.Sync.CurrentRandom,
+                    Ping = clock.GetTimeStamp(),
                 },
             };
         }
@@ -64,6 +64,7 @@ sealed class ProtocolSyncManager(
                 SyncReply = new()
                 {
                     RandomReply = request.RandomRequest,
+                    Pong = request.Ping,
                 },
             };
         }

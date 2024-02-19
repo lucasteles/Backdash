@@ -3,7 +3,7 @@ using Backdash.Sync;
 
 namespace Backdash.Network.Protocol;
 
-public enum ProtocolEventType : byte
+public enum ProtocolEvent : byte
 {
     Input,
     Connected,
@@ -14,18 +14,23 @@ public enum ProtocolEventType : byte
     NetworkResumed,
 }
 
-struct ProtocolEvent<TInput>(ProtocolEventType type, PlayerHandle player) : IUtf8SpanFormattable where TInput : struct
+struct ProtocolEventInfo<TInput>(ProtocolEvent type, PlayerHandle player) : IUtf8SpanFormattable where TInput : struct
 {
     public readonly record struct SynchronizingData(ushort Total, ushort Count);
+
+    public readonly record struct SynchronizedData(TimeSpan Ping);
+
     public readonly record struct NetworkInterruptedData(ushort DisconnectTimeout);
 
-    public ProtocolEventType Type = type;
+    public ProtocolEvent Type = type;
 
     public PlayerHandle Player = player;
 
     public GameInput<TInput> Input = default;
 
     public SynchronizingData Synchronizing = default;
+
+    public SynchronizedData Syncronized = default;
 
     public NetworkInterruptedData NetworkInterrupted = default;
 
@@ -43,17 +48,17 @@ struct ProtocolEvent<TInput>(ProtocolEventType type, PlayerHandle player) : IUtf
 
         switch (Type)
         {
-            case ProtocolEventType.NetworkInterrupted:
+            case ProtocolEvent.NetworkInterrupted:
                 if (!writer.Write("Timeout: "u8)) return false;
                 if (!writer.Write(NetworkInterrupted.DisconnectTimeout)) return false;
                 return true;
-            case ProtocolEventType.Synchronizing:
+            case ProtocolEvent.Synchronizing:
                 if (!writer.Write(' ')) return false;
                 if (!writer.Write(Synchronizing.Count)) return false;
                 if (!writer.Write('/')) return false;
                 if (!writer.Write(Synchronizing.Total)) return false;
                 return true;
-            case ProtocolEventType.Input:
+            case ProtocolEvent.Input:
                 return writer.Write(Input);
             default:
                 return writer.Write("{}"u8);

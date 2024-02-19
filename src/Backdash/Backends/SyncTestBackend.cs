@@ -85,7 +85,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         {
             callbacks.OnEvent(new()
             {
-                Type = RollbackEventType.Running,
+                Type = RollbackEvent.Running,
             });
             running = true;
         }

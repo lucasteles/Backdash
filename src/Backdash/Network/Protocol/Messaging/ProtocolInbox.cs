@@ -81,7 +81,7 @@ sealed class ProtocolInbox<TInput>(
             LastReceivedTime = clock.GetTimeStamp();
             if (state.Connection.DisconnectNotifySent && state.CurrentStatus is ProtocolStatus.Running)
             {
-                events.Publish(ProtocolEventType.NetworkResumed, state.Player);
+                events.Publish(ProtocolEvent.NetworkResumed, state.Player);
                 state.Connection.DisconnectNotifySent = false;
             }
         }
@@ -140,7 +140,7 @@ sealed class ProtocolInbox<TInput>(
             if (state.CurrentStatus is not ProtocolStatus.Disconnected && !state.Connection.DisconnectEventSent)
             {
                 logger.Write(LogLevel.Information, "Disconnecting endpoint on remote request");
-                events.Publish(ProtocolEventType.Disconnected, state.Player);
+                events.Publish(ProtocolEvent.Disconnected, state.Player);
                 state.Connection.DisconnectEventSent = true;
             }
         }
@@ -207,7 +207,7 @@ sealed class ProtocolInbox<TInput>(
                     $"Received input: frame {lastReceivedInput.Frame}, sending to emulator queue {state.Player} (ack: {LastAckedFrame})");
 
                 events.Publish(
-                    new ProtocolEvent<TInput>(ProtocolEventType.Input, state.Player)
+                    new ProtocolEventInfo<TInput>(ProtocolEvent.Input, state.Player)
                     {
                         Input = lastReceivedInput,
                     }
@@ -248,6 +248,8 @@ sealed class ProtocolInbox<TInput>(
 
     bool OnSyncReply(in ProtocolMessage msg, ref ProtocolMessage replyMsg)
     {
+        var elapsed = clock.GetElapsedTime(msg.SyncReply.Pong);
+
         if (state.CurrentStatus is not ProtocolStatus.Syncing)
         {
             logger.Write(LogLevel.Trace, "Ignoring SyncReply while not syncing");
@@ -263,25 +265,36 @@ sealed class ProtocolInbox<TInput>(
 
         if (!state.Connection.IsConnected)
         {
-            events.Publish(ProtocolEventType.Connected, state.Player);
+            events.Publish(ProtocolEvent.Connected, state.Player);
             state.Connection.IsConnected = true;
         }
 
         logger.Write(LogLevel.Debug,
             $"Checking sync state ({state.Sync.RemainingRoundtrips} round trips remaining)");
 
+        if (options.NumberOfSyncPackets >= state.Sync.RemainingRoundtrips)
+            state.Sync.TotalRoundtripsPing = TimeSpan.Zero;
+
+        state.Sync.TotalRoundtripsPing += elapsed;
+
         if (--state.Sync.RemainingRoundtrips == 0)
         {
-            logger.Write(LogLevel.Information, $"Player {state.Player.Number} Synchronized!");
+            var ping = state.Sync.TotalRoundtripsPing / options.NumberOfSyncPackets;
+            logger.Write(LogLevel.Information,
+                $"Player {state.Player.Number} Synchronized! (Ping: {ping.TotalMilliseconds:f4})");
             state.CurrentStatus = ProtocolStatus.Running;
+            state.Stats.RoundTripTime = ping;
             lastReceivedInput.ResetFrame();
             remoteMagicNumber = msg.Header.Magic;
-            events.Publish(ProtocolEventType.Synchronized, state.Player);
+            events.Publish(new(ProtocolEvent.Synchronized, state.Player)
+            {
+                Syncronized = new(ping),
+            });
         }
         else
         {
             events.Publish(
-                new ProtocolEvent<TInput>(ProtocolEventType.Synchronizing, state.Player)
+                new ProtocolEventInfo<TInput>(ProtocolEvent.Synchronizing, state.Player)
                 {
                     Synchronizing = new()
                     {

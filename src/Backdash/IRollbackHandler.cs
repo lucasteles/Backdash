@@ -10,18 +10,12 @@ namespace Backdash;
 public interface IRollbackHandler<TGameState> where TGameState : notnull
 {
     /*
-     The client should return a copy of the entire contents of the current game state
-     * Optionally, the client can compute a checksum of the data and store it in
-     *  the *checksum argument.
+     * The client should return a copy of the entire contents of the current game state
      */
     void SaveGameState(int frame, out TGameState state);
 
     /*
-     * Backdash will call this function at the beginning
-     * of a rollback.  The buffer and len parameters contain a previously
-     * saved state returned from the save_game_state function.  The client
-     * should make the current game state match the state contained in the
-     * buffer.
+     * Backdash will call this function at the beginning  of a rollback.
      */
     void LoadGameState(in TGameState gameState);
 
@@ -34,10 +28,7 @@ public interface IRollbackHandler<TGameState> where TGameState : notnull
      */
     void AdvanceFrame();
 
-    /*
-     * Notification that something has happened.
-     */
-    void OnEvent(RollbackEvent evt);
+    void OnEvent(RollbackEventInfo evt);
 }
 
 sealed class EmptySessionHandler<TState>(Logger logger)
@@ -56,7 +47,7 @@ sealed class EmptySessionHandler<TState>(Logger logger)
     public void AdvanceFrame() =>
         logger.Write(LogLevel.Information, $"{DateTime.UtcNow:o} [Session Handler] {nameof(AdvanceFrame)} called");
 
-    public void OnEvent(RollbackEvent evt) =>
+    public void OnEvent(RollbackEventInfo evt) =>
         logger.Write(LogLevel.Information,
             $"{DateTime.UtcNow:o} [Session Handler] {nameof(OnEvent)} called with {evt}");
 }

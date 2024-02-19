@@ -191,7 +191,7 @@ sealed class PeerConnection<TInput>(
         logger.Write(LogLevel.Warning,
             $"Endpoint has stopped receiving packets for {(int)elapsed.TotalMilliseconds}ms. Disconnecting.");
 
-        eventQueue.Publish(ProtocolEventType.Disconnected, state.Player);
+        eventQueue.Publish(ProtocolEvent.Disconnected, state.Player);
         state.Connection.DisconnectEventSent = true;
     });
 

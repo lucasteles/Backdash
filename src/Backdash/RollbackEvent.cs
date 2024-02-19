@@ -3,7 +3,7 @@ using Backdash.Serialization.Buffer;
 
 namespace Backdash;
 
-public enum RollbackEventType : sbyte
+public enum RollbackEvent : sbyte
 {
     Unknown = -1,
     ConnectedToPeer,
@@ -17,60 +17,46 @@ public enum RollbackEventType : sbyte
 }
 
 [StructLayout(LayoutKind.Explicit, Pack = 1)]
-public readonly record struct RollbackEvent : IUtf8SpanFormattable
+public readonly record struct RollbackEventInfo : IUtf8SpanFormattable
 {
-    const int HeaderSize = sizeof(RollbackEventType);
+    const int HeaderSize = sizeof(RollbackEvent);
 
     [field: FieldOffset(0)]
-    public RollbackEventType Type { get; init; }
-
-
-    [field: FieldOffset(HeaderSize)]
-    public SynchronizingInfo Synchronizing { get; init; }
+    public RollbackEvent Type { get; init; }
 
     [field: FieldOffset(HeaderSize)]
-    public PlayerEventInfo Connected { get; init; }
+    public SynchronizingEventInfo Synchronizing { get; init; }
 
     [field: FieldOffset(HeaderSize)]
-    public PlayerEventInfo Synchronized { get; init; }
+    public PlayerInfoEvent Connected { get; init; }
 
     [field: FieldOffset(HeaderSize)]
-    public PlayerEventInfo Disconnected { get; init; }
+    public PlayerInfoEvent Synchronized { get; init; }
 
     [field: FieldOffset(HeaderSize)]
-    public TimeSyncInfo TimeSync { get; init; }
+    public PlayerInfoEvent Disconnected { get; init; }
 
     [field: FieldOffset(HeaderSize)]
-    public ConnectionInterruptedInfo ConnectionInterrupted { get; init; }
+    public TimeSyncEventInfo TimeSync { get; init; }
 
     [field: FieldOffset(HeaderSize)]
-    public PlayerEventInfo ConnectionResumed { get; init; }
+    public ConnectionInterruptedEventInfo ConnectionInterrupted { get; init; }
 
-
-    [StructLayout(LayoutKind.Sequential)]
-    public readonly record struct SynchronizingInfo(PlayerHandle Player, int CurrentStep, int TotalSteps);
-
-    [StructLayout(LayoutKind.Sequential)]
-    public readonly record struct TimeSyncInfo(int FramesAhead);
-
-    [StructLayout(LayoutKind.Sequential)]
-    public readonly record struct ConnectionInterruptedInfo(PlayerHandle Player, int DisconnectTimeout);
-
-    [StructLayout(LayoutKind.Sequential)]
-    public readonly record struct PlayerEventInfo(PlayerHandle Player);
+    [field: FieldOffset(HeaderSize)]
+    public PlayerInfoEvent ConnectionResumed { get; init; }
 
     public override string ToString()
     {
         var details = Type switch
         {
-            RollbackEventType.Unknown or RollbackEventType.Running => "{}",
-            RollbackEventType.ConnectedToPeer => Connected.ToString(),
-            RollbackEventType.SynchronizingWithPeer => Synchronizing.ToString(),
-            RollbackEventType.SynchronizedWithPeer => Synchronized.ToString(),
-            RollbackEventType.DisconnectedFromPeer => Disconnected.ToString(),
-            RollbackEventType.TimeSync => TimeSync.ToString(),
-            RollbackEventType.ConnectionInterrupted => ConnectionInterrupted.ToString(),
-            RollbackEventType.ConnectionResumed => ConnectionResumed.ToString(),
+            RollbackEvent.Unknown or RollbackEvent.Running => "{}",
+            RollbackEvent.ConnectedToPeer => Connected.ToString(),
+            RollbackEvent.SynchronizingWithPeer => Synchronizing.ToString(),
+            RollbackEvent.SynchronizedWithPeer => Synchronized.ToString(),
+            RollbackEvent.DisconnectedFromPeer => Disconnected.ToString(),
+            RollbackEvent.TimeSync => TimeSync.ToString(),
+            RollbackEvent.ConnectionInterrupted => ConnectionInterrupted.ToString(),
+            RollbackEvent.ConnectionResumed => ConnectionResumed.ToString(),
             _ => throw new InvalidOperationException(),
         };
 
@@ -92,32 +78,44 @@ public readonly record struct RollbackEvent : IUtf8SpanFormattable
 
         switch (Type)
         {
-            case RollbackEventType.Unknown or RollbackEventType.Running:
+            case RollbackEvent.Unknown or RollbackEvent.Running:
                 return writer.Write("{}"u8);
-            case RollbackEventType.ConnectedToPeer:
+            case RollbackEvent.ConnectedToPeer:
                 return writer.Write(Connected.Player);
-            case RollbackEventType.SynchronizingWithPeer:
+            case RollbackEvent.SynchronizingWithPeer:
                 if (!writer.Write(Synchronizing.Player)) return false;
                 if (!writer.Write(' ')) return false;
                 if (!writer.Write(Synchronizing.CurrentStep)) return false;
                 if (!writer.Write('/')) return false;
                 if (!writer.Write(Synchronizing.TotalSteps)) return false;
                 return true;
-            case RollbackEventType.SynchronizedWithPeer:
+            case RollbackEvent.SynchronizedWithPeer:
                 return writer.Write(Synchronized.Player);
-            case RollbackEventType.DisconnectedFromPeer:
+            case RollbackEvent.DisconnectedFromPeer:
                 return writer.Write(Disconnected.Player);
-            case RollbackEventType.TimeSync:
+            case RollbackEvent.TimeSync:
                 return writer.Write(TimeSync.FramesAhead);
-            case RollbackEventType.ConnectionInterrupted:
+            case RollbackEvent.ConnectionInterrupted:
                 if (!writer.Write(ConnectionInterrupted.Player)) return false;
                 if (!writer.Write(" with timeout "u8)) return false;
                 if (!writer.Write(ConnectionInterrupted.DisconnectTimeout)) return false;
                 return true;
-            case RollbackEventType.ConnectionResumed:
+            case RollbackEvent.ConnectionResumed:
                 return writer.Write(ConnectionResumed.Player);
             default:
                 return false;
         }
     }
 }
+
+[StructLayout(LayoutKind.Sequential)]
+public readonly record struct TimeSyncEventInfo(int FramesAhead);
+
+[StructLayout(LayoutKind.Sequential)]
+public readonly record struct SynchronizingEventInfo(PlayerHandle Player, int CurrentStep, int TotalSteps);
+
+[StructLayout(LayoutKind.Sequential)]
+public readonly record struct ConnectionInterruptedEventInfo(PlayerHandle Player, int DisconnectTimeout);
+
+[StructLayout(LayoutKind.Sequential)]
+public readonly record struct PlayerInfoEvent(PlayerHandle Player);
