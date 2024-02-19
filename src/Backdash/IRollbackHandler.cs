@@ -9,6 +9,8 @@ namespace Backdash;
  */
 public interface IRollbackHandler<TGameState> where TGameState : notnull
 {
+    void Start();
+
     /*
      * The client should return a copy of the entire contents of the current game state
      */
@@ -27,13 +29,17 @@ public interface IRollbackHandler<TGameState> where TGameState : notnull
      * finished.
      */
     void AdvanceFrame();
+    void TimeSync(int framesAhead);
 
-    void OnEvent(RollbackEventInfo evt);
+    void OnPeerEvent(PlayerHandle player, PeerEventInfo evt);
 }
 
 sealed class EmptySessionHandler<TState>(Logger logger)
     : IRollbackHandler<TState> where TState : notnull
 {
+    public void Start() =>
+        logger.Write(LogLevel.Information, $"{DateTime.UtcNow:o} [Session Handler] Running.");
+
     public void SaveGameState(int frame, out TState state)
     {
         state = default!;
@@ -47,7 +53,11 @@ sealed class EmptySessionHandler<TState>(Logger logger)
     public void AdvanceFrame() =>
         logger.Write(LogLevel.Information, $"{DateTime.UtcNow:o} [Session Handler] {nameof(AdvanceFrame)} called");
 
-    public void OnEvent(RollbackEventInfo evt) =>
+    public void TimeSync(int framesAhead) =>
         logger.Write(LogLevel.Information,
-            $"{DateTime.UtcNow:o} [Session Handler] {nameof(OnEvent)} called with {evt}");
+            $"{DateTime.UtcNow:o} [Session Handler] Need to sync: {framesAhead} frames ahead");
+
+    public void OnPeerEvent(PlayerHandle player, PeerEventInfo evt) =>
+        logger.Write(LogLevel.Information,
+            $"{DateTime.UtcNow:o} [Session Handler] {nameof(OnPeerEvent)} called with {evt} for {player}");
 }

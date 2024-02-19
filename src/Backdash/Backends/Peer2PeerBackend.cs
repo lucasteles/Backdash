@@ -346,12 +346,8 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
             if (!spectators[i].IsRunning)
                 return;
 
-        callbacks.OnEvent(new()
-        {
-            Type = RollbackEvent.Running,
-        });
-
         isSynchronizing = false;
+        callbacks.Start();
     }
 
     public void AdvanceFrame()
@@ -425,11 +421,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
                     interval = Math.Max(interval, endpoint.RecommendFrameDelay);
 
             if (interval <= 0) return;
-            callbacks.OnEvent(new()
-            {
-                Type = RollbackEvent.TimeSync,
-                TimeSync = new(interval),
-            });
+            callbacks.TimeSync(interval);
             nextRecommendedInterval = currentFrame.Number + options.RecommendationInterval;
         }
     }
@@ -441,40 +433,29 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         switch (evt.Type)
         {
             case ProtocolEvent.Connected:
-                callbacks.OnEvent(new()
-                {
-                    Type = RollbackEvent.ConnectedToPeer,
-                    Connected = new(player),
-                });
+                callbacks.OnPeerEvent(player, new(PeerEvent.Connected));
                 break;
             case ProtocolEvent.Synchronizing:
-                callbacks.OnEvent(new()
+                callbacks.OnPeerEvent(player, new(PeerEvent.Synchronizing)
                 {
-                    Type = RollbackEvent.SynchronizingWithPeer,
-                    Synchronizing = new(player, evt.Synchronizing.Count, evt.Synchronizing.Total),
+                    Synchronizing = new(evt.Synchronizing.CurrentStep, evt.Synchronizing.TotalSteps),
                 });
                 break;
             case ProtocolEvent.Synchronized:
-                callbacks.OnEvent(new()
+                callbacks.OnPeerEvent(player, new(PeerEvent.Synchronized)
                 {
-                    Type = RollbackEvent.SynchronizedWithPeer,
-                    Synchronized = new(player),
+                    Synchronized = new(evt.Synchronized.Ping),
                 });
                 CheckInitialSync();
                 break;
             case ProtocolEvent.NetworkInterrupted:
-                callbacks.OnEvent(new()
+                callbacks.OnPeerEvent(player, new(PeerEvent.ConnectionInterrupted)
                 {
-                    Type = RollbackEvent.ConnectionInterrupted,
-                    ConnectionInterrupted = new(player, evt.NetworkInterrupted.DisconnectTimeout),
+                    ConnectionInterrupted = new(evt.NetworkInterrupted.DisconnectTimeout),
                 });
                 break;
             case ProtocolEvent.NetworkResumed:
-                callbacks.OnEvent(new()
-                {
-                    Type = RollbackEvent.ConnectionResumed,
-                    ConnectionResumed = new(player),
-                });
+                callbacks.OnPeerEvent(player, new(PeerEvent.ConnectionResumed));
                 break;
             case ProtocolEvent.Disconnected:
                 if (player.Type is PlayerType.Spectator)
@@ -483,11 +464,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
                 if (player.Type is PlayerType.Remote)
                     DisconnectPlayer(player);
 
-                callbacks.OnEvent(new()
-                {
-                    Type = RollbackEvent.DisconnectedFromPeer,
-                    Disconnected = new(player),
-                });
+                callbacks.OnPeerEvent(player, new(PeerEvent.Disconnected));
                 break;
             case ProtocolEvent.Input when player.Type is PlayerType.Remote:
 
@@ -625,11 +602,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
             logger.Write(LogLevel.Information, "finished adjusting simulation.");
         }
 
-        callbacks.OnEvent(new()
-        {
-            Type = RollbackEvent.DisconnectedFromPeer,
-            Disconnected = new PlayerInfoEvent(player),
-        });
+        callbacks.OnPeerEvent(player, new(PeerEvent.Disconnected));
 
         CheckInitialSync();
     }

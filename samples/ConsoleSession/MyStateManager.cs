@@ -18,7 +18,7 @@ public class MyStateManager(
     // for debugging
     readonly bool waitEachFrame = false;
 
-    bool synchronized;
+    bool isRunning;
     float syncPercent;
     readonly MyInput[] inputBuffer = new MyInput[2]; // used to read inputs from session
 
@@ -29,26 +29,38 @@ public class MyStateManager(
         Position2 = new Vector2(GridSize) - Vector2.One,
     };
 
-    public void OnEvent(RollbackEventInfo evt)
+    public void Start()
     {
-        logger.Write(LogLevel.Information, $"GAME => ROLLBACK EVENT {DateTime.UtcNow} = {evt}");
+        logger.Write(LogLevel.Information, "GAME => START");
+        isRunning = true;
+    }
+
+    public void TimeSync(int framesAhead)
+    {
+        Console.Write(
+            $"""
+             *****************************************
+             ** Catching up {framesAhead} frames... **
+             *****************************************
+             """
+        );
+        Thread.Sleep(Frames.ToTimeSpan(framesAhead));
+    }
+
+    public void OnPeerEvent(PlayerHandle player, PeerEventInfo evt)
+    {
+        logger.Write(LogLevel.Information, $"GAME => PEER EVENT {DateTime.UtcNow} = {evt}");
 
         switch (evt.Type)
         {
-            case RollbackEvent.SynchronizedWithPeer:
-                synchronized = true;
-                syncPercent = 0;
-                Draw();
-                break;
-
-            case RollbackEvent.SynchronizingWithPeer:
+            case PeerEvent.Synchronizing:
                 syncPercent = evt.Synchronizing.CurrentStep /
                               (float) evt.Synchronizing.TotalSteps;
                 break;
-            case RollbackEvent.TimeSync:
-                var framesAhead = evt.TimeSync.FramesAhead;
-                Console.Write("** Catching up... **");
-                Thread.Sleep(Frames.ToTimeSpan(framesAhead));
+
+            case PeerEvent.Synchronized:
+                syncPercent = 0;
+                Draw();
                 break;
         }
     }
@@ -81,7 +93,7 @@ public class MyStateManager(
         session.BeginFrame();
         session.GetInfo(remotePlayer, ref info);
 
-        if (!synchronized)
+        if (!isRunning)
             return;
 
         var myInput = ParseInput();
@@ -144,7 +156,7 @@ public class MyStateManager(
         Console.Clear();
         Console.ForegroundColor = defaultColor;
 
-        if (!synchronized)
+        if (!isRunning)
         {
             DrawSync();
             return;
@@ -225,7 +237,7 @@ public class MyStateManager(
 
     void DrawStats()
     {
-        if (!synchronized)
+        if (!isRunning)
             return;
 
         Console.WriteLine(

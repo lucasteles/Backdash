@@ -81,7 +81,7 @@ sealed class ProtocolSyncManager(
         }
 
         state.CurrentStatus = ProtocolStatus.Syncing;
-        state.Sync.RemainingRoundtrips = (uint)options.NumberOfSyncPackets;
+        state.Sync.RemainingRoundtrips = options.NumberOfSyncPackets;
         await RequestSync(ct);
 
         await Task.Delay(options.SyncFirstRetryInterval, ct);

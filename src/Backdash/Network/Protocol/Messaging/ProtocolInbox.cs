@@ -288,7 +288,7 @@ sealed class ProtocolInbox<TInput>(
             remoteMagicNumber = msg.Header.Magic;
             events.Publish(new(ProtocolEvent.Synchronized, state.Player)
             {
-                Syncronized = new(ping),
+                Synchronized = new(ping),
             });
         }
         else
@@ -296,11 +296,10 @@ sealed class ProtocolInbox<TInput>(
             events.Publish(
                 new ProtocolEventInfo<TInput>(ProtocolEvent.Synchronizing, state.Player)
                 {
-                    Synchronizing = new()
-                    {
-                        Total = (ushort)options.NumberOfSyncPackets,
-                        Count = (ushort)(options.NumberOfSyncPackets - state.Sync.RemainingRoundtrips),
-                    },
+                    Synchronizing = new(
+                        TotalSteps: options.NumberOfSyncPackets,
+                        CurrentStep: options.NumberOfSyncPackets - state.Sync.RemainingRoundtrips
+                    ),
                 }
             );
 

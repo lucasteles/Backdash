@@ -54,7 +54,7 @@ sealed class ProtocolState(
     {
         public readonly object Locker = new();
 
-        uint remainingRoundtrips;
+        int remainingRoundtrips;
         uint currentRandom;
         TimeSpan totalRoundtripsPing;
 
@@ -82,7 +82,7 @@ sealed class ProtocolState(
             }
         }
 
-        public uint RemainingRoundtrips
+        public int RemainingRoundtrips
         {
             get
             {

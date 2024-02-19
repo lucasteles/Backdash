@@ -188,6 +188,7 @@ sealed class PeerConnection<TInput>(
         if (elapsed < options.DisconnectTimeout + options.DisconnectNotifyStart || state.Connection.DisconnectEventSent)
             return;
 
+        // TODO: send NetworkInterrupted notifications before
         logger.Write(LogLevel.Warning,
             $"Endpoint has stopped receiving packets for {(int)elapsed.TotalMilliseconds}ms. Disconnecting.");
 

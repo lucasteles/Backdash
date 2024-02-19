@@ -16,23 +16,17 @@ public enum ProtocolEvent : byte
 
 struct ProtocolEventInfo<TInput>(ProtocolEvent type, PlayerHandle player) : IUtf8SpanFormattable where TInput : struct
 {
-    public readonly record struct SynchronizingData(ushort Total, ushort Count);
-
-    public readonly record struct SynchronizedData(TimeSpan Ping);
-
-    public readonly record struct NetworkInterruptedData(ushort DisconnectTimeout);
-
     public ProtocolEvent Type = type;
 
     public PlayerHandle Player = player;
 
     public GameInput<TInput> Input = default;
 
-    public SynchronizingData Synchronizing = default;
+    public SynchronizingEventInfo Synchronizing = default;
 
-    public SynchronizedData Syncronized = default;
+    public SynchronizedEventInfo Synchronized = default;
 
-    public NetworkInterruptedData NetworkInterrupted = default;
+    public ConnectionInterruptedEventInfo NetworkInterrupted = default;
 
     public readonly bool TryFormat(
         Span<byte> utf8Destination, out int bytesWritten, ReadOnlySpan<char> format,
@@ -54,9 +48,9 @@ struct ProtocolEventInfo<TInput>(ProtocolEvent type, PlayerHandle player) : IUtf
                 return true;
             case ProtocolEvent.Synchronizing:
                 if (!writer.Write(' ')) return false;
-                if (!writer.Write(Synchronizing.Count)) return false;
+                if (!writer.Write(Synchronizing.CurrentStep)) return false;
                 if (!writer.Write('/')) return false;
-                if (!writer.Write(Synchronizing.Total)) return false;
+                if (!writer.Write(Synchronizing.TotalSteps)) return false;
                 return true;
             case ProtocolEvent.Input:
                 return writer.Write(Input);
