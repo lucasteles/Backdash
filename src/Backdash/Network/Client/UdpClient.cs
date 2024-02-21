@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using Backdash.Core;
@@ -20,7 +21,7 @@ sealed class UdpClient<T> : IUdpClient<T> where T : struct
     readonly IUdpSocket socket;
     readonly IUdpObserver<T> observer;
     readonly IBinarySerializer<T> serializer;
-    readonly ILogger logger;
+    readonly Logger logger;
     readonly int maxPacketSize;
 
     CancellationTokenSource? cancellation;
@@ -30,7 +31,7 @@ sealed class UdpClient<T> : IUdpClient<T> where T : struct
         IUdpSocket socket,
         IBinarySerializer<T> serializer,
         IUdpObserver<T> observer,
-        ILogger logger,
+        Logger logger,
         int maxPacketSize = Max.UdpPacketSize
     )
     {
@@ -67,9 +68,12 @@ sealed class UdpClient<T> : IUdpClient<T> where T : struct
 
     async Task ReceiveLoop(CancellationToken ct)
     {
-        var buffer = Mem.CreatePinnedBuffer(maxPacketSize);
+        var buffer = Mem.CreatePinnedMemory(maxPacketSize);
         SocketAddress address = new(socket.AddressFamily);
+        const int retriesCount = 3;
+        var retries = 0;
 
+        T msg = default;
         while (!ct.IsCancellationRequested)
         {
             int receivedSize;
@@ -79,22 +83,47 @@ sealed class UdpClient<T> : IUdpClient<T> where T : struct
                     .ReceiveFromAsync(buffer, address, ct)
                     .ConfigureAwait(false);
             }
-            catch (SocketException ex)
+            catch (TaskCanceledException)
             {
-                if (logger.EnabledLevel is not LogLevel.Off)
-                    logger.Error(ex, $"Socket error");
-
                 break;
             }
             catch (OperationCanceledException)
             {
                 break;
             }
+            catch (SocketException ex)
+            {
+#pragma warning disable S2583
+                if (retries++ < retriesCount)
+                {
+                    if (retries is 0)
+                        logger.Write(LogLevel.Debug, $"Socket error: {ex}. Retrying. {retries}");
+                    else
+                        logger.Write(LogLevel.Warning, $"Recurrent socket error: {ex}. Retrying. {retries}");
+
+                    await Task.Delay(200, ct);
+                    continue;
+                }
+#pragma warning restore S2583
+
+                if (logger.EnabledLevel is not LogLevel.Off)
+                    logger.Write(LogLevel.Error, $"Socket error: {ex}");
+
+                break;
+            }
+            catch (Exception ex)
+            {
+                if (logger.EnabledLevel is not LogLevel.Off)
+                    logger.Write(LogLevel.Error, $"Socket error: {ex}");
+
+                break;
+            }
 
             if (receivedSize is 0)
                 continue;
 
-            var msg = serializer.Deserialize(buffer[..receivedSize].Span);
+            retries = 0;
+            serializer.Deserialize(buffer[..receivedSize].Span, ref msg);
 
             await observer.OnUdpMessage(this, msg, address, ct).ConfigureAwait(false);
         }
@@ -117,9 +146,9 @@ sealed class UdpClient<T> : IUdpClient<T> where T : struct
         CancellationToken ct = default
     )
     {
-        var bodySize = serializer.Serialize(ref payload, buffer.Span);
+        var bodySize = serializer.Serialize(in payload, buffer.Span);
         var sentSize = await SendTo(peerAddress, buffer[..bodySize], ct);
-        Tracer.Assert(sentSize == bodySize);
+        Trace.Assert(sentSize == bodySize);
         return sentSize;
     }
 

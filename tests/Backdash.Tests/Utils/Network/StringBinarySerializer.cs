@@ -11,9 +11,9 @@ public readonly record struct StringValue(string Value)
 
 class StringBinarySerializer : IBinarySerializer<StringValue>
 {
-    public int Serialize(ref StringValue data, Span<byte> buffer) =>
+    public int Serialize(in StringValue data, Span<byte> buffer) =>
         Encoding.UTF8.GetBytes(data.Value, buffer);
 
-    public StringValue Deserialize(in ReadOnlySpan<byte> data) =>
-        Encoding.UTF8.GetString(data);
+    public void Deserialize(ReadOnlySpan<byte> data, ref StringValue value) =>
+        value = Encoding.UTF8.GetString(data);
 }

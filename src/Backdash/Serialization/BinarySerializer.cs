@@ -1,55 +1,46 @@
-using Backdash.Core;
+using Backdash.Network;
 using Backdash.Serialization.Buffer;
 
 namespace Backdash.Serialization;
 
-public interface IBinaryReader<out T> where T : struct
+public interface IBinaryReader<T>
 {
-    T Deserialize(in ReadOnlySpan<byte> data);
+    void Deserialize(ReadOnlySpan<byte> data, ref T value);
 }
 
-public interface IBinaryWriter<T> where T : struct
+public interface IBinaryWriter<T>
 {
-    int Serialize(ref T data, Span<byte> buffer);
+    int Serialize(in T data, Span<byte> buffer);
 }
 
-public interface IBinarySerializer<T> : IBinaryReader<T>, IBinaryWriter<T> where T : struct
-{
-    public int GetTypeSize()
-    {
-        var dummy = new T();
-        Span<byte> buffer = stackalloc byte[Mem.MaxStackLimit];
-        return Serialize(ref dummy, buffer);
-    }
-};
+public interface IBinarySerializer<T> : IBinaryReader<T>, IBinaryWriter<T>;
 
 public abstract class BinarySerializer<T> : IBinarySerializer<T>
-    where T : struct
 {
     public bool Network { get; init; } = true;
 
-    protected abstract void Serialize(scoped NetworkBufferWriter writer, scoped in T data);
+    protected abstract void Serialize(in BinarySpanWriter writer, in T data);
 
-    protected abstract T Deserialize(scoped NetworkBufferReader reader);
+    protected abstract void Deserialize(in BinarySpanReader reader, ref T result);
 
-    public int Serialize(ref T data, Span<byte> buffer)
+    int IBinaryWriter<T>.Serialize(in T data, Span<byte> buffer)
     {
         var offset = 0;
-        NetworkBufferWriter writer = new(buffer, ref offset)
+        BinarySpanWriter writer = new(buffer, ref offset)
         {
-            Network = Network,
+            Endianness = Platform.GetEndianness(Network),
         };
-        Serialize(writer, in data);
+        Serialize(in writer, in data);
         return offset;
     }
 
-    public T Deserialize(in ReadOnlySpan<byte> data)
+    void IBinaryReader<T>.Deserialize(ReadOnlySpan<byte> data, ref T value)
     {
         var offset = 0;
-        NetworkBufferReader reader = new(data, ref offset)
+        BinarySpanReader reader = new(data, ref offset)
         {
-            Network = Network,
+            Endianness = Platform.GetEndianness(Network),
         };
-        return Deserialize(reader);
+        Deserialize(in reader, ref value);
     }
 }

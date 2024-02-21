@@ -5,13 +5,21 @@ using Backdash.Serialization.Buffer;
 namespace Backdash.Network.Messages;
 
 [StructLayout(LayoutKind.Sequential)]
-record struct QualityReply : IBinarySerializable
+record struct QualityReply : IBinarySerializable, IUtf8SpanFormattable
 {
-    public uint Pong;
+    public long Pong;
 
-    public readonly void Serialize(NetworkBufferWriter writer) =>
-        writer.Write(Pong);
+    public readonly void Serialize(BinarySpanWriter writer) =>
+        writer.Write(in Pong);
 
-    public void Deserialize(NetworkBufferReader reader) =>
-        Pong = reader.ReadUInt();
+    public void Deserialize(BinarySpanReader reader) =>
+        Pong = reader.ReadLong();
+
+    public readonly bool TryFormat(Span<byte> utf8Destination, out int bytesWritten, ReadOnlySpan<char> format,
+        IFormatProvider? provider)
+    {
+        bytesWritten = 0;
+        using Utf8ObjectWriter writer = new(in utf8Destination, ref bytesWritten);
+        return writer.Write(Pong);
+    }
 }

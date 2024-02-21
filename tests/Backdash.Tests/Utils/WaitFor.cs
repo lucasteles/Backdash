@@ -13,7 +13,7 @@ public static class WaitFor
         string? source = null
     )
     {
-        timeout ??= TimeSpan.FromSeconds(1);
+        timeout ??= TimeSpan.FromSeconds(5);
         next ??= TimeSpan.FromSeconds(1.0 / 60);
 
         async Task WaitLoop()

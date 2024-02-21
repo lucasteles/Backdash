@@ -7,32 +7,28 @@ using Backdash.Network.Messages;
 
 namespace Backdash.Network.Protocol.Messaging;
 
-interface IProtocolOutbox : IMessageSender, IBackgroundJob, IDisposable
-{
-    public ByteSize BytesSent { get; }
-
-    public int PacketsSent { get; }
-}
+interface IProtocolOutbox : IMessageSender, IBackgroundJob, IDisposable;
 
 sealed class ProtocolOutbox(
+    ProtocolState state,
     ProtocolOptions options,
     IUdpClient<ProtocolMessage> udp,
     IDelayStrategy delayStrategy,
     IRandomNumberGenerator random,
     IClock clock,
-    IProtocolLogger logger
+    Logger logger
 ) : IProtocolOutbox
 {
     struct QueueEntry
     {
         public long QueueTime;
-        public SocketAddress DestAddr;
-        public ProtocolMessage Msg;
+        public SocketAddress Recipient;
+        public ProtocolMessage Body;
     }
 
     readonly Channel<QueueEntry> sendQueue =
         Channel.CreateBounded<QueueEntry>(
-            new BoundedChannelOptions(64)
+            new BoundedChannelOptions(options.MaxPackageQueue)
             {
                 SingleWriter = true,
                 SingleReader = true,
@@ -40,59 +36,38 @@ sealed class ProtocolOutbox(
                 FullMode = BoundedChannelFullMode.DropOldest,
             });
 
-    readonly CancellationTokenSource sendQueueCancellation = new();
-
     readonly ushort magicNumber = random.MagicNumber();
-
-    public int PacketsSent { get; private set; }
 
     int nextSendSeq;
 
-
     public string JobName { get; } = $"{nameof(ProtocolOutbox)} ({udp.Port})";
 
-    public long LastSendTime { get; private set; }
-    public ByteSize BytesSent { get; private set; }
-
-    QueueEntry CreateNextEntry(ref ProtocolMessage msg)
-    {
-        PacketsSent++;
-        LastSendTime = clock.GetMilliseconds();
-
-        msg.Header.Magic = magicNumber;
-        nextSendSeq++;
-        msg.Header.SequenceNumber = (ushort)nextSendSeq;
-
-        return new()
+    QueueEntry CreateNextEntry(in ProtocolMessage msg) =>
+        new()
         {
-            QueueTime = clock.GetMilliseconds(),
-            DestAddr = options.Peer.Address,
-            Msg = msg,
+            QueueTime = clock.GetTimeStamp(),
+            Recipient = state.Peer.Address,
+            Body = msg,
         };
+
+    public ValueTask SendMessageAsync(in ProtocolMessage msg, CancellationToken ct)
+    {
+        var nextEntry = CreateNextEntry(in msg);
+        return sendQueue.Writer.WriteAsync(nextEntry, ct);
     }
 
-    public ValueTask SendMessage(ref ProtocolMessage msg, CancellationToken ct)
+    public bool SendMessage(in ProtocolMessage msg)
     {
-        logger.LogMsg("send", msg);
-        using var cts = CancellationTokenSource.CreateLinkedTokenSource(sendQueueCancellation.Token, ct);
-        var nextEntry = CreateNextEntry(ref msg);
-        return sendQueue.Writer.WriteAsync(nextEntry, cts.Token);
-    }
-
-    public bool TrySendMessage(ref ProtocolMessage msg)
-    {
-        logger.LogMsg("send", msg);
-        var nextEntry = CreateNextEntry(ref msg);
+        var nextEntry = CreateNextEntry(in msg);
         return sendQueue.Writer.TryWrite(nextEntry);
     }
 
     public async Task Start(CancellationToken ct)
     {
-        using var cts = CancellationTokenSource.CreateLinkedTokenSource(sendQueueCancellation.Token, ct);
         var sendLatency = options.NetworkDelay;
         var reader = sendQueue.Reader;
 
-        var buffer = Mem.CreatePinnedBuffer(options.UdpPacketBufferSize);
+        var buffer = Mem.CreatePinnedMemory(options.UdpPacketBufferSize);
 
         while (!ct.IsCancellationRequested)
         {
@@ -100,28 +75,35 @@ sealed class ProtocolOutbox(
 
             while (reader.TryRead(out var entry))
             {
-                if (sendLatency > 0)
+                var message = entry.Body;
+                message.Header.Magic = magicNumber;
+                message.Header.SequenceNumber = (ushort)nextSendSeq;
+                nextSendSeq++;
+
+                logger.Write(LogLevel.Trace, $"send {message}");
+
+                if (sendLatency > TimeSpan.Zero)
                 {
                     var jitter = delayStrategy.Jitter(sendLatency);
-                    var delayDiff = clock.GetMilliseconds() - entry.QueueTime + jitter;
-                    if (delayDiff > 0)
+                    SpinWait sw = new();
+                    while (clock.GetElapsedTime(entry.QueueTime) <= jitter)
+                    {
+                        sw.SpinOnce();
                         // LATER: allocations here
-                        await Task.Delay((int)delayDiff, cts.Token).ConfigureAwait(false);
+                        // await Task.Delay(delayDiff, ct).ConfigureAwait(false)
+                    }
                 }
 
                 var bytesSent = await udp
-                    .SendTo(entry.DestAddr, entry.Msg, buffer, sendQueueCancellation.Token)
+                    .SendTo(entry.Recipient, message, buffer, ct)
                     .ConfigureAwait(false);
 
-                BytesSent += (ByteSize)bytesSent;
+                state.Stats.BytesSent += (ByteSize)bytesSent;
+                state.Stats.PacketsSent++;
+                state.Stats.LastSendTime = clock.GetTimeStamp();
             }
         }
     }
 
-    public void Dispose()
-    {
-        sendQueueCancellation.Cancel();
-        sendQueueCancellation.Dispose();
-        sendQueue.Writer.Complete();
-    }
+    public void Dispose() => sendQueue.Writer.Complete();
 }

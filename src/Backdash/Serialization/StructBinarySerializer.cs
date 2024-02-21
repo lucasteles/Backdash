@@ -4,16 +4,14 @@ namespace Backdash.Serialization;
 
 sealed class StructBinarySerializer<T> : IBinarySerializer<T> where T : struct
 {
-    public T Deserialize(in ReadOnlySpan<byte> data) =>
-        Mem.ReadStruct<T>(in data);
+    public int Serialize(in T data, Span<byte> buffer) => Mem.WriteStruct(in data, buffer);
 
-    public int Serialize(ref T data, Span<byte> buffer) =>
-        Mem.WriteStruct(in data, buffer);
+    public void Deserialize(ReadOnlySpan<byte> data, ref T value) => value = Mem.ReadStruct<T>(in data);
 }
 
 sealed class StructMarshalBinarySerializer<T> : IBinarySerializer<T> where T : struct
 {
-    public T Deserialize(in ReadOnlySpan<byte> data) => Mem.UnmarshallStruct<T>(in data);
+    public int Serialize(in T data, Span<byte> buffer) => Mem.MarshallStruct(in data, in buffer);
 
-    public int Serialize(ref T data, Span<byte> buffer) => Mem.MarshallStruct(in data, in buffer);
+    public void Deserialize(ReadOnlySpan<byte> data, ref T value) => value = Mem.UnmarshallStruct<T>(in data);
 }

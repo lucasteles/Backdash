@@ -1,3 +1,5 @@
+using System.Threading.Channels;
+
 namespace Backdash.Core;
 
 public interface IBackgroundJob
@@ -6,38 +8,32 @@ public interface IBackgroundJob
     Task Start(CancellationToken ct);
 }
 
-interface IBackgroundJobManager : IAsyncDisposable
+interface IBackgroundJobManager : IDisposable
 {
     Task Start(CancellationToken ct);
-    void Register(IBackgroundJob job);
+    void Register(IBackgroundJob job, CancellationToken ct = default);
+    void Stop(TimeSpan timeout = default);
 }
 
-sealed class BackgroundJobManager(ILogger logger) : IBackgroundJobManager
+sealed class BackgroundJobManager(Logger logger) : IBackgroundJobManager
 {
-    readonly HashSet<IBackgroundJob> jobs = [];
-    readonly Dictionary<Task, IBackgroundJob> tasks = [];
+    readonly HashSet<JobEntry> jobs = [];
+    readonly Dictionary<Task, JobEntry> tasks = [];
     readonly CancellationTokenSource cts = new();
+    bool isRunning;
 
-    CancellationTokenSource? linkedCts;
-    bool started;
-
-    CancellationToken StoppingToken => linkedCts?.Token ?? cts.Token;
+    CancellationToken StoppingToken => cts.Token;
 
     public async Task Start(CancellationToken ct)
     {
-        if (started) return;
+        if (isRunning) return;
         if (jobs.Count is 0) throw new BackdashException("No jobs registered");
-        linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, ct);
+        ct.Register(() => Stop(TimeSpan.Zero));
 
-        logger.Info($"Starting background tasks");
-        foreach (var job in jobs)
-        {
-            var task = Task.Run(() => job.Start(StoppingToken), StoppingToken);
-            tasks.Add(task, job);
-        }
+        logger.Write(LogLevel.Debug, "Starting background tasks");
+        foreach (var job in jobs) AddJobTask(new(job.Job, job.StoppingToken));
 
-        started = true;
-
+        isRunning = true;
         while (tasks.Keys.Any(x => !x.IsCompleted))
         {
             var completed = await Task.WhenAny(tasks.Keys).ConfigureAwait(false);
@@ -45,33 +41,88 @@ sealed class BackgroundJobManager(ILogger logger) : IBackgroundJobManager
             if (!tasks.TryGetValue(completed, out var completedJob))
                 continue;
 
-            logger.Trace($"Completed: {completedJob.JobName}");
+            logger.Write(LogLevel.Debug, $"Completed: {completedJob.Name}");
             jobs.Remove(completedJob);
             tasks.Remove(completed);
         }
 
-        logger.Info($"Finished background tasks");
+        logger.Write(LogLevel.Debug, "Finished background tasks");
     }
 
-    public void Register(IBackgroundJob job)
+    void AddJobTask(JobEntry entry)
     {
-        jobs.Add(job);
+        var job = entry.Job;
 
-        if (started)
-            tasks.Add(Task.Run(() => job.Start(StoppingToken), StoppingToken), job);
+        var task = Task.Run(async () =>
+        {
+            var jobCancellation = entry.StoppingToken;
+            using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(StoppingToken, jobCancellation);
+            try
+            {
+                await job.Start(linkedCts.Token).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                logger.Write(LogLevel.Trace, $"job {job.JobName} stopped");
+            }
+            catch (ChannelClosedException)
+            {
+                logger.Write(LogLevel.Trace, $"job {job.JobName} channel closed");
+            }
+            catch (Exception ex)
+            {
+                logger.Write(LogLevel.Error, $"job  {job.JobName} error: {ex}");
+            }
+        }, StoppingToken);
+
+        tasks.Add(task, entry);
     }
 
-    public async ValueTask DisposeAsync()
+    public void Register(IBackgroundJob job, CancellationToken ct = default)
+    {
+        JobEntry entry = new(job, ct);
+        if (!jobs.Add(entry))
+            return;
+
+        if (!isRunning) return;
+
+        AddJobTask(entry);
+    }
+
+    public void Stop(TimeSpan timeout = default)
+    {
+        if (!isRunning) return;
+        isRunning = false;
+
+        if (!cts.IsCancellationRequested)
+            if (timeout <= TimeSpan.Zero)
+                cts.Cancel();
+            else
+                cts.CancelAfter(timeout);
+    }
+
+    public void Dispose()
     {
         try
         {
-            await cts.CancelAsync().ConfigureAwait(false);
+            Stop(TimeSpan.Zero);
         }
         finally
         {
             cts.Dispose();
         }
+    }
 
-        linkedCts?.Dispose();
+    readonly struct JobEntry(IBackgroundJob job, CancellationToken stoppingToken) : IEquatable<JobEntry>
+    {
+        public readonly IBackgroundJob Job = job;
+        public readonly CancellationToken StoppingToken = stoppingToken;
+        public string Name => Job.JobName;
+
+        public bool Equals(JobEntry other) => Name.Equals(other.Name);
+        public override bool Equals(object? obj) => obj is JobEntry other && Equals(other);
+        public override int GetHashCode() => Name.GetHashCode();
+        public static bool operator ==(JobEntry left, JobEntry right) => left.Equals(right);
+        public static bool operator !=(JobEntry left, JobEntry right) => !left.Equals(right);
     }
 }

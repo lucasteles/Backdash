@@ -1,4 +1,4 @@
-﻿using Backdash.Core;
+using Backdash.Core;
 using Backdash.Network.Client;
 using Backdash.Network.Messages;
 using Backdash.Network.Protocol.Messaging;
@@ -9,10 +9,10 @@ interface IUdpClientFactory
 {
     IUdpClient<ProtocolMessage> CreateClient(
         int port,
-        bool enableEndianness,
+        Endianness endianness,
         int maxPacketSize,
         IUdpObserver<ProtocolMessage> observer,
-        ILogger logger
+        Logger logger
     );
 }
 
@@ -20,17 +20,17 @@ sealed class UdpClientFactory : IUdpClientFactory
 {
     public IUdpClient<ProtocolMessage> CreateClient(
         int port,
-        bool enableEndianness,
+        Endianness endianness,
         int maxPacketSize,
         IUdpObserver<ProtocolMessage> observer,
-        ILogger logger
+        Logger logger
     )
     {
         UdpClient<ProtocolMessage> udpClient = new(
             new UdpSocket(port),
             new ProtocolMessageBinarySerializer
             {
-                Network = enableEndianness,
+                Endianness = endianness,
             },
             observer,
             logger,

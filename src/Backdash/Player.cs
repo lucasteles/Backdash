@@ -1,58 +1,48 @@
 using System.Net;
-using Backdash.Data;
+using System.Numerics;
 
 namespace Backdash;
 
-readonly struct LocalEndPoint(int playerNumber)
+public abstract class Player : IEquatable<Player>, IEqualityOperators<Player, Player, bool>
 {
-    public int PlayerNumber { get; } = playerNumber;
-}
+    private protected Player(PlayerType type, int playerNumber) => Handle = new(type, playerNumber);
+    public PlayerHandle Handle { get; internal set; }
+    public PlayerType Type => Handle.Type;
+    public int Number => Handle.Number;
 
-interface IRemote
-{
-    IPEndPoint EndPoint { get; }
-}
+    public bool IsSpectator() => Handle.IsSpectator();
+    public bool IsRemote() => Handle.IsRemote();
+    public bool IsLocal() => Handle.IsLocal();
 
-public readonly record struct PlayerIndex(int Value)
-{
-    internal QueueIndex QueueNumber { get; } = new(Value - 1);
-    public static PlayerIndex Empty { get; } = new(-1);
-}
+    public sealed override string ToString() => Handle.ToString();
+    public virtual bool Equals(Player? other) => Equals(this, other);
+    public sealed override bool Equals(object? obj) => obj is Player player && Equals(player);
+    public sealed override int GetHashCode() => HashCode.Combine(Type, Number);
 
-public enum PlayerType
-{
-    Local,
-    Remote,
-    Spectator,
-}
-
-public abstract class Player(PlayerType type, int playerNumber)
-{
-    public PlayerType Type { get; } = type;
-    public int PlayerNumber { get; } = playerNumber;
-    public PlayerIndex Index { get; private set; } = new(playerNumber);
-    internal QueueIndex QueueNumber => Index.QueueNumber;
-
-    public static implicit operator PlayerIndex(Player player) => player.Index;
-
-    public sealed class Local(int playerNumber) : Player(PlayerType.Local, playerNumber);
-
-    public sealed class Remote(int playerNumber, IPEndPoint endpoint) : Player(PlayerType.Remote, playerNumber), IRemote
+    static bool Equals(Player? left, Player? right)
     {
-        public IPEndPoint EndPoint { get; } = endpoint;
-
-        public Remote(int playerNumber, IPAddress ipAddress, int port) :
-            this(playerNumber, new IPEndPoint(ipAddress, port))
-        { }
+        if (ReferenceEquals(left, right)) return true;
+        if (left == null || right == null) return false;
+        return left.Handle.Equals(right.Handle);
     }
 
-    public sealed class Spectator(int playerNumber, IPEndPoint endpoint)
-        : Player(PlayerType.Spectator, playerNumber), IRemote
-    {
-        public IPEndPoint EndPoint { get; } = endpoint;
+    public static bool operator ==(Player? left, Player? right) => Equals(left, right);
+    public static bool operator !=(Player? left, Player? right) => !Equals(left, right);
+}
 
-        public Spectator(int playerNumber, IPAddress ipAddress, int port) : this(playerNumber,
-            new IPEndPoint(ipAddress, port))
-        { }
-    }
+public sealed class LocalPlayer(int playerNumber) : Player(PlayerType.Local, playerNumber);
+
+public sealed class RemotePlayer(int playerNumber, IPEndPoint endpoint) : Player(PlayerType.Remote, playerNumber)
+{
+    public RemotePlayer(int playerNumber, IPAddress ipAddress, int port)
+        : this(playerNumber, new IPEndPoint(ipAddress, port)) { }
+
+    public IPEndPoint EndPoint { get; } = endpoint;
+}
+
+public sealed class Spectator(IPEndPoint endpoint) : Player(PlayerType.Spectator, 0)
+{
+    public Spectator(IPAddress ipAddress, int port) : this(new IPEndPoint(ipAddress, port)) { }
+
+    public IPEndPoint EndPoint { get; } = endpoint;
 }

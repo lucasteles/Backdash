@@ -1,5 +1,6 @@
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using Backdash.Serialization.Buffer;
 
 namespace Backdash.Data;
 
@@ -7,6 +8,7 @@ public readonly record struct ByteSize(long ByteCount)
     :
         IComparable<ByteSize>,
         IFormattable,
+        IUtf8SpanFormattable,
         IComparisonOperators<ByteSize, ByteSize, bool>,
         IAdditionOperators<ByteSize, ByteSize, ByteSize>,
         ISubtractionOperators<ByteSize, ByteSize, ByteSize>,
@@ -102,11 +104,12 @@ public readonly record struct ByteSize(long ByteCount)
 
     double GetValueForSymbol(ReadOnlySpan<char> symbol) => GetValue(SymbolToMeasure(symbol));
 
+    const string defaultFormat = "0.##";
+    const string binaryFormat = "binary";
+    const string decimalFormat = "decimal";
+
     public string ToString(string? format, IFormatProvider? formatProvider)
     {
-        const string defaultFormat = "0.##";
-        const string binaryFormat = "binary";
-        const string decimalFormat = "decimal";
         format ??= decimalFormat;
 
         if (format.Equals(binaryFormat, StringComparison.OrdinalIgnoreCase))
@@ -137,29 +140,85 @@ public readonly record struct ByteSize(long ByteCount)
             return value.ToString($"{defaultFormat} {symbol}", formatProvider);
 
         string symbolString = new(symbol);
-        return value.ToString(format.Replace(symbolString, symbolString), formatProvider);
-
-        static ReadOnlySpan<char> FindSymbol(ReadOnlySpan<char> str)
-        {
-            const StringComparison cmp = StringComparison.Ordinal;
-            if (str.Contains(KibiByteSymbol, cmp)) return KibiByteSymbol;
-            if (str.Contains(MebiByteSymbol, cmp)) return MebiByteSymbol;
-            if (str.Contains(GibiByteSymbol, cmp)) return GibiByteSymbol;
-            if (str.Contains(TebiByteSymbol, cmp)) return TebiByteSymbol;
-
-            if (str.Contains(KiloByteSymbol, cmp)) return KiloByteSymbol;
-            if (str.Contains(MegaByteSymbol, cmp)) return MegaByteSymbol;
-            if (str.Contains(GigaByteSymbol, cmp)) return GigaByteSymbol;
-            if (str.Contains(TeraByteSymbol, cmp)) return TeraByteSymbol;
-
-            if (str.Contains(ByteSymbol, cmp)) return ByteSymbol;
-            return ReadOnlySpan<char>.Empty;
-        }
+        return value.ToString(
+            format.Replace(symbolString, symbolString, StringComparison.OrdinalIgnoreCase),
+            formatProvider
+        );
     }
+
 
     public string ToString(string? format) => ToString(format, null);
     public string ToString(Measure measure) => ToString(MeasureToSymbol(measure));
     public override string ToString() => ToString(null, null);
+
+
+    public bool TryFormat(
+        Span<byte> utf8Destination,
+        out int bytesWritten,
+        ReadOnlySpan<char> format,
+        IFormatProvider? provider)
+    {
+        bytesWritten = 0;
+        Utf8StringWriter writer = new(in utf8Destination, ref bytesWritten);
+        format = format.IsEmpty ? decimalFormat : format;
+
+        if (format.Equals(binaryFormat, StringComparison.OrdinalIgnoreCase))
+        {
+            var maxBinarySymbol = GetMaxBinarySymbol();
+            var binaryValue = GetValueForSymbol(maxBinarySymbol);
+
+            writer.Write(binaryValue, defaultFormat, provider);
+            writer.Write(" "u8);
+            return writer.WriteChars(maxBinarySymbol);
+        }
+
+        if (format.Equals(decimalFormat, StringComparison.OrdinalIgnoreCase))
+        {
+            var maxDecimalSymbol = GetMaxDecimalSymbol();
+            var decimalValue = GetValueForSymbol(maxDecimalSymbol);
+
+            writer.Write(decimalValue, defaultFormat, provider);
+            writer.Write(" "u8);
+            return writer.WriteChars(maxDecimalSymbol);
+        }
+
+        var symbol = FindSymbol(format);
+
+        if (symbol.IsEmpty)
+            return writer.Write(ByteCount, format, provider);
+
+        var value = GetValueForSymbol(symbol);
+
+        if (
+            (!format.Contains('#') && !format.Contains('0'))
+            || symbol.Equals(format, StringComparison.OrdinalIgnoreCase)
+        )
+        {
+            writer.Write(value, defaultFormat, provider);
+            writer.Write(" "u8);
+            return writer.WriteChars(symbol);
+        }
+
+        return writer.Write(value, format, provider);
+    }
+
+
+    static ReadOnlySpan<char> FindSymbol(ReadOnlySpan<char> str)
+    {
+        const StringComparison cmp = StringComparison.Ordinal;
+        if (str.Contains(KibiByteSymbol, cmp)) return KibiByteSymbol;
+        if (str.Contains(MebiByteSymbol, cmp)) return MebiByteSymbol;
+        if (str.Contains(GibiByteSymbol, cmp)) return GibiByteSymbol;
+        if (str.Contains(TebiByteSymbol, cmp)) return TebiByteSymbol;
+
+        if (str.Contains(KiloByteSymbol, cmp)) return KiloByteSymbol;
+        if (str.Contains(MegaByteSymbol, cmp)) return MegaByteSymbol;
+        if (str.Contains(GigaByteSymbol, cmp)) return GigaByteSymbol;
+        if (str.Contains(TeraByteSymbol, cmp)) return TeraByteSymbol;
+
+        if (str.Contains(ByteSymbol, cmp)) return ByteSymbol;
+        return [];
+    }
 
     public static ByteSize SizeOf<T>() where T : struct => (ByteSize)Unsafe.SizeOf<T>();
 

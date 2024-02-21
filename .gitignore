@@ -464,3 +464,5 @@ CoverageReport/
 TestReport/
 Badges/
 .nuke/temp/
+log_*
+

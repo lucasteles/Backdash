@@ -2,27 +2,47 @@ using Backdash.Core;
 
 namespace Backdash.Network.Protocol.Messaging;
 
-interface IDelayStrategy
+public enum DelayStrategy
 {
-    int Jitter(int sendLatency);
+    Gaussian,
+    ContinuousUniform,
 }
 
-sealed class DelayStrategy(IRandomNumberGenerator random) : IDelayStrategy
+interface IDelayStrategy
 {
-    public int Jitter(int sendLatency)
+    TimeSpan Jitter(TimeSpan sendLatency);
+}
+
+static class DelayStrategyFactory
+{
+    public static IDelayStrategy Create(IRandomNumberGenerator random, DelayStrategy strategy) => strategy switch
     {
-        var mean = sendLatency * 2 / 3;
-        return mean + (random.NextInt() % sendLatency / 3);
+        DelayStrategy.Gaussian => new GaussianDelayStrategy(random),
+        DelayStrategy.ContinuousUniform => new UniformDelayStrategy(random),
+        _ => throw new ArgumentOutOfRangeException(nameof(strategy), strategy, null),
+    };
+}
+
+sealed class UniformDelayStrategy(IRandomNumberGenerator random) : IDelayStrategy
+{
+    public TimeSpan Jitter(TimeSpan sendLatency)
+    {
+        var latency = sendLatency.TotalMilliseconds;
+        var mean = latency * 2 / 3;
+        var ms = mean + (random.NextInt() % latency / 3);
+        return TimeSpan.FromMilliseconds(ms);
     }
 }
 
-sealed class GaussianDelayStrategy(Random random) : IDelayStrategy
+sealed class GaussianDelayStrategy(IRandomNumberGenerator random) : IDelayStrategy
 {
-    public int Jitter(int sendLatency)
+    public TimeSpan Jitter(TimeSpan sendLatency)
     {
-        var mean = sendLatency / 2;
-        var sigma = (sendLatency - mean) / 3;
+        var latency = sendLatency.TotalMilliseconds;
+        var mean = latency / 2;
+        var sigma = (latency - mean) / 3;
         var std = random.NextGaussian();
-        return (int)Math.Clamp((std * sigma) + mean, 0, sendLatency);
+        var ms = (int)Math.Clamp((std * sigma) + mean, 0, latency);
+        return TimeSpan.FromMilliseconds(ms);
     }
 }

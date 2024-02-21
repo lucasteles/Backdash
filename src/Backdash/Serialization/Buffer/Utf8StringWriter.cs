@@ -1,0 +1,116 @@
+using System.Runtime.CompilerServices;
+
+namespace Backdash.Serialization.Buffer;
+
+using System.Text;
+
+readonly ref struct Utf8StringWriter
+{
+    readonly Span<byte> buffer;
+    readonly ref int offset;
+
+    public Utf8StringWriter(in Span<byte> bufferArg, ref int offset)
+    {
+        buffer = bufferArg;
+        this.offset = ref offset;
+    }
+
+    public bool WriteChars(ReadOnlySpan<char> value)
+    {
+        Span<byte> dest = buffer[offset..];
+        if (dest.IsEmpty) return false;
+
+        var size = Encoding.UTF8.GetByteCount(value);
+
+        var chars = size <= dest.Length
+            ? value
+            : value[..dest.Length];
+
+        offset += Encoding.UTF8.GetBytes(chars, dest);
+        return true;
+    }
+
+    public bool Write(ReadOnlySpan<byte> value)
+    {
+        Span<byte> dest = buffer[offset..];
+        if (dest.IsEmpty) return false;
+
+        var bytes = value.Length <= dest.Length
+            ? value
+            : value[..dest.Length];
+
+        bytes.CopyTo(dest);
+        offset += value.Length;
+        return true;
+    }
+
+    public bool Write<T>(T value, ReadOnlySpan<char> format, IFormatProvider? provider = null)
+        where T : IUtf8SpanFormattable
+    {
+        Span<byte> dest = buffer[offset..];
+        if (dest.IsEmpty) return false;
+
+        if (!value.TryFormat(dest, out int written, format, provider))
+            return false;
+
+        offset += written;
+        return true;
+    }
+
+    public bool Write<T>(T value) where T : IUtf8SpanFormattable => Write(value, []);
+
+    const int MaxLocalStringSize = 24;
+
+    public bool WriteFormat<T>(T value, ReadOnlySpan<char> format = default) where T : ISpanFormattable
+    {
+        Span<byte> dest = buffer[offset..];
+        if (dest.IsEmpty) return false;
+        Span<char> charBuffer = stackalloc char[MaxLocalStringSize];
+        return value.TryFormat(charBuffer, out int written, format, null) && WriteChars(charBuffer[..written]);
+    }
+
+    public bool WriteEnum<T>(T value, ReadOnlySpan<char> format = default) where T : struct, Enum
+    {
+        Span<byte> dest = buffer[offset..];
+        if (dest.IsEmpty) return false;
+
+        Span<char> charBuffer = stackalloc char[MaxLocalStringSize];
+        if (!Enum.TryFormat(value, charBuffer, out int written, format))
+            return false;
+
+        return WriteChars(charBuffer[..written]);
+    }
+}
+
+readonly ref struct Utf8ObjectWriter
+{
+    readonly Utf8StringWriter writer;
+    readonly int firstOffset;
+    readonly ref int offset;
+
+    public Utf8ObjectWriter(in Span<byte> bufferArg, ref int offset)
+    {
+        writer = new(in bufferArg, ref offset);
+        this.offset = ref offset;
+        writer.Write("{"u8);
+        firstOffset = offset;
+    }
+
+    public bool Write<T>(
+        T value,
+        ReadOnlySpan<char> format = default,
+        [CallerArgumentExpression(nameof(value))]
+        string name = ""
+    ) where T : IUtf8SpanFormattable
+    {
+        if (firstOffset != offset && !writer.Write(", "u8))
+            return false;
+
+        if (!writer.WriteChars(name))
+            return false;
+        if (!writer.Write(": "u8)) return false;
+        return writer.Write(value, format);
+    }
+
+    public void Dispose() => writer.Write("}"u8);
+}

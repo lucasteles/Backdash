@@ -5,14 +5,6 @@ namespace Backdash.Core;
 
 static class ThrowHelpers
 {
-    public static void ThrowIfArgumentIsNegativeOrZero(int argument,
-        [CallerArgumentExpression(nameof(argument))]
-        string? paramName = null)
-    {
-        if (argument <= 0)
-            throw new ArgumentOutOfRangeException(argument.ToString(CultureInfo.InvariantCulture), paramName);
-    }
-
     public static void ThrowIfArgumentOutOfBounds(int argument,
         int min = int.MinValue,
         int max = int.MaxValue,
@@ -23,18 +15,26 @@ static class ThrowHelpers
             throw new ArgumentOutOfRangeException(argument.ToString(CultureInfo.InvariantCulture), paramName);
     }
 
-    public static void ThrowIfTypeSizeGreaterThan<T>(int maxSize) where T : struct
+    public static void ThrowIfArgumentIsZeroOrLess(int argument,
+        [CallerArgumentExpression(nameof(argument))]
+        string? paramName = null)
     {
-        ThrowIfArgumentIsNegativeOrZero(maxSize);
-        var size = Mem.SizeOf<T>();
-        if (size > maxSize)
-            throw new BackdashException($"{typeof(T).Name} is too big {size}, max: {maxSize}");
+        if (argument <= 0)
+            throw new ArgumentOutOfRangeException(argument.ToString(CultureInfo.InvariantCulture), paramName);
+    }
+
+    public static void ThrowIfArgumentIsNegative(int argument,
+        [CallerArgumentExpression(nameof(argument))]
+        string? paramName = null)
+    {
+        if (argument < 0)
+            throw new ArgumentOutOfRangeException(argument.ToString(CultureInfo.InvariantCulture), paramName);
     }
 
     public static void ThrowIfTypeTooBigForStack<T>() where T : struct
     {
         var size = Mem.SizeOf<T>();
-        if (size <= Mem.MaxStackLimit)
+        if (size > Mem.MaxStackLimit)
             throw new BackdashException($"{typeof(T).Name} size too big for stack: {size}");
     }
 }

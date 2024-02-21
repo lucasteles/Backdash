@@ -1,31 +1,38 @@
 using System.Runtime.CompilerServices;
 using Backdash.Core;
+using Backdash.Serialization;
 
 namespace Backdash;
 
 static class Extensions
 {
-    public static bool IsSuccess(this ResultCode code) => code is ResultCode.Ok;
-    public static bool IsFailure(this ResultCode code) => !code.IsSuccess();
+    public static bool IsOk(this ResultCode code) => code is ResultCode.Ok;
 
     public static void AssertTrue(this bool value, [CallerMemberName] string? source = null)
     {
         if (!value)
-            throw new BackdashException($"Invalid assertion at {source}");
+            throw new BackdashException($"Unexpected behavior at {source}");
     }
 
-    public static double NextGaussian(this Random random)
+    public static void EnqueueNext<T>(this Queue<T> queue, in T value)
     {
-        double u, v, s;
+        var count = queue.Count;
+        queue.Enqueue(value);
+        for (var i = 0; i < count; i++)
+            queue.Enqueue(queue.Dequeue());
+    }
 
-        do
-        {
-            u = (2.0 * random.NextDouble()) - 1.0;
-            v = (2.0 * random.NextDouble()) - 1.0;
-            s = (u * u) + (v * v);
-        } while (s >= 1.0);
+    public static int GetTypeSize<T>(this IBinaryWriter<T> serializer) where T : struct
+    {
+        var dummy = new T();
+        Span<byte> buffer = stackalloc byte[Mem.MaxStackLimit];
+        return serializer.Serialize(in dummy, buffer);
+    }
 
-        var fac = Math.Sqrt(-2.0 * Math.Log(s) / s);
-        return u * fac;
+    public static T Deserialize<T>(this IBinaryReader<T> serializer, ReadOnlySpan<byte> data) where T : new()
+    {
+        var result = new T();
+        serializer.Deserialize(data, ref result);
+        return result;
     }
 }

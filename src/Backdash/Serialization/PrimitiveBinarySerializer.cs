@@ -1,47 +1,69 @@
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using Backdash.Core;
 using Backdash.Network;
 
 namespace Backdash.Serialization;
 
-sealed class PrimitiveBinarySerializer<T>(bool network)
-    : IBinarySerializer<T> where T : unmanaged
+sealed class PrimitiveBinarySerializer<T> : IBinarySerializer<T> where T : unmanaged
 {
-    public int GetTypeSize() => Mem.SizeOf<T>();
+    public int Serialize(in T data, Span<byte> buffer) => Mem.WriteStruct(in data, buffer);
 
-    public T Deserialize(in ReadOnlySpan<byte> data)
+    public void Deserialize(ReadOnlySpan<byte> data, ref T value)
     {
-        var value = Mem.ReadUnaligned<T>(data);
-        return network ? Endianness.ToHostOrder(value) : value;
+        ref var readValue = ref Mem.ReadUnaligned<T>(data);
+        value = ref readValue;
     }
-
-    public int SerializeScoped(scoped ref T data, Span<byte> buffer)
-    {
-        var reordered = network ? Endianness.ToNetworkOrder(data) : data;
-        return Mem.WriteStruct(reordered, buffer);
-    }
-
-    public int Serialize(ref T data, Span<byte> buffer) =>
-        SerializeScoped(ref data, buffer);
 }
 
-sealed class EnumSerializer<TEnum, TInt>(bool network) : IBinarySerializer<TEnum>
+sealed class IntegerBinarySerializer<T>(Endianness endianness)
+    : IBinarySerializer<T> where T : unmanaged, IBinaryInteger<T>, IMinMaxValue<T>
+{
+    readonly bool isUnsigned = T.IsZero(T.MinValue);
+
+    public int Serialize(in T data, Span<byte> buffer)
+    {
+        int size;
+        ref var valueRef = ref Unsafe.AsRef(in data);
+
+        return endianness switch
+        {
+            Endianness.BigEndian => valueRef.TryWriteBigEndian(buffer, out size) ? size : 0,
+            Endianness.LittleEndian => valueRef.TryWriteLittleEndian(buffer, out size) ? size : 0,
+            _ => throw new BackdashException("Invalid integer serialization mode")
+        };
+    }
+
+    public void Deserialize(ReadOnlySpan<byte> data, ref T value)
+    {
+        switch (endianness)
+        {
+            case Endianness.BigEndian:
+                value = T.ReadBigEndian(data, isUnsigned);
+                return;
+            case Endianness.LittleEndian:
+                value = T.ReadLittleEndian(data, isUnsigned);
+                break;
+            default:
+                throw new BackdashException("Invalid integer serialization mode");
+        }
+    }
+}
+
+sealed class EnumBinarySerializer<TEnum, TInt>(IBinarySerializer<TInt> serializer) : IBinarySerializer<TEnum>
     where TEnum : unmanaged, Enum
     where TInt : unmanaged, IBinaryInteger<TInt>
 {
-    readonly PrimitiveBinarySerializer<TInt> valueBinarySerializer = new(network);
-
-    public int GetTypeSize() => valueBinarySerializer.GetTypeSize();
-
-    public TEnum Deserialize(in ReadOnlySpan<byte> data)
+    public int Serialize(in TEnum data, Span<byte> buffer)
     {
-        var underValue = valueBinarySerializer.Deserialize(in data);
-        return Mem.IntegerAsEnum<TEnum, TInt>(underValue);
+        ref var underValue = ref Mem.EnumAsInteger<TEnum, TInt>(ref Unsafe.AsRef(in data));
+        return serializer.Serialize(in underValue, buffer);
     }
 
-    public int Serialize(ref TEnum data, Span<byte> buffer)
+    public void Deserialize(ReadOnlySpan<byte> data, ref TEnum value)
     {
-        var underValue = Mem.EnumAsInteger<TEnum, TInt>(data);
-        return valueBinarySerializer.SerializeScoped(ref underValue, buffer);
+        ref var underValue = ref Mem.EnumAsInteger<TEnum, TInt>(ref value);
+        serializer.Deserialize(data, ref underValue);
+        value = ref Mem.IntegerAsEnum<TEnum, TInt>(ref underValue);
     }
 }

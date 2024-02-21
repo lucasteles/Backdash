@@ -1,12 +1,15 @@
+using System.Diagnostics;
 using System.Numerics;
+using Backdash.Serialization.Buffer;
 
 namespace Backdash.Data;
 
-readonly record struct Frame :
+[DebuggerDisplay("{ToString()}")]
+public readonly record struct Frame :
     IComparable<Frame>,
     IComparable<int>,
     IEquatable<int>,
-    IFormattable,
+    IUtf8SpanFormattable,
     IComparisonOperators<Frame, Frame, bool>,
     IAdditionOperators<Frame, Frame, Frame>,
     ISubtractionOperators<Frame, Frame, Frame>,
@@ -20,21 +23,33 @@ readonly record struct Frame :
     public const sbyte NullValue = -1;
     public static readonly Frame Null = new(NullValue);
     public static readonly Frame Zero = new(0);
-    public int Number { get; } = NullValue;
+    public static readonly Frame MaxValue = new(int.MaxValue);
+    public readonly int Number = NullValue;
     public Frame(int number) => Number = number;
-    public Frame Next => new(Number + 1);
-    public Frame Previous => new(Number - 1);
+    public Frame Next() => new(Number + 1);
+    public Frame Previous() => new(Number - 1);
     public bool IsNull => Number is NullValue;
-    public bool IsValid => !IsNull;
+    public bool IsNotNull => !IsNull;
 
     public int CompareTo(Frame other) => Number.CompareTo(other.Number);
     public int CompareTo(int other) => Number.CompareTo(other);
     public bool Equals(int other) => Number == other;
 
-    public override string ToString() => Number.ToString();
-
     public string ToString(string? format, IFormatProvider? formatProvider) =>
-        Number.ToString(format ?? "Frame #;Frame -#", formatProvider);
+        Number.ToString(format ?? "Frame(0);Frame(-#)", formatProvider);
+
+    public override string ToString() => ToString(null, null);
+
+    public bool TryFormat(
+        Span<byte> utf8Destination, out int bytesWritten,
+        ReadOnlySpan<char> format,
+        IFormatProvider? provider
+    )
+    {
+        bytesWritten = 0;
+        Utf8StringWriter writer = new(in utf8Destination, ref bytesWritten);
+        return writer.Write(Number, format);
+    }
 
     public static explicit operator int(Frame frame) => frame.Number;
     public static explicit operator Frame(int frame) => new(frame);

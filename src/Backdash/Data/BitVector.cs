@@ -1,9 +1,9 @@
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using Backdash.Core;
 
 namespace Backdash.Data;
 
+[DebuggerDisplay("{ToString()}")]
 readonly ref struct ReadOnlyBitVector(scoped in ReadOnlySpan<byte> bits)
 {
     public readonly ReadOnlySpan<byte> Buffer = bits;
@@ -11,21 +11,24 @@ readonly ref struct ReadOnlyBitVector(scoped in ReadOnlySpan<byte> bits)
     public int Size => Buffer.Length;
     public int BitCount => Size * ByteSize.ByteToBits;
 
-    public bool Get(int i) => BitVector.GetBit(Buffer, i);
+    public bool Get(int i) => BitVector.GetBit(in Buffer, i);
 
     public bool this[int bit] => Get(bit);
 
     public static ReadOnlyBitVector FromSpan(scoped in ReadOnlySpan<byte> bits) => new(bits);
+
+    public override string ToString() => Mem.GetBitString(Buffer);
 }
 
+[DebuggerDisplay("{ToString()}")]
 readonly ref struct BitVector(scoped in Span<byte> bits)
 {
     public static BitVector FromSpan(scoped in Span<byte> bits) => new(bits);
 
     public readonly Span<byte> Buffer = bits;
 
-    public int Size => Buffer.Length;
-    public int BitCount => Size * ByteSize.ByteToBits;
+    public int ByteLength => Buffer.Length;
+    public int Length => ByteLength * ByteSize.ByteToBits;
 
     public static void SetBit(in Span<byte> vector, int index) =>
         vector[index / 8] |= (byte)(1 << (index % 8));
@@ -37,8 +40,8 @@ readonly ref struct BitVector(scoped in Span<byte> bits)
         vector[index / 8] &= (byte)~(1 << (index % 8));
 
     public bool Get(int i) => GetBit(Buffer, i);
-    public void Set(int i) => SetBit(Buffer, i);
-    public void Clear(int i) => ClearBit(Buffer, i);
+    public void Set(int i) => SetBit(in Buffer, i);
+    public void Clear(int i) => ClearBit(in Buffer, i);
 
     public bool this[int bit]
     {
@@ -50,60 +53,47 @@ readonly ref struct BitVector(scoped in Span<byte> bits)
         }
     }
 
+    public override string ToString() => Mem.GetBitString(Buffer);
     public static implicit operator ReadOnlyBitVector(BitVector @this) => new(@this.Buffer);
 }
 
 [DebuggerDisplay("{ToString()}")]
-public ref struct BitOffsetWriter(Span<byte> buffer, ushort offset = 0)
+public ref struct BitOffsetWriter(Span<byte> buffer, ushort offset = 0, int nibbleSize = ByteSize.ByteToBits)
 {
-    public const int NibbleSize = 8;
+    public readonly Span<byte> Buffer = buffer;
 
-    readonly Span<byte> bytes = buffer;
-
-    public ushort Offset { get; private set; } = offset;
+    public ushort Offset { get; set; } = offset;
+    public readonly int Capacity => Buffer.Length * ByteSize.ByteToBits;
+    public readonly bool Completed => Offset >= Capacity;
 
     public void Inc() => Offset++;
 
-    public override readonly string ToString()
-    {
-        var byteOffset = Offset / ByteSize.ByteToBits;
-        return
-            $"{{TotalWrite: {byteOffset}, Offset: {Offset}}} [{(Offset is 0 ? "" : Mem.GetBitString(bytes[..byteOffset]))}]";
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    readonly void CheckOffset()
-    {
-        if (Offset >= bytes.Length * NibbleSize)
-            throw new BackdashException($"BitOffset index overflow: {Offset} (Buffer: {bytes.Length * NibbleSize})");
-    }
+    public override readonly string ToString() =>
+        $"{{Offset: {Offset}/{Capacity}, Written: '{(Offset is 0 ? "" : Mem.GetBitString(Buffer[..(Offset * ByteSize.ByteToBits)]))}'}}";
 
     public void SetNext()
     {
-        CheckOffset();
-        BitVector.SetBit(bytes, Offset);
+        BitVector.SetBit(in Buffer, Offset);
         Inc();
     }
 
     public bool Read()
     {
-        CheckOffset();
-        var ret = BitVector.GetBit(bytes, Offset);
+        var ret = BitVector.GetBit(Buffer, Offset);
         Inc();
         return ret;
     }
 
     public void ClearNext()
     {
-        CheckOffset();
-        BitVector.ClearBit(bytes, Offset);
+        BitVector.ClearBit(in Buffer, Offset);
         Inc();
     }
 
     public void WriteNibble(int nibble)
     {
-        Tracer.Assert(nibble < 1 << NibbleSize);
-        for (var i = 0; i < NibbleSize; i++)
+        Trace.Assert(nibble < 1 << nibbleSize);
+        for (var i = 0; i < nibbleSize; i++)
             if ((nibble & (1 << i)) != 0)
                 SetNext();
             else
@@ -113,7 +103,7 @@ public ref struct BitOffsetWriter(Span<byte> buffer, ushort offset = 0)
     public int ReadNibble()
     {
         var nibble = 0;
-        for (var i = 0; i < NibbleSize; i++)
+        for (var i = 0; i < nibbleSize; i++)
             nibble |= (Read() ? 1 : 0) << i;
 
         return nibble;

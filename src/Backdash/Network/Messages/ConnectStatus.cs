@@ -9,13 +9,13 @@ record struct ConnectStatus : IBinarySerializable
     public bool Disconnected;
     public Frame LastFrame;
 
-    public readonly void Serialize(NetworkBufferWriter writer)
+    public readonly void Serialize(BinarySpanWriter writer)
     {
-        writer.Write(Disconnected);
-        writer.Write(LastFrame.Number);
+        writer.Write(in Disconnected);
+        writer.Write(in LastFrame.Number);
     }
 
-    public void Deserialize(NetworkBufferReader reader)
+    public void Deserialize(BinarySpanReader reader)
     {
         Disconnected = reader.ReadBool();
         LastFrame = new(reader.ReadInt());

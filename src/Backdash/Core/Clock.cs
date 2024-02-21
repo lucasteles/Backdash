@@ -4,12 +4,12 @@ namespace Backdash.Core;
 
 interface IClock
 {
-    long GetMilliseconds();
+    long GetTimeStamp();
+    TimeSpan GetElapsedTime(long lastTimeStamp);
 }
 
 sealed class Clock : IClock
 {
-    public long GetTicks() => Stopwatch.GetTimestamp();
-
-    public long GetMilliseconds() => GetTicks() / (Stopwatch.Frequency / 1000);
+    public long GetTimeStamp() => Stopwatch.GetTimestamp();
+    public TimeSpan GetElapsedTime(long lastTimeStamp) => Stopwatch.GetElapsedTime(lastTimeStamp);
 }

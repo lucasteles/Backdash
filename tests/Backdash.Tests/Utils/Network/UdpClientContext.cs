@@ -19,10 +19,7 @@ sealed class UdpClientContext<T> : IDisposable where T : struct
             socket,
             serializer,
             Observer,
-            new ConsoleLogger
-            {
-                EnabledLevel = LogLevel.Off,
-            });
+            Logger.CreateConsoleLogger(LogLevel.Off));
     }
 
     public SocketAddress Address => Client.Address;

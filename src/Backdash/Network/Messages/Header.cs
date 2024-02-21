@@ -4,25 +4,25 @@ using Backdash.Serialization.Buffer;
 
 namespace Backdash.Network.Messages;
 
-[StructLayout(LayoutKind.Sequential, Size = Size)]
-record struct Header(MsgType Type) : IBinarySerializable
+[StructLayout(LayoutKind.Sequential, Size = Size, Pack = 2)]
+record struct Header(MessageType Type) : IBinarySerializable
 {
-    public MsgType Type = Type;
-    public ushort Magic;
-    public ushort SequenceNumber;
+    public MessageType Type = Type;
+    public ushort Magic = 0;
+    public ushort SequenceNumber = 0;
 
-    public const int Size = sizeof(byte) + sizeof(ushort) + sizeof(ushort);
+    public const int Size = 6;
 
-    public readonly void Serialize(NetworkBufferWriter writer)
+    public readonly void Serialize(BinarySpanWriter writer)
     {
         writer.Write((byte)Type);
-        writer.Write(Magic);
-        writer.Write(SequenceNumber);
+        writer.Write(in Magic);
+        writer.Write(in SequenceNumber);
     }
 
-    public void Deserialize(NetworkBufferReader reader)
+    public void Deserialize(BinarySpanReader reader)
     {
-        Type = (MsgType)reader.ReadByte();
+        Type = (MessageType)reader.ReadByte();
         Magic = reader.ReadUShort();
         SequenceNumber = reader.ReadUShort();
     }

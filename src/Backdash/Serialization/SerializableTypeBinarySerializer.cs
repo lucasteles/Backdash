@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+using Backdash.Network;
 using Backdash.Serialization.Buffer;
 
 namespace Backdash.Serialization;
@@ -5,29 +7,28 @@ namespace Backdash.Serialization;
 class SerializableTypeBinarySerializer<T> : IBinarySerializer<T>
     where T : struct, IBinarySerializable
 {
-    public bool Network { get; init; }
+    public Endianness Endianness { get; init; }
 
-    public T Deserialize(in ReadOnlySpan<byte> data)
+    public int Serialize(in T data, Span<byte> buffer)
     {
         var offset = 0;
-        NetworkBufferReader reader = new(data, ref offset)
+        BinarySpanWriter writer = new(buffer, ref offset)
         {
-            Network = Network,
+            Endianness = Endianness,
         };
-
-        var msg = new T();
-        msg.Deserialize(reader);
-        return msg;
+        ref var dataRef = ref Unsafe.AsRef(in data);
+        dataRef.Serialize(writer);
+        return offset;
     }
 
-    public int Serialize(ref T data, Span<byte> buffer)
+    public void Deserialize(ReadOnlySpan<byte> data, ref T value)
     {
         var offset = 0;
-        NetworkBufferWriter writer = new(buffer, ref offset)
+        BinarySpanReader reader = new(data, ref offset)
         {
-            Network = Network,
+            Endianness = Endianness,
         };
-        data.Serialize(writer);
-        return offset;
+
+        value.Deserialize(reader);
     }
 }

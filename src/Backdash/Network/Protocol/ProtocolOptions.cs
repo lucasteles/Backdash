@@ -1,26 +1,25 @@
 using Backdash.Core;
-using Backdash.Data;
+using Backdash.Network.Protocol.Messaging;
 
 namespace Backdash.Network.Protocol;
 
-class ProtocolOptions
+public class ProtocolOptions
 {
-    public int MaxInputQueue { get; set; } = Max.InputQueue;
-    public required QueueIndex Queue { get; init; }
-    public required int NetworkDelay { get; init; }
-    public required Peer Peer { get; init; }
-    public required int DisconnectTimeout { get; init; }
-    public required int DisconnectNotifyStart { get; init; }
-    public required int UdpPacketBufferSize { get; init; }
-
-    public int NumberOfSyncPackets { get; init; } = 5;
-    public long UdpShutdownTimer { get; init; } = 5000;
-    public int MaxSeqDistance { get; init; } = 1 << 15;
-    public int UdpHeaderSize { get; init; } = 28; /* Size of IP + UDP headers */
-    public int SyncRetryInterval { get; init; } = 2000;
-    public int SyncFirstRetryInterval { get; init; } = 500;
-    public int RunningRetryInterval { get; init; } = 200;
-    public int KeepAliveInterval { get; init; } = 200;
-    public int QualityReportInterval { get; init; } = 1000;
-    public int NetworkStatsInterval { get; init; } = 1000;
+    public int UdpPacketBufferSize { get; init; } = Default.UdpPacketBufferSize;
+    public int MaxPendingInputs { get; init; } = Default.MaxPendingInputs;
+    public int MaxPackageQueue { get; init; } = Default.MaxPackageQueue;
+    public int NumberOfSyncPackets { get; init; } = Default.NumberOfSyncPackets;
+    public int MaxSeqDistance { get; init; } = Default.MaxSeqDistance;
+    public bool LogNetworkStats { get; init; } = true;
+    public DelayStrategy DelayStrategy { get; init; } = DelayStrategy.Gaussian;
+    public TimeSpan NetworkDelay { get; init; }
+    public TimeSpan DisconnectNotifyStart { get; init; } = TimeSpan.FromMilliseconds(Default.DisconnectNotifyStart);
+    public TimeSpan ShutdownTime { get; init; } = TimeSpan.FromMilliseconds(Default.UdpShutdownTime);
+    public TimeSpan DisconnectTimeout { get; init; } = TimeSpan.FromMilliseconds(Default.DisconnectTimeout);
+    public TimeSpan SyncRetryInterval { get; init; } = TimeSpan.FromMilliseconds(Default.SyncRetryInterval);
+    public TimeSpan SyncFirstRetryInterval { get; init; } = TimeSpan.FromMilliseconds(Default.SyncFirstRetryInterval);
+    public TimeSpan KeepAliveInterval { get; init; } = TimeSpan.FromMilliseconds(Default.KeepAliveInterval);
+    public TimeSpan QualityReportInterval { get; init; } = TimeSpan.FromMilliseconds(Default.QualityReportInterval);
+    public TimeSpan NetworkStatsInterval { get; init; } = TimeSpan.FromMilliseconds(Default.NetworkStatsInterval);
+    public TimeSpan ResendInputInterval { get; init; } = TimeSpan.FromMilliseconds(Default.ResendInputInterval);
 }

@@ -1,50 +1,65 @@
 using Backdash.Core;
-using Backdash.Input;
 using Backdash.Network.Client;
 using Backdash.Network.Messages;
 using Backdash.Network.Protocol;
-using Backdash.Network.Protocol.Events;
 using Backdash.Network.Protocol.Messaging;
+using Backdash.Serialization;
+using Backdash.Sync;
 
 namespace Backdash.Network;
 
-static class PeerConnectionFactory
+sealed class PeerConnectionFactory<TInput> where TInput : struct
 {
-    public static PeerConnection CreateDefault(Random defaultRandom, ILogger logger,
+    readonly IRandomNumberGenerator random;
+    readonly IDelayStrategy delayStrategy;
+    readonly IBinarySerializer<TInput> inputSerializer;
+    readonly Logger logger;
+    readonly IClock clock;
+    readonly IBackgroundJobManager jobManager;
+    readonly IUdpClient<ProtocolMessage> udp;
+    readonly IProtocolEventQueue<TInput> eventQueue;
+    readonly ProtocolOptions options;
+    readonly TimeSyncOptions timeSyncOptions;
+
+    public PeerConnectionFactory(
+        IBinarySerializer<TInput> inputSerializer,
+        IClock clock,
+        Random defaultRandom,
+        Logger logger,
         IBackgroundJobManager jobManager,
         IUdpClient<ProtocolMessage> udp,
-        ConnectionStatuses localConnections,
+        IProtocolEventQueue<TInput> eventQueue,
         ProtocolOptions options,
         TimeSyncOptions timeSyncOptions)
     {
-        TimeSync timeSync = new(timeSyncOptions, logger);
-        InputEncoder inputEncoder = new();
-        ProtocolState state = new(localConnections, udp.Port);
-        ProtocolLogger udpLogger = new(logger);
-        ProtocolEventDispatcher eventDispatcher = new(udpLogger);
-        CryptographyRandomNumberGenerator random = new(defaultRandom);
-        Clock clock = new();
-        DelayStrategy delayStrategy = new(random);
+        random = new DefaultRandomNumberGenerator(defaultRandom);
+        delayStrategy = DelayStrategyFactory.Create(random, options.DelayStrategy);
 
-        ProtocolOutbox outbox = new(options, udp, delayStrategy, random, clock, udpLogger);
-        ProtocolInbox inbox = new(
-            options, state, random, clock, outbox, inputEncoder, eventDispatcher, udpLogger, logger
-        );
-        ProtocolInputProcessor inputProcessor = new(options, state, localConnections, logger,
-            inputEncoder, timeSync, outbox, inbox);
+        this.inputSerializer = inputSerializer;
+        this.logger = logger;
+        this.jobManager = jobManager;
+        this.udp = udp;
+        this.eventQueue = eventQueue;
+        this.options = options;
+        this.clock = clock;
+        this.timeSyncOptions = timeSyncOptions;
+    }
 
-        jobManager.Register(outbox);
-        jobManager.Register(inputProcessor);
+    public PeerConnection<TInput> Create(ProtocolState state)
+    {
+        var timeSync = new TimeSync<TInput>(timeSyncOptions, logger);
+        var outbox = new ProtocolOutbox(state, options, udp, delayStrategy, random, clock, logger);
+        var syncManager = new ProtocolSynchronizer(logger, clock, random, jobManager, state, options, outbox);
+        var inbox = new ProtocolInbox<TInput>(options, inputSerializer, state, clock, syncManager, outbox, eventQueue,
+            logger);
+        var inputBuffer =
+            new ProtocolInputBuffer<TInput>(options, inputSerializer, state, logger, timeSync, outbox, inbox);
+
+        jobManager.Register(outbox, state.StoppingToken);
 
         return new(
-            options,
-            state,
-            random,
-            clock,
-            timeSync,
-            inbox,
-            outbox,
-            inputProcessor
+            options, state, logger, clock, timeSync, eventQueue,
+            syncManager, inbox, outbox, inputBuffer
         );
     }
 }

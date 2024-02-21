@@ -4,6 +4,6 @@ namespace Backdash.Serialization;
 
 interface IBinarySerializable
 {
-    void Serialize(NetworkBufferWriter writer);
-    void Deserialize(NetworkBufferReader reader);
+    void Serialize(BinarySpanWriter writer);
+    void Deserialize(BinarySpanReader reader);
 }

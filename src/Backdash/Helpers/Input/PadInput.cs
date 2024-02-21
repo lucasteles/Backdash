@@ -4,14 +4,14 @@ using System.Runtime.InteropServices;
 namespace Backdash.Helpers.Input;
 
 [StructLayout(LayoutKind.Sequential, Size = 2), Serializable]
-public struct Axis
+public record struct Axis
 {
     public sbyte X;
     public sbyte Y;
 }
 
 [StructLayout(LayoutKind.Sequential), Serializable]
-public struct PadInput
+public record struct PadInput
 {
     [Flags, Serializable]
     public enum PadButtons : short

@@ -5,23 +5,33 @@ using Backdash.Serialization.Buffer;
 namespace Backdash.Network.Messages;
 
 [StructLayout(LayoutKind.Sequential)]
-record struct SyncRequest : IBinarySerializable
+record struct SyncRequest : IBinarySerializable, IUtf8SpanFormattable
 {
     public uint RandomRequest; /* please reply back with this random data */
-    public ushort RemoteMagic;
-    public byte RemoteEndpoint;
+    public long Ping;
 
-    public readonly void Serialize(NetworkBufferWriter writer)
+    public readonly void Serialize(BinarySpanWriter writer)
     {
-        writer.Write(RandomRequest);
-        writer.Write(RemoteMagic);
-        writer.Write(RemoteEndpoint);
+        writer.Write(in RandomRequest);
+        writer.Write(in Ping);
     }
 
-    public void Deserialize(NetworkBufferReader reader)
+    public void Deserialize(BinarySpanReader reader)
     {
         RandomRequest = reader.ReadUInt();
-        RemoteMagic = reader.ReadUShort();
-        RemoteEndpoint = reader.ReadByte();
+        Ping = reader.ReadLong();
+    }
+
+    public readonly bool TryFormat(
+        Span<byte> utf8Destination,
+        out int bytesWritten, ReadOnlySpan<char> format,
+        IFormatProvider? provider
+    )
+    {
+        bytesWritten = 0;
+        using Utf8ObjectWriter writer = new(in utf8Destination, ref bytesWritten);
+        if (!writer.Write(RandomRequest)) return false;
+        if (!writer.Write(Ping)) return false;
+        return true;
     }
 }
