@@ -10,8 +10,8 @@ using DeferredLog = (LogLevel Level, LogStringBuffer Buffer, int Length);
 
 public enum LogLevel : byte
 {
-    Off,
-    Trace,
+    Off = byte.MaxValue,
+    Trace = 0,
     Debug,
     Information,
     Warning,
@@ -30,8 +30,10 @@ sealed class Logger : IDisposable, IBackgroundJob
     readonly LogOptions options;
     readonly ILogWriter writer;
 
-    public Logger(LogOptions options,
-        ILogWriter writer)
+    public Logger(
+        LogOptions options,
+        ILogWriter writer
+    )
     {
         this.options = options;
         this.writer = writer;

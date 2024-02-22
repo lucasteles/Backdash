@@ -4,6 +4,7 @@ using Backdash.Serialization.Buffer;
 
 namespace Backdash.Network.Messages;
 
+[Serializable]
 record struct ConnectStatus : IBinarySerializable
 {
     public bool Disconnected;

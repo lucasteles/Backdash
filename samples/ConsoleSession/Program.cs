@@ -1,13 +1,14 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿#pragma warning disable S1481
+// ReSharper disable AccessToDisposedClosure, UnusedVariable
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using Backdash;
 using Backdash.Backends;
 using Backdash.Core;
 using ConsoleSession;
 
-// ReSharper disable AccessToDisposedClosure
 
-var frameDuration = FrameDuration.InTimeSpan(1);
+var frameDuration = FrameDuration.TimeSpan(1);
 using CancellationTokenSource cts = new();
 
 // stops the game with ctr+c
@@ -48,9 +49,6 @@ session.Dispose();
 await session.WaitToStop();
 Console.Clear();
 
-// var localPlayer = players.Single(x => x.IsLocal());
-// var remotePlayer = players.Single(x => x.IsRemote());
-
 // -------------------------------------------------------------- //
 //    Create and configure a game session for 2 Players           //
 // -------------------------------------------------------------- //
@@ -59,10 +57,10 @@ static IRollbackSession<GameInput, GameState> CreateSession(
     Player[] players
 )
 {
-    var networkDelay = TimeSpan.Zero;
-    //  var networkDelay =  player2.Type is PlayerType.Local ? Frames.ToTimeSpan(6) : default;
-
     var localPlayer = players.Single(x => x.IsLocal());
+
+    // forces jitter delay on player two
+    var networkDelay = localPlayer.Number is 2 ? TimeSpan.FromMilliseconds(300) : default;
 
     var session = Rollback.CreateSession<GameInput, GameState>(
         new(port)
@@ -70,14 +68,15 @@ static IRollbackSession<GameInput, GameState> CreateSession(
             FrameDelay = 2,
             Log = new()
             {
-                EnabledLevel = LogLevel.Off,
+                EnabledLevel = LogLevel.Debug,
                 // RunAsync = true,
             },
             Protocol = new()
             {
                 NumberOfSyncPackets = 10,
                 LogNetworkStats = false,
-                NetworkDelay = networkDelay,
+                // NetworkDelay = networkDelay,
+                // DelayStrategy = Backdash.Network.DelayStrategy.Constant,
             },
         },
         // stateSerializer: new MyStateSerializer(),

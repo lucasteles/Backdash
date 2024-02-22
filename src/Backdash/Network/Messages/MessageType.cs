@@ -1,6 +1,7 @@
 namespace Backdash.Network.Messages;
 
-enum MessageType : byte
+[Serializable]
+enum MessageType : ushort
 {
     Invalid,
     SyncRequest,

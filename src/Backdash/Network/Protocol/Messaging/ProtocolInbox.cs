@@ -154,10 +154,7 @@ sealed class ProtocolInbox<TInput>(
             for (var i = 0; i < peerConnectStatus.Length; i++)
             {
                 Trace.Assert(remoteStatus[i].LastFrame >= peerConnectStatus[i].LastFrame);
-                peerConnectStatus[i].Disconnected =
-                    peerConnectStatus[i].Disconnected
-                    || remoteStatus[i].Disconnected;
-
+                peerConnectStatus[i].Disconnected = peerConnectStatus[i].Disconnected || remoteStatus[i].Disconnected;
                 peerConnectStatus[i].LastFrame = Frame.Max(
                     in peerConnectStatus[i].LastFrame,
                     in remoteStatus[i].LastFrame

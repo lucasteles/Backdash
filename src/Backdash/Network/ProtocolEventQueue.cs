@@ -5,7 +5,7 @@ namespace Backdash.Network;
 
 interface IProtocolEventQueue<TInput> : IDisposable where TInput : struct
 {
-    Func<ProtocolEventInfo<TInput>, bool> Router { get; set; }
+    Func<ProtocolEventInfo<TInput>, bool> ProxyFilter { get; set; }
 
     bool TryConsume(out ProtocolEventInfo<TInput> nextEvent);
 
@@ -17,7 +17,7 @@ interface IProtocolEventQueue<TInput> : IDisposable where TInput : struct
 
 sealed class ProtocolEventQueue<TInput> : IProtocolEventQueue<TInput> where TInput : struct
 {
-    public Func<ProtocolEventInfo<TInput>, bool> Router { get; set; } = delegate { return false; };
+    public Func<ProtocolEventInfo<TInput>, bool> ProxyFilter { get; set; } = delegate { return false; };
     bool disposed;
 
     readonly Channel<ProtocolEventInfo<TInput>> channel = Channel.CreateUnbounded<ProtocolEventInfo<TInput>>(
@@ -32,8 +32,7 @@ sealed class ProtocolEventQueue<TInput> : IProtocolEventQueue<TInput> where TInp
 
     public void Publish(in ProtocolEventInfo<TInput> evt)
     {
-        if (disposed) return;
-        if (Router(evt)) return;
+        if (disposed || ProxyFilter(evt)) return;
         channel.Writer.TryWrite(evt).AssertTrue();
     }
 

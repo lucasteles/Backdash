@@ -108,9 +108,32 @@ sealed class PeerConnection<TInput>(
     {
         networkStatsTimer.Update();
         qualityReportTimer.Update();
-        // keepAliveTimer.Update();
+
+        KeepLive();
         // disconnectTimer.Update();
         // resendInputTimer.Update();
+    }
+
+    long lastKeepAliveSent = 0;
+
+    public void KeepLive()
+    {
+        if (state.CurrentStatus is not ProtocolStatus.Running)
+            return;
+
+        var lastSend = state.Stats.LastSendTime;
+        if (lastSend > 0 && clock.GetElapsedTime(lastSend) < options.KeepAliveInterval)
+            return;
+
+        if (clock.GetElapsedTime(lastKeepAliveSent) < options.KeepAliveInterval)
+            return;
+
+        logger.Write(LogLevel.Debug, "Sending keep alive packet");
+        lastKeepAliveSent = clock.GetTimeStamp();
+        outbox.SendMessage(new ProtocolMessage(MessageType.KeepAlive)
+        {
+            KeepAlive = new(),
+        });
     }
 
     // --------------
@@ -154,30 +177,12 @@ sealed class PeerConnection<TInput>(
         stats.UdpOverhead =
             (float)(100.0 * (totalHeaderSize * stats.PacketsSent) / stats.BytesSent.ByteCount);
 
-
         if (options.LogNetworkStats)
             logger.Write(LogLevel.Information,
                 $"Network Stats -- Bandwidth: {stats.BandwidthKbps:f2} KBps; "
                 + $"Packets Sent: {stats.PacketsSent} ({stats.Pps:f2} pps); "
                 + $"KB Sent: {stats.TotalBytesSent.KibiBytes:f2}; UDP Overhead: {stats.UdpOverhead}"
             );
-    });
-
-    readonly ManualTimer keepAliveTimer = new(clock, options.KeepAliveInterval, _ =>
-    {
-        if (state.CurrentStatus is not ProtocolStatus.Running)
-            return;
-
-        var lastSend = state.Stats.LastSendTime;
-        if (lastSend is not 0
-            && clock.GetElapsedTime(lastSend) < options.KeepAliveInterval)
-            return;
-
-        logger.Write(LogLevel.Debug, "Sending keep alive packet");
-        outbox.SendMessage(new ProtocolMessage(MessageType.KeepAlive)
-        {
-            KeepAlive = new(),
-        });
     });
 
     readonly ManualTimer disconnectTimer = new(clock, options.DisconnectTimeout, _ =>

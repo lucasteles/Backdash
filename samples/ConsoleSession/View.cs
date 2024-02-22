@@ -2,12 +2,19 @@
 
 namespace ConsoleSession;
 
-public class View(NonGameState nonGameState)
+public class View
 {
     public const int GridSize = 5;
 
     readonly ConsoleColor defaultColor = ConsoleColor.Gray;
     readonly ConsoleColor[] playerColors = [ConsoleColor.Green, ConsoleColor.Red];
+    readonly NonGameState nonGameState;
+
+    public View(NonGameState nonGameState)
+    {
+        this.nonGameState = nonGameState;
+        Console.CursorVisible = false;
+    }
 
     public void Draw(in GameState currentState)
     {
@@ -48,7 +55,7 @@ public class View(NonGameState nonGameState)
 
     bool DrawPlayer(Vector2 pos, int col, int row, ConsoleColor color)
     {
-        if ((int)pos.X == col && (int)pos.Y == row)
+        if ((int) pos.X == col && (int) pos.Y == row)
         {
             Console.ForegroundColor = color;
             Console.Write("0");

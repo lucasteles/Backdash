@@ -47,7 +47,16 @@ public static class GameLogic
         if (!Console.KeyAvailable)
             return GameInput.None;
 
-        return Console.ReadKey().Key switch
+        var press = Console.ReadKey(true);
+
+        // force delay while holding space
+        if (press.Key is ConsoleKey.Spacebar)
+        {
+            Thread.Sleep(100);
+            return GameInput.None;
+        }
+
+        return press.Key switch
         {
             ConsoleKey.LeftArrow => GameInput.Left,
             ConsoleKey.RightArrow => GameInput.Right,

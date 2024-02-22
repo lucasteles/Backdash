@@ -1,9 +1,10 @@
 using Backdash.Core;
 
-namespace Backdash.Network.Protocol.Messaging;
+namespace Backdash.Network;
 
 public enum DelayStrategy
 {
+    Constant,
     Gaussian,
     ContinuousUniform,
 }
@@ -17,10 +18,16 @@ static class DelayStrategyFactory
 {
     public static IDelayStrategy Create(IRandomNumberGenerator random, DelayStrategy strategy) => strategy switch
     {
+        DelayStrategy.Constant => new ConstantDelayStrategy(),
         DelayStrategy.Gaussian => new GaussianDelayStrategy(random),
         DelayStrategy.ContinuousUniform => new UniformDelayStrategy(random),
         _ => throw new ArgumentOutOfRangeException(nameof(strategy), strategy, null),
     };
+}
+
+sealed class ConstantDelayStrategy : IDelayStrategy
+{
+    public TimeSpan Jitter(TimeSpan sendLatency) => sendLatency;
 }
 
 sealed class UniformDelayStrategy(IRandomNumberGenerator random) : IDelayStrategy

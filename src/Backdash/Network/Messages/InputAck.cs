@@ -1,11 +1,10 @@
-using System.Runtime.InteropServices;
 using Backdash.Data;
 using Backdash.Serialization;
 using Backdash.Serialization.Buffer;
 
 namespace Backdash.Network.Messages;
 
-[StructLayout(LayoutKind.Sequential)]
+[Serializable]
 record struct InputAck : IBinarySerializable, IUtf8SpanFormattable
 {
     public Frame AckFrame;

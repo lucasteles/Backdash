@@ -87,7 +87,7 @@ public sealed class Game : IRollbackHandler<GameState>
     {
         Console.SetCursorPosition(1, 0);
         Console.WriteLine("Syncing...");
-        Thread.Sleep(FrameDuration.InTimeSpan(framesAhead));
+        Thread.Sleep(FrameDuration.TimeSpan(framesAhead));
     }
 
     public void OnPeerEvent(PlayerHandle player, PeerEventInfo evt)
@@ -97,8 +97,8 @@ public sealed class Game : IRollbackHandler<GameState>
         switch (evt.Type)
         {
             case PeerEvent.Synchronizing:
-                nonGameState.SyncPercent = evt.Synchronizing.CurrentStep /
-                                           (float) evt.Synchronizing.TotalSteps;
+                nonGameState.SyncPercent =
+                    evt.Synchronizing.CurrentStep / (float) evt.Synchronizing.TotalSteps;
                 break;
 
             case PeerEvent.Synchronized:

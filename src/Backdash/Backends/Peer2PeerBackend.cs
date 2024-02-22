@@ -107,7 +107,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
             this.options.TimeSync
         );
 
-        this.peerEventQueue.Router = RouteEvent;
+        this.peerEventQueue.ProxyFilter = RouteEvent;
 
         backgroundJobManager.Register(udp);
 

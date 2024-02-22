@@ -10,8 +10,8 @@ public static class FrameDuration
 
     public static Frame FromSeconds(double seconds, int fps = SixtyFrames) => new((int)(seconds * fps));
 
-    public static TimeSpan InTimeSpan(int frame, int fps = SixtyFrames) =>
-        TimeSpan.FromSeconds(InSeconds(frame, fps));
+    public static TimeSpan TimeSpan(int frame, int fps = SixtyFrames) =>
+        System.TimeSpan.FromSeconds(InSeconds(frame, fps));
 
     public static Frame FromTimeSpan(TimeSpan time, int fps = SixtyFrames) =>
         FromSeconds(time.TotalSeconds, fps);

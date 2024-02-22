@@ -1,6 +1,4 @@
-using System.Runtime.InteropServices;
-
 namespace Backdash.Network.Messages;
 
-[StructLayout(LayoutKind.Sequential)]
+[Serializable]
 readonly record struct KeepAlive;
