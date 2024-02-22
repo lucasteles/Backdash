@@ -16,7 +16,7 @@ public enum ProtocolEvent : byte
 
 struct ProtocolEventInfo<TInput>(ProtocolEvent type, PlayerHandle player) : IUtf8SpanFormattable where TInput : struct
 {
-    public ProtocolEvent Type = type;
+    public readonly ProtocolEvent Type = type;
 
     public PlayerHandle Player = player;
 

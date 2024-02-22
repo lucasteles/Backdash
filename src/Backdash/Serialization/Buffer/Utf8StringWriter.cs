@@ -15,9 +15,11 @@ readonly ref struct Utf8StringWriter
         this.offset = ref offset;
     }
 
+    Span<byte> CurrentBuffer => offset >= buffer.Length ? [] : buffer[offset..];
+
     public bool WriteChars(ReadOnlySpan<char> value)
     {
-        Span<byte> dest = buffer[offset..];
+        Span<byte> dest = CurrentBuffer;
         if (dest.IsEmpty) return false;
 
         var size = Encoding.UTF8.GetByteCount(value);
@@ -32,7 +34,7 @@ readonly ref struct Utf8StringWriter
 
     public bool Write(ReadOnlySpan<byte> value)
     {
-        Span<byte> dest = buffer[offset..];
+        Span<byte> dest = CurrentBuffer;
         if (dest.IsEmpty) return false;
 
         var bytes = value.Length <= dest.Length
@@ -47,7 +49,7 @@ readonly ref struct Utf8StringWriter
     public bool Write<T>(T value, ReadOnlySpan<char> format, IFormatProvider? provider = null)
         where T : IUtf8SpanFormattable
     {
-        Span<byte> dest = buffer[offset..];
+        Span<byte> dest = CurrentBuffer;
         if (dest.IsEmpty) return false;
 
         if (!value.TryFormat(dest, out int written, format, provider))
@@ -63,7 +65,7 @@ readonly ref struct Utf8StringWriter
 
     public bool WriteFormat<T>(T value, ReadOnlySpan<char> format = default) where T : ISpanFormattable
     {
-        Span<byte> dest = buffer[offset..];
+        Span<byte> dest = CurrentBuffer;
         if (dest.IsEmpty) return false;
         Span<char> charBuffer = stackalloc char[MaxLocalStringSize];
         return value.TryFormat(charBuffer, out int written, format, null) && WriteChars(charBuffer[..written]);
@@ -71,7 +73,7 @@ readonly ref struct Utf8StringWriter
 
     public bool WriteEnum<T>(T value, ReadOnlySpan<char> format = default) where T : struct, Enum
     {
-        Span<byte> dest = buffer[offset..];
+        Span<byte> dest = CurrentBuffer;
         if (dest.IsEmpty) return false;
 
         Span<char> charBuffer = stackalloc char[MaxLocalStringSize];

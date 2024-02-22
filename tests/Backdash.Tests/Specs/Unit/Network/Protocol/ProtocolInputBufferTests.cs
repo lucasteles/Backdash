@@ -179,7 +179,8 @@ public class ProtocolInputBufferTests
         ProtocolState state = new(
             Generate.PlayerHandle(),
             Generate.Peer(),
-            Generate.ConnectionsState()
+            Generate.ConnectionsState(),
+            FrameSpan.DefaultFramesPerSecond
         )
         {
             CurrentStatus = ProtocolStatus.Running,

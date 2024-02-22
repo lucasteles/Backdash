@@ -28,5 +28,6 @@ public class NonGameState
     public string LastError = "";
     public required PlayerHandle LocalPlayer;
     public required PlayerHandle RemotePlayer;
-    public RollbackSessionInfo Stats = new();
+    public required IRollbackSessionInfo SessionInfo;
+    public RollbackNetworkStatus PeerNetworkStatus = new();
 }

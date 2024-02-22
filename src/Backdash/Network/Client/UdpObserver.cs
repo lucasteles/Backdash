@@ -2,14 +2,9 @@ using System.Net;
 
 namespace Backdash.Network.Client;
 
-interface IUdpObserver<T> where T : struct
+interface IUdpObserver<in T> where T : struct
 {
-    ValueTask OnUdpMessage(
-        IUdpClient<T> sender,
-        T message,
-        SocketAddress from,
-        CancellationToken stoppingToken
-    );
+    ValueTask OnUdpMessage(T message, SocketAddress from, int bytesReceived, CancellationToken stoppingToken);
 }
 
 sealed class UdpObserverGroup<T> : IUdpObserver<T>
@@ -20,10 +15,11 @@ sealed class UdpObserverGroup<T> : IUdpObserver<T>
     public void Add(IUdpObserver<T> observer) => observers.Add(observer);
     public void Remove(IUdpObserver<T> observer) => observers.Remove(observer);
 
-    public async ValueTask OnUdpMessage(IUdpClient<T> sender, T message, SocketAddress from,
-        CancellationToken stoppingToken)
+    public async ValueTask OnUdpMessage(
+        T message, SocketAddress from, int bytesReceived, CancellationToken stoppingToken
+    )
     {
         for (var i = 0; i < observers.Count; i++)
-            await observers[i].OnUdpMessage(sender, message, from, stoppingToken).ConfigureAwait(false);
+            await observers[i].OnUdpMessage(message, from, bytesReceived, stoppingToken).ConfigureAwait(false);
     }
 }

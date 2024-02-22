@@ -1,4 +1,6 @@
 ﻿using System.Numerics;
+using Backdash;
+using Backdash.Network;
 
 namespace ConsoleSession;
 
@@ -8,22 +10,17 @@ public class View
 
     readonly ConsoleColor defaultColor = ConsoleColor.Gray;
     readonly ConsoleColor[] playerColors = [ConsoleColor.Green, ConsoleColor.Red];
-    readonly NonGameState nonGameState;
 
-    public View(NonGameState nonGameState)
-    {
-        this.nonGameState = nonGameState;
-        Console.CursorVisible = false;
-    }
+    public View() => Console.CursorVisible = false;
 
-    public void Draw(in GameState currentState)
+    public void Draw(in GameState currentState, NonGameState nonGameState)
     {
         Console.Clear();
         Console.ForegroundColor = defaultColor;
 
         if (!nonGameState.IsRunning)
         {
-            DrawSync();
+            DrawSync(nonGameState);
             return;
         }
 
@@ -50,7 +47,9 @@ public class View
         }
 
         Console.WriteLine();
-        DrawStats();
+
+        if (nonGameState.IsRunning)
+            DrawStats(nonGameState);
     }
 
     bool DrawPlayer(Vector2 pos, int col, int row, ConsoleColor color)
@@ -66,7 +65,7 @@ public class View
         return false;
     }
 
-    void DrawSync()
+    void DrawSync(NonGameState nonGameState)
     {
         const int loadingSize = 20;
         if (nonGameState.SyncPercent is 0)
@@ -98,23 +97,21 @@ public class View
         Console.Write(Environment.NewLine);
     }
 
-    void DrawStats()
+    void DrawStats(NonGameState nonGameState)
     {
-        if (!nonGameState.IsRunning)
-            return;
-
-        var info = nonGameState.Stats;
+        var peer = nonGameState.PeerNetworkStatus;
+        var info = nonGameState.SessionInfo;
 
         Console.WriteLine(
             $"""
-             FPS:       {info.FramesPerSecond}
-             Ping:      {info.Ping.TotalMilliseconds:f4}ms
-             Pending:   {info.PendingInputCount}
-             Pkg Sent:  {info.Pps:f2} pps
-             Bandwidth: {info.BandwidthKbps:f2} Kbps
-             Frame:     {info.CurrentFrame} / ack {info.LastAckedFrame} / send {info.LastSendFrame}
-             Rollback:  {info.RollbackFrames} frames
-             Advantage:  local({info.LocalFrameBehind}), remote({info.RemoteFrameBehind})
+             FPS:              {info.FramesPerSecond}
+             Ping:             {peer.Ping.TotalMilliseconds:f4} ms
+             Pending Inputs:   {peer.PendingInputCount}
+             Rollback:         {info.RollbackFrames}
+             Frame:            {info.CurrentFrame.Number} ack({peer.LastAckedFrame.Number}) send({peer.Send.LastFrame.Number})
+             Advantage:        local({peer.LocalFramesBehind}) remote({peer.RemoteFramesBehind})
+             Pkg Count out/in: {peer.Send.PackagesPerSecond:f2} pps / {peer.Received.PackagesPerSecond:f2} pps
+             Bandwidth out/in: {peer.Send.Bandwidth.KibiBytes:f2} Kbps / {peer.Received.Bandwidth.KibiBytes:f2} Kbps
              Last Error: {nonGameState.LastError}
              """
         );

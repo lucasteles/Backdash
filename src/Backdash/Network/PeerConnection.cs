@@ -26,6 +26,7 @@ sealed class PeerConnection<TInput>(
 
     public AddInputResult SendInput(in GameInput<TInput> input) => inputBuffer.SendInput(in input);
 
+    public ProtocolStatus Status => state.CurrentStatus;
     public bool IsRunning => state.CurrentStatus is ProtocolStatus.Running;
 
     public PlayerHandle Player => state.Player;
@@ -43,14 +44,14 @@ sealed class PeerConnection<TInput>(
     // require idle input should be a configuration parameter
     public int GetRecommendFrameDelay(bool requireIdleInput) => timeSync.RecommendFrameWaitDuration(requireIdleInput);
 
-    public void SetLocalFrameNumber(Frame localFrame, int fps = FrameDuration.SixtyFrames)
+    public void SetLocalFrameNumber(Frame localFrame, short fps = FrameSpan.DefaultFramesPerSecond)
     {
         /*
          * Estimate which frame the other guy is one by looking at the
          * last frame they gave us plus some delta for the one-way packet
          * trip time.
          */
-        var deltaFrame = FrameDuration.FromMilliseconds(state.Stats.RoundTripTime.TotalMilliseconds, fps);
+        var deltaFrame = FrameSpan.FromMilliseconds(state.Stats.RoundTripTime.TotalMilliseconds, fps);
         var remoteFrame = inbox.LastReceivedInput.Frame + deltaFrame;
 
         /*
@@ -75,23 +76,28 @@ sealed class PeerConnection<TInput>(
         return outbox.SendMessageAsync(in msg, ct);
     }
 
-    public void GetNetworkStats(ref RollbackSessionInfo info)
+    public void GetNetworkStats(ref RollbackNetworkStatus info)
     {
         var stats = state.Stats;
         info.Ping = stats.RoundTripTime;
-        info.BytesSent = stats.BytesSent;
-        info.PacketsSent = stats.PacketsSent;
-        info.LastSendTime = clock.GetElapsedTime(stats.LastSendTime);
-        info.Pps = stats.Pps;
-        info.UdpOverhead = stats.UdpOverhead;
-        info.BandwidthKbps = stats.BandwidthKbps;
-        info.TotalBytesSent = stats.TotalBytesSent;
-        info.LastSendFrame = inputBuffer.LastSent.Frame.Number;
         info.PendingInputCount = inputBuffer.PendingNumber;
-        info.LastReceivedTime = clock.GetElapsedTime(inbox.LastReceivedTime);
-        info.LastAckedFrame = inbox.LastAckedFrame.Number;
-        info.RemoteFrameBehind = state.Fairness.RemoteFrameAdvantage.Number;
-        info.LocalFrameBehind = state.Fairness.LocalFrameAdvantage.Number;
+        info.LastAckedFrame = inbox.LastAckedFrame;
+        info.RemoteFramesBehind = state.Fairness.RemoteFrameAdvantage;
+        info.LocalFramesBehind = state.Fairness.LocalFrameAdvantage;
+
+        info.Send.TotalBytes = stats.Send.TotalBytesWithHeaders;
+        info.Send.Count = stats.Send.TotalPackets;
+        info.Send.LastTime = clock.GetElapsedTime(stats.Send.LastTime);
+        info.Send.PackagesPerSecond = stats.Send.PackagesPerSecond;
+        info.Send.Bandwidth = stats.Send.Bandwidth;
+        info.Send.LastFrame = inputBuffer.LastSent.Frame;
+
+        info.Received.TotalBytes = stats.Received.TotalBytesWithHeaders;
+        info.Received.LastTime = clock.GetElapsedTime(stats.Received.LastTime);
+        info.Received.Count = stats.Received.TotalPackets;
+        info.Received.PackagesPerSecond = stats.Received.PackagesPerSecond;
+        info.Received.Bandwidth = stats.Received.Bandwidth;
+        info.Received.LastFrame = inbox.LastReceivedInput.Frame;
     }
 
     public bool GetPeerConnectStatus(int id, out Frame frame)
@@ -106,26 +112,25 @@ sealed class PeerConnection<TInput>(
 
     public void Update()
     {
-        networkStatsTimer.Update();
-        qualityReportTimer.Update();
-
-        KeepLive();
-        // disconnectTimer.Update();
-        // resendInputTimer.Update();
-    }
-
-    long lastKeepAliveSent = 0;
-
-    public void KeepLive()
-    {
         if (state.CurrentStatus is not ProtocolStatus.Running)
             return;
 
-        var lastSend = state.Stats.LastSendTime;
-        if (lastSend > 0 && clock.GetElapsedTime(lastSend) < options.KeepAliveInterval)
+        KeepLive();
+        ResendInputs();
+        qualityReportTimer.Update();
+        networkStatsTimer.Update();
+        CheckDisconnection();
+    }
+
+    long lastKeepAliveSent;
+
+    public void KeepLive()
+    {
+        var lastSend = state.Stats.Send.LastTime;
+        if (lastSend <= 0 || clock.GetElapsedTime(lastSend) <= options.KeepAliveInterval)
             return;
 
-        if (clock.GetElapsedTime(lastKeepAliveSent) < options.KeepAliveInterval)
+        if (lastKeepAliveSent <= 0 || clock.GetElapsedTime(lastKeepAliveSent) <= options.KeepAliveInterval)
             return;
 
         logger.Write(LogLevel.Debug, "Sending keep alive packet");
@@ -135,6 +140,52 @@ sealed class PeerConnection<TInput>(
             KeepAlive = new(),
         });
     }
+
+    public void ResendInputs()
+    {
+        var lastReceivedInputTime = state.Stats.LastReceivedInputTime;
+        if (lastReceivedInputTime <= 0 || clock.GetElapsedTime(lastReceivedInputTime) <= options.ResendInputInterval)
+            return;
+
+        logger.Write(LogLevel.Information,
+            $"Haven't exchanged packets in a while (last received:{inbox.LastReceivedInput.Frame.Number} last sent:{inputBuffer.LastSent.Frame.Number}). Resending");
+
+        inputBuffer.SendPendingInputs();
+    }
+
+    public void CheckDisconnection()
+    {
+        if (state.Stats.Received.LastTime <= 0 || options.DisconnectTimeout <= TimeSpan.Zero) return;
+        var lastReceivedTime = clock.GetElapsedTime(state.Stats.Received.LastTime);
+
+        if (lastReceivedTime > options.DisconnectNotifyStart
+            && state.Connection is { DisconnectNotifySent: false, DisconnectEventSent: false })
+        {
+            state.Connection.DisconnectNotifySent = true;
+
+            eventQueue.Publish(new(ProtocolEvent.NetworkInterrupted, state.Player)
+            {
+                NetworkInterrupted = new()
+                {
+                    DisconnectTimeout = options.DisconnectTimeout - options.DisconnectNotifyStart,
+                },
+            });
+
+            logger.Write(LogLevel.Information,
+                $"Endpoint has stopped receiving packets for {(int)lastReceivedTime.TotalMilliseconds}ms. Sending notification");
+
+            return;
+        }
+
+        if (lastReceivedTime > options.DisconnectTimeout && !state.Connection.DisconnectEventSent)
+        {
+            state.Connection.DisconnectEventSent = true;
+            logger.Write(LogLevel.Warning,
+                $"Endpoint has stopped receiving packets for {(int)lastReceivedTime.TotalMilliseconds}ms. Disconnecting");
+            eventQueue.Publish(ProtocolEvent.Disconnected, state.Player);
+        }
+    }
+
 
     // --------------
     // Timers
@@ -151,7 +202,7 @@ sealed class PeerConnection<TInput>(
                 QualityReport = new()
                 {
                     Ping = clock.GetTimeStamp(),
-                    FrameAdvantage = state.Fairness.LocalFrameAdvantage.Number,
+                    FrameAdvantage = state.Fairness.LocalFrameAdvantage.FrameCount,
                 },
             });
     });
@@ -165,55 +216,28 @@ sealed class PeerConnection<TInput>(
         if (state.CurrentStatus is not ProtocolStatus.Running)
             return;
 
-        var stats = state.Stats;
-        var udpHeaderSent = (ByteSize)(totalHeaderSize * stats.PacketsSent);
         var seconds = elapsed.TotalSeconds;
 
-        stats.TotalBytesSent = stats.BytesSent + udpHeaderSent;
-
-        var bps = stats.TotalBytesSent / seconds;
-        stats.Pps = (float)(stats.PacketsSent * 1000f / elapsed.TotalMilliseconds);
-        stats.BandwidthKbps = (float)bps.KibiBytes;
-        stats.UdpOverhead =
-            (float)(100.0 * (totalHeaderSize * stats.PacketsSent) / stats.BytesSent.ByteCount);
+        UpdateStats(ref state.Stats.Send);
+        UpdateStats(ref state.Stats.Received);
 
         if (options.LogNetworkStats)
-            logger.Write(LogLevel.Information,
-                $"Network Stats -- Bandwidth: {stats.BandwidthKbps:f2} KBps; "
-                + $"Packets Sent: {stats.PacketsSent} ({stats.Pps:f2} pps); "
-                + $"KB Sent: {stats.TotalBytesSent.KibiBytes:f2}; UDP Overhead: {stats.UdpOverhead}"
-            );
-    });
+        {
+            logger.Write(LogLevel.Information, $"Network Stats(send): {state.Stats.Send}");
+            logger.Write(LogLevel.Information, $"Network Stats(recv): {state.Stats.Received}");
+        }
 
-    readonly ManualTimer disconnectTimer = new(clock, options.DisconnectTimeout, _ =>
-    {
-        if (state.CurrentStatus is not ProtocolStatus.Running)
-            return;
+        void UpdateStats(ref ProtocolState.PackagesStats stats)
+        {
+            var totalUdpHeaderSize = (ByteSize)(totalHeaderSize * stats.TotalPackets);
 
-        var elapsed = clock.GetElapsedTime(inbox.LastReceivedTime);
-        if (elapsed < options.DisconnectTimeout + options.DisconnectNotifyStart || state.Connection.DisconnectEventSent)
-            return;
+            stats.TotalBytesWithHeaders = stats.TotalBytes + totalUdpHeaderSize;
+            stats.TotalBytesWithHeaders = stats.TotalBytes + totalUdpHeaderSize;
 
-        // TODO: send NetworkInterrupted notifications before
-        logger.Write(LogLevel.Warning,
-            $"Endpoint has stopped receiving packets for {(int)elapsed.TotalMilliseconds}ms. Disconnecting.");
-
-        eventQueue.Publish(ProtocolEvent.Disconnected, state.Player);
-        state.Connection.DisconnectEventSent = true;
-    });
-
-    readonly ManualTimer resendInputTimer = new(clock, options.ResendInputInterval, _ =>
-    {
-        if (state.CurrentStatus is not ProtocolStatus.Running)
-            return;
-
-        if (state.Stats.LastInputPacketRecvTime is not 0
-            && clock.GetElapsedTime(state.Stats.LastInputPacketRecvTime) < options.ResendInputInterval)
-            return;
-
-        logger.Write(LogLevel.Information,
-            $"Haven't exchanged packets in a while (last received:{inbox.LastReceivedInput.Frame.Number} last sent:{inputBuffer.LastSent.Frame.Number}). Resending");
-
-        inputBuffer.SendPendingInputs();
+            stats.PackagesPerSecond = (float)(stats.TotalPackets * 1000f / elapsed.TotalMilliseconds);
+            stats.Bandwidth = stats.TotalBytesWithHeaders / seconds;
+            stats.UdpOverhead =
+                (float)(100.0 * (totalHeaderSize * stats.TotalPackets) / stats.TotalBytes.ByteCount);
+        }
     });
 }

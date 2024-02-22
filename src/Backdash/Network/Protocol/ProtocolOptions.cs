@@ -1,6 +1,4 @@
 using Backdash.Core;
-using Backdash.Network.Protocol.Messaging;
-
 namespace Backdash.Network.Protocol;
 
 public class ProtocolOptions

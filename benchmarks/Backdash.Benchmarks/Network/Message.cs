@@ -13,6 +13,7 @@ public enum PingMessage : long
 
 sealed class PingMessageHandler(
     string name,
+    IUdpClient<PingMessage> sender,
     Memory<byte> sendBuffer
 ) : IUdpObserver<PingMessage>
 {
@@ -24,11 +25,10 @@ sealed class PingMessageHandler(
 
     public event Action<long> OnProcessed = delegate { };
 
-
     public async ValueTask OnUdpMessage(
-        IUdpClient<PingMessage> sender,
         PingMessage message,
         SocketAddress from,
+        int bytesReceived,
         CancellationToken stoppingToken
     )
     {

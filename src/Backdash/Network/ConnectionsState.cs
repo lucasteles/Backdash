@@ -22,16 +22,8 @@ sealed class ConnectionsState
 
     public bool IsKnown(in PlayerHandle player) => player.InternalQueue >= 0 && player.InternalQueue < Length;
 
-    public bool IsConnected(in PlayerHandle player) => IsKnown(player) && !this[player].Disconnected;
-
-    public bool AnyConnected()
-    {
-        for (var i = 0; i < Statuses.Length; i++)
-            if (!Statuses[i].Disconnected)
-                return true;
-
-        return false;
-    }
+    public bool IsConnected(in PlayerHandle player) =>
+        IsKnown(in player) && !Statuses[player.InternalQueue].Disconnected;
 
     public void CopyTo(Span<ConnectStatus> buffer) => Statuses.CopyTo(buffer);
 }

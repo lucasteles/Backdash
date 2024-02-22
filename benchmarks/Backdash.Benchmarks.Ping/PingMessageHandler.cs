@@ -3,23 +3,26 @@ using Backdash.Network.Client;
 
 namespace Backdash.Benchmarks.Ping;
 
-sealed class PingMessageHandler(Memory<byte>? buffer = null) : IUdpObserver<PingMessage>
+sealed class PingMessageHandler(
+    IUdpClient<PingMessage> sender,
+    Memory<byte>? buffer = null
+) : IUdpObserver<PingMessage>
 {
-    public static long TotalProcessed => processedCount;
+    public static long TotalProcessed => _processedCount;
 
-    static long processedCount;
+    static long _processedCount;
 
     public async ValueTask OnUdpMessage(
-        IUdpClient<PingMessage> sender,
         PingMessage message,
         SocketAddress from,
+        int bytesReceived,
         CancellationToken stoppingToken
     )
     {
         if (stoppingToken.IsCancellationRequested)
             return;
 
-        Interlocked.Increment(ref processedCount);
+        Interlocked.Increment(ref _processedCount);
 
         var reply = message switch
         {

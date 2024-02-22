@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using Backdash;
 using Backdash.Backends;
+using Backdash.Data;
 
 
 namespace ConsoleSession;
@@ -24,6 +25,7 @@ public sealed class Game : IRollbackHandler<GameState>
 
     public Game(IRollbackSession<GameInput> session)
     {
+        view = new View();
         this.session = session;
 
         var players = session.GetPlayers();
@@ -31,16 +33,14 @@ public sealed class Game : IRollbackHandler<GameState>
         {
             LocalPlayer = players.Single(x => x.IsLocal()),
             RemotePlayer = players.Single(x => x.IsRemote()),
+            SessionInfo = session,
         };
-
-        view = new View(nonGameState);
     }
 
     // Game Loop
     public void Update()
     {
         session.BeginFrame();
-        session.GetInfo(nonGameState.RemotePlayer, ref nonGameState.Stats);
 
         if (nonGameState.IsRunning)
         {
@@ -69,7 +69,9 @@ public sealed class Game : IRollbackHandler<GameState>
             session.AdvanceFrame();
         }
 
-        view.Draw(in currentState);
+        session.GetNetworkStatus(nonGameState.RemotePlayer, ref nonGameState.PeerNetworkStatus);
+
+        view.Draw(in currentState, nonGameState);
     }
 
     static void Log(string message) =>
@@ -83,11 +85,11 @@ public sealed class Game : IRollbackHandler<GameState>
         nonGameState.IsRunning = true;
     }
 
-    public void TimeSync(int framesAhead)
+    public void TimeSync(FrameSpan framesAhead)
     {
         Console.SetCursorPosition(1, 0);
         Console.WriteLine("Syncing...");
-        Thread.Sleep(FrameDuration.TimeSpan(framesAhead));
+        Thread.Sleep(framesAhead.Duration);
     }
 
     public void OnPeerEvent(PlayerHandle player, PeerEventInfo evt)
@@ -103,7 +105,7 @@ public sealed class Game : IRollbackHandler<GameState>
 
             case PeerEvent.Synchronized:
                 nonGameState.SyncPercent = 0;
-                view.Draw(in currentState);
+                view.Draw(in currentState, nonGameState);
                 break;
         }
     }

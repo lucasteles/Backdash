@@ -140,6 +140,18 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         stateStore.Dispose();
     }
 
+    public Frame CurrentFrame => synchronizer.CurrentFrame;
+
+    public int FramesPerSecond
+    {
+        get
+        {
+            var elapsed = clock.GetElapsedTime(startTimestamp).TotalSeconds;
+            return elapsed > 0 ? (int)(synchronizer.CurrentFrame.Number / elapsed) : 0;
+        }
+    }
+
+    public FrameSpan RollbackFrames => FrameSpan.Max(synchronizer.FramesBehind, FrameSpan.Zero);
     public int NumberOfPlayers => addedPlayers.Count;
     public int NumberOfSpectators => addedSpectators.Count;
 
@@ -198,7 +210,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         return ResultCode.Ok;
     }
 
-    bool IsHandleInRange(in PlayerHandle player) =>
+    bool IsPlayerKnown(in PlayerHandle player) =>
         player.InternalQueue >= 0
         && player.InternalQueue <
         player.Type switch
@@ -208,16 +220,10 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
             _ => int.MaxValue,
         };
 
-    public bool GetInfo(in PlayerHandle player, ref RollbackSessionInfo info)
+    public bool GetNetworkStatus(in PlayerHandle player, ref RollbackNetworkStatus info)
     {
-        if (!IsHandleInRange(in player)) return false;
+        if (!IsPlayerKnown(in player)) return false;
         if (isSynchronizing) return false;
-
-        info.CurrentFrame = synchronizer.FrameCount.Number;
-        info.RollbackFrames = Math.Max(synchronizer.FramesBehind.Number, 0);
-
-        var elapsed = clock.GetElapsedTime(startTimestamp).TotalSeconds;
-        info.FramesPerSecond = elapsed > 0 ? (int)(synchronizer.FrameCount.Number / elapsed) : 0;
 
         endpoints[player.InternalQueue]?.GetNetworkStats(ref info);
         return true;
@@ -278,10 +284,12 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         return ResultCode.Ok;
     }
 
-    public void AddPlayers(IEnumerable<Player> players)
+    public IReadOnlyList<ResultCode> AddPlayers(IReadOnlyList<Player> players)
     {
-        foreach (var player in players)
-            AddPlayer(player);
+        var result = new ResultCode[players.Count];
+        for (var index = 0; index < players.Count; index++)
+            result[index] = AddPlayer(players[index]);
+        return result;
     }
 
     ResultCode AddSpectator(Spectator spectator)
@@ -311,7 +319,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
 
     PeerConnection<TInput> CreatePeerConnection(IPEndPoint endpoint, PlayerHandle player)
     {
-        var connection = peerConnectionFactory.Create(new(player, endpoint, localConnections));
+        var connection = peerConnectionFactory.Create(new(player, endpoint, localConnections, options.FramesPerSecond));
         udpObservers.Add(connection.GetUdpObserver());
         return connection;
     }
@@ -329,7 +337,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         if (player.Type is not PlayerType.Local)
             return ResultCode.InvalidPlayerHandle;
 
-        if (!IsHandleInRange(in player))
+        if (!IsPlayerKnown(in player))
             return ResultCode.PlayerOutOfRange;
 
         if (synchronizer.InRollback)
@@ -352,13 +360,24 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         return ResultCode.Ok;
     }
 
+    public PlayerStatus GetPlayerStatus(in PlayerHandle player)
+    {
+        if (!IsPlayerKnown(in player)) return PlayerStatus.Unknown;
+        if (player.IsLocal()) return PlayerStatus.Local;
+        if (player.IsSpectator()) return spectators[player.InternalQueue].Status.ToPlayerStatus();
 
-    public bool IsConnected(in PlayerHandle player) => localConnections.IsConnected(in player);
+        var endpoint = endpoints[player.InternalQueue];
+
+        if (endpoint?.IsRunning == true)
+            return localConnections.IsConnected(in player) ? PlayerStatus.Connected : PlayerStatus.Disconnected;
+
+        return endpoint?.Status.ToPlayerStatus() ?? PlayerStatus.Unknown;
+    }
 
     public void BeginFrame()
     {
         if (!isSynchronizing)
-            logger.Write(LogLevel.Trace, $"Start of frame ({synchronizer.FrameCount})...");
+            logger.Write(LogLevel.Trace, $"Start of frame ({synchronizer.CurrentFrame})...");
 
         DoSync();
     }
@@ -394,7 +413,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
 
     public void AdvanceFrame()
     {
-        logger.Write(LogLevel.Trace, $"End of frame ({synchronizer.FrameCount})...");
+        logger.Write(LogLevel.Trace, $"End of frame ({synchronizer.CurrentFrame})...");
         synchronizer.IncrementFrame();
     }
 
@@ -420,7 +439,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         synchronizer.CheckSimulation();
         // notify all of our endpoints of their local frame number for their
         // next connection quality report
-        var currentFrame = synchronizer.FrameCount;
+        var currentFrame = synchronizer.CurrentFrame;
         for (var i = 0; i < endpoints.Count; i++)
             endpoints[i]?.SetLocalFrameNumber(currentFrame, options.FramesPerSecond);
 
@@ -461,7 +480,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
                     interval = Math.Max(interval, endpoint.GetRecommendFrameDelay(options.RequireIdleInput));
 
             if (interval <= 0) return;
-            callbacks.TimeSync(interval);
+            callbacks.TimeSync(new(interval, options.FramesPerSecond));
             nextRecommendedInterval = currentFrame.Number + options.RecommendationInterval;
         }
     }
@@ -619,7 +638,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
 
     void DisconnectPlayerQueue(in PlayerHandle player, in Frame syncTo)
     {
-        var frameCount = synchronizer.FrameCount;
+        var frameCount = synchronizer.CurrentFrame;
 
         endpoints[player.InternalQueue]?.Disconnect();
 
@@ -659,7 +678,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
 
         if (endpoints[player.InternalQueue] is null)
         {
-            var currentFrame = synchronizer.FrameCount;
+            var currentFrame = synchronizer.CurrentFrame;
             // xxx: we should be tracking who the local player is, but for now assume
             // that if the endpoint is not initalized, this must be the local player.
             logger.Write(LogLevel.Information,

@@ -2,7 +2,6 @@ using System.Text;
 using System.Text.Json;
 using Backdash.Core;
 using Backdash.Data;
-using Backdash.Network;
 using Backdash.Sync;
 using Backdash.Sync.State;
 
@@ -15,6 +14,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
     readonly record struct SavedFrame(Frame Frame, int Checksum, TGameState State, GameInput<TInput> Input);
 
     readonly TaskCompletionSource tsc = new();
+    readonly IClock clock;
     readonly Logger logger;
     readonly HashSet<PlayerHandle> addedPlayers = [];
     readonly HashSet<PlayerHandle> addedSpectators = new();
@@ -38,11 +38,13 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
 
     bool running;
     Task backGroundJobTask = Task.CompletedTask;
+    long startTimestamp;
 
     public SyncTestBackend(
         RollbackOptions options,
         IStateStore<TGameState> stateStore,
         IChecksumProvider<TGameState> checksumProvider,
+        IClock clock,
         Logger logger
     )
     {
@@ -50,6 +52,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         ThrowHelpers.ThrowIfTypeTooBigForStack<GameInput<TInput>>();
         ThrowHelpers.ThrowIfArgumentIsZeroOrLess(options.LocalPort);
 
+        this.clock = clock;
         this.logger = logger;
         callbacks ??= new EmptySessionHandler<TGameState>(logger);
 
@@ -71,6 +74,19 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
 
     public int NumberOfPlayers => addedPlayers.Count;
     public int NumberOfSpectators => addedSpectators.Count;
+    public Frame CurrentFrame => synchronizer.CurrentFrame;
+
+    public int FramesPerSecond
+    {
+        get
+        {
+            var elapsed = clock.GetElapsedTime(startTimestamp).TotalSeconds;
+            return elapsed > 0 ? (int)(synchronizer.CurrentFrame.Number / elapsed) : 0;
+        }
+    }
+
+    public FrameSpan RollbackFrames => FrameSpan.Max(synchronizer.FramesBehind, FrameSpan.Zero);
+
     public IReadOnlyCollection<PlayerHandle> GetPlayers() => addedPlayers;
     public IReadOnlyCollection<PlayerHandle> GetSpectators() => addedSpectators;
 
@@ -80,6 +96,8 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         {
             callbacks.Start();
             running = true;
+
+            startTimestamp = clock.GetTimeStamp();
         }
 
         backGroundJobTask = tsc.Task.WaitAsync(stoppingToken);
@@ -114,15 +132,23 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         return ResultCode.Ok;
     }
 
-    public void AddPlayers(IEnumerable<Player> players)
+    public IReadOnlyList<ResultCode> AddPlayers(IReadOnlyList<Player> players)
     {
-        foreach (var player in players)
-            AddPlayer(player);
+        var result = new ResultCode[players.Count];
+        for (var index = 0; index < players.Count; index++)
+            result[index] = AddPlayer(players[index]);
+        return result;
     }
 
-    public bool IsConnected(in PlayerHandle player) => addedPlayers.Contains(player);
+    public PlayerStatus GetPlayerStatus(in PlayerHandle player)
+    {
+        if (addedPlayers.Contains(player) || addedSpectators.Contains(player))
+            return player.IsLocal() ? PlayerStatus.Local : PlayerStatus.Connected;
 
-    public bool GetInfo(in PlayerHandle player, ref RollbackSessionInfo info) => false;
+        return PlayerStatus.Unknown;
+    }
+
+    public bool GetNetworkStatus(in PlayerHandle player, ref RollbackNetworkStatus info) => false;
 
     public ResultCode AddLocalInput(PlayerHandle player, TInput localInput)
     {
@@ -133,7 +159,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         return ResultCode.Ok;
     }
 
-    public void BeginFrame() => logger.Write(LogLevel.Trace, $"Beginning of frame({synchronizer.FrameCount})...");
+    public void BeginFrame() => logger.Write(LogLevel.Trace, $"Beginning of frame({synchronizer.CurrentFrame})...");
 
 
     public ResultCode SynchronizeInputs(Span<TInput> inputs)
@@ -144,7 +170,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         }
         else
         {
-            if (synchronizer.FrameCount == Frame.Zero)
+            if (synchronizer.CurrentFrame == Frame.Zero)
                 synchronizer.SaveCurrentFrame();
 
             lastInput = currentInput;
@@ -157,7 +183,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
 
     public void AdvanceFrame()
     {
-        logger.Write(LogLevel.Trace, $"End of frame({synchronizer.FrameCount})...");
+        logger.Write(LogLevel.Trace, $"End of frame({synchronizer.CurrentFrame})...");
         synchronizer.IncrementFrame();
         currentInput.Erase();
         if (rollingback) return;
@@ -167,7 +193,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         // same results.
         var lastSaved = synchronizer.GetLastSavedFrame();
 
-        var frame = synchronizer.FrameCount;
+        var frame = synchronizer.CurrentFrame;
         savedFrames.Enqueue(new(
             Frame: frame,
             Input: lastInput,
@@ -190,7 +216,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
                 // list.
                 var info = savedFrames.Dequeue();
 
-                if (info.Frame != synchronizer.FrameCount)
+                if (info.Frame != synchronizer.CurrentFrame)
                 {
                     logger.Write(LogLevel.Error,
                         $"Frame number {info.Frame} does not match saved frame number {frame}");

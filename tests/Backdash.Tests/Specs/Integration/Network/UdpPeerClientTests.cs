@@ -17,7 +17,7 @@ public class UdpClientTests
         StringValue msg = "hello server";
         SemaphoreSlim sem = new(0, 1);
 
-        server.Observer.OnMessage += (_, message, sender, token) =>
+        server.Observer.OnMessage += (message, sender, _, _) =>
         {
             message.Value.Should().Be("hello server");
             sender.Should().Be(client.Address);
@@ -39,7 +39,7 @@ public class UdpClientTests
 
         AsyncCounter counter = new();
 
-        server.Observer.OnMessage += async (_, message, sender, token) =>
+        server.Observer.OnMessage += async (message, sender, _, token) =>
         {
             message.Value.Should().Be("hello server");
             sender.Should().Be(client.Address);
@@ -47,7 +47,7 @@ public class UdpClientTests
             await server.Client.SendTo(sender, "hello client", token);
         };
 
-        client.Observer.OnMessage += (_, message, sender, token) =>
+        client.Observer.OnMessage += (message, sender, _, _) =>
         {
             message.Value.Should().Be("hello client");
             sender.Should().Be(server.Address);
@@ -92,7 +92,7 @@ public class UdpClientTests
         var totalResult = 0;
         AsyncCounter counter = new();
 
-        server.Observer.OnMessage += (_, message, sender, token) =>
+        server.Observer.OnMessage += (message, sender, _, _) =>
         {
             sender.Should().Be(client.Address);
             HandleMessage(ref totalResult, message);
@@ -100,7 +100,7 @@ public class UdpClientTests
             return ValueTask.CompletedTask;
         };
 
-        client.Observer.OnMessage += (_, message, sender, token) =>
+        client.Observer.OnMessage += (message, sender, _, _) =>
         {
             sender.Should().Be(server.Address);
             HandleMessage(ref totalResult, message);
@@ -141,14 +141,14 @@ public class UdpClientTests
 
         var totalResult = 0;
         AsyncCounter counter = new();
-        server.Observer.OnMessage += async (_, message, sender, token) =>
+        server.Observer.OnMessage += async (message, sender, _, token) =>
         {
             sender.Should().Be(client.Address);
             await HandleMessageAsync(message, server.Client, sender, token);
             counter.Inc();
         };
 
-        client.Observer.OnMessage += async (_, message, sender, token) =>
+        client.Observer.OnMessage += async (message, sender, _, token) =>
         {
             sender.Should().Be(server.Address);
             await HandleMessageAsync(message, client.Client, sender, token);

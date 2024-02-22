@@ -125,7 +125,7 @@ sealed class UdpClient<T> : IUdpClient<T> where T : struct
             retries = 0;
             serializer.Deserialize(buffer[..receivedSize].Span, ref msg);
 
-            await observer.OnUdpMessage(this, msg, address, ct).ConfigureAwait(false);
+            await observer.OnUdpMessage(msg, address, receivedSize, ct).ConfigureAwait(false);
         }
 
         // ReSharper disable once RedundantAssignment

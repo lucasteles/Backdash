@@ -1,4 +1,5 @@
 using Backdash.Core;
+using Backdash.Data;
 
 namespace Backdash;
 
@@ -34,7 +35,7 @@ public interface IRollbackHandler<TState> where TState : notnull
      * finished.
      */
     void AdvanceFrame();
-    void TimeSync(int framesAhead);
+    void TimeSync(FrameSpan framesAhead);
 
     void OnPeerEvent(PlayerHandle player, PeerEventInfo evt);
 }
@@ -55,7 +56,7 @@ sealed class EmptySessionHandler<TState>(Logger logger)
     public void AdvanceFrame() =>
         logger.Write(LogLevel.Information, $"{DateTime.UtcNow:o} [Session Handler] {nameof(AdvanceFrame)} called");
 
-    public void TimeSync(int framesAhead) =>
+    public void TimeSync(FrameSpan framesAhead) =>
         logger.Write(LogLevel.Information,
             $"{DateTime.UtcNow:o} [Session Handler] Need to sync: {framesAhead} frames ahead");
 

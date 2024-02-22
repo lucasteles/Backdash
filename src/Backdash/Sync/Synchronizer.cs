@@ -20,7 +20,7 @@ sealed class Synchronizer<TInput, TState>
 
     public required IRollbackHandler<TState> Callbacks { get; internal set; }
 
-    Frame frameCount = Frame.Zero;
+    Frame currentFrame = Frame.Zero;
     Frame lastConfirmedFrame = Frame.Zero;
     int NumberOfPlayers => players.Count;
 
@@ -45,8 +45,8 @@ sealed class Synchronizer<TInput, TState>
     }
 
     public bool InRollback { get; private set; }
-    public Frame FrameCount => frameCount;
-    public Frame FramesBehind => frameCount - lastConfirmedFrame;
+    public Frame CurrentFrame => currentFrame;
+    public FrameSpan FramesBehind => new(currentFrame.Number - lastConfirmedFrame.Number, options.FramesPerSecond);
 
     public void AddQueue()
     {
@@ -73,18 +73,18 @@ sealed class Synchronizer<TInput, TState>
 
     public bool AddLocalInput(in PlayerHandle queue, ref GameInput<TInput> input)
     {
-        if (frameCount >= options.PredictionFrames && FramesBehind >= options.PredictionFrames)
+        if (currentFrame >= options.PredictionFrames && FramesBehind.FrameCount >= options.PredictionFrames)
         {
             logger.Write(LogLevel.Warning,
-                $"Rejecting input for frame {frameCount.Number} from emulator: reached prediction barrier");
+                $"Rejecting input for frame {currentFrame.Number} from emulator: reached prediction barrier");
             return false;
         }
 
-        if (frameCount == 0)
+        if (currentFrame == 0)
             SaveCurrentFrame();
 
-        logger.Write(LogLevel.Debug, $"Sending non-delayed local frame {frameCount} to queue {queue}");
-        input.Frame = frameCount;
+        logger.Write(LogLevel.Debug, $"Sending non-delayed local frame {currentFrame} to queue {queue}");
+        input.Frame = currentFrame;
         AddInput(in queue, ref input);
 
         return true;
@@ -110,14 +110,14 @@ sealed class Synchronizer<TInput, TState>
 
         for (var i = 0; i < NumberOfPlayers; i++)
         {
-            if (localConnections[i].Disconnected && frameCount > localConnections[i].LastFrame)
+            if (localConnections[i].Disconnected && currentFrame > localConnections[i].LastFrame)
             {
                 disconnections = true;
                 output[i] = default;
             }
             else
             {
-                inputQueues[i].GetInput(frameCount, out var input);
+                inputQueues[i].GetInput(currentFrame, out var input);
                 output[i] = input.Data;
             }
         }
@@ -131,14 +131,14 @@ sealed class Synchronizer<TInput, TState>
 
     public void IncrementFrame()
     {
-        frameCount++;
+        currentFrame++;
         SaveCurrentFrame();
     }
 
     public void AdjustSimulation(in Frame seekTo)
     {
-        var currentCount = frameCount;
-        var count = frameCount - seekTo;
+        var currentCount = currentFrame;
+        var count = currentFrame - seekTo;
 
         logger.Write(LogLevel.Debug, "Catching up");
         InRollback = true;
@@ -147,24 +147,24 @@ sealed class Synchronizer<TInput, TState>
          * Flush our input queue and load the last frame.
          */
         LoadFrame(in seekTo);
-        Trace.Assert(frameCount == seekTo);
+        Trace.Assert(currentFrame == seekTo);
 
         /*
          * Advance frame by frame (stuffing notifications back to
          * the master).
          */
-        ResetPrediction(in frameCount);
+        ResetPrediction(in currentFrame);
         for (var i = 0; i < count.Number; i++)
             Callbacks.AdvanceFrame();
 
-        Trace.Assert(frameCount == currentCount);
+        Trace.Assert(currentFrame == currentCount);
         InRollback = false;
     }
 
     public void LoadFrame(in Frame frame)
     {
         // find the frame in question
-        if (frame == frameCount)
+        if (frame == currentFrame)
         {
             logger.Write(LogLevel.Trace, "Skipping NOP.");
             return;
@@ -179,7 +179,7 @@ sealed class Synchronizer<TInput, TState>
 
         // Reset framecount and the head of the state ring-buffer to point in
         // advance of the current frame (as if we had just finished executing it).
-        frameCount = savedFrame.Frame;
+        currentFrame = savedFrame.Frame;
     }
 
     public ref readonly SavedFrame<TState> GetLastSavedFrame() => ref stateStore.Last();
@@ -188,10 +188,10 @@ sealed class Synchronizer<TInput, TState>
     {
         ref var nextState = ref stateStore.GetCurrent();
         Callbacks.ClearState(ref nextState);
-        Callbacks.SaveState(frameCount.Number, ref nextState);
+        Callbacks.SaveState(currentFrame.Number, ref nextState);
 
         var checksum = checksumProvider.Compute(in nextState);
-        ref readonly var next = ref stateStore.SaveCurrent(in frameCount, in checksum);
+        ref readonly var next = ref stateStore.SaveCurrent(in currentFrame, in checksum);
         logger.Write(LogLevel.Debug, $"* Saved frame {next.Frame} (checksum: {next.Checksum}).");
     }
 

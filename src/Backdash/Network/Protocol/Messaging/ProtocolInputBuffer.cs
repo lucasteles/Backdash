@@ -172,8 +172,7 @@ sealed class ProtocolInputBuffer<TInput> : IProtocolInputBuffer<TInput>
         Trace.Assert(inputMessage.NumBits <= Max.CompressedBytes * ByteSize.ByteToBits);
         Trace.Assert(lastAckFrame.IsNull || inputMessage.StartFrame == lastAckFrame);
 
-        if (state.LocalConnectStatuses.AnyConnected())
-            state.LocalConnectStatuses.CopyTo(inputMessage.PeerConnectStatus);
+        state.LocalConnectStatuses.CopyTo(inputMessage.PeerConnectStatus);
 
         protocolMessage = new(MessageType.Input)
         {

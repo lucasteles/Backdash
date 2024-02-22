@@ -1,4 +1,5 @@
 using Backdash.Core;
+using Backdash.Data;
 using Backdash.Network.Protocol;
 using Backdash.Sync;
 
@@ -16,7 +17,7 @@ public sealed class RollbackOptions(int port)
     public int PredictionFramesOffset { get; init; } = Default.PredictionFramesOffset;
     public int FrameDelay { get; init; } = Default.FrameDelay;
     public bool RequireIdleInput { get; init; }
-    public int FramesPerSecond { get; init; } = FrameDuration.SixtyFrames;
+    public short FramesPerSecond { get; init; } = FrameSpan.DefaultFramesPerSecond;
     public LogOptions Log { get; init; } = new();
     public TimeSyncOptions TimeSync { get; init; } = new();
     public ProtocolOptions Protocol { get; init; } = new();

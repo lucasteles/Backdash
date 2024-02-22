@@ -70,13 +70,15 @@ sealed class Logger : IDisposable, IBackgroundJob
 
     void WriteNow(in LogLevel level, in LogStringBuffer logBuffer, in int length)
     {
-        ReadOnlySpan<byte> utf8Bytes = logBuffer[..length];
+        ReadOnlySpan<byte> bufferSpan = logBuffer;
+        var size = Math.Min(length, bufferSpan.Length);
+        var utf8Bytes = bufferSpan[..size];
         var charCount = Encoding.UTF8.GetCharCount(utf8Bytes);
         var buffer = pool.Rent(charCount);
         try
         {
             Encoding.UTF8.GetChars(utf8Bytes, buffer);
-            writer.Write(level, buffer, length);
+            writer.Write(level, buffer, size);
         }
         finally
         {

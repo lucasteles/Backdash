@@ -46,7 +46,7 @@ IUdpClient<PingMessage> CreateClient(int port, Memory<byte>? buffer = null)
         bufferSize
     );
 
-    observers.Add(new PingMessageHandler(buffer));
+    observers.Add(new PingMessageHandler(udp, buffer));
     jobs.Register(udp);
 
     return udp;

@@ -81,7 +81,7 @@ public readonly struct PeerEventInfo(PeerEvent type) : IUtf8SpanFormattable
 public readonly record struct SynchronizingEventInfo(int CurrentStep, int TotalSteps);
 
 [StructLayout(LayoutKind.Sequential)]
-public readonly record struct ConnectionInterruptedEventInfo(int DisconnectTimeout);
+public readonly record struct ConnectionInterruptedEventInfo(TimeSpan DisconnectTimeout);
 
 [StructLayout(LayoutKind.Sequential)]
 public readonly record struct SynchronizedEventInfo(TimeSpan Ping);

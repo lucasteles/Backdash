@@ -17,37 +17,39 @@ public class UdpClientBenchmark
     public int N;
 
 
-    Memory<byte> pingerSendBuffer = Memory<byte>.Empty;
-    Memory<byte> pongerSendBuffer = Memory<byte>.Empty;
+    Memory<byte> pingerPinnedBuffer = Memory<byte>.Empty;
+    Memory<byte> pongerPinnedBuffer = Memory<byte>.Empty;
 
     [GlobalSetup]
     public void Setup()
     {
-        pingerSendBuffer = Mem.CreatePinnedMemory(Max.UdpPacketSize);
-        pongerSendBuffer = Mem.CreatePinnedMemory(Max.UdpPacketSize);
+        pingerPinnedBuffer = Mem.CreatePinnedMemory(Max.UdpPacketSize);
+        pongerPinnedBuffer = Mem.CreatePinnedMemory(Max.UdpPacketSize);
     }
 
     [Benchmark]
-    public async Task ArrayPoolBuffer() => await Start(N, usePinnedBuffers: false);
+    public async Task ArrayPoolBuffer() => await Start(N, null, null);
 
     [Benchmark]
-    public async Task PinnedSendBuffer() => await Start(N, usePinnedBuffers: true);
+    public async Task PinnedSendBuffer() => await Start(N, pingerPinnedBuffer, pongerPinnedBuffer);
 
     public async Task Start(
         int numberOfSpins,
-        bool usePinnedBuffers,
+        Memory<byte> pingerSendBuffer,
+        Memory<byte> pongerSendBuffer,
         TimeSpan? timeout = null
     )
     {
         timeout ??= TimeSpan.FromSeconds(5);
 
-        PingMessageHandler pingerHandler =
-            new("Pinger", usePinnedBuffers ? pingerSendBuffer : null);
-        PingMessageHandler pongerHandler =
-            new("Ponger", usePinnedBuffers ? pongerSendBuffer : null);
+        using var pinger = Factory.CreateUdpClient(9000, out var pingerObservers);
+        using var ponger = Factory.CreateUdpClient(9001, out var pongerObservers);
 
-        using var pinger = Factory.CreatePingClient(pingerHandler, 9000);
-        using var ponger = Factory.CreatePingClient(pongerHandler, 9001);
+        PingMessageHandler pingerHandler = new("Pinger", pinger, pingerSendBuffer);
+        PingMessageHandler pongerHandler = new("Ponger", ponger, pongerSendBuffer);
+
+        pingerObservers.Add(pingerHandler);
+        pongerObservers.Add(pongerHandler);
 
         using CancellationTokenSource tokenSource = new(timeout.Value);
         var ct = tokenSource.Token;
@@ -62,10 +64,10 @@ public class UdpClientBenchmark
 
         async Task StartSending()
         {
-            if (usePinnedBuffers)
-                await pinger.SendTo(ponger.Address, PingMessage.Ping, pingerSendBuffer, ct);
-            else
+            if (pingerSendBuffer.IsEmpty)
                 await pinger.SendTo(ponger.Address, PingMessage.Ping, ct);
+            else
+                await pinger.SendTo(ponger.Address, PingMessage.Ping, pingerSendBuffer, ct);
         }
 
         Task[] tasks =

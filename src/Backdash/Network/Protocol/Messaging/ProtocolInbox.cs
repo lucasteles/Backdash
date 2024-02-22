@@ -12,7 +12,6 @@ namespace Backdash.Network.Protocol.Messaging;
 interface IProtocolInbox<TInput> : IUdpObserver<ProtocolMessage> where TInput : struct
 {
     GameInput<TInput> LastReceivedInput { get; }
-    long LastReceivedTime { get; }
     Frame LastAckedFrame { get; }
 }
 
@@ -32,14 +31,13 @@ sealed class ProtocolInbox<TInput>(
     GameInput<TInput> lastReceivedInput = new();
     readonly Memory<byte> lastReceivedInputBuffer = Mem.CreatePinnedMemory(Max.CompressedBytes);
 
-    public long LastReceivedTime { get; private set; }
     public GameInput<TInput> LastReceivedInput => lastReceivedInput;
     public Frame LastAckedFrame { get; private set; } = Frame.Null;
 
     public async ValueTask OnUdpMessage(
-        IUdpClient<ProtocolMessage> sender,
         ProtocolMessage message,
         SocketAddress from,
+        int bytesReceived,
         CancellationToken stoppingToken
     )
     {
@@ -77,7 +75,10 @@ sealed class ProtocolInbox<TInput>(
             if (replyMsg.Header.Type is not MessageType.Invalid)
                 await messageSender.SendMessageAsync(in replyMsg, stoppingToken).ConfigureAwait(false);
 
-            LastReceivedTime = clock.GetTimeStamp();
+            state.Stats.Received.LastTime = clock.GetTimeStamp();
+            state.Stats.Received.TotalPackets++;
+            state.Stats.Received.TotalBytes += (ByteSize)bytesReceived;
+
             if (state.Connection.DisconnectNotifySent && state.CurrentStatus is ProtocolStatus.Running)
             {
                 events.Publish(ProtocolEvent.NetworkResumed, state.Player);
@@ -197,7 +198,7 @@ sealed class ProtocolInbox<TInput>(
                 lastReceivedInput.Frame = currentFrame;
                 currentFrame++;
 
-                state.Stats.LastInputPacketRecvTime = clock.GetTimeStamp();
+                state.Stats.LastReceivedInputTime = clock.GetTimeStamp();
 
                 logger.Write(LogLevel.Debug,
                     $"Received input: frame {lastReceivedInput.Frame}, sending to emulator queue {state.Player} (ack: {LastAckedFrame})");
@@ -237,7 +238,7 @@ sealed class ProtocolInbox<TInput>(
             },
         };
 
-        state.Fairness.RemoteFrameAdvantage = new(msg.QualityReport.FrameAdvantage);
+        state.Fairness.RemoteFrameAdvantage = new(msg.QualityReport.FrameAdvantage, state.Fairness.FramesPerSecond);
 
         return true;
     }

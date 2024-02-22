@@ -8,7 +8,7 @@ using Backdash.Sync.State.Stores;
 
 namespace Backdash;
 
-public static class Rollback
+public static class RollbackNetcode
 {
     public static IRollbackSession<TInput, TGameState> CreateSession<TInput, TGameState>(
         RollbackOptions options,
@@ -53,11 +53,13 @@ public static class Rollback
 
         var logger = new Logger(options.Log, logWriter ?? new ConsoleLogWriter());
         var stateStore = StateStoreFactory.Create(stateSerializer);
+        var clock = new Clock();
 
         return new SyncTestBackend<TInput, TGameState>(
             options,
             stateStore,
             checksumProvider,
+            clock,
             logger
         );
     }

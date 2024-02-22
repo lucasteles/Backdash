@@ -3,12 +3,12 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using Backdash;
-using Backdash.Backends;
 using Backdash.Core;
+using Backdash.Data;
 using ConsoleSession;
 
 
-var frameDuration = FrameDuration.TimeSpan(1);
+var frameDuration = FrameSpan.GetDuration(1);
 using CancellationTokenSource cts = new();
 
 // stops the game with ctr+c
@@ -59,29 +59,32 @@ static IRollbackSession<GameInput, GameState> CreateSession(
 {
     var localPlayer = players.Single(x => x.IsLocal());
 
+    // Write logs in a file with player number
+    FileLogWriter fileLogWriter = new($"log_player_{localPlayer.Number}.txt");
+
     // forces jitter delay on player two
     var networkDelay = localPlayer.Number is 2 ? TimeSpan.FromMilliseconds(300) : default;
 
-    var session = Rollback.CreateSession<GameInput, GameState>(
+    var session = RollbackNetcode.CreateSession<GameInput, GameState>(
         new(port)
         {
             FrameDelay = 2,
             Log = new()
             {
-                EnabledLevel = LogLevel.Debug,
+                EnabledLevel = LogLevel.Information,
                 // RunAsync = true,
             },
             Protocol = new()
             {
                 NumberOfSyncPackets = 10,
-                LogNetworkStats = false,
+                // LogNetworkStats = false,
                 // NetworkDelay = networkDelay,
                 // DelayStrategy = Backdash.Network.DelayStrategy.Constant,
             },
         },
         // stateSerializer: new MyStateSerializer(),
         // logWriter: new TraceLogWriter(),
-        logWriter: new FileLogWriter($"log_player_{localPlayer.Number}.txt")
+        logWriter: fileLogWriter
     );
 
     session.AddPlayers(players);

@@ -18,7 +18,8 @@ public readonly record struct Frame :
     IComparisonOperators<Frame, int, bool>,
     IModulusOperators<Frame, int, Frame>,
     IAdditionOperators<Frame, int, Frame>,
-    ISubtractionOperators<Frame, int, Frame>
+    ISubtractionOperators<Frame, int, Frame>,
+    IAdditionOperators<Frame, FrameSpan, FrameSpan>
 {
     public const sbyte NullValue = -1;
     public static readonly Frame Null = new(NullValue);
@@ -54,8 +55,8 @@ public readonly record struct Frame :
     public static explicit operator int(Frame frame) => frame.Number;
     public static explicit operator Frame(int frame) => new(frame);
 
-    public static Frame Min(in Frame val1, in Frame val2) => val1 <= val2 ? val1 : val2;
-    public static Frame Max(in Frame val1, in Frame val2) => val1 >= val2 ? val1 : val2;
+    public static Frame Min(in Frame left, in Frame right) => left <= right ? left : right;
+    public static Frame Max(in Frame left, in Frame right) => left >= right ? left : right;
 
     public static bool operator >(Frame left, Frame right) => left.Number > right.Number;
     public static bool operator >=(Frame left, Frame right) => left.Number >= right.Number;
@@ -76,4 +77,5 @@ public readonly record struct Frame :
     public static bool operator >=(Frame left, int right) => left.Number >= right;
     public static bool operator <(Frame left, int right) => left.Number < right;
     public static bool operator <=(Frame left, int right) => left.Number <= right;
+    public static FrameSpan operator +(Frame left, FrameSpan right) => right + left.Number;
 }

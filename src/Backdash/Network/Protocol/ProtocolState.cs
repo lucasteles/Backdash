@@ -1,12 +1,14 @@
 using Backdash.Core;
 using Backdash.Data;
+using Backdash.Serialization.Buffer;
 
 namespace Backdash.Network.Protocol;
 
 sealed class ProtocolState(
     PlayerHandle player,
     Peer peer,
-    ConnectionsState localConnectStatuses
+    ConnectionsState localConnectStatuses,
+    short fps
 )
 {
     public readonly CancellationTokenSource StoppingTokenSource = new();
@@ -17,7 +19,7 @@ sealed class ProtocolState(
 
     public readonly SyncState Sync = new();
     public readonly ConnectionState Connection = new();
-    public readonly AdvantageState Fairness = new();
+    public readonly AdvantageState Fairness = new(fps);
     public readonly Statistics Stats = new();
 
     public readonly ConnectionsState LocalConnectStatuses = localConnectStatuses;
@@ -31,23 +33,51 @@ sealed class ProtocolState(
         public bool IsConnected;
     }
 
-    public sealed class AdvantageState
+    public sealed class AdvantageState(short fps)
     {
-        public Frame LocalFrameAdvantage;
-        public Frame RemoteFrameAdvantage;
+        public FrameSpan LocalFrameAdvantage;
+        public FrameSpan RemoteFrameAdvantage;
+        public readonly short FramesPerSecond = fps;
     }
 
-    public sealed class Statistics
+    public class Statistics
     {
-        public TimeSpan RoundTripTime;
-        public long LastInputPacketRecvTime;
-        public long LastSendTime;
-        public ByteSize BytesSent;
-        public int PacketsSent;
-        public float Pps;
+        public TimeSpan RoundTripTime = TimeSpan.Zero;
+        public long LastReceivedInputTime = 0;
+        public PackagesStats Send = new();
+        public PackagesStats Received = new();
+    }
+
+    public struct PackagesStats : IUtf8SpanFormattable
+    {
+        public long LastTime;
+        public int TotalPackets;
+        public ByteSize TotalBytes;
+        public float PackagesPerSecond;
         public float UdpOverhead;
-        public float BandwidthKbps;
-        public ByteSize TotalBytesSent;
+        public ByteSize Bandwidth;
+        public ByteSize TotalBytesWithHeaders;
+
+        public readonly bool TryFormat(
+            Span<byte> utf8Destination, out int bytesWritten, ReadOnlySpan<char> format,
+            IFormatProvider? provider
+        )
+        {
+            bytesWritten = 0;
+            Utf8StringWriter writer = new(in utf8Destination, ref bytesWritten);
+            writer.Write("{Bandwidth: "u8);
+            writer.Write(Bandwidth.KibiBytes, "f2");
+            writer.Write(" KBps; Packets: "u8);
+            writer.Write(TotalPackets);
+            writer.Write(" ("u8);
+            writer.Write(PackagesPerSecond, "f2");
+            writer.Write(" pps); KiB: "u8);
+            writer.Write(TotalBytesWithHeaders.KibiBytes, "f2");
+            writer.Write("UDP Overhead: "u8);
+            writer.Write(UdpOverhead);
+            writer.Write("}"u8);
+            return true;
+        }
     }
 
     public sealed class SyncState
@@ -100,11 +130,4 @@ sealed class ProtocolState(
             }
         }
     }
-}
-
-enum ProtocolStatus
-{
-    Syncing,
-    Running,
-    Disconnected,
 }

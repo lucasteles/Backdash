@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using Backdash.Core;
+using Backdash.Network.Protocol;
 using Backdash.Serialization;
 
 namespace Backdash;
@@ -35,4 +36,12 @@ static class Extensions
         serializer.Deserialize(data, ref result);
         return result;
     }
+
+    public static PlayerStatus ToPlayerStatus(this ProtocolStatus status) => status switch
+    {
+        ProtocolStatus.Syncing => PlayerStatus.Syncing,
+        ProtocolStatus.Running => PlayerStatus.Connected,
+        ProtocolStatus.Disconnected => PlayerStatus.Disconnected,
+        _ => PlayerStatus.Unknown,
+    };
 }
