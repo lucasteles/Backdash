@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using Backdash.Core;
 using Backdash.Network.Protocol;
 using Backdash.Serialization;
@@ -7,14 +6,6 @@ namespace Backdash;
 
 static class Extensions
 {
-    public static bool IsOk(this ResultCode code) => code is ResultCode.Ok;
-
-    public static void AssertTrue(this bool value, [CallerMemberName] string? source = null)
-    {
-        if (!value)
-            throw new BackdashException($"Unexpected behavior at {source}");
-    }
-
     public static void EnqueueNext<T>(this Queue<T> queue, in T value)
     {
         var count = queue.Count;
@@ -37,11 +28,11 @@ static class Extensions
         return result;
     }
 
-    public static PlayerStatus ToPlayerStatus(this ProtocolStatus status) => status switch
+    public static PlayerConnectionStatus ToPlayerStatus(this ProtocolStatus status) => status switch
     {
-        ProtocolStatus.Syncing => PlayerStatus.Syncing,
-        ProtocolStatus.Running => PlayerStatus.Connected,
-        ProtocolStatus.Disconnected => PlayerStatus.Disconnected,
-        _ => PlayerStatus.Unknown,
+        ProtocolStatus.Syncing => PlayerConnectionStatus.Syncing,
+        ProtocolStatus.Running => PlayerConnectionStatus.Connected,
+        ProtocolStatus.Disconnected => PlayerConnectionStatus.Disconnected,
+        _ => PlayerConnectionStatus.Unknown,
     };
 }

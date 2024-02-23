@@ -1,6 +1,4 @@
 ﻿using System.Numerics;
-using Backdash;
-using Backdash.Network;
 
 namespace ConsoleSession;
 
@@ -18,15 +16,17 @@ public class View
         Console.Clear();
         Console.ForegroundColor = defaultColor;
 
-        if (!nonGameState.IsRunning)
-        {
-            DrawSync(nonGameState);
-            return;
-        }
-
         Console.ForegroundColor = playerColors[nonGameState.LocalPlayer.Number - 1];
         Console.WriteLine($"-- Player {nonGameState.LocalPlayer.Number} --\n");
         Console.ForegroundColor = defaultColor;
+
+        var status1 = nonGameState.RemotePlayer.Number is 1
+            ? nonGameState.RemotePlayerStatus
+            : PlayerStatus.Running;
+
+        var status2 = nonGameState.RemotePlayer.Number is 2
+            ? nonGameState.RemotePlayerStatus
+            : PlayerStatus.Running;
 
         for (var row = 0; row < GridSize; row++)
         {
@@ -34,10 +34,10 @@ public class View
             for (var col = 0; col < GridSize; col++)
             {
                 Console.Write(' ');
-                if (DrawPlayer(currentState.Position1, col, row, playerColors[0]))
+                if (DrawPlayer(currentState.Position1, col, row, playerColors[0], status1))
                     continue;
 
-                if (DrawPlayer(currentState.Position2, col, row, playerColors[1]))
+                if (DrawPlayer(currentState.Position2, col, row, playerColors[1], status2))
                     continue;
 
                 Console.Write(".");
@@ -50,14 +50,21 @@ public class View
 
         if (nonGameState.IsRunning)
             DrawStats(nonGameState);
+        else
+            DrawSync(nonGameState);
     }
 
-    bool DrawPlayer(Vector2 pos, int col, int row, ConsoleColor color)
+    bool DrawPlayer(Vector2 pos, int col, int row, ConsoleColor color, PlayerStatus status)
     {
         if ((int) pos.X == col && (int) pos.Y == row)
         {
             Console.ForegroundColor = color;
-            Console.Write("0");
+            Console.Write(status switch
+            {
+                PlayerStatus.Running => "0",
+                PlayerStatus.Disconnected => "X",
+                _ => "?",
+            });
             Console.ForegroundColor = defaultColor;
             return true;
         }
@@ -70,23 +77,16 @@ public class View
         const int loadingSize = 20;
         if (nonGameState.SyncPercent is 0)
         {
-            Console.WriteLine("  --- Waiting Peer --- ");
-            Console.Write("            ");
-            Console.Write((DateTime.UtcNow.Second % 4) switch
-            {
-                0 => '/',
-                1 => '-',
-                2 => '\\',
-                3 => '|',
-                _ => '\0',
-            });
+            Console.Write("Waiting Peer");
+            for (var i = 0; i < DateTime.UtcNow.Second % 4; i++)
+                Console.Write('.');
+
             Console.WriteLine();
             return;
         }
 
         var loaded = loadingSize * nonGameState.SyncPercent;
-        Console.WriteLine("  --- Synchronizing... ---  ");
-        Console.WriteLine();
+        Console.WriteLine("Synchronizing:  ");
         Console.Write(" ");
         for (var i = 0; i < loadingSize; i++)
         {

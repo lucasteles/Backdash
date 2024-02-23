@@ -42,8 +42,10 @@ public static class GameLogic
         return Vector2.Clamp(pos, Vector2.Zero, new Vector2(View.GridSize - 1));
     }
 
-    public static GameInput ReadKeyboardInput()
+    public static GameInput ReadKeyboardInput(out bool disconnectRequest)
     {
+        disconnectRequest = false;
+
         if (!Console.KeyAvailable)
             return GameInput.None;
 
@@ -55,6 +57,9 @@ public static class GameLogic
             Thread.Sleep(100);
             return GameInput.None;
         }
+
+        if (press.Key is ConsoleKey.Escape)
+            disconnectRequest = true;
 
         return press.Key switch
         {

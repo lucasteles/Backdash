@@ -71,13 +71,13 @@ static IRollbackSession<GameInput, GameState> CreateSession(
             FrameDelay = 2,
             Log = new()
             {
-                EnabledLevel = LogLevel.Information,
+                EnabledLevel = LogLevel.Trace,
                 // RunAsync = true,
             },
             Protocol = new()
             {
                 NumberOfSyncPackets = 10,
-                // LogNetworkStats = false,
+                // LogNetworkStats = true,
                 // NetworkDelay = networkDelay,
                 // DelayStrategy = Backdash.Network.DelayStrategy.Constant,
             },

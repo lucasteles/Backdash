@@ -11,17 +11,16 @@ interface IProtocolInputBuffer<TInput> : IDisposable where TInput : struct
 {
     int PendingNumber { get; }
     GameInput<TInput> LastSent { get; }
-    AddInputResult SendInput(in GameInput<TInput> input);
-    void SendPendingInputs();
+    SendInputResult SendInput(in GameInput<TInput> input);
+    SendInputResult SendPendingInputs();
 }
 
-enum AddInputResult : byte
+enum SendInputResult : byte
 {
     Ok = 0,
     FullQueue,
     MessageBodyOverflow,
     AlreadyAcked,
-    NotRunning,
 }
 
 sealed class ProtocolInputBuffer<TInput> : IProtocolInputBuffer<TInput>
@@ -73,31 +72,29 @@ sealed class ProtocolInputBuffer<TInput> : IProtocolInputBuffer<TInput>
     const int WorkingBufferFactor = 3;
     bool IsQueueFull() => pendingOutput.Count >= options.MaxPendingInputs;
 
-    public AddInputResult SendInput(in GameInput<TInput> input)
+    public SendInputResult SendInput(in GameInput<TInput> input)
     {
-        if (state.CurrentStatus is not ProtocolStatus.Running) return AddInputResult.NotRunning;
-        if (IsQueueFull()) return AddInputResult.FullQueue;
-        if (input.Frame < inbox.LastAckedFrame) return AddInputResult.AlreadyAcked;
+        if (state.CurrentStatus is ProtocolStatus.Running)
+        {
+            if (IsQueueFull()) return SendInputResult.FullQueue;
+            if (input.Frame < inbox.LastAckedFrame) return SendInputResult.AlreadyAcked;
 
-        timeSync.AdvanceFrame(in input, in state.Fairness);
+            timeSync.AdvanceFrame(in input, in state.Fairness);
 
-        pendingOutput.Enqueue(input);
+            pendingOutput.Enqueue(input);
+        }
+
+        return SendPendingInputs();
+    }
+
+    public SendInputResult SendPendingInputs()
+    {
         var createMessageResult = CreateInputMessage(out var inputMessage);
         sender.SendMessage(in inputMessage);
-
-        if (createMessageResult is not AddInputResult.Ok)
-            return createMessageResult;
-
-        return AddInputResult.Ok;
+        return createMessageResult;
     }
 
-    public void SendPendingInputs()
-    {
-        CreateInputMessage(out var inputMessage);
-        sender.SendMessage(in inputMessage);
-    }
-
-    AddInputResult CreateInputMessage(out ProtocolMessage protocolMessage)
+    SendInputResult CreateInputMessage(out ProtocolMessage protocolMessage)
     {
         Span<byte> workingBuffer = workingBufferMemory.Span;
         Trace.Assert(workingBuffer.Length >= WorkingBufferFactor);
@@ -181,8 +178,8 @@ sealed class ProtocolInputBuffer<TInput> : IProtocolInputBuffer<TInput>
 
 
         return messageBodyOverflow
-            ? AddInputResult.MessageBodyOverflow
-            : AddInputResult.Ok;
+            ? SendInputResult.MessageBodyOverflow
+            : SendInputResult.Ok;
     }
 
     public void Dispose() => pendingOutput.Clear();

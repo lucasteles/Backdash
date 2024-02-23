@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Threading.Channels;
 using Backdash.Network.Protocol;
 
@@ -33,7 +34,8 @@ sealed class ProtocolEventQueue<TInput> : IProtocolEventQueue<TInput> where TInp
     public void Publish(in ProtocolEventInfo<TInput> evt)
     {
         if (disposed || ProxyFilter(evt)) return;
-        channel.Writer.TryWrite(evt).AssertTrue();
+        var published = channel.Writer.TryWrite(evt);
+        Trace.Assert(published);
     }
 
     public void Dispose()

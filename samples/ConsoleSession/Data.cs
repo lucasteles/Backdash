@@ -28,6 +28,14 @@ public class NonGameState
     public string LastError = "";
     public required PlayerHandle LocalPlayer;
     public required PlayerHandle RemotePlayer;
+    public PlayerStatus RemotePlayerStatus;
     public required IRollbackSessionInfo SessionInfo;
     public RollbackNetworkStatus PeerNetworkStatus = new();
+}
+
+public enum PlayerStatus
+{
+    Waiting,
+    Running,
+    Disconnected,
 }

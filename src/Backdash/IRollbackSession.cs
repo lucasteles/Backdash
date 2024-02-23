@@ -17,10 +17,10 @@ public interface IRollbackSession<TInput> : IRollbackSessionInfo, IDisposable wh
     IReadOnlyCollection<PlayerHandle> GetPlayers();
     IReadOnlyCollection<PlayerHandle> GetSpectators();
     ResultCode AddLocalInput(PlayerHandle player, TInput localInput);
-    ResultCode SynchronizeInputs(Span<TInput> inputs);
+    ResultCode SynchronizeInputs(Span<SynchronizedInput<TInput>> inputs);
     void BeginFrame();
     void AdvanceFrame();
-    PlayerStatus GetPlayerStatus(in PlayerHandle player);
+    PlayerConnectionStatus GetPlayerStatus(in PlayerHandle player);
     bool GetNetworkStatus(in PlayerHandle player, ref RollbackNetworkStatus info);
     void SetFrameDelay(PlayerHandle player, int delayInFrames);
 }

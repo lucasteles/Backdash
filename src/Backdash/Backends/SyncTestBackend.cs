@@ -140,12 +140,12 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         return result;
     }
 
-    public PlayerStatus GetPlayerStatus(in PlayerHandle player)
+    public PlayerConnectionStatus GetPlayerStatus(in PlayerHandle player)
     {
         if (addedPlayers.Contains(player) || addedSpectators.Contains(player))
-            return player.IsLocal() ? PlayerStatus.Local : PlayerStatus.Connected;
+            return player.IsLocal() ? PlayerConnectionStatus.Local : PlayerConnectionStatus.Connected;
 
-        return PlayerStatus.Unknown;
+        return PlayerConnectionStatus.Unknown;
     }
 
     public bool GetNetworkStatus(in PlayerHandle player, ref RollbackNetworkStatus info) => false;
@@ -162,7 +162,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
     public void BeginFrame() => logger.Write(LogLevel.Trace, $"Beginning of frame({synchronizer.CurrentFrame})...");
 
 
-    public ResultCode SynchronizeInputs(Span<TInput> inputs)
+    public ResultCode SynchronizeInputs(Span<SynchronizedInput<TInput>> inputs)
     {
         if (rollingback)
         {
@@ -176,7 +176,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
             lastInput = currentInput;
         }
 
-        inputs[0] = lastInput.Data;
+        inputs[0] = new(lastInput.Data, false);
 
         return ResultCode.Ok;
     }

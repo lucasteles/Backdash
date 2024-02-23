@@ -21,7 +21,7 @@ public sealed class Game : IRollbackHandler<GameState>
     GameState currentState = GameLogic.InitialState();
 
     // buffer for input reading from session
-    readonly GameInput[] inputBuffer = new GameInput[2];
+    readonly SynchronizedInput<GameInput>[] inputBuffer = new SynchronizedInput<GameInput>[2];
 
     public Game(IRollbackSession<GameInput> session)
     {
@@ -44,7 +44,10 @@ public sealed class Game : IRollbackHandler<GameState>
 
         if (nonGameState.IsRunning)
         {
-            var localInput = GameLogic.ReadKeyboardInput();
+            var localInput = GameLogic.ReadKeyboardInput(out var disconnectRequest);
+
+            if (disconnectRequest)
+                session.Dispose();
 
             var result = session.AddLocalInput(nonGameState.LocalPlayer, localInput);
 
@@ -98,14 +101,28 @@ public sealed class Game : IRollbackHandler<GameState>
 
         switch (evt.Type)
         {
+            case PeerEvent.Connected:
+                nonGameState.RemotePlayerStatus = PlayerStatus.Waiting;
+                break;
             case PeerEvent.Synchronizing:
                 nonGameState.SyncPercent =
                     evt.Synchronizing.CurrentStep / (float) evt.Synchronizing.TotalSteps;
                 break;
 
             case PeerEvent.Synchronized:
+                nonGameState.RemotePlayerStatus = PlayerStatus.Running;
                 nonGameState.SyncPercent = 0;
                 view.Draw(in currentState, nonGameState);
+                break;
+
+            case PeerEvent.Disconnected:
+                nonGameState.RemotePlayerStatus = PlayerStatus.Disconnected;
+                break;
+            case PeerEvent.ConnectionInterrupted:
+                nonGameState.RemotePlayerStatus = PlayerStatus.Waiting;
+                break;
+            case PeerEvent.ConnectionResumed:
+                nonGameState.RemotePlayerStatus = PlayerStatus.Running;
                 break;
         }
     }

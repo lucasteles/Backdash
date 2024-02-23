@@ -1,4 +1,5 @@
 using Backdash.Core;
+
 namespace Backdash.Network.Protocol;
 
 public class ProtocolOptions
@@ -8,7 +9,7 @@ public class ProtocolOptions
     public int MaxPackageQueue { get; init; } = Default.MaxPackageQueue;
     public int NumberOfSyncPackets { get; init; } = Default.NumberOfSyncPackets;
     public int MaxSeqDistance { get; init; } = Default.MaxSeqDistance;
-    public bool LogNetworkStats { get; init; } = true;
+    public bool LogNetworkStats { get; init; }
     public DelayStrategy DelayStrategy { get; init; } = DelayStrategy.Gaussian;
     public TimeSpan NetworkDelay { get; init; }
     public TimeSpan DisconnectNotifyStart { get; init; } = TimeSpan.FromMilliseconds(Default.DisconnectNotifyStart);

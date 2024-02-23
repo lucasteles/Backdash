@@ -91,7 +91,7 @@ ref struct LogInterpolatedStringHandler
         writer.WriteEnum(status);
     }
 
-    public void AppendFormatted(AddInputResult result)
+    public void AppendFormatted(SendInputResult result)
     {
         if (!Enabled) return;
         Utf8StringWriter writer = new(Buffer, ref Length);

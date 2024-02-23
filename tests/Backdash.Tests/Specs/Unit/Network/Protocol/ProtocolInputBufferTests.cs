@@ -68,7 +68,7 @@ public class ProtocolInputBufferTests
         var decompressedInput = DecompressToList(message.Input);
         decompressedInput.Single().Should().BeEquivalentTo(input);
 
-        queue.SendInput(input).Should().Be(AddInputResult.Ok);
+        queue.SendInput(input).Should().Be(SendInputResult.Ok);
     }
 
     [Fact]
@@ -81,7 +81,7 @@ public class ProtocolInputBufferTests
         var inputs = GetSampleInputs();
 
         foreach (var input in inputs)
-            queue.SendInput(input).Should().Be(AddInputResult.Ok);
+            queue.SendInput(input).Should().Be(SendInputResult.Ok);
 
         A.CallTo(sender)
             .Where(x => x.Method.Name == nameof(IMessageSender.SendMessage))
@@ -107,7 +107,7 @@ public class ProtocolInputBufferTests
         ];
 
         foreach (var input in previousInputs)
-            queue.SendInput(input).Should().Be(AddInputResult.Ok);
+            queue.SendInput(input).Should().Be(SendInputResult.Ok);
 
         // setting up new inputs to check
         const int startFrame = 2;
@@ -115,7 +115,7 @@ public class ProtocolInputBufferTests
         var newInputs = GetSampleInputs(startFrame);
 
         foreach (var input in newInputs)
-            queue.SendInput(input).Should().Be(AddInputResult.Ok);
+            queue.SendInput(input).Should().Be(SendInputResult.Ok);
 
         var expectedMessage = GetSampleMessage(startFrame);
 
@@ -143,9 +143,9 @@ public class ProtocolInputBufferTests
         foreach (var input in inputs)
         {
             var op = queue.SendInput(input);
-            if (op is AddInputResult.Ok)
+            if (op is SendInputResult.Ok)
                 successfullySend.Add(input);
-            else if (op is AddInputResult.MessageBodyOverflow)
+            else if (op is SendInputResult.MessageBodyOverflow)
                 break;
             else
                 Assert.Fail("Inputs setup");

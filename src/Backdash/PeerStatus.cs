@@ -1,6 +1,6 @@
 ﻿namespace Backdash;
 
-public enum PlayerStatus : sbyte
+public enum PlayerConnectionStatus : sbyte
 {
     Unknown = -1,
     Local,

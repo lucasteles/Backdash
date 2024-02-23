@@ -48,10 +48,12 @@ sealed class Synchronizer<TInput, TState>
     public Frame CurrentFrame => currentFrame;
     public FrameSpan FramesBehind => new(currentFrame.Number - lastConfirmedFrame.Number, options.FramesPerSecond);
 
-    public void AddQueue()
+    public FrameSpan RollbackFrames { get; private set; } = FrameSpan.Zero;
+
+    public void AddQueue(PlayerHandle player)
     {
         var delay = Math.Max(options.FrameDelay, 0);
-        inputQueues.Add(new(options.InputQueueLength, logger)
+        inputQueues.Add(new(player.InternalQueue, options.InputQueueLength, logger)
         {
             FrameDelay = delay,
         });
@@ -64,8 +66,10 @@ sealed class Synchronizer<TInput, TState>
         if (lastConfirmedFrame <= Frame.Zero)
             return;
 
+        var discardUntil = frame.Previous();
+
         for (var i = 0; i < NumberOfPlayers; i++)
-            inputQueues[i].DiscardConfirmedFrames(frame.Previous());
+            inputQueues[i].DiscardConfirmedFrames(discardUntil);
     }
 
     void AddInput(in PlayerHandle queue, ref GameInput<TInput> input) =>
@@ -102,9 +106,8 @@ sealed class Synchronizer<TInput, TState>
         return true;
     }
 
-    public void SynchronizeInputs(Span<TInput> output, out bool disconnections)
+    public void SynchronizeInputs(Span<SynchronizedInput<TInput>> output)
     {
-        disconnections = false;
         Trace.Assert(output.Length >= NumberOfPlayers);
         output.Clear();
 
@@ -112,13 +115,12 @@ sealed class Synchronizer<TInput, TState>
         {
             if (localConnections[i].Disconnected && currentFrame > localConnections[i].LastFrame)
             {
-                disconnections = true;
-                output[i] = default;
+                output[i] = new(default, true);
             }
             else
             {
                 inputQueues[i].GetInput(currentFrame, out var input);
-                output[i] = input.Data;
+                output[i] = new(input.Data, false);
             }
         }
     }
@@ -137,27 +139,25 @@ sealed class Synchronizer<TInput, TState>
 
     public void AdjustSimulation(in Frame seekTo)
     {
-        var currentCount = currentFrame;
-        var count = currentFrame - seekTo;
+        var localCurrentFrame = currentFrame;
+        var rollbackCount = currentFrame.Number - seekTo.Number;
 
-        logger.Write(LogLevel.Debug, "Catching up");
+        logger.Write(LogLevel.Debug, $"Catching up. rolling back {rollbackCount} frames");
         InRollback = true;
 
-        /*
-         * Flush our input queue and load the last frame.
-         */
+        // Flush our input queue and load the last frame.
         LoadFrame(in seekTo);
         Trace.Assert(currentFrame == seekTo);
 
-        /*
-         * Advance frame by frame (stuffing notifications back to
-         * the master).
-         */
+        // Advance frame by frame (stuffing notifications back to the master).
         ResetPrediction(in currentFrame);
-        for (var i = 0; i < count.Number; i++)
+        for (var i = 0; i < rollbackCount; i++)
+        {
+            logger.Write(LogLevel.Debug, $"[Begin Frame {currentFrame}](rollback)");
             Callbacks.AdvanceFrame();
+        }
 
-        Trace.Assert(currentFrame == currentCount);
+        Trace.Assert(currentFrame == localCurrentFrame);
         InRollback = false;
     }
 
@@ -200,10 +200,12 @@ sealed class Synchronizer<TInput, TState>
         var firstIncorrect = Frame.Null;
         for (var i = 0; i < NumberOfPlayers; i++)
         {
-            var incorrect = inputQueues[i].GetFirstIncorrectFrame();
+            var incorrect = inputQueues[i].FirstIncorrectFrame;
             if (incorrect.IsNull || (firstIncorrect.IsNotNull && incorrect >= firstIncorrect))
                 continue;
+
             logger.Write(LogLevel.Debug, $"Incorrect frame {incorrect} reported by queue {i}");
+            RollbackFrames = new(Math.Max(RollbackFrames.FrameCount, incorrect.Number), options.FramesPerSecond);
             firstIncorrect = incorrect;
         }
 
@@ -211,6 +213,7 @@ sealed class Synchronizer<TInput, TState>
         {
             logger.Write(LogLevel.Debug, "Prediction ok.  proceeding.");
             seekTo = default;
+            RollbackFrames = FrameSpan.Zero;
             return true;
         }
 

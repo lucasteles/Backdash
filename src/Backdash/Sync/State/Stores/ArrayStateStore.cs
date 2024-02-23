@@ -50,5 +50,5 @@ public sealed class ArrayStateStore<TState> : IStateStore<TState> where TState :
 
     void AdvanceHead() => head = (head + 1) % savedStates.Length;
 
-    public void Dispose() => savedStates = null!;
+    public void Dispose() { }
 }

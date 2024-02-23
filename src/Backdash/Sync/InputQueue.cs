@@ -15,11 +15,13 @@ sealed class InputQueue<TInput> where TInput : struct
     Frame firstIncorrectFrame;
     Frame lastUserAddedFrame, lastAddedFrame, lastFrameRequested;
     GameInput<TInput> prediction;
+    readonly int id;
 
     public int FrameDelay { get; set; }
 
-    public InputQueue(int queueSize, Logger logger)
+    public InputQueue(int id, int queueSize, Logger logger)
     {
+        this.id = id;
         this.logger = logger;
         length = FrameDelay = 0;
         head = tail = 0;
@@ -59,7 +61,7 @@ sealed class InputQueue<TInput> where TInput : struct
 
     void Reset() => tail = head;
 
-    public Frame GetFirstIncorrectFrame() => firstIncorrectFrame;
+    public Frame FirstIncorrectFrame => firstIncorrectFrame;
 
     public void DiscardConfirmedFrames(Frame frame)
     {
@@ -69,24 +71,26 @@ sealed class InputQueue<TInput> where TInput : struct
             frame = Frame.Min(in frame, in lastFrameRequested);
 
         logger.Write(LogLevel.Debug,
-            $"discarding confirmed frames up to {frame} (last added:{lastAddedFrame} length:{length} [head:{head} tail:{tail}]).");
+            $"Queue {id} => discarding confirmed frames up to {frame} (last add:{lastAddedFrame} len:{length} front:{Front.Frame} back:{Back.Frame})");
 
         if (frame >= lastAddedFrame)
             Reset();
         else
         {
             var offset = frame.Number - Front.Frame.Number + 1;
-            logger.Write(LogLevel.Debug, $"difference of {offset} frames.");
+            logger.Write(LogLevel.Debug, $"Queue {id} => difference of {offset} frames.");
             Skip(offset);
         }
 
-        logger.Write(LogLevel.Debug, $"after discarding, new tail is {tail} (frame:{Front.Frame}).");
+        logger.Write(LogLevel.Debug,
+            $"Queue {id} => after discarding, new back is {Back.Frame} (front:{Front.Frame})."
+        );
     }
 
     public void ResetPrediction(in Frame frame)
     {
         Trace.Assert(firstIncorrectFrame.IsNull || frame <= firstIncorrectFrame);
-        logger.Write(LogLevel.Debug, $"resetting all prediction errors back to frame {frame}.");
+        logger.Write(LogLevel.Debug, $"Queue {id} => resetting all prediction errors back to frame {frame}.");
 
         // There's nothing really to do other than reset our prediction
         // state and the incorrect frame counter...
@@ -108,7 +112,7 @@ sealed class InputQueue<TInput> where TInput : struct
 
     public bool GetInput(Frame requestedFrame, out GameInput<TInput> input)
     {
-        logger.Write(LogLevel.Debug, $"requesting input frame {requestedFrame}.");
+        logger.Write(LogLevel.Debug, $"Queue {id} => requesting input frame {requestedFrame}.");
 
         // No one should ever try to grab any input when we have a prediction
         // error.  Doing so means that we're just going further down the wrong
@@ -131,7 +135,7 @@ sealed class InputQueue<TInput> where TInput : struct
                 ref var next = ref NextAfter(offset);
                 Trace.Assert(next.Frame == requestedFrame);
                 input = next;
-                logger.Write(LogLevel.Debug, $"returning confirmed frame number {input.Frame}.");
+                logger.Write(LogLevel.Debug, $"Queue {id} => returning confirmed frame number {input.Frame}.");
                 return true;
             }
 
@@ -141,19 +145,19 @@ sealed class InputQueue<TInput> where TInput : struct
             if (requestedFrame == 0)
             {
                 logger.Write(LogLevel.Debug,
-                    "basing new prediction frame from nothing, you're client wants frame 0.");
+                    $"Queue {id} => basing new prediction frame from nothing, you're client wants frame 0.");
                 prediction.Erase();
             }
             else if (lastAddedFrame.IsNull)
             {
                 logger.Write(LogLevel.Debug,
-                    "basing new prediction frame from nothing, since we have no frames yet.");
+                    $"Queue {id} => basing new prediction frame from nothing, since we have no frames yet.");
                 prediction.Erase();
             }
             else
             {
                 logger.Write(LogLevel.Debug,
-                    $"basing new prediction frame from previously added frame (queue entry:{BackIndex}, frame:{Back.Frame})"
+                    $"Queue {id} => basing new prediction frame from previously added frame (queue entry:{BackIndex}, frame:{Back.Frame})"
                 );
 
                 prediction = Back;
@@ -169,14 +173,15 @@ sealed class InputQueue<TInput> where TInput : struct
         // frame number requested by the client, though.
         input = prediction;
         input.Frame = requestedFrame;
-        logger.Write(LogLevel.Debug, $"returning prediction frame number {input.Frame} ({prediction.Frame}).");
+        logger.Write(LogLevel.Debug,
+            $"Queue {id} => returning prediction frame number {input.Frame} ({prediction.Frame}).");
 
         return false;
     }
 
     public void AddInput(ref GameInput<TInput> input)
     {
-        logger.Write(LogLevel.Debug, $"adding input frame number {input.Frame} to queue.");
+        logger.Write(LogLevel.Debug, $"Queue {id} => adding input frame number {input.Frame} to queue.");
 
         // These next two lines simply verify that inputs are passed in
         // sequentially by the user, regardless of frame delay.
@@ -197,7 +202,7 @@ sealed class InputQueue<TInput> where TInput : struct
 
     void AddDelayedInputToQueue(GameInput<TInput> input, in Frame frameNumber)
     {
-        logger.Write(LogLevel.Debug, $"adding delayed input frame number {frameNumber} to queue.");
+        logger.Write(LogLevel.Debug, $"Queue {id} => adding delayed input frame number {frameNumber} to queue.");
         Trace.Assert(lastAddedFrame.IsNull || frameNumber == lastAddedFrame.Next());
         Trace.Assert(frameNumber == 0 || Back.Frame == frameNumber.Previous());
 
@@ -217,7 +222,8 @@ sealed class InputQueue<TInput> where TInput : struct
             // in GetFirstIncorrectFrame()
             if (firstIncorrectFrame.IsNull && !EqualityComparer<TInput>.Default.Equals(prediction.Data, input.Data))
             {
-                logger.Write(LogLevel.Debug, $"frame {frameNumber} does not match prediction.  marking error.");
+                logger.Write(LogLevel.Debug,
+                    $"Queue {id} => frame {frameNumber} does not match prediction.  marking error.");
                 firstIncorrectFrame = frameNumber;
             }
 
@@ -228,7 +234,8 @@ sealed class InputQueue<TInput> where TInput : struct
             if (prediction.Frame == lastFrameRequested &&
                 firstIncorrectFrame.IsNull)
             {
-                logger.Write(LogLevel.Debug, "prediction is correct!  dumping out of prediction mode.");
+                logger.Write(LogLevel.Debug,
+                    $"Queue {id} => prediction is correct!  dumping out of prediction mode.");
                 prediction.ResetFrame();
             }
             else
@@ -250,7 +257,7 @@ sealed class InputQueue<TInput> where TInput : struct
             // time we shoved a frame into the system.  In this case, there's
             // no room on the queue.  Toss it.
             logger.Write(LogLevel.Information,
-                $"Dropping input frame {frame} (expected next frame to be {expectedFrame}).");
+                $"Queue {id} => Dropping input frame {frame} (expected next frame to be {expectedFrame})");
             return Frame.Null;
         }
 
@@ -261,7 +268,7 @@ sealed class InputQueue<TInput> where TInput : struct
             // last frame in the queue several times in order to fill the space
             // left.
             logger.Write(LogLevel.Information,
-                $"Adding padding frame {expectedFrame} to account for change in frame delay.");
+                $"Queue {id} => Adding padding frame {expectedFrame} to account for change in frame delay");
             ref var lastFrame = ref Back;
             AddDelayedInputToQueue(lastFrame, in expectedFrame);
             expectedFrame++;

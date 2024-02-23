@@ -9,9 +9,12 @@ public abstract class LogWriter : ILogWriter, IAsyncDisposable
 {
     protected abstract TextWriter textWriter { get; }
     readonly object locker = new();
+    bool disposed;
 
     public void Write(LogLevel level, char[] chars, int size)
     {
+        if (disposed) return;
+
         lock (locker)
             textWriter.WriteLine(chars, 0, size);
     }
@@ -20,6 +23,7 @@ public abstract class LogWriter : ILogWriter, IAsyncDisposable
     {
         if (disposing)
         {
+            disposed = true;
             textWriter.Close();
             textWriter.Dispose();
         }

@@ -22,23 +22,29 @@ sealed class PeerConnection<TInput>(
 ) : IDisposable
     where TInput : struct
 {
-    public void Dispose() => Disconnect(true);
-
-    public AddInputResult SendInput(in GameInput<TInput> input) => inputBuffer.SendInput(in input);
+    public SendInputResult SendInput(in GameInput<TInput> input) => inputBuffer.SendInput(in input);
 
     public ProtocolStatus Status => state.CurrentStatus;
     public bool IsRunning => state.CurrentStatus is ProtocolStatus.Running;
 
     public PlayerHandle Player => state.Player;
 
-    public void Disconnect(bool force = false)
+    public void Dispose()
     {
-        state.CurrentStatus = ProtocolStatus.Disconnected;
-        var shutdownTime = force ? TimeSpan.Zero : options.ShutdownTime;
-        state.StoppingTokenSource.CancelAfter(shutdownTime);
+        if (!state.StoppingTokenSource.IsCancellationRequested)
+            state.StoppingTokenSource.Cancel();
+
         eventQueue.Dispose();
         inputBuffer.Dispose();
         outbox.Dispose();
+    }
+
+    public void Disconnect()
+    {
+        if (state.CurrentStatus is ProtocolStatus.Disconnected) return;
+        state.CurrentStatus = ProtocolStatus.Disconnected;
+
+        state.StoppingTokenSource.CancelAfter(options.ShutdownTime);
     }
 
     // require idle input should be a configuration parameter
@@ -147,7 +153,7 @@ sealed class PeerConnection<TInput>(
         if (lastReceivedInputTime <= 0 || clock.GetElapsedTime(lastReceivedInputTime) <= options.ResendInputInterval)
             return;
 
-        logger.Write(LogLevel.Information,
+        logger.Write(LogLevel.Debug,
             $"Haven't exchanged packets in a while (last received:{inbox.LastReceivedInput.Frame.Number} last sent:{inputBuffer.LastSent.Frame.Number}). Resending");
 
         inputBuffer.SendPendingInputs();
@@ -171,7 +177,7 @@ sealed class PeerConnection<TInput>(
                 },
             });
 
-            logger.Write(LogLevel.Information,
+            logger.Write(LogLevel.Warning,
                 $"Endpoint has stopped receiving packets for {(int)lastReceivedTime.TotalMilliseconds}ms. Sending notification");
 
             return;

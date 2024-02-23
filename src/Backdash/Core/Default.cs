@@ -4,10 +4,10 @@ static class Default
 {
     public const int SpectatorOffset = 1000;
     public const int RecommendationInterval = 240;
-    public const int DisconnectNotifyStart = 750;
     public const int UdpPacketBufferSize = Max.CompressedBytes * Max.RemoteConnections * 2;
     public const int PredictionFramesOffset = 2;
     public const int PredictionFrames = 16;
+    public const int DisconnectNotifyStart = 750;
     public const int DisconnectTimeout = 5_000;
 
     public const int InputQueueLength = 128;
