@@ -184,33 +184,5 @@ static class Mem
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int SizeOf<TInput>() where TInput : struct => Unsafe.SizeOf<TInput>();
 
-    public static int Xor(ReadOnlySpan<byte> value1, ReadOnlySpan<byte> value2, Span<byte> result)
-    {
-        if (value1.Length != value2.Length)
-            throw new ArgumentException($"{nameof(value1)} and {nameof(value2)} must have same size");
-
-        if (result.Length < value2.Length)
-            throw new ArgumentException($"{nameof(result)} is too short");
-
-        int i = 0;
-        var vectorSize = Vector<byte>.Count;
-        if (Vector.IsHardwareAccelerated && value1.Length >= vectorSize)
-        {
-            var rest = value1.Length % Vector<byte>.Count;
-            for (i = 0; i < value1.Length - rest; i += vectorSize)
-            {
-                Vector<byte> current1 = new(value1.Slice(i, vectorSize));
-                Vector<byte> current2 = new(value2.Slice(i, vectorSize));
-                Vector<byte> delta = Vector.Xor(current1, current2);
-                delta.CopyTo(result[i..]);
-            }
-        }
-
-        for (var j = i; j < value1.Length; j++)
-            result[j] = (byte)(value1[j] ^ value2[j]);
-
-        return value1.Length;
-    }
-
     public static bool IsReferenceOrContainsReferences<T>() => RuntimeHelpers.IsReferenceOrContainsReferences<T>();
 }

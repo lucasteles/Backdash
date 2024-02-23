@@ -14,7 +14,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "benchmarks", "benchmarks", 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{52082A6A-CF3A-4792-8218-7A8ECD119CDB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleSession", "samples\ConsoleSession\ConsoleSession.csproj", "{B319ABF9-CA96-4DD7-A1C8-DC4A1B1FC830}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleGame", "samples\ConsoleGame\ConsoleGame.csproj", "{B319ABF9-CA96-4DD7-A1C8-DC4A1B1FC830}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Backdash.Benchmarks", "benchmarks\Backdash.Benchmarks\Backdash.Benchmarks.csproj", "{7B2DE761-3234-411A-BBD7-102F3AAD05A2}"
 EndProject

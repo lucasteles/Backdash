@@ -1,25 +1,7 @@
-﻿using System.Diagnostics;
-using Backdash.Core;
-using Backdash.Serialization;
+﻿using Backdash.Serialization;
 using Backdash.Serialization.Buffer;
 
-namespace ConsoleSession;
-
-public sealed class TraceLogWriter : ILogWriter
-{
-    public void Write(LogLevel level, char[] chars, int size) =>
-        Trace.WriteLine(new string(chars.AsSpan()[..size]));
-
-    public ValueTask WriteAsync(LogLevel level, char[] chars, int size)
-    {
-        Write(level, chars, size);
-        return ValueTask.CompletedTask;
-    }
-
-    public void Dispose()
-    {
-    }
-}
+namespace ConsoleGame;
 
 public sealed class MyStateSerializer : BinarySerializer<GameState>
 {

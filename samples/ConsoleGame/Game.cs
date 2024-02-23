@@ -1,10 +1,9 @@
 ﻿using System.Diagnostics;
 using Backdash;
-using Backdash.Backends;
 using Backdash.Data;
 
 
-namespace ConsoleSession;
+namespace ConsoleGame;
 
 public sealed class Game : IRollbackHandler<GameState>
 {
@@ -19,9 +18,6 @@ public sealed class Game : IRollbackHandler<GameState>
 
     // Actual game state
     GameState currentState = GameLogic.InitialState();
-
-    // buffer for input reading from session
-    readonly SynchronizedInput<GameInput>[] inputBuffer = new SynchronizedInput<GameInput>[2];
 
     public Game(IRollbackSession<GameInput> session)
     {
@@ -43,38 +39,39 @@ public sealed class Game : IRollbackHandler<GameState>
         session.BeginFrame();
 
         if (nonGameState.IsRunning)
-        {
-            var localInput = GameLogic.ReadKeyboardInput(out var disconnectRequest);
-
-            if (disconnectRequest)
-                session.Dispose();
-
-            var result = session.AddLocalInput(nonGameState.LocalPlayer, localInput);
-
-            if (result is not ResultCode.Ok)
-            {
-                Log($"UNABLE TO ADD INPUT: {result}");
-                nonGameState.LastError =
-                    @$"{result} {Stopwatch.GetElapsedTime(nonGameState.StartedAt):mm\:ss\.fff}";
-                return;
-            }
-
-            if (session.SynchronizeInputs(inputBuffer) is not ResultCode.Ok)
-            {
-                Log($"UNABLE SYNC INPUTS: {result}");
-                nonGameState.LastError =
-                    @$"{result} {Stopwatch.GetElapsedTime(nonGameState.StartedAt):mm\:ss\.fff}";
-                return;
-            }
-
-            GameLogic.AdvanceState(ref currentState, inputBuffer[0], inputBuffer[1]);
-
-            session.AdvanceFrame();
-        }
+            UpdatePlayers();
 
         session.GetNetworkStatus(nonGameState.RemotePlayer, ref nonGameState.PeerNetworkStatus);
-
         view.Draw(in currentState, nonGameState);
+    }
+
+    void UpdatePlayers()
+    {
+        var localInput = GameLogic.ReadKeyboardInput(out var disconnectRequest);
+
+        if (disconnectRequest)
+            session.Dispose();
+
+        var result = session.AddLocalInput(nonGameState.LocalPlayer, localInput);
+
+        if (result is not ResultCode.Ok)
+        {
+            Log($"UNABLE TO ADD INPUT: {result}");
+            nonGameState.LastError = @$"{result} {DateTime.Now:mm\:ss\.fff}";
+            return;
+        }
+
+        if (session.SynchronizeInputs() is not ResultCode.Ok)
+        {
+            Log($"UNABLE SYNC INPUTS: {result}");
+            nonGameState.LastError = @$"{result} {DateTime.Now:mm\:ss\.fff}";
+            return;
+        }
+
+        var (input1, input2) = (session.GetInput(0), session.GetInput(1));
+        GameLogic.AdvanceState(ref currentState, input1, input2);
+
+        session.AdvanceFrame();
     }
 
     static void Log(string message) =>
@@ -84,14 +81,15 @@ public sealed class Game : IRollbackHandler<GameState>
     public void Start()
     {
         Log("START");
-        nonGameState.StartedAt = Stopwatch.GetTimestamp();
+
         nonGameState.IsRunning = true;
+        nonGameState.RemotePlayerStatus = PlayerStatus.Running;
     }
 
     public void TimeSync(FrameSpan framesAhead)
     {
         Console.SetCursorPosition(1, 0);
-        Console.WriteLine("Syncing...");
+        Console.WriteLine("> Syncing...");
         Thread.Sleep(framesAhead.Duration);
     }
 
@@ -102,27 +100,28 @@ public sealed class Game : IRollbackHandler<GameState>
         switch (evt.Type)
         {
             case PeerEvent.Connected:
-                nonGameState.RemotePlayerStatus = PlayerStatus.Waiting;
+                nonGameState.RemotePlayerStatus = PlayerStatus.Synchronizing;
                 break;
             case PeerEvent.Synchronizing:
-                nonGameState.SyncPercent =
-                    evt.Synchronizing.CurrentStep / (float) evt.Synchronizing.TotalSteps;
-                break;
+                nonGameState.SyncProgress =
+                    evt.Synchronizing.CurrentStep / (float)evt.Synchronizing.TotalSteps;
 
+                break;
             case PeerEvent.Synchronized:
-                nonGameState.RemotePlayerStatus = PlayerStatus.Running;
-                nonGameState.SyncPercent = 0;
-                view.Draw(in currentState, nonGameState);
+                nonGameState.SyncProgress = 1;
                 break;
 
-            case PeerEvent.Disconnected:
-                nonGameState.RemotePlayerStatus = PlayerStatus.Disconnected;
-                break;
             case PeerEvent.ConnectionInterrupted:
                 nonGameState.RemotePlayerStatus = PlayerStatus.Waiting;
+                nonGameState.LostConnectionTime = DateTime.UtcNow;
+                nonGameState.DisconnectTimeout = evt.ConnectionInterrupted.DisconnectTimeout;
                 break;
             case PeerEvent.ConnectionResumed:
                 nonGameState.RemotePlayerStatus = PlayerStatus.Running;
+                break;
+            case PeerEvent.Disconnected:
+                nonGameState.RemotePlayerStatus = PlayerStatus.Disconnected;
+                nonGameState.IsRunning = false;
                 break;
         }
     }
@@ -141,8 +140,9 @@ public sealed class Game : IRollbackHandler<GameState>
 
     public void AdvanceFrame()
     {
-        session.SynchronizeInputs(inputBuffer);
-        GameLogic.AdvanceState(ref currentState, inputBuffer[0], inputBuffer[1]);
+        session.SynchronizeInputs();
+        var (input1, input2) = (session.GetInput(0), session.GetInput(1));
+        GameLogic.AdvanceState(ref currentState, input1, input2);
         session.AdvanceFrame();
     }
 }

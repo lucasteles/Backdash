@@ -1,4 +1,4 @@
-﻿namespace Backdash.Data;
+namespace Backdash.Data;
 
 public readonly record struct SynchronizedInput<T>(T Input, bool Disconnected) where T : struct
 {

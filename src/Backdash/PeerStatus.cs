@@ -1,4 +1,4 @@
-﻿namespace Backdash;
+namespace Backdash;
 
 public enum PlayerConnectionStatus : sbyte
 {

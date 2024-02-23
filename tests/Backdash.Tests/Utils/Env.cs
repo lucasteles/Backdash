@@ -1,4 +1,4 @@
-﻿namespace Backdash.Tests.Utils;
+namespace Backdash.Tests.Utils;
 
 public static class Env
 {

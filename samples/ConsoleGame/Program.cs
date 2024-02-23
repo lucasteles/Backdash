@@ -1,11 +1,13 @@
-﻿#pragma warning disable S1481
-// ReSharper disable AccessToDisposedClosure, UnusedVariable
+﻿// ReSharper disable AccessToDisposedClosure, UnusedVariable
+
+#pragma warning disable S1481
+
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using Backdash;
 using Backdash.Core;
 using Backdash.Data;
-using ConsoleSession;
+using ConsoleGame;
 
 
 var frameDuration = FrameSpan.GetDuration(1);
@@ -49,13 +51,11 @@ session.Dispose();
 await session.WaitToStop();
 Console.Clear();
 
+
 // -------------------------------------------------------------- //
-//    Create and configure a game session for 2 Players           //
+//    Create and configure a game session                         //
 // -------------------------------------------------------------- //
-static IRollbackSession<GameInput, GameState> CreateSession(
-    int port,
-    Player[] players
-)
+static IRollbackSession<GameInput, GameState> CreateSession(int port, Player[] players)
 {
     var localPlayer = players.Single(x => x.IsLocal());
 
@@ -71,12 +71,12 @@ static IRollbackSession<GameInput, GameState> CreateSession(
             FrameDelay = 2,
             Log = new()
             {
-                EnabledLevel = LogLevel.Trace,
+                EnabledLevel = LogLevel.Off,
                 // RunAsync = true,
             },
             Protocol = new()
             {
-                NumberOfSyncPackets = 10,
+                NumberOfSyncPackets = 100,
                 // LogNetworkStats = true,
                 // NetworkDelay = networkDelay,
                 // DelayStrategy = Backdash.Network.DelayStrategy.Constant,

@@ -1,4 +1,4 @@
-﻿namespace Backdash.Network.Protocol;
+namespace Backdash.Network.Protocol;
 
 enum ProtocolStatus
 {

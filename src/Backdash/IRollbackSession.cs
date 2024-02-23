@@ -17,7 +17,10 @@ public interface IRollbackSession<TInput> : IRollbackSessionInfo, IDisposable wh
     IReadOnlyCollection<PlayerHandle> GetPlayers();
     IReadOnlyCollection<PlayerHandle> GetSpectators();
     ResultCode AddLocalInput(PlayerHandle player, TInput localInput);
-    ResultCode SynchronizeInputs(Span<SynchronizedInput<TInput>> inputs);
+    ResultCode SynchronizeInputs();
+    ref readonly SynchronizedInput<TInput> GetInput(in PlayerHandle player);
+    ref readonly SynchronizedInput<TInput> GetInput(int index);
+
     void BeginFrame();
     void AdvanceFrame();
     PlayerConnectionStatus GetPlayerStatus(in PlayerHandle player);

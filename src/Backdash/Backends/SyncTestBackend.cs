@@ -40,6 +40,8 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
     Task backGroundJobTask = Task.CompletedTask;
     long startTimestamp;
 
+    SynchronizedInput<TInput>[] syncInputBuffer = [];
+
     public SyncTestBackend(
         RollbackOptions options,
         IStateStore<TGameState> stateStore,
@@ -129,6 +131,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
                 return ResultCode.Duplicated;
         }
 
+        Array.Resize(ref syncInputBuffer, syncInputBuffer.Length + 1);
         return ResultCode.Ok;
     }
 
@@ -162,7 +165,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
     public void BeginFrame() => logger.Write(LogLevel.Trace, $"Beginning of frame({synchronizer.CurrentFrame})...");
 
 
-    public ResultCode SynchronizeInputs(Span<SynchronizedInput<TInput>> inputs)
+    public ResultCode SynchronizeInputs()
     {
         if (rollingback)
         {
@@ -176,10 +179,15 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
             lastInput = currentInput;
         }
 
-        inputs[0] = new(lastInput.Data, false);
-
+        syncInputBuffer[0] = new(lastInput.Data, false);
         return ResultCode.Ok;
     }
+
+    public ref readonly SynchronizedInput<TInput> GetInput(in PlayerHandle player) =>
+        ref syncInputBuffer[player.InternalQueue];
+
+    public ref readonly SynchronizedInput<TInput> GetInput(int index) =>
+        ref syncInputBuffer[index];
 
     public void AdvanceFrame()
     {

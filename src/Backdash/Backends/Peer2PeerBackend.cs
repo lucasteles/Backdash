@@ -28,11 +28,14 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
     readonly IProtocolEventQueue<TInput> peerEventQueue;
     readonly PeerConnectionFactory<TInput> peerConnectionFactory;
     readonly IClock clock;
+
     readonly List<PeerConnection<TInput>> spectators;
     readonly List<PeerConnection<TInput>?> endpoints;
 
     readonly HashSet<PlayerHandle> addedPlayers = new();
     readonly HashSet<PlayerHandle> addedSpectators = new();
+
+    SynchronizedInput<TInput>[] syncInputBuffer = [];
 
     bool isSynchronizing = true;
     int nextRecommendedInterval;
@@ -291,6 +294,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
 
         player.Handle = handle;
         endpoints.Add(null);
+        Array.Resize(ref syncInputBuffer, syncInputBuffer.Length + 1);
         synchronizer.AddQueue(player.Handle);
         return ResultCode.Ok;
     }
@@ -309,6 +313,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         var endpoint = player.EndPoint;
         var protocol = CreatePeerConnection(endpoint, player.Handle);
         endpoints.Add(protocol);
+        Array.Resize(ref syncInputBuffer, syncInputBuffer.Length + 1);
         synchronizer.AddQueue(player.Handle);
         logger.Write(LogLevel.Information, $"Adding {player.Handle} at {endpoint.Address}:{endpoint.Port}");
         protocol.Synchronize();
@@ -376,6 +381,12 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         return endpoint?.Status.ToPlayerStatus() ?? PlayerConnectionStatus.Unknown;
     }
 
+    public ref readonly SynchronizedInput<TInput> GetInput(int index) =>
+        ref syncInputBuffer[index];
+
+    public ref readonly SynchronizedInput<TInput> GetInput(in PlayerHandle player) =>
+        ref syncInputBuffer[player.InternalQueue];
+
     public void BeginFrame()
     {
         if (!isSynchronizing)
@@ -384,12 +395,12 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         DoSync();
     }
 
-    public ResultCode SynchronizeInputs(Span<SynchronizedInput<TInput>> inputs)
+    public ResultCode SynchronizeInputs()
     {
         if (isSynchronizing)
             return ResultCode.NotSynchronized;
 
-        synchronizer.SynchronizeInputs(inputs);
+        synchronizer.SynchronizeInputs(syncInputBuffer);
 
         return ResultCode.Ok;
     }
