@@ -5,6 +5,7 @@ using Backdash.Network.Messages;
 using Backdash.Network.Protocol;
 using Backdash.Network.Protocol.Messaging;
 using Backdash.Sync;
+using Backdash.Sync.Input;
 
 namespace Backdash.Network;
 

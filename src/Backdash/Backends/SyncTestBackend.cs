@@ -2,7 +2,7 @@ using System.Text;
 using System.Text.Json;
 using Backdash.Core;
 using Backdash.Data;
-using Backdash.Sync;
+using Backdash.Sync.Input;
 using Backdash.Sync.State;
 
 namespace Backdash.Backends;

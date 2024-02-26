@@ -8,7 +8,7 @@ using Backdash.Network.Messages;
 using Backdash.Network.Protocol;
 using Backdash.Network.Protocol.Messaging;
 using Backdash.Serialization;
-using Backdash.Sync;
+using Backdash.Sync.Input;
 using Backdash.Sync.State;
 
 namespace Backdash.Backends;
@@ -72,9 +72,9 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
 
         localConnections = new(Max.RemoteConnections);
 
+        spectators = [];
+        endpoints = [];
         udpObservers = new();
-        spectators = new();
-        endpoints = new();
         callbacks = new EmptySessionHandler<TGameState>(this.logger);
 
         synchronizer = new(
@@ -450,8 +450,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
             return;
 
         synchronizer.CheckSimulation();
-        // notify all of our endpoints of their local frame number for their
-        // next connection quality report
+        // notify all of our endpoints of their local frame number for their next connection quality report
         var currentFrame = synchronizer.CurrentFrame;
         for (var i = 0; i < endpoints.Count; i++)
             endpoints[i]?.SetLocalFrameNumber(currentFrame, options.FramesPerSecond);

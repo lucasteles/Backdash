@@ -3,7 +3,7 @@ using System.Numerics;
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network.Messages;
-using Backdash.Sync;
+using Backdash.Sync.Input;
 
 namespace Backdash.Tests.Utils;
 

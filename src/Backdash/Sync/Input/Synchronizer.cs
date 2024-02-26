@@ -4,7 +4,7 @@ using Backdash.Data;
 using Backdash.Network;
 using Backdash.Sync.State;
 
-namespace Backdash.Sync;
+namespace Backdash.Sync.Input;
 
 sealed class Synchronizer<TInput, TState>
     where TInput : struct

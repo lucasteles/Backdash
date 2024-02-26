@@ -1,5 +1,5 @@
 using Backdash.Serialization.Buffer;
-using Backdash.Sync;
+using Backdash.Sync.Input;
 
 namespace Backdash.Network.Protocol;
 
