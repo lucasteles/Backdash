@@ -15,7 +15,7 @@ sealed class PeerConnection<TInput>(
     Logger logger,
     IClock clock,
     ITimeSync<TInput> timeSync,
-    IProtocolEventQueue<TInput> eventQueue,
+    IProtocolNetworkEventHandler networkEventHandler,
     IProtocolSynchronizer syncRequest,
     IProtocolInbox<TInput> inbox,
     IProtocolOutbox outbox,
@@ -35,7 +35,7 @@ sealed class PeerConnection<TInput>(
         if (!state.StoppingTokenSource.IsCancellationRequested)
             state.StoppingTokenSource.Cancel();
 
-        eventQueue.Dispose();
+        networkEventHandler.Dispose();
         inputBuffer.Dispose();
         outbox.Dispose();
     }
@@ -70,7 +70,7 @@ sealed class PeerConnection<TInput>(
         state.Fairness.LocalFrameAdvantage = remoteFrame - localFrame;
     }
 
-    public ValueTask SendInputAck(CancellationToken ct)
+    public bool SendInputAck()
     {
         ProtocolMessage msg = new(MessageType.InputAck)
         {
@@ -80,7 +80,7 @@ sealed class PeerConnection<TInput>(
             },
         };
 
-        return outbox.SendMessageAsync(in msg, ct);
+        return outbox.SendMessage(in msg);
     }
 
     public void GetNetworkStats(ref RollbackNetworkStatus info)
@@ -170,7 +170,7 @@ sealed class PeerConnection<TInput>(
         {
             state.Connection.DisconnectNotifySent = true;
 
-            eventQueue.Publish(new(ProtocolEvent.NetworkInterrupted, state.Player)
+            networkEventHandler.OnNetworkEvent(new(ProtocolEvent.NetworkInterrupted, state.Player)
             {
                 NetworkInterrupted = new()
                 {
@@ -189,7 +189,7 @@ sealed class PeerConnection<TInput>(
             state.Connection.DisconnectEventSent = true;
             logger.Write(LogLevel.Warning,
                 $"Endpoint has stopped receiving packets for {(int)lastReceivedTime.TotalMilliseconds}ms. Disconnecting");
-            eventQueue.Publish(ProtocolEvent.Disconnected, state.Player);
+            networkEventHandler.OnNetworkEvent(ProtocolEvent.Disconnected, state.Player);
         }
     }
 

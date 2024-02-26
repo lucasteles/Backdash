@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network;
+using Backdash.Sync.Input.Spectator;
 using Backdash.Sync.State;
 
 namespace Backdash.Sync.Input;
@@ -96,12 +97,28 @@ sealed class Synchronizer<TInput, TState>
 
     public void AddRemoteInput(in PlayerHandle player, GameInput<TInput> input) => AddInput(in player, ref input);
 
-    public bool GetConfirmedInput(in Frame frame, int playerNumber, out GameInput<TInput> confirmed)
+    public bool GetConfirmedInputGroup(in Frame frame, out GameInput<InputGroup<TInput>> confirmed)
     {
         confirmed = new(frame);
+        confirmed.Data.Count = (byte)NumberOfPlayers;
+        GameInput<TInput> current = new();
+        for (var playerNumber = 0; playerNumber < NumberOfPlayers; playerNumber++)
+        {
+            if (!GetConfirmedInput(in frame, playerNumber, ref current))
+                return false;
+
+            confirmed.Data.Inputs[playerNumber] = current.Data;
+        }
+
+        return true;
+    }
+
+    public bool GetConfirmedInput(in Frame frame, int playerNumber, ref GameInput<TInput> confirmed)
+    {
         if (localConnections[playerNumber].Disconnected && frame > localConnections[playerNumber].LastFrame)
             return false;
 
+        confirmed.Frame = frame;
         inputQueues[playerNumber].GetConfirmedInput(in frame, ref confirmed);
         return true;
     }

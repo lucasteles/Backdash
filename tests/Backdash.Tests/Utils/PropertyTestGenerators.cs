@@ -4,6 +4,7 @@ using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network.Messages;
 using Backdash.Sync.Input;
+using Backdash.Sync.Input.Spectator;
 
 namespace Backdash.Tests.Utils;
 
@@ -322,6 +323,15 @@ class PropertyTestGenerators
         from w in Arb.Generate<float>()
         select new Quaternion(x, y, z, w)
     );
+
+    public static Arbitrary<InputGroup<T>> InputGroupGenerator<T>() where T : struct =>
+        Gen.Sized(testSize =>
+            {
+                var size = Math.Min(testSize, InputArray<T>.Capacity);
+                return Gen.ArrayOf(size, Arb.Generate<T>());
+            })
+            .Select(arr => new InputGroup<T>(arr))
+            .ToArbitrary();
 }
 
 record PendingGameInputs(GameInput[] Values);

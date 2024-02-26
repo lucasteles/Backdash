@@ -14,6 +14,9 @@ class StringBinarySerializer : IBinarySerializer<StringValue>
     public int Serialize(in StringValue data, Span<byte> buffer) =>
         Encoding.UTF8.GetBytes(data.Value, buffer);
 
-    public void Deserialize(ReadOnlySpan<byte> data, ref StringValue value) =>
+    public int Deserialize(ReadOnlySpan<byte> data, ref StringValue value)
+    {
         value = Encoding.UTF8.GetString(data);
+        return value.Value.Length;
+    }
 }

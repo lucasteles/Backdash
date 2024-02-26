@@ -114,7 +114,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
 
     public ResultCode AddPlayer(Player player)
     {
-        if (addedPlayers.Count >= Max.Players)
+        if (addedPlayers.Count >= Max.RemoteConnections)
             return ResultCode.TooManyPlayers;
 
         if (!addedPlayers.Add(player.Handle))

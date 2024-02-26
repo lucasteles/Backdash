@@ -14,7 +14,7 @@ static class Generate
 
     public static PlayerHandle PlayerHandle() => new(
         Random.Enum<PlayerType>(),
-        Random.Int(1, Max.Players)
+        Random.Int(1, Max.RemoteConnections)
     );
 
     public static GameInput GameInput(int frame, byte[] input)

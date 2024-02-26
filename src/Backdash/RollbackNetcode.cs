@@ -3,6 +3,7 @@ using Backdash.Core;
 using Backdash.Network;
 using Backdash.Network.Protocol;
 using Backdash.Serialization;
+using Backdash.Sync.Input.Spectator;
 using Backdash.Sync.State;
 using Backdash.Sync.State.Stores;
 
@@ -34,7 +35,31 @@ public static class RollbackNetcode
             checksumProvider,
             factory,
             new BackgroundJobManager(logger),
-            new ProtocolEventQueue<TInput>(),
+            new ProtocolInputEventQueue<TInput>(),
+            clock,
+            logger
+        );
+    }
+
+    public static IRollbackSession<TInput, TGameState> CreateSpectatorSession<TInput, TGameState>(
+        RollbackOptions options,
+        IBinarySerializer<TInput>? inputSerializer = null,
+        ILogWriter? logWriter = null
+    )
+        where TInput : struct
+        where TGameState : IEquatable<TGameState>, new()
+    {
+        inputSerializer ??= BinarySerializerFactory.FindOrThrow<TInput>(options.NetworkEndianness);
+        var factory = new UdpClientFactory();
+        var logger = new Logger(options.Log, logWriter ?? new ConsoleLogWriter());
+        var clock = new Clock();
+
+        return new SpectatorBackend<TInput, TGameState>(
+            options,
+            inputSerializer,
+            factory,
+            new BackgroundJobManager(logger),
+            new ProtocolInputEventQueue<InputGroup<TInput>>(),
             clock,
             logger
         );

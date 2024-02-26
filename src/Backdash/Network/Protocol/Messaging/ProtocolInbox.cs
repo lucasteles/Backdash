@@ -22,7 +22,8 @@ sealed class ProtocolInbox<TInput>(
     IClock clock,
     IProtocolSynchronizer sync,
     IMessageSender messageSender,
-    IProtocolEventQueue<TInput> events,
+    IProtocolNetworkEventHandler networkEvents,
+    IProtocolInputEventPublisher<TInput> inputEvents,
     Logger logger
 ) : IProtocolInbox<TInput> where TInput : struct
 {
@@ -81,7 +82,7 @@ sealed class ProtocolInbox<TInput>(
 
             if (state.Connection.DisconnectNotifySent && state.CurrentStatus is ProtocolStatus.Running)
             {
-                events.Publish(ProtocolEvent.NetworkResumed, state.Player);
+                networkEvents.OnNetworkEvent(ProtocolEvent.NetworkResumed, state.Player);
                 state.Connection.DisconnectNotifySent = false;
             }
         }
@@ -140,7 +141,7 @@ sealed class ProtocolInbox<TInput>(
             if (state.CurrentStatus is not ProtocolStatus.Disconnected && !state.Connection.DisconnectEventSent)
             {
                 logger.Write(LogLevel.Information, "Disconnecting endpoint on remote request");
-                events.Publish(ProtocolEvent.Disconnected, state.Player);
+                networkEvents.OnNetworkEvent(ProtocolEvent.Disconnected, state.Player);
                 state.Connection.DisconnectEventSent = true;
             }
         }
@@ -203,12 +204,7 @@ sealed class ProtocolInbox<TInput>(
                 logger.Write(LogLevel.Debug,
                     $"Received input: frame {lastReceivedInput.Frame}, sending to emulator queue {state.Player} (ack: {LastAckedFrame})");
 
-                events.Publish(
-                    new ProtocolEventInfo<TInput>(ProtocolEvent.Input, state.Player)
-                    {
-                        Input = lastReceivedInput,
-                    }
-                );
+                inputEvents.Publish(new(state.Player, lastReceivedInput));
             }
         }
 
@@ -262,7 +258,7 @@ sealed class ProtocolInbox<TInput>(
 
         if (!state.Connection.IsConnected)
         {
-            events.Publish(ProtocolEvent.Connected, state.Player);
+            networkEvents.OnNetworkEvent(ProtocolEvent.Connected, state.Player);
             state.Connection.IsConnected = true;
         }
 
@@ -283,15 +279,15 @@ sealed class ProtocolInbox<TInput>(
             state.Stats.RoundTripTime = ping;
             lastReceivedInput.ResetFrame();
             remoteMagicNumber = msg.Header.Magic;
-            events.Publish(new(ProtocolEvent.Synchronized, state.Player)
+            networkEvents.OnNetworkEvent(new(ProtocolEvent.Synchronized, state.Player)
             {
                 Synchronized = new(ping),
             });
         }
         else
         {
-            events.Publish(
-                new ProtocolEventInfo<TInput>(ProtocolEvent.Synchronizing, state.Player)
+            networkEvents.OnNetworkEvent(
+                new ProtocolEventInfo(ProtocolEvent.Synchronizing, state.Player)
                 {
                     Synchronizing = new(
                         TotalSteps: options.NumberOfSyncPackets,

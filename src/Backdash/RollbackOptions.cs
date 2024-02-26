@@ -14,6 +14,7 @@ public sealed class RollbackOptions(int port)
     public bool NetworkEndianness { get; init; } = true;
     public int PredictionFrames { get; init; } = Default.PredictionFrames;
     public int InputQueueLength { get; init; } = Default.InputQueueLength;
+    public int SpectatorInputBufferLength { get; init; } = Default.InputQueueLength;
     public int PredictionFramesOffset { get; init; } = Default.PredictionFramesOffset;
     public int FrameDelay { get; init; } = Default.FrameDelay;
     public bool RequireIdleInput { get; init; }
