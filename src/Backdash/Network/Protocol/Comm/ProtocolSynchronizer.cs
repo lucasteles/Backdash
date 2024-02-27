@@ -1,7 +1,7 @@
 using Backdash.Core;
 using Backdash.Network.Messages;
 
-namespace Backdash.Network.Protocol.Messaging;
+namespace Backdash.Network.Protocol.Comm;
 
 interface IProtocolSynchronizer
 {
@@ -17,15 +17,16 @@ sealed class ProtocolSynchronizer(
     IBackgroundJobManager jobManager,
     ProtocolState state,
     ProtocolOptions options,
-    IMessageSender sender
+    IMessageSender sender,
+    IProtocolNetworkEventHandler eventHandler
 ) : IBackgroundJob, IProtocolSynchronizer
 {
-    public string JobName => $"Sync Timer {state.Player}";
+    public string JobName => $"Synchronizer {state.Player}";
 
     public async ValueTask RequestSync(CancellationToken ct)
     {
         CreateRequestMessage(out var syncMsg);
-        logger.Write(LogLevel.Debug, $"New Sync Request: {syncMsg.SyncRequest.RandomRequest}");
+        logger.Write(LogLevel.Debug, $"New Sync Request: {syncMsg.SyncRequest.RandomRequest} for {state.Player}");
         await sender.SendMessageAsync(in syncMsg, ct);
     }
 
@@ -62,13 +63,15 @@ sealed class ProtocolSynchronizer(
 
     public async Task Start(CancellationToken ct)
     {
-        logger.Write(LogLevel.Debug, "Sync job: started");
+        logger.Write(LogLevel.Debug, $"Sync job: started for {state.Player}");
 
         if (state.CurrentStatus is ProtocolStatus.Running)
         {
-            logger.Write(LogLevel.Trace, "Sync job: already running... skipping sync.");
+            logger.Write(LogLevel.Trace, $"Sync job: already running for {state.Player}. skipping sync");
             return;
         }
+
+        var retryCounter = 0;
 
         do
         {
@@ -85,9 +88,21 @@ sealed class ProtocolSynchronizer(
             else
                 await Task.Delay(Default.SyncFirstRetryInterval, ct);
 
-            if (state.CurrentStatus is not ProtocolStatus.Syncing)
+            if (state.CurrentStatus is ProtocolStatus.Syncing)
+            {
+                if (retryCounter >= options.MaxSyncRetries)
+                {
+                    logger.Write(LogLevel.Warning,
+                        $"Fail to sync {state.Player} after {retryCounter} retries");
+                    eventHandler.OnNetworkEvent(ProtocolEvent.SyncFailure, state.Player);
+                    return;
+                }
+
                 logger.Write(LogLevel.Information,
-                    $"No luck syncing after {(int)clock.GetElapsedTime(time).TotalMilliseconds}ms... Re-queueing sync packet");
+                    $"No luck syncing {state.Player} after {(int)clock.GetElapsedTime(time).TotalMilliseconds}ms. Re-queueing sync packet");
+
+                retryCounter++;
+            }
         } while (!ct.IsCancellationRequested && state.CurrentStatus is ProtocolStatus.Syncing);
 
         logger.Write(LogLevel.Debug, $"Sync job: complete with status {state.CurrentStatus}");

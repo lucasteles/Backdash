@@ -25,8 +25,19 @@ public class View
 
     void DrawHeader(NonGameState nonGameState)
     {
-        Console.ForegroundColor = playerColors[nonGameState.LocalPlayer.Number - 1];
-        Console.WriteLine($"-- Player {nonGameState.LocalPlayer.Number} --\n");
+        if (nonGameState.LocalPlayer is { } localPlayer)
+        {
+            Console.Title = $"Player {localPlayer.Number}";
+            Console.ForegroundColor = playerColors[localPlayer.Number - 1];
+            Console.WriteLine($"-- Player {localPlayer.Number} --\n");
+        }
+        else
+        {
+            Console.Title = "Spectator";
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.WriteLine("-- Spectator --\n");
+        }
+
         Console.ForegroundColor = defaultColor;
     }
 
@@ -65,7 +76,7 @@ public class View
                 if (DrawPlayer(currentState.Position2, col, row, playerColors[1], status2))
                     continue;
 
-                if ((int)currentState.Target.X == col && (int)currentState.Target.Y == row)
+                if ((int) currentState.Target.X == col && (int) currentState.Target.Y == row)
                 {
                     Console.ForegroundColor = targetColor;
                     Console.Write('*');
@@ -84,7 +95,7 @@ public class View
 
     bool DrawPlayer(Vector2 pos, int col, int row, ConsoleColor color, PlayerStatus status)
     {
-        if ((int)pos.X == col && (int)pos.Y == row)
+        if ((int) pos.X == col && (int) pos.Y == row)
         {
             Console.ForegroundColor = color;
             Console.Write(status switch
@@ -113,7 +124,6 @@ public class View
                 break;
             case PlayerStatus.Synchronizing:
                 Console.Write("Synchronizing:");
-                Trace.WriteLine(nonGameState.SyncProgress);
                 DrawProgressBar(nonGameState.SyncProgress);
                 Console.WriteLine();
                 break;
@@ -160,12 +170,19 @@ public class View
         var peer = nonGameState.PeerNetworkStatus;
         var info = nonGameState.SessionInfo;
 
+
         Console.WriteLine(
             $"""
-             FPS:              {info.FramesPerSecond}
              Ping:             {peer.Ping.TotalMilliseconds:f4} ms
-             Pending Inputs:   {peer.PendingInputCount}
              Rollback:         {info.RollbackFrames}
+             """
+        );
+
+#if DEBUG
+        Console.WriteLine(
+            $"""
+             Pending Inputs:   {peer.PendingInputCount}
+             FPS:              {info.FramesPerSecond}
              Frame:            {info.CurrentFrame.Number} ack({peer.LastAckedFrame.Number}) send({peer.Send.LastFrame.Number})
              Advantage:        local({peer.LocalFramesBehind}) remote({peer.RemoteFramesBehind})
              Pkg Count out/in: {peer.Send.PackagesPerSecond:f2} pps / {peer.Received.PackagesPerSecond:f2} pps
@@ -175,5 +192,6 @@ public class View
 
         if (!string.IsNullOrWhiteSpace(nonGameState.LastError))
             Console.WriteLine($"Last Error:       {nonGameState.LastError}");
+#endif
     }
 }

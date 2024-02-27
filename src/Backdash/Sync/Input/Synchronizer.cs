@@ -97,10 +97,10 @@ sealed class Synchronizer<TInput, TState>
 
     public void AddRemoteInput(in PlayerHandle player, GameInput<TInput> input) => AddInput(in player, ref input);
 
-    public bool GetConfirmedInputGroup(in Frame frame, out GameInput<InputGroup<TInput>> confirmed)
+    public bool GetConfirmedInputGroup(in Frame frame, ref GameInput<InputGroup<TInput>> confirmed)
     {
-        confirmed = new(frame);
         confirmed.Data.Count = (byte)NumberOfPlayers;
+        confirmed.Frame = frame;
         GameInput<TInput> current = new();
         for (var playerNumber = 0; playerNumber < NumberOfPlayers; playerNumber++)
         {

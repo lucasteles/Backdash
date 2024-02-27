@@ -7,6 +7,7 @@ public enum ProtocolEvent : byte
     Connected,
     Synchronizing,
     Synchronized,
+    SyncFailure,
     Disconnected,
     NetworkInterrupted,
     NetworkResumed,

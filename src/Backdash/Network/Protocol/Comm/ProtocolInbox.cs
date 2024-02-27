@@ -7,7 +7,7 @@ using Backdash.Network.Messages;
 using Backdash.Serialization;
 using Backdash.Sync.Input;
 
-namespace Backdash.Network.Protocol.Messaging;
+namespace Backdash.Network.Protocol.Comm;
 
 interface IProtocolInbox<TInput> : IUdpObserver<ProtocolMessage> where TInput : struct
 {
@@ -42,7 +42,7 @@ sealed class ProtocolInbox<TInput>(
         CancellationToken stoppingToken
     )
     {
-        if (!from.Equals(state.Peer.Address))
+        if (!from.Equals(state.PeerAddress.Address))
             return;
 
         var seqNum = message.Header.SequenceNumber;
@@ -50,13 +50,13 @@ sealed class ProtocolInbox<TInput>(
         {
             if (state.CurrentStatus is not ProtocolStatus.Running)
             {
-                logger.Write(LogLevel.Debug, $"recv skip (not ready): {message}");
+                logger.Write(LogLevel.Debug, $"recv skip (not ready): {message} on {state.Player}");
                 return;
             }
 
             if (message.Header.Magic != remoteMagicNumber)
             {
-                logger.Write(LogLevel.Debug, $"recv rejecting: {message}");
+                logger.Write(LogLevel.Debug, $"recv rejecting: {message} on {state.Player}");
                 return;
             }
 
@@ -69,7 +69,7 @@ sealed class ProtocolInbox<TInput>(
         }
 
         nextRecvSeq = seqNum;
-        logger.Write(LogLevel.Trace, $"recv {message}");
+        logger.Write(LogLevel.Trace, $"recv {message} from {state.Player}");
 
         if (HandleMessage(ref message, out var replyMsg))
         {
@@ -187,6 +187,9 @@ sealed class ProtocolInbox<TInput>(
 
                 if (decompressor.Skip(framesAhead))
                     currentFrame += framesAhead;
+                else
+                    // probably we already heave all inputs from this message
+                    return true;
             }
 
             Trace.Assert(currentFrame == nextFrame);

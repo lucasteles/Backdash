@@ -1,7 +1,7 @@
 using Backdash.Core;
 using Backdash.Network.Client;
 using Backdash.Network.Messages;
-using Backdash.Network.Protocol.Messaging;
+using Backdash.Network.Protocol.Comm;
 
 namespace Backdash.Network.Protocol;
 

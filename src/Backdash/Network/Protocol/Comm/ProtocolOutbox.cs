@@ -5,7 +5,7 @@ using Backdash.Data;
 using Backdash.Network.Client;
 using Backdash.Network.Messages;
 
-namespace Backdash.Network.Protocol.Messaging;
+namespace Backdash.Network.Protocol.Comm;
 
 interface IProtocolOutbox : IMessageSender, IBackgroundJob, IDisposable;
 
@@ -40,13 +40,13 @@ sealed class ProtocolOutbox(
 
     int nextSendSeq;
 
-    public string JobName { get; } = $"{nameof(ProtocolOutbox)} ({udp.Port})";
+    public string JobName { get; } = $"{nameof(ProtocolOutbox)} {state.Player} {udp.Port}";
 
     QueueEntry CreateNextEntry(in ProtocolMessage msg) =>
         new()
         {
             QueueTime = clock.GetTimeStamp(),
-            Recipient = state.Peer.Address,
+            Recipient = state.PeerAddress.Address,
             Body = msg,
         };
 
@@ -80,7 +80,7 @@ sealed class ProtocolOutbox(
                 message.Header.SequenceNumber = (ushort)nextSendSeq;
                 nextSendSeq++;
 
-                logger.Write(LogLevel.Trace, $"send {message}");
+                logger.Write(LogLevel.Trace, $"send {message} on {state.Player}");
 
                 if (sendLatency > TimeSpan.Zero)
                 {
@@ -89,7 +89,7 @@ sealed class ProtocolOutbox(
                     while (clock.GetElapsedTime(entry.QueueTime) <= jitter)
                     {
                         sw.SpinOnce();
-                        // LATER: allocations here
+                        // LATER: allocations here with Task.Delay
                         // await Task.Delay(delayDiff, ct).ConfigureAwait(false)
                     }
                 }
@@ -105,5 +105,5 @@ sealed class ProtocolOutbox(
         }
     }
 
-    public void Dispose() => sendQueue.Writer.Complete();
+    public void Dispose() => sendQueue.Writer.TryComplete();
 }

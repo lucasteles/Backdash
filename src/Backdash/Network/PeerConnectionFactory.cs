@@ -2,7 +2,7 @@ using Backdash.Core;
 using Backdash.Network.Client;
 using Backdash.Network.Messages;
 using Backdash.Network.Protocol;
-using Backdash.Network.Protocol.Messaging;
+using Backdash.Network.Protocol.Comm;
 using Backdash.Serialization;
 using Backdash.Sync;
 
@@ -51,7 +51,8 @@ sealed class PeerConnectionFactory
     {
         var timeSync = new TimeSync<TInput>(timeSyncOptions, logger);
         var outbox = new ProtocolOutbox(state, options, udp, delayStrategy, random, clock, logger);
-        var syncManager = new ProtocolSynchronizer(logger, clock, random, jobManager, state, options, outbox);
+        var syncManager = new ProtocolSynchronizer(logger, clock, random, jobManager, state, options, outbox,
+            networkEventHandler);
         var inbox = new ProtocolInbox<TInput>(options, inputSerializer, state, clock, syncManager, outbox,
             networkEventHandler, inputEventQueue, logger);
         var inputBuffer =
@@ -59,9 +60,12 @@ sealed class PeerConnectionFactory
 
         jobManager.Register(outbox, state.StoppingToken);
 
-        return new(
+        PeerConnection<TInput> connection = new(
             options, state, logger, clock, timeSync, networkEventHandler,
             syncManager, inbox, outbox, inputBuffer
         );
+
+        state.StoppingToken.Register(() => connection.Disconnect());
+        return connection;
     }
 }

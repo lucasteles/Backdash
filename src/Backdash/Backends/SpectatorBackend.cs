@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Net;
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network;
@@ -11,79 +12,83 @@ using Backdash.Sync.Input.Spectator;
 
 namespace Backdash.Backends;
 
-sealed class SpectatorBackend<TInput, TGameState> : IRollbackSession<TInput, TGameState>, IProtocolNetworkEventHandler
+sealed class SpectatorBackend<TInput, TGameState> :
+    IRollbackSession<TInput, TGameState>,
+    IProtocolNetworkEventHandler,
+    IProtocolInputEventPublisher<InputGroup<TInput>>
     where TInput : struct
     where TGameState : IEquatable<TGameState>, new()
 {
-    readonly RollbackOptions options;
-    readonly IBinarySerializer<InputGroup<TInput>> inputSerializer;
     readonly Logger logger;
     readonly IUdpClient<ProtocolMessage> udp;
-    readonly UdpObserverGroup<ProtocolMessage> udpObservers;
+    readonly RollbackOptions options;
     readonly IBackgroundJobManager backgroundJobManager;
-    readonly IProtocolInputEventQueue<InputGroup<TInput>> peerInputEventQueue;
-    readonly PeerConnectionFactory peerConnectionFactory;
     readonly IClock clock;
     readonly ConnectionsState localConnections = new(0);
 
-    readonly List<PlayerHandle> hostPlayer;
     readonly GameInput<InputGroup<TInput>>[] inputs;
-    PeerConnection<InputGroup<TInput>>? host;
+    readonly PeerConnection<InputGroup<TInput>> host;
     IRollbackHandler<TGameState> callbacks;
 
-    bool isSynchronizing = true;
+    bool isSynchronizing;
     Task backgroundJobTask = Task.CompletedTask;
     bool disposed;
     long startTimestamp;
+    long lastReceivedInputTime;
 
     SynchronizedInput<TInput>[] syncInputBuffer = [];
 
     public SpectatorBackend(
         RollbackOptions options,
+        IPEndPoint hostEndpoint,
         IBinarySerializer<TInput> inputSerializer,
         IUdpClientFactory udpClientFactory,
         IBackgroundJobManager backgroundJobManager,
-        IProtocolInputEventQueue<InputGroup<TInput>> peerInputEventQueue,
         IClock clock,
         Logger logger
     )
     {
         this.options = options;
-        this.inputSerializer = new InputGroupSerializer<TInput>(inputSerializer);
         this.backgroundJobManager = backgroundJobManager;
-        this.peerInputEventQueue = peerInputEventQueue;
         this.logger = logger;
         this.clock = clock;
 
+        IBinarySerializer<InputGroup<TInput>> inputGroupSerializer = new InputGroupSerializer<TInput>(inputSerializer);
         callbacks = new EmptySessionHandler<TGameState>(this.logger);
-        udpObservers = new();
-        hostPlayer = [];
+        UdpObserverGroup<ProtocolMessage> udpObservers = new();
         inputs = new GameInput<InputGroup<TInput>>[options.SpectatorInputBufferLength];
 
-        var selectedEndianness = Platform.GetEndianness(this.options.NetworkEndianness);
+        var selectedEndianness = Platform.GetEndianness(options.NetworkEndianness);
         udp = udpClientFactory.CreateClient(
-            this.options.LocalPort,
+            options.LocalPort,
             selectedEndianness,
-            this.options.Protocol.UdpPacketBufferSize,
+            options.Protocol.UdpPacketBufferSize,
             udpObservers,
             this.logger
         );
 
-        peerConnectionFactory = new(
+        PeerConnectionFactory peerConnectionFactory = new(
             this.clock,
-            this.options.Random,
+            options.Random,
             this.logger,
             this.backgroundJobManager,
             this,
             udp,
-            this.options.Protocol,
-            this.options.TimeSync
+            options.Protocol,
+            options.TimeSync
         );
 
-        backgroundJobManager.Register(udp);
+        this.backgroundJobManager.Register(udp);
+
+        host = peerConnectionFactory.Create(
+            new(new PlayerHandle(PlayerType.Remote, 0), hostEndpoint, localConnections, options.FramesPerSecond),
+            inputGroupSerializer, this);
+        udpObservers.Add(host.GetUdpObserver());
+        host.Synchronize();
+        isSynchronizing = true;
 
         if (this.logger.EnabledLevel is not LogLevel.Off && this.logger.RunningAsync)
-            backgroundJobManager.Register(this.logger);
+            this.backgroundJobManager.Register(this.logger);
     }
 
     public void Dispose()
@@ -101,7 +106,8 @@ sealed class SpectatorBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
     public void Close()
     {
         logger.Write(LogLevel.Information, "Shutting down connections");
-        host?.Dispose();
+        host.Dispose();
+        callbacks.OnSessionClose();
     }
 
     public Frame CurrentFrame { get; private set; } = Frame.Zero;
@@ -110,7 +116,7 @@ sealed class SpectatorBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
     public int NumberOfSpectators => 0;
 
     public ResultCode AddLocalInput(PlayerHandle player, TInput localInput) => ResultCode.Ok;
-    public IReadOnlyCollection<PlayerHandle> GetPlayers() => hostPlayer;
+    public IReadOnlyCollection<PlayerHandle> GetPlayers() => [];
     public IReadOnlyCollection<PlayerHandle> GetSpectators() => [];
 
     public int FramesPerSecond
@@ -124,53 +130,22 @@ sealed class SpectatorBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
 
     public void BeginFrame()
     {
-        if (!isSynchronizing)
-            logger.Write(LogLevel.Debug, $"[Begin Frame {CurrentFrame}]");
-
-        ConsumeProtocolInputEvents();
+        if (lastReceivedInputTime > 0
+            && clock.GetElapsedTime(lastReceivedInputTime) > options.Protocol.DisconnectTimeout)
+            Close();
     }
 
     public void AdvanceFrame() => logger.Write(LogLevel.Debug, $"[End Frame {CurrentFrame}]");
 
-    public PlayerConnectionStatus GetPlayerStatus(in PlayerHandle player)
-    {
-        if (player != hostPlayer[0] || host is null)
-            return PlayerConnectionStatus.Unknown;
+    public PlayerConnectionStatus GetPlayerStatus(in PlayerHandle player) => host.Status.ToPlayerStatus();
 
-        return host.Status.ToPlayerStatus();
-    }
+    public ResultCode AddPlayer(Player player) => ResultCode.NotSupported;
 
-    public ResultCode AddPlayer(Player player)
-    {
-        if (NumberOfPlayers > 0 || player is not RemotePlayer remotePlayer)
-            return ResultCode.NotSupported;
-
-        hostPlayer.Add(player.Handle);
-        host = peerConnectionFactory.Create(
-            new(player.Handle, remotePlayer.EndPoint, localConnections, options.FramesPerSecond),
-            inputSerializer,
-            peerInputEventQueue
-        );
-        udpObservers.Add(host.GetUdpObserver());
-        host.Synchronize();
-        isSynchronizing = true;
-
-        return ResultCode.Ok;
-    }
-
-    public IReadOnlyList<ResultCode> AddPlayers(IReadOnlyList<Player> players)
-    {
-        var result = new ResultCode[players.Count];
-        for (var index = 0; index < players.Count; index++)
-            result[index] = AddPlayer(players[index]);
-        return result;
-    }
+    public IReadOnlyList<ResultCode> AddPlayers(IReadOnlyList<Player> players) =>
+        Enumerable.Repeat(ResultCode.NotSupported, players.Count).ToArray();
 
     public bool GetNetworkStatus(in PlayerHandle player, ref RollbackNetworkStatus info)
     {
-        if (player != hostPlayer[0] || host is null)
-            return false;
-
         host.GetNetworkStats(ref info);
         return true;
     }
@@ -190,22 +165,6 @@ sealed class SpectatorBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
     {
         ArgumentNullException.ThrowIfNull(handler);
         callbacks = handler;
-    }
-
-    void ConsumeProtocolInputEvents()
-    {
-        if (host is null) return;
-
-        while (peerInputEventQueue.TryConsume(out var gameInputEvent))
-        {
-            var (player, input) = gameInputEvent;
-            if (player != hostPlayer[0]) return;
-
-            host.SetLocalFrameNumber(input.Frame);
-            host.SendInputAck();
-
-            inputs[input.Frame.Number % inputs.Length] = input;
-        }
     }
 
     public void OnNetworkEvent(in ProtocolEventInfo evt)
@@ -228,8 +187,12 @@ sealed class SpectatorBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
                 {
                     Synchronized = new(evt.Synchronized.Ping),
                 });
-                callbacks.Start();
+                callbacks.OnSessionStart();
                 startTimestamp = clock.GetTimeStamp();
+                isSynchronizing = false;
+                break;
+            case ProtocolEvent.SyncFailure:
+                Close();
                 break;
             case ProtocolEvent.NetworkInterrupted:
                 callbacks.OnPeerEvent(player, new(PeerEvent.ConnectionInterrupted)
@@ -255,6 +218,10 @@ sealed class SpectatorBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
             return ResultCode.NotSynchronized;
 
         ref var input = ref inputs[CurrentFrame.Number % inputs.Length];
+
+        if (input.Data.Count is 0 && CurrentFrame == Frame.Zero)
+            return ResultCode.NotSynchronized;
+
         if (input.Frame < CurrentFrame)
         {
             // Haven't received the input from the host yet.  Wait
@@ -286,4 +253,13 @@ sealed class SpectatorBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
 
     public ref readonly SynchronizedInput<TInput> GetInput(in PlayerHandle player) =>
         ref syncInputBuffer[player.Number - 1];
+
+    public void Publish(in GameInputEvent<InputGroup<TInput>> evt)
+    {
+        lastReceivedInputTime = clock.GetTimeStamp();
+        var (_, input) = evt;
+        inputs[input.Frame.Number % inputs.Length] = input;
+        host.SetLocalFrameNumber(input.Frame);
+        host.SendInputAck();
+    }
 }

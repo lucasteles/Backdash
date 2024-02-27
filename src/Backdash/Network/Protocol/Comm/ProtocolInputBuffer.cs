@@ -6,9 +6,9 @@ using Backdash.Serialization;
 using Backdash.Sync;
 using Backdash.Sync.Input;
 
-namespace Backdash.Network.Protocol.Messaging;
+namespace Backdash.Network.Protocol.Comm;
 
-interface IProtocolInputBuffer<TInput> : IDisposable where TInput : struct
+interface IProtocolInputBuffer<TInput> where TInput : struct
 {
     int PendingNumber { get; }
     GameInput<TInput> LastSent { get; }
@@ -90,6 +90,9 @@ sealed class ProtocolInputBuffer<TInput> : IProtocolInputBuffer<TInput>
 
     public SendInputResult SendPendingInputs()
     {
+        if (pendingOutput.Count is 0)
+            return SendInputResult.Ok;
+
         var createMessageResult = CreateInputMessage(out var inputMessage);
         sender.SendMessage(in inputMessage);
         return createMessageResult;
@@ -117,6 +120,8 @@ sealed class ProtocolInputBuffer<TInput> : IProtocolInputBuffer<TInput>
             lastAckedInput = acked;
             lastAckSize = inputSerializer.Serialize(in lastAckedInput.Data, lastAckBytes);
         }
+
+        Trace.Assert(lastAckedInput.Frame.IsNull || lastAckedInput.Frame.Next() == lastAckFrame);
 
         var currentSize = 0;
         if (pendingOutput.TryPeek(out current))
@@ -182,6 +187,4 @@ sealed class ProtocolInputBuffer<TInput> : IProtocolInputBuffer<TInput>
             ? SendInputResult.MessageBodyOverflow
             : SendInputResult.Ok;
     }
-
-    public void Dispose() => pendingOutput.Clear();
 }

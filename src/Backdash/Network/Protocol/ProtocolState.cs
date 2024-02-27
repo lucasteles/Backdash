@@ -6,7 +6,7 @@ namespace Backdash.Network.Protocol;
 
 sealed class ProtocolState(
     PlayerHandle player,
-    Peer peer,
+    PeerAddress peerAddress,
     ConnectionsState localConnectStatuses,
     short fps
 )
@@ -15,7 +15,7 @@ sealed class ProtocolState(
     public CancellationToken StoppingToken => StoppingTokenSource.Token;
 
     public readonly PlayerHandle Player = player;
-    public readonly Peer Peer = peer;
+    public readonly PeerAddress PeerAddress = peerAddress;
 
     public readonly SyncState Sync = new();
     public readonly ConnectionState Connection = new();

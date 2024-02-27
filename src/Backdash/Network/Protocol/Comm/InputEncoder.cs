@@ -1,7 +1,7 @@
 using Backdash.Network.Messages;
 using Backdash.Serialization.Encoding;
 
-namespace Backdash.Network.Protocol.Messaging;
+namespace Backdash.Network.Protocol.Comm;
 
 static class InputEncoder
 {

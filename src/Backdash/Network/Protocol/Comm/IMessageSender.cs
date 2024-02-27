@@ -1,6 +1,6 @@
 using Backdash.Network.Messages;
 
-namespace Backdash.Network.Protocol.Messaging;
+namespace Backdash.Network.Protocol.Comm;
 
 interface IMessageSender
 {

@@ -1,6 +1,6 @@
 using Backdash.Data;
 using Backdash.Network.Messages;
-using Backdash.Network.Protocol.Messaging;
+using Backdash.Network.Protocol.Comm;
 
 namespace Backdash.Tests.Specs.Unit.Input;
 

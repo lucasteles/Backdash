@@ -1,9 +1,9 @@
+using System.Net;
 using Backdash.Backends;
 using Backdash.Core;
 using Backdash.Network;
 using Backdash.Network.Protocol;
 using Backdash.Serialization;
-using Backdash.Sync.Input.Spectator;
 using Backdash.Sync.State;
 using Backdash.Sync.State.Stores;
 
@@ -24,9 +24,12 @@ public static class RollbackNetcode
         inputSerializer ??= BinarySerializerFactory.FindOrThrow<TInput>(options.NetworkEndianness);
         checksumProvider ??= ChecksumProviderFactory.Create<TGameState>();
         var factory = new UdpClientFactory();
-        var logger = new Logger(options.Log, logWriter ?? new ConsoleLogWriter());
         var stateStore = StateStoreFactory.Create(stateSerializer);
         var clock = new Clock();
+        var logger = new Logger(options.Log,
+            logWriter is null || options.Log.EnabledLevel is LogLevel.Off
+                ? new ConsoleLogWriter()
+                : logWriter);
 
         return new Peer2PeerBackend<TInput, TGameState>(
             options,
@@ -43,6 +46,7 @@ public static class RollbackNetcode
 
     public static IRollbackSession<TInput, TGameState> CreateSpectatorSession<TInput, TGameState>(
         RollbackOptions options,
+        IPEndPoint host,
         IBinarySerializer<TInput>? inputSerializer = null,
         ILogWriter? logWriter = null
     )
@@ -51,15 +55,20 @@ public static class RollbackNetcode
     {
         inputSerializer ??= BinarySerializerFactory.FindOrThrow<TInput>(options.NetworkEndianness);
         var factory = new UdpClientFactory();
-        var logger = new Logger(options.Log, logWriter ?? new ConsoleLogWriter());
         var clock = new Clock();
+
+        var logger = new Logger(options.Log,
+            logWriter is null || options.Log.EnabledLevel is LogLevel.Off
+                ? new ConsoleLogWriter()
+                : logWriter
+        );
 
         return new SpectatorBackend<TInput, TGameState>(
             options,
+            host,
             inputSerializer,
             factory,
             new BackgroundJobManager(logger),
-            new ProtocolInputEventQueue<InputGroup<TInput>>(),
             clock,
             logger
         );
@@ -75,10 +84,13 @@ public static class RollbackNetcode
         where TGameState : IEquatable<TGameState>, new()
     {
         checksumProvider ??= ChecksumProviderFactory.Create<TGameState>();
-
-        var logger = new Logger(options.Log, logWriter ?? new ConsoleLogWriter());
         var stateStore = StateStoreFactory.Create(stateSerializer);
         var clock = new Clock();
+        var logger = new Logger(options.Log,
+            logWriter is null || options.Log.EnabledLevel is LogLevel.Off
+                ? new ConsoleLogWriter()
+                : logWriter
+        );
 
         return new SyncTestBackend<TInput, TGameState>(
             options,

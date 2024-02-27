@@ -3,7 +3,7 @@ using Backdash.Data;
 using Backdash.Network.Client;
 using Backdash.Network.Messages;
 using Backdash.Network.Protocol;
-using Backdash.Network.Protocol.Messaging;
+using Backdash.Network.Protocol.Comm;
 using Backdash.Sync;
 using Backdash.Sync.Input;
 
@@ -32,11 +32,12 @@ sealed class PeerConnection<TInput>(
 
     public void Dispose()
     {
+        state.CurrentStatus = ProtocolStatus.Disconnected;
+
         if (!state.StoppingTokenSource.IsCancellationRequested)
             state.StoppingTokenSource.Cancel();
 
         networkEventHandler.Dispose();
-        inputBuffer.Dispose();
         outbox.Dispose();
     }
 
@@ -45,7 +46,8 @@ sealed class PeerConnection<TInput>(
         if (state.CurrentStatus is ProtocolStatus.Disconnected) return;
         state.CurrentStatus = ProtocolStatus.Disconnected;
 
-        state.StoppingTokenSource.CancelAfter(options.ShutdownTime);
+        if (!state.StoppingTokenSource.IsCancellationRequested)
+            state.StoppingTokenSource.CancelAfter(options.ShutdownTime);
     }
 
     // require idle input should be a configuration parameter
@@ -72,6 +74,9 @@ sealed class PeerConnection<TInput>(
 
     public bool SendInputAck()
     {
+        if (inbox.LastReceivedInput.Frame.IsNull)
+            return true;
+
         ProtocolMessage msg = new(MessageType.InputAck)
         {
             InputAck = new()
@@ -155,7 +160,7 @@ sealed class PeerConnection<TInput>(
             return;
 
         logger.Write(LogLevel.Debug,
-            $"Haven't exchanged packets in a while (last received:{inbox.LastReceivedInput.Frame.Number} last sent:{inputBuffer.LastSent.Frame.Number}). Resending");
+            $"{state.Player} haven't exchanged packets in a while (last received:{inbox.LastReceivedInput.Frame.Number} last sent:{inputBuffer.LastSent.Frame.Number}). Resending");
 
         inputBuffer.SendPendingInputs();
     }
@@ -179,7 +184,7 @@ sealed class PeerConnection<TInput>(
             });
 
             logger.Write(LogLevel.Warning,
-                $"Endpoint has stopped receiving packets for {(int)lastReceivedTime.TotalMilliseconds}ms. Sending notification");
+                $"{state.Player} endpoint has stopped receiving packets for {(int)lastReceivedTime.TotalMilliseconds}ms. Sending notification");
 
             return;
         }
@@ -188,7 +193,7 @@ sealed class PeerConnection<TInput>(
         {
             state.Connection.DisconnectEventSent = true;
             logger.Write(LogLevel.Warning,
-                $"Endpoint has stopped receiving packets for {(int)lastReceivedTime.TotalMilliseconds}ms. Disconnecting");
+                $"{state.Player} endpoint has stopped receiving packets for {(int)lastReceivedTime.TotalMilliseconds}ms. Disconnecting");
             networkEventHandler.OnNetworkEvent(ProtocolEvent.Disconnected, state.Player);
         }
     }

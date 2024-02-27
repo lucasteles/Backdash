@@ -10,7 +10,8 @@ namespace Backdash;
  */
 public interface IRollbackHandler<TState> where TState : notnull
 {
-    void Start();
+    void OnSessionStart();
+    void OnSessionClose();
 
     /*
      * The client should return a copy of the entire contents of the current game state
@@ -43,8 +44,11 @@ public interface IRollbackHandler<TState> where TState : notnull
 sealed class EmptySessionHandler<TState>(Logger logger)
     : IRollbackHandler<TState> where TState : notnull, new()
 {
-    public void Start() =>
+    public void OnSessionStart() =>
         logger.Write(LogLevel.Information, $"{DateTime.UtcNow:o} [Session Handler] Running.");
+
+    public void OnSessionClose() =>
+        logger.Write(LogLevel.Information, $"{DateTime.UtcNow:o} [Session Handler] Closing.");
 
     public void SaveState(int frame, ref TState state) =>
         logger.Write(LogLevel.Information,

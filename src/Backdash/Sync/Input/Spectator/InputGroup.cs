@@ -5,8 +5,10 @@ namespace Backdash.Sync.Input.Spectator;
 
 record struct InputGroup<TInput> where TInput : struct
 {
-    public byte Count;
+    public byte Count = InputArray<TInput>.Capacity;
     public InputArray<TInput> Inputs = new();
+
+    public InputGroup() => Count = InputArray<TInput>.Capacity;
 
     public InputGroup(ReadOnlySpan<TInput> inputs)
     {

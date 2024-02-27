@@ -21,12 +21,10 @@ public abstract class LogWriter : ILogWriter, IAsyncDisposable
 
     protected virtual void Dispose(bool disposing)
     {
-        if (disposing)
-        {
-            disposed = true;
-            textWriter.Close();
-            textWriter.Dispose();
-        }
+        if (!disposing) return;
+        disposed = true;
+        textWriter.Close();
+        textWriter.Dispose();
     }
 
     public void Dispose()
@@ -53,13 +51,13 @@ public sealed class FileLogWriter : LogWriter
 
     const string DefaultFileName = "log_{{proc_id}}_{{timestamp}}";
 
-    public FileLogWriter(string? filename = null)
+    public FileLogWriter(string? filename = null, bool append = true)
     {
         filename = !string.IsNullOrWhiteSpace(filename) ? filename : DefaultFileName;
         filename = filename
             .Replace("{{proc_id}}", Environment.ProcessId.ToString())
             .Replace("{{timestamp}}", $"{DateTime.Now:yyyyMMddhhmmss}");
 
-        textWriter = new StreamWriter(filename, append: true);
+        textWriter = new StreamWriter(filename, append);
     }
 }

@@ -1,7 +1,7 @@
 using System.Net;
 using System.Runtime.CompilerServices;
 using Backdash.Network.Protocol;
-using Backdash.Network.Protocol.Messaging;
+using Backdash.Network.Protocol.Comm;
 using Backdash.Serialization.Buffer;
 
 #pragma warning disable S4144

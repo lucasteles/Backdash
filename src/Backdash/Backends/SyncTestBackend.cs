@@ -96,7 +96,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
     {
         if (!running)
         {
-            callbacks.Start();
+            callbacks.OnSessionStart();
             running = true;
 
             startTimestamp = clock.GetTimeStamp();

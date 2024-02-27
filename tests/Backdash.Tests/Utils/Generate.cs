@@ -8,7 +8,7 @@ static class Generate
     public static readonly Faker Faker = new();
     public static Randomizer Random => Faker.Random;
 
-    public static Peer Peer() => Faker.Internet.IpEndPoint();
+    public static PeerAddress Peer() => Faker.Internet.IpEndPoint();
 
     public static ConnectionsState ConnectionsState() => new(Max.RemoteConnections);
 

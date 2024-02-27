@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Threading.Channels;
 
 namespace Backdash.Core;
@@ -53,6 +54,7 @@ sealed class BackgroundJobManager(Logger logger) : IBackgroundJobManager
     {
         var job = entry.Job;
 
+        logger.Write(LogLevel.Trace, $"job {job.JobName} start");
         var task = Task.Run(async () =>
         {
             var jobCancellation = entry.StoppingToken;
@@ -71,7 +73,9 @@ sealed class BackgroundJobManager(Logger logger) : IBackgroundJobManager
             }
             catch (Exception ex)
             {
-                logger.Write(LogLevel.Error, $"job  {job.JobName} error: {ex}");
+                logger.Write(LogLevel.Error, $"job {job.JobName} error: {ex}");
+                if (Debugger.IsAttached) throw;
+                cts.CancelAfter(TimeSpan.FromMilliseconds(100));
             }
         }, StoppingToken);
 
