@@ -1,6 +1,7 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
+using Backdash.Core;
 using Backdash.Serialization.Buffer;
 
 namespace Backdash;
@@ -73,6 +74,12 @@ public readonly struct PlayerHandle : IUtf8SpanFormattable,
     public override int GetHashCode() => HashCode.Combine((int)Type, Number);
     public static bool operator ==(PlayerHandle left, PlayerHandle right) => left.Equals(right);
     public static bool operator !=(PlayerHandle left, PlayerHandle right) => !left.Equals(right);
+
+    public static PlayerHandle Local(int number)
+    {
+        ThrowHelpers.ThrowIfArgumentIsNegative(number);
+        return new PlayerHandle(PlayerType.Local, number);
+    }
 }
 
 public enum PlayerType
