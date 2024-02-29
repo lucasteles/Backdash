@@ -2,7 +2,7 @@
 
 namespace SpaceWar.Logic;
 
-public class GameState
+public sealed record GameState
 {
     public Ship[] Ships = [];
     public Rectangle Bounds;

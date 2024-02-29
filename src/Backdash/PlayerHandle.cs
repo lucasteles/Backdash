@@ -15,6 +15,8 @@ public readonly struct PlayerHandle : IUtf8SpanFormattable,
     public readonly PlayerType Type;
     internal readonly int InternalQueue;
 
+    public int Index => InternalQueue;
+
     internal PlayerHandle(PlayerType type, int number, int queue = -1)
     {
         Number = number;

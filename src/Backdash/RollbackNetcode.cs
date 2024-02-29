@@ -12,6 +12,7 @@ namespace Backdash;
 public static class RollbackNetcode
 {
     public static IRollbackSession<TInput, TGameState> CreateSession<TInput, TGameState>(
+        int port,
         RollbackOptions options,
         IBinarySerializer<TInput>? inputSerializer = null,
         IBinarySerializer<TGameState>? stateSerializer = null,
@@ -23,6 +24,7 @@ public static class RollbackNetcode
     {
         inputSerializer ??= BinarySerializerFactory.FindOrThrow<TInput>(options.NetworkEndianness);
         checksumProvider ??= ChecksumProviderFactory.Create<TGameState>();
+        options.LocalPort = port;
         var factory = new UdpClientFactory();
         var stateStore = StateStoreFactory.Create(stateSerializer);
         var clock = new Clock();
@@ -45,6 +47,7 @@ public static class RollbackNetcode
     }
 
     public static IRollbackSession<TInput, TGameState> CreateSpectatorSession<TInput, TGameState>(
+        int port,
         RollbackOptions options,
         IPEndPoint host,
         IBinarySerializer<TInput>? inputSerializer = null,
@@ -53,6 +56,7 @@ public static class RollbackNetcode
         where TInput : struct
         where TGameState : IEquatable<TGameState>, new()
     {
+        options.LocalPort = port;
         inputSerializer ??= BinarySerializerFactory.FindOrThrow<TInput>(options.NetworkEndianness);
         var factory = new UdpClientFactory();
         var clock = new Clock();
@@ -75,6 +79,7 @@ public static class RollbackNetcode
     }
 
     public static IRollbackSession<TInput, TGameState> CreateTestSession<TInput, TGameState>(
+        int port,
         RollbackOptions options,
         IChecksumProvider<TGameState>? checksumProvider = null,
         IBinarySerializer<TGameState>? stateSerializer = null,
@@ -83,6 +88,7 @@ public static class RollbackNetcode
         where TInput : struct
         where TGameState : IEquatable<TGameState>, new()
     {
+        options.LocalPort = port;
         checksumProvider ??= ChecksumProviderFactory.Create<TGameState>();
         var stateStore = StateStoreFactory.Create(stateSerializer);
         var clock = new Clock();

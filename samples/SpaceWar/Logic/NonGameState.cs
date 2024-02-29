@@ -18,20 +18,20 @@ public class PlayerConnectionInfo
     public PlayerConnectState State;
     public int ConnectProgress;
     public TimeSpan DisconnectTimeout;
-    public long DisconnectStart;
+    public DateTime DisconnectStart;
 }
 
 public readonly record struct ChecksumInfo(Frame FrameNumber, int Checksum);
 
-public class NonGameState(int numberOfPlayers, PlayerHandle localPlayer, GameWindow window)
+public class NonGameState(int numberOfPlayers, GameWindow window)
 {
     public Background Background = new(window.ClientBounds);
-
-    public readonly PlayerHandle LocalPlayerHandle = localPlayer;
     public readonly PlayerConnectionInfo[] Players = new PlayerConnectionInfo[numberOfPlayers];
-    public int NumberOfPlayers => numberOfPlayers;
+    public PlayerHandle? LocalPlayerHandle;
     public ChecksumInfo Now;
     public ChecksumInfo Periodic;
+
+    public int NumberOfPlayers => numberOfPlayers;
 
     public bool TryGetPlayer(PlayerHandle handle, out PlayerConnectionInfo state)
     {
@@ -46,14 +46,7 @@ public class NonGameState(int numberOfPlayers, PlayerHandle localPlayer, GameWin
         return false;
     }
 
-    public void SetConnectState(in PlayerHandle handle, PlayerConnectState state)
-    {
-        if (!TryGetPlayer(handle, out var player)) return;
-        player.ConnectProgress = 0;
-        player.State = state;
-    }
-
-    public void SetDisconnectTimeout(PlayerHandle handle, long when, TimeSpan timeout)
+    public void SetDisconnectTimeout(PlayerHandle handle, DateTime when, TimeSpan timeout)
     {
         if (!TryGetPlayer(handle, out var player)) return;
         player.DisconnectStart = when;
@@ -61,13 +54,20 @@ public class NonGameState(int numberOfPlayers, PlayerHandle localPlayer, GameWin
         player.State = PlayerConnectState.Disconnecting;
     }
 
-    void SetConnectState(PlayerConnectState state)
+    public void SetConnectState(in PlayerHandle handle, PlayerConnectState state)
+    {
+        if (!TryGetPlayer(handle, out var player)) return;
+        player.ConnectProgress = 0;
+        player.State = state;
+    }
+
+    public void SetConnectState(PlayerConnectState state)
     {
         foreach (var player in Players)
             player.State = state;
     }
 
-    void UpdateConnectProgress(PlayerHandle handle, int progress)
+    public void UpdateConnectProgress(PlayerHandle handle, int progress)
     {
         if (!TryGetPlayer(handle, out var player)) return;
         player.ConnectProgress = progress;

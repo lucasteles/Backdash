@@ -22,6 +22,12 @@ public interface IRollbackSession<TInput> : IRollbackSessionInfo, IDisposable wh
     ref readonly SynchronizedInput<TInput> GetInput(in PlayerHandle player);
     ref readonly SynchronizedInput<TInput> GetInput(int index);
 
+    public void GetInputs(Span<SynchronizedInput<TInput>> buffer)
+    {
+        for (var i = 0; i < buffer.Length; i++)
+            buffer[i] = GetInput(i);
+    }
+
     void BeginFrame();
     void AdvanceFrame();
     PlayerConnectionStatus GetPlayerStatus(in PlayerHandle player);

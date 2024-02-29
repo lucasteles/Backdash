@@ -1,6 +1,8 @@
 ﻿#nullable disable
 
+using System.Net;
 using Backdash;
+using Backdash.Core;
 using SpaceWar.Logic;
 
 namespace SpaceWar;
@@ -8,14 +10,31 @@ namespace SpaceWar;
 public class Game1 : Game
 {
     readonly GraphicsDeviceManager graphics;
+    readonly IRollbackSession<PlayerInputs, GameState> rollbackSession;
+
+    readonly RollbackOptions options = new()
+    {
+        FrameDelay = 2,
+        Log = new()
+        {
+            EnabledLevel = LogLevel.Information,
+        },
+        Protocol = new()
+        {
+            NumberOfSyncPackets = 10,
+        },
+    };
+
     GameSession gameSession;
     SpriteBatch spriteBatch;
 
-    public Game1()
+    public Game1(string[] args)
     {
         graphics = new(this);
         Content.RootDirectory = "Content";
         IsMouseVisible = true;
+
+        rollbackSession = GameSessionParser.ParseArgs(args, options);
     }
 
     protected override void Initialize()
@@ -24,19 +43,36 @@ public class Game1 : Game
         graphics.PreferredBackBufferHeight = 768;
         graphics.ApplyChanges();
         base.Initialize();
+        rollbackSession.Start();
     }
 
     protected override void LoadContent()
     {
         spriteBatch = new(GraphicsDevice);
-
-        var numPlayers = 4;
         GameAssets assets = new(Content, GraphicsDevice);
+
+        var numPlayers = rollbackSession.NumberOfPlayers;
         GameState gs = new();
         gs.Init(Window, numPlayers);
-        NonGameState ngs = new(numPlayers, PlayerHandle.Local(1), Window);
 
-        gameSession = new(gs, ngs, new(assets, spriteBatch));
+        NonGameState ngs = new(numPlayers, Window);
+        foreach (var player in rollbackSession.GetPlayers())
+        {
+            PlayerConnectionInfo playerInfo = new();
+            ngs.Players[player.Index] = playerInfo;
+
+            playerInfo.Handle = player;
+            if (player.IsLocal())
+            {
+                playerInfo.ConnectProgress = 100;
+                ngs.LocalPlayerHandle = player;
+                ngs.SetConnectState(player, PlayerConnectState.Connecting);
+                Window.Title = $"SpaceWar - Player {player.Number}";
+            }
+        }
+
+        gameSession = new(gs, ngs, new(assets, spriteBatch), rollbackSession);
+        rollbackSession.SetHandler(gameSession);
     }
 
     protected override void Update(GameTime gameTime)
@@ -57,5 +93,11 @@ public class Game1 : Game
 
         spriteBatch.End();
         base.Draw(gameTime);
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        rollbackSession.Dispose();
+        base.Dispose(disposing);
     }
 }
