@@ -9,38 +9,39 @@ public enum PlayerInputs : byte
     RotateLeft = 1 << 2,
     RotateRight = 1 << 3,
     Fire = 1 << 4,
-    Bomb = 1 << 5,
+    Missile = 1 << 5,
 }
 
 public readonly record struct GameInput(
     float Heading,
     float Thrust,
-    bool Fire
+    bool Fire,
+    bool Missile
 );
 
 public static class Inputs
 {
-    public static PlayerInputs ReadInputs(KeyboardState keyboardState)
+    public static PlayerInputs ReadInputs(KeyboardState ks)
     {
         var result = PlayerInputs.None;
 
-        if (keyboardState.IsKeyDown(Keys.Up) || keyboardState.IsKeyDown(Keys.W))
+        if (ks.IsKeyDown(Keys.Up) || ks.IsKeyDown(Keys.W) || ks.IsKeyDown(Keys.K))
             result |= PlayerInputs.Thrust;
 
-        if (keyboardState.IsKeyDown(Keys.Down) || keyboardState.IsKeyDown(Keys.S))
+        if (ks.IsKeyDown(Keys.Down) || ks.IsKeyDown(Keys.S) || ks.IsKeyDown(Keys.J))
             result |= PlayerInputs.Break;
 
-        if (keyboardState.IsKeyDown(Keys.Left) || keyboardState.IsKeyDown(Keys.A))
+        if (ks.IsKeyDown(Keys.Left) || ks.IsKeyDown(Keys.A) || ks.IsKeyDown(Keys.H))
             result |= PlayerInputs.RotateLeft;
 
-        if (keyboardState.IsKeyDown(Keys.Right) || keyboardState.IsKeyDown(Keys.D))
+        if (ks.IsKeyDown(Keys.Right) || ks.IsKeyDown(Keys.D) || ks.IsKeyDown(Keys.L))
             result |= PlayerInputs.RotateRight;
 
-        if (keyboardState.IsKeyDown(Keys.Space))
+        if (ks.IsKeyDown(Keys.Space))
             result |= PlayerInputs.Fire;
 
-        if (keyboardState.IsKeyDown(Keys.Enter))
-            result |= PlayerInputs.Bomb;
+        if (ks.IsKeyDown(Keys.Enter))
+            result |= PlayerInputs.Missile;
 
         return result;
     }

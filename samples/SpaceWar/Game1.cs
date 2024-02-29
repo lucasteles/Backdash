@@ -30,7 +30,7 @@ public class Game1 : Game
     {
         spriteBatch = new(GraphicsDevice);
 
-        var numPlayers = 1;
+        var numPlayers = 4;
         GameAssets assets = new(Content, GraphicsDevice);
         GameState gs = new();
         gs.Init(Window, numPlayers);
@@ -41,9 +41,8 @@ public class Game1 : Game
 
     protected override void Update(GameTime gameTime)
     {
-        // if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
-        //     Keyboard.GetState().IsKeyDown(Keys.Escape))
-        //     Exit();
+        if (Keyboard.GetState().IsKeyDown(Keys.Escape))
+            Exit();
 
         gameSession.Update(gameTime);
         base.Update(gameTime);
