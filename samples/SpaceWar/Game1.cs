@@ -34,7 +34,7 @@ public class Game1 : Game
         GameAssets assets = new(Content, GraphicsDevice);
         GameState gs = new();
         gs.Init(Window, numPlayers);
-        NonGameState ngs = new(numPlayers, PlayerHandle.Local(1));
+        NonGameState ngs = new(numPlayers, PlayerHandle.Local(1), Window);
 
         gameSession = new(gs, ngs, new(assets, spriteBatch));
     }

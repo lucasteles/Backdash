@@ -1,6 +1,9 @@
 ﻿namespace SpaceWar.Logic;
 
-public sealed class Renderer(GameAssets gameAssets, SpriteBatch spriteBatch)
+public sealed class Renderer(
+    GameAssets gameAssets,
+    SpriteBatch spriteBatch
+)
 {
     // string status = string.Empty;
     // public void SetStatusText(string text) => status = text;
@@ -20,6 +23,7 @@ public sealed class Renderer(GameAssets gameAssets, SpriteBatch spriteBatch)
             ref var ship = ref gs.Ships[i];
 
             var shipSprites = gameAssets.Ships[i];
+            DrawBackground(ngs.Background);
             DrawShip(ship, shipSprites);
             DrawScore(ship.Score, i, gs.Bounds);
             // DrawConnectState(gs.Ships[i], ngs.Players[i]);
@@ -68,7 +72,7 @@ public sealed class Renderer(GameAssets gameAssets, SpriteBatch spriteBatch)
             Color.White,
             rotation,
             sprite.Ship.Bounds.Size.ToVector2() / 2,
-            SpriteEffects.None, 2
+            SpriteEffects.None, 0
         );
 
         if (ship.Thrust > 0)
@@ -84,7 +88,7 @@ public sealed class Renderer(GameAssets gameAssets, SpriteBatch spriteBatch)
                     gameAssets.Thrust.Bounds.Height - ship.Radius / 2f
                 ),
                 1,
-                SpriteEffects.None, 0
+                SpriteEffects.None, 1
             );
         }
 
@@ -95,9 +99,19 @@ public sealed class Renderer(GameAssets gameAssets, SpriteBatch spriteBatch)
 
             spriteBatch.Draw(gameAssets.Shot, bullet.Position, null, Color.White,
                 rotation, gameAssets.Shot.Bounds.Size.ToVector2() / 2, 1.5f,
-                SpriteEffects.None, 1);
+                SpriteEffects.None, 0);
         }
     }
-    
-    
+
+
+    void DrawBackground(Background background)
+    {
+        for (var i = 0; i < background.StarMap.Length; i++)
+        {
+            ref var star = ref background.StarMap[i];
+            var texture = star.Big ? gameAssets.StarBig : gameAssets.Star;
+            spriteBatch.Draw(texture, star.Position, null,
+                Color.DarkGray, 0, Vector2.Zero, 0.7f, SpriteEffects.None, 1);
+        }
+    }
 }

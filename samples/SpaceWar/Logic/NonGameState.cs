@@ -23,8 +23,10 @@ public class PlayerConnectionInfo
 
 public readonly record struct ChecksumInfo(Frame FrameNumber, int Checksum);
 
-public class NonGameState(int numberOfPlayers, PlayerHandle localPlayer)
+public class NonGameState(int numberOfPlayers, PlayerHandle localPlayer, GameWindow window)
 {
+    public Background Background = new(window.ClientBounds);
+
     public readonly PlayerHandle LocalPlayerHandle = localPlayer;
     public readonly PlayerConnectionInfo[] Players = new PlayerConnectionInfo[numberOfPlayers];
     public int NumberOfPlayers => numberOfPlayers;
