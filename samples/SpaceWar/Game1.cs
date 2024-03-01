@@ -67,12 +67,35 @@ public class Game1 : Game
                 playerInfo.ConnectProgress = 100;
                 ngs.LocalPlayerHandle = player;
                 ngs.SetConnectState(player, PlayerConnectState.Connecting);
-                Window.Title = $"SpaceWar - Player {player.Number}";
+                ConfigureWindow(player);
             }
         }
 
         gameSession = new(gs, ngs, new(assets, spriteBatch), rollbackSession);
         rollbackSession.SetHandler(gameSession);
+    }
+
+    void ConfigureWindow(PlayerHandle player)
+    {
+        Window.Title = $"SpaceWar - Player {player.Number}";
+
+        if (graphics.IsFullScreen) return;
+
+        Point padding = new(50, 60);
+        var bounds = Window.ClientBounds;
+        var (width, height) = (bounds.Width, bounds.Height);
+
+        var screen = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode;
+        var maxHorizontal = screen.Width / (width + padding.X);
+        var maxVertical = screen.Height / (height + padding.Y);
+
+        var offsetX = player.Index % maxHorizontal;
+        var offsetY = (player.Index - offsetX) % maxVertical;
+
+        var newHorizontal = offsetX * width + padding.X;
+        var newVertical = offsetY * width + padding.Y;
+
+        Window.Position = new(newHorizontal, newVertical);
     }
 
     protected override void Update(GameTime gameTime)

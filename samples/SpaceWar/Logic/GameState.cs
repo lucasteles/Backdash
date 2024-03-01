@@ -213,9 +213,9 @@ public sealed record GameState
 
                     other.Health -= Config.MissileDamage;
                     other.Invincible = Config.MissileInvincibleTime;
-                    // var pushDirection = Vector2.Normalize(other.Position - missile.Position);
-                    // other.Velocity = pushDirection * Config.ShipMaxThrust;
-                    // other.Position += other.Velocity * 2;
+                    var pushDirection = Vector2.Normalize(other.Position - missile.Position);
+                    other.Velocity = pushDirection * Config.ShipMaxThrust;
+                    other.Position += other.Velocity * 2;
                 }
 
             if (!Bounds.Contains(missile.Position))
