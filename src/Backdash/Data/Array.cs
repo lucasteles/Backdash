@@ -6,20 +6,21 @@ using System.Text;
 // ReSharper disable ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
 namespace Backdash.Data;
 
-public sealed class EquatableArray<T>(T[] values) :
+public sealed class Array<T>(T[] values) :
     IReadOnlyList<T>,
-    IEquatable<EquatableArray<T>>,
-    IEqualityOperators<EquatableArray<T>, EquatableArray<T>, bool>
+    IEquatable<Array<T>>,
+    IEqualityOperators<Array<T>, Array<T>, bool>
     where T : IEquatable<T>
 {
-    public EquatableArray(int size) : this(new T[size]) { }
-    public EquatableArray() : this([]) { }
+    public Array(int size) : this(new T[size]) { }
+    public Array() : this([]) { }
 
-    public static readonly EquatableArray<T> Empty = [];
+    public static readonly Array<T> Empty = [];
 
     readonly T[] values = values;
 
     public int Length => values.Length;
+    public bool IsEmpty => values.Length is 0;
     public IReadOnlyList<T> AsReadOnly() => values.AsReadOnly();
     public T[] AsArray() => values;
     public Span<T> AsSpan() => values;
@@ -27,11 +28,11 @@ public sealed class EquatableArray<T>(T[] values) :
 
     public void CopyTo(Span<T> destination) => values.CopyTo(destination);
     public void CopyTo(Memory<T> destination) => values.CopyTo(destination);
-    public void CopyTo(EquatableArray<T> destination) => values.CopyTo(destination.AsSpan());
+    public void CopyTo(Array<T> destination) => values.CopyTo(destination.AsSpan());
 
     public ref T this[int index] => ref values[index];
     public ref T this[Index index] => ref values[index];
-    public EquatableArray<T> this[Range range] => new(values[range]);
+    public Array<T> this[Range range] => new(values[range]);
 
     public void Clear(int index, int length) => Array.Clear(values, index, length);
 
@@ -43,7 +44,7 @@ public sealed class EquatableArray<T>(T[] values) :
 
     public void Clear() => Clear(0, values.Length);
 
-    public bool Equals(EquatableArray<T>? other)
+    public bool Equals(Array<T>? other)
     {
         if (other is null) return false;
         if (ReferenceEquals(this, other) || ReferenceEquals(values, other.values)) return true;
@@ -51,7 +52,7 @@ public sealed class EquatableArray<T>(T[] values) :
     }
 
     public override bool Equals(object? obj) =>
-        ReferenceEquals(this, obj) || (obj is EquatableArray<T> other && Equals(other));
+        ReferenceEquals(this, obj) || (obj is Array<T> other && Equals(other));
 
     public override int GetHashCode()
     {
@@ -79,7 +80,7 @@ public sealed class EquatableArray<T>(T[] values) :
     /// <summary>
     ///  Filters an array of values based on a predicate.
     /// </summary>
-    public EquatableArray<T> FindAll(Predicate<T> predicate) => new(Array.FindAll(values, predicate));
+    public Array<T> FindAll(Predicate<T> predicate) => new(Array.FindAll(values, predicate));
 
     /// <summary>
     ///  Searches for an element that matches the conditions defined by the specified predicate, and returns the first occurrence within the entire Array.
@@ -109,7 +110,7 @@ public sealed class EquatableArray<T>(T[] values) :
     /// <summary>
     ///  Crates new array with new size copying elements from source
     /// </summary>
-    public EquatableArray<T> ToResized(int newSize)
+    public Array<T> ToResized(int newSize)
     {
         var copy = new T[newSize];
         var size = Math.Min(newSize, values.Length);
@@ -120,7 +121,7 @@ public sealed class EquatableArray<T>(T[] values) :
     /// <summary>
     ///  Create new array with same values
     /// </summary>
-    public EquatableArray<T> Clone()
+    public Array<T> Clone()
     {
         var copy = new T[Length];
         Array.Copy(values, copy, values.Length);
@@ -169,7 +170,7 @@ public sealed class EquatableArray<T>(T[] values) :
     /// <summary>
     ///  Sorts the elements of an array in ascending order into a new array.
     /// </summary>
-    public EquatableArray<T> ToSorted(IComparer<T>? comparer = null)
+    public Array<T> ToSorted(IComparer<T>? comparer = null)
     {
         var copy = Clone();
         copy.Sort(comparer);
@@ -179,7 +180,7 @@ public sealed class EquatableArray<T>(T[] values) :
     /// <summary>
     ///  Sorts the elements in a range of elements in an Array into a new array
     /// </summary>
-    public EquatableArray<T> ToSorted(int index, int length, IComparer<T>? comparer = null)
+    public Array<T> ToSorted(int index, int length, IComparer<T>? comparer = null)
     {
         var copy = Clone();
         copy.Sort(index, length, comparer);
@@ -189,7 +190,7 @@ public sealed class EquatableArray<T>(T[] values) :
     /// <summary>
     ///  Sorts the elements in a range of elements in an Array into a new array
     /// </summary>
-    public EquatableArray<T> ToSorted(Range range, IComparer<T>? comparer = null)
+    public Array<T> ToSorted(Range range, IComparer<T>? comparer = null)
     {
         var copy = Clone();
         copy.Sort(range, comparer);
@@ -210,7 +211,7 @@ public sealed class EquatableArray<T>(T[] values) :
     /// <summary>
     ///  Sorts the elements of an array in ascending order according to a key.
     /// </summary>
-    public EquatableArray<T> ToSortedBy<TKey>(Func<T, TKey> selector, IComparer<TKey>? comparer = null)
+    public Array<T> ToSortedBy<TKey>(Func<T, TKey> selector, IComparer<TKey>? comparer = null)
         where TKey : IComparable<TKey>
     {
         var copy = Clone();
@@ -221,7 +222,7 @@ public sealed class EquatableArray<T>(T[] values) :
     /// <summary>
     ///  Sorts the elements of an array in ascending order according to a key.
     /// </summary>
-    public EquatableArray<TOutput> Map<TOutput>(Func<T, TOutput> projection)
+    public Array<TOutput> Map<TOutput>(Func<T, TOutput> projection)
         where TOutput : IEquatable<TOutput>
     {
         TOutput[] newArray = new TOutput[values.Length];
@@ -257,20 +258,20 @@ public sealed class EquatableArray<T>(T[] values) :
     IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-    public static implicit operator T[](EquatableArray<T> array) => array.values;
-    public static implicit operator Span<T>(EquatableArray<T> array) => array.values;
-    public static implicit operator ReadOnlySpan<T>(EquatableArray<T> array) => array.values;
-    public static implicit operator Memory<T>(EquatableArray<T> array) => array.values;
-    public static bool operator ==(EquatableArray<T>? left, EquatableArray<T>? right) => Equals(left, right);
-    public static bool operator !=(EquatableArray<T>? left, EquatableArray<T>? right) => !Equals(left, right);
+    public static implicit operator T[](Array<T> array) => array.values;
+    public static implicit operator Span<T>(Array<T> array) => array.values;
+    public static implicit operator ReadOnlySpan<T>(Array<T> array) => array.values;
+    public static implicit operator Memory<T>(Array<T> array) => array.values;
+    public static bool operator ==(Array<T>? left, Array<T>? right) => Equals(left, right);
+    public static bool operator !=(Array<T>? left, Array<T>? right) => !Equals(left, right);
 
     public struct Enumerator : IEnumerator<T>
     {
-        readonly EquatableArray<T> array;
+        readonly Array<T> array;
         int index;
         T? current;
 
-        internal Enumerator(EquatableArray<T> array)
+        internal Enumerator(Array<T> array)
         {
             this.array = array;
             index = 0;

@@ -5,21 +5,21 @@ namespace Backdash.Tests.Specs.Unit.Data;
 public class EquatableArrayTests
 {
     [PropertyTest]
-    internal bool CloneCompareIntegers(EquatableArray<int> array)
+    internal bool CloneCompareIntegers(Array<int> array)
     {
         var copy = array.Clone();
         return array == copy;
     }
 
     [PropertyTest]
-    internal bool CloneCompareStrings(EquatableArray<string> array)
+    internal bool CloneCompareStrings(Array<string> array)
     {
         var copy = array.Clone();
         return array == copy;
     }
 
     [PropertyTest]
-    internal bool CloneCompareFrame(EquatableArray<Frame> array)
+    internal bool CloneCompareFrame(Array<Frame> array)
     {
         var copy = array.Clone();
         return array == copy;
@@ -46,7 +46,7 @@ public class EquatableArrayTests
     }
 
     [PropertyTest]
-    internal bool ComparingStringHashCodes(EquatableArray<string> array1, EquatableArray<string> array2)
+    internal bool ComparingStringHashCodes(Array<string> array1, Array<string> array2)
     {
         var cmp = array1 == array2;
         var cmpHash = array1.GetHashCode() == array2.GetHashCode();
@@ -54,7 +54,7 @@ public class EquatableArrayTests
     }
 
     [PropertyTest]
-    internal bool ComparingIntHashCodes(EquatableArray<int> array1, EquatableArray<int> array2)
+    internal bool ComparingIntHashCodes(Array<int> array1, Array<int> array2)
     {
         var cmp = array1 == array2;
         var cmpHash = array1.GetHashCode() == array2.GetHashCode();
@@ -62,7 +62,7 @@ public class EquatableArrayTests
     }
 
     [PropertyTest]
-    internal bool ComparingComplexHashCodes(EquatableArray<Frame> array1, EquatableArray<Frame> array2)
+    internal bool ComparingComplexHashCodes(Array<Frame> array1, Array<Frame> array2)
     {
         var cmp = array1 == array2;
         var cmpHash = array1.GetHashCode() == array2.GetHashCode();
@@ -70,7 +70,7 @@ public class EquatableArrayTests
     }
 
     [PropertyTest]
-    internal bool Enumeration(EquatableArray<string> array)
+    internal bool Enumeration(Array<string> array)
     {
         List<string> values = [];
 
@@ -78,5 +78,19 @@ public class EquatableArrayTests
             values.Add(v);
 
         return array.Length == values.Count && values.SequenceEqual(array);
+    }
+
+    [PropertyTest]
+    internal bool ChangeValue(NonEmptyArray<string> values, NonEmptyString nonEmptyString)
+    {
+        var array = values.Item.ToEquatableArray();
+        var str = nonEmptyString.Item;
+        if (array[0] == str) str += "!";
+
+        var hashBefore = array.GetHashCode();
+        array[0] = str;
+        var hashAfter = array.GetHashCode();
+
+        return array[0] == str && hashBefore != hashAfter;
     }
 }

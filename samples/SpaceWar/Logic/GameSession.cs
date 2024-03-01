@@ -89,8 +89,8 @@ public class GameSession(
             case PeerEvent.Synchronizing:
 
                 var progress = 100 * evt.Synchronizing.CurrentStep /
-                               (float)evt.Synchronizing.TotalSteps;
-                nonGameState.UpdateConnectProgress(player, (int)progress);
+                               (float) evt.Synchronizing.TotalSteps;
+                nonGameState.UpdateConnectProgress(player, (int) progress);
                 break;
             case PeerEvent.Synchronized:
                 nonGameState.UpdateConnectProgress(player, 100);
@@ -116,7 +116,7 @@ public class GameSession(
 
         if (to.Ships.Length is 0)
         {
-            to.Ships = new Ship[from.Ships.Length];
+            to.Ships = new(from.Ships.Length);
             for (var i = 0; i < from.Ships.Length; i++)
                 to.Ships[i] = new();
         }

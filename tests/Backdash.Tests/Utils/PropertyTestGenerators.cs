@@ -333,9 +333,9 @@ class PropertyTestGenerators
             .Select(arr => new InputGroup<T>(arr))
             .ToArbitrary();
 
-    public static Arbitrary<EquatableArray<T>> EquatableArrayGenerator<T>() where T : IEquatable<T> =>
+    public static Arbitrary<Array<T>> EquatableArrayGenerator<T>() where T : IEquatable<T> =>
         Gen.Sized(size => Gen.ArrayOf(size, Arb.Generate<T>()))
-            .Select(arr => new EquatableArray<T>(arr))
+            .Select(arr => new Array<T>(arr))
             .ToArbitrary();
 }
 

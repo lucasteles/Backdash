@@ -1,4 +1,6 @@
-﻿namespace SpaceWar.Logic;
+﻿using Backdash.Data;
+
+namespace SpaceWar.Logic;
 
 public sealed record Ship
 {
@@ -13,9 +15,9 @@ public sealed record Ship
     public int MissileCooldown;
     public int Invincible;
     public int Score;
-    public Missile Missile;
-    public Bullet[] Bullets = new Bullet[Config.MaxBullets];
     public int Thrust;
+    public Missile Missile;
+    public readonly Array<Bullet> Bullets = new(Config.MaxBullets);
 }
 
 public record struct Bullet

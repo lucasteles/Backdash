@@ -4,19 +4,19 @@ namespace SpaceWar.Logic;
 
 public sealed record GameState
 {
-    public Ship[] Ships = [];
+    public Array<Ship> Ships = [];
     public Rectangle Bounds;
     public int FrameNumber;
     public int NumberOfShips => Ships.Length;
 
     public void Init(GameWindow window, int numberOfPlayers)
     {
-        Ships = new Ship[numberOfPlayers];
+        Ships = new(numberOfPlayers);
         for (var i = 0; i < numberOfPlayers; i++)
             Ships[i] = new();
 
         FrameNumber = 0;
-        Bounds = window.ClientBounds with { X = 0, Y = 0 };
+        Bounds = window.ClientBounds with {X = 0, Y = 0};
         Bounds.Inflate(-Config.WindowPadding, -Config.WindowPadding);
 
         var width = Bounds.Right - Bounds.Left;
@@ -34,7 +34,7 @@ public sealed record GameState
             Ships[i].Id = i + 1;
             Ships[i].Position = new(x, y);
             Ships[i].Active = true;
-            Ships[i].Heading = (int)((heading + 180) % 360);
+            Ships[i].Heading = (int) ((heading + 180) % 360);
             Ships[i].Health = Config.StartingHealth;
             Ships[i].Radius = Config.ShipRadius;
         }
@@ -76,7 +76,7 @@ public sealed record GameState
 
     public void UpdateShip(in Ship ship, in GameInput inputs)
     {
-        ship.Heading = (int)inputs.Heading;
+        ship.Heading = (int) inputs.Heading;
 
         Vector2 rotation = new(
             MathF.Cos(MathHelper.ToRadians(ship.Heading)),
@@ -228,7 +228,7 @@ public sealed record GameState
                 else missile.ExplodeTimeout = 0;
 
                 var newVelocity = Vector2.Reflect(missile.Velocity, normal);
-                missile.Heading = (int)MathHelper.ToDegrees(
+                missile.Heading = (int) MathHelper.ToDegrees(
                     MathF.Atan2(newVelocity.Y, newVelocity.X));
                 missile.Velocity = newVelocity;
             }
