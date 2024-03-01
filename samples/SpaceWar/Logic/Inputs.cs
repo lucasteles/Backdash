@@ -1,7 +1,7 @@
 ﻿namespace SpaceWar.Logic;
 
 [Flags]
-public enum PlayerInputs : byte
+public enum PlayerInputs : short
 {
     None = 0,
     Thrust = 1 << 0,

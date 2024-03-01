@@ -19,6 +19,7 @@ public class PlayerConnectionInfo
     public int ConnectProgress;
     public TimeSpan DisconnectTimeout;
     public DateTime DisconnectStart;
+    public RollbackNetworkStatus PeerNetworkStatus = new();
 }
 
 public readonly record struct ChecksumInfo(Frame FrameNumber, int Checksum);

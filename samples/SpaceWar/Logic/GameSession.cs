@@ -13,8 +13,17 @@ public class GameSession(
     readonly SynchronizedInput<PlayerInputs>[] inputs =
         new SynchronizedInput<PlayerInputs>[nonGameState.NumberOfPlayers];
 
+    TimeSpan sleep;
+
     public void Update(GameTime gameTime)
     {
+        if (sleep > TimeSpan.Zero)
+        {
+            sleep -= gameTime.ElapsedGameTime;
+            return;
+        }
+
+        UpdateStats();
         session.BeginFrame();
 
         if (nonGameState.LocalPlayerHandle is { } localPlayer)
@@ -38,25 +47,36 @@ public class GameSession(
 
     public void OnSessionStart()
     {
-        Console.WriteLine("GAME STARTED");
+        Console.WriteLine($"{DateTime.Now:o} => GAME STARTED");
         nonGameState.SetConnectState(PlayerConnectState.Running);
     }
 
     public void OnSessionClose()
     {
-        Console.WriteLine("GAME CLOSED");
+        Console.WriteLine($"{DateTime.Now:o} => GAME CLOSED");
         nonGameState.SetConnectState(PlayerConnectState.Disconnected);
     }
 
     public void TimeSync(FrameSpan framesAhead)
     {
-        Console.WriteLine("> Syncing...");
-        Thread.Sleep(framesAhead.Duration);
+        Console.WriteLine($"{DateTime.Now:o} => Syncing...");
+        sleep = framesAhead.Duration;
+    }
+
+    void UpdateStats()
+    {
+        for (var i = 0; i < nonGameState.Players.Length; i++)
+        {
+            ref var player = ref nonGameState.Players[i];
+            if (!player.Handle.IsRemote())
+                continue;
+            session.GetNetworkStatus(player.Handle, ref player.PeerNetworkStatus);
+        }
     }
 
     public void OnPeerEvent(PlayerHandle player, PeerEventInfo evt)
     {
-        Console.WriteLine($"PEER EVENT: {evt} from {player}");
+        Console.WriteLine($"{DateTime.Now:o} => PEER EVENT: {evt} from {player}");
 
         if (player.IsSpectator())
             return;
@@ -94,14 +114,17 @@ public class GameSession(
         to.Bounds = from.Bounds;
         to.FrameNumber = from.FrameNumber;
 
-        if (to.Ships is null or {Length: 0})
+        if (to.Ships.Length is 0)
+        {
             to.Ships = new Ship[from.Ships.Length];
+            for (var i = 0; i < from.Ships.Length; i++)
+                to.Ships[i] = new();
+        }
 
         for (var i = 0; i < from.Ships.Length; i++)
         {
             ref var toShip = ref to.Ships[i];
             ref var fromShip = ref from.Ships[i];
-            toShip ??= new();
             toShip.Id = fromShip.Id;
             toShip.Position = fromShip.Position;
             toShip.Velocity = fromShip.Velocity;
@@ -122,7 +145,7 @@ public class GameSession(
 
     public void LoadState(in GameState gs)
     {
-        Console.WriteLine("Loading state...");
+        Console.WriteLine($"{DateTime.Now:o} => Loading state...");
         CopyState(gs, gameState);
     }
 
