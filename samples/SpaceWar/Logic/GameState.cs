@@ -40,7 +40,7 @@ public sealed record GameState
         }
     }
 
-    public GameInput GetShipAI(in Ship ship) => new(
+    static GameInput GetShipAI(in Ship ship) => new(
         Heading: (ship.Heading + 5f) % 360f,
         Thrust: 0,
         Fire: false,
@@ -271,17 +271,4 @@ public sealed record GameState
             UpdateShip(in ship, in gameInput);
         }
     }
-
-    // ReSharper disable NonReadonlyMemberInGetHashCode
-    // public override int GetHashCode()
-    // {
-    //     HashCode hash = new();
-    //     hash.Add(FrameNumber);
-    //     hash.Add(NumberOfShips);
-    //     hash.Add(Bounds);
-    //     for (var i = 0; i < NumberOfShips; i++)
-    //         hash.Add(Ships[i]);
-    //
-    //     return hash.ToHashCode();
-    // }
 }
