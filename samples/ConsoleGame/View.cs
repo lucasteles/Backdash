@@ -76,7 +76,7 @@ public class View
                 if (DrawPlayer(currentState.Position2, col, row, playerColors[1], status2))
                     continue;
 
-                if ((int) currentState.Target.X == col && (int) currentState.Target.Y == row)
+                if ((int)currentState.Target.X == col && (int)currentState.Target.Y == row)
                 {
                     Console.ForegroundColor = targetColor;
                     Console.Write('*');
@@ -95,7 +95,7 @@ public class View
 
     bool DrawPlayer(Vector2 pos, int col, int row, ConsoleColor color, PlayerStatus status)
     {
-        if ((int) pos.X == col && (int) pos.Y == row)
+        if ((int)pos.X == col && (int)pos.Y == row)
         {
             Console.ForegroundColor = color;
             Console.Write(status switch

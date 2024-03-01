@@ -128,7 +128,7 @@ public sealed class Game : IRollbackHandler<GameState>
                 break;
             case PeerEvent.Synchronizing:
                 nonGameState.SyncProgress =
-                    evt.Synchronizing.CurrentStep / (float) evt.Synchronizing.TotalSteps;
+                    evt.Synchronizing.CurrentStep / (float)evt.Synchronizing.TotalSteps;
 
                 break;
             case PeerEvent.Synchronized:

@@ -28,8 +28,8 @@ public sealed class Renderer(
         if (!ship.Active) return;
 
         Rectangle shipRect = new(
-            (int) ship.Position.X,
-            (int) ship.Position.Y,
+            (int)ship.Position.X,
+            (int)ship.Position.Y,
             shipSize, shipSize
         );
 
@@ -70,14 +70,14 @@ public sealed class Renderer(
             {
                 var explosionSize = ship.Missile.ExplosionRadius * 2;
                 Rectangle explosionRect = new(
-                    (int) ship.Missile.Position.X,
-                    (int) ship.Missile.Position.Y,
+                    (int)ship.Missile.Position.X,
+                    (int)ship.Missile.Position.Y,
                     explosionSize, explosionSize
                 );
 
-                var spriteStep = (int) MathHelper.Lerp(
+                var spriteStep = (int)MathHelper.Lerp(
                     0, MissileExplosionSpriteMap.Length,
-                    ship.Missile.DamageTime / (float) Config.MissileDamageTime
+                    ship.Missile.DamageTime / (float)Config.MissileDamageTime
                 );
 
                 var missileSource = MissileExplosionSpriteMap[spriteStep];
@@ -152,7 +152,7 @@ public sealed class Renderer(
 
         Rectangle value = new(
             position.X, position.Y,
-            (int) (actual / total * position.Width),
+            (int)(actual / total * position.Width),
             position.Height
         );
 
