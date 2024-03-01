@@ -94,10 +94,4 @@ public class Game1 : Game
         spriteBatch.End();
         base.Draw(gameTime);
     }
-
-    protected override void Dispose(bool disposing)
-    {
-        rollbackSession.Dispose();
-        base.Dispose(disposing);
-    }
 }

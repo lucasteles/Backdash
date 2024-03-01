@@ -135,8 +135,15 @@ public class GameSession(
             toShip.MissileCooldown = fromShip.MissileCooldown;
             toShip.Invincible = fromShip.Invincible;
             toShip.Score = fromShip.Score;
-            toShip.Missile = fromShip.Missile;
             toShip.Thrust = fromShip.Thrust;
+            toShip.Missile.Heading = fromShip.Missile.Heading;
+            toShip.Missile.DamageTime = fromShip.Missile.DamageTime;
+            toShip.Missile.Position = fromShip.Missile.Position;
+            toShip.Missile.Velocity = fromShip.Missile.Velocity;
+            toShip.Missile.ExplosionRadius = fromShip.Missile.ExplosionRadius;
+            toShip.Missile.ProjectileRadius = fromShip.Missile.ProjectileRadius;
+            toShip.Missile.Active = fromShip.Missile.Active;
+            toShip.Missile.ExplodeTimeout = fromShip.Missile.ExplodeTimeout;
             fromShip.Bullets.CopyTo(toShip.Bullets.AsMemory());
         }
     }
