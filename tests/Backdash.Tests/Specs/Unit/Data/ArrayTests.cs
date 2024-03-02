@@ -2,7 +2,7 @@ using Backdash.Data;
 
 namespace Backdash.Tests.Specs.Unit.Data;
 
-public class EquatableArrayTests
+public class ArrayTests
 {
     [PropertyTest]
     internal bool CloneCompareIntegers(Array<int> array)

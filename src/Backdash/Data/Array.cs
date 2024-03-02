@@ -6,6 +6,7 @@ using System.Text;
 // ReSharper disable ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
 namespace Backdash.Data;
 
+[CollectionBuilder(typeof(ArrayCollectionBuilder), nameof(ArrayCollectionBuilder.Create))]
 public sealed class Array<T>(T[] values) :
     IReadOnlyList<T>,
     IEquatable<Array<T>>,
@@ -313,4 +314,9 @@ public sealed class Array<T>(T[] values) :
             current = default;
         }
     }
+}
+
+public static class ArrayCollectionBuilder
+{
+    public static Array<T> Create<T>(ReadOnlySpan<T> items) where T : IEquatable<T> => new(items.ToArray());
 }

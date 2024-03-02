@@ -79,8 +79,7 @@ public static class RollbackNetcode
     }
 
     public static IRollbackSession<TInput, TGameState> CreateTestSession<TInput, TGameState>(
-        int port,
-        RollbackOptions options,
+        RollbackOptions? options = null,
         IChecksumProvider<TGameState>? checksumProvider = null,
         IBinarySerializer<TGameState>? stateSerializer = null,
         ILogWriter? logWriter = null
@@ -88,8 +87,12 @@ public static class RollbackNetcode
         where TInput : struct
         where TGameState : IEquatable<TGameState>, new()
     {
-        options.LocalPort = port;
         checksumProvider ??= ChecksumProviderFactory.Create<TGameState>();
+        options ??= new()
+        {
+            Log = new(LogLevel.Trace),
+        };
+
         var stateStore = StateStoreFactory.Create(stateSerializer);
         var clock = new Clock();
         var logger = new Logger(options.Log,
