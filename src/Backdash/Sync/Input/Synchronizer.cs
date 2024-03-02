@@ -192,7 +192,7 @@ sealed class Synchronizer<TInput, TState>
         logger.Write(LogLevel.Debug,
             $"* Loading frame info {savedFrame.Frame} (checksum: {savedFrame.Checksum})");
 
-        Callbacks.LoadState(in savedFrame.GameState);
+        Callbacks.LoadState(in frame, in savedFrame.GameState);
 
         // Reset framecount and the head of the state ring-buffer to point in
         // advance of the current frame (as if we had just finished executing it).
@@ -205,7 +205,7 @@ sealed class Synchronizer<TInput, TState>
     {
         ref var nextState = ref stateStore.GetCurrent();
         Callbacks.ClearState(ref nextState);
-        Callbacks.SaveState(currentFrame.Number, ref nextState);
+        Callbacks.SaveState(in currentFrame, ref nextState);
 
         var checksum = checksumProvider.Compute(in nextState);
         ref readonly var next = ref stateStore.SaveCurrent(in currentFrame, in checksum);

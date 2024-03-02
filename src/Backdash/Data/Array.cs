@@ -109,6 +109,20 @@ public sealed class Array<T>(T[] values) :
     public void Resize(int newSize) => Array.Resize(ref Unsafe.AsRef(in values), newSize);
 
     /// <summary>
+    ///  Assigns the given value of type T to each element of the specified array.
+    /// </summary>
+    public void Fill(T value) => Array.Fill(values, value);
+
+    /// <summary>
+    ///  Assigns the given return value from delegate of type T to each element of the specified array.
+    /// </summary>
+    public void Fill(Func<T> value)
+    {
+        for (var i = 0; i < values.Length; i++)
+            values[i] = value();
+    }
+
+    /// <summary>
     ///  Crates new array with new size copying elements from source
     /// </summary>
     public Array<T> ToResized(int newSize)

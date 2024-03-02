@@ -150,13 +150,13 @@ public sealed class Game : IRollbackHandler<GameState>
         }
     }
 
-    public void SaveState(int frame, ref GameState state)
+    public void SaveState(in Frame frame, ref GameState state)
     {
         state.Position1 = currentState.Position1;
         state.Position2 = currentState.Position2;
     }
 
-    public void LoadState(in GameState gameState)
+    public void LoadState(in Frame frame, in GameState gameState)
     {
         currentState.Position1 = gameState.Position1;
         currentState.Position2 = gameState.Position2;

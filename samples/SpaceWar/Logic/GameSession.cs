@@ -148,9 +148,9 @@ public class GameSession(
         }
     }
 
-    public void SaveState(int frame, ref GameState state) => CopyState(gameState, state);
+    public void SaveState(in Frame frame, ref GameState state) => CopyState(gameState, state);
 
-    public void LoadState(in GameState gs)
+    public void LoadState(in Frame frame, in GameState gs)
     {
         Console.WriteLine($"{DateTime.Now:o} => Loading state...");
         CopyState(gs, gameState);

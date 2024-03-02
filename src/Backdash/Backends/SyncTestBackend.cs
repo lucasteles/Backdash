@@ -1,4 +1,3 @@
-using System.Text;
 using System.Text.Json;
 using Backdash.Core;
 using Backdash.Data;
@@ -12,7 +11,12 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
     where TInput : struct
     where TGameState : IEquatable<TGameState>, new()
 {
-    readonly record struct SavedFrame(Frame Frame, int Checksum, TGameState State, GameInput<TInput> Input);
+    readonly record struct SavedFrame(
+        Frame Frame,
+        int Checksum,
+        JsonElement State,
+        GameInput<TInput> Input
+    );
 
     readonly Synchronizer<TInput, TGameState> synchronizer;
     readonly TaskCompletionSource tsc = new();
@@ -26,7 +30,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
 
     readonly JsonSerializerOptions jsonOptions = new()
     {
-        WriteIndented = true,
+        WriteIndented = false,
         IncludeFields = true,
     };
 
@@ -159,6 +163,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         if (!running)
             return ResultCode.NotSynchronized;
 
+        currentInput.Frame = synchronizer.CurrentFrame;
         currentInput.Data = localInput;
         return ResultCode.Ok;
     }
@@ -200,13 +205,13 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         // Hold onto the current frame in our queue of saved states.  We'll need
         // the checksum later to verify that our replay of the same frame got the
         // same results.
-        var lastSaved = synchronizer.GetLastSavedFrame();
+        ref readonly var lastSaved = ref synchronizer.GetLastSavedFrame();
 
         var frame = synchronizer.CurrentFrame;
         savedFrames.Enqueue(new(
             Frame: frame,
             Input: lastInput,
-            State: lastSaved.GameState,
+            State: JsonSerializer.SerializeToElement(lastSaved.GameState, jsonOptions),
             Checksum: lastSaved.Checksum
         ));
 
@@ -232,11 +237,12 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
                     $"Frame number {info.Frame} does not match saved frame number {frame}");
             }
 
-            var last = synchronizer.GetLastSavedFrame();
+            ref readonly var last = ref synchronizer.GetLastSavedFrame();
             var checksum = last.Checksum;
             if (info.Checksum != checksum)
             {
-                LogSaveState(info);
+                LogSaveState(info, "current");
+                LogSaveState(last, "last");
                 logger.Write(LogLevel.Error,
                     $"Checksum for frame {frame} does not match saved ({checksum} != {info.Checksum})");
             }
@@ -248,19 +254,35 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         inRollback = false;
     }
 
-    void LogSaveState(SavedFrame info)
+    void LogSaveState(SavedFrame info, string description)
     {
-        StringBuilder builder = new();
-        builder.AppendLine($"=== Saved State ({info.Frame}) ");
-        var input = info.Input;
-        builder.AppendLine("--- Input");
-        builder.AppendLine(input.Data.ToString());
-        builder.AppendLine();
-        builder.AppendLine($"--- Game State #{info.Checksum}");
-        builder.AppendLine(JsonSerializer.Serialize(info.State, jsonOptions));
-        builder.AppendLine("======================");
+        const LogLevel level = LogLevel.Information;
+        logger.Write(level, $"=== SAVED STATE [{description.ToUpper()}] ({info.Frame}) ===\n");
+        logger.Write(level, $"INPUT FRAME {info.Input.Frame}:");
+        logger.Write(level, JsonSerializer.Serialize(info.Input.Data, jsonOptions));
+        logger.Write(level, $"GAME STATE #{info.Checksum}:");
+        LogJson(level, info.State);
+        logger.Write(level, "====================================");
+    }
 
-        logger.Write(LogLevel.Information, $"{builder.ToString()}");
+    void LogSaveState(SavedFrame<TGameState> info, string description)
+    {
+        const LogLevel level = LogLevel.Information;
+        logger.Write(level, $"=== SAVED STATE [{description.ToUpper()}] ({info.Frame}) ===\n");
+        logger.Write(level, $"GAME STATE #{info.Checksum}:");
+        LogJson(level, info.GameState);
+        logger.Write(level, "====================================");
+    }
+
+    void LogJson<TValue>(LogLevel level, TValue value)
+    {
+        var jsonChunks = JsonSerializer
+            .Serialize(value, jsonOptions)
+            .Chunk(LogStringBuffer.Capacity)
+            .Select(x => new string(x));
+
+        foreach (var chunk in jsonChunks)
+            logger.Write(level, chunk);
     }
 
     public void SetFrameDelay(PlayerHandle player, int delayInFrames)
