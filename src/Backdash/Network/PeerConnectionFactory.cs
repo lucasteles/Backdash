@@ -51,8 +51,7 @@ sealed class PeerConnectionFactory
     {
         var timeSync = new TimeSync<TInput>(timeSyncOptions, logger);
         var outbox = new ProtocolOutbox(state, options, udp, delayStrategy, random, clock, logger);
-        var syncManager = new ProtocolSynchronizer(logger, clock, random, jobManager, state, options, outbox,
-            networkEventHandler);
+        var syncManager = new ProtocolSynchronizer(logger, clock, random, state, options, outbox, networkEventHandler);
         var inbox = new ProtocolInbox<TInput>(options, inputSerializer, state, clock, syncManager, outbox,
             networkEventHandler, inputEventQueue, logger);
         var inputBuffer =

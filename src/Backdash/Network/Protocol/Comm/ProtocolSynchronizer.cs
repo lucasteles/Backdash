@@ -8,26 +8,29 @@ interface IProtocolSynchronizer
     void CreateRequestMessage(out ProtocolMessage requestMessage);
     void CreateReplyMessage(in SyncRequest request, out ProtocolMessage replyMessage);
     void Synchronize();
+    void Update();
 }
 
 sealed class ProtocolSynchronizer(
     Logger logger,
     IClock clock,
     IRandomNumberGenerator random,
-    IBackgroundJobManager jobManager,
     ProtocolState state,
     ProtocolOptions options,
     IMessageSender sender,
     IProtocolNetworkEventHandler eventHandler
-) : IBackgroundJob, IProtocolSynchronizer
+) : IProtocolSynchronizer
 {
-    public string JobName => $"Synchronizer {state.Player}";
+    bool active;
+    int retryCounter;
+    long lastRequest;
 
-    public async ValueTask RequestSync(CancellationToken ct)
+    public void RequestSync()
     {
         CreateRequestMessage(out var syncMsg);
         logger.Write(LogLevel.Debug, $"New Sync Request: {syncMsg.SyncRequest.RandomRequest} for {state.Player}");
-        await sender.SendMessageAsync(in syncMsg, ct);
+        lastRequest = clock.GetTimeStamp();
+        sender.SendMessage(in syncMsg);
     }
 
     public void CreateRequestMessage(out ProtocolMessage requestMessage)
@@ -61,59 +64,42 @@ sealed class ProtocolSynchronizer(
         }
     }
 
-    public async Task Start(CancellationToken ct)
-    {
-        logger.Write(LogLevel.Debug, $"Sync job: started for {state.Player}");
-
-        if (state.CurrentStatus is ProtocolStatus.Running)
-        {
-            logger.Write(LogLevel.Trace, $"Sync job: already running for {state.Player}. skipping sync");
-            return;
-        }
-
-        var retryCounter = 0;
-
-        do
-        {
-            var time = clock.GetTimeStamp();
-            await RequestSync(ct);
-
-            var firstIteration = state.Sync.RemainingRoundtrips == options.NumberOfSyncPackets;
-
-            var interval = (firstIteration ? options.SyncFirstRetryInterval : options.SyncRetryInterval)
-                           - clock.GetElapsedTime(time);
-
-            if (interval > TimeSpan.Zero)
-                await Task.Delay(interval, ct).ConfigureAwait(false);
-            else
-                await Task.Delay(Default.SyncFirstRetryInterval, ct);
-
-            if (state.CurrentStatus is ProtocolStatus.Syncing)
-            {
-                if (retryCounter >= options.MaxSyncRetries)
-                {
-                    logger.Write(LogLevel.Warning,
-                        $"Fail to sync {state.Player} after {retryCounter} retries");
-                    eventHandler.OnNetworkEvent(ProtocolEvent.SyncFailure, state.Player);
-                    return;
-                }
-
-                logger.Write(LogLevel.Information,
-                    $"No luck syncing {state.Player} after {(int)clock.GetElapsedTime(time).TotalMilliseconds}ms. Re-queueing sync packet");
-
-                retryCounter++;
-            }
-        } while (!ct.IsCancellationRequested && state.CurrentStatus is ProtocolStatus.Syncing);
-
-        logger.Write(LogLevel.Debug, $"Sync job: complete with status {state.CurrentStatus}");
-    }
-
     public void Synchronize()
     {
         state.Sync.RemainingRoundtrips = options.NumberOfSyncPackets;
         state.CurrentStatus = ProtocolStatus.Syncing;
-        jobManager.Register(this, state.StoppingToken);
+        retryCounter = 0;
+        active = true;
+        RequestSync();
+
         logger.Write(LogLevel.Information,
             $"Synchronize {state.Player} with {state.Sync.RemainingRoundtrips} roundtrips");
+    }
+
+    public void Update()
+    {
+        if (state.CurrentStatus is not ProtocolStatus.Syncing || !active)
+            return;
+
+        if (retryCounter >= options.MaxSyncRetries)
+        {
+            active = false;
+            logger.Write(LogLevel.Warning,
+                $"Fail to sync {state.Player} after {retryCounter} retries");
+            eventHandler.OnNetworkEvent(ProtocolEvent.SyncFailure, state.Player);
+            return;
+        }
+
+        var firstIteration = state.Sync.RemainingRoundtrips == options.NumberOfSyncPackets;
+        var interval = firstIteration ? options.SyncFirstRetryInterval : options.SyncRetryInterval;
+        var elapsed = clock.GetElapsedTime(lastRequest);
+        if (elapsed < interval)
+            return;
+
+        logger.Write(LogLevel.Information,
+            $"No luck syncing {state.Player} after {(int)elapsed.TotalMilliseconds}ms. Re-queueing sync packet");
+
+        RequestSync();
+        retryCounter++;
     }
 }

@@ -125,7 +125,10 @@ sealed class PeerConnection<TInput>(
     public void Update()
     {
         if (state.CurrentStatus is not ProtocolStatus.Running)
+        {
+            syncRequest.Update();
             return;
+        }
 
         KeepLive();
         ResendInputs();
