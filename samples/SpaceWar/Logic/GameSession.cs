@@ -13,17 +13,19 @@ public class GameSession(
     readonly SynchronizedInput<PlayerInputs>[] inputs =
         new SynchronizedInput<PlayerInputs>[nonGameState.NumberOfPlayers];
 
-    TimeSpan sleep;
+    int sleep;
 
     public void Update(GameTime gameTime)
     {
-        if (sleep > TimeSpan.Zero)
+        UpdateStats();
+
+        if (sleep > 0)
         {
-            sleep -= gameTime.ElapsedGameTime;
+            Console.WriteLine($"Sleeping {sleep}...");
+            sleep--;
             return;
         }
 
-        UpdateStats();
         session.BeginFrame();
 
         if (nonGameState.LocalPlayerHandle is { } localPlayer)
@@ -59,8 +61,8 @@ public class GameSession(
 
     public void TimeSync(FrameSpan framesAhead)
     {
-        Console.WriteLine($"{DateTime.Now:o} => Syncing...");
-        sleep = framesAhead.Duration();
+        Console.WriteLine($"{DateTime.Now:o} => Time sync requested {framesAhead.FrameCount}");
+        sleep = framesAhead.FrameCount;
     }
 
     void UpdateStats()
@@ -89,8 +91,8 @@ public class GameSession(
             case PeerEvent.Synchronizing:
 
                 var progress = 100 * evt.Synchronizing.CurrentStep /
-                               (float)evt.Synchronizing.TotalSteps;
-                nonGameState.UpdateConnectProgress(player, (int)progress);
+                               (float) evt.Synchronizing.TotalSteps;
+                nonGameState.UpdateConnectProgress(player, (int) progress);
                 break;
             case PeerEvent.Synchronized:
                 nonGameState.UpdateConnectProgress(player, 100);

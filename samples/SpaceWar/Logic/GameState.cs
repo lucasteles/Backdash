@@ -16,7 +16,7 @@ public sealed record GameState
             Ships[i] = new();
 
         FrameNumber = 0;
-        Bounds = window.ClientBounds with { X = 0, Y = 0 };
+        Bounds = window.ClientBounds with {X = 0, Y = 0};
         Bounds.Inflate(-Config.WindowPadding, -Config.WindowPadding);
 
         var width = Bounds.Right - Bounds.Left;
@@ -31,10 +31,10 @@ public sealed record GameState
 
             var x = width / 2f + r * cosT;
             var y = height / 2f + r * sinT;
-            Ships[i].Id = (byte)(i + 1);
+            Ships[i].Id = (byte) (i + 1);
             Ships[i].Position = new(x, y);
             Ships[i].Active = true;
-            Ships[i].Heading = (int)((heading + 180) % 360);
+            Ships[i].Heading = (int) ((heading + 180) % 360);
             Ships[i].Health = Config.StartingHealth;
             Ships[i].Radius = Config.ShipRadius;
         }
@@ -76,7 +76,7 @@ public sealed record GameState
 
     public void UpdateShip(in Ship ship, in GameInput inputs)
     {
-        ship.Heading = (int)inputs.Heading;
+        ship.Heading = (int) inputs.Heading;
 
         Vector2 rotation = new(
             MathF.Cos(MathHelper.ToRadians(ship.Heading)),
@@ -171,6 +171,7 @@ public sealed record GameState
                     continue;
 
                 if (other.Missile.Active
+                    && other.Id != ship.Id
                     && !other.Missile.IsExploding()
                     && Vector2.Distance(bullet.Position, other.Missile.Position) <=
                     other.Missile.ProjectileRadius)
@@ -246,7 +247,6 @@ public sealed record GameState
                             missile.ExplosionRadius += missile.ExplosionRadius / 2;
                             other.Missile.ExplosionRadius += other.Missile.ExplosionRadius / 2;
                         }
-
                     }
 
                     if (missile.ExplodeTimeout > 0) continue;
@@ -273,7 +273,7 @@ public sealed record GameState
                 else missile.ExplodeTimeout = 0;
 
                 var newVelocity = Vector2.Reflect(missile.Velocity, normal);
-                missile.Heading = (int)MathHelper.ToDegrees(
+                missile.Heading = (int) MathHelper.ToDegrees(
                     MathF.Atan2(newVelocity.Y, newVelocity.X));
                 missile.Velocity = newVelocity;
             }

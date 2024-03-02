@@ -10,9 +10,9 @@ public sealed class Renderer(
 
     public void Draw(GameState gs, NonGameState ngs)
     {
+        DrawBackground(ngs.Background);
         for (var i = 0; i < gs.NumberOfShips; i++)
         {
-            DrawBackground(ngs.Background);
             DrawShip(i, gs);
             DrawScore(i, gs);
             // DrawConnectState(gs.Ships[i], ngs.Players[i]);
@@ -28,8 +28,8 @@ public sealed class Renderer(
         if (!ship.Active) return;
 
         Rectangle shipRect = new(
-            (int)ship.Position.X,
-            (int)ship.Position.Y,
+            (int) ship.Position.X,
+            (int) ship.Position.Y,
             shipSize, shipSize
         );
 
@@ -41,7 +41,7 @@ public sealed class Renderer(
                 new Vector2(
                     gameAssets.Thrust.Bounds.Width + ship.Radius / 2f,
                     gameAssets.Thrust.Bounds.Height - ship.Radius / 2f),
-                1, SpriteEffects.None, 1);
+                1, SpriteEffects.None, 0);
 
         for (var i = 0; i < ship.Bullets.Length; i++)
         {
@@ -70,14 +70,14 @@ public sealed class Renderer(
             {
                 var explosionSize = ship.Missile.ExplosionRadius * 2;
                 Rectangle explosionRect = new(
-                    (int)ship.Missile.Position.X,
-                    (int)ship.Missile.Position.Y,
+                    (int) ship.Missile.Position.X,
+                    (int) ship.Missile.Position.Y,
                     explosionSize, explosionSize
                 );
 
-                var spriteStep = (int)MathHelper.Lerp(
+                var spriteStep = (int) MathHelper.Lerp(
                     0, MissileExplosionSpriteMap.Length - 1,
-                    ship.Missile.HitBoxTime / (float)Config.MissileHitBoxTimeout
+                    ship.Missile.HitBoxTime / (float) Config.MissileHitBoxTimeout
                 );
 
                 var missileSource = MissileExplosionSpriteMap[spriteStep];
@@ -152,7 +152,7 @@ public sealed class Renderer(
 
         Rectangle value = new(
             position.X, position.Y,
-            (int)(actual / total * position.Width),
+            (int) (actual / total * position.Width),
             position.Height
         );
 
