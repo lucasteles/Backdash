@@ -505,7 +505,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
                     interval = Math.Max(interval, endpoint.GetRecommendFrameDelay(options.RequireIdleInput));
 
             if (interval <= 0) return;
-            callbacks.TimeSync(new(interval, options.FramesPerSecond));
+            callbacks.TimeSync(new(interval));
             nextRecommendedInterval = currentFrame.Number + options.RecommendationInterval;
         }
     }

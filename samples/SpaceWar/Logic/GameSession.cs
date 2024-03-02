@@ -60,7 +60,7 @@ public class GameSession(
     public void TimeSync(FrameSpan framesAhead)
     {
         Console.WriteLine($"{DateTime.Now:o} => Syncing...");
-        sleep = framesAhead.Duration;
+        sleep = framesAhead.Duration();
     }
 
     void UpdateStats()
@@ -89,8 +89,8 @@ public class GameSession(
             case PeerEvent.Synchronizing:
 
                 var progress = 100 * evt.Synchronizing.CurrentStep /
-                               (float) evt.Synchronizing.TotalSteps;
-                nonGameState.UpdateConnectProgress(player, (int) progress);
+                               (float)evt.Synchronizing.TotalSteps;
+                nonGameState.UpdateConnectProgress(player, (int)progress);
                 break;
             case PeerEvent.Synchronized:
                 nonGameState.UpdateConnectProgress(player, 100);

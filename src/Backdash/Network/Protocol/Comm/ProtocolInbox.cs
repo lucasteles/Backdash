@@ -237,7 +237,7 @@ sealed class ProtocolInbox<TInput>(
             },
         };
 
-        state.Fairness.RemoteFrameAdvantage = new(msg.QualityReport.FrameAdvantage, state.Fairness.FramesPerSecond);
+        state.Fairness.RemoteFrameAdvantage = new(msg.QualityReport.FrameAdvantage);
 
         return true;
     }

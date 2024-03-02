@@ -47,7 +47,7 @@ sealed class Synchronizer<TInput, TState>
 
     public bool InRollback { get; private set; }
     public Frame CurrentFrame => currentFrame;
-    public FrameSpan FramesBehind => new(currentFrame.Number - lastConfirmedFrame.Number, options.FramesPerSecond);
+    public FrameSpan FramesBehind => new(currentFrame.Number - lastConfirmedFrame.Number);
 
     public FrameSpan RollbackFrames { get; private set; } = FrameSpan.Zero;
 
@@ -222,7 +222,7 @@ sealed class Synchronizer<TInput, TState>
                 continue;
 
             logger.Write(LogLevel.Debug, $"Incorrect frame {incorrect} reported by queue {i}");
-            RollbackFrames = new(Math.Max(RollbackFrames.FrameCount, incorrect.Number), options.FramesPerSecond);
+            RollbackFrames = new(Math.Max(RollbackFrames.FrameCount, incorrect.Number));
             firstIncorrect = incorrect;
         }
 

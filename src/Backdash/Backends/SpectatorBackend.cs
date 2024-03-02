@@ -259,7 +259,7 @@ sealed class SpectatorBackend<TInput, TGameState> :
         lastReceivedInputTime = clock.GetTimeStamp();
         var (_, input) = evt;
         inputs[input.Frame.Number % inputs.Length] = input;
-        host.SetLocalFrameNumber(input.Frame);
+        host.SetLocalFrameNumber(input.Frame, options.FramesPerSecond);
         host.SendInputAck();
     }
 }

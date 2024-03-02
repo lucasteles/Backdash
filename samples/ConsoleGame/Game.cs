@@ -111,7 +111,7 @@ public sealed class Game : IRollbackHandler<GameState>
     {
         Console.SetCursorPosition(1, 0);
         Console.WriteLine("> Syncing...");
-        Thread.Sleep(framesAhead.Duration);
+        Thread.Sleep(framesAhead.Duration());
     }
 
     public void OnPeerEvent(PlayerHandle player, PeerEventInfo evt)
