@@ -18,17 +18,20 @@ interface IUdpClient<in T> : IBackgroundJob, IDisposable where T : struct
 
 sealed class UdpClient<T> : IUdpClient<T> where T : struct
 {
-    readonly IUdpSocket socket;
+    readonly UdpSocket socket;
     readonly IUdpObserver<T> observer;
     readonly IBinarySerializer<T> serializer;
     readonly Logger logger;
     readonly int maxPacketSize;
 
     CancellationTokenSource? cancellation;
-    readonly SemaphoreSlim semaphore = new(1, 1);
+
+    public string JobName { get; }
+    public int Port => socket.Port;
+    public SocketAddress Address => socket.LocalAddress;
 
     public UdpClient(
-        IUdpSocket socket,
+        UdpSocket socket,
         IBinarySerializer<T> serializer,
         IUdpObserver<T> observer,
         Logger logger,
@@ -48,16 +51,9 @@ sealed class UdpClient<T> : IUdpClient<T> where T : struct
         JobName = $"{nameof(UdpClient)} ({socket.Port})";
     }
 
-    public string JobName { get; }
-
-    public int Port => socket.Port;
-    public SocketAddress Address => socket.LocalAddress;
-
     public async Task Start(CancellationToken ct)
     {
-        if (cancellation is not null)
-            return;
-
+        if (cancellation is not null) return;
         cancellation = new();
 
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct, cancellation.Token);
@@ -101,7 +97,7 @@ sealed class UdpClient<T> : IUdpClient<T> where T : struct
                     else
                         logger.Write(LogLevel.Warning, $"Recurrent socket error: {ex}. Retrying. {retries}");
 
-                    await Task.Delay(200, ct);
+                    await Task.Delay(100, ct);
                     continue;
                 }
 #pragma warning restore S2583
@@ -164,12 +160,10 @@ sealed class UdpClient<T> : IUdpClient<T> where T : struct
         return sentBytes;
     }
 
-
     public void Dispose()
     {
         cancellation?.Cancel();
         cancellation?.Dispose();
-        semaphore.Dispose();
         socket.Dispose();
     }
 }
