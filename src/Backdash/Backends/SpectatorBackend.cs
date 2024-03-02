@@ -21,6 +21,7 @@ sealed class SpectatorBackend<TInput, TGameState> :
 {
     readonly Logger logger;
     readonly IUdpClient<ProtocolMessage> udp;
+    readonly IPEndPoint hostEndpoint;
     readonly RollbackOptions options;
     readonly IBackgroundJobManager backgroundJobManager;
     readonly IClock clock;
@@ -49,6 +50,7 @@ sealed class SpectatorBackend<TInput, TGameState> :
         ArgumentNullException.ThrowIfNull(hostEndpoint);
         ThrowHelpers.ThrowIfArgumentIsZeroOrLess(port);
 
+        this.hostEndpoint = hostEndpoint;
         this.options = options;
 
         backgroundJobManager = services.JobManager;
@@ -147,8 +149,11 @@ sealed class SpectatorBackend<TInput, TGameState> :
 
     public void SetFrameDelay(PlayerHandle player, int delayInFrames) { }
 
-    public void Start(CancellationToken stoppingToken = default) =>
+    public void Start(CancellationToken stoppingToken = default)
+    {
         backgroundJobTask = backgroundJobManager.Start(stoppingToken);
+        logger.Write(LogLevel.Information, $"Spectating started on host {hostEndpoint}");
+    }
 
     public async Task WaitToStop(CancellationToken stoppingToken = default)
     {

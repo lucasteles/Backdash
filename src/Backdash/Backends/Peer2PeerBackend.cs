@@ -311,7 +311,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         endpoints.Add(protocol);
         Array.Resize(ref syncInputBuffer, syncInputBuffer.Length + 1);
         synchronizer.AddQueue(player.Handle);
-        logger.Write(LogLevel.Information, $"Adding {player.Handle} at {endpoint.Address}:{endpoint.Port}");
+        logger.Write(LogLevel.Information, $"Adding {player.Handle} at {endpoint}");
         protocol.Synchronize();
         isSynchronizing = true;
 
@@ -349,8 +349,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         udpObservers.Add(protocol.GetUdpObserver());
 
         spectators.Add(protocol);
-        logger.Write(LogLevel.Information,
-            $"Adding {spectator.Handle} at {spectator.EndPoint.Address}:{spectator.EndPoint.Port}");
+        logger.Write(LogLevel.Information, $"Adding {spectator.Handle} at {spectator.EndPoint}");
         protocol.Synchronize();
         return ResultCode.Ok;
     }

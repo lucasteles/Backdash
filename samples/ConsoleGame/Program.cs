@@ -33,7 +33,7 @@ RollbackOptions options = new()
     FrameDelay = 2,
     Log = new()
     {
-        EnabledLevel = LogLevel.Off,
+        EnabledLevel = LogLevel.Debug,
         // RunAsync = true,
     },
     Protocol = new()
@@ -52,7 +52,11 @@ IRollbackSession<GameInput, GameState> session;
 // parse console arguments checking if it is a spectator
 if (endpoints is ["spectate", { } hostArg] && IPEndPoint.TryParse(hostArg, out var host))
     session = RollbackNetcode.CreateSpectatorSession<GameInput, GameState>(port, host, options
-    // , logWriter: new FileLogWriter("log_spectator_{{proc_id}}.txt", append: false)
+        , new()
+        {
+            LogWriter = new FileLogWriter("log_spectator.txt", append: false),
+            // LogWriter = new FileLogWriter("log_spectator_{{proc_id}}.txt", append: false),
+        }
     );
 // not a spectator, creating a peer 2 peer game session
 else
