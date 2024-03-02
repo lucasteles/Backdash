@@ -31,12 +31,12 @@ public record struct Missile
 {
     public bool Active;
     public int ExplodeTimeout;
-    public int DamageTime;
+    public int HitBoxTime;
     public int ExplosionRadius;
     public int ProjectileRadius;
     public int Heading;
     public Vector2 Position;
     public Vector2 Velocity;
 
-    public readonly bool IsExploding() => ExplodeTimeout is 0 && DamageTime > 0;
+    public readonly bool IsExploding() => ExplodeTimeout is 0 && HitBoxTime > 0;
 }

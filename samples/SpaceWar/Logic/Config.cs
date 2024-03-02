@@ -19,11 +19,11 @@ public static class Config
     public const int MissileSpeed = 1;
     public const int MissileMaxSpeed = 14;
     public const float MissileAcceleration = 0.1f;
-    public const int MissileDamage = 15;
-    public const int MissileExplosionRadius = 120;
-    public const int MissileProjectileRadius = 12;
+    public const int MissileDamage = 10;
+    public const int MissileExplosionRadius = 140;
+    public const int MissileProjectileRadius = 14;
     public const int MissileInvincibleTime = 15;
-    public const int MissileExplosionTimeout = 60 * 5;
-    public const int MissileDamageTime = 24;
-    public const int MissileCooldown = 60 * 4;
+    public const int MissileExplosionTimeout = 60 * 10;
+    public const int MissileHitBoxTimeout = 24;
+    public const int MissileCooldown = 60 * 3;
 }

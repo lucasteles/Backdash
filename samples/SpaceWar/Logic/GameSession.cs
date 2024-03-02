@@ -137,7 +137,7 @@ public class GameSession(
             toShip.Score = fromShip.Score;
             toShip.Thrust = fromShip.Thrust;
             toShip.Missile.Heading = fromShip.Missile.Heading;
-            toShip.Missile.DamageTime = fromShip.Missile.DamageTime;
+            toShip.Missile.HitBoxTime = fromShip.Missile.HitBoxTime;
             toShip.Missile.Position = fromShip.Missile.Position;
             toShip.Missile.Velocity = fromShip.Missile.Velocity;
             toShip.Missile.ExplosionRadius = fromShip.Missile.ExplosionRadius;

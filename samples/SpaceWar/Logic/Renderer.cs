@@ -76,8 +76,8 @@ public sealed class Renderer(
                 );
 
                 var spriteStep = (int)MathHelper.Lerp(
-                    0, MissileExplosionSpriteMap.Length,
-                    ship.Missile.DamageTime / (float)Config.MissileDamageTime
+                    0, MissileExplosionSpriteMap.Length - 1,
+                    ship.Missile.HitBoxTime / (float)Config.MissileHitBoxTimeout
                 );
 
                 var missileSource = MissileExplosionSpriteMap[spriteStep];
@@ -89,7 +89,7 @@ public sealed class Renderer(
             }
 
         spriteBatch.Draw(sprite.Ship, shipRect, null, Color.White, rotation,
-            sprite.Ship.Bounds.Size.ToVector2() / 2, SpriteEffects.None, 0);
+            sprite.Ship.Bounds.Size.ToVector2() / 2, SpriteEffects.None, 1);
 
         DrawBar(
             new(
@@ -107,7 +107,7 @@ public sealed class Renderer(
             ref var star = ref background.StarMap[i];
             var texture = star.Big ? gameAssets.StarBig : gameAssets.Star;
             spriteBatch.Draw(texture, star.Position, null,
-                Color.DarkGray, 0, Vector2.Zero, 0.7f, SpriteEffects.None, 1);
+                Color.DarkGray, 0, Vector2.Zero, 0.7f, SpriteEffects.None, 0);
         }
     }
 
