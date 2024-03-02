@@ -27,6 +27,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
     readonly Queue<SavedFrame> savedFrames = [];
     readonly SynchronizedInput<TInput>[] syncInputBuffer = new SynchronizedInput<TInput>[Max.RemoteConnections];
     readonly FrameSpan checkDistance;
+    readonly IInputGenerator<TInput>? inputGenerator;
 
     readonly JsonSerializerOptions jsonOptions = new()
     {
@@ -46,27 +47,26 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
     public SyncTestBackend(
         RollbackOptions options,
         FrameSpan checkDistance,
-        IStateStore<TGameState> stateStore,
-        IChecksumProvider<TGameState> checksumProvider,
-        IClock clock,
-        Logger logger
+        BackendServices<TInput, TGameState> services
     )
     {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(options);
         ThrowHelpers.ThrowIfTypeTooBigForStack<TInput>();
         ThrowHelpers.ThrowIfTypeTooBigForStack<GameInput<TInput>>();
         ThrowHelpers.ThrowIfArgumentIsNegative(checkDistance.FrameCount);
 
         this.checkDistance = checkDistance;
-        this.clock = clock;
-        this.logger = logger;
+        inputGenerator = services.InputGenerator;
+        clock = services.Clock;
+        logger = services.Logger;
         callbacks ??= new EmptySessionHandler<TGameState>(logger);
-
 
         synchronizer = new(
             options, logger,
             addedPlayers,
-            stateStore,
-            checksumProvider,
+            services.StateStore,
+            services.ChecksumProvider,
             new(Max.RemoteConnections)
         )
         {

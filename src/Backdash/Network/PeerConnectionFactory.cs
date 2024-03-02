@@ -15,17 +15,17 @@ sealed class PeerConnectionFactory
     readonly Logger logger;
     readonly IClock clock;
     readonly IBackgroundJobManager jobManager;
-    readonly IProtocolNetworkEventHandler networkEventHandler;
     readonly IUdpClient<ProtocolMessage> udp;
+    readonly IProtocolNetworkEventHandler networkEventHandler;
     readonly ProtocolOptions options;
     readonly TimeSyncOptions timeSyncOptions;
 
     public PeerConnectionFactory(
+        IProtocolNetworkEventHandler networkEventHandler,
         IClock clock,
         Random defaultRandom,
         Logger logger,
         IBackgroundJobManager jobManager,
-        IProtocolNetworkEventHandler networkEventHandler,
         IUdpClient<ProtocolMessage> udp,
         ProtocolOptions options,
         TimeSyncOptions timeSyncOptions

@@ -15,7 +15,7 @@ namespace Backdash.Backends;
 sealed class SpectatorBackend<TInput, TGameState> :
     IRollbackSession<TInput, TGameState>,
     IProtocolNetworkEventHandler,
-    IProtocolInputEventPublisher<InputGroup<TInput>>
+    IProtocolInputEventPublisher<CombinedInputs<TInput>>
     where TInput : struct
     where TGameState : IEquatable<TGameState>, new()
 {
@@ -26,8 +26,8 @@ sealed class SpectatorBackend<TInput, TGameState> :
     readonly IClock clock;
     readonly ConnectionsState localConnections = new(0);
 
-    readonly GameInput<InputGroup<TInput>>[] inputs;
-    readonly PeerConnection<InputGroup<TInput>> host;
+    readonly GameInput<CombinedInputs<TInput>>[] inputs;
+    readonly PeerConnection<CombinedInputs<TInput>> host;
     IRollbackHandler<TGameState> callbacks;
 
     bool isSynchronizing;
@@ -41,45 +41,36 @@ sealed class SpectatorBackend<TInput, TGameState> :
     public SpectatorBackend(
         RollbackOptions options,
         IPEndPoint hostEndpoint,
-        IBinarySerializer<TInput> inputSerializer,
-        IUdpClientFactory udpClientFactory,
-        IBackgroundJobManager backgroundJobManager,
-        IClock clock,
-        Logger logger
-    )
+        BackendServices<TInput, TGameState> services)
     {
-        this.options = options;
-        this.backgroundJobManager = backgroundJobManager;
-        this.logger = logger;
-        this.clock = clock;
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(options);
 
-        IBinarySerializer<InputGroup<TInput>> inputGroupSerializer = new InputGroupSerializer<TInput>(inputSerializer);
-        callbacks = new EmptySessionHandler<TGameState>(this.logger);
+        this.options = options;
+
+        backgroundJobManager = services.JobManager;
+        logger = services.Logger;
+        clock = services.Clock;
+        IBinarySerializer<CombinedInputs<TInput>> inputGroupSerializer =
+            new CombinedInputsSerializer<TInput>(services.InputSerializer);
+
         UdpObserverGroup<ProtocolMessage> udpObservers = new();
-        inputs = new GameInput<InputGroup<TInput>>[options.SpectatorInputBufferLength];
+        callbacks = new EmptySessionHandler<TGameState>(logger);
+        inputs = new GameInput<CombinedInputs<TInput>>[options.SpectatorInputBufferLength];
 
         var selectedEndianness = Platform.GetEndianness(options.NetworkEndianness);
-        udp = udpClientFactory.CreateClient(
+        udp = services.UdpClientFactory.CreateClient(
             options.LocalPort,
             selectedEndianness,
             options.Protocol.UdpPacketBufferSize,
             udpObservers,
-            this.logger
+            logger
         );
+        backgroundJobManager.Register(udp);
 
         PeerConnectionFactory peerConnectionFactory = new(
-            this.clock,
-            options.Random,
-            this.logger,
-            this.backgroundJobManager,
-            this,
-            udp,
-            options.Protocol,
-            options.TimeSync
+            this, clock, options.Random, logger, backgroundJobManager, udp, options.Protocol, options.TimeSync
         );
-
-        this.backgroundJobManager.Register(udp);
-
         host = peerConnectionFactory.Create(
             new(new PlayerHandle(PlayerType.Remote, 0), hostEndpoint, localConnections, options.FramesPerSecond),
             inputGroupSerializer, this);
@@ -87,8 +78,8 @@ sealed class SpectatorBackend<TInput, TGameState> :
         host.Synchronize();
         isSynchronizing = true;
 
-        if (this.logger.EnabledLevel is not LogLevel.Off && this.logger.RunningAsync)
-            this.backgroundJobManager.Register(this.logger);
+        if (logger.EnabledLevel is not LogLevel.Off && logger.RunningAsync)
+            backgroundJobManager.Register(logger);
     }
 
     public void Dispose()
@@ -254,7 +245,7 @@ sealed class SpectatorBackend<TInput, TGameState> :
     public ref readonly SynchronizedInput<TInput> GetInput(in PlayerHandle player) =>
         ref syncInputBuffer[player.Number - 1];
 
-    public void Publish(in GameInputEvent<InputGroup<TInput>> evt)
+    public void Publish(in GameInputEvent<CombinedInputs<TInput>> evt)
     {
         lastReceivedInputTime = clock.GetTimeStamp();
         var (_, input) = evt;

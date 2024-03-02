@@ -55,11 +55,11 @@ sealed class ProtocolInputEventQueue<TInput> : IProtocolInputEventQueue<TInput> 
     }
 }
 
-sealed class ProtocolInputGroupEventPublisher<TInput>(IProtocolInputEventPublisher<TInput> peerInputEventPublisher)
-    : IProtocolInputEventPublisher<InputGroup<TInput>>
+sealed class ProtocolCombinedInputsEventPublisher<TInput>(IProtocolInputEventPublisher<TInput> peerInputEventPublisher)
+    : IProtocolInputEventPublisher<CombinedInputs<TInput>>
     where TInput : struct
 {
-    public void Publish(in GameInputEvent<InputGroup<TInput>> evt)
+    public void Publish(in GameInputEvent<CombinedInputs<TInput>> evt)
     {
         var player = evt.Player;
         var frame = evt.Input.Frame;

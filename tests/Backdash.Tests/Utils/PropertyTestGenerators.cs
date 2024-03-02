@@ -324,13 +324,13 @@ class PropertyTestGenerators
         select new Quaternion(x, y, z, w)
     );
 
-    public static Arbitrary<InputGroup<T>> InputGroupGenerator<T>() where T : struct =>
+    public static Arbitrary<CombinedInputs<T>> InputGroupGenerator<T>() where T : struct =>
         Gen.Sized(testSize =>
             {
                 var size = Math.Min(testSize, InputArray<T>.Capacity);
                 return Gen.ArrayOf(size, Arb.Generate<T>());
             })
-            .Select(arr => new InputGroup<T>(arr))
+            .Select(arr => new CombinedInputs<T>(arr))
             .ToArbitrary();
 
     public static Arbitrary<Array<T>> EquatableArrayGenerator<T>() where T : IEquatable<T> =>
