@@ -130,14 +130,14 @@ sealed class PeerConnection<TInput>(
                 syncRequest.Update();
                 break;
             case ProtocolStatus.Running:
-            {
-                KeepLive();
-                ResendInputs();
-                qualityReportTimer.Update();
-                networkStatsTimer.Update();
-                CheckDisconnection();
-                break;
-            }
+                {
+                    KeepLive();
+                    ResendInputs();
+                    qualityReportTimer.Update();
+                    networkStatsTimer.Update();
+                    CheckDisconnection();
+                    break;
+                }
             case ProtocolStatus.Disconnected:
                 break;
         }

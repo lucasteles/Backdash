@@ -452,8 +452,12 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
 
         ConsumeProtocolInputEvents();
 
-        for (var i = 0; i < endpoints.Count; i++)
+        int i;
+        for (i = 0; i < endpoints.Count; i++)
             endpoints[i]?.Update();
+
+        for (i = 0; i < spectators.Count; i++)
+            spectators[i].Update();
 
         if (isSynchronizing)
             return;
@@ -461,7 +465,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         synchronizer.CheckSimulation();
         // notify all of our endpoints of their local frame number for their next connection quality report
         var currentFrame = synchronizer.CurrentFrame;
-        for (var i = 0; i < endpoints.Count; i++)
+        for (i = 0; i < endpoints.Count; i++)
             endpoints[i]?.SetLocalFrameNumber(currentFrame, options.FramesPerSecond);
 
         var minConfirmedFrame = NumberOfPlayers <= 2 ? MinimumFrame2Players() : MinimumFrameNPlayers();
@@ -496,7 +500,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         if (currentFrame.Number > nextRecommendedInterval)
         {
             var interval = 0;
-            for (var i = 0; i < endpoints.Count; i++)
+            for (i = 0; i < endpoints.Count; i++)
                 if (endpoints[i] is { } endpoint)
                     interval = Math.Max(interval, endpoint.GetRecommendFrameDelay(options.RequireIdleInput));
 

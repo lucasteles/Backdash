@@ -5,7 +5,7 @@ public interface ILogWriter : IDisposable
     void Write(LogLevel level, char[] chars, int size);
 }
 
-public abstract class LogWriter : ILogWriter, IAsyncDisposable
+public abstract class LogWriter : ILogWriter
 {
     protected abstract TextWriter textWriter { get; }
     readonly object locker = new();
@@ -23,19 +23,16 @@ public abstract class LogWriter : ILogWriter, IAsyncDisposable
     {
         if (!disposing) return;
         disposed = true;
-        textWriter.Close();
-        textWriter.Dispose();
+        lock (locker)
+        {
+            textWriter.Close();
+            textWriter.Dispose();
+        }
     }
 
     public void Dispose()
     {
         Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        await textWriter.DisposeAsync();
         GC.SuppressFinalize(this);
     }
 }
@@ -58,6 +55,9 @@ public sealed class FileLogWriter : LogWriter
             .Replace("{{proc_id}}", Environment.ProcessId.ToString())
             .Replace("{{timestamp}}", $"{DateTime.Now:yyyyMMddhhmmss}");
 
-        textWriter = new StreamWriter(filename, append);
+        textWriter = new StreamWriter(filename, append)
+        {
+            AutoFlush = true,
+        };
     }
 }

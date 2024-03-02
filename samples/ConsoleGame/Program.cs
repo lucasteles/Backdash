@@ -34,7 +34,6 @@ RollbackOptions options = new()
     Log = new()
     {
         EnabledLevel = LogLevel.Debug,
-        // RunAsync = true,
     },
     Protocol = new()
     {
@@ -54,7 +53,6 @@ if (endpoints is ["spectate", { } hostArg] && IPEndPoint.TryParse(hostArg, out v
     session = RollbackNetcode.CreateSpectatorSession<GameInput, GameState>(port, host, options
         , new()
         {
-            LogWriter = new FileLogWriter("log_spectator.txt", append: false),
             // LogWriter = new FileLogWriter("log_spectator_{{proc_id}}.txt", append: false),
         }
     );
