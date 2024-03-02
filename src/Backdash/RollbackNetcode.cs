@@ -13,24 +13,18 @@ public static class RollbackNetcode
         SessionServices<TInput, TGameState>? services = null
     )
         where TInput : struct
-        where TGameState : IEquatable<TGameState>, new()
-    {
-        options.LocalPort = port;
-        return new Peer2PeerBackend<TInput, TGameState>(options, BackendServices.Create(options, services));
-    }
+        where TGameState : IEquatable<TGameState>, new() =>
+        new Peer2PeerBackend<TInput, TGameState>(port, options, BackendServices.Create(options, services));
 
     public static IRollbackSession<TInput, TGameState> CreateSpectatorSession<TInput, TGameState>(
         int port,
-        RollbackOptions options,
         IPEndPoint host,
+        RollbackOptions options,
         SessionServices<TInput, TGameState>? services = null
     )
         where TInput : struct
-        where TGameState : IEquatable<TGameState>, new()
-    {
-        options.LocalPort = port;
-        return new SpectatorBackend<TInput, TGameState>(options, host, BackendServices.Create(options, services));
-    }
+        where TGameState : IEquatable<TGameState>, new() =>
+        new SpectatorBackend<TInput, TGameState>(port, host, options, BackendServices.Create(options, services));
 
     public static IRollbackSession<TInput, TGameState> CreateTestSession<TInput, TGameState>(
         FrameSpan? checkDistance = null,

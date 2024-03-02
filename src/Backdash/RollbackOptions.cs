@@ -7,8 +7,6 @@ namespace Backdash;
 
 public sealed class RollbackOptions
 {
-    internal int LocalPort { get; set; }
-    public Random Random { get; init; } = Random.Shared;
     public int SpectatorOffset { get; init; } = Default.SpectatorOffset;
     public int RecommendationInterval { get; init; } = Default.RecommendationInterval;
     public bool NetworkEndianness { get; init; } = true;

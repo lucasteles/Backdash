@@ -1,4 +1,4 @@
-﻿using Backdash.Core;
+using Backdash.Core;
 using Backdash.Serialization;
 using Backdash.Sync.Input;
 using Backdash.Sync.State;
@@ -15,4 +15,5 @@ public sealed class SessionServices<TInput, TGameState>
     public IBinarySerializer<TGameState>? StateSerializer { get; set; }
     public IInputGenerator<TInput>? InputGenerator { get; set; }
     public IStateStore<TGameState>? StateStore { get; set; }
+    public Random? Random { get; set; }
 }

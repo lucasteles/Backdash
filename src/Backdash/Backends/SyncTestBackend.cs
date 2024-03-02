@@ -163,13 +163,15 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         if (!running)
             return ResultCode.NotSynchronized;
 
+        if (inputGenerator is not null)
+            localInput = inputGenerator.Generate();
+
         currentInput.Frame = synchronizer.CurrentFrame;
         currentInput.Data = localInput;
         return ResultCode.Ok;
     }
 
     public void BeginFrame() => logger.Write(LogLevel.Trace, $"Beginning of frame({synchronizer.CurrentFrame})...");
-
 
     public ResultCode SynchronizeInputs()
     {

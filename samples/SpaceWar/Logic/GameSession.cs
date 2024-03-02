@@ -91,8 +91,8 @@ public class GameSession(
             case PeerEvent.Synchronizing:
 
                 var progress = 100 * evt.Synchronizing.CurrentStep /
-                               (float) evt.Synchronizing.TotalSteps;
-                nonGameState.UpdateConnectProgress(player, (int) progress);
+                               (float)evt.Synchronizing.TotalSteps;
+                nonGameState.UpdateConnectProgress(player, (int)progress);
                 break;
             case PeerEvent.Synchronized:
                 nonGameState.UpdateConnectProgress(player, 100);

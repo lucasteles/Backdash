@@ -39,12 +39,15 @@ sealed class SpectatorBackend<TInput, TGameState> :
     SynchronizedInput<TInput>[] syncInputBuffer = [];
 
     public SpectatorBackend(
-        RollbackOptions options,
+        int port,
         IPEndPoint hostEndpoint,
+        RollbackOptions options,
         BackendServices<TInput, TGameState> services)
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(options);
+        ArgumentNullException.ThrowIfNull(hostEndpoint);
+        ThrowHelpers.ThrowIfArgumentIsZeroOrLess(port);
 
         this.options = options;
 
@@ -60,7 +63,7 @@ sealed class SpectatorBackend<TInput, TGameState> :
 
         var selectedEndianness = Platform.GetEndianness(options.NetworkEndianness);
         udp = services.UdpClientFactory.CreateClient(
-            options.LocalPort,
+            port,
             selectedEndianness,
             options.Protocol.UdpPacketBufferSize,
             udpObservers,
@@ -69,11 +72,12 @@ sealed class SpectatorBackend<TInput, TGameState> :
         backgroundJobManager.Register(udp);
 
         PeerConnectionFactory peerConnectionFactory = new(
-            this, clock, options.Random, logger, backgroundJobManager, udp, options.Protocol, options.TimeSync
+            this, clock, services.Random, services.DelayStrategy, logger,
+            backgroundJobManager, udp, options.Protocol, options.TimeSync
         );
-        host = peerConnectionFactory.Create(
-            new(new PlayerHandle(PlayerType.Remote, 0), hostEndpoint, localConnections, options.FramesPerSecond),
-            inputGroupSerializer, this);
+        ProtocolState protocolState =
+            new(new PlayerHandle(PlayerType.Remote, 0), hostEndpoint, localConnections, options.FramesPerSecond);
+        host = peerConnectionFactory.Create(protocolState, inputGroupSerializer, this);
         udpObservers.Add(host.GetUdpObserver());
         host.Synchronize();
         isSynchronizing = true;

@@ -1,4 +1,4 @@
-﻿using Backdash.Core;
+using Backdash.Core;
 
 namespace Backdash.Sync.Input;
 

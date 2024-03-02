@@ -50,13 +50,14 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
     bool closed;
 
     public Peer2PeerBackend(
+        int port,
         RollbackOptions options,
         BackendServices<TInput, TGameState> services
     )
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(options);
-        ThrowHelpers.ThrowIfArgumentIsZeroOrLess(options.LocalPort);
+        ThrowHelpers.ThrowIfArgumentIsZeroOrLess(port);
         ThrowHelpers.ThrowIfArgumentIsZeroOrLess(options.FramesPerSecond);
         ThrowHelpers.ThrowIfArgumentOutOfBounds(options.SpectatorOffset, min: Max.RemoteConnections);
         ThrowHelpers.ThrowIfTypeTooBigForStack<GameInput<TInput>>();
@@ -92,7 +93,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         var selectedEndianness = Platform.GetEndianness(this.options.NetworkEndianness);
 
         udp = services.UdpClientFactory.CreateClient(
-            this.options.LocalPort,
+            port,
             selectedEndianness,
             this.options.Protocol.UdpPacketBufferSize,
             udpObservers,
@@ -102,14 +103,14 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         peerConnectionFactory = new(
             this,
             clock,
-            this.options.Random,
+            services.Random,
+            services.DelayStrategy,
             logger,
             backgroundJobManager,
             udp,
             this.options.Protocol,
             this.options.TimeSync
         );
-
 
         backgroundJobManager.Register(udp);
 
