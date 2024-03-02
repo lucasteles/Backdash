@@ -13,6 +13,7 @@ public readonly record struct FrameSpan :
     ISubtractionOperators<FrameSpan, FrameSpan, FrameSpan>,
     IModulusOperators<FrameSpan, int, FrameSpan>,
     IAdditionOperators<FrameSpan, int, FrameSpan>,
+    IMultiplyOperators<FrameSpan, int, FrameSpan>,
     ISubtractionOperators<FrameSpan, int, FrameSpan>,
     IAdditionOperators<FrameSpan, Frame, FrameSpan>,
     ISubtractionOperators<FrameSpan, Frame, FrameSpan>
@@ -21,6 +22,7 @@ public readonly record struct FrameSpan :
     public const short DefaultFramesPerSecond = 60;
 
     public static readonly FrameSpan Zero = new(0, DefaultFramesPerSecond);
+    public static readonly FrameSpan One = new(1, DefaultFramesPerSecond);
     public static readonly FrameSpan MaxValue = new(int.MaxValue, DefaultFramesPerSecond);
 
     public readonly int FrameCount = 0;
@@ -34,11 +36,12 @@ public readonly record struct FrameSpan :
 
     public double Seconds => InSeconds(FrameCount, FramesPerSecond);
     public TimeSpan Duration => GetDuration(FrameCount, FramesPerSecond);
-
+    public Frame Last => new(FrameCount);
     public int CompareTo(FrameSpan other) => Seconds.CompareTo(other.Seconds);
 
     public string ToString(string? format, IFormatProvider? formatProvider) =>
         FrameCount.ToString(format ?? "0 frames;-# frames", formatProvider);
+
 
     public override string ToString() => ToString(null, null);
 
@@ -78,17 +81,22 @@ public readonly record struct FrameSpan :
     public static bool operator <=(FrameSpan left, FrameSpan right) => left.Duration <= right.Duration;
 
     public static FrameSpan operator %(FrameSpan left, int right) => new(left.FrameCount % right, left.FramesPerSecond);
-    public static FrameSpan operator +(FrameSpan a, int b) => new(a.FrameCount + b, a.FramesPerSecond);
-    public static FrameSpan operator -(FrameSpan a, int b) => new(a.FrameCount - b, a.FramesPerSecond);
+    public static FrameSpan operator +(FrameSpan left, int right) => new(left.FrameCount + right, left.FramesPerSecond);
+    public static FrameSpan operator -(FrameSpan left, int right) => new(left.FrameCount - right, left.FramesPerSecond);
+    public static FrameSpan operator *(FrameSpan left, int right) => new(left.FrameCount * right, left.FramesPerSecond);
+    public static FrameSpan operator *(int left, FrameSpan right) => right * left;
 
-    public static FrameSpan operator +(FrameSpan a, Frame b) => new(a.FrameCount + b.Number, a.FramesPerSecond);
-    public static FrameSpan operator -(FrameSpan a, Frame b) => new(a.FrameCount - b.Number, a.FramesPerSecond);
+    public static FrameSpan operator +(FrameSpan left, Frame b) =>
+        new(left.FrameCount + b.Number, left.FramesPerSecond);
 
-    public static FrameSpan operator +(FrameSpan a, TimeSpan b) =>
-        FromSeconds(a.Seconds + b.TotalSeconds, a.FramesPerSecond);
+    public static FrameSpan operator -(FrameSpan left, Frame b) =>
+        new(left.FrameCount - b.Number, left.FramesPerSecond);
 
-    public static FrameSpan operator -(FrameSpan a, TimeSpan b) =>
-        FromSeconds(a.Seconds - b.TotalSeconds, a.FramesPerSecond);
+    public static FrameSpan operator +(FrameSpan left, TimeSpan b) =>
+        FromSeconds(left.Seconds + b.TotalSeconds, left.FramesPerSecond);
+
+    public static FrameSpan operator -(FrameSpan left, TimeSpan b) =>
+        FromSeconds(left.Seconds - b.TotalSeconds, left.FramesPerSecond);
 
     public static FrameSpan operator +(FrameSpan left, FrameSpan right)
     {

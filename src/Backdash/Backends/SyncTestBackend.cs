@@ -22,6 +22,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
     readonly HashSet<PlayerHandle> addedSpectators = [];
     readonly Queue<SavedFrame> savedFrames = [];
     readonly SynchronizedInput<TInput>[] syncInputBuffer = new SynchronizedInput<TInput>[Max.RemoteConnections];
+    readonly FrameSpan checkDistance;
 
     readonly JsonSerializerOptions jsonOptions = new()
     {
@@ -30,20 +31,17 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
     };
 
     IRollbackHandler<TGameState> callbacks;
-
-
-    Frame checkDistance = Frame.Zero;
-    Frame lastVerified = Frame.Zero;
-
     bool inRollback;
     bool running;
     long startTimestamp;
     Task backGroundJobTask = Task.CompletedTask;
     GameInput<TInput> currentInput;
     GameInput<TInput> lastInput;
+    Frame lastVerified = Frame.Zero;
 
     public SyncTestBackend(
         RollbackOptions options,
+        FrameSpan checkDistance,
         IStateStore<TGameState> stateStore,
         IChecksumProvider<TGameState> checksumProvider,
         IClock clock,
@@ -52,10 +50,13 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
     {
         ThrowHelpers.ThrowIfTypeTooBigForStack<TInput>();
         ThrowHelpers.ThrowIfTypeTooBigForStack<GameInput<TInput>>();
+        ThrowHelpers.ThrowIfArgumentIsNegative(checkDistance.FrameCount);
 
+        this.checkDistance = checkDistance;
         this.clock = clock;
         this.logger = logger;
         callbacks ??= new EmptySessionHandler<TGameState>(logger);
+
 
         synchronizer = new(
             options, logger,
@@ -209,7 +210,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
             Checksum: lastSaved.Checksum
         ));
 
-        if (frame - lastVerified != checkDistance)
+        if (frame - lastVerified != checkDistance.Last)
             return;
 
         // We've gone far enough ahead and should now start replaying frames.
@@ -240,7 +241,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
                     $"Checksum for frame {frame} does not match saved ({checksum} != {info.Checksum})");
             }
 
-            logger.Write(LogLevel.Trace, $"Checksum {checksum} for frame {info.Frame} matches");
+            logger.Write(LogLevel.Debug, $"Checksum {checksum} for frame {info.Frame} matches");
         }
 
         lastVerified = frame;
@@ -249,9 +250,6 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
 
     void LogSaveState(SavedFrame info)
     {
-        if (logger.EnabledLevel > LogLevel.Debug)
-            return;
-
         StringBuilder builder = new();
         builder.AppendLine($"=== Saved State ({info.Frame}) ");
         var input = info.Input;
@@ -262,7 +260,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         builder.AppendLine(JsonSerializer.Serialize(info.State, jsonOptions));
         builder.AppendLine("======================");
 
-        logger.Write(LogLevel.Debug, $"{builder.ToString()}");
+        logger.Write(LogLevel.Information, $"{builder.ToString()}");
     }
 
     public void SetFrameDelay(PlayerHandle player, int delayInFrames)

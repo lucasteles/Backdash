@@ -209,7 +209,7 @@ sealed class Synchronizer<TInput, TState>
 
         var checksum = checksumProvider.Compute(in nextState);
         ref readonly var next = ref stateStore.SaveCurrent(in currentFrame, in checksum);
-        logger.Write(LogLevel.Debug, $"* Saved frame {next.Frame} (checksum: {next.Checksum}).");
+        logger.Write(LogLevel.Trace, $"sync: saved frame {next.Frame} (checksum: {next.Checksum}).");
     }
 
     bool CheckSimulationConsistency(out Frame seekTo)

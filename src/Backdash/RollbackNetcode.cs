@@ -1,6 +1,7 @@
 using System.Net;
 using Backdash.Backends;
 using Backdash.Core;
+using Backdash.Data;
 using Backdash.Network;
 using Backdash.Network.Protocol;
 using Backdash.Serialization;
@@ -80,6 +81,7 @@ public static class RollbackNetcode
 
     public static IRollbackSession<TInput, TGameState> CreateTestSession<TInput, TGameState>(
         RollbackOptions? options = null,
+        FrameSpan? checkDistance = null,
         IChecksumProvider<TGameState>? checksumProvider = null,
         IBinarySerializer<TGameState>? stateSerializer = null,
         ILogWriter? logWriter = null
@@ -90,9 +92,10 @@ public static class RollbackNetcode
         checksumProvider ??= ChecksumProviderFactory.Create<TGameState>();
         options ??= new()
         {
-            Log = new(LogLevel.Trace),
+            Log = new(LogLevel.Debug),
         };
 
+        checkDistance ??= FrameSpan.One;
         var stateStore = StateStoreFactory.Create(stateSerializer);
         var clock = new Clock();
         var logger = new Logger(options.Log,
@@ -101,8 +104,10 @@ public static class RollbackNetcode
                 : logWriter
         );
 
+
         return new SyncTestBackend<TInput, TGameState>(
             options,
+            checkDistance.Value,
             stateStore,
             checksumProvider,
             clock,

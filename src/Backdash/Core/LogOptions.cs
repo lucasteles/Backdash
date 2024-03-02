@@ -3,7 +3,7 @@ namespace Backdash.Core;
 public sealed class LogOptions(
     LogLevel level =
 #if DEBUG
-        LogLevel.Debug
+        LogLevel.Information
 #else
         LogLevel.Warning
 #endif
