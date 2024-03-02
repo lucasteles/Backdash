@@ -16,7 +16,7 @@ public sealed record GameState
             Ships[i] = new();
 
         FrameNumber = 0;
-        Bounds = window.ClientBounds with { X = 0, Y = 0 };
+        Bounds = window.ClientBounds with {X = 0, Y = 0};
         Bounds.Inflate(-Config.WindowPadding, -Config.WindowPadding);
 
         var width = Bounds.Right - Bounds.Left;
@@ -31,10 +31,10 @@ public sealed record GameState
 
             var x = width / 2f + r * cosT;
             var y = height / 2f + r * sinT;
-            Ships[i].Id = i + 1;
+            Ships[i].Id = (byte) (i + 1);
             Ships[i].Position = new(x, y);
             Ships[i].Active = true;
-            Ships[i].Heading = (int)((heading + 180) % 360);
+            Ships[i].Heading = (int) ((heading + 180) % 360);
             Ships[i].Health = Config.StartingHealth;
             Ships[i].Radius = Config.ShipRadius;
         }
@@ -76,7 +76,7 @@ public sealed record GameState
 
     public void UpdateShip(in Ship ship, in GameInput inputs)
     {
-        ship.Heading = (int)inputs.Heading;
+        ship.Heading = (int) inputs.Heading;
 
         Vector2 rotation = new(
             MathF.Cos(MathHelper.ToRadians(ship.Heading)),
@@ -139,6 +139,17 @@ public sealed record GameState
             ship.Position.Y += ship.Velocity.Y * 2;
         }
 
+        UpdateBullets(ship);
+        UpdateMissile(ship);
+
+        if (ship.FireCooldown > 0) ship.FireCooldown--;
+        if (ship.MissileCooldown > 0) ship.MissileCooldown--;
+        if (ship.Invincible > 0) ship.Invincible--;
+        if (ship.Health <= 0) ship.Active = false;
+    }
+
+    void UpdateBullets(Ship ship)
+    {
         for (var i = 0; i < ship.Bullets.Length; i++)
         {
             ref var bullet = ref ship.Bullets[i];
@@ -169,6 +180,9 @@ public sealed record GameState
                     continue;
                 }
 
+                if (other.Id == ship.Id)
+                    continue;
+
                 if (Vector2.Distance(bullet.Position, other.Position) > other.Radius)
                     continue;
 
@@ -178,7 +192,10 @@ public sealed record GameState
                 break;
             }
         }
+    }
 
+    void UpdateMissile(Ship ship)
+    {
         if (ship.Missile.Active)
         {
             ref var missile = ref ship.Missile;
@@ -195,13 +212,47 @@ public sealed record GameState
                 {
                     ref var other = ref Ships[j];
                     var distance = Vector2.Distance(missile.Position, other.Position);
+
                     if (!missile.IsExploding())
                     {
                         if (distance - missile.ProjectileRadius > other.Radius) continue;
+                        // wait some frames to friend fire
                         if (Config.MissileExplosionTimeout - missile.ExplodeTimeout < 30 &&
                             other.Id == ship.Id) continue;
 
                         missile.ExplodeTimeout = 0;
+                    }
+
+                    if (other.Missile.Active)
+                    {
+                        var missileDistance =
+                            Vector2.Distance(missile.Position, other.Missile.Position);
+
+                        if (other.Missile.IsExploding())
+                        {
+                            if (missileDistance - missile.ProjectileRadius <
+                                other.Missile.ExplosionRadius)
+                            {
+                                other.Missile.ExplodeTimeout = 0;
+                                missile.ExplodeTimeout = 0;
+                            }
+                        }
+                        else if (missileDistance - missile.ProjectileRadius <
+                                 other.Missile.ProjectileRadius)
+                        {
+                            missile.Velocity = Vector2.Reflect(
+                                other.Missile.Velocity,
+                                Vector2.Normalize(missile.Velocity)
+                            );
+
+                            other.Missile.Velocity = Vector2.Reflect(
+                                missile.Velocity,
+                                Vector2.Normalize(other.Missile.Velocity)
+                            );
+                            missile.ExplodeTimeout += missile.ExplodeTimeout / 2;
+                            other.Missile.ExplodeTimeout += other.Missile.ExplodeTimeout / 2;
+                            continue;
+                        }
                     }
 
                     if (missile.ExplodeTimeout > 0) continue;
@@ -228,7 +279,7 @@ public sealed record GameState
                 else missile.ExplodeTimeout = 0;
 
                 var newVelocity = Vector2.Reflect(missile.Velocity, normal);
-                missile.Heading = (int)MathHelper.ToDegrees(
+                missile.Heading = (int) MathHelper.ToDegrees(
                     MathF.Atan2(newVelocity.Y, newVelocity.X));
                 missile.Velocity = newVelocity;
             }
@@ -242,18 +293,6 @@ public sealed record GameState
             if (missile.IsExploding())
                 missile.DamageTime--;
         }
-
-        if (ship.FireCooldown > 0)
-            ship.FireCooldown--;
-
-        if (ship.MissileCooldown > 0)
-            ship.MissileCooldown--;
-
-        if (ship.Invincible > 0)
-            ship.Invincible--;
-
-        if (ship.Health <= 0)
-            ship.Active = false;
     }
 
     public void Update(SynchronizedInput<PlayerInputs>[] inputs)

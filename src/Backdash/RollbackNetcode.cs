@@ -92,7 +92,8 @@ public static class RollbackNetcode
         checksumProvider ??= ChecksumProviderFactory.Create<TGameState>();
         options ??= new()
         {
-            Log = new(LogLevel.Debug),
+            // ReSharper disable once RedundantArgumentDefaultValue
+            Log = new(LogLevel.Information),
         };
 
         checkDistance ??= FrameSpan.One;

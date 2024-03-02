@@ -34,8 +34,8 @@ public class Game1 : Game
         Content.RootDirectory = "Content";
         IsMouseVisible = true;
 
-        // rollbackSession = GameSessionParser.ParseArgs(args, options);
-        rollbackSession = RollbackNetcode.CreateTestSession<PlayerInputs, GameState>();
+        rollbackSession = GameSessionParser.ParseArgs(args, options);
+        // rollbackSession = RollbackNetcode.CreateTestSession<PlayerInputs, GameState>();
     }
 
     protected override void Initialize()

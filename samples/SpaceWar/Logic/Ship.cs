@@ -4,7 +4,7 @@ namespace SpaceWar.Logic;
 
 public sealed record Ship
 {
-    public int Id;
+    public byte Id;
     public bool Active;
     public Vector2 Position;
     public Vector2 Velocity;
