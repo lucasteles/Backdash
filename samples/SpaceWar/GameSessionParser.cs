@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using Backdash;
+using Backdash.Sync.Input;
 using SpaceWar.Logic;
 
 namespace SpaceWar;
@@ -18,6 +19,12 @@ public static class GameSessionParser
 
         if (playerCount > Config.MaxShips)
             throw new InvalidOperationException("Too many players");
+
+        if (endpoints is ["sync-test"])
+            return RollbackNetcode.CreateTestSession<PlayerInputs, GameState>(
+                options: options,
+                services: new() { InputGenerator = new RandomInputGenerator<PlayerInputs>() }
+            );
 
         if (endpoints is ["spectate", { } hostArg] && IPEndPoint.TryParse(hostArg, out var host))
             return RollbackNetcode.CreateSpectatorSession<PlayerInputs, GameState>(
