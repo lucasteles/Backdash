@@ -113,9 +113,6 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         );
 
         backgroundJobManager.Register(udp);
-
-        if (logger.EnabledLevel is not LogLevel.Off && logger.RunningAsync)
-            backgroundJobManager.Register(logger);
     }
 
     public void Dispose()

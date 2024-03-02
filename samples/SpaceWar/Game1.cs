@@ -2,6 +2,7 @@
 
 using Backdash;
 using Backdash.Core;
+using Backdash.Sync.Input;
 using SpaceWar.Logic;
 
 namespace SpaceWar;
@@ -35,7 +36,9 @@ public class Game1 : Game
         IsMouseVisible = true;
 
         rollbackSession = GameSessionParser.ParseArgs(args, options);
-        // rollbackSession = RollbackNetcode.CreateTestSession<PlayerInputs, GameState>();
+
+        // rollbackSession = RollbackNetcode.CreateTestSession<PlayerInputs, GameState>(
+        //     services: new() {InputGenerator = new RandomInputGenerator<PlayerInputs>()});
     }
 
     protected override void Initialize()

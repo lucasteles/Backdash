@@ -2,11 +2,8 @@ using System.Buffers;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
-using System.Threading.Channels;
 
 namespace Backdash.Core;
-
-using DeferredLog = (LogLevel Level, LogStringBuffer Buffer, int Length);
 
 public enum LogLevel : byte
 {
@@ -18,15 +15,13 @@ public enum LogLevel : byte
     Error,
 }
 
-sealed class Logger : IDisposable, IBackgroundJob
+sealed class Logger : IDisposable
 {
     public readonly LogLevel EnabledLevel;
-    public readonly bool RunningAsync;
 
     readonly long start = Stopwatch.GetTimestamp();
     readonly ArrayPool<char> pool = ArrayPool<char>.Shared;
 
-    readonly Channel<DeferredLog>? queue;
     readonly LogOptions options;
     readonly ILogWriter writer;
 
@@ -39,15 +34,6 @@ sealed class Logger : IDisposable, IBackgroundJob
         this.writer = writer;
         EnabledLevel = options.EnabledLevel;
         JobName = $"Log Flush {writer.GetType()}";
-        RunningAsync = options.RunAsync;
-
-        if (RunningAsync)
-            queue = Channel.CreateUnbounded<DeferredLog>(new()
-            {
-                SingleReader = true,
-                SingleWriter = false,
-                AllowSynchronousContinuations = true,
-            });
     }
 
     public void Write(LogLevel level, string text) => Write(level, $"{text}");
@@ -59,19 +45,8 @@ sealed class Logger : IDisposable, IBackgroundJob
     )
     {
         if (!builder.Enabled || !IsEnabledFor(in level)) return;
-        if (RunningAsync)
-            WriteLater(in level, in builder);
-        else
-            WriteNow(in level, in builder.Buffer, in builder.Length);
-    }
-
-    void WriteLater(in LogLevel level, in LogInterpolatedStringHandler builder) =>
-        queue?.Writer.TryWrite((level, builder.Buffer, builder.Length));
-
-    void WriteNow(in LogLevel level, in LogStringBuffer logBuffer, in int length)
-    {
-        ReadOnlySpan<byte> bufferSpan = logBuffer;
-        var size = Math.Min(length, bufferSpan.Length);
+        ReadOnlySpan<byte> bufferSpan = builder.Buffer;
+        var size = Math.Min(builder.Length, bufferSpan.Length);
         var utf8Bytes = bufferSpan[..size];
         var charCount = Encoding.UTF8.GetCharCount(utf8Bytes);
         var buffer = pool.Rent(charCount);
@@ -131,25 +106,7 @@ sealed class Logger : IDisposable, IBackgroundJob
             _ => "",
         };
 
-    public void Dispose()
-    {
-        writer.Dispose();
-        queue?.Writer.TryComplete();
-    }
+    public void Dispose() => writer.Dispose();
 
     public string JobName { get; }
-
-    public async Task Start(CancellationToken ct)
-    {
-        if (!RunningAsync || queue is null)
-            return;
-
-        while (!ct.IsCancellationRequested)
-        {
-            await queue.Reader.WaitToReadAsync(ct).ConfigureAwait(false);
-
-            while (queue.Reader.TryRead(out var entry))
-                WriteNow(entry.Level, entry.Buffer, entry.Length);
-        }
-    }
 }

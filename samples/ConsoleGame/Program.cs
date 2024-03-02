@@ -53,7 +53,7 @@ if (endpoints is ["spectate", { } hostArg] && IPEndPoint.TryParse(hostArg, out v
     session = RollbackNetcode.CreateSpectatorSession<GameInput, GameState>(port, host, options
         , new()
         {
-            // LogWriter = new FileLogWriter("log_spectator_{{proc_id}}.txt", append: false),
+            LogWriter = new FileLogWriter($"log_spectator_{port}.txt", append: false),
         }
     );
 // not a spectator, creating a peer 2 peer game session

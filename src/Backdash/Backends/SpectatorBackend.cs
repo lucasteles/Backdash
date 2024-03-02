@@ -83,9 +83,6 @@ sealed class SpectatorBackend<TInput, TGameState> :
         udpObservers.Add(host.GetUdpObserver());
         host.Synchronize();
         isSynchronizing = true;
-
-        if (logger.EnabledLevel is not LogLevel.Off && logger.RunningAsync)
-            backgroundJobManager.Register(logger);
     }
 
     public void Dispose()
