@@ -143,7 +143,7 @@ public sealed class Renderer(
         spriteBatch.DrawString(gameAssets.MainFont, pingString, pingPos, Color.White,
             0, Vector2.Zero, scale, SpriteEffects.None, 0);
 
-        if (!string.IsNullOrWhiteSpace(ngs.Status))
+        if (ngs.Status.Length > 0)
         {
             var statusSize = gameAssets.MainFont.MeasureString(ngs.Status);
             Vector2 statusPos = new(
