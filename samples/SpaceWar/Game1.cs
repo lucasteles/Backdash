@@ -95,19 +95,20 @@ public class Game1 : Game
 
         if (graphics.IsFullScreen) return;
 
-        Point padding = new(50, 60);
+        const int titleBarHeight = 50;
+        Point padding = new(50, 40 + titleBarHeight);
         var bounds = Window.ClientBounds;
         var (width, height) = (bounds.Width, bounds.Height);
 
         var screen = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode;
         var maxHorizontal = screen.Width / (width + padding.X);
-        var maxVertical = screen.Height / (height + padding.Y);
+        var maxVertical = screen.Height / (height + titleBarHeight + padding.Y);
 
         var offsetX = player.Index % maxHorizontal;
         var offsetY = (player.Index - offsetX) % maxVertical;
 
         var newHorizontal = offsetX * width + padding.X;
-        var newVertical = offsetY * width + padding.Y;
+        var newVertical = offsetY * (height + titleBarHeight) + padding.Y;
 
         Window.Position = new(newHorizontal, newVertical);
     }
