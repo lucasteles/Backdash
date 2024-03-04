@@ -1,6 +1,5 @@
 ﻿using System.Net;
 using Backdash;
-using Backdash.Data;
 using Backdash.Sync.Input;
 using SpaceWar.Logic;
 
@@ -36,7 +35,6 @@ public static class GameSessionParser
             );
 
         var players = endpoints.Select((x, i) => ParsePlayer(playerCount, i + 1, x)).ToArray();
-        if (players.All(x => !x.IsLocal()))
 
         var localPlayer = players.FirstOrDefault(x => x.IsLocal());
 
@@ -45,7 +43,7 @@ public static class GameSessionParser
 
         var session = RollbackNetcode.CreateSession<PlayerInputs, GameState>(port, options, new()
         {
-            LogWriter = new FileLogWriter($"log_{localPlayer.Number}.txt"),
+            // LogWriter = new FileLogWriter($"log_{localPlayer.Number}.txt"),
         });
 
         session.AddPlayers(players);

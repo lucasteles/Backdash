@@ -51,14 +51,11 @@ sealed class Synchronizer<TInput, TState>
 
     public FrameSpan RollbackFrames { get; private set; } = FrameSpan.Zero;
 
-    public void AddQueue(PlayerHandle player)
-    {
-        var delay = Math.Max(options.FrameDelay, 0);
+    public void AddQueue(PlayerHandle player) =>
         inputQueues.Add(new(player.InternalQueue, options.InputQueueLength, logger)
         {
-            FrameDelay = delay,
+            LocalFrameDelay = player.IsLocal() ? Math.Max(options.FrameDelay, 0) : 0,
         });
-    }
 
     public void SetLastConfirmedFrame(in Frame frame)
     {
@@ -238,7 +235,8 @@ sealed class Synchronizer<TInput, TState>
         return false;
     }
 
-    public void SetFrameDelay(PlayerHandle player, int delay) => inputQueues[player.InternalQueue].FrameDelay = delay;
+    public void SetFrameDelay(PlayerHandle player, int delay) =>
+        inputQueues[player.InternalQueue].LocalFrameDelay = Math.Max(delay, 0);
 
     void ResetPrediction(in Frame frameNumber)
     {

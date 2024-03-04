@@ -3,16 +3,15 @@ using Backdash.Data;
 
 namespace SpaceWar.Logic;
 
-public class GameSession(
+public sealed class GameSession(
     GameState gameState,
     NonGameState nonGameState,
     Renderer renderer,
     IRollbackSession<PlayerInputs> session
-) : IRollbackHandler<GameState>, IDisposable
+) : IRollbackHandler<GameState>
 {
     readonly SynchronizedInput<PlayerInputs>[] inputs =
         new SynchronizedInput<PlayerInputs>[nonGameState.NumberOfPlayers];
-
 
     public void Update(GameTime gameTime)
     {
@@ -173,6 +172,4 @@ public class GameSession(
         gameState.Update(inputs);
         session.AdvanceFrame();
     }
-
-    public void Dispose() => stream.Dispose();
 }

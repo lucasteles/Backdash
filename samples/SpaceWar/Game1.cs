@@ -48,7 +48,6 @@ public class Game1 : Game
 
     protected override void Dispose(bool disposing)
     {
-        gameSession.Dispose();
         rollbackSession.Dispose();
         base.Dispose(disposing);
     }
