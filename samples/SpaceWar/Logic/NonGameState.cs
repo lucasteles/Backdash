@@ -17,7 +17,8 @@ public class PlayerConnectionInfo
     public PlayerHandle Handle;
     public PlayerConnectState State;
     public int ConnectProgress;
-    public DateTime DisconnectAt;
+    public DateTime DisconnectStart;
+    public TimeSpan DisconnectTimeout;
     public readonly StringBuilder StatusText = new();
     public RollbackNetworkStatus PeerNetworkStatus = new();
 }
@@ -49,7 +50,8 @@ public class NonGameState(int numberOfPlayers, GameWindow window)
     public void SetDisconnectTimeout(PlayerHandle handle, DateTime when, TimeSpan timeout)
     {
         if (!TryGetPlayer(handle, out var player)) return;
-        player.DisconnectAt = when + timeout;
+        player.DisconnectStart = when;
+        player.DisconnectTimeout = timeout;
         player.State = PlayerConnectState.Disconnecting;
     }
 

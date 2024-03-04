@@ -122,9 +122,7 @@ public class Game1 : Game
     {
         GraphicsDevice.Clear(Color.Black);
         spriteBatch.Begin();
-
         gameSession.Draw();
-
         spriteBatch.End();
         base.Draw(gameTime);
     }

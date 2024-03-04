@@ -9,7 +9,7 @@ public static class Config
     public const int ShipRadius = 30;
     public const float ShipThrust = 0.06f;
     public const float ShipMaxThrust = 4.0f;
-    public const int ShipLifeBarHeight = 10;
+    public const int ShipProgressBarHeight = 12;
 
     public const int MaxBullets = 30;
     public const int BulletSpeed = 5;

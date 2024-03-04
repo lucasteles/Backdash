@@ -28,13 +28,13 @@ public sealed class Renderer(
         var ship = gs.Ships[num];
         var player = ngs.Players[num];
         var sprite = gameAssets.Ships[num];
-        var shipSize = ship.Radius * 2;
 
         if (!ship.Active) return;
 
+        var shipSize = ship.Radius * 2;
         Rectangle shipRect = new(
-            (int)ship.Position.X,
-            (int)ship.Position.Y,
+            (int) ship.Position.X,
+            (int) ship.Position.Y,
             shipSize, shipSize
         );
 
@@ -75,14 +75,14 @@ public sealed class Renderer(
             {
                 var explosionSize = ship.Missile.ExplosionRadius * 2;
                 Rectangle explosionRect = new(
-                    (int)ship.Missile.Position.X,
-                    (int)ship.Missile.Position.Y,
+                    (int) ship.Missile.Position.X,
+                    (int) ship.Missile.Position.Y,
                     explosionSize, explosionSize
                 );
 
-                var spriteStep = (int)MathHelper.Lerp(
+                var spriteStep = (int) MathHelper.Lerp(
                     0, MissileExplosionSpriteMap.Length - 1,
-                    ship.Missile.HitBoxTime / (float)Config.MissileHitBoxTimeout
+                    ship.Missile.HitBoxTime / (float) Config.MissileHitBoxTimeout
                 );
 
                 var missileSource = MissileExplosionSpriteMap[spriteStep];
@@ -100,7 +100,7 @@ public sealed class Renderer(
             DrawBar(
                 new(
                     shipRect.Left - ship.Radius, shipRect.Bottom - ship.Radius / 2,
-                    shipRect.Width, Config.ShipLifeBarHeight
+                    shipRect.Width, Config.ShipProgressBarHeight
                 ),
                 Color.Green, ship.Health, Config.StartingHealth
             );
@@ -110,52 +110,65 @@ public sealed class Renderer(
     void DrawConnectState(Ship ship, PlayerConnectionInfo player)
     {
         player.StatusText.Clear();
-        var color = Color.White;
+        var textColor = Color.White;
+        var barColor = Color.White;
+        var (step, total) = (0f, 0f);
+
         switch (player.State)
         {
             case PlayerConnectState.Connecting:
-                color = Color.LimeGreen;
+                textColor = Color.LimeGreen;
                 player.StatusText.Append(player.Handle.IsLocal()
                     ? "Local Player"
                     : "Connecting ..."
                 );
                 break;
             case PlayerConnectState.Synchronizing:
-                color = Color.Blue;
+                textColor = Color.LightBlue;
                 if (player.Handle.IsLocal())
                     player.StatusText.Append("Local Player");
                 else
                 {
-                    player.StatusText.Append("Synchronizing ");
-                    player.StatusText.Append(player.ConnectProgress);
-                    player.StatusText.Append('%');
-                    player.StatusText.Append(" ...");
+                    barColor = Color.Cyan;
+                    player.StatusText.Append("Synchronizing");
+                    total = 100;
+                    step = player.ConnectProgress;
                 }
 
                 break;
             case PlayerConnectState.Disconnected:
-                color = Color.Crimson;
+                textColor = Color.Crimson;
                 player.StatusText.Append("Disconnected");
                 break;
             case PlayerConnectState.Disconnecting:
-                color = Color.Coral;
-                player.StatusText.Append("Waiting for player ");
-                var timeLeft = player.DisconnectAt - DateTime.UtcNow;
-                player.StatusText.Append(Math.Round(timeLeft.TotalSeconds, 2));
-                player.StatusText.Append(" ...");
+                textColor = Color.Coral;
+                barColor = Color.Yellow;
+                player.StatusText.Append("Waiting for player");
+                step = (float) (DateTime.UtcNow - player.DisconnectStart).TotalMilliseconds;
+                total = (float) player.DisconnectTimeout.TotalMilliseconds;
                 break;
         }
 
         if (player.StatusText.Length is 0) return;
 
-        const float scale = 0.45f;
+        const float scale = 0.4f;
         var size = gameAssets.MainFont.MeasureString(player.StatusText) * scale;
         var pos = new Vector2(
             ship.Position.X - size.X / 2,
             ship.Position.Y + ship.Radius + size.Y / 2
         );
         spriteBatch.DrawString(gameAssets.MainFont, player.StatusText, pos,
-            color, 0, Vector2.Zero, scale, SpriteEffects.None, 0);
+            textColor, 0, Vector2.Zero, scale, SpriteEffects.None, 0);
+
+        if (total > 0)
+            DrawBar(new(
+                (int) ship.Position.X - ship.Radius,
+                (int) ship.Position.Y + ship.Radius
+                                      + (int) size.Y
+                                      + Config.ShipProgressBarHeight,
+                ship.Radius * 2,
+                Config.ShipProgressBarHeight
+            ), barColor, step, total, 0);
     }
 
     void DrawBackground(Background background)
@@ -256,7 +269,7 @@ public sealed class Renderer(
 
         Rectangle value = new(
             position.X, position.Y,
-            (int)(actual / total * position.Width),
+            (int) (actual / total * position.Width),
             position.Height
         );
 
