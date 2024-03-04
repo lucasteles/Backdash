@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using Backdash;
+using Backdash.Data;
 using Backdash.Sync.Input;
 using SpaceWar.Logic;
 
@@ -23,7 +24,10 @@ public static class GameSessionParser
         if (endpoints is ["sync-test"])
             return RollbackNetcode.CreateTestSession<PlayerInputs, GameState>(
                 options: options,
-                services: new() { InputGenerator = new RandomInputGenerator<PlayerInputs>() }
+                services: new()
+                {
+                    InputGenerator = new RandomInputGenerator<PlayerInputs>(),
+                }
             );
 
         if (endpoints is ["spectate", { } hostArg] && IPEndPoint.TryParse(hostArg, out var host))

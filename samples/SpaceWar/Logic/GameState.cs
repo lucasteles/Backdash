@@ -27,12 +27,11 @@ public sealed record GameState
         {
             var heading = (i + 1) * 360f / numberOfPlayers;
             var theta = MathHelper.ToRadians(heading);
-            var (cosT, sinT) = (MathF.Cos(theta), MathF.Sin(theta));
-
-            var x = width / 2f + r * cosT;
-            var y = height / 2f + r * sinT;
+            var (cosT, sinT) = (Math.Cos(theta), Math.Sin(theta));
+            var x = width / 2.0 + r * cosT;
+            var y = height / 2.0 + r * sinT;
             Ships[i].Id = (byte)(i + 1);
-            Ships[i].Position = new(x, y);
+            Ships[i].Position = new((float)x, (float)y);
             Ships[i].Active = true;
             Ships[i].Heading = (int)((heading + 180) % 360);
             Ships[i].Health = Config.StartingHealth;
@@ -146,6 +145,10 @@ public sealed record GameState
         if (ship.MissileCooldown > 0) ship.MissileCooldown--;
         if (ship.Invincible > 0) ship.Invincible--;
         if (ship.Health <= 0) ship.Active = false;
+
+        // TODO: validate multiplatform float precision
+        // ship.Velocity = Vector2.Round(ship.Velocity);
+        // ship.Position = Vector2.Round(ship.Position);
     }
 
     void UpdateBullets(Ship ship)

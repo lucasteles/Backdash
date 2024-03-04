@@ -24,12 +24,20 @@ public class GameSession(
             var keyboard = Keyboard.GetState();
             var localInput = Inputs.ReadInputs(keyboard);
 
-            if (session.AddLocalInput(localPlayer, localInput) is not ResultCode.Ok)
+            var addInputResult = session.AddLocalInput(localPlayer, localInput);
+            if (addInputResult is not ResultCode.Ok)
+            {
+                Console.WriteLine($"{DateTime.Now:o} => ERROR ADDING INPUT: {addInputResult}");
                 return;
+            }
         }
 
+        var syncInputResult = session.SynchronizeInputs();
         if (session.SynchronizeInputs() is not ResultCode.Ok)
+        {
+            Console.WriteLine($"{DateTime.Now:o} => ERROR SYNC INPUTS: {syncInputResult}");
             return;
+        }
 
         session.GetInputs(inputs);
         gameState.Update(inputs);
@@ -82,8 +90,8 @@ public class GameSession(
             case PeerEvent.Synchronizing:
 
                 var progress = 100 * evt.Synchronizing.CurrentStep /
-                               (float) evt.Synchronizing.TotalSteps;
-                nonGameState.UpdateConnectProgress(player, (int) progress);
+                               (float)evt.Synchronizing.TotalSteps;
+                nonGameState.UpdateConnectProgress(player, (int)progress);
                 break;
             case PeerEvent.Synchronized:
                 nonGameState.UpdateConnectProgress(player, 100);
@@ -124,6 +132,7 @@ public class GameSession(
             toShip.Radius = fromShip.Radius;
             toShip.Heading = fromShip.Heading;
             toShip.Health = fromShip.Health;
+            toShip.Active = fromShip.Active;
             toShip.FireCooldown = fromShip.FireCooldown;
             toShip.MissileCooldown = fromShip.MissileCooldown;
             toShip.Invincible = fromShip.Invincible;
@@ -137,6 +146,7 @@ public class GameSession(
             toShip.Missile.ProjectileRadius = fromShip.Missile.ProjectileRadius;
             toShip.Missile.Active = fromShip.Missile.Active;
             toShip.Missile.ExplodeTimeout = fromShip.Missile.ExplodeTimeout;
+            toShip.Bullets.Clear();
             fromShip.Bullets.CopyTo(toShip.Bullets);
         }
     }
@@ -145,7 +155,7 @@ public class GameSession(
 
     public void LoadState(in Frame frame, in GameState gs)
     {
-        Console.WriteLine($"{DateTime.Now:o} => Loading state...");
+        Console.WriteLine($"{DateTime.Now:o} => Loading state {frame}...");
         CopyState(gs, gameState);
     }
 

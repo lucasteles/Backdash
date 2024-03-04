@@ -27,6 +27,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
     readonly Queue<SavedFrame> savedFrames = [];
     readonly SynchronizedInput<TInput>[] syncInputBuffer = new SynchronizedInput<TInput>[Max.RemoteConnections];
     readonly FrameSpan checkDistance;
+    readonly bool throwError;
     readonly IInputGenerator<TInput>? inputGenerator;
 
     readonly JsonSerializerOptions jsonOptions = new()
@@ -47,6 +48,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
     public SyncTestBackend(
         RollbackOptions options,
         FrameSpan checkDistance,
+        bool throwError,
         BackendServices<TInput, TGameState> services
     )
     {
@@ -57,6 +59,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         ThrowHelpers.ThrowIfArgumentIsNegative(checkDistance.FrameCount);
 
         this.checkDistance = checkDistance;
+        this.throwError = throwError;
         inputGenerator = services.InputGenerator;
         clock = services.Clock;
         logger = services.Logger;
@@ -235,8 +238,9 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
 
             if (info.Frame != synchronizer.CurrentFrame)
             {
-                logger.Write(LogLevel.Error,
-                    $"Frame number {info.Frame} does not match saved frame number {frame}");
+                var message = $"Frame number {info.Frame} does not match saved frame number {frame}";
+                logger.Write(LogLevel.Error, message);
+                if (throwError) throw new BackdashException(message);
             }
 
             ref readonly var last = ref synchronizer.GetLastSavedFrame();
@@ -245,8 +249,9 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
             {
                 LogSaveState(info, "current");
                 LogSaveState(last, "last");
-                logger.Write(LogLevel.Error,
-                    $"Checksum for frame {frame} does not match saved ({checksum} != {info.Checksum})");
+                var message = $"Checksum for frame {frame} does not match saved ({checksum} != {info.Checksum})";
+                logger.Write(LogLevel.Error, message);
+                if (throwError) throw new BackdashException(message);
             }
 
             logger.Write(LogLevel.Debug, $"Checksum {checksum} for frame {info.Frame} matches");
@@ -280,7 +285,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
     {
         var jsonChunks = JsonSerializer
             .Serialize(value, jsonOptions)
-            .Chunk(LogStringBuffer.Capacity)
+            .Chunk(LogStringBuffer.Capacity / 2)
             .Select(x => new string(x));
 
         foreach (var chunk in jsonChunks)

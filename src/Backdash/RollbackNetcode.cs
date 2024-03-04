@@ -29,7 +29,8 @@ public static class RollbackNetcode
     public static IRollbackSession<TInput, TGameState> CreateTestSession<TInput, TGameState>(
         FrameSpan? checkDistance = null,
         RollbackOptions? options = null,
-        SessionServices<TInput, TGameState>? services = null
+        SessionServices<TInput, TGameState>? services = null,
+        bool throwException = true
     )
         where TInput : struct
         where TGameState : IEquatable<TGameState>, new()
@@ -43,7 +44,7 @@ public static class RollbackNetcode
         checkDistance ??= FrameSpan.One;
 
         return new SyncTestBackend<TInput, TGameState>(
-            options, checkDistance.Value,
+            options, checkDistance.Value, throwException,
             BackendServices.Create(options, services)
         );
     }
