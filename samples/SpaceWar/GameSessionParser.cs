@@ -31,7 +31,7 @@ public static class GameSessionParser
 
         if (endpoints is ["spectate", { } hostArg] && IPEndPoint.TryParse(hostArg, out var host))
             return RollbackNetcode.CreateSpectatorSession<PlayerInputs, GameState>(
-                port, host, options
+                port, host, playerCount, options
             );
 
         var players = endpoints.Select((x, i) => ParsePlayer(playerCount, i + 1, x)).ToArray();

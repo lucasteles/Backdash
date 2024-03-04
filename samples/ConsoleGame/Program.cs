@@ -50,8 +50,8 @@ IRollbackSession<GameInput, GameState> session;
 
 // parse console arguments checking if it is a spectator
 if (endpoints is ["spectate", { } hostArg] && IPEndPoint.TryParse(hostArg, out var host))
-    session = RollbackNetcode.CreateSpectatorSession<GameInput, GameState>(port, host, options
-        , new()
+    session = RollbackNetcode.CreateSpectatorSession<GameInput, GameState>(
+        port, host, playerCount, options, new()
         {
             LogWriter = new FileLogWriter($"log_spectator_{port}.txt", append: false),
         }

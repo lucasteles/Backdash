@@ -6,6 +6,7 @@ namespace Backdash;
 public interface IRollbackSessionInfo
 {
     Frame CurrentFrame { get; }
+    bool IsSpectating { get; }
     FrameSpan RollbackFrames { get; }
     FrameSpan FramesBehind { get; }
 }

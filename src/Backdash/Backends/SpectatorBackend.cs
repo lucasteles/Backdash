@@ -29,6 +29,7 @@ sealed class SpectatorBackend<TInput, TGameState> :
 
     readonly GameInput<CombinedInputs<TInput>>[] inputs;
     readonly PeerConnection<CombinedInputs<TInput>> host;
+    readonly PlayerHandle[] fakePlayers;
     IRollbackHandler<TGameState> callbacks;
 
     bool isSynchronizing;
@@ -38,9 +39,9 @@ sealed class SpectatorBackend<TInput, TGameState> :
 
     SynchronizedInput<TInput>[] syncInputBuffer = [];
 
-    public SpectatorBackend(
-        int port,
+    public SpectatorBackend(int port,
         IPEndPoint hostEndpoint,
+        int numberOfPlayers,
         RollbackOptions options,
         BackendServices<TInput, TGameState> services)
     {
@@ -55,6 +56,9 @@ sealed class SpectatorBackend<TInput, TGameState> :
         backgroundJobManager = services.JobManager;
         logger = services.Logger;
         clock = services.Clock;
+        NumberOfPlayers = numberOfPlayers;
+        fakePlayers = Enumerable.Range(0, numberOfPlayers)
+            .Select(x => new PlayerHandle(PlayerType.Remote, x + 1, x)).ToArray();
         IBinarySerializer<CombinedInputs<TInput>> inputGroupSerializer =
             new CombinedInputsSerializer<TInput>(services.InputSerializer);
 
@@ -108,11 +112,12 @@ sealed class SpectatorBackend<TInput, TGameState> :
     public FrameSpan FramesBehind => FrameSpan.Zero;
     public int NumberOfPlayers { get; private set; }
     public int NumberOfSpectators => 0;
+    public bool IsSpectating => true;
 
     public void DisconnectPlayer(in PlayerHandle player) { }
 
     public ResultCode AddLocalInput(PlayerHandle player, TInput localInput) => ResultCode.Ok;
-    public IReadOnlyCollection<PlayerHandle> GetPlayers() => [];
+    public IReadOnlyCollection<PlayerHandle> GetPlayers() => fakePlayers;
     public IReadOnlyCollection<PlayerHandle> GetSpectators() => [];
 
     public void BeginFrame()

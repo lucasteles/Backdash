@@ -88,6 +88,12 @@ public class Game1 : Game
 
     void ConfigureWindow(PlayerHandle player)
     {
+        if (rollbackSession.IsSpectating)
+        {
+            Window.Title = "SpaceWar - Spectator";
+            return;
+        }
+
         Window.Title = $"SpaceWar - Player {player.Number}";
 
         if (graphics.IsFullScreen) return;

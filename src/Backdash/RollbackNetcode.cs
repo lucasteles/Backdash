@@ -19,12 +19,14 @@ public static class RollbackNetcode
     public static IRollbackSession<TInput, TGameState> CreateSpectatorSession<TInput, TGameState>(
         int port,
         IPEndPoint host,
+        int numberOfPlayers,
         RollbackOptions options,
-        SessionServices<TInput, TGameState>? services = null
-    )
+        SessionServices<TInput, TGameState>? services = null)
         where TInput : struct
         where TGameState : IEquatable<TGameState>, new() =>
-        new SpectatorBackend<TInput, TGameState>(port, host, options, BackendServices.Create(options, services));
+        new SpectatorBackend<TInput, TGameState>(
+            port, host, numberOfPlayers, options,
+            BackendServices.Create(options, services));
 
     public static IRollbackSession<TInput, TGameState> CreateTestSession<TInput, TGameState>(
         FrameSpan? checkDistance = null,
