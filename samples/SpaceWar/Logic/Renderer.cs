@@ -9,7 +9,7 @@ public sealed class Renderer(
 {
     // string status = string.Empty;
     // public void SetStatusText(string text) => status = text;
-    readonly StringBuilder checksumString = new();
+    readonly StringBuilder pingString = new();
     readonly StringBuilder scoreString = new();
 
     public void Draw(GameState gs, NonGameState ngs)
@@ -21,7 +21,7 @@ public sealed class Renderer(
             // DrawConnectState(gs.Ships[i], ngs.Players[i]);
         }
 
-        DrawHud(gs);
+        DrawHud(gs, ngs);
     }
 
     void DrawShip(int num, GameState gs)
@@ -116,24 +116,33 @@ public sealed class Renderer(
         }
     }
 
-    void DrawHud(GameState gs)
+    void DrawHud(GameState gs, NonGameState ngs)
     {
+        pingString.Clear();
+        pingString.Append("ping");
+
         for (var i = 0; i < gs.NumberOfShips; i++)
+        {
             DrawScore(i, gs);
 
-        checksumString.Clear();
-        checksumString.Append('#');
-        checksumString.Append(gs.GetHashCode());
+            var player = ngs.Players[i];
+            if (player.Handle.IsRemote())
+                continue;
 
-        var scale = 0.5f;
-        var checksumSize = gameAssets.MainFont.MeasureString(checksumString) * scale;
+            pingString.Append(' ');
+            pingString.Append(Math.Round(player.PeerNetworkStatus.Ping.TotalMilliseconds));
+            pingString.Append("ms ");
+        }
 
-        Vector2 checksumPosition = new(
-            (gs.Bounds.Width - checksumSize.X) / 2f,
-            gs.Bounds.Top - Config.WindowPadding + checksumSize.Y / 2
+        const float scale = 0.5f;
+        var pingSize = gameAssets.MainFont.MeasureString(pingString) * scale;
+
+        Vector2 pingPos = new(
+            gs.Bounds.Right - pingSize.X,
+            gs.Bounds.Bottom - Config.WindowPadding - pingSize.Y / 2
         );
 
-        spriteBatch.DrawString(gameAssets.MainFont, checksumString, checksumPosition, Color.White,
+        spriteBatch.DrawString(gameAssets.MainFont, pingString, pingPos, Color.White,
             0, Vector2.Zero, scale, SpriteEffects.None, 0);
     }
 
