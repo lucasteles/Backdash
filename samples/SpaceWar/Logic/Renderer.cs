@@ -1,4 +1,6 @@
-﻿namespace SpaceWar.Logic;
+﻿using System.Text;
+
+namespace SpaceWar.Logic;
 
 public sealed class Renderer(
     GameAssets gameAssets,
@@ -7,6 +9,8 @@ public sealed class Renderer(
 {
     // string status = string.Empty;
     // public void SetStatusText(string text) => status = text;
+    readonly StringBuilder checksumString = new();
+    readonly StringBuilder scoreString = new();
 
     public void Draw(GameState gs, NonGameState ngs)
     {
@@ -14,9 +18,10 @@ public sealed class Renderer(
         for (var i = 0; i < gs.NumberOfShips; i++)
         {
             DrawShip(i, gs);
-            DrawScore(i, gs);
             // DrawConnectState(gs.Ships[i], ngs.Players[i]);
         }
+
+        DrawHud(gs);
     }
 
     void DrawShip(int num, GameState gs)
@@ -111,13 +116,35 @@ public sealed class Renderer(
         }
     }
 
+    void DrawHud(GameState gs)
+    {
+        for (var i = 0; i < gs.NumberOfShips; i++)
+            DrawScore(i, gs);
+
+        checksumString.Clear();
+        checksumString.Append('#');
+        checksumString.Append(gs.GetHashCode());
+
+        var scale = 0.5f;
+        var checksumSize = gameAssets.MainFont.MeasureString(checksumString) * scale;
+
+        Vector2 checksumPosition = new(
+            (gs.Bounds.Width - checksumSize.X) / 2f,
+            gs.Bounds.Top - Config.WindowPadding + checksumSize.Y / 2
+        );
+
+        spriteBatch.DrawString(gameAssets.MainFont, checksumString, checksumPosition, Color.White,
+            0, Vector2.Zero, scale, SpriteEffects.None, 0);
+    }
+
     void DrawScore(int num, GameState gs)
     {
         const int padding = 4;
         var score = gs.Ships[num].Score;
         var bounds = gs.Bounds;
-        var text = score.ToString();
-        var size = gameAssets.MainFont.MeasureString(text);
+        scoreString.Clear();
+        scoreString.Append(score);
+        var size = gameAssets.MainFont.MeasureString(scoreString);
 
         Vector2 scorePosition =
             num switch
@@ -133,7 +160,7 @@ public sealed class Renderer(
 
         spriteBatch.DrawString(
             gameAssets.MainFont,
-            text,
+            scoreString,
             scorePosition,
             color
         );

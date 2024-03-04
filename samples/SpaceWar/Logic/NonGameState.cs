@@ -26,11 +26,13 @@ public readonly record struct ChecksumInfo(Frame FrameNumber, int Checksum);
 
 public class NonGameState(int numberOfPlayers, GameWindow window)
 {
-    public Background Background = new(window.ClientBounds);
+    public readonly Background Background = new(window.ClientBounds);
     public readonly PlayerConnectionInfo[] Players = new PlayerConnectionInfo[numberOfPlayers];
     public PlayerHandle? LocalPlayerHandle;
     public ChecksumInfo Now;
     public ChecksumInfo Periodic;
+    public TimeSpan SleepTime;
+    public bool Sleeping => SleepTime > TimeSpan.Zero;
 
     public int NumberOfPlayers => numberOfPlayers;
 

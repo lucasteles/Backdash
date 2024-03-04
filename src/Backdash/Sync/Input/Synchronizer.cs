@@ -189,12 +189,12 @@ sealed class Synchronizer<TInput, TState>
 
         ref readonly var savedFrame = ref stateStore.Load(frame);
 
-        logger.Write(LogLevel.Debug,
+        logger.Write(LogLevel.Information,
             $"* Loading frame info {savedFrame.Frame} (checksum: {savedFrame.Checksum})");
 
         Callbacks.LoadState(in frame, in savedFrame.GameState);
 
-        // Reset framecount and the head of the state ring-buffer to point in
+        // Reset frame count and the head of the state ring-buffer to point in
         // advance of the current frame (as if we had just finished executing it).
         currentFrame = savedFrame.Frame;
     }
@@ -221,7 +221,7 @@ sealed class Synchronizer<TInput, TState>
             if (incorrect.IsNull || (firstIncorrect.IsNotNull && incorrect >= firstIncorrect))
                 continue;
 
-            logger.Write(LogLevel.Debug, $"Incorrect frame {incorrect} reported by queue {i}");
+            logger.Write(LogLevel.Information, $"Incorrect frame {incorrect} reported by queue {i}");
             RollbackFrames = new(Math.Max(RollbackFrames.FrameCount, incorrect.Number));
             firstIncorrect = incorrect;
         }

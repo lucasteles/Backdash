@@ -16,6 +16,12 @@ public class GameSession(
 
     public void Update(GameTime gameTime)
     {
+        if (nonGameState.Sleeping)
+        {
+            nonGameState.SleepTime -= gameTime.ElapsedGameTime;
+            return;
+        }
+
         UpdateStats();
         session.BeginFrame();
 
@@ -27,7 +33,9 @@ public class GameSession(
             var addInputResult = session.AddLocalInput(localPlayer, localInput);
             if (addInputResult is not ResultCode.Ok)
             {
-                Console.WriteLine($"{DateTime.Now:o} => ERROR ADDING INPUT: {addInputResult}");
+                if (addInputResult is not ResultCode.NotSynchronized)
+                    Console.WriteLine($"{DateTime.Now:o} => ERROR ADDING INPUT: {addInputResult}");
+
                 return;
             }
         }
@@ -61,7 +69,7 @@ public class GameSession(
     public void TimeSync(FrameSpan framesAhead)
     {
         Console.WriteLine($"{DateTime.Now:o} => Time sync requested {framesAhead.FrameCount}");
-        Thread.Sleep(framesAhead.Duration());
+        nonGameState.SleepTime = framesAhead.Duration();
     }
 
     void UpdateStats()
