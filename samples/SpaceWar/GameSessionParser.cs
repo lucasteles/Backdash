@@ -35,11 +35,18 @@ public static class GameSessionParser
                 port, host, options
             );
 
-        var session = RollbackNetcode.CreateSession<PlayerInputs, GameState>(port, options);
-
         var players = endpoints.Select((x, i) => ParsePlayer(playerCount, i + 1, x)).ToArray();
         if (players.All(x => !x.IsLocal()))
+
+        var localPlayer = players.FirstOrDefault(x => x.IsLocal());
+
+        if (localPlayer is null)
             throw new InvalidOperationException("No local player defined");
+
+        var session = RollbackNetcode.CreateSession<PlayerInputs, GameState>(port, options, new()
+        {
+            LogWriter = new FileLogWriter($"log_{localPlayer.Number}.txt"),
+        });
 
         session.AddPlayers(players);
 

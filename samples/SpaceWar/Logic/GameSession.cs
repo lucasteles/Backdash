@@ -8,7 +8,7 @@ public class GameSession(
     NonGameState nonGameState,
     Renderer renderer,
     IRollbackSession<PlayerInputs> session
-) : IRollbackHandler<GameState>
+) : IRollbackHandler<GameState>, IDisposable
 {
     readonly SynchronizedInput<PlayerInputs>[] inputs =
         new SynchronizedInput<PlayerInputs>[nonGameState.NumberOfPlayers];
@@ -41,7 +41,7 @@ public class GameSession(
         }
 
         var syncInputResult = session.SynchronizeInputs();
-        if (session.SynchronizeInputs() is not ResultCode.Ok)
+        if (syncInputResult is not ResultCode.Ok)
         {
             Console.WriteLine($"{DateTime.Now:o} => ERROR SYNC INPUTS: {syncInputResult}");
             return;
@@ -173,4 +173,6 @@ public class GameSession(
         gameState.Update(inputs);
         session.AdvanceFrame();
     }
+
+    public void Dispose() => stream.Dispose();
 }

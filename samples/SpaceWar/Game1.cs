@@ -2,7 +2,6 @@
 
 using Backdash;
 using Backdash.Core;
-using Backdash.Sync.Input;
 using SpaceWar.Logic;
 
 namespace SpaceWar;
@@ -45,6 +44,13 @@ public class Game1 : Game
         graphics.ApplyChanges();
         base.Initialize();
         rollbackSession.Start();
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        gameSession.Dispose();
+        rollbackSession.Dispose();
+        base.Dispose(disposing);
     }
 
     protected override void LoadContent()
