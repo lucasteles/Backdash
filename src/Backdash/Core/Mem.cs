@@ -32,6 +32,13 @@ static class Mem
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Span<byte> GetSpan<T>(scoped ref T data) where T : struct
+    {
+        ThrowHelpers.ThrowIfTypeIsReferenceOrContainsReferences<T>();
+        return MemoryMarshal.AsBytes(MemoryMarshal.CreateSpan(ref data, 1));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ref TInt EnumAsInteger<TEnum, TInt>(ref TEnum enumValue)
         where TEnum : unmanaged, Enum
         where TInt : unmanaged, IBinaryInteger<TInt>

@@ -8,41 +8,18 @@ using Backdash.Sync;
 
 namespace Backdash.Network;
 
-sealed class PeerConnectionFactory
+sealed class PeerConnectionFactory(
+    IProtocolNetworkEventHandler networkEventHandler,
+    IClock clock,
+    IRandomNumberGenerator random,
+    IDelayStrategy delayStrategy,
+    Logger logger,
+    IBackgroundJobManager jobManager,
+    IUdpClient<ProtocolMessage> udp,
+    ProtocolOptions options,
+    TimeSyncOptions timeSyncOptions
+)
 {
-    readonly IRandomNumberGenerator random;
-    readonly IDelayStrategy delayStrategy;
-    readonly Logger logger;
-    readonly IClock clock;
-    readonly IBackgroundJobManager jobManager;
-    readonly IProtocolNetworkEventHandler networkEventHandler;
-    readonly IUdpClient<ProtocolMessage> udp;
-    readonly ProtocolOptions options;
-    readonly TimeSyncOptions timeSyncOptions;
-
-    public PeerConnectionFactory(
-        IClock clock,
-        Random defaultRandom,
-        Logger logger,
-        IBackgroundJobManager jobManager,
-        IProtocolNetworkEventHandler networkEventHandler,
-        IUdpClient<ProtocolMessage> udp,
-        ProtocolOptions options,
-        TimeSyncOptions timeSyncOptions
-    )
-    {
-        random = new DefaultRandomNumberGenerator(defaultRandom);
-        delayStrategy = DelayStrategyFactory.Create(random, options.DelayStrategy);
-
-        this.logger = logger;
-        this.jobManager = jobManager;
-        this.networkEventHandler = networkEventHandler;
-        this.udp = udp;
-        this.options = options;
-        this.clock = clock;
-        this.timeSyncOptions = timeSyncOptions;
-    }
-
     public PeerConnection<TInput> Create<TInput>(
         ProtocolState state,
         IBinarySerializer<TInput> inputSerializer,
@@ -51,8 +28,7 @@ sealed class PeerConnectionFactory
     {
         var timeSync = new TimeSync<TInput>(timeSyncOptions, logger);
         var outbox = new ProtocolOutbox(state, options, udp, delayStrategy, random, clock, logger);
-        var syncManager = new ProtocolSynchronizer(logger, clock, random, jobManager, state, options, outbox,
-            networkEventHandler);
+        var syncManager = new ProtocolSynchronizer(logger, clock, random, state, options, outbox, networkEventHandler);
         var inbox = new ProtocolInbox<TInput>(options, inputSerializer, state, clock, syncManager, outbox,
             networkEventHandler, inputEventQueue, logger);
         var inputBuffer =

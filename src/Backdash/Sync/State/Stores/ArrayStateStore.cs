@@ -11,7 +11,8 @@ public sealed class ArrayStateStore<TState> : IStateStore<TState> where TState :
     public void Initialize(int size)
     {
         savedStates = new SavedFrame<TState>[size];
-        Array.Fill(savedStates, new SavedFrame<TState>(Frame.Null, new TState(), 0));
+        for (int i = 0; i < size; i++)
+            savedStates[i] = new(Frame.Null, new TState(), 0);
     }
 
     public ref readonly SavedFrame<TState> Load(Frame frame)

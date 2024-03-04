@@ -124,14 +124,23 @@ sealed class PeerConnection<TInput>(
 
     public void Update()
     {
-        if (state.CurrentStatus is not ProtocolStatus.Running)
-            return;
-
-        KeepLive();
-        ResendInputs();
-        qualityReportTimer.Update();
-        networkStatsTimer.Update();
-        CheckDisconnection();
+        switch (state.CurrentStatus)
+        {
+            case ProtocolStatus.Syncing:
+                syncRequest.Update();
+                break;
+            case ProtocolStatus.Running:
+                {
+                    KeepLive();
+                    ResendInputs();
+                    qualityReportTimer.Update();
+                    networkStatsTimer.Update();
+                    CheckDisconnection();
+                    break;
+                }
+            case ProtocolStatus.Disconnected:
+                break;
+        }
     }
 
     long lastKeepAliveSent;
@@ -197,7 +206,6 @@ sealed class PeerConnection<TInput>(
             networkEventHandler.OnNetworkEvent(ProtocolEvent.Disconnected, state.Player);
         }
     }
-
 
     // --------------
     // Timers

@@ -5,10 +5,8 @@ using Backdash.Sync;
 
 namespace Backdash;
 
-public sealed class RollbackOptions(int port)
+public sealed class RollbackOptions
 {
-    public int LocalPort { get; } = port;
-    public Random Random { get; init; } = Random.Shared;
     public int SpectatorOffset { get; init; } = Default.SpectatorOffset;
     public int RecommendationInterval { get; init; } = Default.RecommendationInterval;
     public bool NetworkEndianness { get; init; } = true;

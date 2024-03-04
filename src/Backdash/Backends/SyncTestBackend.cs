@@ -1,7 +1,7 @@
-using System.Text;
 using System.Text.Json;
 using Backdash.Core;
 using Backdash.Data;
+using Backdash.Network;
 using Backdash.Sync.Input;
 using Backdash.Sync.State;
 
@@ -11,58 +11,62 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
     where TInput : struct
     where TGameState : IEquatable<TGameState>, new()
 {
-    readonly record struct SavedFrame(Frame Frame, int Checksum, TGameState State, GameInput<TInput> Input);
+    readonly record struct SavedFrame(
+        Frame Frame,
+        int Checksum,
+        JsonElement State,
+        GameInput<TInput> Input
+    );
 
+    readonly Synchronizer<TInput, TGameState> synchronizer;
     readonly TaskCompletionSource tsc = new();
-    readonly IClock clock;
     readonly Logger logger;
     readonly HashSet<PlayerHandle> addedPlayers = [];
-    readonly HashSet<PlayerHandle> addedSpectators = new();
-    readonly Synchronizer<TInput, TGameState> synchronizer;
-
+    readonly HashSet<PlayerHandle> addedSpectators = [];
     readonly Queue<SavedFrame> savedFrames = [];
+    readonly SynchronizedInput<TInput>[] syncInputBuffer = new SynchronizedInput<TInput>[Max.RemoteConnections];
+    readonly FrameSpan checkDistance;
+    readonly bool throwError;
+    readonly IInputGenerator<TInput>? inputGenerator;
 
     readonly JsonSerializerOptions jsonOptions = new()
     {
-        WriteIndented = true,
+        WriteIndented = false,
+        IncludeFields = true,
     };
 
     IRollbackHandler<TGameState> callbacks;
-
-    bool rollingback;
-    GameInput<TInput> currentInput;
-    GameInput<TInput> lastInput;
-
-    Frame checkDistance = Frame.Zero;
-    Frame lastVerified = Frame.Zero;
-
+    bool inRollback;
     bool running;
     Task backGroundJobTask = Task.CompletedTask;
-    long startTimestamp;
-
-    SynchronizedInput<TInput>[] syncInputBuffer = [];
+    GameInput<TInput> currentInput;
+    GameInput<TInput> lastInput;
+    Frame lastVerified = Frame.Zero;
 
     public SyncTestBackend(
         RollbackOptions options,
-        IStateStore<TGameState> stateStore,
-        IChecksumProvider<TGameState> checksumProvider,
-        IClock clock,
-        Logger logger
+        FrameSpan checkDistance,
+        bool throwError,
+        BackendServices<TInput, TGameState> services
     )
     {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(options);
         ThrowHelpers.ThrowIfTypeTooBigForStack<TInput>();
         ThrowHelpers.ThrowIfTypeTooBigForStack<GameInput<TInput>>();
-        ThrowHelpers.ThrowIfArgumentIsZeroOrLess(options.LocalPort);
+        ThrowHelpers.ThrowIfArgumentIsNegative(checkDistance.FrameCount);
 
-        this.clock = clock;
-        this.logger = logger;
+        this.checkDistance = checkDistance;
+        this.throwError = throwError;
+        inputGenerator = services.InputGenerator;
+        logger = services.Logger;
         callbacks ??= new EmptySessionHandler<TGameState>(logger);
 
         synchronizer = new(
             options, logger,
             addedPlayers,
-            stateStore,
-            checksumProvider,
+            services.StateStore,
+            services.ChecksumProvider,
             new(Max.RemoteConnections)
         )
         {
@@ -74,23 +78,19 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
 
     public void Dispose() => tsc.SetResult();
 
-    public int NumberOfPlayers => addedPlayers.Count;
+    public int NumberOfPlayers => Math.Max(addedPlayers.Count, 1);
     public int NumberOfSpectators => addedSpectators.Count;
     public Frame CurrentFrame => synchronizer.CurrentFrame;
+    public bool IsSpectating => false;
+    public FrameSpan FramesBehind => synchronizer.FramesBehind;
+    public FrameSpan RollbackFrames => synchronizer.RollbackFrames;
 
-    public int FramesPerSecond
-    {
-        get
-        {
-            var elapsed = clock.GetElapsedTime(startTimestamp).TotalSeconds;
-            return elapsed > 0 ? (int)(synchronizer.CurrentFrame.Number / elapsed) : 0;
-        }
-    }
+    public IReadOnlyCollection<PlayerHandle> GetPlayers() =>
+        addedPlayers.Count is 0 ? [new PlayerHandle(PlayerType.Local, 1, 0)] : addedPlayers;
 
-    public FrameSpan RollbackFrames => FrameSpan.Max(synchronizer.FramesBehind, FrameSpan.Zero);
-
-    public IReadOnlyCollection<PlayerHandle> GetPlayers() => addedPlayers;
     public IReadOnlyCollection<PlayerHandle> GetSpectators() => addedSpectators;
+
+    public void DisconnectPlayer(in PlayerHandle player) { }
 
     public void Start(CancellationToken stoppingToken = default)
     {
@@ -98,8 +98,6 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         {
             callbacks.OnSessionStart();
             running = true;
-
-            startTimestamp = clock.GetTimeStamp();
         }
 
         backGroundJobTask = tsc.Task.WaitAsync(stoppingToken);
@@ -131,7 +129,6 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
                 return ResultCode.Duplicated;
         }
 
-        Array.Resize(ref syncInputBuffer, syncInputBuffer.Length + 1);
         return ResultCode.Ok;
     }
 
@@ -158,16 +155,19 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         if (!running)
             return ResultCode.NotSynchronized;
 
+        if (inputGenerator is not null)
+            localInput = inputGenerator.Generate();
+
+        currentInput.Frame = synchronizer.CurrentFrame;
         currentInput.Data = localInput;
         return ResultCode.Ok;
     }
 
     public void BeginFrame() => logger.Write(LogLevel.Trace, $"Beginning of frame({synchronizer.CurrentFrame})...");
 
-
     public ResultCode SynchronizeInputs()
     {
-        if (rollingback)
+        if (inRollback)
         {
             lastInput = savedFrames.Peek().Input;
         }
@@ -194,75 +194,91 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         logger.Write(LogLevel.Trace, $"End of frame({synchronizer.CurrentFrame})...");
         synchronizer.IncrementFrame();
         currentInput.Erase();
-        if (rollingback) return;
+        if (inRollback) return;
 
         // Hold onto the current frame in our queue of saved states.  We'll need
         // the checksum later to verify that our replay of the same frame got the
         // same results.
-        var lastSaved = synchronizer.GetLastSavedFrame();
+        ref readonly var lastSaved = ref synchronizer.GetLastSavedFrame();
 
         var frame = synchronizer.CurrentFrame;
         savedFrames.Enqueue(new(
             Frame: frame,
             Input: lastInput,
-            State: lastSaved.GameState,
+            State: JsonSerializer.SerializeToElement(lastSaved.GameState, jsonOptions),
             Checksum: lastSaved.Checksum
         ));
 
-        if (frame - lastVerified == checkDistance)
-        {
-            // We've gone far enough ahead and should now start replaying frames.
-            // Load the last verified frame and set the rollback flag to true.
-            synchronizer.LoadFrame(in lastVerified);
-
-            rollingback = true;
-            while (savedFrames.Count > 0)
-            {
-                callbacks.AdvanceFrame();
-
-                // Verify that the checksumn of this frame is the same as the one in our
-                // list.
-                var info = savedFrames.Dequeue();
-
-                if (info.Frame != synchronizer.CurrentFrame)
-                {
-                    logger.Write(LogLevel.Error,
-                        $"Frame number {info.Frame} does not match saved frame number {frame}");
-                }
-
-                var last = synchronizer.GetLastSavedFrame();
-                var checksum = last.Checksum;
-                if (info.Checksum != checksum)
-                {
-                    LogSaveState(info);
-                    logger.Write(LogLevel.Error,
-                        $"Checksum for frame {frame} does not match saved ({checksum} != {info.Checksum})");
-                }
-
-                logger.Write(LogLevel.Trace, $"Checksum {checksum} for frame {info.Frame} matches");
-            }
-
-            lastVerified = frame;
-            rollingback = false;
-        }
-    }
-
-    void LogSaveState(SavedFrame info)
-    {
-        if (logger.EnabledLevel > LogLevel.Debug)
+        if (frame - lastVerified != checkDistance.Value)
             return;
 
-        StringBuilder builder = new();
-        builder.AppendLine($"=== Saved State ({info.Frame}) ");
-        var input = info.Input;
-        builder.AppendLine("--- Input");
-        builder.AppendLine(input.Data.ToString());
-        builder.AppendLine();
-        builder.AppendLine($"--- Game State #{info.Checksum}");
-        builder.AppendLine(JsonSerializer.Serialize(info.State, jsonOptions));
-        builder.AppendLine("======================");
+        // We've gone far enough ahead and should now start replaying frames.
+        // Load the last verified frame and set the rollback flag to true.
+        synchronizer.LoadFrame(in lastVerified);
 
-        logger.Write(LogLevel.Debug, $"{builder.ToString()}");
+        inRollback = true;
+        while (savedFrames.Count > 0)
+        {
+            callbacks.AdvanceFrame();
+
+            // Verify that the checksum of this frame is the same as the one in our
+            // list.
+            var info = savedFrames.Dequeue();
+
+            if (info.Frame != synchronizer.CurrentFrame)
+            {
+                var message = $"Frame number {info.Frame} does not match saved frame number {frame}";
+                logger.Write(LogLevel.Error, message);
+                if (throwError) throw new BackdashException(message);
+            }
+
+            ref readonly var last = ref synchronizer.GetLastSavedFrame();
+            var checksum = last.Checksum;
+            if (info.Checksum != checksum)
+            {
+                LogSaveState(info, "current");
+                LogSaveState(last, "last");
+                var message = $"Checksum for frame {frame} does not match saved ({checksum} != {info.Checksum})";
+                logger.Write(LogLevel.Error, message);
+                if (throwError) throw new BackdashException(message);
+            }
+
+            logger.Write(LogLevel.Debug, $"Checksum {checksum} for frame {info.Frame} matches");
+        }
+
+        lastVerified = frame;
+        inRollback = false;
+    }
+
+    void LogSaveState(SavedFrame info, string description)
+    {
+        const LogLevel level = LogLevel.Information;
+        logger.Write(level, $"=== SAVED STATE [{description.ToUpper()}] ({info.Frame}) ===\n");
+        logger.Write(level, $"INPUT FRAME {info.Input.Frame}:");
+        logger.Write(level, JsonSerializer.Serialize(info.Input.Data, jsonOptions));
+        logger.Write(level, $"GAME STATE #{info.Checksum}:");
+        LogJson(level, info.State);
+        logger.Write(level, "====================================");
+    }
+
+    void LogSaveState(SavedFrame<TGameState> info, string description)
+    {
+        const LogLevel level = LogLevel.Information;
+        logger.Write(level, $"=== SAVED STATE [{description.ToUpper()}] ({info.Frame}) ===\n");
+        logger.Write(level, $"GAME STATE #{info.Checksum}:");
+        LogJson(level, info.GameState);
+        logger.Write(level, "====================================");
+    }
+
+    void LogJson<TValue>(LogLevel level, TValue value)
+    {
+        var jsonChunks = JsonSerializer
+            .Serialize(value, jsonOptions)
+            .Chunk(LogStringBuffer.Capacity / 2)
+            .Select(x => new string(x));
+
+        foreach (var chunk in jsonChunks)
+            logger.Write(level, chunk);
     }
 
     public void SetFrameDelay(PlayerHandle player, int delayInFrames)

@@ -6,7 +6,6 @@ namespace Backdash.Sync.Input;
 record struct GameInput<T>(T Data, Frame Frame) : IUtf8SpanFormattable where T : struct
 {
     public Frame Frame = Frame;
-
     public T Data = Data;
 
     public GameInput(Frame frame) : this(default, frame) { }

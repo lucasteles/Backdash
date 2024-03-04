@@ -28,7 +28,6 @@ public sealed class Game : IRollbackHandler<GameState>
 
         var players = session.GetPlayers();
 
-
         nonGameState =
             players.Count > 0
                 ? new()
@@ -112,7 +111,7 @@ public sealed class Game : IRollbackHandler<GameState>
     {
         Console.SetCursorPosition(1, 0);
         Console.WriteLine("> Syncing...");
-        Thread.Sleep(framesAhead.Duration);
+        Thread.Sleep(framesAhead.Duration());
     }
 
     public void OnPeerEvent(PlayerHandle player, PeerEventInfo evt)
@@ -151,13 +150,13 @@ public sealed class Game : IRollbackHandler<GameState>
         }
     }
 
-    public void SaveState(int frame, ref GameState state)
+    public void SaveState(in Frame frame, ref GameState state)
     {
         state.Position1 = currentState.Position1;
         state.Position2 = currentState.Position2;
     }
 
-    public void LoadState(in GameState gameState)
+    public void LoadState(in Frame frame, in GameState gameState)
     {
         currentState.Position1 = gameState.Position1;
         currentState.Position2 = gameState.Position2;

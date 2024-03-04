@@ -3,10 +3,10 @@ using Backdash.Serialization.Buffer;
 
 namespace Backdash.Sync.Input.Spectator;
 
-sealed class InputGroupSerializer<T>(IBinarySerializer<T> inputSerializer)
-    : BinarySerializer<InputGroup<T>> where T : struct
+sealed class CombinedInputsSerializer<T>(IBinarySerializer<T> inputSerializer)
+    : BinarySerializer<CombinedInputs<T>> where T : struct
 {
-    protected override void Serialize(in BinarySpanWriter writer, in InputGroup<T> data)
+    protected override void Serialize(in BinarySpanWriter writer, in CombinedInputs<T> data)
     {
         writer.Write(data.Count);
         for (var i = 0; i < data.Count; i++)
@@ -16,7 +16,7 @@ sealed class InputGroupSerializer<T>(IBinarySerializer<T> inputSerializer)
         }
     }
 
-    protected override void Deserialize(in BinarySpanReader reader, ref InputGroup<T> result)
+    protected override void Deserialize(in BinarySpanReader reader, ref CombinedInputs<T> result)
     {
         result.Count = reader.ReadByte();
 

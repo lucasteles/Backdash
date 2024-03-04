@@ -90,9 +90,6 @@ sealed class ProtocolInputBuffer<TInput> : IProtocolInputBuffer<TInput>
 
     public SendInputResult SendPendingInputs()
     {
-        if (pendingOutput.Count is 0)
-            return SendInputResult.Ok;
-
         var createMessageResult = CreateInputMessage(out var inputMessage);
         sender.SendMessage(in inputMessage);
         return createMessageResult;
@@ -106,82 +103,79 @@ sealed class ProtocolInputBuffer<TInput> : IProtocolInputBuffer<TInput>
         Span<byte> sendBuffer = workingBuffer.Slice(inputSize, inputSize);
         Span<byte> currentBytes = workingBuffer.Slice(inputSize * 2, inputSize);
 
+        var messageBodyOverflow = false;
         var lastAckFrame = inbox.LastAckedFrame;
         InputMessage inputMessage = new()
         {
-            AckFrame = inbox.LastReceivedInput.Frame,
+            StartFrame = Frame.Zero,
         };
 
-        GameInput<TInput> current;
-        while (pendingOutput.TryPeek(out current) && current.Frame < lastAckFrame)
+        if (pendingOutput.Count > 0)
         {
-            var acked = pendingOutput.Dequeue();
-            logger.Write(LogLevel.Debug, $"Skipping past frame:{acked.Frame} current is {lastAckFrame}");
-            lastAckedInput = acked;
-            lastAckSize = inputSerializer.Serialize(in lastAckedInput.Data, lastAckBytes);
-        }
+            while (pendingOutput.Peek().Frame < lastAckFrame)
+            {
+                var acked = pendingOutput.Dequeue();
+                logger.Write(LogLevel.Debug, $"Skipping past frame:{acked.Frame} current is {lastAckFrame}");
+                lastAckedInput = acked;
+                lastAckSize = inputSerializer.Serialize(in lastAckedInput.Data, lastAckBytes);
+            }
 
-        Trace.Assert(lastAckedInput.Frame.IsNull || lastAckedInput.Frame.Next() == lastAckFrame);
-
-        var currentSize = 0;
-        if (pendingOutput.TryPeek(out current))
-        {
-            currentSize = inputSerializer.Serialize(in current.Data, currentBytes);
+            Trace.Assert(lastAckedInput.Frame.IsNull || lastAckedInput.Frame.Next() == lastAckFrame);
+            var current = pendingOutput.Peek();
+            var currentSize = inputSerializer.Serialize(in current.Data, currentBytes);
             inputMessage.InputSize = (byte)currentSize;
             inputMessage.StartFrame = current.Frame;
-
-            Trace.Assert(lastAckedInput.Frame.IsNull || lastAckedInput.Frame.Next() == current.Frame);
+            Trace.Assert(lastAckedInput.Frame.IsNull || lastAckedInput.Frame.Next() == inputMessage.StartFrame);
 
             if (lastAckedInput.Frame.IsNull && lastSentSize < currentSize)
                 lastSentSize = currentSize;
-        }
 
-        if (lastAckSize is 0)
-            sendBuffer.Clear();
-        else
-            lastAckBytes[..lastAckSize].CopyTo(sendBuffer);
-
-        var compressor = InputEncoder.GetCompressor(ref inputMessage, sendBuffer);
-
-        var messageBodyOverflow = false;
-        var count = pendingOutput.Count;
-        var n = 0;
-        while (n++ < count)
-        {
-            current = pendingOutput.Dequeue();
-            if (n > 1)
-                currentSize = inputSerializer.Serialize(in current.Data, currentBytes);
-
-            if (compressor.Write(currentBytes[..currentSize]))
-            {
-                LastSent = current;
-                lastSentSize = currentSize;
-                pendingOutput.Enqueue(current);
-            }
+            if (lastAckSize is 0)
+                sendBuffer.Clear();
             else
+                lastAckBytes[..lastAckSize].CopyTo(sendBuffer);
+
+            var compressor = InputEncoder.GetCompressor(ref inputMessage, sendBuffer);
+
+            var count = pendingOutput.Count;
+            var n = 0;
+            while (n++ < count)
             {
-                logger.Write(LogLevel.Warning,
-                    $"Max input size reached. Sending inputs until frame {current.Frame.Previous()}");
-                pendingOutput.EnqueueNext(in current);
-                messageBodyOverflow = true;
-                break;
+                current = pendingOutput.Dequeue();
+                if (n > 1)
+                    currentSize = inputSerializer.Serialize(in current.Data, currentBytes);
+
+                if (compressor.Write(currentBytes[..currentSize]))
+                {
+                    LastSent = current;
+                    lastSentSize = currentSize;
+                    pendingOutput.Enqueue(current);
+                }
+                else
+                {
+                    logger.Write(LogLevel.Warning,
+                        $"Max input size reached. Sending inputs until frame {current.Frame.Previous()}");
+                    pendingOutput.EnqueueNext(in current);
+                    messageBodyOverflow = true;
+                    break;
+                }
             }
+
+            inputMessage.InputSize = (byte)lastSentSize;
+            inputMessage.NumBits = compressor.BitOffset;
+            inputMessage.DisconnectRequested = state.CurrentStatus is ProtocolStatus.Disconnected;
         }
 
-        inputMessage.InputSize = (byte)lastSentSize;
-        inputMessage.NumBits = compressor.BitOffset;
-        inputMessage.DisconnectRequested = state.CurrentStatus is ProtocolStatus.Disconnected;
+        inputMessage.AckFrame = inbox.LastReceivedInput.Frame;
+        state.LocalConnectStatuses.CopyTo(inputMessage.PeerConnectStatus);
 
         Trace.Assert(inputMessage.NumBits <= Max.CompressedBytes * ByteSize.ByteToBits);
         Trace.Assert(lastAckFrame.IsNull || inputMessage.StartFrame == lastAckFrame);
-
-        state.LocalConnectStatuses.CopyTo(inputMessage.PeerConnectStatus);
 
         protocolMessage = new(MessageType.Input)
         {
             Input = inputMessage,
         };
-
 
         return messageBodyOverflow
             ? SendInputResult.MessageBodyOverflow

@@ -128,7 +128,6 @@ sealed class ProtocolInbox<TInput>(
 
     bool OnInput(ref InputMessage msg)
     {
-        LastAckedFrame = msg.AckFrame;
         logger.Write(LogLevel.Trace, $"Acked Frame: {LastAckedFrame}");
 
         /*
@@ -175,15 +174,13 @@ sealed class ProtocolInbox<TInput>(
 
             var nextFrame = lastReceivedInput.Frame.Next();
             var currentFrame = msg.StartFrame;
-            Trace.Assert(currentFrame <= nextFrame);
-
             var decompressor = InputEncoder.GetDecompressor(ref msg);
 
-            var framesAhead = nextFrame.Number - currentFrame.Number;
-            if (framesAhead > 0)
+            if (currentFrame < nextFrame)
             {
+                var framesAhead = nextFrame.Number - currentFrame.Number;
                 logger.Write(LogLevel.Trace,
-                    $"Skipping past {framesAhead} frames (current: {currentFrame}, last: {lastReceivedInput.Frame})");
+                    $"Skipping past {framesAhead} frames (current: {currentFrame}, last: {lastReceivedInput.Frame}, next: {nextFrame})");
 
                 if (decompressor.Skip(framesAhead))
                     currentFrame += framesAhead;
@@ -209,6 +206,8 @@ sealed class ProtocolInbox<TInput>(
 
                 inputEvents.Publish(new(state.Player, lastReceivedInput));
             }
+
+            LastAckedFrame = msg.AckFrame;
         }
 
         Trace.Assert(lastReceivedInput.Frame >= lastReceivedFrame);
@@ -237,7 +236,7 @@ sealed class ProtocolInbox<TInput>(
             },
         };
 
-        state.Fairness.RemoteFrameAdvantage = new(msg.QualityReport.FrameAdvantage, state.Fairness.FramesPerSecond);
+        state.Fairness.RemoteFrameAdvantage = new(msg.QualityReport.FrameAdvantage);
 
         return true;
     }

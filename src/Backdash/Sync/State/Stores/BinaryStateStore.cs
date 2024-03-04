@@ -21,7 +21,8 @@ public sealed class BinaryStateStore<TState>(
     public void Initialize(int size)
     {
         savedStates = new SavedFrame<TState>[size];
-        Array.Fill(savedStates, new SavedFrame<TState>(Frame.Null, new TState(), 0));
+        for (int i = 0; i < size; i++)
+            savedStates[i] = new(Frame.Null, new TState(), 0);
     }
 
     public ref TState GetCurrent() => ref savedStates[head].GameState;
