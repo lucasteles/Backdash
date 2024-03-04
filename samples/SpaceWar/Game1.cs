@@ -75,25 +75,22 @@ public class Game1 : Game
                 playerInfo.ConnectProgress = 100;
                 ngs.LocalPlayerHandle = player;
                 ngs.SetConnectState(player, PlayerConnectState.Connecting);
-                ConfigureWindow(player);
+                ConfigurePlayerWindow(player);
             }
 
             ngs.StatusText.Clear();
             ngs.StatusText.Append("Connecting to peers ...");
         }
 
+        if (rollbackSession.IsSpectating)
+            Window.Title = "SpaceWar - Spectator";
+
         gameSession = new(gs, ngs, new(assets, spriteBatch), rollbackSession);
         rollbackSession.SetHandler(gameSession);
     }
 
-    void ConfigureWindow(PlayerHandle player)
+    void ConfigurePlayerWindow(PlayerHandle player)
     {
-        if (rollbackSession.IsSpectating)
-        {
-            Window.Title = "SpaceWar - Spectator";
-            return;
-        }
-
         Window.Title = $"SpaceWar - Player {player.Number}";
 
         if (graphics.IsFullScreen) return;
