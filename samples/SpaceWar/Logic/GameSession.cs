@@ -154,7 +154,6 @@ public class GameSession(
             toShip.Missile.ProjectileRadius = fromShip.Missile.ProjectileRadius;
             toShip.Missile.Active = fromShip.Missile.Active;
             toShip.Missile.ExplodeTimeout = fromShip.Missile.ExplodeTimeout;
-            toShip.Bullets.Clear();
             fromShip.Bullets.CopyTo(toShip.Bullets);
         }
     }
