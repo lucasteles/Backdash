@@ -34,7 +34,6 @@ sealed class SpectatorBackend<TInput, TGameState> :
     bool isSynchronizing;
     Task backgroundJobTask = Task.CompletedTask;
     bool disposed;
-    long startTimestamp;
     long lastReceivedInputTime;
 
     SynchronizedInput<TInput>[] syncInputBuffer = [];
@@ -105,22 +104,14 @@ sealed class SpectatorBackend<TInput, TGameState> :
     }
 
     public Frame CurrentFrame { get; private set; } = Frame.Zero;
-    public FrameSpan RollbackFrames { get; } = FrameSpan.Zero;
+    public FrameSpan RollbackFrames => FrameSpan.Zero;
+    public FrameSpan FramesBehind => FrameSpan.Zero;
     public int NumberOfPlayers { get; private set; }
     public int NumberOfSpectators => 0;
 
     public ResultCode AddLocalInput(PlayerHandle player, TInput localInput) => ResultCode.Ok;
     public IReadOnlyCollection<PlayerHandle> GetPlayers() => [];
     public IReadOnlyCollection<PlayerHandle> GetSpectators() => [];
-
-    public int FramesPerSecond
-    {
-        get
-        {
-            var elapsed = clock.GetElapsedTime(startTimestamp).TotalSeconds;
-            return elapsed > 0 ? (int)(CurrentFrame.Number / elapsed) : 0;
-        }
-    }
 
     public void BeginFrame()
     {
@@ -185,7 +176,6 @@ sealed class SpectatorBackend<TInput, TGameState> :
                     Synchronized = new(evt.Synchronized.Ping),
                 });
                 callbacks.OnSessionStart();
-                startTimestamp = clock.GetTimeStamp();
                 isSynchronizing = false;
                 break;
             case ProtocolEvent.SyncFailure:

@@ -1,7 +1,7 @@
 ﻿namespace SpaceWar.Logic;
 
 [Flags]
-public enum PlayerInputs : short
+public enum PlayerInputs : ushort
 {
     None = 0,
     Thrust = 1 << 0,

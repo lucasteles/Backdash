@@ -20,7 +20,6 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
 
     readonly Synchronizer<TInput, TGameState> synchronizer;
     readonly TaskCompletionSource tsc = new();
-    readonly IClock clock;
     readonly Logger logger;
     readonly HashSet<PlayerHandle> addedPlayers = [];
     readonly HashSet<PlayerHandle> addedSpectators = [];
@@ -39,7 +38,6 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
     IRollbackHandler<TGameState> callbacks;
     bool inRollback;
     bool running;
-    long startTimestamp;
     Task backGroundJobTask = Task.CompletedTask;
     GameInput<TInput> currentInput;
     GameInput<TInput> lastInput;
@@ -61,7 +59,6 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         this.checkDistance = checkDistance;
         this.throwError = throwError;
         inputGenerator = services.InputGenerator;
-        clock = services.Clock;
         logger = services.Logger;
         callbacks ??= new EmptySessionHandler<TGameState>(logger);
 
@@ -84,17 +81,8 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
     public int NumberOfPlayers => Math.Max(addedPlayers.Count, 1);
     public int NumberOfSpectators => addedSpectators.Count;
     public Frame CurrentFrame => synchronizer.CurrentFrame;
-
-    public int FramesPerSecond
-    {
-        get
-        {
-            var elapsed = clock.GetElapsedTime(startTimestamp).TotalSeconds;
-            return elapsed > 0 ? (int)(synchronizer.CurrentFrame.Number / elapsed) : 0;
-        }
-    }
-
-    public FrameSpan RollbackFrames => FrameSpan.Max(synchronizer.FramesBehind, FrameSpan.Zero);
+    public FrameSpan FramesBehind => synchronizer.FramesBehind;
+    public FrameSpan RollbackFrames => synchronizer.RollbackFrames;
 
     public IReadOnlyCollection<PlayerHandle> GetPlayers() =>
         addedPlayers.Count is 0 ? [new PlayerHandle(PlayerType.Local, 1, 0)] : addedPlayers;
@@ -107,8 +95,6 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         {
             callbacks.OnSessionStart();
             running = true;
-
-            startTimestamp = clock.GetTimeStamp();
         }
 
         backGroundJobTask = tsc.Task.WaitAsync(stoppingToken);

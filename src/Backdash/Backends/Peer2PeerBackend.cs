@@ -30,7 +30,6 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
     readonly ProtocolInputEventQueue<TInput> peerInputEventQueue;
     readonly IProtocolInputEventPublisher<CombinedInputs<TInput>> peerCombinedInputsEventPublisher;
     readonly PeerConnectionFactory peerConnectionFactory;
-    readonly IClock clock;
 
     readonly List<PeerConnection<CombinedInputs<TInput>>> spectators;
     readonly List<PeerConnection<TInput>?> endpoints;
@@ -40,7 +39,6 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
 
     bool isSynchronizing = true;
     int nextRecommendedInterval;
-    long startTimestamp;
     Frame nextSpectatorFrame = Frame.Zero;
     IRollbackHandler<TGameState> callbacks;
     SynchronizedInput<TInput>[] syncInputBuffer = [];
@@ -67,8 +65,6 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         stateStore = services.StateStore;
         backgroundJobManager = services.JobManager;
         logger = services.Logger;
-        clock = services.Clock;
-
         peerInputEventQueue = new ProtocolInputEventQueue<TInput>();
         peerCombinedInputsEventPublisher = new ProtocolCombinedInputsEventPublisher<TInput>(peerInputEventQueue);
         inputGroupSerializer = new CombinedInputsSerializer<TInput>(inputSerializer);
@@ -102,7 +98,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
 
         peerConnectionFactory = new(
             this,
-            clock,
+            services.Clock,
             services.Random,
             services.DelayStrategy,
             logger,
@@ -145,17 +141,8 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
     }
 
     public Frame CurrentFrame => synchronizer.CurrentFrame;
-
-    public int FramesPerSecond
-    {
-        get
-        {
-            var elapsed = clock.GetElapsedTime(startTimestamp).TotalSeconds;
-            return elapsed > 0 ? (int)(synchronizer.CurrentFrame.Number / elapsed) : 0;
-        }
-    }
-
     public FrameSpan RollbackFrames => synchronizer.RollbackFrames;
+    public FrameSpan FramesBehind => synchronizer.FramesBehind;
     public int NumberOfPlayers => addedPlayers.Count;
     public int NumberOfSpectators => addedSpectators.Count;
 
@@ -406,7 +393,6 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
                 return;
 
         isSynchronizing = false;
-        startTimestamp = clock.GetTimeStamp();
         callbacks.OnSessionStart();
     }
 

@@ -5,9 +5,9 @@ namespace Backdash;
 
 public interface IRollbackSessionInfo
 {
-    public Frame CurrentFrame { get; }
-    public FrameSpan RollbackFrames { get; }
-    public int FramesPerSecond { get; }
+    Frame CurrentFrame { get; }
+    FrameSpan RollbackFrames { get; }
+    FrameSpan FramesBehind { get; }
 }
 
 public interface IRollbackSession<TInput> : IRollbackSessionInfo, IDisposable where TInput : struct

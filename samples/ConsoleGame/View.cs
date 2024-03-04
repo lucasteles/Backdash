@@ -181,7 +181,6 @@ public class View
         Console.WriteLine(
             $"""
              Pending Inputs:   {peer.PendingInputCount}
-             FPS:              {info.FramesPerSecond}
              Frame:            {info.CurrentFrame.Number} ack({peer.LastAckedFrame.Number}) send({peer.Send.LastFrame.Number})
              Advantage:        local({peer.LocalFramesBehind}) remote({peer.RemoteFramesBehind})
              Pkg Count out/in: {peer.Send.PackagesPerSecond:f2} pps / {peer.Received.PackagesPerSecond:f2} pps
