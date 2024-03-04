@@ -89,6 +89,8 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
 
     public IReadOnlyCollection<PlayerHandle> GetSpectators() => addedSpectators;
 
+    public void DisconnectPlayer(in PlayerHandle player) { }
+
     public void Start(CancellationToken stoppingToken = default)
     {
         if (!running)

@@ -1,6 +1,5 @@
 ﻿using System.Text;
 using Backdash;
-using Backdash.Data;
 
 namespace SpaceWar.Logic;
 
@@ -18,8 +17,8 @@ public class PlayerConnectionInfo
     public PlayerHandle Handle;
     public PlayerConnectState State;
     public int ConnectProgress;
-    public TimeSpan DisconnectTimeout;
-    public DateTime DisconnectStart;
+    public DateTime DisconnectAt;
+    public readonly StringBuilder StatusText = new();
     public RollbackNetworkStatus PeerNetworkStatus = new();
 }
 
@@ -27,7 +26,7 @@ public class NonGameState(int numberOfPlayers, GameWindow window)
 {
     public readonly PlayerConnectionInfo[] Players = new PlayerConnectionInfo[numberOfPlayers];
     public readonly Background Background = new(window.ClientBounds);
-    public readonly StringBuilder Status = new();
+    public readonly StringBuilder StatusText = new();
 
     public PlayerHandle? LocalPlayerHandle;
     public TimeSpan SleepTime;
@@ -50,8 +49,7 @@ public class NonGameState(int numberOfPlayers, GameWindow window)
     public void SetDisconnectTimeout(PlayerHandle handle, DateTime when, TimeSpan timeout)
     {
         if (!TryGetPlayer(handle, out var player)) return;
-        player.DisconnectStart = when;
-        player.DisconnectTimeout = timeout;
+        player.DisconnectAt = when + timeout;
         player.State = PlayerConnectState.Disconnecting;
     }
 

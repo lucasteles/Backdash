@@ -666,13 +666,11 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         CheckInitialSync();
     }
 
-    void DisconnectPlayer(in PlayerHandle player)
+    public void DisconnectPlayer(in PlayerHandle player)
     {
-        if (localConnections[player].Disconnected)
-            return;
-
-        if (player.Type is not PlayerType.Remote)
-            return;
+        if (!IsPlayerKnown(in player)) return;
+        if (localConnections[player].Disconnected) return;
+        if (player.Type is not PlayerType.Remote) return;
 
         if (endpoints[player.InternalQueue] is null)
         {

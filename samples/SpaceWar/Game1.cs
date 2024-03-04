@@ -21,6 +21,8 @@ public class Game1 : Game
         Protocol = new()
         {
             NumberOfSyncPackets = 10,
+            DisconnectTimeout = TimeSpan.FromSeconds(3),
+            DisconnectNotifyStart = TimeSpan.FromSeconds(1),
             // LogNetworkStats = true,
         },
     };
@@ -75,6 +77,9 @@ public class Game1 : Game
                 ngs.SetConnectState(player, PlayerConnectState.Connecting);
                 ConfigureWindow(player);
             }
+
+            ngs.StatusText.Clear();
+            ngs.StatusText.Append("Connecting to peers ...");
         }
 
         gameSession = new(gs, ngs, new(assets, spriteBatch), rollbackSession);

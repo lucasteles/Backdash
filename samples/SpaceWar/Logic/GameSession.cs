@@ -27,6 +27,8 @@ public sealed class GameSession(
         if (nonGameState.LocalPlayerHandle is { } localPlayer)
         {
             var keyboard = Keyboard.GetState();
+            HandleNoGameInput(keyboard);
+
             var localInput = Inputs.ReadInputs(keyboard);
 
             var addInputResult = session.AddLocalInput(localPlayer, localInput);
@@ -51,12 +53,31 @@ public sealed class GameSession(
         session.AdvanceFrame();
     }
 
+    void HandleNoGameInput(KeyboardState keyboard)
+    {
+        if (keyboard.IsKeyDown(Keys.NumPad1)) DisconnectPlayer(0);
+        if (keyboard.IsKeyDown(Keys.NumPad2)) DisconnectPlayer(1);
+        if (keyboard.IsKeyDown(Keys.NumPad3)) DisconnectPlayer(2);
+        if (keyboard.IsKeyDown(Keys.NumPad4)) DisconnectPlayer(3);
+    }
+
+    void DisconnectPlayer(int number)
+    {
+        if (nonGameState.NumberOfPlayers <= number) return;
+        var handle = nonGameState.Players[number].Handle;
+        session.DisconnectPlayer(in handle);
+        nonGameState.StatusText.Clear();
+        nonGameState.StatusText.Append("Disconnected player ");
+        nonGameState.StatusText.Append(handle.Number);
+    }
+
     public void Draw() => renderer.Draw(gameState, nonGameState);
 
     public void OnSessionStart()
     {
         Console.WriteLine($"{DateTime.Now:o} => GAME STARTED");
         nonGameState.SetConnectState(PlayerConnectState.Running);
+        nonGameState.StatusText.Clear();
     }
 
     public void OnSessionClose()
@@ -105,8 +126,10 @@ public sealed class GameSession(
                 break;
 
             case PeerEvent.ConnectionInterrupted:
-                nonGameState.SetDisconnectTimeout(player, DateTime.UtcNow,
-                    evt.ConnectionInterrupted.DisconnectTimeout);
+                nonGameState.SetDisconnectTimeout(
+                    player, DateTime.UtcNow,
+                    evt.ConnectionInterrupted.DisconnectTimeout
+                );
                 break;
             case PeerEvent.ConnectionResumed:
                 nonGameState.SetConnectState(player, PlayerConnectState.Running);
@@ -145,14 +168,8 @@ public sealed class GameSession(
             toShip.Invincible = fromShip.Invincible;
             toShip.Score = fromShip.Score;
             toShip.Thrust = fromShip.Thrust;
-            toShip.Missile.Heading = fromShip.Missile.Heading;
-            toShip.Missile.HitBoxTime = fromShip.Missile.HitBoxTime;
-            toShip.Missile.Position = fromShip.Missile.Position;
-            toShip.Missile.Velocity = fromShip.Missile.Velocity;
-            toShip.Missile.ExplosionRadius = fromShip.Missile.ExplosionRadius;
-            toShip.Missile.ProjectileRadius = fromShip.Missile.ProjectileRadius;
-            toShip.Missile.Active = fromShip.Missile.Active;
-            toShip.Missile.ExplodeTimeout = fromShip.Missile.ExplodeTimeout;
+            // safe because Missile is a struct/value type
+            toShip.Missile = fromShip.Missile;
             fromShip.Bullets.CopyTo(toShip.Bullets);
         }
     }

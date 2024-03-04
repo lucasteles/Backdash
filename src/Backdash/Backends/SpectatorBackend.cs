@@ -109,6 +109,8 @@ sealed class SpectatorBackend<TInput, TGameState> :
     public int NumberOfPlayers { get; private set; }
     public int NumberOfSpectators => 0;
 
+    public void DisconnectPlayer(in PlayerHandle player) { }
+
     public ResultCode AddLocalInput(PlayerHandle player, TInput localInput) => ResultCode.Ok;
     public IReadOnlyCollection<PlayerHandle> GetPlayers() => [];
     public IReadOnlyCollection<PlayerHandle> GetSpectators() => [];

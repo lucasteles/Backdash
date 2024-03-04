@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Data;
+using System.Text;
 
 namespace SpaceWar.Logic;
 
@@ -15,24 +16,25 @@ public sealed class Renderer(
         DrawBackground(ngs.Background);
         for (var i = 0; i < gs.NumberOfShips; i++)
         {
-            DrawShip(i, gs);
-            // DrawConnectState(gs.Ships[i], ngs.Players[i]);
+            DrawShip(i, gs, ngs);
+            DrawConnectState(gs.Ships[i], ngs.Players[i]);
         }
 
         DrawHud(gs, ngs);
     }
 
-    void DrawShip(int num, GameState gs)
+    void DrawShip(int num, GameState gs, NonGameState ngs)
     {
         var ship = gs.Ships[num];
+        var player = ngs.Players[num];
         var sprite = gameAssets.Ships[num];
         var shipSize = ship.Radius * 2;
 
         if (!ship.Active) return;
 
         Rectangle shipRect = new(
-            (int) ship.Position.X,
-            (int) ship.Position.Y,
+            (int)ship.Position.X,
+            (int)ship.Position.Y,
             shipSize, shipSize
         );
 
@@ -73,14 +75,14 @@ public sealed class Renderer(
             {
                 var explosionSize = ship.Missile.ExplosionRadius * 2;
                 Rectangle explosionRect = new(
-                    (int) ship.Missile.Position.X,
-                    (int) ship.Missile.Position.Y,
+                    (int)ship.Missile.Position.X,
+                    (int)ship.Missile.Position.Y,
                     explosionSize, explosionSize
                 );
 
-                var spriteStep = (int) MathHelper.Lerp(
+                var spriteStep = (int)MathHelper.Lerp(
                     0, MissileExplosionSpriteMap.Length - 1,
-                    ship.Missile.HitBoxTime / (float) Config.MissileHitBoxTimeout
+                    ship.Missile.HitBoxTime / (float)Config.MissileHitBoxTimeout
                 );
 
                 var missileSource = MissileExplosionSpriteMap[spriteStep];
@@ -94,13 +96,66 @@ public sealed class Renderer(
         spriteBatch.Draw(sprite.Ship, shipRect, null, Color.White, rotation,
             sprite.Ship.Bounds.Size.ToVector2() / 2, SpriteEffects.None, 1);
 
-        DrawBar(
-            new(
-                shipRect.Left - ship.Radius, shipRect.Bottom - ship.Radius / 2,
-                shipRect.Width, Config.ShipLifeBarHeight
-            ),
-            Color.Green, ship.Health, Config.StartingHealth
+        if (player.State is PlayerConnectState.Running)
+            DrawBar(
+                new(
+                    shipRect.Left - ship.Radius, shipRect.Bottom - ship.Radius / 2,
+                    shipRect.Width, Config.ShipLifeBarHeight
+                ),
+                Color.Green, ship.Health, Config.StartingHealth
+            );
+    }
+
+
+    void DrawConnectState(Ship ship, PlayerConnectionInfo player)
+    {
+        player.StatusText.Clear();
+        var color = Color.White;
+        switch (player.State)
+        {
+            case PlayerConnectState.Connecting:
+                color = Color.LimeGreen;
+                player.StatusText.Append(player.Handle.IsLocal()
+                    ? "Local Player"
+                    : "Connecting ..."
+                );
+                break;
+            case PlayerConnectState.Synchronizing:
+                color = Color.Blue;
+                if (player.Handle.IsLocal())
+                    player.StatusText.Append("Local Player");
+                else
+                {
+                    player.StatusText.Append("Synchronizing ");
+                    player.StatusText.Append(player.ConnectProgress);
+                    player.StatusText.Append('%');
+                    player.StatusText.Append(" ...");
+                }
+
+                break;
+            case PlayerConnectState.Disconnected:
+                color = Color.Crimson;
+                player.StatusText.Append("Disconnected");
+                break;
+            case PlayerConnectState.Disconnecting:
+                color = Color.Coral;
+                player.StatusText.Append("Waiting for player ");
+                var timeLeft = player.DisconnectAt - DateTime.UtcNow;
+                player.StatusText.Append(Math.Round(timeLeft.TotalSeconds, 2));
+                player.StatusText.Append(" ...");
+                break;
+        }
+
+        if (player.StatusText.Length is 0) return;
+
+        const float scale = 0.45f;
+        var size = gameAssets.MainFont.MeasureString(player.StatusText) * scale;
+        var pos = new Vector2(
+            ship.Position.X - size.X / 2,
+            ship.Position.Y + ship.Radius + size.Y / 2
         );
+        spriteBatch.DrawString(gameAssets.MainFont, player.StatusText, pos,
+            color, 0, Vector2.Zero, scale, SpriteEffects.None, 0);
     }
 
     void DrawBackground(Background background)
@@ -143,9 +198,9 @@ public sealed class Renderer(
         spriteBatch.DrawString(gameAssets.MainFont, pingString, pingPos, Color.White,
             0, Vector2.Zero, scale, SpriteEffects.None, 0);
 
-        if (ngs.Status.Length > 0)
+        if (ngs.StatusText.Length > 0)
         {
-            var statusSize = gameAssets.MainFont.MeasureString(ngs.Status);
+            var statusSize = gameAssets.MainFont.MeasureString(ngs.StatusText);
             Vector2 statusPos = new(
                 (gs.Bounds.Width - statusSize.X) / 2,
                 (gs.Bounds.Top - Config.WindowPadding + statusSize.Y)
@@ -154,7 +209,7 @@ public sealed class Renderer(
             Rectangle statusBox = new(statusPos.ToPoint(), statusSize.ToPoint());
             statusBox.Inflate(4, 4);
             spriteBatch.Draw(gameAssets.Blank, statusBox, Color.DarkBlue);
-            spriteBatch.DrawString(gameAssets.MainFont, ngs.Status, statusPos,
+            spriteBatch.DrawString(gameAssets.MainFont, ngs.StatusText, statusPos,
                 Color.Yellow, 0, Vector2.Zero, 1, SpriteEffects.None, 0);
         }
     }
@@ -201,7 +256,7 @@ public sealed class Renderer(
 
         Rectangle value = new(
             position.X, position.Y,
-            (int) (actual / total * position.Width),
+            (int)(actual / total * position.Width),
             position.Height
         );
 
