@@ -7,8 +7,6 @@ public sealed class Renderer(
     SpriteBatch spriteBatch
 )
 {
-    // string status = string.Empty;
-    // public void SetStatusText(string text) => status = text;
     readonly StringBuilder pingString = new();
     readonly StringBuilder scoreString = new();
 
@@ -33,8 +31,8 @@ public sealed class Renderer(
         if (!ship.Active) return;
 
         Rectangle shipRect = new(
-            (int)ship.Position.X,
-            (int)ship.Position.Y,
+            (int) ship.Position.X,
+            (int) ship.Position.Y,
             shipSize, shipSize
         );
 
@@ -75,14 +73,14 @@ public sealed class Renderer(
             {
                 var explosionSize = ship.Missile.ExplosionRadius * 2;
                 Rectangle explosionRect = new(
-                    (int)ship.Missile.Position.X,
-                    (int)ship.Missile.Position.Y,
+                    (int) ship.Missile.Position.X,
+                    (int) ship.Missile.Position.Y,
                     explosionSize, explosionSize
                 );
 
-                var spriteStep = (int)MathHelper.Lerp(
+                var spriteStep = (int) MathHelper.Lerp(
                     0, MissileExplosionSpriteMap.Length - 1,
-                    ship.Missile.HitBoxTime / (float)Config.MissileHitBoxTimeout
+                    ship.Missile.HitBoxTime / (float) Config.MissileHitBoxTimeout
                 );
 
                 var missileSource = MissileExplosionSpriteMap[spriteStep];
@@ -144,6 +142,21 @@ public sealed class Renderer(
 
         spriteBatch.DrawString(gameAssets.MainFont, pingString, pingPos, Color.White,
             0, Vector2.Zero, scale, SpriteEffects.None, 0);
+
+        if (!string.IsNullOrWhiteSpace(ngs.Status))
+        {
+            var statusSize = gameAssets.MainFont.MeasureString(ngs.Status);
+            Vector2 statusPos = new(
+                (gs.Bounds.Width - statusSize.X) / 2,
+                (gs.Bounds.Top - Config.WindowPadding + statusSize.Y)
+            );
+
+            Rectangle statusBox = new(statusPos.ToPoint(), statusSize.ToPoint());
+            statusBox.Inflate(4, 4);
+            spriteBatch.Draw(gameAssets.Blank, statusBox, Color.DarkBlue);
+            spriteBatch.DrawString(gameAssets.MainFont, ngs.Status, statusPos,
+                Color.Yellow, 0, Vector2.Zero, 1, SpriteEffects.None, 0);
+        }
     }
 
     void DrawScore(int num, GameState gs)
@@ -188,7 +201,7 @@ public sealed class Renderer(
 
         Rectangle value = new(
             position.X, position.Y,
-            (int)(actual / total * position.Width),
+            (int) (actual / total * position.Width),
             position.Height
         );
 

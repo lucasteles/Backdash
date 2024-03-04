@@ -22,18 +22,15 @@ public class PlayerConnectionInfo
     public RollbackNetworkStatus PeerNetworkStatus = new();
 }
 
-public readonly record struct ChecksumInfo(Frame FrameNumber, int Checksum);
-
 public class NonGameState(int numberOfPlayers, GameWindow window)
 {
-    public readonly Background Background = new(window.ClientBounds);
     public readonly PlayerConnectionInfo[] Players = new PlayerConnectionInfo[numberOfPlayers];
+    public readonly Background Background = new(window.ClientBounds);
+
     public PlayerHandle? LocalPlayerHandle;
-    public ChecksumInfo Now;
-    public ChecksumInfo Periodic;
+    public string Status = "";
     public TimeSpan SleepTime;
     public bool Sleeping => SleepTime > TimeSpan.Zero;
-
     public int NumberOfPlayers => numberOfPlayers;
 
     public bool TryGetPlayer(PlayerHandle handle, out PlayerConnectionInfo state)
