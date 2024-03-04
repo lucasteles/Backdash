@@ -55,10 +55,10 @@ public sealed class GameSession(
 
     void HandleNoGameInput(KeyboardState keyboard)
     {
-        if (keyboard.IsKeyDown(Keys.NumPad1)) DisconnectPlayer(0);
-        if (keyboard.IsKeyDown(Keys.NumPad2)) DisconnectPlayer(1);
-        if (keyboard.IsKeyDown(Keys.NumPad3)) DisconnectPlayer(2);
-        if (keyboard.IsKeyDown(Keys.NumPad4)) DisconnectPlayer(3);
+        if (keyboard.IsKeyDown(Keys.D1)) DisconnectPlayer(0);
+        if (keyboard.IsKeyDown(Keys.D2)) DisconnectPlayer(1);
+        if (keyboard.IsKeyDown(Keys.D3)) DisconnectPlayer(2);
+        if (keyboard.IsKeyDown(Keys.D4)) DisconnectPlayer(3);
     }
 
     void DisconnectPlayer(int number)
@@ -118,8 +118,8 @@ public sealed class GameSession(
             case PeerEvent.Synchronizing:
 
                 var progress = 100 * evt.Synchronizing.CurrentStep /
-                               (float)evt.Synchronizing.TotalSteps;
-                nonGameState.UpdateConnectProgress(player, (int)progress);
+                               (float) evt.Synchronizing.TotalSteps;
+                nonGameState.UpdateConnectProgress(player, (int) progress);
                 break;
             case PeerEvent.Synchronized:
                 nonGameState.UpdateConnectProgress(player, 100);
