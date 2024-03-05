@@ -586,8 +586,6 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
 
     Frame MinimumFrameNPlayers()
     {
-        // TODO: validate this function
-
         // discard confirmed frames as appropriate
         var totalMinConfirmed = Frame.MaxValue;
         for (var queue = 0; queue < NumberOfPlayers; queue++)
