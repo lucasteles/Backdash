@@ -43,7 +43,7 @@ public static class GameSessionFactory
 
         var session = RollbackNetcode.CreateSession<PlayerInputs, GameState>(port, options, new()
         {
-            // LogWriter = new FileLogWriter($"log_{localPlayer.Number}.txt"),
+            // LogWriter = new FileLogWriter($"log_{localPlayer.Number}.log"),
         });
 
         session.AddPlayers(players);

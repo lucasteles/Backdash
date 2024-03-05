@@ -6,7 +6,6 @@
     <InvariantGlobalization>true</InvariantGlobalization>
     <WarningsAsErrors>CS8600;CS8602;CS8603;CS8604;CS8625;CS8618;CS8620</WarningsAsErrors>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <UseArtifactsOutput>true</UseArtifactsOutput>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(MSBuildProjectExtension)' == '.csproj'">

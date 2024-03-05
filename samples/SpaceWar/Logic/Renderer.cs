@@ -1,5 +1,5 @@
-﻿using System.Data;
-using System.Text;
+﻿using System.Text;
+using Backdash.Data;
 
 namespace SpaceWar.Logic;
 
@@ -8,7 +8,7 @@ public sealed class Renderer(
     SpriteBatch spriteBatch
 )
 {
-    readonly StringBuilder pingString = new();
+    readonly StringBuilder statsString = new();
     readonly StringBuilder scoreString = new();
 
     public void Draw(GameState gs, NonGameState ngs)
@@ -33,8 +33,8 @@ public sealed class Renderer(
 
         var shipSize = ship.Radius * 2;
         Rectangle shipRect = new(
-            (int) ship.Position.X,
-            (int) ship.Position.Y,
+            (int)ship.Position.X,
+            (int)ship.Position.Y,
             shipSize, shipSize
         );
 
@@ -75,14 +75,14 @@ public sealed class Renderer(
             {
                 var explosionSize = ship.Missile.ExplosionRadius * 2;
                 Rectangle explosionRect = new(
-                    (int) ship.Missile.Position.X,
-                    (int) ship.Missile.Position.Y,
+                    (int)ship.Missile.Position.X,
+                    (int)ship.Missile.Position.Y,
                     explosionSize, explosionSize
                 );
 
-                var spriteStep = (int) MathHelper.Lerp(
+                var spriteStep = (int)MathHelper.Lerp(
                     0, MissileExplosionSpriteMap.Length - 1,
-                    ship.Missile.HitBoxTime / (float) Config.MissileHitBoxTimeout
+                    ship.Missile.HitBoxTime / (float)Config.MissileHitBoxTimeout
                 );
 
                 var missileSource = MissileExplosionSpriteMap[spriteStep];
@@ -143,8 +143,8 @@ public sealed class Renderer(
                 textColor = Color.Coral;
                 barColor = Color.Yellow;
                 player.StatusText.Append("Waiting for player");
-                total = (float) player.DisconnectTimeout.TotalMilliseconds;
-                step = (float) (DateTime.UtcNow - player.DisconnectStart).TotalMilliseconds;
+                total = (float)player.DisconnectTimeout.TotalMilliseconds;
+                step = (float)(DateTime.UtcNow - player.DisconnectStart).TotalMilliseconds;
                 step = MathHelper.Clamp(step, 0, total);
                 break;
         }
@@ -162,9 +162,9 @@ public sealed class Renderer(
 
         if (total > 0)
             DrawBar(new(
-                (int) ship.Position.X - ship.Radius,
-                (int) ship.Position.Y + ship.Radius
-                                      + (int) size.Y
+                (int)ship.Position.X - ship.Radius,
+                (int)ship.Position.Y + ship.Radius
+                                      + (int)size.Y
                                       + Config.ShipProgressBarHeight,
                 ship.Radius * 2,
                 Config.ShipProgressBarHeight
@@ -184,32 +184,8 @@ public sealed class Renderer(
 
     void DrawHud(GameState gs, NonGameState ngs)
     {
-        pingString.Clear();
-        pingString.Append("ping");
-        
         for (var i = 0; i < gs.NumberOfShips; i++)
-        {
             DrawScore(i, gs);
-
-            var player = ngs.Players[i];
-            if (!player.Handle.IsRemote())
-                continue;
-
-            pingString.Append(' ');
-            pingString.Append(Math.Round(player.PeerNetworkStatus.Ping.TotalMilliseconds));
-            pingString.Append("ms ");
-        }
-
-        const float scale = 0.5f;
-        var pingSize = gameAssets.MainFont.MeasureString(pingString) * scale;
-
-        Vector2 pingPos = new(
-            gs.Bounds.Right - pingSize.X,
-            gs.Bounds.Bottom - Config.WindowPadding - pingSize.Y / 2
-        );
-
-        spriteBatch.DrawString(gameAssets.MainFont, pingString, pingPos, Color.White,
-            0, Vector2.Zero, scale, SpriteEffects.None, 0);
 
         if (ngs.StatusText.Length > 0)
         {
@@ -225,6 +201,8 @@ public sealed class Renderer(
             spriteBatch.DrawString(gameAssets.MainFont, ngs.StatusText, statusPos,
                 Color.Yellow, 0, Vector2.Zero, 1, SpriteEffects.None, 0);
         }
+
+        DrawStats(gs, ngs);
     }
 
     void DrawScore(int num, GameState gs)
@@ -269,12 +247,51 @@ public sealed class Renderer(
 
         Rectangle value = new(
             position.X, position.Y,
-            (int) (actual / total * position.Width),
+            (int)(actual / total * position.Width),
             position.Height
         );
 
         spriteBatch.Draw(gameAssets.Blank, value, null, color,
             0, Vector2.Zero, SpriteEffects.None, 0);
+    }
+
+    void DrawStats(GameState gs, NonGameState ngs)
+    {
+        var maxPing = TimeSpan.Zero;
+
+        for (var i = 0; i < gs.NumberOfShips; i++)
+        {
+            var player = ngs.Players[i];
+
+            if (!player.Handle.IsRemote() || player.PeerNetworkStatus.Ping <= maxPing)
+                continue;
+
+            maxPing = player.PeerNetworkStatus.Ping;
+        }
+
+        statsString.Clear();
+        statsString.Append($"ping: {maxPing.TotalMilliseconds:f2} ms  ");
+        statsString.Append($"rollback: {ngs.RollbackFrames.FrameCount}");
+
+        const float scale = 0.5f;
+        const int padding = 2;
+        var statsSize = gameAssets.MainFont.MeasureString(statsString) * scale;
+
+        Vector2 statsPos = new(
+            (gs.Bounds.Width - statsSize.X) / 2,
+            gs.Bounds.Bottom + Config.WindowPadding - padding - statsSize.Y
+        );
+
+        Rectangle statsBox = new(statsPos.ToPoint(), statsSize.ToPoint());
+        statsBox.Inflate(padding * 2, padding);
+        statsBox.Offset(-padding / 2, padding);
+
+        spriteBatch.Draw(gameAssets.Blank, statsBox, null,
+            new Color(0x303030),
+            0, Vector2.Zero, SpriteEffects.None, 0);
+
+        spriteBatch.DrawString(gameAssets.MainFont, statsString, statsPos, Color.White,
+            0, Vector2.Zero, scale, SpriteEffects.None, 0);
     }
 
     static readonly Rectangle[] MissileExplosionSpriteMap =

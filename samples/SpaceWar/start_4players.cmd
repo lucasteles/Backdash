@@ -1,5 +1,0 @@
-dotnet build -c Release
-start dotnet run --no-build -c Release -- 9000 4 local 127.0.0.1:9001 127.0.0.1:9002 127.0.0.1:9003
-start dotnet run --no-build -c Release -- 9001 4 127.0.0.1:9000 local 127.0.0.1:9002 127.0.0.1:9003
-start dotnet run --no-build -c Release -- 9002 4 127.0.0.1:9000 127.0.0.1:9001 local 127.0.0.1:9003
-start dotnet run --no-build -c Release -- 9003 4 127.0.0.1:9000 127.0.0.1:9001 127.0.0.1:9002 local

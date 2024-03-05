@@ -46,7 +46,7 @@ public sealed class FileLogWriter : LogWriter
 {
     protected override TextWriter textWriter { get; }
 
-    const string DefaultFileName = "log_{{proc_id}}_{{timestamp}}";
+    const string DefaultFileName = "{{proc_id}}_{{timestamp}}.log";
 
     public FileLogWriter(string? filename = null, bool append = true)
     {

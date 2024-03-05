@@ -24,6 +24,7 @@ public class Game1 : Game
             NumberOfSyncPackets = 10,
             DisconnectTimeout = TimeSpan.FromSeconds(3),
             DisconnectNotifyStart = TimeSpan.FromSeconds(1),
+            LogNetworkStats = true,
             // NetworkDelay = FrameSpan.Of(3).Duration(),
         },
     };

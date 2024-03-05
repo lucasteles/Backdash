@@ -87,6 +87,7 @@ public sealed class GameSession(
 
     void UpdateStats()
     {
+        nonGameState.RollbackFrames = session.RollbackFrames;
         for (var i = 0; i < nonGameState.Players.Length; i++)
         {
             ref var player = ref nonGameState.Players[i];

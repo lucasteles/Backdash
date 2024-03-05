@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using Backdash;
+using Backdash.Data;
 
 namespace SpaceWar.Logic;
 
@@ -33,6 +34,7 @@ public class NonGameState(int numberOfPlayers, GameWindow window)
     public TimeSpan SleepTime;
     public bool Sleeping => SleepTime > TimeSpan.Zero;
     public int NumberOfPlayers => numberOfPlayers;
+    public FrameSpan RollbackFrames;
 
     public bool TryGetPlayer(PlayerHandle handle, out PlayerConnectionInfo state)
     {
