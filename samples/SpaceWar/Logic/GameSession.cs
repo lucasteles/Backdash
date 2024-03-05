@@ -30,15 +30,8 @@ public sealed class GameSession(
             HandleNoGameInput(keyboard);
 
             var localInput = Inputs.ReadInputs(keyboard);
-
-            var addInputResult = session.AddLocalInput(localPlayer, localInput);
-            if (addInputResult is not ResultCode.Ok)
-            {
-                if (addInputResult is not ResultCode.NotSynchronized)
-                    Console.WriteLine($"{DateTime.Now:o} => ERROR ADDING INPUT: {addInputResult}");
-
+            if (session.AddLocalInput(localPlayer, localInput) is not ResultCode.Ok)
                 return;
-            }
         }
 
         var syncInputResult = session.SynchronizeInputs();

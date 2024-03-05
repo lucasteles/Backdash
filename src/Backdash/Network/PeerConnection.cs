@@ -130,21 +130,20 @@ sealed class PeerConnection<TInput>(
                 syncRequest.Update();
                 break;
             case ProtocolStatus.Running:
-                {
-                    KeepLive();
-                    ResendInputs();
-                    qualityReportTimer.Update();
-                    networkStatsTimer.Update();
-                    CheckDisconnection();
-                    break;
-                }
+            {
+                KeepLive();
+                ResendInputs();
+                qualityReportTimer.Update();
+                networkStatsTimer.Update();
+                CheckDisconnection();
+                break;
+            }
             case ProtocolStatus.Disconnected:
                 break;
         }
     }
 
     long lastKeepAliveSent;
-
     public void KeepLive()
     {
         var lastSend = state.Stats.Send.LastTime;
@@ -182,8 +181,6 @@ sealed class PeerConnection<TInput>(
         if (lastReceivedTime > options.DisconnectNotifyStart
             && state.Connection is { DisconnectNotifySent: false, DisconnectEventSent: false })
         {
-            state.Connection.DisconnectNotifySent = true;
-
             networkEventHandler.OnNetworkEvent(new(ProtocolEvent.NetworkInterrupted, state.Player)
             {
                 NetworkInterrupted = new()
@@ -191,7 +188,7 @@ sealed class PeerConnection<TInput>(
                     DisconnectTimeout = options.DisconnectTimeout - options.DisconnectNotifyStart,
                 },
             });
-
+            state.Connection.DisconnectNotifySent = true;
             logger.Write(LogLevel.Warning,
                 $"{state.Player} endpoint has stopped receiving packets for {(int)lastReceivedTime.TotalMilliseconds}ms. Sending notification");
 

@@ -162,48 +162,51 @@ sealed class SpectatorBackend<TInput, TGameState> :
         callbacks = handler;
     }
 
+    readonly object networkEventLocker = new();
+
     public void OnNetworkEvent(in ProtocolEventInfo evt)
     {
         ref readonly var player = ref evt.Player;
 
-        switch (evt.Type)
-        {
-            case ProtocolEvent.Connected:
-                callbacks.OnPeerEvent(player, new(PeerEvent.Connected));
-                break;
-            case ProtocolEvent.Synchronizing:
-                callbacks.OnPeerEvent(player, new(PeerEvent.Synchronizing)
-                {
-                    Synchronizing = new(evt.Synchronizing.CurrentStep, evt.Synchronizing.TotalSteps),
-                });
-                break;
-            case ProtocolEvent.Synchronized:
-                callbacks.OnPeerEvent(player, new(PeerEvent.Synchronized)
-                {
-                    Synchronized = new(evt.Synchronized.Ping),
-                });
-                callbacks.OnSessionStart();
-                isSynchronizing = false;
-                break;
-            case ProtocolEvent.SyncFailure:
-                Close();
-                break;
-            case ProtocolEvent.NetworkInterrupted:
-                callbacks.OnPeerEvent(player, new(PeerEvent.ConnectionInterrupted)
-                {
-                    ConnectionInterrupted = new(evt.NetworkInterrupted.DisconnectTimeout),
-                });
-                break;
-            case ProtocolEvent.NetworkResumed:
-                callbacks.OnPeerEvent(player, new(PeerEvent.ConnectionResumed));
-                break;
-            case ProtocolEvent.Disconnected:
-                callbacks.OnPeerEvent(player, new(PeerEvent.Disconnected));
-                break;
-            default:
-                logger.Write(LogLevel.Warning, $"Unknown protocol event {evt} from {player}");
-                break;
-        }
+        lock (networkEventLocker)
+            switch (evt.Type)
+            {
+                case ProtocolEvent.Connected:
+                    callbacks.OnPeerEvent(player, new(PeerEvent.Connected));
+                    break;
+                case ProtocolEvent.Synchronizing:
+                    callbacks.OnPeerEvent(player, new(PeerEvent.Synchronizing)
+                    {
+                        Synchronizing = new(evt.Synchronizing.CurrentStep, evt.Synchronizing.TotalSteps),
+                    });
+                    break;
+                case ProtocolEvent.Synchronized:
+                    callbacks.OnPeerEvent(player, new(PeerEvent.Synchronized)
+                    {
+                        Synchronized = new(evt.Synchronized.Ping),
+                    });
+                    callbacks.OnSessionStart();
+                    isSynchronizing = false;
+                    break;
+                case ProtocolEvent.SyncFailure:
+                    Close();
+                    break;
+                case ProtocolEvent.NetworkInterrupted:
+                    callbacks.OnPeerEvent(player, new(PeerEvent.ConnectionInterrupted)
+                    {
+                        ConnectionInterrupted = new(evt.NetworkInterrupted.DisconnectTimeout),
+                    });
+                    break;
+                case ProtocolEvent.NetworkResumed:
+                    callbacks.OnPeerEvent(player, new(PeerEvent.ConnectionResumed));
+                    break;
+                case ProtocolEvent.Disconnected:
+                    callbacks.OnPeerEvent(player, new(PeerEvent.Disconnected));
+                    break;
+                default:
+                    logger.Write(LogLevel.Warning, $"Unknown protocol event {evt} from {player}");
+                    break;
+            }
     }
 
     public ResultCode SynchronizeInputs()

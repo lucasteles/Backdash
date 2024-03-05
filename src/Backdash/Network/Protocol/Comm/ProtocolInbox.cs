@@ -166,13 +166,14 @@ sealed class ProtocolInbox<TInput>(
         /*
          * Decompress the input.
          */
+        var startLastReceivedFrame = lastReceivedInput.Frame;
         var lastReceivedFrame = lastReceivedInput.Frame;
         if (msg.NumBits > 0)
         {
-            if (lastReceivedInput.Frame < 0)
-                lastReceivedInput.Frame = msg.StartFrame.Previous();
+            if (lastReceivedFrame < 0)
+                lastReceivedFrame = msg.StartFrame.Previous();
 
-            var nextFrame = lastReceivedInput.Frame.Next();
+            var nextFrame = lastReceivedFrame.Next();
             var currentFrame = msg.StartFrame;
             var decompressor = InputEncoder.GetDecompressor(ref msg);
 
@@ -180,7 +181,7 @@ sealed class ProtocolInbox<TInput>(
             {
                 var framesAhead = nextFrame.Number - currentFrame.Number;
                 logger.Write(LogLevel.Trace,
-                    $"Skipping past {framesAhead} frames (current: {currentFrame}, last: {lastReceivedInput.Frame}, next: {nextFrame})");
+                    $"Skipping past {framesAhead} frames (current: {currentFrame}, last: {lastReceivedFrame}, next: {nextFrame})");
 
                 if (decompressor.Skip(framesAhead))
                     currentFrame += framesAhead;
@@ -195,22 +196,20 @@ sealed class ProtocolInbox<TInput>(
             while (decompressor.Read(lastReceivedBuffer))
             {
                 inputSerializer.Deserialize(lastReceivedBuffer, ref lastReceivedInput.Data);
-                Trace.Assert(currentFrame == lastReceivedInput.Frame.Next());
+                Trace.Assert(currentFrame == lastReceivedFrame.Next());
+                lastReceivedFrame = currentFrame;
                 lastReceivedInput.Frame = currentFrame;
-                currentFrame++;
-
                 state.Stats.LastReceivedInputTime = clock.GetTimeStamp();
-
+                currentFrame++;
                 logger.Write(LogLevel.Debug,
                     $"Received input: frame {lastReceivedInput.Frame}, sending to emulator queue {state.Player} (ack: {LastAckedFrame})");
-
                 inputEvents.Publish(new(state.Player, lastReceivedInput));
             }
 
             LastAckedFrame = msg.AckFrame;
         }
 
-        Trace.Assert(lastReceivedInput.Frame >= lastReceivedFrame);
+        Trace.Assert(lastReceivedInput.Frame >= startLastReceivedFrame);
         return true;
     }
 
@@ -237,7 +236,7 @@ sealed class ProtocolInbox<TInput>(
         };
 
         state.Fairness.RemoteFrameAdvantage = new(msg.QualityReport.FrameAdvantage);
-
+        Console.WriteLine("RECEIVED PING");
         return true;
     }
 

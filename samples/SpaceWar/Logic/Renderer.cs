@@ -106,7 +106,6 @@ public sealed class Renderer(
             );
     }
 
-
     void DrawConnectState(Ship ship, PlayerConnectionInfo player)
     {
         player.StatusText.Clear();
@@ -144,8 +143,9 @@ public sealed class Renderer(
                 textColor = Color.Coral;
                 barColor = Color.Yellow;
                 player.StatusText.Append("Waiting for player");
-                step = (float) (DateTime.UtcNow - player.DisconnectStart).TotalMilliseconds;
                 total = (float) player.DisconnectTimeout.TotalMilliseconds;
+                step = (float) (DateTime.UtcNow - player.DisconnectStart).TotalMilliseconds;
+                step = MathHelper.Clamp(step, 0, total);
                 break;
         }
 
