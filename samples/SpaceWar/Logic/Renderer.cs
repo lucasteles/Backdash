@@ -186,13 +186,13 @@ public sealed class Renderer(
     {
         pingString.Clear();
         pingString.Append("ping");
-
+        
         for (var i = 0; i < gs.NumberOfShips; i++)
         {
             DrawScore(i, gs);
 
             var player = ngs.Players[i];
-            if (player.Handle.IsRemote())
+            if (!player.Handle.IsRemote())
                 continue;
 
             pingString.Append(' ');

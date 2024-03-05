@@ -5,7 +5,7 @@ using SpaceWar.Logic;
 
 namespace SpaceWar;
 
-public static class GameSessionParser
+public static class GameSessionFactory
 {
     public static IRollbackSession<PlayerInputs, GameState> ParseArgs(
         string[] args, RollbackOptions options

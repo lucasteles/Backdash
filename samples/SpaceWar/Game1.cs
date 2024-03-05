@@ -2,6 +2,7 @@
 
 using Backdash;
 using Backdash.Core;
+using Backdash.Data;
 using SpaceWar.Logic;
 
 namespace SpaceWar;
@@ -23,7 +24,7 @@ public class Game1 : Game
             NumberOfSyncPackets = 10,
             DisconnectTimeout = TimeSpan.FromSeconds(3),
             DisconnectNotifyStart = TimeSpan.FromSeconds(1),
-            // LogNetworkStats = true,
+            // NetworkDelay = FrameSpan.Of(3).Duration(),
         },
     };
 
@@ -36,7 +37,7 @@ public class Game1 : Game
         Content.RootDirectory = "Content";
         IsMouseVisible = true;
 
-        rollbackSession = GameSessionParser.ParseArgs(args, options);
+        rollbackSession = GameSessionFactory.ParseArgs(args, options);
     }
 
     protected override void Initialize()

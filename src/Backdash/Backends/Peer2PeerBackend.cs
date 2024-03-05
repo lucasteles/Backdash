@@ -393,6 +393,8 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
             if (!spectators[i].IsRunning && spectators[i].Status is not ProtocolStatus.Disconnected)
                 return;
 
+        for (var i = 0; i < endpoints.Count; i++) endpoints[i]?.Start();
+        for (var i = 0; i < spectators.Count; i++) spectators[i].Start();
         isSynchronizing = false;
         callbacks.OnSessionStart();
     }

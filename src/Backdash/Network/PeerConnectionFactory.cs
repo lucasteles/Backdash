@@ -31,8 +31,8 @@ sealed class PeerConnectionFactory(
         var syncManager = new ProtocolSynchronizer(logger, clock, random, state, options, outbox, networkEventHandler);
         var inbox = new ProtocolInbox<TInput>(options, inputSerializer, state, clock, syncManager, outbox,
             networkEventHandler, inputEventQueue, logger);
-        var inputBuffer =
-            new ProtocolInputBuffer<TInput>(options, inputSerializer, state, logger, timeSync, outbox, inbox);
+        var inputBuffer = new ProtocolInputBuffer<TInput>(
+            options, inputSerializer, state, logger, timeSync, outbox, inbox);
 
         jobManager.Register(outbox, state.StoppingToken);
 

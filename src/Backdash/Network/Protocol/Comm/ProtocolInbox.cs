@@ -236,7 +236,6 @@ sealed class ProtocolInbox<TInput>(
         };
 
         state.Fairness.RemoteFrameAdvantage = new(msg.QualityReport.FrameAdvantage);
-        Console.WriteLine("RECEIVED PING");
         return true;
     }
 

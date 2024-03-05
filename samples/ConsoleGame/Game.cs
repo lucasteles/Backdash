@@ -29,7 +29,7 @@ public sealed class Game : IRollbackHandler<GameState>
         var players = session.GetPlayers();
 
         nonGameState =
-            players.Count > 0
+            players.Any(x => x.IsLocal())
                 ? new()
                 {
                     LocalPlayer = players.Single(x => x.IsLocal()),

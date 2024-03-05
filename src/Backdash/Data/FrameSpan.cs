@@ -52,6 +52,8 @@ public readonly record struct FrameSpan :
         return true;
     }
 
+    public static FrameSpan Of(int count) => new(count);
+
     public static FrameSpan FromSeconds(double seconds, short fps = DefaultFramesPerSecond) =>
         new((int)(seconds * fps));
 
