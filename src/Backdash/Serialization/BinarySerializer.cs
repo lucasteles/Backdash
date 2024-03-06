@@ -5,7 +5,7 @@ namespace Backdash.Serialization;
 
 public interface IBinaryReader<T>
 {
-    void Deserialize(ReadOnlySpan<byte> data, ref T value);
+    int Deserialize(ReadOnlySpan<byte> data, ref T value);
 }
 
 public interface IBinaryWriter<T>
@@ -34,7 +34,7 @@ public abstract class BinarySerializer<T> : IBinarySerializer<T>
         return offset;
     }
 
-    void IBinaryReader<T>.Deserialize(ReadOnlySpan<byte> data, ref T value)
+    int IBinaryReader<T>.Deserialize(ReadOnlySpan<byte> data, ref T value)
     {
         var offset = 0;
         BinarySpanReader reader = new(data, ref offset)
@@ -42,5 +42,6 @@ public abstract class BinarySerializer<T> : IBinarySerializer<T>
             Endianness = Platform.GetEndianness(Network),
         };
         Deserialize(in reader, ref value);
+        return offset;
     }
 }

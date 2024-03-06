@@ -1,41 +1,82 @@
+using System.Timers;
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network.Client;
 using Backdash.Network.Messages;
 using Backdash.Network.Protocol;
-using Backdash.Network.Protocol.Messaging;
+using Backdash.Network.Protocol.Comm;
 using Backdash.Sync;
+using Backdash.Sync.Input;
+using Timer = System.Timers.Timer;
 
 namespace Backdash.Network;
 
-sealed class PeerConnection<TInput>(
-    ProtocolOptions options,
-    ProtocolState state,
-    Logger logger,
-    IClock clock,
-    ITimeSync<TInput> timeSync,
-    IProtocolEventQueue<TInput> eventQueue,
-    IProtocolSynchronizer syncRequest,
-    IProtocolInbox<TInput> inbox,
-    IProtocolOutbox outbox,
-    IProtocolInputBuffer<TInput> inputBuffer
-) : IDisposable
-    where TInput : struct
+sealed class PeerConnection<TInput> : IDisposable where TInput : struct
 {
-    public SendInputResult SendInput(in GameInput<TInput> input) => inputBuffer.SendInput(in input);
+    readonly ProtocolOptions options;
+    readonly ProtocolState state;
+    readonly Logger logger;
+    readonly IClock clock;
+    readonly ITimeSync<TInput> timeSync;
+    readonly IProtocolNetworkEventHandler networkEventHandler;
+    readonly IProtocolSynchronizer syncRequest;
+    readonly IProtocolInbox<TInput> inbox;
+    readonly IProtocolOutbox outbox;
+    readonly IProtocolInputBuffer<TInput> inputBuffer;
+    readonly Timer qualityReportTimer;
+    readonly Timer networkStatsTimer;
+    readonly Timer keepAliveTimer;
+    long startedAt;
 
-    public ProtocolStatus Status => state.CurrentStatus;
-    public bool IsRunning => state.CurrentStatus is ProtocolStatus.Running;
+    public PeerConnection(ProtocolOptions options,
+        ProtocolState state,
+        Logger logger,
+        IClock clock,
+        ITimeSync<TInput> timeSync,
+        IProtocolNetworkEventHandler networkEventHandler,
+        IProtocolSynchronizer syncRequest,
+        IProtocolInbox<TInput> inbox,
+        IProtocolOutbox outbox,
+        IProtocolInputBuffer<TInput> inputBuffer)
+    {
+        this.options = options;
+        this.state = state;
+        this.logger = logger;
+        this.clock = clock;
+        this.timeSync = timeSync;
+        this.networkEventHandler = networkEventHandler;
+        this.syncRequest = syncRequest;
+        this.inbox = inbox;
+        this.outbox = outbox;
+        this.inputBuffer = inputBuffer;
 
-    public PlayerHandle Player => state.Player;
+        keepAliveTimer = new(options.KeepAliveInterval);
+        keepAliveTimer.Elapsed += OnKeepAliveTick;
+        state.StoppingToken.Register(() => keepAliveTimer.Stop());
+
+        qualityReportTimer = new(options.QualityReportInterval);
+        qualityReportTimer.Elapsed += OnQualityReportTick;
+        state.StoppingToken.Register(() => qualityReportTimer.Stop());
+
+        networkStatsTimer = new(options.NetworkStatsInterval);
+        networkStatsTimer.Elapsed += OnNetworkStatsTick;
+        state.StoppingToken.Register(() => networkStatsTimer.Stop());
+    }
 
     public void Dispose()
     {
+        state.CurrentStatus = ProtocolStatus.Disconnected;
+
         if (!state.StoppingTokenSource.IsCancellationRequested)
             state.StoppingTokenSource.Cancel();
 
-        eventQueue.Dispose();
-        inputBuffer.Dispose();
+        qualityReportTimer.Elapsed -= OnQualityReportTick;
+        qualityReportTimer.Dispose();
+        networkStatsTimer.Elapsed -= OnNetworkStatsTick;
+        networkStatsTimer.Dispose();
+        keepAliveTimer.Elapsed -= OnKeepAliveTick;
+        keepAliveTimer.Dispose();
+
         outbox.Dispose();
     }
 
@@ -44,8 +85,40 @@ sealed class PeerConnection<TInput>(
         if (state.CurrentStatus is ProtocolStatus.Disconnected) return;
         state.CurrentStatus = ProtocolStatus.Disconnected;
 
-        state.StoppingTokenSource.CancelAfter(options.ShutdownTime);
+        if (!state.StoppingTokenSource.IsCancellationRequested)
+            state.StoppingTokenSource.CancelAfter(options.ShutdownTime);
     }
+
+    public void Start()
+    {
+        startedAt = clock.GetTimeStamp();
+        qualityReportTimer.Start();
+        networkStatsTimer.Start();
+        keepAliveTimer.Start();
+    }
+
+    public void Update()
+    {
+        switch (state.CurrentStatus)
+        {
+            case ProtocolStatus.Syncing:
+                syncRequest.Update();
+                break;
+            case ProtocolStatus.Running:
+                {
+                    ResendInputs();
+                    CheckDisconnection();
+                    break;
+                }
+            case ProtocolStatus.Disconnected:
+                break;
+        }
+    }
+
+    public SendInputResult SendInput(in GameInput<TInput> input) => inputBuffer.SendInput(in input);
+    public ProtocolStatus Status => state.CurrentStatus;
+    public bool IsRunning => state.CurrentStatus is ProtocolStatus.Running;
+    public PlayerHandle Player => state.Player;
 
     // require idle input should be a configuration parameter
     public int GetRecommendFrameDelay(bool requireIdleInput) => timeSync.RecommendFrameWaitDuration(requireIdleInput);
@@ -69,8 +142,11 @@ sealed class PeerConnection<TInput>(
         state.Fairness.LocalFrameAdvantage = remoteFrame - localFrame;
     }
 
-    public ValueTask SendInputAck(CancellationToken ct)
+    public bool SendInputAck()
     {
+        if (inbox.LastReceivedInput.Frame.IsNull)
+            return true;
+
         ProtocolMessage msg = new(MessageType.InputAck)
         {
             InputAck = new()
@@ -79,7 +155,7 @@ sealed class PeerConnection<TInput>(
             },
         };
 
-        return outbox.SendMessageAsync(in msg, ct);
+        return outbox.SendMessage(in msg);
     }
 
     public void GetNetworkStats(ref RollbackNetworkStatus info)
@@ -116,37 +192,6 @@ sealed class PeerConnection<TInput>(
 
     public void Synchronize() => syncRequest.Synchronize();
 
-    public void Update()
-    {
-        if (state.CurrentStatus is not ProtocolStatus.Running)
-            return;
-
-        KeepLive();
-        ResendInputs();
-        qualityReportTimer.Update();
-        networkStatsTimer.Update();
-        CheckDisconnection();
-    }
-
-    long lastKeepAliveSent;
-
-    public void KeepLive()
-    {
-        var lastSend = state.Stats.Send.LastTime;
-        if (lastSend <= 0 || clock.GetElapsedTime(lastSend) <= options.KeepAliveInterval)
-            return;
-
-        if (lastKeepAliveSent <= 0 || clock.GetElapsedTime(lastKeepAliveSent) <= options.KeepAliveInterval)
-            return;
-
-        logger.Write(LogLevel.Debug, "Sending keep alive packet");
-        lastKeepAliveSent = clock.GetTimeStamp();
-        outbox.SendMessage(new ProtocolMessage(MessageType.KeepAlive)
-        {
-            KeepAlive = new(),
-        });
-    }
-
     public void ResendInputs()
     {
         var lastReceivedInputTime = state.Stats.LastReceivedInputTime;
@@ -154,7 +199,7 @@ sealed class PeerConnection<TInput>(
             return;
 
         logger.Write(LogLevel.Debug,
-            $"Haven't exchanged packets in a while (last received:{inbox.LastReceivedInput.Frame.Number} last sent:{inputBuffer.LastSent.Frame.Number}). Resending");
+            $"{state.Player} haven't exchanged packets in a while (last received:{inbox.LastReceivedInput.Frame.Number} last sent:{inputBuffer.LastSent.Frame.Number}). Resending");
 
         inputBuffer.SendPendingInputs();
     }
@@ -167,18 +212,16 @@ sealed class PeerConnection<TInput>(
         if (lastReceivedTime > options.DisconnectNotifyStart
             && state.Connection is { DisconnectNotifySent: false, DisconnectEventSent: false })
         {
-            state.Connection.DisconnectNotifySent = true;
-
-            eventQueue.Publish(new(ProtocolEvent.NetworkInterrupted, state.Player)
+            networkEventHandler.OnNetworkEvent(new(ProtocolEvent.NetworkInterrupted, state.Player)
             {
                 NetworkInterrupted = new()
                 {
                     DisconnectTimeout = options.DisconnectTimeout - options.DisconnectNotifyStart,
                 },
             });
-
+            state.Connection.DisconnectNotifySent = true;
             logger.Write(LogLevel.Warning,
-                $"Endpoint has stopped receiving packets for {(int)lastReceivedTime.TotalMilliseconds}ms. Sending notification");
+                $"{state.Player} endpoint has stopped receiving packets for {(int)lastReceivedTime.TotalMilliseconds}ms. Sending notification");
 
             return;
         }
@@ -187,17 +230,28 @@ sealed class PeerConnection<TInput>(
         {
             state.Connection.DisconnectEventSent = true;
             logger.Write(LogLevel.Warning,
-                $"Endpoint has stopped receiving packets for {(int)lastReceivedTime.TotalMilliseconds}ms. Disconnecting");
-            eventQueue.Publish(ProtocolEvent.Disconnected, state.Player);
+                $"{state.Player} endpoint has stopped receiving packets for {(int)lastReceivedTime.TotalMilliseconds}ms. Disconnecting");
+            networkEventHandler.OnNetworkEvent(ProtocolEvent.Disconnected, state.Player);
         }
     }
 
+    void OnKeepAliveTick(object? sender, ElapsedEventArgs e)
+    {
+        if (state.CurrentStatus is not ProtocolStatus.Running)
+            return;
 
-    // --------------
-    // Timers
-    // --------------
+        var lastSend = state.Stats.Send.LastTime;
+        if (lastSend is 0 || clock.GetElapsedTime(lastSend) < options.KeepAliveInterval)
+            return;
 
-    readonly ManualTimer qualityReportTimer = new(clock, options.QualityReportInterval, _ =>
+        logger.Write(LogLevel.Information, "Sending keep alive packet");
+        outbox.SendMessage(new ProtocolMessage(MessageType.KeepAlive)
+        {
+            KeepAlive = new(),
+        });
+    }
+
+    void OnQualityReportTick(object? sender, ElapsedEventArgs e)
     {
         if (state.CurrentStatus is not ProtocolStatus.Running)
             return;
@@ -211,9 +265,9 @@ sealed class PeerConnection<TInput>(
                     FrameAdvantage = state.Fairness.LocalFrameAdvantage.FrameCount,
                 },
             });
-    });
+    }
 
-    readonly ManualTimer networkStatsTimer = new(clock, options.NetworkStatsInterval, elapsed =>
+    void OnNetworkStatsTick(object? sender, ElapsedEventArgs e)
     {
         const int udpHeaderSize = 8;
         const int ipAddressHeaderSize = 20;
@@ -222,6 +276,7 @@ sealed class PeerConnection<TInput>(
         if (state.CurrentStatus is not ProtocolStatus.Running)
             return;
 
+        var elapsed = clock.GetElapsedTime(startedAt);
         var seconds = elapsed.TotalSeconds;
 
         UpdateStats(ref state.Stats.Send);
@@ -245,5 +300,5 @@ sealed class PeerConnection<TInput>(
             stats.UdpOverhead =
                 (float)(100.0 * (totalHeaderSize * stats.TotalPackets) / stats.TotalBytes.ByteCount);
         }
-    });
+    }
 }

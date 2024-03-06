@@ -2,9 +2,15 @@ root = true
 
 [*.cs]
 dotnet_diagnostic.S125.severity = suggestion # Remove this commented out code.
+dotnet_diagnostic.S1481.severity = suggestion
+dotnet_diagnostic.S6603.severity = suggestion
+dotnet_diagnostic.S6602.severity = suggestion # prefer array exists
 dotnet_diagnostic.S1199.severity = silent # extract method
 dotnet_diagnostic.CS016.severity = silent
 dotnet_diagnostic.S1144.severity = silent
 dotnet_diagnostic.S3903.severity = silent # move to namespace
 dotnet_diagnostic.CS1591.severity = silent
 dotnet_diagnostic.S1104.severity = silent
+dotnet_diagnostic.S2328.severity = silent
+resharper_empty_block_style = together_same_line
+

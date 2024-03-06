@@ -1,66 +1,53 @@
+using System.Net;
 using Backdash.Backends;
 using Backdash.Core;
-using Backdash.Network;
-using Backdash.Network.Protocol;
-using Backdash.Serialization;
-using Backdash.Sync.State;
-using Backdash.Sync.State.Stores;
+using Backdash.Data;
 
 namespace Backdash;
 
 public static class RollbackNetcode
 {
     public static IRollbackSession<TInput, TGameState> CreateSession<TInput, TGameState>(
+        int port,
         RollbackOptions options,
-        IBinarySerializer<TInput>? inputSerializer = null,
-        IBinarySerializer<TGameState>? stateSerializer = null,
-        IChecksumProvider<TGameState>? checksumProvider = null,
-        ILogWriter? logWriter = null
+        SessionServices<TInput, TGameState>? services = null
     )
         where TInput : struct
-        where TGameState : IEquatable<TGameState>, new()
-    {
-        inputSerializer ??= BinarySerializerFactory.FindOrThrow<TInput>(options.NetworkEndianness);
-        checksumProvider ??= ChecksumProviderFactory.Create<TGameState>();
-        var factory = new UdpClientFactory();
-        var logger = new Logger(options.Log, logWriter ?? new ConsoleLogWriter());
-        var stateStore = StateStoreFactory.Create(stateSerializer);
-        var clock = new Clock();
+        where TGameState : IEquatable<TGameState>, new() =>
+        new Peer2PeerBackend<TInput, TGameState>(port, options, BackendServices.Create(options, services));
 
-        return new Peer2PeerBackend<TInput, TGameState>(
-            options,
-            inputSerializer,
-            stateStore,
-            checksumProvider,
-            factory,
-            new BackgroundJobManager(logger),
-            new ProtocolEventQueue<TInput>(),
-            clock,
-            logger
-        );
-    }
+    public static IRollbackSession<TInput, TGameState> CreateSpectatorSession<TInput, TGameState>(
+        int port,
+        IPEndPoint host,
+        int numberOfPlayers,
+        RollbackOptions options,
+        SessionServices<TInput, TGameState>? services = null)
+        where TInput : struct
+        where TGameState : IEquatable<TGameState>, new() =>
+        new SpectatorBackend<TInput, TGameState>(
+            port, host, numberOfPlayers, options,
+            BackendServices.Create(options, services));
 
     public static IRollbackSession<TInput, TGameState> CreateTestSession<TInput, TGameState>(
-        RollbackOptions options,
-        IChecksumProvider<TGameState>? checksumProvider = null,
-        IBinarySerializer<TGameState>? stateSerializer = null,
-        ILogWriter? logWriter = null
+        FrameSpan? checkDistance = null,
+        RollbackOptions? options = null,
+        SessionServices<TInput, TGameState>? services = null,
+        bool throwException = true
     )
         where TInput : struct
         where TGameState : IEquatable<TGameState>, new()
     {
-        checksumProvider ??= ChecksumProviderFactory.Create<TGameState>();
+        options ??= new()
+        {
+            // ReSharper disable once RedundantArgumentDefaultValue
+            Log = new(LogLevel.Information),
+        };
 
-        var logger = new Logger(options.Log, logWriter ?? new ConsoleLogWriter());
-        var stateStore = StateStoreFactory.Create(stateSerializer);
-        var clock = new Clock();
+        checkDistance ??= FrameSpan.One;
 
         return new SyncTestBackend<TInput, TGameState>(
-            options,
-            stateStore,
-            checksumProvider,
-            clock,
-            logger
+            options, checkDistance.Value, throwException,
+            BackendServices.Create(options, services)
         );
     }
 }

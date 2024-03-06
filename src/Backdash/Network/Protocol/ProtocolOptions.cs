@@ -10,6 +10,7 @@ public class ProtocolOptions
     public int NumberOfSyncPackets { get; init; } = Default.NumberOfSyncPackets;
     public int MaxSeqDistance { get; init; } = Default.MaxSeqDistance;
     public bool LogNetworkStats { get; init; }
+    public int MaxSyncRetries { get; init; } = Default.MaxSyncRetries;
     public DelayStrategy DelayStrategy { get; init; } = DelayStrategy.Gaussian;
     public TimeSpan NetworkDelay { get; init; }
     public TimeSpan DisconnectNotifyStart { get; init; } = TimeSpan.FromMilliseconds(Default.DisconnectNotifyStart);

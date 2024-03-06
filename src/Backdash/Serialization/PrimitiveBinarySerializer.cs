@@ -9,10 +9,11 @@ sealed class PrimitiveBinarySerializer<T> : IBinarySerializer<T> where T : unman
 {
     public int Serialize(in T data, Span<byte> buffer) => Mem.WriteStruct(in data, buffer);
 
-    public void Deserialize(ReadOnlySpan<byte> data, ref T value)
+    public int Deserialize(ReadOnlySpan<byte> data, ref T value)
     {
-        ref var readValue = ref Mem.ReadUnaligned<T>(data);
+        ref var readValue = ref Mem.ReadUnaligned<T>(data, out var size);
         value = ref readValue;
+        return size;
     }
 }
 
@@ -34,19 +35,17 @@ sealed class IntegerBinarySerializer<T>(Endianness endianness)
         };
     }
 
-    public void Deserialize(ReadOnlySpan<byte> data, ref T value)
+    public int Deserialize(ReadOnlySpan<byte> data, ref T value)
     {
-        switch (endianness)
+        var size = Unsafe.SizeOf<T>();
+        value = endianness switch
         {
-            case Endianness.BigEndian:
-                value = T.ReadBigEndian(data, isUnsigned);
-                return;
-            case Endianness.LittleEndian:
-                value = T.ReadLittleEndian(data, isUnsigned);
-                break;
-            default:
-                throw new BackdashException("Invalid integer serialization mode");
-        }
+            Endianness.BigEndian => T.ReadBigEndian(data[..size], isUnsigned),
+            Endianness.LittleEndian => T.ReadLittleEndian(data[..size], isUnsigned),
+            _ => throw new BackdashException("Invalid integer serialization mode"),
+        };
+
+        return size;
     }
 }
 
@@ -60,10 +59,11 @@ sealed class EnumBinarySerializer<TEnum, TInt>(IBinarySerializer<TInt> serialize
         return serializer.Serialize(in underValue, buffer);
     }
 
-    public void Deserialize(ReadOnlySpan<byte> data, ref TEnum value)
+    public int Deserialize(ReadOnlySpan<byte> data, ref TEnum value)
     {
         ref var underValue = ref Mem.EnumAsInteger<TEnum, TInt>(ref value);
-        serializer.Deserialize(data, ref underValue);
+        var size = serializer.Deserialize(data, ref underValue);
         value = ref Mem.IntegerAsEnum<TEnum, TInt>(ref underValue);
+        return size;
     }
 }

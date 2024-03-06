@@ -3,7 +3,7 @@ using Backdash.Data;
 using Backdash.Network;
 using Backdash.Network.Messages;
 using Backdash.Network.Protocol;
-using Backdash.Network.Protocol.Messaging;
+using Backdash.Network.Protocol.Comm;
 using Backdash.Serialization;
 
 namespace Backdash.Tests.Specs.Unit.Network.Protocol;

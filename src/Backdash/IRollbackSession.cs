@@ -1,12 +1,14 @@
 using Backdash.Data;
+using Backdash.Network;
 
 namespace Backdash;
 
 public interface IRollbackSessionInfo
 {
-    public Frame CurrentFrame { get; }
-    public FrameSpan RollbackFrames { get; }
-    public int FramesPerSecond { get; }
+    Frame CurrentFrame { get; }
+    bool IsSpectating { get; }
+    FrameSpan RollbackFrames { get; }
+    FrameSpan FramesBehind { get; }
 }
 
 public interface IRollbackSession<TInput> : IRollbackSessionInfo, IDisposable where TInput : struct
@@ -16,10 +18,17 @@ public interface IRollbackSession<TInput> : IRollbackSessionInfo, IDisposable wh
 
     IReadOnlyCollection<PlayerHandle> GetPlayers();
     IReadOnlyCollection<PlayerHandle> GetSpectators();
+    void DisconnectPlayer(in PlayerHandle player);
     ResultCode AddLocalInput(PlayerHandle player, TInput localInput);
     ResultCode SynchronizeInputs();
     ref readonly SynchronizedInput<TInput> GetInput(in PlayerHandle player);
     ref readonly SynchronizedInput<TInput> GetInput(int index);
+
+    public void GetInputs(Span<SynchronizedInput<TInput>> buffer)
+    {
+        for (var i = 0; i < buffer.Length; i++)
+            buffer[i] = GetInput(i);
+    }
 
     void BeginFrame();
     void AdvanceFrame();

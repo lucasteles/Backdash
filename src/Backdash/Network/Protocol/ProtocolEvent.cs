@@ -1,26 +1,23 @@
 using Backdash.Serialization.Buffer;
-using Backdash.Sync;
 
 namespace Backdash.Network.Protocol;
 
 public enum ProtocolEvent : byte
 {
-    Input,
     Connected,
     Synchronizing,
     Synchronized,
+    SyncFailure,
     Disconnected,
     NetworkInterrupted,
     NetworkResumed,
 }
 
-struct ProtocolEventInfo<TInput>(ProtocolEvent type, PlayerHandle player) : IUtf8SpanFormattable where TInput : struct
+struct ProtocolEventInfo(ProtocolEvent type, PlayerHandle player) : IUtf8SpanFormattable
 {
     public readonly ProtocolEvent Type = type;
 
     public PlayerHandle Player = player;
-
-    public GameInput<TInput> Input = default;
 
     public SynchronizingEventInfo Synchronizing = default;
 
@@ -52,8 +49,6 @@ struct ProtocolEventInfo<TInput>(ProtocolEvent type, PlayerHandle player) : IUtf
                 if (!writer.Write('/')) return false;
                 if (!writer.Write(Synchronizing.TotalSteps)) return false;
                 return true;
-            case ProtocolEvent.Input:
-                return writer.Write(Input);
             default:
                 return writer.Write("{}"u8);
         }

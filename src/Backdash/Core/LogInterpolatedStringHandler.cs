@@ -1,7 +1,7 @@
 using System.Net;
 using System.Runtime.CompilerServices;
 using Backdash.Network.Protocol;
-using Backdash.Network.Protocol.Messaging;
+using Backdash.Network.Protocol.Comm;
 using Backdash.Serialization.Buffer;
 
 #pragma warning disable S4144
@@ -68,6 +68,15 @@ ref struct LogInterpolatedStringHandler
         if (!Enabled) return;
         Utf8StringWriter writer = new(Buffer, ref Length);
         writer.WriteFormat(t);
+    }
+
+    public void AppendFormatted(IPEndPoint t)
+    {
+        if (!Enabled) return;
+        Utf8StringWriter writer = new(Buffer, ref Length);
+        writer.WriteFormat(t.Address);
+        writer.Write(":"u8);
+        writer.Write(t.Port);
     }
 
     public void AppendFormatted<T>(T t) where T : struct, IUtf8SpanFormattable

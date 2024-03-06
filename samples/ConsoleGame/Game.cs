@@ -9,6 +9,7 @@ public sealed class Game : IRollbackHandler<GameState>
 {
     // Rollback NetCode Session
     readonly IRollbackSession<GameInput> session;
+    readonly CancellationTokenSource cancellation;
 
     // State that does not affect the game
     readonly NonGameState nonGameState;
@@ -19,18 +20,28 @@ public sealed class Game : IRollbackHandler<GameState>
     // Actual game state
     GameState currentState = GameLogic.InitialState();
 
-    public Game(IRollbackSession<GameInput> session)
+    public Game(IRollbackSession<GameInput> session, CancellationTokenSource cancellation)
     {
         view = new View();
         this.session = session;
+        this.cancellation = cancellation;
 
         var players = session.GetPlayers();
-        nonGameState = new()
-        {
-            LocalPlayer = players.Single(x => x.IsLocal()),
-            RemotePlayer = players.Single(x => x.IsRemote()),
-            SessionInfo = session,
-        };
+
+        nonGameState =
+            players.Any(x => x.IsLocal())
+                ? new()
+                {
+                    LocalPlayer = players.Single(x => x.IsLocal()),
+                    RemotePlayer = players.Single(x => x.IsRemote()),
+                    SessionInfo = session,
+                }
+                : new()
+                {
+                    LocalPlayer = null,
+                    RemotePlayer = default,
+                    SessionInfo = session,
+                };
     }
 
     // Game Loop
@@ -47,24 +58,28 @@ public sealed class Game : IRollbackHandler<GameState>
 
     void UpdatePlayers()
     {
-        var localInput = GameLogic.ReadKeyboardInput(out var disconnectRequest);
-
-        if (disconnectRequest)
-            session.Dispose();
-
-        var result = session.AddLocalInput(nonGameState.LocalPlayer, localInput);
-
-        if (result is not ResultCode.Ok)
+        if (nonGameState.LocalPlayer is { } localPlayer)
         {
-            Log($"UNABLE TO ADD INPUT: {result}");
-            nonGameState.LastError = @$"{result} {DateTime.Now:mm\:ss\.fff}";
-            return;
+            var localInput = GameLogic.ReadKeyboardInput(out var disconnectRequest);
+
+            if (disconnectRequest)
+                cancellation.Cancel();
+
+            var result = session.AddLocalInput(localPlayer, localInput);
+
+            if (result is not ResultCode.Ok)
+            {
+                Log($"UNABLE TO ADD INPUT: {result}");
+                nonGameState.LastError = @$"{result} {DateTime.Now:mm\:ss\.fff}";
+                return;
+            }
         }
 
-        if (session.SynchronizeInputs() is not ResultCode.Ok)
+        var syncResult = session.SynchronizeInputs();
+        if (syncResult is not ResultCode.Ok)
         {
-            Log($"UNABLE SYNC INPUTS: {result}");
-            nonGameState.LastError = @$"{result} {DateTime.Now:mm\:ss\.fff}";
+            Log($"UNABLE SYNC INPUTS: {syncResult}");
+            nonGameState.LastError = @$"{syncResult} {DateTime.Now:mm\:ss\.fff}";
             return;
         }
 
@@ -78,24 +93,33 @@ public sealed class Game : IRollbackHandler<GameState>
         Trace.WriteLine($"{DateTime.UtcNow:hh:mm:ss.zzz} GAME => {message}");
 
     // Session Callbacks
-    public void Start()
+    public void OnSessionStart()
     {
-        Log("START");
-
+        Log("GAME STARTED");
         nonGameState.IsRunning = true;
         nonGameState.RemotePlayerStatus = PlayerStatus.Running;
+    }
+
+    public void OnSessionClose()
+    {
+        Log("GAME CLOSED");
+        nonGameState.IsRunning = false;
+        nonGameState.RemotePlayerStatus = PlayerStatus.Disconnected;
     }
 
     public void TimeSync(FrameSpan framesAhead)
     {
         Console.SetCursorPosition(1, 0);
         Console.WriteLine("> Syncing...");
-        Thread.Sleep(framesAhead.Duration);
+        Thread.Sleep(framesAhead.Duration());
     }
 
     public void OnPeerEvent(PlayerHandle player, PeerEventInfo evt)
     {
-        Log($"PEER EVENT: {evt}");
+        Log($"PEER EVENT: {evt} from {player}");
+
+        if (player.IsSpectator())
+            return;
 
         switch (evt.Type)
         {
@@ -126,13 +150,13 @@ public sealed class Game : IRollbackHandler<GameState>
         }
     }
 
-    public void SaveState(int frame, ref GameState state)
+    public void SaveState(in Frame frame, ref GameState state)
     {
         state.Position1 = currentState.Position1;
         state.Position2 = currentState.Position2;
     }
 
-    public void LoadState(in GameState gameState)
+    public void LoadState(in Frame frame, in GameState gameState)
     {
         currentState.Position1 = gameState.Position1;
         currentState.Position2 = gameState.Position2;

@@ -11,5 +11,5 @@ global using FakeItEasy.AutoFakeIt;
 global using FluentAssertions;
 global using FsCheck;
 global using Xunit;
-global using GameInput = Backdash.Sync.GameInput<Backdash.Tests.Utils.TestInput>;
+global using GameInput = Backdash.Sync.Input.GameInput<Backdash.Tests.Utils.TestInput>;
 global using Random = System.Random;

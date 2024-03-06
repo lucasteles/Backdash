@@ -1,8 +1,8 @@
 ﻿<component name="ProjectRunConfigurationManager">
   <configuration default="false" name="ConsoleSession (P2)" type="DotNetProject" factoryName=".NET Project">
-    <option name="EXE_PATH" value="$PROJECT_DIR$/artifacts/bin/ConsoleSession/debug/ConsoleSession.exe" />
-    <option name="PROGRAM_PARAMETERS" value="9001 127.0.0.1:9000 local" />
-    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/artifacts/bin/ConsoleSession/debug" />
+    <option name="EXE_PATH" value="$PROJECT_DIR$/artifacts/bin/ConsoleGame/debug/ConsoleGame.exe" />
+    <option name="PROGRAM_PARAMETERS" value="9001 2 127.0.0.1:9000 local" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/artifacts/bin/ConsoleGame/debug" />
     <option name="PASS_PARENT_ENVS" value="1" />
     <option name="USE_EXTERNAL_CONSOLE" value="1" />
     <option name="USE_MONO" value="0" />

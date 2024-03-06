@@ -21,7 +21,7 @@ class SerializableTypeBinarySerializer<T> : IBinarySerializer<T>
         return offset;
     }
 
-    public void Deserialize(ReadOnlySpan<byte> data, ref T value)
+    public int Deserialize(ReadOnlySpan<byte> data, ref T value)
     {
         var offset = 0;
         BinarySpanReader reader = new(data, ref offset)
@@ -30,5 +30,6 @@ class SerializableTypeBinarySerializer<T> : IBinarySerializer<T>
         };
 
         value.Deserialize(reader);
+        return offset;
     }
 }

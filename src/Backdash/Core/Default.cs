@@ -23,4 +23,5 @@ static class Default
     public const int NetworkStatsInterval = 1000;
     public const int FrameDelay = 2;
     public const int ResendInputInterval = 200;
+    public const int MaxSyncRetries = 32;
 }

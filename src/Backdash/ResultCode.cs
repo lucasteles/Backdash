@@ -9,9 +9,9 @@ public enum ResultCode : short
     NotSynchronized,
     InRollback,
     InputDropped,
-    PlayerDisconnected,
     TooManySpectators,
     TooManyPlayers,
     InvalidRequest,
     Duplicated,
+    NotSupported,
 }

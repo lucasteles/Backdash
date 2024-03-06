@@ -25,13 +25,13 @@ public record struct GameState
 
 public class NonGameState
 {
+    public required PlayerHandle? LocalPlayer;
+    public required PlayerHandle RemotePlayer;
+    public required IRollbackSessionInfo SessionInfo;
     public bool IsRunning;
     public float SyncProgress;
     public string LastError = "";
-    public required PlayerHandle LocalPlayer;
-    public required PlayerHandle RemotePlayer;
     public PlayerStatus RemotePlayerStatus;
-    public required IRollbackSessionInfo SessionInfo;
     public RollbackNetworkStatus PeerNetworkStatus = new();
     public DateTime LostConnectionTime;
     public TimeSpan DisconnectTimeout;

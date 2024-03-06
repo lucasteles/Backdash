@@ -10,17 +10,18 @@ namespace Backdash;
  */
 public interface IRollbackHandler<TState> where TState : notnull
 {
-    void Start();
+    void OnSessionStart();
+    void OnSessionClose();
 
     /*
      * The client should return a copy of the entire contents of the current game state
      */
-    void SaveState(int frame, ref TState state);
+    void SaveState(in Frame frame, ref TState state);
 
     /*
      * Backdash will call this function at the beginning  of a rollback.
      */
-    void LoadState(in TState gameState);
+    void LoadState(in Frame frame, in TState gameState);
 
     void ClearState(ref TState gameState)
     {
@@ -43,14 +44,17 @@ public interface IRollbackHandler<TState> where TState : notnull
 sealed class EmptySessionHandler<TState>(Logger logger)
     : IRollbackHandler<TState> where TState : notnull, new()
 {
-    public void Start() =>
+    public void OnSessionStart() =>
         logger.Write(LogLevel.Information, $"{DateTime.UtcNow:o} [Session Handler] Running.");
 
-    public void SaveState(int frame, ref TState state) =>
+    public void OnSessionClose() =>
+        logger.Write(LogLevel.Information, $"{DateTime.UtcNow:o} [Session Handler] Closing.");
+
+    public void SaveState(in Frame frame, ref TState state) =>
         logger.Write(LogLevel.Information,
             $"{DateTime.UtcNow:o} [Session Handler] {nameof(SaveState)} called for frame {frame}");
 
-    public void LoadState(in TState gameState) =>
+    public void LoadState(in Frame frame, in TState gameState) =>
         logger.Write(LogLevel.Information, $"{DateTime.UtcNow:o} [Session Handler] {nameof(LoadState)} called");
 
     public void AdvanceFrame() =>

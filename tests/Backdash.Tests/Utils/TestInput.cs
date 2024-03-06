@@ -52,5 +52,9 @@ sealed class TestInputSerializer : IBinarySerializer<TestInput>
         return data.Length;
     }
 
-    public void Deserialize(ReadOnlySpan<byte> data, ref TestInput value) => value = new(data);
+    public int Deserialize(ReadOnlySpan<byte> data, ref TestInput value)
+    {
+        value = new(data);
+        return data.Length;
+    }
 }
