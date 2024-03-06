@@ -91,13 +91,17 @@ sealed class TimeSync<TInput>(
                 }
 
                 logger.Write(LogLevel.Debug,
-                    $"iteration {iteration}:  rejecting due to input stuff at position {i}...!!!");
+                    $"iteration {iteration}:  rejecting due to input stuff at position {i}!");
 
                 return 0;
             }
         }
 
+        var recommendation = Math.Min(sleepFrames, maxFrameAdvantage);
+        logger.Write(LogLevel.Information,
+            $"time sync: recommending sleep: {recommendation}, total:{sleepFrames}, max:{maxFrameAdvantage}");
+
         // Success!!! Recommend the number of frames to sleep and adjust
-        return Math.Min(sleepFrames, maxFrameAdvantage);
+        return recommendation;
     }
 }

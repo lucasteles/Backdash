@@ -37,4 +37,10 @@ static class ThrowHelpers
         if (size > Mem.MaxStackLimit)
             throw new BackdashException($"{typeof(T).Name} size too big for stack: {size}");
     }
+
+    public static void ThrowIfTypeIsReferenceOrContainsReferences<T>() where T : struct
+    {
+        if (Mem.IsReferenceOrContainsReferences<T>())
+            throw new ArgumentException("Input struct must not have reference type members");
+    }
 }

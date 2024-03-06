@@ -4,13 +4,13 @@ using Backdash.Sync.Input.Spectator;
 
 namespace Backdash.Tests.Specs.Unit.Input;
 
-public class InputGroupTests
+public class CombinedInputsTests
 {
     [PropertyTest]
-    internal void ShouldSerializeAndDeserializeGroupSamples(InputGroup<int> inputData, bool network)
+    internal void ShouldSerializeAndDeserializeGroupSamples(CombinedInputs<int> inputData, bool network)
     {
-        IBinarySerializer<InputGroup<int>> serializer =
-            new InputGroupSerializer<int>(new IntegerBinarySerializer<int>(Platform.GetEndianness(network)))
+        IBinarySerializer<CombinedInputs<int>> serializer =
+            new CombinedInputsSerializer<int>(new IntegerBinarySerializer<int>(Platform.GetEndianness(network)))
             {
                 Network = network,
             };
@@ -19,7 +19,7 @@ public class InputGroupTests
 
         var writtenCount = serializer.Serialize(inputData, buffer);
 
-        InputGroup<int> result = new();
+        CombinedInputs<int> result = new();
         var readCount = serializer.Deserialize(buffer, ref result);
 
         readCount.Should().Be(writtenCount);

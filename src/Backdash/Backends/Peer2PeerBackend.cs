@@ -19,7 +19,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
 {
     readonly RollbackOptions options;
     readonly IBinarySerializer<TInput> inputSerializer;
-    readonly IBinarySerializer<InputGroup<TInput>> inputGroupSerializer;
+    readonly IBinarySerializer<CombinedInputs<TInput>> inputGroupSerializer;
     readonly Logger logger;
     readonly IStateStore<TGameState> stateStore;
     readonly IUdpClient<ProtocolMessage> udp;
@@ -27,12 +27,11 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
     readonly Synchronizer<TInput, TGameState> synchronizer;
     readonly ConnectionsState localConnections;
     readonly IBackgroundJobManager backgroundJobManager;
-    readonly IProtocolInputEventQueue<TInput> peerInputEventQueue;
-    readonly IProtocolInputEventPublisher<InputGroup<TInput>> peerInputGroupEventQueue;
+    readonly ProtocolInputEventQueue<TInput> peerInputEventQueue;
+    readonly IProtocolInputEventPublisher<CombinedInputs<TInput>> peerCombinedInputsEventPublisher;
     readonly PeerConnectionFactory peerConnectionFactory;
-    readonly IClock clock;
 
-    readonly List<PeerConnection<InputGroup<TInput>>> spectators;
+    readonly List<PeerConnection<CombinedInputs<TInput>>> spectators;
     readonly List<PeerConnection<TInput>?> endpoints;
 
     readonly HashSet<PlayerHandle> addedPlayers = [];
@@ -40,7 +39,6 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
 
     bool isSynchronizing = true;
     int nextRecommendedInterval;
-    long startTimestamp;
     Frame nextSpectatorFrame = Frame.Zero;
     IRollbackHandler<TGameState> callbacks;
     SynchronizedInput<TInput>[] syncInputBuffer = [];
@@ -50,44 +48,38 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
     bool closed;
 
     public Peer2PeerBackend(
+        int port,
         RollbackOptions options,
-        IBinarySerializer<TInput> inputSerializer,
-        IStateStore<TGameState> stateStore,
-        IChecksumProvider<TGameState> checksumProvider,
-        IUdpClientFactory udpClientFactory,
-        IBackgroundJobManager backgroundJobManager,
-        IProtocolInputEventQueue<TInput> peerInputEventQueue,
-        IClock clock,
-        Logger logger
+        BackendServices<TInput, TGameState> services
     )
     {
-        ThrowHelpers.ThrowIfArgumentIsZeroOrLess(options.LocalPort);
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(options);
+        ThrowHelpers.ThrowIfArgumentIsZeroOrLess(port);
         ThrowHelpers.ThrowIfArgumentIsZeroOrLess(options.FramesPerSecond);
         ThrowHelpers.ThrowIfArgumentOutOfBounds(options.SpectatorOffset, min: Max.RemoteConnections);
         ThrowHelpers.ThrowIfTypeTooBigForStack<GameInput<TInput>>();
 
         this.options = options;
-        this.inputSerializer = inputSerializer;
-        this.stateStore = stateStore;
-        this.backgroundJobManager = backgroundJobManager;
-        this.peerInputEventQueue = peerInputEventQueue;
-        this.logger = logger;
-        this.clock = clock;
-
-        peerInputGroupEventQueue = new ProtocolInputGroupEventPublisher<TInput>(peerInputEventQueue);
-        inputGroupSerializer = new InputGroupSerializer<TInput>(inputSerializer);
+        inputSerializer = services.InputSerializer;
+        stateStore = services.StateStore;
+        backgroundJobManager = services.JobManager;
+        logger = services.Logger;
+        peerInputEventQueue = new ProtocolInputEventQueue<TInput>();
+        peerCombinedInputsEventPublisher = new ProtocolCombinedInputsEventPublisher<TInput>(peerInputEventQueue);
+        inputGroupSerializer = new CombinedInputsSerializer<TInput>(inputSerializer);
         localConnections = new(Max.RemoteConnections);
         spectators = [];
         endpoints = [];
         udpObservers = new();
-        callbacks = new EmptySessionHandler<TGameState>(this.logger);
+        callbacks = new EmptySessionHandler<TGameState>(logger);
 
         synchronizer = new(
             this.options,
-            this.logger,
+            logger,
             addedPlayers,
             stateStore,
-            checksumProvider,
+            services.ChecksumProvider,
             localConnections
         )
         {
@@ -96,30 +88,27 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
 
         var selectedEndianness = Platform.GetEndianness(this.options.NetworkEndianness);
 
-        udp = udpClientFactory.CreateClient(
-            this.options.LocalPort,
+        udp = services.UdpClientFactory.CreateClient(
+            port,
             selectedEndianness,
             this.options.Protocol.UdpPacketBufferSize,
             udpObservers,
-            this.logger
+            logger
         );
 
         peerConnectionFactory = new(
-            this.clock,
-            this.options.Random,
-            this.logger,
-            this.backgroundJobManager,
             this,
+            services.Clock,
+            services.Random,
+            services.DelayStrategy,
+            logger,
+            backgroundJobManager,
             udp,
             this.options.Protocol,
             this.options.TimeSync
         );
 
-
         backgroundJobManager.Register(udp);
-
-        if (this.logger.EnabledLevel is not LogLevel.Off && this.logger.RunningAsync)
-            backgroundJobManager.Register(this.logger);
     }
 
     public void Dispose()
@@ -152,19 +141,11 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
     }
 
     public Frame CurrentFrame => synchronizer.CurrentFrame;
-
-    public int FramesPerSecond
-    {
-        get
-        {
-            var elapsed = clock.GetElapsedTime(startTimestamp).TotalSeconds;
-            return elapsed > 0 ? (int)(synchronizer.CurrentFrame.Number / elapsed) : 0;
-        }
-    }
-
     public FrameSpan RollbackFrames => synchronizer.RollbackFrames;
+    public FrameSpan FramesBehind => synchronizer.FramesBehind;
     public int NumberOfPlayers => addedPlayers.Count;
     public int NumberOfSpectators => addedSpectators.Count;
+    public bool IsSpectating => false;
 
     public IReadOnlyCollection<PlayerHandle> GetPlayers() => addedPlayers;
     public IReadOnlyCollection<PlayerHandle> GetSpectators() => addedSpectators;
@@ -307,14 +288,15 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         var endpoint = player.EndPoint;
         var protocol = peerConnectionFactory.Create(
             new(player.Handle, endpoint, localConnections, options.FramesPerSecond),
-            inputSerializer, peerInputEventQueue
+            inputSerializer,
+            peerInputEventQueue
         );
         udpObservers.Add(protocol.GetUdpObserver());
 
         endpoints.Add(protocol);
         Array.Resize(ref syncInputBuffer, syncInputBuffer.Length + 1);
         synchronizer.AddQueue(player.Handle);
-        logger.Write(LogLevel.Information, $"Adding {player.Handle} at {endpoint.Address}:{endpoint.Port}");
+        logger.Write(LogLevel.Information, $"Adding {player.Handle} at {endpoint}");
         protocol.Synchronize();
         isSynchronizing = true;
 
@@ -347,13 +329,12 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
 
         var protocol = peerConnectionFactory.Create(
             new(spectatorHandle, spectator.EndPoint, localConnections, options.FramesPerSecond),
-            inputGroupSerializer, peerInputGroupEventQueue
+            inputGroupSerializer, peerCombinedInputsEventPublisher
         );
         udpObservers.Add(protocol.GetUdpObserver());
 
         spectators.Add(protocol);
-        logger.Write(LogLevel.Information,
-            $"Adding {spectator.Handle} at {spectator.EndPoint.Address}:{spectator.EndPoint.Port}");
+        logger.Write(LogLevel.Information, $"Adding {spectator.Handle} at {spectator.EndPoint}");
         protocol.Synchronize();
         return ResultCode.Ok;
     }
@@ -412,8 +393,9 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
             if (!spectators[i].IsRunning && spectators[i].Status is not ProtocolStatus.Disconnected)
                 return;
 
+        for (var i = 0; i < endpoints.Count; i++) endpoints[i]?.Start();
+        for (var i = 0; i < spectators.Count; i++) spectators[i].Start();
         isSynchronizing = false;
-        startTimestamp = clock.GetTimeStamp();
         callbacks.OnSessionStart();
     }
 
@@ -456,8 +438,12 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
 
         ConsumeProtocolInputEvents();
 
-        for (var i = 0; i < endpoints.Count; i++)
+        int i;
+        for (i = 0; i < endpoints.Count; i++)
             endpoints[i]?.Update();
+
+        for (i = 0; i < spectators.Count; i++)
+            spectators[i].Update();
 
         if (isSynchronizing)
             return;
@@ -465,7 +451,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         synchronizer.CheckSimulation();
         // notify all of our endpoints of their local frame number for their next connection quality report
         var currentFrame = synchronizer.CurrentFrame;
-        for (var i = 0; i < endpoints.Count; i++)
+        for (i = 0; i < endpoints.Count; i++)
             endpoints[i]?.SetLocalFrameNumber(currentFrame, options.FramesPerSecond);
 
         var minConfirmedFrame = NumberOfPlayers <= 2 ? MinimumFrame2Players() : MinimumFrameNPlayers();
@@ -476,7 +462,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         {
             if (NumberOfSpectators > 0)
             {
-                GameInput<InputGroup<TInput>> confirmed = new(nextSpectatorFrame);
+                GameInput<CombinedInputs<TInput>> confirmed = new(nextSpectatorFrame);
                 while (nextSpectatorFrame <= minConfirmedFrame)
                 {
                     logger.Write(LogLevel.Debug, $"pushing frame {nextSpectatorFrame} to spectators");
@@ -500,12 +486,12 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         if (currentFrame.Number > nextRecommendedInterval)
         {
             var interval = 0;
-            for (var i = 0; i < endpoints.Count; i++)
+            for (i = 0; i < endpoints.Count; i++)
                 if (endpoints[i] is { } endpoint)
                     interval = Math.Max(interval, endpoint.GetRecommendFrameDelay(options.RequireIdleInput));
 
             if (interval <= 0) return;
-            callbacks.TimeSync(new(interval, options.FramesPerSecond));
+            callbacks.TimeSync(new(interval));
             nextRecommendedInterval = currentFrame.Number + options.RecommendationInterval;
         }
     }
@@ -600,8 +586,6 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
 
     Frame MinimumFrameNPlayers()
     {
-        // TODO: validate this function
-
         // discard confirmed frames as appropriate
         var totalMinConfirmed = Frame.MaxValue;
         for (var queue = 0; queue < NumberOfPlayers; queue++)
@@ -683,13 +667,11 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         CheckInitialSync();
     }
 
-    void DisconnectPlayer(in PlayerHandle player)
+    public void DisconnectPlayer(in PlayerHandle player)
     {
-        if (localConnections[player].Disconnected)
-            return;
-
-        if (player.Type is not PlayerType.Remote)
-            return;
+        if (!IsPlayerKnown(in player)) return;
+        if (localConnections[player].Disconnected) return;
+        if (player.Type is not PlayerType.Remote) return;
 
         if (endpoints[player.InternalQueue] is null)
         {

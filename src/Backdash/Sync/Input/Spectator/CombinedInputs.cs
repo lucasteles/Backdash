@@ -3,14 +3,14 @@ using Backdash.Core;
 
 namespace Backdash.Sync.Input.Spectator;
 
-record struct InputGroup<TInput> where TInput : struct
+record struct CombinedInputs<TInput> where TInput : struct
 {
     public byte Count = InputArray<TInput>.Capacity;
     public InputArray<TInput> Inputs = new();
 
-    public InputGroup() => Count = InputArray<TInput>.Capacity;
+    public CombinedInputs() => Count = InputArray<TInput>.Capacity;
 
-    public InputGroup(ReadOnlySpan<TInput> inputs)
+    public CombinedInputs(ReadOnlySpan<TInput> inputs)
     {
         Count = (byte)inputs.Length;
         inputs.CopyTo(Inputs);

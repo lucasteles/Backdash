@@ -73,7 +73,7 @@ sealed class ProtocolState(
             writer.Write(PackagesPerSecond, "f2");
             writer.Write(" pps); KiB: "u8);
             writer.Write(TotalBytesWithHeaders.KibiBytes, "f2");
-            writer.Write("UDP Overhead: "u8);
+            writer.Write("; UDP Overhead: "u8);
             writer.Write(UdpOverhead);
             writer.Write("}"u8);
             return true;

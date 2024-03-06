@@ -17,13 +17,13 @@ sealed class InputQueue<TInput> where TInput : struct
     GameInput<TInput> prediction;
     readonly int id;
 
-    public int FrameDelay { get; set; }
+    public int LocalFrameDelay { get; set; }
 
     public InputQueue(int id, int queueSize, Logger logger)
     {
         this.id = id;
         this.logger = logger;
-        length = FrameDelay = 0;
+        length = LocalFrameDelay = 0;
         head = tail = 0;
         firstFrame = true;
         lastUserAddedFrame = Frame.Null;
@@ -249,7 +249,7 @@ sealed class InputQueue<TInput> where TInput : struct
 
         var expectedFrame = firstFrame ? Frame.Zero : Back.Frame.Next();
 
-        frame += FrameDelay;
+        frame += LocalFrameDelay;
 
         if (expectedFrame > frame)
         {

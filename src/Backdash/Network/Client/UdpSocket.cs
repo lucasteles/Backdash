@@ -4,16 +4,7 @@ using System.Runtime.InteropServices;
 
 namespace Backdash.Network.Client;
 
-interface IUdpSocket : IDisposable
-{
-    public int Port { get; }
-    AddressFamily AddressFamily { get; }
-    SocketAddress LocalAddress { get; }
-    ValueTask<int> ReceiveFromAsync(Memory<byte> buffer, SocketAddress address, CancellationToken ct);
-    ValueTask<int> SendToAsync(ReadOnlyMemory<byte> payload, SocketAddress peerAddress, CancellationToken ct);
-}
-
-sealed class UdpSocket : IUdpSocket
+sealed class UdpSocket : IDisposable
 {
     // ReSharper disable InconsistentNaming
     const uint IOC_IN = 0x80000000;
@@ -72,7 +63,6 @@ sealed class UdpSocket : IUdpSocket
     {
         if (socket.Connected)
             socket.Close();
-
         socket.Dispose();
     }
 }

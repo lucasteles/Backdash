@@ -21,26 +21,25 @@ Console.CancelKeyPress += (_, eventArgs) =>
 };
 
 // port and players
-if (args is not [{ } portArg, var playerCountArg, .. var endpoints]
+if (args is not [{ } portArg, { } playerCountArg, .. { } endpoints]
     || !int.TryParse(portArg, out var port)
     || !int.TryParse(playerCountArg, out var playerCount)
    )
     throw new InvalidOperationException("Invalid port argument");
 
 // netcode configurations
-RollbackOptions options = new(port)
+RollbackOptions options = new()
 {
     FrameDelay = 2,
     Log = new()
     {
-        EnabledLevel = LogLevel.Off,
-        // RunAsync = true,
+        EnabledLevel = LogLevel.Debug,
     },
     Protocol = new()
     {
         NumberOfSyncPackets = 10,
         // LogNetworkStats = true,
-        // NetworkDelay = networkDelay,
+        // NetworkDelay = TimeSpan.FromMilliseconds(300),
         // DelayStrategy = Backdash.Network.DelayStrategy.Constant,
     },
 };
@@ -51,12 +50,15 @@ IRollbackSession<GameInput, GameState> session;
 
 // parse console arguments checking if it is a spectator
 if (endpoints is ["spectate", { } hostArg] && IPEndPoint.TryParse(hostArg, out var host))
-    session = RollbackNetcode.CreateSpectatorSession<GameInput, GameState>(options, host
-        // , logWriter: new FileLogWriter("log_spectator_{{proc_id}}.txt", append: false)
+    session = RollbackNetcode.CreateSpectatorSession<GameInput, GameState>(
+        port, host, playerCount, options, new()
+        {
+            LogWriter = new FileLogWriter($"log_spectator_{port}.log", append: false),
+        }
     );
 // not a spectator, creating a peer 2 peer game session
 else
-    session = CreatePlayerSession(options, ParsePlayers(playerCount, endpoints));
+    session = CreatePlayerSession(port, options, ParsePlayers(playerCount, endpoints));
 
 // create the actual game
 Game game = new(session, cts);
@@ -87,6 +89,7 @@ Console.Clear();
 //    Create and configure a game session                         //
 // -------------------------------------------------------------- //
 static IRollbackSession<GameInput, GameState> CreatePlayerSession(
+    int port,
     RollbackOptions options,
     Player[] players
 )
@@ -97,16 +100,16 @@ static IRollbackSession<GameInput, GameState> CreatePlayerSession(
         throw new InvalidOperationException("No local player defined");
 
     // Write logs in a file with player number
-    var fileLogWriter = new FileLogWriter($"log_player_{localPlayer.Number}.txt", append: false);
-
-    // forces jitter delay on player two
-    var networkDelay = localPlayer.Number is 2 ? TimeSpan.FromMilliseconds(300) : default;
+    var fileLogWriter = new FileLogWriter($"log_player_{localPlayer.Number}.log", append: false);
 
     var session = RollbackNetcode.CreateSession<GameInput, GameState>(
+        port,
         options,
-        // stateSerializer: new MyStateSerializer(),
-        // logWriter: new TraceLogWriter(),
-        logWriter: fileLogWriter
+        new()
+        {
+            LogWriter = fileLogWriter,
+            // StateSerializer = new MyStateSerializer(),
+        }
     );
 
     session.AddPlayers(players);

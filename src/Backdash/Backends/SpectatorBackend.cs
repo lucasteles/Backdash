@@ -15,80 +15,77 @@ namespace Backdash.Backends;
 sealed class SpectatorBackend<TInput, TGameState> :
     IRollbackSession<TInput, TGameState>,
     IProtocolNetworkEventHandler,
-    IProtocolInputEventPublisher<InputGroup<TInput>>
+    IProtocolInputEventPublisher<CombinedInputs<TInput>>
     where TInput : struct
     where TGameState : IEquatable<TGameState>, new()
 {
     readonly Logger logger;
     readonly IUdpClient<ProtocolMessage> udp;
+    readonly IPEndPoint hostEndpoint;
     readonly RollbackOptions options;
     readonly IBackgroundJobManager backgroundJobManager;
     readonly IClock clock;
     readonly ConnectionsState localConnections = new(0);
 
-    readonly GameInput<InputGroup<TInput>>[] inputs;
-    readonly PeerConnection<InputGroup<TInput>> host;
+    readonly GameInput<CombinedInputs<TInput>>[] inputs;
+    readonly PeerConnection<CombinedInputs<TInput>> host;
+    readonly PlayerHandle[] fakePlayers;
     IRollbackHandler<TGameState> callbacks;
 
     bool isSynchronizing;
     Task backgroundJobTask = Task.CompletedTask;
     bool disposed;
-    long startTimestamp;
     long lastReceivedInputTime;
 
     SynchronizedInput<TInput>[] syncInputBuffer = [];
 
-    public SpectatorBackend(
-        RollbackOptions options,
+    public SpectatorBackend(int port,
         IPEndPoint hostEndpoint,
-        IBinarySerializer<TInput> inputSerializer,
-        IUdpClientFactory udpClientFactory,
-        IBackgroundJobManager backgroundJobManager,
-        IClock clock,
-        Logger logger
-    )
+        int numberOfPlayers,
+        RollbackOptions options,
+        BackendServices<TInput, TGameState> services)
     {
-        this.options = options;
-        this.backgroundJobManager = backgroundJobManager;
-        this.logger = logger;
-        this.clock = clock;
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(options);
+        ArgumentNullException.ThrowIfNull(hostEndpoint);
+        ThrowHelpers.ThrowIfArgumentIsZeroOrLess(port);
 
-        IBinarySerializer<InputGroup<TInput>> inputGroupSerializer = new InputGroupSerializer<TInput>(inputSerializer);
-        callbacks = new EmptySessionHandler<TGameState>(this.logger);
+        this.hostEndpoint = hostEndpoint;
+        this.options = options;
+
+        backgroundJobManager = services.JobManager;
+        logger = services.Logger;
+        clock = services.Clock;
+        NumberOfPlayers = numberOfPlayers;
+        fakePlayers = Enumerable.Range(0, numberOfPlayers)
+            .Select(x => new PlayerHandle(PlayerType.Remote, x + 1, x)).ToArray();
+        IBinarySerializer<CombinedInputs<TInput>> inputGroupSerializer =
+            new CombinedInputsSerializer<TInput>(services.InputSerializer);
+
         UdpObserverGroup<ProtocolMessage> udpObservers = new();
-        inputs = new GameInput<InputGroup<TInput>>[options.SpectatorInputBufferLength];
+        callbacks = new EmptySessionHandler<TGameState>(logger);
+        inputs = new GameInput<CombinedInputs<TInput>>[options.SpectatorInputBufferLength];
 
         var selectedEndianness = Platform.GetEndianness(options.NetworkEndianness);
-        udp = udpClientFactory.CreateClient(
-            options.LocalPort,
+        udp = services.UdpClientFactory.CreateClient(
+            port,
             selectedEndianness,
             options.Protocol.UdpPacketBufferSize,
             udpObservers,
-            this.logger
+            logger
         );
+        backgroundJobManager.Register(udp);
 
         PeerConnectionFactory peerConnectionFactory = new(
-            this.clock,
-            options.Random,
-            this.logger,
-            this.backgroundJobManager,
-            this,
-            udp,
-            options.Protocol,
-            options.TimeSync
+            this, clock, services.Random, services.DelayStrategy, logger,
+            backgroundJobManager, udp, options.Protocol, options.TimeSync
         );
-
-        this.backgroundJobManager.Register(udp);
-
-        host = peerConnectionFactory.Create(
-            new(new PlayerHandle(PlayerType.Remote, 0), hostEndpoint, localConnections, options.FramesPerSecond),
-            inputGroupSerializer, this);
+        ProtocolState protocolState =
+            new(new PlayerHandle(PlayerType.Remote, 0), hostEndpoint, localConnections, options.FramesPerSecond);
+        host = peerConnectionFactory.Create(protocolState, inputGroupSerializer, this);
         udpObservers.Add(host.GetUdpObserver());
         host.Synchronize();
         isSynchronizing = true;
-
-        if (this.logger.EnabledLevel is not LogLevel.Off && this.logger.RunningAsync)
-            this.backgroundJobManager.Register(this.logger);
     }
 
     public void Dispose()
@@ -111,22 +108,17 @@ sealed class SpectatorBackend<TInput, TGameState> :
     }
 
     public Frame CurrentFrame { get; private set; } = Frame.Zero;
-    public FrameSpan RollbackFrames { get; } = FrameSpan.Zero;
+    public FrameSpan RollbackFrames => FrameSpan.Zero;
+    public FrameSpan FramesBehind => FrameSpan.Zero;
     public int NumberOfPlayers { get; private set; }
     public int NumberOfSpectators => 0;
+    public bool IsSpectating => true;
+
+    public void DisconnectPlayer(in PlayerHandle player) { }
 
     public ResultCode AddLocalInput(PlayerHandle player, TInput localInput) => ResultCode.Ok;
-    public IReadOnlyCollection<PlayerHandle> GetPlayers() => [];
+    public IReadOnlyCollection<PlayerHandle> GetPlayers() => fakePlayers;
     public IReadOnlyCollection<PlayerHandle> GetSpectators() => [];
-
-    public int FramesPerSecond
-    {
-        get
-        {
-            var elapsed = clock.GetElapsedTime(startTimestamp).TotalSeconds;
-            return elapsed > 0 ? (int)(CurrentFrame.Number / elapsed) : 0;
-        }
-    }
 
     public void BeginFrame()
     {
@@ -152,8 +144,11 @@ sealed class SpectatorBackend<TInput, TGameState> :
 
     public void SetFrameDelay(PlayerHandle player, int delayInFrames) { }
 
-    public void Start(CancellationToken stoppingToken = default) =>
+    public void Start(CancellationToken stoppingToken = default)
+    {
         backgroundJobTask = backgroundJobManager.Start(stoppingToken);
+        logger.Write(LogLevel.Information, $"Spectating started on host {hostEndpoint}");
+    }
 
     public async Task WaitToStop(CancellationToken stoppingToken = default)
     {
@@ -188,7 +183,6 @@ sealed class SpectatorBackend<TInput, TGameState> :
                     Synchronized = new(evt.Synchronized.Ping),
                 });
                 callbacks.OnSessionStart();
-                startTimestamp = clock.GetTimeStamp();
                 isSynchronizing = false;
                 break;
             case ProtocolEvent.SyncFailure:
@@ -254,12 +248,12 @@ sealed class SpectatorBackend<TInput, TGameState> :
     public ref readonly SynchronizedInput<TInput> GetInput(in PlayerHandle player) =>
         ref syncInputBuffer[player.Number - 1];
 
-    public void Publish(in GameInputEvent<InputGroup<TInput>> evt)
+    public void Publish(in GameInputEvent<CombinedInputs<TInput>> evt)
     {
         lastReceivedInputTime = clock.GetTimeStamp();
         var (_, input) = evt;
         inputs[input.Frame.Number % inputs.Length] = input;
-        host.SetLocalFrameNumber(input.Frame);
+        host.SetLocalFrameNumber(input.Frame, options.FramesPerSecond);
         host.SendInputAck();
     }
 }

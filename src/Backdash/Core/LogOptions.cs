@@ -1,14 +1,15 @@
 namespace Backdash.Core;
 
-public sealed class LogOptions
-{
-    public LogLevel EnabledLevel { get; init; } =
+public sealed class LogOptions(
+    LogLevel level =
 #if DEBUG
-        LogLevel.Debug;
+        LogLevel.Information
 #else
-        LogLevel.Warning;
+        LogLevel.Warning
 #endif
-
+)
+{
+    public LogLevel EnabledLevel { get; init; } = level;
     public bool AppendTimestamps { get; init; } = true;
     public bool AppendLevel { get; init; } = true;
     public string TimestampFormat { get; init; } = @"mm\:ss\.fff";

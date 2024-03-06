@@ -47,18 +47,15 @@ sealed class Synchronizer<TInput, TState>
 
     public bool InRollback { get; private set; }
     public Frame CurrentFrame => currentFrame;
-    public FrameSpan FramesBehind => new(currentFrame.Number - lastConfirmedFrame.Number, options.FramesPerSecond);
+    public FrameSpan FramesBehind => new(currentFrame.Number - lastConfirmedFrame.Number);
 
     public FrameSpan RollbackFrames { get; private set; } = FrameSpan.Zero;
 
-    public void AddQueue(PlayerHandle player)
-    {
-        var delay = Math.Max(options.FrameDelay, 0);
+    public void AddQueue(PlayerHandle player) =>
         inputQueues.Add(new(player.InternalQueue, options.InputQueueLength, logger)
         {
-            FrameDelay = delay,
+            LocalFrameDelay = player.IsLocal() ? Math.Max(options.FrameDelay, 0) : 0,
         });
-    }
 
     public void SetLastConfirmedFrame(in Frame frame)
     {
@@ -97,7 +94,7 @@ sealed class Synchronizer<TInput, TState>
 
     public void AddRemoteInput(in PlayerHandle player, GameInput<TInput> input) => AddInput(in player, ref input);
 
-    public bool GetConfirmedInputGroup(in Frame frame, ref GameInput<InputGroup<TInput>> confirmed)
+    public bool GetConfirmedInputGroup(in Frame frame, ref GameInput<CombinedInputs<TInput>> confirmed)
     {
         confirmed.Data.Count = (byte)NumberOfPlayers;
         confirmed.Frame = frame;
@@ -189,12 +186,12 @@ sealed class Synchronizer<TInput, TState>
 
         ref readonly var savedFrame = ref stateStore.Load(frame);
 
-        logger.Write(LogLevel.Debug,
+        logger.Write(LogLevel.Information,
             $"* Loading frame info {savedFrame.Frame} (checksum: {savedFrame.Checksum})");
 
-        Callbacks.LoadState(in savedFrame.GameState);
+        Callbacks.LoadState(in frame, in savedFrame.GameState);
 
-        // Reset framecount and the head of the state ring-buffer to point in
+        // Reset frame count and the head of the state ring-buffer to point in
         // advance of the current frame (as if we had just finished executing it).
         currentFrame = savedFrame.Frame;
     }
@@ -205,11 +202,11 @@ sealed class Synchronizer<TInput, TState>
     {
         ref var nextState = ref stateStore.GetCurrent();
         Callbacks.ClearState(ref nextState);
-        Callbacks.SaveState(currentFrame.Number, ref nextState);
+        Callbacks.SaveState(in currentFrame, ref nextState);
 
         var checksum = checksumProvider.Compute(in nextState);
         ref readonly var next = ref stateStore.SaveCurrent(in currentFrame, in checksum);
-        logger.Write(LogLevel.Debug, $"* Saved frame {next.Frame} (checksum: {next.Checksum}).");
+        logger.Write(LogLevel.Trace, $"sync: saved frame {next.Frame} (checksum: {next.Checksum}).");
     }
 
     bool CheckSimulationConsistency(out Frame seekTo)
@@ -221,8 +218,8 @@ sealed class Synchronizer<TInput, TState>
             if (incorrect.IsNull || (firstIncorrect.IsNotNull && incorrect >= firstIncorrect))
                 continue;
 
-            logger.Write(LogLevel.Debug, $"Incorrect frame {incorrect} reported by queue {i}");
-            RollbackFrames = new(Math.Max(RollbackFrames.FrameCount, incorrect.Number), options.FramesPerSecond);
+            logger.Write(LogLevel.Information, $"Incorrect frame {incorrect} reported by queue {i}");
+            RollbackFrames = new(Math.Max(RollbackFrames.FrameCount, incorrect.Number));
             firstIncorrect = incorrect;
         }
 
@@ -238,7 +235,8 @@ sealed class Synchronizer<TInput, TState>
         return false;
     }
 
-    public void SetFrameDelay(PlayerHandle player, int delay) => inputQueues[player.InternalQueue].FrameDelay = delay;
+    public void SetFrameDelay(PlayerHandle player, int delay) =>
+        inputQueues[player.InternalQueue].LocalFrameDelay = Math.Max(delay, 0);
 
     void ResetPrediction(in Frame frameNumber)
     {
