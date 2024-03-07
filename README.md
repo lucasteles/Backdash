@@ -9,7 +9,7 @@
 
 # Backdash 🕹️
 
-![](assets/images/logo256.png)
+![](logo.png)
 
 ### ⚠️ **WORKING IN PROGRESS**
 

@@ -5,6 +5,7 @@
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <InvariantGlobalization>true</InvariantGlobalization>
     <PublishRelease>true</PublishRelease>
+    <PackageIcon>logo.png</PackageIcon>
     <CheckEolTargetFramework>false</CheckEolTargetFramework>
     <IncludeSymbols>true</IncludeSymbols>
     <WarningsAsErrors>CS8600;CS8602;CS8603;CS8604;CS8625;CS8618;CS8620</WarningsAsErrors>
@@ -31,7 +32,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)\assets\images\logo256.png" Pack="true" PackagePath="\"/>
+    <None Include="$(MSBuildThisFileDirectory)\logo.png" Pack="true" PackagePath="\"/>
     <None Include="$(MSBuildThisFileDirectory)\README.md" Pack="true" PackagePath="\"/>
   </ItemGroup>
 
