@@ -118,7 +118,7 @@ class MainBuild : NukeBuild
         .Executes(() =>
         {
             var output = RootDirectory / "_site";
-            output.CreateOrCleanDirectory();
+            if (!output.DirectoryExists()) output.CreateDirectory();
             Badges.ForCoverage(Solution, output, CoverageFiles);
             Badges.ForDotNetVersion(output, GlobalJson);
             Badges.ForTests(output, TestResultFile);
