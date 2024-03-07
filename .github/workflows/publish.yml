@@ -1,6 +1,13 @@
 ﻿name: Publish
 on:
     workflow_dispatch:
+        inputs:
+            release_nuget:
+                description: 'Publish Nuget.org?'
+                type: boolean
+                required: false
+                default: false
+
 env:
     DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
     DOTNET_CLI_TELEMETRY_OPTOUT: true
@@ -50,10 +57,31 @@ jobs:
                 with:
                     name: buildArtifacts
                     path: ./build_artifacts
+
+    release_preview:
+        name: Publish Github Packages
+        runs-on: ubuntu-latest
+        #Only release if there has been a commit/version change
+        if: github.ref == 'refs/heads/master' && needs.build.outputs.CommitsSinceVersionSource > 0
+        needs: build
+        steps:
+            -   name: Download lib nuget package artifact
+                uses: actions/download-artifact@v3
+                with:
+                    name: buildArtifacts
+                    path: ./build_artifacts
+
+            -   name: Add nuget source
+                run: dotnet nuget add source --username lucasteles --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/lucasteles/index.json"
+
+            -   name: Release GitHub package
+                run: dotnet nuget push nugetPackage/*.nupkg --api-key ${{ secrets.GITHUB_TOKEN }}  --source "github"
+
     release:
         name: Publish Nuget
         runs-on: ubuntu-latest
-        if: github.ref == 'refs/heads/master' && needs.build.outputs.CommitsSinceVersionSource > 0 #Only release if there has been a commit/version change
+        #Only release if there has been a commit/version change
+        if: github.event.inputs.release_nuget == 'true' && github.ref == 'refs/heads/master' && needs.build.outputs.CommitsSinceVersionSource > 0
         needs: build
         steps:
             -   name: Download lib nuget package artifact
@@ -65,8 +93,8 @@ jobs:
             -   name: Push package to Nuget
                 run: |
                     dotnet nuget push build_artifacts/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
-            -   name: Create Release
 
+            -   name: Create Release
                 uses: ncipollo/release-action@v1
                 with:
                     tag: ${{ needs.build.outputs.Version }}

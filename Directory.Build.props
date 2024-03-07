@@ -4,21 +4,37 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <InvariantGlobalization>true</InvariantGlobalization>
+    <PublishRelease>true</PublishRelease>
+    <CheckEolTargetFramework>false</CheckEolTargetFramework>
+    <IncludeSymbols>true</IncludeSymbols>
     <WarningsAsErrors>CS8600;CS8602;CS8603;CS8604;CS8625;CS8618;CS8620</WarningsAsErrors>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <Company/>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+
     <Authors>Lucas Teles - lucas.teles@outlook.com</Authors>
+    <Company>lucasteles.dev</Company>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryType>GitHub</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/lucasteles/Backdash</PackageProjectUrl>
     <RepositoryUrl>https://github.com/lucasteles/Backdash</RepositoryUrl>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <PackageTags>rollback, netcode, network, peer to peer, online, game, multiplayer</PackageTags>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
+
+  <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)\docs\images\logo256.png" Pack="true" PackagePath="\"/>
+    <None Include="$(MSBuildThisFileDirectory)\README.md" Pack="true" PackagePath="\"/>
+  </ItemGroup>
+
   <ItemGroup Condition="'$(MSBuildProjectExtension)' == '.csproj'">
     <PackageReference Include="SonarAnalyzer.CSharp" Version="9.20.0.85982">
       <PrivateAssets>all</PrivateAssets>
