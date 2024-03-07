@@ -1,0 +1,49 @@
+{
+    "metadata": [
+        {
+            "src": [
+                {
+                    "src": ".",
+                    "files": [
+                        "src/**/bin/Release/**.dll"
+                    ]
+                }
+            ],
+            "dest": "api"
+        }
+    ],
+    "build": {
+        "content": [
+            {
+                "files": [
+                    "**/*.{md,yml}"
+                ],
+                "exclude": [
+                    "_site/**"
+                ]
+            }
+        ],
+        "resource": [
+            {
+                "files": [
+                    "docs/images/**",
+                    "logo.png"
+                ]
+            }
+        ],
+        "output": "_site",
+        "template": [
+            "default",
+            "modern"
+        ],
+        "globalMetadata": {
+            "_appName": "Backdash",
+            "_appTitle": "Backdash Netcode",
+            "_enableSearch": true,
+            "_appLogoPath": "docs/images/logo.png",
+            "_appFaviconPath": "docs/images/favicon.ico",
+            "_appFooter": "<a href=\"https://github.com/lucasteles/Backdash\" target=\"_blank\" rel=\"noopener noreferrer\">GitHub</a>",
+            "pdf": false
+        }
+    }
+}

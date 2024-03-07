@@ -117,7 +117,7 @@ class MainBuild : NukeBuild
         .Requires(() => CoverageFiles.GlobFiles().Any())
         .Executes(() =>
         {
-            var output = RootDirectory / "Badges";
+            var output = RootDirectory / "_site";
             output.CreateOrCleanDirectory();
             Badges.ForCoverage(Solution, output, CoverageFiles);
             Badges.ForDotNetVersion(output, GlobalJson);

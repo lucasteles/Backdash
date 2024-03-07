@@ -371,3 +371,5 @@ TestReport/
 Badges/
 .nuke/temp/
 log_*
+_site/
+api/
