@@ -1,4 +1,4 @@
-﻿using Backdash;
+using Backdash;
 using Backdash.Data;
 namespace SpaceWar.Logic;
 public sealed class GameSession(

@@ -1,4 +1,4 @@
-﻿#nullable disable
+#nullable disable
 using Backdash;
 using Backdash.Core;
 using Backdash.Data;

@@ -1,4 +1,4 @@
-﻿namespace SpaceWar.Logic;
+namespace SpaceWar.Logic;
 #pragma warning disable S3887
 public record struct BackgroundStar(
     bool Big,

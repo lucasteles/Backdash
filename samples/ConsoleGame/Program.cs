@@ -1,4 +1,4 @@
-﻿// ReSharper disable AccessToDisposedClosure, UnusedVariable
+// ReSharper disable AccessToDisposedClosure, UnusedVariable
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using Backdash;

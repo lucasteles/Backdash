@@ -1,4 +1,4 @@
-﻿using Backdash.Serialization;
+using Backdash.Serialization;
 using Backdash.Serialization.Buffer;
 namespace ConsoleGame;
 public sealed class MyStateSerializer : BinarySerializer<GameState>

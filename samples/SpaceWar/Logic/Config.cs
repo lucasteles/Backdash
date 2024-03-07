@@ -1,4 +1,4 @@
-﻿namespace SpaceWar.Logic;
+namespace SpaceWar.Logic;
 public static class Config
 {
     public const int MaxShips = 4;

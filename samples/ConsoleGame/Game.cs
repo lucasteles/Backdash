@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using Backdash;
 using Backdash.Data;
 namespace ConsoleGame;

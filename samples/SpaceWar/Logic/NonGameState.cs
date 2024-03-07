@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using Backdash;
 using Backdash.Data;
 namespace SpaceWar.Logic;
