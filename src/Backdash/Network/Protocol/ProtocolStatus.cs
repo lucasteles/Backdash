@@ -1,5 +1,4 @@
 namespace Backdash.Network.Protocol;
-
 enum ProtocolStatus
 {
     Syncing,

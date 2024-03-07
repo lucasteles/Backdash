@@ -1,30 +1,22 @@
 using System.Diagnostics;
 using System.Text;
 using Backdash.Data;
-
 #pragma warning disable S1215
-
 namespace Backdash.Benchmarks.Ping;
-
 public sealed class Measurer : IAsyncDisposable
 {
     MeasureSnapshot start;
     readonly List<MeasureSnapshot> snapshots = new(128);
     readonly Stopwatch watch = new();
-
     readonly CancellationTokenSource cts = new();
     readonly PeriodicTimer? timer;
-
-
     public Measurer(TimeSpan? snapshotInterval = null)
     {
         if (snapshotInterval is null || snapshotInterval == TimeSpan.Zero)
             return;
-
         timer = new(snapshotInterval.Value);
         _ = Task.Run(TimerLoop, cts.Token);
     }
-
     async Task TimerLoop()
     {
         if (timer is null) return;
@@ -32,7 +24,6 @@ public sealed class Measurer : IAsyncDisposable
             if (watch.IsRunning)
                 Snapshot();
     }
-
     public void Start()
     {
         snapshots.Clear();
@@ -42,9 +33,7 @@ public sealed class Measurer : IAsyncDisposable
         start = new();
         watch.Start();
     }
-
     readonly object lockObj = new();
-
     public void Snapshot()
     {
         lock (lockObj)
@@ -53,13 +42,11 @@ public sealed class Measurer : IAsyncDisposable
                 snapshots.Count is 0 ? MeasureSnapshot.Zero : snapshots[^1])
             );
     }
-
     public void Stop()
     {
         watch.Stop();
         Snapshot();
     }
-
     public async ValueTask DisposeAsync()
     {
         try
@@ -70,14 +57,11 @@ public sealed class Measurer : IAsyncDisposable
         {
             cts.Dispose();
         }
-
         timer?.Dispose();
     }
-
     public string Summary(bool showSnapshots = true)
     {
         StringBuilder builder = new();
-
         builder.AppendLine(
             $"""
              --- Summary ---
@@ -87,13 +71,11 @@ public sealed class Measurer : IAsyncDisposable
              Msg Size: {ByteSize.SizeOf<PingMessage>()}
              """
         );
-
         if (snapshots is [.., var last])
         {
             var avgAlloc = (ByteSize)snapshots
                 .Select(x => x.DeltaAllocatedBytes.ByteCount)
                 .Average();
-
             builder.AppendLine(
                 $"""
                  Total Memory: {last.TotalMemory}
@@ -105,9 +87,7 @@ public sealed class Measurer : IAsyncDisposable
                  GC Collection: G1({last.GcCount0}) / G2({last.GcCount1}) / G3({last.GcCount2})
                  """);
         }
-
         builder.AppendLine();
-
         if (showSnapshots)
             for (var index = 0; index < snapshots.Count; index++)
             {
@@ -117,11 +97,9 @@ public sealed class Measurer : IAsyncDisposable
                 builder.AppendLine("======");
                 builder.AppendLine();
             }
-
         builder.AppendLine("------------");
         return builder.ToString();
     }
-
     public struct MeasureSnapshot()
     {
         public long Elapsed = 0;
@@ -135,10 +113,8 @@ public sealed class Measurer : IAsyncDisposable
         public int GcCount0 = GC.CollectionCount(0);
         public int GcCount1 = GC.CollectionCount(1);
         public int GcCount2 = GC.CollectionCount(2);
-
         public ByteSize DeltaAllocatedBytes;
         public ByteSize DeltaTotalMemory;
-
         public static MeasureSnapshot Diff(
             MeasureSnapshot next,
             MeasureSnapshot first,
@@ -155,16 +131,12 @@ public sealed class Measurer : IAsyncDisposable
             GcCount0 = next.GcCount0 - first.GcCount0,
             GcCount1 = next.GcCount1 - first.GcCount1,
             GcCount2 = next.GcCount2 - first.GcCount2,
-
             DeltaAllocatedBytes =
                 next.TotalAllocatedBytes - previous.TotalAllocatedBytes - first.TotalAllocatedBytes,
-
             DeltaTotalMemory = next.TotalMemory - previous.TotalMemory - first.TotalMemory,
         };
-
         public static MeasureSnapshot Next(MeasureSnapshot initial, MeasureSnapshot previous) =>
             Diff(new MeasureSnapshot(), initial, previous);
-
         public static MeasureSnapshot Zero { get; } = new()
         {
             Elapsed = 0,
@@ -179,7 +151,6 @@ public sealed class Measurer : IAsyncDisposable
             DeltaAllocatedBytes = ByteSize.Zero,
             DeltaTotalMemory = ByteSize.Zero,
         };
-
         public readonly override string ToString() =>
             $"""
                TimeStamp: {new DateTime(Timestamp, DateTimeKind.Utc):h:mm:ss.ffffff}

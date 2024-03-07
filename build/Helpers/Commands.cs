@@ -1,5 +1,4 @@
 namespace Helpers;
-
 public static class Commands
 {
     public static Tool BrowserTool => GetTool(
@@ -10,7 +9,6 @@ public static class Commands
             _ => new[] { "google-chrome", "firefox" }
                 .FirstOrDefault(CommandExists),
         });
-
     public static void OpenBrowser(AbsolutePath path)
     {
         Assert.FileExists(path);
@@ -24,16 +22,13 @@ public static class Commands
                 Log.Error(e, "Unable to open report");
         }
     }
-
     public static Tool GetTool(string name) =>
         ToolResolver.TryGetEnvironmentTool(name) ??
         ToolResolver.GetPathTool(name);
-
     public static IProcess RunCommand(string command, params string[] args) =>
         ProcessTasks.StartProcess(command,
             string.Join(" ", args.Select(a => a.DoubleQuoteIfNeeded())),
             NukeBuild.RootDirectory);
-
     public static bool CommandExists(string command)
     {
         using var process = RunCommand("which", command);

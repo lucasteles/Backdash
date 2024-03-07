@@ -1,9 +1,7 @@
 using System.Runtime.CompilerServices;
 using Backdash.Network;
 using Backdash.Serialization.Buffer;
-
 namespace Backdash.Tests.Specs.Unit.Serialization;
-
 public class BinarySpanReadWriteSpanTests
 {
     [PropertyTest]
@@ -17,7 +15,6 @@ public class BinarySpanReadWriteSpanTests
         reader.ReadCount.Should().Be(size);
         return value.AsSpan().SequenceEqual(read);
     }
-
     [PropertyTest]
     public bool SpanOfUShort(ushort[] value, Endianness endianness)
     {
@@ -29,7 +26,6 @@ public class BinarySpanReadWriteSpanTests
         reader.ReadCount.Should().Be(size);
         return value.AsSpan().SequenceEqual(read);
     }
-
     [PropertyTest]
     public bool SpanOfInt(int[] value, Endianness endianness)
     {
@@ -41,7 +37,6 @@ public class BinarySpanReadWriteSpanTests
         reader.ReadCount.Should().Be(size);
         return value.AsSpan().SequenceEqual(read);
     }
-
     [PropertyTest]
     public bool SpanOfUInt(uint[] value, Endianness endianness)
     {
@@ -53,7 +48,6 @@ public class BinarySpanReadWriteSpanTests
         reader.ReadCount.Should().Be(size);
         return value.AsSpan().SequenceEqual(read);
     }
-
     [PropertyTest]
     public bool SpanOfLong(long[] value, Endianness endianness)
     {
@@ -65,7 +59,6 @@ public class BinarySpanReadWriteSpanTests
         reader.ReadCount.Should().Be(size);
         return value.AsSpan().SequenceEqual(read);
     }
-
     [PropertyTest]
     public bool SpanOfULong(ulong[] value, Endianness endianness)
     {
@@ -77,7 +70,6 @@ public class BinarySpanReadWriteSpanTests
         reader.ReadCount.Should().Be(size);
         return value.AsSpan().SequenceEqual(read);
     }
-
     [PropertyTest]
     public bool SpanOfInt128(Int128[] value, Endianness endianness)
     {
@@ -89,7 +81,6 @@ public class BinarySpanReadWriteSpanTests
         reader.ReadCount.Should().Be(size);
         return value.AsSpan().SequenceEqual(read);
     }
-
     [PropertyTest]
     public bool SpanOfUInt128(UInt128[] value, Endianness endianness)
     {
@@ -101,7 +92,6 @@ public class BinarySpanReadWriteSpanTests
         reader.ReadCount.Should().Be(size);
         return value.AsSpan().SequenceEqual(read);
     }
-
     [PropertyTest]
     public bool SpanOfByte(byte[] value, Endianness endianness)
     {
@@ -113,7 +103,6 @@ public class BinarySpanReadWriteSpanTests
         reader.ReadCount.Should().Be(size);
         return value.AsSpan().SequenceEqual(read);
     }
-
     [PropertyTest]
     public bool SpanOfSByte(sbyte[] value, Endianness endianness)
     {
@@ -125,7 +114,6 @@ public class BinarySpanReadWriteSpanTests
         reader.ReadCount.Should().Be(size);
         return value.AsSpan().SequenceEqual(read);
     }
-
     [PropertyTest]
     public bool SpanOfChars(char[] value, Endianness endianness)
     {
@@ -137,7 +125,6 @@ public class BinarySpanReadWriteSpanTests
         reader.ReadCount.Should().Be(size);
         return value.AsSpan().SequenceEqual(read);
     }
-
     [PropertyTest]
     public bool SpanOBooleans(bool[] value, Endianness endianness)
     {
@@ -149,10 +136,8 @@ public class BinarySpanReadWriteSpanTests
         reader.ReadCount.Should().Be(size);
         return value.AsSpan().SequenceEqual(read);
     }
-
     static int writeOffset;
     static int readOffset;
-
     static int Setup<T>(
         IReadOnlyCollection<T> values,
         Endianness endianness,
@@ -163,7 +148,6 @@ public class BinarySpanReadWriteSpanTests
         Span<byte> buffer = new byte[size];
         writeOffset = 0;
         readOffset = 0;
-
         writer = new(buffer, ref writeOffset)
         {
             Endianness = endianness,

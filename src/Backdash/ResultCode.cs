@@ -1,5 +1,4 @@
 namespace Backdash;
-
 public enum ResultCode : short
 {
     Ok = 0,

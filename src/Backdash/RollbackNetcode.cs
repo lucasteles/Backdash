@@ -2,9 +2,7 @@ using System.Net;
 using Backdash.Backends;
 using Backdash.Core;
 using Backdash.Data;
-
 namespace Backdash;
-
 public static class RollbackNetcode
 {
     public static IRollbackSession<TInput, TGameState> CreateSession<TInput, TGameState>(
@@ -15,7 +13,6 @@ public static class RollbackNetcode
         where TInput : struct
         where TGameState : IEquatable<TGameState>, new() =>
         new Peer2PeerBackend<TInput, TGameState>(port, options, BackendServices.Create(options, services));
-
     public static IRollbackSession<TInput, TGameState> CreateSpectatorSession<TInput, TGameState>(
         int port,
         IPEndPoint host,
@@ -27,7 +24,6 @@ public static class RollbackNetcode
         new SpectatorBackend<TInput, TGameState>(
             port, host, numberOfPlayers, options,
             BackendServices.Create(options, services));
-
     public static IRollbackSession<TInput, TGameState> CreateTestSession<TInput, TGameState>(
         FrameSpan? checkDistance = null,
         RollbackOptions? options = null,
@@ -42,9 +38,7 @@ public static class RollbackNetcode
             // ReSharper disable once RedundantArgumentDefaultValue
             Log = new(LogLevel.Information),
         };
-
         checkDistance ??= FrameSpan.One;
-
         return new SyncTestBackend<TInput, TGameState>(
             options, checkDistance.Value, throwException,
             BackendServices.Create(options, services)

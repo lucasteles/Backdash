@@ -1,15 +1,12 @@
 using System.Runtime.InteropServices;
-
 // ReSharper disable InconsistentNaming
 namespace Backdash.Helpers.Input;
-
 [StructLayout(LayoutKind.Sequential, Size = 2), Serializable]
 public record struct Axis
 {
     public sbyte X;
     public sbyte Y;
 }
-
 [StructLayout(LayoutKind.Sequential), Serializable]
 public record struct PadInput
 {
@@ -31,7 +28,6 @@ public record struct PadInput
         LSB = 1 << 11,
         RSB = 1 << 12,
     }
-
     public PadButtons Buttons;
     public byte LT;
     public byte RT;

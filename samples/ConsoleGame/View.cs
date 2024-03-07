@@ -1,19 +1,14 @@
 ﻿using System.Numerics;
-
 namespace ConsoleGame;
-
 public class View
 {
     readonly ConsoleColor defaultColor = ConsoleColor.Gray;
     readonly ConsoleColor targetColor = ConsoleColor.Yellow;
     readonly ConsoleColor[] playerColors = [ConsoleColor.Green, ConsoleColor.Red];
-
     public View() => Console.CursorVisible = false;
-
     public void Draw(in GameState currentState, NonGameState nonGameState)
     {
         Console.Clear();
-
         DrawHeader(nonGameState);
         DrawConnection(nonGameState);
         DrawField(in currentState, nonGameState);
@@ -21,7 +16,6 @@ public class View
         if (nonGameState.RemotePlayerStatus is PlayerStatus.Running)
             DrawStats(nonGameState);
     }
-
     void DrawHeader(NonGameState nonGameState)
     {
         if (nonGameState.LocalPlayer is { } localPlayer)
@@ -36,10 +30,8 @@ public class View
             Console.ForegroundColor = ConsoleColor.Magenta;
             Console.WriteLine("-- Spectator --\n");
         }
-
         Console.ForegroundColor = defaultColor;
     }
-
     void DrawScore(in GameState state)
     {
         Console.Write("Score: ");
@@ -52,17 +44,14 @@ public class View
         Console.ForegroundColor = defaultColor;
         Console.WriteLine();
     }
-
     void DrawField(in GameState currentState, NonGameState nonGameState)
     {
         var status1 = nonGameState.RemotePlayer.Number is 1
             ? nonGameState.RemotePlayerStatus
             : PlayerStatus.Running;
-
         var status2 = nonGameState.RemotePlayer.Number is 2
             ? nonGameState.RemotePlayerStatus
             : PlayerStatus.Running;
-
         for (var row = 0; row < GameLogic.GridSize; row++)
         {
             Console.Write(" ");
@@ -71,10 +60,8 @@ public class View
                 Console.Write(' ');
                 if (DrawPlayer(currentState.Position1, col, row, playerColors[0], status1))
                     continue;
-
                 if (DrawPlayer(currentState.Position2, col, row, playerColors[1], status2))
                     continue;
-
                 if ((int)currentState.Target.X == col && (int)currentState.Target.Y == row)
                 {
                     Console.ForegroundColor = targetColor;
@@ -82,16 +69,12 @@ public class View
                     Console.ForegroundColor = defaultColor;
                     continue;
                 }
-
                 Console.Write(".");
             }
-
             Console.WriteLine();
         }
-
         Console.WriteLine();
     }
-
     bool DrawPlayer(Vector2 pos, int col, int row, ConsoleColor color, PlayerStatus status)
     {
         if ((int)pos.X == col && (int)pos.Y == row)
@@ -106,10 +89,8 @@ public class View
             Console.ForegroundColor = defaultColor;
             return true;
         }
-
         return false;
     }
-
     void DrawConnection(NonGameState nonGameState)
     {
         Console.Write(" ");
@@ -143,40 +124,32 @@ public class View
                 Console.WriteLine("Disconnected.");
                 break;
         }
-
         Console.ForegroundColor = defaultColor;
         Console.WriteLine();
     }
-
     static void DrawProgressBar(double percent)
     {
         const int loadingSize = 10;
         var loaded = loadingSize * percent;
         var lastColor = Console.ForegroundColor;
         Console.Write(" ");
-
         for (var i = 0; i < loadingSize; i++)
         {
             Console.ForegroundColor = i <= loaded ? ConsoleColor.DarkGreen : ConsoleColor.White;
             Console.Write('\u2588');
         }
-
         Console.ForegroundColor = lastColor;
     }
-
     void DrawStats(NonGameState nonGameState)
     {
         var peer = nonGameState.PeerNetworkStatus;
         var info = nonGameState.SessionInfo;
-
-
         Console.WriteLine(
             $"""
              Ping:             {peer.Ping.TotalMilliseconds:f4} ms
              Rollback:         {info.RollbackFrames}
              """
         );
-
 #if DEBUG
         Console.WriteLine(
             $"""
@@ -187,7 +160,6 @@ public class View
              Bandwidth out/in: {peer.Send.Bandwidth.KibiBytes:f2} Kbps / {peer.Received.Bandwidth.KibiBytes:f2} Kbps
              """
         );
-
         if (!string.IsNullOrWhiteSpace(nonGameState.LastError))
             Console.WriteLine($"Last Error:       {nonGameState.LastError}");
 #endif

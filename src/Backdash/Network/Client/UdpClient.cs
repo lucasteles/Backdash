@@ -4,18 +4,14 @@ using System.Net;
 using System.Net.Sockets;
 using Backdash.Core;
 using Backdash.Serialization;
-
 namespace Backdash.Network.Client;
-
 interface IUdpClient<in T> : IBackgroundJob, IDisposable where T : struct
 {
     public int Port { get; }
     public SocketAddress Address { get; }
-
     ValueTask<int> SendTo(SocketAddress peerAddress, T payload, CancellationToken ct = default);
     ValueTask<int> SendTo(SocketAddress peerAddress, T payload, Memory<byte> buffer, CancellationToken ct = default);
 }
-
 sealed class UdpClient<T> : IUdpClient<T> where T : struct
 {
     readonly UdpSocket socket;
@@ -23,13 +19,10 @@ sealed class UdpClient<T> : IUdpClient<T> where T : struct
     readonly IBinarySerializer<T> serializer;
     readonly Logger logger;
     readonly int maxPacketSize;
-
     CancellationTokenSource? cancellation;
-
     public string JobName { get; }
     public int Port => socket.Port;
     public SocketAddress Address => socket.LocalAddress;
-
     public UdpClient(
         UdpSocket socket,
         IBinarySerializer<T> serializer,
@@ -42,7 +35,6 @@ sealed class UdpClient<T> : IUdpClient<T> where T : struct
         ArgumentNullException.ThrowIfNull(observer);
         ArgumentNullException.ThrowIfNull(serializer);
         ArgumentNullException.ThrowIfNull(logger);
-
         this.socket = socket;
         this.observer = observer;
         this.serializer = serializer;
@@ -50,25 +42,20 @@ sealed class UdpClient<T> : IUdpClient<T> where T : struct
         this.maxPacketSize = maxPacketSize;
         JobName = $"{nameof(UdpClient)} ({socket.Port})";
     }
-
     public async Task Start(CancellationToken ct)
     {
         if (cancellation is not null) return;
         cancellation = new();
-
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct, cancellation.Token);
         var token = cts.Token;
-
         await ReceiveLoop(token).ConfigureAwait(false);
     }
-
     async Task ReceiveLoop(CancellationToken ct)
     {
         var buffer = Mem.CreatePinnedMemory(maxPacketSize);
         SocketAddress address = new(socket.AddressFamily);
         const int retriesCount = 3;
         var retries = 0;
-
         T msg = default;
         while (!ct.IsCancellationRequested)
         {
@@ -96,45 +83,35 @@ sealed class UdpClient<T> : IUdpClient<T> where T : struct
                         logger.Write(LogLevel.Debug, $"Socket error: {ex}. Retrying. {retries}");
                     else
                         logger.Write(LogLevel.Warning, $"Recurrent socket error: {ex}. Retrying. {retries}");
-
                     await Task.Delay(100, ct);
                     continue;
                 }
 #pragma warning restore S2583
-
                 if (logger.EnabledLevel is not LogLevel.Off)
                     logger.Write(LogLevel.Error, $"Socket error: {ex}");
-
                 break;
             }
             catch (Exception ex)
             {
                 if (logger.EnabledLevel is not LogLevel.Off)
                     logger.Write(LogLevel.Error, $"Socket error: {ex}");
-
                 break;
             }
-
             if (receivedSize is 0)
                 continue;
-
             retries = 0;
             serializer.Deserialize(buffer[..receivedSize].Span, ref msg);
-
             await observer.OnUdpMessage(msg, address, receivedSize, ct).ConfigureAwait(false);
         }
-
         // ReSharper disable once RedundantAssignment
         buffer = null;
     }
-
     ValueTask<int> SendTo(
         SocketAddress peerAddress,
         ReadOnlyMemory<byte> payload,
         CancellationToken ct = default
     ) =>
         socket.SendToAsync(payload, peerAddress, ct);
-
     public async ValueTask<int> SendTo(
         SocketAddress peerAddress,
         T payload,
@@ -147,7 +124,6 @@ sealed class UdpClient<T> : IUdpClient<T> where T : struct
         Trace.Assert(sentSize == bodySize);
         return sentSize;
     }
-
     public async ValueTask<int> SendTo(
         SocketAddress peerAddress,
         T payload,
@@ -159,7 +135,6 @@ sealed class UdpClient<T> : IUdpClient<T> where T : struct
         ArrayPool<byte>.Shared.Return(buffer);
         return sentBytes;
     }
-
     public void Dispose()
     {
         cancellation?.Cancel();

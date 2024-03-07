@@ -5,7 +5,6 @@ major-version-bump-message: "^(breaking|major):"
 minor-version-bump-message: "^(feature|minor):"
 patch-version-bump-message: "^(fix|patch):"
 no-bump-message: "^(none|skip):"
-
 branches:
     master:
         tag: beta

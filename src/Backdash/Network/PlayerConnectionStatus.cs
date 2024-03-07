@@ -1,5 +1,4 @@
 namespace Backdash.Network;
-
 public enum PlayerConnectionStatus : sbyte
 {
     Unknown = -1,

@@ -6,15 +6,12 @@ using Backdash.Network.Client;
 using Backdash.Network.Messages;
 using Backdash.Serialization;
 using Backdash.Sync.Input;
-
 namespace Backdash.Network.Protocol.Comm;
-
 interface IProtocolInbox<TInput> : IUdpObserver<ProtocolMessage> where TInput : struct
 {
     GameInput<TInput> LastReceivedInput { get; }
     Frame LastAckedFrame { get; }
 }
-
 sealed class ProtocolInbox<TInput>(
     ProtocolOptions options,
     IBinaryReader<TInput> inputSerializer,
@@ -31,10 +28,8 @@ sealed class ProtocolInbox<TInput>(
     ushort nextRecvSeq;
     GameInput<TInput> lastReceivedInput = new();
     readonly Memory<byte> lastReceivedInputBuffer = Mem.CreatePinnedMemory(Max.CompressedBytes);
-
     public GameInput<TInput> LastReceivedInput => lastReceivedInput;
     public Frame LastAckedFrame { get; private set; } = Frame.Null;
-
     public async ValueTask OnUdpMessage(
         ProtocolMessage message,
         SocketAddress from,
@@ -44,7 +39,6 @@ sealed class ProtocolInbox<TInput>(
     {
         if (!from.Equals(state.PeerAddress.Address))
             return;
-
         var seqNum = message.Header.SequenceNumber;
         if (message.Header.Type is not MessageType.SyncRequest and not MessageType.SyncReply)
         {
@@ -53,13 +47,11 @@ sealed class ProtocolInbox<TInput>(
                 logger.Write(LogLevel.Debug, $"recv skip (not ready): {message} on {state.Player}");
                 return;
             }
-
             if (message.Header.Magic != remoteMagicNumber)
             {
                 logger.Write(LogLevel.Debug, $"recv rejecting: {message} on {state.Player}");
                 return;
             }
-
             var skipped = (ushort)(seqNum - nextRecvSeq);
             if (skipped > options.MaxSeqDistance)
             {
@@ -67,19 +59,15 @@ sealed class ProtocolInbox<TInput>(
                 return;
             }
         }
-
         nextRecvSeq = seqNum;
         logger.Write(LogLevel.Trace, $"recv {message} from {state.Player}");
-
         if (HandleMessage(ref message, out var replyMsg))
         {
             if (replyMsg.Header.Type is not MessageType.Invalid)
                 await messageSender.SendMessageAsync(in replyMsg, stoppingToken).ConfigureAwait(false);
-
             state.Stats.Received.LastTime = clock.GetTimeStamp();
             state.Stats.Received.TotalPackets++;
             state.Stats.Received.TotalBytes += (ByteSize)bytesReceived;
-
             if (state.Connection.DisconnectNotifySent && state.CurrentStatus is ProtocolStatus.Running)
             {
                 networkEvents.OnNetworkEvent(ProtocolEvent.NetworkResumed, state.Player);
@@ -87,12 +75,10 @@ sealed class ProtocolInbox<TInput>(
             }
         }
     }
-
     bool HandleMessage(ref ProtocolMessage message, out ProtocolMessage replyMsg)
     {
         var handled = false;
         replyMsg = new(MessageType.Invalid);
-
         switch (message.Header.Type)
         {
             case MessageType.SyncRequest:
@@ -122,19 +108,15 @@ sealed class ProtocolInbox<TInput>(
             default:
                 throw new BackdashException($"Unknown UdpMsg type: {message.Header.Type}");
         }
-
         return handled;
     }
-
     bool OnInput(ref InputMessage msg)
     {
         logger.Write(LogLevel.Trace, $"Acked Frame: {LastAckedFrame}");
-
         /*
          * If a disconnect is requested, go ahead and disconnect now.
          */
         var disconnectRequested = msg.DisconnectRequested;
-
         if (disconnectRequested)
         {
             if (state.CurrentStatus is not ProtocolStatus.Disconnected && !state.Connection.DisconnectEventSent)
@@ -162,7 +144,6 @@ sealed class ProtocolInbox<TInput>(
                 );
             }
         }
-
         /*
          * Decompress the input.
          */
@@ -172,26 +153,21 @@ sealed class ProtocolInbox<TInput>(
         {
             if (lastReceivedFrame < 0)
                 lastReceivedFrame = msg.StartFrame.Previous();
-
             var nextFrame = lastReceivedFrame.Next();
             var currentFrame = msg.StartFrame;
             var decompressor = InputEncoder.GetDecompressor(ref msg);
-
             if (currentFrame < nextFrame)
             {
                 var framesAhead = nextFrame.Number - currentFrame.Number;
                 logger.Write(LogLevel.Trace,
                     $"Skipping past {framesAhead} frames (current: {currentFrame}, last: {lastReceivedFrame}, next: {nextFrame})");
-
                 if (decompressor.Skip(framesAhead))
                     currentFrame += framesAhead;
                 else
                     // probably we already heave all inputs from this message
                     return true;
             }
-
             Trace.Assert(currentFrame == nextFrame);
-
             var lastReceivedBuffer = lastReceivedInputBuffer.Span[..msg.InputSize];
             while (decompressor.Read(lastReceivedBuffer))
             {
@@ -205,26 +181,21 @@ sealed class ProtocolInbox<TInput>(
                     $"Received input: frame {lastReceivedInput.Frame}, sending to emulator queue {state.Player} (ack: {LastAckedFrame})");
                 inputEvents.Publish(new(state.Player, lastReceivedInput));
             }
-
             LastAckedFrame = msg.AckFrame;
         }
-
         Trace.Assert(lastReceivedInput.Frame >= startLastReceivedFrame);
         return true;
     }
-
     bool OnInputAck(in ProtocolMessage msg)
     {
         LastAckedFrame = msg.InputAck.AckFrame;
         return true;
     }
-
     bool OnQualityReply(in ProtocolMessage msg)
     {
         state.Stats.RoundTripTime = clock.GetElapsedTime(msg.QualityReply.Pong);
         return true;
     }
-
     bool OnQualityReport(in ProtocolMessage msg, out ProtocolMessage newMsg)
     {
         newMsg = new(MessageType.QualityReply)
@@ -234,42 +205,33 @@ sealed class ProtocolInbox<TInput>(
                 Pong = msg.QualityReport.Ping,
             },
         };
-
         state.Fairness.RemoteFrameAdvantage = new(msg.QualityReport.FrameAdvantage);
         return true;
     }
-
     bool OnSyncReply(in ProtocolMessage msg, ref ProtocolMessage replyMsg)
     {
         var elapsed = clock.GetElapsedTime(msg.SyncReply.Pong);
-
         if (state.CurrentStatus is not ProtocolStatus.Syncing)
         {
             logger.Write(LogLevel.Trace, "Ignoring SyncReply while not syncing");
             return msg.Header.Magic == remoteMagicNumber;
         }
-
         if (msg.SyncReply.RandomReply != state.Sync.CurrentRandom)
         {
             logger.Write(LogLevel.Debug,
                 $"Sync reply {msg.SyncReply.RandomReply} != {state.Sync.CurrentRandom}. Keep looking.");
             return false;
         }
-
         if (!state.Connection.IsConnected)
         {
             networkEvents.OnNetworkEvent(ProtocolEvent.Connected, state.Player);
             state.Connection.IsConnected = true;
         }
-
         logger.Write(LogLevel.Debug,
             $"Checking sync state ({state.Sync.RemainingRoundtrips} round trips remaining)");
-
         if (options.NumberOfSyncPackets >= state.Sync.RemainingRoundtrips)
             state.Sync.TotalRoundtripsPing = TimeSpan.Zero;
-
         state.Sync.TotalRoundtripsPing += elapsed;
-
         if (--state.Sync.RemainingRoundtrips == 0)
         {
             var ping = state.Sync.TotalRoundtripsPing / options.NumberOfSyncPackets;
@@ -295,13 +257,10 @@ sealed class ProtocolInbox<TInput>(
                     ),
                 }
             );
-
             sync.CreateRequestMessage(out replyMsg);
         }
-
         return true;
     }
-
     public bool OnSyncRequest(in ProtocolMessage msg, ref ProtocolMessage replyMsg)
     {
         if (remoteMagicNumber is not 0 && msg.Header.Magic != remoteMagicNumber)
@@ -310,7 +269,6 @@ sealed class ProtocolInbox<TInput>(
                 $"Ignoring sync request from unknown endpoint ({msg.Header.Magic} != {remoteMagicNumber})");
             return false;
         }
-
         sync.CreateReplyMessage(in msg.SyncRequest, out replyMsg);
         return true;
     }

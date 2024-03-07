@@ -1,7 +1,5 @@
 using Backdash.Data;
-
 namespace Backdash;
-
 public sealed class RollbackNetworkStatus
 {
     public TimeSpan Ping { get; internal set; }
@@ -11,7 +9,6 @@ public sealed class RollbackNetworkStatus
     public Frame LastAckedFrame { get; internal set; }
     public PackagesInfo Send { get; } = new();
     public PackagesInfo Received { get; } = new();
-
     public sealed class PackagesInfo
     {
         public TimeSpan LastTime { get; internal set; }

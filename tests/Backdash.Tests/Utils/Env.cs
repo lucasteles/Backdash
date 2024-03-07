@@ -1,5 +1,4 @@
 namespace Backdash.Tests.Utils;
-
 public static class Env
 {
     public static bool ContinuousIntegration =>

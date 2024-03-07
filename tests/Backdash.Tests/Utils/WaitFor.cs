@@ -1,7 +1,5 @@
 using System.Runtime.CompilerServices;
-
 namespace Backdash.Tests.Utils;
-
 public static class WaitFor
 {
     public static async Task BeTrue(
@@ -15,13 +13,11 @@ public static class WaitFor
     {
         timeout ??= TimeSpan.FromSeconds(5);
         next ??= TimeSpan.FromSeconds(1.0 / 60);
-
         async Task WaitLoop()
         {
             while (!checkTask())
                 await Task.Delay(next.Value);
         }
-
         try
         {
             await WaitLoop().WaitAsync(timeout.Value);

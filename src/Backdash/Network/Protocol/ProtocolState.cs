@@ -1,9 +1,7 @@
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Serialization.Buffer;
-
 namespace Backdash.Network.Protocol;
-
 sealed class ProtocolState(
     PlayerHandle player,
     PeerAddress peerAddress,
@@ -13,33 +11,27 @@ sealed class ProtocolState(
 {
     public readonly CancellationTokenSource StoppingTokenSource = new();
     public CancellationToken StoppingToken => StoppingTokenSource.Token;
-
     public readonly PlayerHandle Player = player;
     public readonly PeerAddress PeerAddress = peerAddress;
-
     public readonly SyncState Sync = new();
     public readonly ConnectionState Connection = new();
     public readonly AdvantageState Fairness = new(fps);
     public readonly Statistics Stats = new();
-
     public readonly ConnectionsState LocalConnectStatuses = localConnectStatuses;
     public readonly ConnectionsState PeerConnectStatuses = new(Max.RemoteConnections, Frame.Null);
     public ProtocolStatus CurrentStatus;
-
     public sealed class ConnectionState
     {
         public bool DisconnectEventSent;
         public bool DisconnectNotifySent;
         public bool IsConnected;
     }
-
     public sealed class AdvantageState(short fps)
     {
         public FrameSpan LocalFrameAdvantage;
         public FrameSpan RemoteFrameAdvantage;
         public readonly short FramesPerSecond = fps;
     }
-
     public class Statistics
     {
         public TimeSpan RoundTripTime = TimeSpan.Zero;
@@ -47,7 +39,6 @@ sealed class ProtocolState(
         public PackagesStats Send = new();
         public PackagesStats Received = new();
     }
-
     public struct PackagesStats : IUtf8SpanFormattable
     {
         public long LastTime;
@@ -57,7 +48,6 @@ sealed class ProtocolState(
         public float UdpOverhead;
         public ByteSize Bandwidth;
         public ByteSize TotalBytesWithHeaders;
-
         public readonly bool TryFormat(
             Span<byte> utf8Destination, out int bytesWritten, ReadOnlySpan<char> format,
             IFormatProvider? provider
@@ -79,15 +69,12 @@ sealed class ProtocolState(
             return true;
         }
     }
-
     public sealed class SyncState
     {
         public readonly object Locker = new();
-
         int remainingRoundtrips;
         uint currentRandom;
         TimeSpan totalRoundtripsPing;
-
         public uint CurrentRandom
         {
             get
@@ -99,7 +86,6 @@ sealed class ProtocolState(
                 lock (Locker) currentRandom = value;
             }
         }
-
         public TimeSpan TotalRoundtripsPing
         {
             get
@@ -111,7 +97,6 @@ sealed class ProtocolState(
                 lock (Locker) totalRoundtripsPing = value;
             }
         }
-
         public int RemainingRoundtrips
         {
             get

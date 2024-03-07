@@ -5,9 +5,7 @@ using Backdash.Serialization;
 using Backdash.Sync.Input;
 using Backdash.Sync.State;
 using Backdash.Sync.State.Stores;
-
 namespace Backdash.Backends;
-
 sealed class BackendServices<TInput, TGameState>
     where TInput : struct
     where TGameState : IEquatable<TGameState>, new()
@@ -22,7 +20,6 @@ sealed class BackendServices<TInput, TGameState>
     public IInputGenerator<TInput>? InputGenerator { get; }
     public IRandomNumberGenerator Random { get; }
     public IDelayStrategy DelayStrategy { get; }
-
     public BackendServices(RollbackOptions options, SessionServices<TInput, TGameState>? services)
     {
         ChecksumProvider = services?.ChecksumProvider ?? ChecksumProviderFactory.Create<TGameState>();
@@ -32,18 +29,15 @@ sealed class BackendServices<TInput, TGameState>
         InputGenerator = services?.InputGenerator;
         InputSerializer = services?.InputSerializer ?? BinarySerializerFactory
             .FindOrThrow<TInput>(options.NetworkEndianness);
-
         var logWriter = services?.LogWriter is null || options.Log.EnabledLevel is LogLevel.Off
             ? new ConsoleLogWriter()
             : services.LogWriter;
-
         Logger = new Logger(options.Log, logWriter);
         Clock = new Clock();
         JobManager = new BackgroundJobManager(Logger);
         UdpClientFactory = new UdpClientFactory();
     }
 }
-
 static class BackendServices
 {
     public static BackendServices<TInput, TGameState> Create<TInput, TGameState>(

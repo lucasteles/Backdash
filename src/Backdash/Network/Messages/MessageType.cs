@@ -1,5 +1,4 @@
 namespace Backdash.Network.Messages;
-
 [Serializable]
 enum MessageType : ushort
 {

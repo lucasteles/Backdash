@@ -1,5 +1,4 @@
 namespace Backdash.Core;
-
 public static class Max
 {
     public const int RemoteConnections = 4;

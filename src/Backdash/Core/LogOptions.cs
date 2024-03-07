@@ -1,5 +1,4 @@
 namespace Backdash.Core;
-
 public sealed class LogOptions(
     LogLevel level =
 #if DEBUG

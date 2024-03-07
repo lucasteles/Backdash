@@ -2,9 +2,7 @@ using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network.Protocol;
 using Backdash.Sync;
-
 namespace Backdash;
-
 public sealed class RollbackOptions
 {
     public int SpectatorOffset { get; init; } = Default.SpectatorOffset;

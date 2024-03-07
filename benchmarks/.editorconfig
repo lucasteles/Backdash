@@ -1,5 +1,4 @@
 root = true
-
 [*.cs]
 dotnet_diagnostic.S125.severity = suggestion # Remove this commented out code.
 dotnet_diagnostic.S1199.severity = silent # extract method

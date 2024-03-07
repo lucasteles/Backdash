@@ -10,9 +10,7 @@ using Backdash.Serialization;
 using Backdash.Sync.Input;
 using Backdash.Sync.Input.Spectator;
 using Backdash.Sync.State;
-
 namespace Backdash.Backends;
-
 sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGameState>, IProtocolNetworkEventHandler
     where TInput : struct
     where TGameState : IEquatable<TGameState>, new()
@@ -30,23 +28,18 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
     readonly ProtocolInputEventQueue<TInput> peerInputEventQueue;
     readonly IProtocolInputEventPublisher<CombinedInputs<TInput>> peerCombinedInputsEventPublisher;
     readonly PeerConnectionFactory peerConnectionFactory;
-
     readonly List<PeerConnection<CombinedInputs<TInput>>> spectators;
     readonly List<PeerConnection<TInput>?> endpoints;
-
     readonly HashSet<PlayerHandle> addedPlayers = [];
     readonly HashSet<PlayerHandle> addedSpectators = [];
-
     bool isSynchronizing = true;
     int nextRecommendedInterval;
     Frame nextSpectatorFrame = Frame.Zero;
     IRollbackHandler<TGameState> callbacks;
     SynchronizedInput<TInput>[] syncInputBuffer = [];
-
     Task backgroundJobTask = Task.CompletedTask;
     bool disposed;
     bool closed;
-
     public Peer2PeerBackend(
         int port,
         RollbackOptions options,
@@ -59,7 +52,6 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         ThrowHelpers.ThrowIfArgumentIsZeroOrLess(options.FramesPerSecond);
         ThrowHelpers.ThrowIfArgumentOutOfBounds(options.SpectatorOffset, min: Max.RemoteConnections);
         ThrowHelpers.ThrowIfTypeTooBigForStack<GameInput<TInput>>();
-
         this.options = options;
         inputSerializer = services.InputSerializer;
         stateStore = services.StateStore;
@@ -73,7 +65,6 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         endpoints = [];
         udpObservers = new();
         callbacks = new EmptySessionHandler<TGameState>(logger);
-
         synchronizer = new(
             this.options,
             logger,
@@ -85,9 +76,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         {
             Callbacks = callbacks,
         };
-
         var selectedEndianness = Platform.GetEndianness(this.options.NetworkEndianness);
-
         udp = services.UdpClientFactory.CreateClient(
             port,
             selectedEndianness,
@@ -95,7 +84,6 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
             udpObservers,
             logger
         );
-
         peerConnectionFactory = new(
             this,
             services.Clock,
@@ -107,58 +95,44 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
             this.options.Protocol,
             this.options.TimeSync
         );
-
         backgroundJobManager.Register(udp);
     }
-
     public void Dispose()
     {
         if (disposed) return;
         disposed = true;
-
         Close();
-
         udp.Dispose();
         stateStore.Dispose();
         logger.Dispose();
         backgroundJobManager.Dispose();
     }
-
     public void Close()
     {
         if (closed) return;
         closed = true;
-
         logger.Write(LogLevel.Information, "Shutting down connections");
-
         foreach (var endpoint in endpoints)
             endpoint?.Dispose();
-
         foreach (var spectator in spectators)
             spectator.Dispose();
-
         callbacks.OnSessionClose();
     }
-
     public Frame CurrentFrame => synchronizer.CurrentFrame;
     public FrameSpan RollbackFrames => synchronizer.RollbackFrames;
     public FrameSpan FramesBehind => synchronizer.FramesBehind;
     public int NumberOfPlayers => addedPlayers.Count;
     public int NumberOfSpectators => addedSpectators.Count;
     public bool IsSpectating => false;
-
     public IReadOnlyCollection<PlayerHandle> GetPlayers() => addedPlayers;
     public IReadOnlyCollection<PlayerHandle> GetSpectators() => addedSpectators;
-
     public void Start(CancellationToken stoppingToken = default) =>
         backgroundJobTask = backgroundJobManager.Start(stoppingToken);
-
     public Task WaitToStop(CancellationToken stoppingToken = default)
     {
         backgroundJobManager.Stop(TimeSpan.Zero);
         return backgroundJobTask.WaitAsync(stoppingToken);
     }
-
     public ResultCode AddPlayer(Player player)
     {
         ArgumentNullException.ThrowIfNull(player);
@@ -170,60 +144,45 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
             _ => throw new ArgumentOutOfRangeException(nameof(player))
         };
     }
-
     public ResultCode AddLocalInput(PlayerHandle player, TInput localInput)
     {
         GameInput<TInput> input = new()
         {
             Data = localInput,
         };
-
         if (isSynchronizing)
             return ResultCode.NotSynchronized;
-
         if (player.Type is not PlayerType.Local)
             return ResultCode.InvalidPlayerHandle;
-
         if (!IsPlayerKnown(in player))
             return ResultCode.PlayerOutOfRange;
-
         if (synchronizer.InRollback)
             return ResultCode.InRollback;
-
         if (!synchronizer.AddLocalInput(in player, ref input))
             return ResultCode.PredictionThreshold;
-
         // Update the local connect status state to indicate that we've got a
         // confirmed local frame for this player.  this must come first so it
         // gets incorporated into the next packet we send.
         if (input.Frame.IsNull)
             return ResultCode.Ok;
-
         logger.Write(LogLevel.Trace,
             $"setting local connect status for local queue {player.InternalQueue} to {input.Frame}");
-
         localConnections[player].LastFrame = input.Frame;
-
         // Send the input to all the remote players.
         var sent = true;
         for (var i = 0; i < endpoints.Count; i++)
         {
             if (endpoints[i] is not { } endpoint)
                 continue;
-
             var result = endpoint.SendInput(in input);
             if (result is SendInputResult.Ok) continue;
-
             sent = false;
             logger.Write(LogLevel.Warning, $"Unable to send input to queue {i}, {result}");
         }
-
         if (!sent)
             return ResultCode.InputDropped;
-
         return ResultCode.Ok;
     }
-
     bool IsPlayerKnown(in PlayerHandle player) =>
         player.InternalQueue >= 0
         && player.InternalQueue <
@@ -233,57 +192,45 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
             PlayerType.Spectator => spectators.Count,
             _ => int.MaxValue,
         };
-
     public bool GetNetworkStatus(in PlayerHandle player, ref RollbackNetworkStatus info)
     {
         if (!IsPlayerKnown(in player)) return false;
         if (isSynchronizing) return false;
-
         endpoints[player.InternalQueue]?.GetNetworkStats(ref info);
         return true;
     }
-
     public void SetHandler(IRollbackHandler<TGameState> handler)
     {
         ArgumentNullException.ThrowIfNull(handler);
         callbacks = handler;
         synchronizer.Callbacks = handler;
     }
-
     public void SetFrameDelay(PlayerHandle player, int delayInFrames)
     {
         ThrowHelpers.ThrowIfArgumentOutOfBounds(player.InternalQueue, 0, addedPlayers.Count);
         ThrowHelpers.ThrowIfArgumentIsNegative(delayInFrames);
         synchronizer.SetFrameDelay(player, delayInFrames);
     }
-
     ResultCode AddLocalPlayer(in LocalPlayer player)
     {
         if (addedPlayers.Count >= Max.RemoteConnections)
             return ResultCode.TooManyPlayers;
-
         PlayerHandle handle = new(player.Handle.Type, player.Handle.Number, addedPlayers.Count);
-
         if (!addedPlayers.Add(handle))
             return ResultCode.Duplicated;
-
         player.Handle = handle;
         endpoints.Add(null);
         Array.Resize(ref syncInputBuffer, syncInputBuffer.Length + 1);
         synchronizer.AddQueue(player.Handle);
         return ResultCode.Ok;
     }
-
     ResultCode AddRemotePlayer(RemotePlayer player)
     {
         if (addedPlayers.Count >= Max.RemoteConnections)
             return ResultCode.TooManyPlayers;
-
         PlayerHandle handle = new(player.Handle.Type, player.Handle.Number, addedPlayers.Count);
-
         if (!addedPlayers.Add(handle))
             return ResultCode.Duplicated;
-
         player.Handle = handle;
         var endpoint = player.EndPoint;
         var protocol = peerConnectionFactory.Create(
@@ -292,17 +239,14 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
             peerInputEventQueue
         );
         udpObservers.Add(protocol.GetUdpObserver());
-
         endpoints.Add(protocol);
         Array.Resize(ref syncInputBuffer, syncInputBuffer.Length + 1);
         synchronizer.AddQueue(player.Handle);
         logger.Write(LogLevel.Information, $"Adding {player.Handle} at {endpoint}");
         protocol.Synchronize();
         isSynchronizing = true;
-
         return ResultCode.Ok;
     }
-
     public IReadOnlyList<ResultCode> AddPlayers(IReadOnlyList<Player> players)
     {
         var result = new ResultCode[players.Count];
@@ -310,153 +254,118 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
             result[index] = AddPlayer(players[index]);
         return result;
     }
-
     ResultCode AddSpectator(Spectator spectator)
     {
         if (spectators.Count >= Max.NumberOfSpectators)
             return ResultCode.TooManySpectators;
-
         // Currently, we can only add spectators before the game starts.
         if (!isSynchronizing)
             return ResultCode.InvalidRequest;
-
         var queue = spectators.Count;
         PlayerHandle spectatorHandle = new(PlayerType.Spectator, options.SpectatorOffset + queue, queue);
         if (!addedSpectators.Add(spectatorHandle))
             return ResultCode.Duplicated;
-
         spectator.Handle = spectatorHandle;
-
         var protocol = peerConnectionFactory.Create(
             new(spectatorHandle, spectator.EndPoint, localConnections, options.FramesPerSecond),
             inputGroupSerializer, peerCombinedInputsEventPublisher
         );
         udpObservers.Add(protocol.GetUdpObserver());
-
         spectators.Add(protocol);
         logger.Write(LogLevel.Information, $"Adding {spectator.Handle} at {spectator.EndPoint}");
         protocol.Synchronize();
         return ResultCode.Ok;
     }
-
     public PlayerConnectionStatus GetPlayerStatus(in PlayerHandle player)
     {
         if (!IsPlayerKnown(in player)) return PlayerConnectionStatus.Unknown;
         if (player.IsLocal()) return PlayerConnectionStatus.Local;
         if (player.IsSpectator()) return spectators[player.InternalQueue].Status.ToPlayerStatus();
-
         var endpoint = endpoints[player.InternalQueue];
-
         if (endpoint?.IsRunning == true)
             return localConnections.IsConnected(in player)
                 ? PlayerConnectionStatus.Connected
                 : PlayerConnectionStatus.Disconnected;
-
         return endpoint?.Status.ToPlayerStatus() ?? PlayerConnectionStatus.Unknown;
     }
-
     public ref readonly SynchronizedInput<TInput> GetInput(int index) =>
         ref syncInputBuffer[index];
-
     public ref readonly SynchronizedInput<TInput> GetInput(in PlayerHandle player) =>
         ref syncInputBuffer[player.InternalQueue];
-
     public void BeginFrame()
     {
         if (!isSynchronizing)
             logger.Write(LogLevel.Debug, $"[Begin Frame {synchronizer.CurrentFrame}]");
-
         DoSync();
     }
-
     public ResultCode SynchronizeInputs()
     {
         if (isSynchronizing)
             return ResultCode.NotSynchronized;
-
         synchronizer.SynchronizeInputs(syncInputBuffer);
-
         return ResultCode.Ok;
     }
-
     void CheckInitialSync()
     {
         if (!isSynchronizing) return;
-
         // Check to see if everyone is now synchronized.  If so,
         // go ahead and tell the client that we're ok to accept input.
         for (var i = 0; i < endpoints.Count; i++)
             if (endpoints[i] is { IsRunning: false } ep && localConnections.IsConnected(ep.Player))
                 return;
-
         for (var i = 0; i < spectators.Count; i++)
             if (!spectators[i].IsRunning && spectators[i].Status is not ProtocolStatus.Disconnected)
                 return;
-
         for (var i = 0; i < endpoints.Count; i++) endpoints[i]?.Start();
         for (var i = 0; i < spectators.Count; i++) spectators[i].Start();
         isSynchronizing = false;
         callbacks.OnSessionStart();
     }
-
     public void AdvanceFrame()
     {
         logger.Write(LogLevel.Debug, $"[End Frame {synchronizer.CurrentFrame}]");
         synchronizer.IncrementFrame();
     }
-
     void ConsumeProtocolInputEvents()
     {
         while (peerInputEventQueue.TryConsume(out var gameInputEvent))
         {
             var (player, eventInput) = gameInputEvent;
-
             if (!player.IsRemote())
             {
                 logger.Write(LogLevel.Warning, $"non-remote input received from {player}");
                 continue;
             }
-
             if (localConnections[player].Disconnected)
                 continue;
-
             var currentRemoteFrame = localConnections[player].LastFrame;
             var newRemoteFrame = eventInput.Frame;
             Trace.Assert(currentRemoteFrame.IsNull || newRemoteFrame == currentRemoteFrame.Next());
-
             synchronizer.AddRemoteInput(in player, eventInput);
             // Notify the other endpoints which frame we received from a peer
             logger.Write(LogLevel.Debug, $"setting remote connect status frame {player} to {eventInput.Frame}");
             localConnections[player].LastFrame = eventInput.Frame;
         }
     }
-
     void DoSync()
     {
         if (synchronizer.InRollback)
             return;
-
         ConsumeProtocolInputEvents();
-
         int i;
         for (i = 0; i < endpoints.Count; i++)
             endpoints[i]?.Update();
-
         for (i = 0; i < spectators.Count; i++)
             spectators[i].Update();
-
         if (isSynchronizing)
             return;
-
         synchronizer.CheckSimulation();
         // notify all of our endpoints of their local frame number for their next connection quality report
         var currentFrame = synchronizer.CurrentFrame;
         for (i = 0; i < endpoints.Count; i++)
             endpoints[i]?.SetLocalFrameNumber(currentFrame, options.FramesPerSecond);
-
         var minConfirmedFrame = NumberOfPlayers <= 2 ? MinimumFrame2Players() : MinimumFrameNPlayers();
         Trace.Assert(minConfirmedFrame != Frame.MaxValue);
-
         logger.Write(LogLevel.Trace, $"last confirmed frame in p2p backend is {minConfirmedFrame}");
         if (minConfirmedFrame >= Frame.Zero)
         {
@@ -466,22 +375,17 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
                 while (nextSpectatorFrame <= minConfirmedFrame)
                 {
                     logger.Write(LogLevel.Debug, $"pushing frame {nextSpectatorFrame} to spectators");
-
                     if (!synchronizer.GetConfirmedInputGroup(in nextSpectatorFrame, ref confirmed))
                         break;
-
                     for (var s = 0; s < spectators.Count; s++)
                         if (spectators[s].IsRunning)
                             spectators[s].SendInput(in confirmed);
-
                     nextSpectatorFrame++;
                 }
             }
-
             logger.Write(LogLevel.Debug, $"setting confirmed frame in sync to {minConfirmedFrame}");
             synchronizer.SetLastConfirmedFrame(minConfirmedFrame);
         }
-
         // send time sync notifications if now is the proper time
         if (currentFrame.Number > nextRecommendedInterval)
         {
@@ -489,17 +393,14 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
             for (i = 0; i < endpoints.Count; i++)
                 if (endpoints[i] is { } endpoint)
                     interval = Math.Max(interval, endpoint.GetRecommendFrameDelay(options.RequireIdleInput));
-
             if (interval <= 0) return;
             callbacks.TimeSync(new(interval));
             nextRecommendedInterval = currentFrame.Number + options.RecommendationInterval;
         }
     }
-
     void IProtocolNetworkEventHandler.OnNetworkEvent(in ProtocolEventInfo evt)
     {
         ref readonly var player = ref evt.Player;
-
         switch (evt.Type)
         {
             case ProtocolEvent.Connected:
@@ -525,7 +426,6 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
                     addedSpectators.Remove(player);
                     CheckInitialSync();
                 }
-
                 break;
             case ProtocolEvent.NetworkInterrupted:
                 callbacks.OnPeerEvent(player, new(PeerEvent.ConnectionInterrupted)
@@ -542,10 +442,8 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
                     spectators[player.InternalQueue].Disconnect();
                     addedSpectators.Remove(player);
                 }
-
                 if (player.Type is PlayerType.Remote)
                     DisconnectPlayer(player);
-
                 callbacks.OnPeerEvent(player, new(PeerEvent.Disconnected));
                 break;
             default:
@@ -553,7 +451,6 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
                 break;
         }
     }
-
     Frame MinimumFrame2Players()
     {
         // discard confirmed frames as appropriate
@@ -563,27 +460,21 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
             var queueConnected = true;
             if (endpoints[i] is { IsRunning: true } endpoint)
                 queueConnected = endpoint.GetPeerConnectStatus(i, out _);
-
             ref var localConn = ref localConnections[i];
             if (!localConn.Disconnected)
                 totalMinConfirmed = Frame.Min(in localConnections[i].LastFrame, in totalMinConfirmed);
-
             logger.Write(LogLevel.Trace,
                 $"Queue {i} => connected: {!localConn.Disconnected}; last received: {localConn.LastFrame}; min confirmed: {totalMinConfirmed}");
-
             if (!queueConnected && !localConn.Disconnected)
             {
                 logger.Write(LogLevel.Information, $"disconnecting {i} by remote request");
                 PlayerHandle handle = new(PlayerType.Remote, i);
                 DisconnectPlayerQueue(in handle, in totalMinConfirmed);
             }
-
             logger.Write(LogLevel.Trace, $"Queue {i} => min confirmed = {totalMinConfirmed}");
         }
-
         return totalMinConfirmed;
     }
-
     Frame MinimumFrameNPlayers()
     {
         // discard confirmed frames as appropriate
@@ -609,16 +500,12 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
                 else
                     logger.Write(LogLevel.Trace, $"Queue {i}: ignoring... not running.");
             }
-
             ref var localStatus = ref localConnections[queue];
-
             // merge in our local status only if we're still connected!
             if (!localStatus.Disconnected)
                 queueMinConfirmed = Frame.Min(in localStatus.LastFrame, in queueMinConfirmed);
-
             logger.Write(LogLevel.Trace,
                 $"[Endpoint {queue}]: connected = {!localStatus.Disconnected}; last received = {localStatus.LastFrame}, queue min confirmed = {queueMinConfirmed}");
-
             if (queueConnected)
                 totalMinConfirmed = Frame.Min(in queueMinConfirmed, in totalMinConfirmed);
             else
@@ -633,27 +520,19 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
                     DisconnectPlayerQueue(in handle, in queueMinConfirmed);
                 }
             }
-
             logger.Write(LogLevel.Trace, $"[Endpoint {queue}] total min confirmed = {totalMinConfirmed}");
         }
-
         return totalMinConfirmed;
     }
-
     void DisconnectPlayerQueue(in PlayerHandle player, in Frame syncTo)
     {
         var frameCount = synchronizer.CurrentFrame;
-
         endpoints[player.InternalQueue]?.Disconnect();
-
         ref var connStatus = ref localConnections[player];
-
         logger.Write(LogLevel.Debug,
             $"Changing player {player} local connect status for last frame from {connStatus.LastFrame} to {syncTo} on disconnect request (current: {frameCount})");
-
         connStatus.Disconnected = true;
         connStatus.LastFrame = syncTo;
-
         if (syncTo < frameCount)
         {
             logger.Write(LogLevel.Information,
@@ -661,18 +540,14 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
             synchronizer.AdjustSimulation(in syncTo);
             logger.Write(LogLevel.Information, "finished adjusting simulation.");
         }
-
         callbacks.OnPeerEvent(player, new(PeerEvent.Disconnected));
-
         CheckInitialSync();
     }
-
     public void DisconnectPlayer(in PlayerHandle player)
     {
         if (!IsPlayerKnown(in player)) return;
         if (localConnections[player].Disconnected) return;
         if (player.Type is not PlayerType.Remote) return;
-
         if (endpoints[player.InternalQueue] is null)
         {
             var currentFrame = synchronizer.CurrentFrame;

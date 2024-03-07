@@ -1,8 +1,6 @@
 using Backdash.Serialization;
 using Backdash.Serialization.Buffer;
-
 namespace Backdash.Sync.Input.Spectator;
-
 sealed class CombinedInputsSerializer<T>(IBinarySerializer<T> inputSerializer)
     : BinarySerializer<CombinedInputs<T>> where T : struct
 {
@@ -15,11 +13,9 @@ sealed class CombinedInputsSerializer<T>(IBinarySerializer<T> inputSerializer)
             writer.Advance(size);
         }
     }
-
     protected override void Deserialize(in BinarySpanReader reader, ref CombinedInputs<T> result)
     {
         result.Count = reader.ReadByte();
-
         for (var i = 0; i < result.Count; i++)
         {
             var size = inputSerializer.Deserialize(reader.CurrentBuffer, ref result.Inputs[i]);

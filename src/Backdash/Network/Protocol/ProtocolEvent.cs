@@ -1,7 +1,5 @@
 using Backdash.Serialization.Buffer;
-
 namespace Backdash.Network.Protocol;
-
 public enum ProtocolEvent : byte
 {
     Connected,
@@ -12,19 +10,13 @@ public enum ProtocolEvent : byte
     NetworkInterrupted,
     NetworkResumed,
 }
-
 struct ProtocolEventInfo(ProtocolEvent type, PlayerHandle player) : IUtf8SpanFormattable
 {
     public readonly ProtocolEvent Type = type;
-
     public PlayerHandle Player = player;
-
     public SynchronizingEventInfo Synchronizing = default;
-
     public SynchronizedEventInfo Synchronized = default;
-
     public ConnectionInterruptedEventInfo NetworkInterrupted = default;
-
     public readonly bool TryFormat(
         Span<byte> utf8Destination, out int bytesWritten, ReadOnlySpan<char> format,
         IFormatProvider? provider)
@@ -36,7 +28,6 @@ struct ProtocolEventInfo(ProtocolEvent type, PlayerHandle player) : IUtf8SpanFor
         if (!writer.Write(" ProtoEvt "u8)) return false;
         if (!writer.WriteEnum(Type)) return false;
         if (!writer.Write(":"u8)) return false;
-
         switch (Type)
         {
             case ProtocolEvent.NetworkInterrupted:

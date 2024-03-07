@@ -1,5 +1,4 @@
 root = true
-
 [*.cs]
 dotnet_diagnostic.S125.severity = suggestion # Remove this commented out code.
 dotnet_diagnostic.S1481.severity = suggestion
@@ -13,4 +12,3 @@ dotnet_diagnostic.CS1591.severity = silent
 dotnet_diagnostic.S1104.severity = silent
 dotnet_diagnostic.S2328.severity = silent
 resharper_empty_block_style = together_same_line
-

@@ -1,14 +1,11 @@
 using System.Runtime.CompilerServices;
 using Backdash.Network;
 using Backdash.Serialization.Buffer;
-
 namespace Backdash.Serialization;
-
 class SerializableTypeBinarySerializer<T> : IBinarySerializer<T>
     where T : struct, IBinarySerializable
 {
     public Endianness Endianness { get; init; }
-
     public int Serialize(in T data, Span<byte> buffer)
     {
         var offset = 0;
@@ -20,7 +17,6 @@ class SerializableTypeBinarySerializer<T> : IBinarySerializer<T>
         dataRef.Serialize(writer);
         return offset;
     }
-
     public int Deserialize(ReadOnlySpan<byte> data, ref T value)
     {
         var offset = 0;
@@ -28,7 +24,6 @@ class SerializableTypeBinarySerializer<T> : IBinarySerializer<T>
         {
             Endianness = Endianness,
         };
-
         value.Deserialize(reader);
         return offset;
     }

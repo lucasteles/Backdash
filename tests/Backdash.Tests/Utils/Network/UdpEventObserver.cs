@@ -1,8 +1,6 @@
 using System.Net;
 using Backdash.Network.Client;
-
 namespace Backdash.Tests.Utils.Network;
-
 sealed class UdpEventObserver<T> : IUdpObserver<T>
     where T : struct
 {
@@ -10,7 +8,6 @@ sealed class UdpEventObserver<T> : IUdpObserver<T>
     {
         return ValueTask.CompletedTask;
     };
-
     ValueTask IUdpObserver<T>.OnUdpMessage(
         T message, SocketAddress from, int bytesReceived, CancellationToken stoppingToken
     ) => OnMessage(message, from, bytesReceived, stoppingToken);

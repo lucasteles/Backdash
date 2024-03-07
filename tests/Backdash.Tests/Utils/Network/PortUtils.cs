@@ -1,8 +1,6 @@
 using System.Net;
 using System.Net.Sockets;
-
 namespace Backdash.Tests.Utils.Network;
-
 static class PortUtils
 {
     public static int FindFreePort()
@@ -12,7 +10,6 @@ static class PortUtils
         {
             tcpListener = new TcpListener(IPAddress.Loopback, 0);
             tcpListener.Start();
-
             return ((IPEndPoint)tcpListener.LocalEndpoint).Port;
         }
         finally

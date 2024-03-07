@@ -2,9 +2,7 @@ using Backdash.Core;
 using Backdash.Serialization;
 using Backdash.Sync.Input;
 using Backdash.Sync.State;
-
 namespace Backdash;
-
 public sealed class SessionServices<TInput, TGameState>
     where TInput : struct
     where TGameState : IEquatable<TGameState>, new()

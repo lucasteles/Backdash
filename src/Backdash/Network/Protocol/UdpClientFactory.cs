@@ -2,9 +2,7 @@ using Backdash.Core;
 using Backdash.Network.Client;
 using Backdash.Network.Messages;
 using Backdash.Network.Protocol.Comm;
-
 namespace Backdash.Network.Protocol;
-
 interface IUdpClientFactory
 {
     IUdpClient<ProtocolMessage> CreateClient(
@@ -15,7 +13,6 @@ interface IUdpClientFactory
         Logger logger
     );
 }
-
 sealed class UdpClientFactory : IUdpClientFactory
 {
     public IUdpClient<ProtocolMessage> CreateClient(
@@ -36,7 +33,6 @@ sealed class UdpClientFactory : IUdpClientFactory
             logger,
             maxPacketSize
         );
-
         return udpClient;
     }
 }

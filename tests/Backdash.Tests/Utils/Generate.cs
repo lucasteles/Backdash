@@ -1,27 +1,20 @@
 using Backdash.Core;
 using Backdash.Network;
-
 namespace Backdash.Tests.Utils;
-
 static class Generate
 {
     public static readonly Faker Faker = new();
     public static Randomizer Random => Faker.Random;
-
     public static PeerAddress Peer() => Faker.Internet.IpEndPoint();
-
     public static ConnectionsState ConnectionsState() => new(Max.RemoteConnections);
-
     public static PlayerHandle PlayerHandle() => new(
         Random.Enum<PlayerType>(),
         Random.Int(1, Max.RemoteConnections)
     );
-
     public static GameInput GameInput(int frame, byte[] input)
     {
         if (input.Length > Max.CompressedBytes)
             throw new ArgumentOutOfRangeException(nameof(input));
-
         TestInput testInputBytes = new(input);
         GameInput result = new(testInputBytes)
         {
@@ -29,12 +22,10 @@ static class Generate
         };
         return result;
     }
-
     public static GameInput[] GameInputRange(int count, int firstFrame = 0)
     {
         ThrowHelpers.ThrowIfArgumentIsNegative(count);
         return Generator().ToArray();
-
         IEnumerable<GameInput> Generator()
         {
             for (var i = 0; i < count; i++)
@@ -44,7 +35,6 @@ static class Generate
             }
         }
     }
-
     public static readonly byte[] GoodInputBytes =
     [
         1 << 0,

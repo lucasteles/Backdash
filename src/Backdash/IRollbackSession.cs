@@ -15,7 +15,6 @@ public interface IRollbackSession<TInput> : IRollbackSessionInfo, IDisposable wh
 {
     int NumberOfPlayers { get; }
     int NumberOfSpectators { get; }
-
     IReadOnlyCollection<PlayerHandle> GetPlayers();
     IReadOnlyCollection<PlayerHandle> GetSpectators();
     void DisconnectPlayer(in PlayerHandle player);
@@ -45,6 +44,5 @@ public interface IRollbackSession<TInput, TState> : IRollbackSession<TInput>
     IReadOnlyList<ResultCode> AddPlayers(IReadOnlyList<Player> players);
     void Start(CancellationToken stoppingToken = default);
     Task WaitToStop(CancellationToken stoppingToken = default);
-
     void SetHandler(IRollbackHandler<TState> handler);
 }

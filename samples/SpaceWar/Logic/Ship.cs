@@ -1,7 +1,5 @@
 ﻿using Backdash.Data;
-
 namespace SpaceWar.Logic;
-
 public sealed record Ship
 {
     public byte Id;
@@ -19,14 +17,12 @@ public sealed record Ship
     public Missile Missile;
     public readonly Array<Bullet> Bullets = new(Config.MaxBullets);
 }
-
 public record struct Bullet
 {
     public bool Active;
     public Vector2 Position;
     public Vector2 Velocity;
 }
-
 public record struct Missile
 {
     public bool Active;
@@ -37,6 +33,5 @@ public record struct Missile
     public int Heading;
     public Vector2 Position;
     public Vector2 Velocity;
-
     public readonly bool IsExploding() => ExplodeTimeout is 0 && HitBoxTime > 0;
 }

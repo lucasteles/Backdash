@@ -1,5 +1,4 @@
 ﻿namespace SpaceWar.Logic;
-
 public static class Config
 {
     public const int MaxShips = 4;
@@ -10,12 +9,10 @@ public static class Config
     public const float ShipThrust = 0.06f;
     public const float ShipMaxThrust = 4.0f;
     public const int ShipProgressBarHeight = 12;
-
     public const int MaxBullets = 30;
     public const int BulletSpeed = 5;
     public const int BulletCooldown = 12;
     public const int BulletDamage = 2;
-
     public const int MissileSpeed = 1;
     public const int MissileMaxSpeed = 12;
     public const float MissileAcceleration = 0.1f;

@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
     <PropertyGroup>
         <OutputType>Exe</OutputType>
         <TargetFramework>net8.0</TargetFramework>
@@ -10,9 +9,7 @@
         <NukeTelemetryVersion>1</NukeTelemetryVersion>
         <EnableUnsafeBinaryFormatterSerialization>true</EnableUnsafeBinaryFormatterSerialization>
     </PropertyGroup>
-
     <ItemGroup>
         <PackageReference Include="Nuke.Common" Version="8.0.0" />
     </ItemGroup>
-
 </Project>

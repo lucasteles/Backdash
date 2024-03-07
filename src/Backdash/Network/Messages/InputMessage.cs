@@ -4,9 +4,7 @@ using Backdash.Core;
 using Backdash.Data;
 using Backdash.Serialization;
 using Backdash.Serialization.Buffer;
-
 namespace Backdash.Network.Messages;
-
 [Serializable]
 record struct InputMessage : IBinarySerializable, IUtf8SpanFormattable
 {
@@ -17,7 +15,6 @@ record struct InputMessage : IBinarySerializable, IUtf8SpanFormattable
     public ushort NumBits;
     public byte InputSize;
     public InputMessageBuffer Bits;
-
     public void Clear()
     {
         Mem.Clear(Bits);
@@ -28,7 +25,6 @@ record struct InputMessage : IBinarySerializable, IUtf8SpanFormattable
         NumBits = 0;
         InputSize = 0;
     }
-
     public readonly void Serialize(BinarySpanWriter writer)
     {
         ReadOnlySpan<ConnectStatus> peerStatuses = PeerConnectStatus;
@@ -36,7 +32,6 @@ record struct InputMessage : IBinarySerializable, IUtf8SpanFormattable
         writer.Write(peerCount);
         for (var i = 0; i < peerCount; i++)
             peerStatuses[i].Serialize(writer);
-
         writer.Write(in StartFrame.Number);
         writer.Write(in DisconnectRequested);
         writer.Write(in AckFrame.Number);
@@ -45,13 +40,11 @@ record struct InputMessage : IBinarySerializable, IUtf8SpanFormattable
         var bitCount = (int)Math.Ceiling(NumBits / (float)ByteSize.ByteToBits);
         writer.Write(Bits[..bitCount]);
     }
-
     public void Deserialize(BinarySpanReader reader)
     {
         var peerCount = reader.ReadByte();
         for (var i = 0; i < peerCount; i++)
             PeerConnectStatus[i].Deserialize(reader);
-
         StartFrame = new(reader.ReadInt());
         DisconnectRequested = reader.ReadBool();
         AckFrame = new(reader.ReadInt());
@@ -60,7 +53,6 @@ record struct InputMessage : IBinarySerializable, IUtf8SpanFormattable
         var bitCount = (int)Math.Ceiling(NumBits / (float)ByteSize.ByteToBits);
         reader.ReadByte(Bits[..bitCount]);
     }
-
     public readonly bool TryFormat(
         Span<byte> utf8Destination, out int bytesWritten,
         ReadOnlySpan<char> format, IFormatProvider? provider)
@@ -73,25 +65,20 @@ record struct InputMessage : IBinarySerializable, IUtf8SpanFormattable
         return true;
     }
 }
-
 [Serializable, InlineArray(Max.RemoteConnections)]
 struct PeerStatusBuffer
 {
     ConnectStatus element0;
-
     public PeerStatusBuffer(ReadOnlySpan<ConnectStatus> buffer) => buffer.CopyTo(this);
-
     public override readonly string ToString()
     {
         ReadOnlySpan<ConnectStatus> values = this;
         StringBuilder builder = new();
         builder.Append('[');
-
         for (var i = 0; i < values.Length; i++)
         {
             if (i > 0)
                 builder.Append(", ");
-
             ref readonly var curr = ref values[i];
             if (curr.LastFrame.IsNull)
                 builder.Append("OFF");
@@ -103,17 +90,14 @@ struct PeerStatusBuffer
                 builder.Append(')');
             }
         }
-
         builder.Append(']');
         return builder.ToString();
     }
 }
-
 [Serializable, InlineArray(Max.CompressedBytes)]
 public struct InputMessageBuffer
 {
     byte element0;
     public InputMessageBuffer(ReadOnlySpan<byte> bits) => bits.CopyTo(this);
-
     public override readonly string ToString() => Mem.GetBitString(this);
 }

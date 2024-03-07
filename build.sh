@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 SCRIPT_DIR=$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)
 BUILD_PROJECT_FILE="$SCRIPT_DIR/build/_build.csproj"
 dotnet tool restore >/dev/null

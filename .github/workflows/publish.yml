@@ -1,20 +1,18 @@
 ﻿name: Publish
 on:
     workflow_dispatch:
-
 env:
     DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
     DOTNET_CLI_TELEMETRY_OPTOUT: true
     GITHUB_ACTIONS: true
-
 jobs:
     build:
+        name: Build and pack
         runs-on: ubuntu-latest
         outputs:
             Version: ${{ steps.gitversion.outputs.SemVer }}
             CommitsSinceVersionSource: ${{ steps.gitversion.outputs.CommitsSinceVersionSource }}
             PreReleaseTag: ${{ steps.gitversion.outputs.PreReleaseTag }}
-
         steps:
             -   uses: actions/checkout@v4
                 with:
@@ -44,36 +42,35 @@ jobs:
 
             -   name: Test
                 run: dotnet nuke test
-
             -   name: Build and Pack NuGet package
-                run: dotnet pack src/Backdash --configuration Release --include-symbols -p:Version='${{ steps.gitversion.outputs.SemVer }}' --output ./Artifacts
+                run: dotnet pack src/Backdash --configuration Release --include-symbols -p:Version='${{ steps.gitversion.outputs.SemVer }}' --output ./build_artifacts
 
             -   name: Upload lib NuGet package artifact to GitHub
                 uses: actions/upload-artifact@v3
                 with:
-                    name: libArtifacts
-                    path: ./Artifacts
-
+                    name: buildArtifacts
+                    path: ./build_artifacts
     release:
+        name: Publish Nuget
         runs-on: ubuntu-latest
         if: github.ref == 'refs/heads/master' && needs.build.outputs.CommitsSinceVersionSource > 0 #Only release if there has been a commit/version change
         needs: build
-
         steps:
             -   name: Download lib nuget package artifact
                 uses: actions/download-artifact@v3
                 with:
-                    name: libArtifacts
+                    name: buildArtifacts
+                    path: ./build_artifacts
 
             -   name: Push package to Nuget
                 run: |
-                    dotnet nuget push libArtifacts/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
-
+                    dotnet nuget push build_artifacts/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
             -   name: Create Release
+
                 uses: ncipollo/release-action@v1
                 with:
                     tag: ${{ needs.build.outputs.Version }}
                     prerelease: ${{ needs.build.outputs.PreReleaseTag }}
                     name: Release ${{ needs.build.outputs.Version }}
-                    artifacts: "libArtifacts/*"
+                    artifacts: "build_artifacts/*"
                     token: ${{ secrets.GITHUB_TOKEN }}

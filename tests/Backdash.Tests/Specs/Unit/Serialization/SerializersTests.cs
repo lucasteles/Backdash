@@ -1,9 +1,7 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Backdash.Serialization;
-
 namespace Backdash.Tests.Specs.Unit.Serialization;
-
 public class SerializersTests
 {
     [PropertyTest]
@@ -16,7 +14,6 @@ public class SerializersTests
         var result = serializer.Deserialize(buffer);
         return result == value;
     }
-
     [PropertyTest]
     public bool ShouldSerializeUInt(uint value)
     {
@@ -27,7 +24,6 @@ public class SerializersTests
         var result = serializer.Deserialize(buffer);
         return result == value;
     }
-
     [PropertyTest]
     public bool ShouldSerializeULong(ulong value)
     {
@@ -38,7 +34,6 @@ public class SerializersTests
         var result = serializer.Deserialize(buffer);
         return result == value;
     }
-
     [PropertyTest]
     public bool ShouldSerializeLong(long value)
     {
@@ -49,7 +44,6 @@ public class SerializersTests
         var result = serializer.Deserialize(buffer);
         return result == value;
     }
-
     [PropertyTest]
     public bool ShouldSerializeShort(short value)
     {
@@ -60,7 +54,6 @@ public class SerializersTests
         var result = serializer.Deserialize(buffer);
         return result == value;
     }
-
     [PropertyTest]
     public bool ShouldSerializeUShort(ushort value)
     {
@@ -71,7 +64,6 @@ public class SerializersTests
         var result = serializer.Deserialize(buffer);
         return result == value;
     }
-
     [PropertyTest]
     public bool ShouldSerializeByte(byte value)
     {
@@ -82,7 +74,6 @@ public class SerializersTests
         var result = serializer.Deserialize(buffer);
         return result == value;
     }
-
     [PropertyTest]
     public bool ShouldSerializeSByte(sbyte value)
     {
@@ -93,7 +84,6 @@ public class SerializersTests
         var result = serializer.Deserialize(buffer);
         return result == value;
     }
-
     [PropertyTest]
     public bool ShouldSerializeInt128(Int128 value)
     {
@@ -104,7 +94,6 @@ public class SerializersTests
         var result = serializer.Deserialize(buffer);
         return result == value;
     }
-
     [PropertyTest]
     public bool ShouldSerializeIntU128(UInt128 value)
     {
@@ -115,7 +104,6 @@ public class SerializersTests
         var result = serializer.Deserialize(buffer);
         return result == value;
     }
-
     [PropertyTest]
     public bool ShouldSerializeIntEnum(IntEnum value)
     {
@@ -126,7 +114,6 @@ public class SerializersTests
         var result = serializer.Deserialize(buffer);
         return result == value;
     }
-
     [PropertyTest]
     public bool ShouldSerializeUIntEnum(UIntEnum value)
     {
@@ -137,7 +124,6 @@ public class SerializersTests
         var result = serializer.Deserialize(buffer);
         return result == value;
     }
-
     [PropertyTest]
     public bool ShouldSerializeULongEnum(ULongEnum value)
     {
@@ -148,7 +134,6 @@ public class SerializersTests
         var result = serializer.Deserialize(buffer);
         return result == value;
     }
-
     [PropertyTest]
     public bool ShouldSerializeLongEnum(LongEnum value)
     {
@@ -159,7 +144,6 @@ public class SerializersTests
         var result = serializer.Deserialize(buffer);
         return result == value;
     }
-
     [PropertyTest]
     public bool ShouldSerializeShortEnum(ShortEnum value)
     {
@@ -170,7 +154,6 @@ public class SerializersTests
         var result = serializer.Deserialize(buffer);
         return result == value;
     }
-
     [PropertyTest]
     public bool ShouldSerializeUShortEnum(UShortEnum value)
     {
@@ -181,7 +164,6 @@ public class SerializersTests
         var result = serializer.Deserialize(buffer);
         return result == value;
     }
-
     [PropertyTest]
     public bool ShouldSerializeByteEnum(ByteEnum value)
     {
@@ -192,7 +174,6 @@ public class SerializersTests
         var result = serializer.Deserialize(buffer);
         return result == value;
     }
-
     [PropertyTest]
     public bool ShouldSerializeSByteEnum(SByteEnum value)
     {
@@ -203,7 +184,6 @@ public class SerializersTests
         var result = serializer.Deserialize(buffer);
         return result == value;
     }
-
     [PropertyTest]
     public bool ShouldSerializeSimpleStruct(SimpleStructData value)
     {
@@ -213,7 +193,6 @@ public class SerializersTests
         var result = serializer.Deserialize(buffer);
         return result == value;
     }
-
     [PropertyTest]
     public bool ShouldSerializeMarshalStruct(MarshalStructData value)
     {

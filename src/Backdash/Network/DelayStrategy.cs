@@ -1,19 +1,15 @@
 using Backdash.Core;
-
 namespace Backdash.Network;
-
 public enum DelayStrategy
 {
     Constant,
     Gaussian,
     ContinuousUniform,
 }
-
 interface IDelayStrategy
 {
     TimeSpan Jitter(TimeSpan sendLatency);
 }
-
 static class DelayStrategyFactory
 {
     public static IDelayStrategy Create(IRandomNumberGenerator random, DelayStrategy strategy) => strategy switch
@@ -24,12 +20,10 @@ static class DelayStrategyFactory
         _ => throw new ArgumentOutOfRangeException(nameof(strategy), strategy, null),
     };
 }
-
 sealed class ConstantDelayStrategy : IDelayStrategy
 {
     public TimeSpan Jitter(TimeSpan sendLatency) => sendLatency;
 }
-
 sealed class UniformDelayStrategy(IRandomNumberGenerator random) : IDelayStrategy
 {
     public TimeSpan Jitter(TimeSpan sendLatency)
@@ -40,7 +34,6 @@ sealed class UniformDelayStrategy(IRandomNumberGenerator random) : IDelayStrateg
         return TimeSpan.FromMilliseconds(ms);
     }
 }
-
 sealed class GaussianDelayStrategy(IRandomNumberGenerator random) : IDelayStrategy
 {
     public TimeSpan Jitter(TimeSpan sendLatency)

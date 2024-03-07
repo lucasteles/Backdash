@@ -1,7 +1,5 @@
 using Backdash.Core;
-
 namespace Backdash.Network.Protocol;
-
 public class ProtocolOptions
 {
     public int UdpPacketBufferSize { get; init; } = Default.UdpPacketBufferSize;

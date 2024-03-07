@@ -1,41 +1,32 @@
 using System.Drawing;
 using System.Runtime.InteropServices;
-
 // ReSharper disable UnusedMember.Global, NotAccessedField.Global, EnumUnderlyingTypeIsInt
 #pragma warning disable S2344, S1939
-
 namespace Backdash.Tests.Utils.Types;
-
 public enum IntEnum : int
 {
     A = int.MinValue, B, C, D, E, F, G, H, I, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z = int.MaxValue,
 }
-
 public enum UIntEnum : uint
 {
     A = uint.MinValue, B, C, D, E, F, G, H, I, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z = uint.MaxValue,
 }
-
 public enum ULongEnum : ulong
 {
     A = ulong.MinValue, B, C, D, E, F, G, H, I, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z = ulong.MaxValue,
 }
-
 public enum LongEnum : long
 {
     A = long.MinValue, B, C, D, E, F, G, H, I, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z = long.MaxValue,
 }
-
 public enum ShortEnum : short
 {
     A = short.MinValue, B, C, D, E, F, G, H, I, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z = short.MaxValue,
 }
-
 public enum UShortEnum : ushort
 {
     A = ushort.MinValue, B, C, D, E, F, G, H, I, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z = ushort.MaxValue,
 }
-
 public enum ByteEnum : byte
 {
     Zero = byte.MinValue,
@@ -48,7 +39,6 @@ public enum ByteEnum : byte
     OneHundredTwentyEight = 1 << 7,
     TwoHundredFiftyFive = byte.MaxValue,
 }
-
 public enum SByteEnum : sbyte
 {
     MinusOneHundredTwentyEight = sbyte.MinValue,
@@ -67,7 +57,6 @@ public enum SByteEnum : sbyte
     SixtyFour = 1 << 6,
     OneHundredTwentySeven = sbyte.MaxValue,
 }
-
 public record struct SimpleStructData
 {
     public int Field1;
@@ -80,17 +69,14 @@ public record struct SimpleStructData
     public sbyte Field8;
     public Point Field9;
 }
-
 [StructLayout(LayoutKind.Sequential)]
 public struct MarshalStructData
 {
     public int Field1;
     public long Field2;
     public byte Field3;
-
     [MarshalAs(UnmanagedType.ByValArray, SizeConst = 10)]
     public byte[] FieldArray;
-
     public readonly bool IsEquivalent(MarshalStructData other) =>
         Field1 == other.Field1
         && Field2 == other.Field2
