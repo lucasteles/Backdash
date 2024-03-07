@@ -24,3 +24,12 @@ on [GGPO](https://github.com/pond3r/ggpo) with full asynchronous IO support.
 $ dotnet add package Backdash
 ```
 
+## Samples
+
+Check the samples on [/samples](/samples) 
+
+Watch the working demo:
+
+[![Watch the demo](https://img.youtube.com/vi/JYf2MemyJaY/default.jpg)](https://youtu.be/JYf2MemyJaY)
+
+
