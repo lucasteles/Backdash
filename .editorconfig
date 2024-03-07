@@ -175,7 +175,7 @@ resharper_trailing_comma_in_multiline_lists = true
 resharper_wrap_array_initializer_style = chop_if_long
 resharper_empty_block_style = together_same_line
 
-# TODO: TEMPORARY removing XML Docs until release
+# LATER: TEMPORARY removing XML Docs until release
 dotnet_diagnostic.CS1591.severity = silent
 
 # FALSE POSITIVES

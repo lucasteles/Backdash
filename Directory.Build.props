@@ -6,6 +6,18 @@
     <InvariantGlobalization>true</InvariantGlobalization>
     <WarningsAsErrors>CS8600;CS8602;CS8603;CS8604;CS8625;CS8618;CS8620</WarningsAsErrors>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Company/>
+    <Authors>Lucas Teles - lucas.teles@outlook.com</Authors>
+    <RepositoryType>GitHub</RepositoryType>
+    <PackageProjectUrl>https://github.com/lucasteles/Backdash</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/lucasteles/Backdash</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <PackageTags>rollback, netcode, network, peer to peer, online, game, multiplayer</PackageTags>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(MSBuildProjectExtension)' == '.csproj'">

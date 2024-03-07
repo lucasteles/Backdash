@@ -146,7 +146,7 @@ public sealed record GameState
         if (ship.Invincible > 0) ship.Invincible--;
         if (ship.Health <= 0) ship.Active = false;
 
-        // TODO: validate multiplatform float precision
+        // LATER: validate multiplatform float precision
         // ship.Velocity = Vector2.Round(ship.Velocity);
         // ship.Position = Vector2.Round(ship.Position);
     }
