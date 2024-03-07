@@ -1,6 +1,8 @@
 using System.Xml.Linq;
 using System.Xml.XPath;
+
 namespace Helpers;
+
 public static class Badges
 {
     public static void ForCoverage(Solution sln, AbsolutePath output, AbsolutePath files) =>
@@ -9,9 +11,11 @@ public static class Badges
             .SetReports(files)
             .SetTargetDirectory(output)
             .SetReportTypes(ReportTypes.Badges));
+
     public static void ForDotNetVersion(AbsolutePath output, GlobalJson globalJson) =>
         DownloadShieldsIo(output / "dotnet_version_badge.svg", ".NET",
             globalJson.Sdk.Version, "blue");
+
     public static void ForTests(AbsolutePath output, string resultName)
     {
         var (passed, failed, skipped) =
@@ -34,13 +38,18 @@ public static class Badges
         var message = string.Join(",", messageBuilder);
         DownloadShieldsIo(output / "test_report_badge.svg", "tests", message, color);
     }
+
     static void DownloadShieldsIo(AbsolutePath fileName, string label, string message, string color)
     {
-        fileName.Parent.CreateOrCleanDirectory();
+        if (!fileName.Parent.DirectoryExists())
+            fileName.Parent.CreateDirectory();
+
         var url = "https://img.shields.io/badge/" +
                   Uri.EscapeDataString($"{label}-{message}-{color}");
+
         HttpTasks.HttpDownloadFile(url, fileName);
     }
+
     static TestSummary ExtractResults(AbsolutePath testResult)
     {
         var counters =
@@ -48,11 +57,13 @@ public static class Badges
                 .XPathSelectElement("//*[local-name() = 'ResultSummary']")
                 ?.XPathSelectElement("//*[local-name() = 'Counters']");
         return new(Value("passed"), Value("failed"), Value("total") - Value("executed"));
+
         int Value(string name) =>
             counters is not null && int.TryParse(counters.Attribute(name)?.Value, out var n)
                 ? n
                 : default;
     }
+
     record TestSummary(int Passed, int Failed, int Skipped)
     {
         public static TestSummary operator +(TestSummary s1, TestSummary s2)
