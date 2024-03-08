@@ -5,7 +5,9 @@ namespace SpaceWar;
 public class Game1 : Game
 {
     readonly GraphicsDeviceManager graphics;
-    SpriteBatch spriteBatch;
+
+    public SpriteBatch SpriteBatch { get; private set; }
+    public GameAssets Assets { get; private set; }
 
     public Game1()
     {
@@ -15,7 +17,6 @@ public class Game1 : Game
         IsMouseVisible = true;
     }
 
-    public SpriteBatch SpriteBatch => spriteBatch;
 
     protected override void Initialize()
     {
@@ -27,8 +28,8 @@ public class Game1 : Game
 
     protected override void LoadContent()
     {
-        spriteBatch = new(GraphicsDevice);
-        GameAssets assets = new(Content, GraphicsDevice);
+        SpriteBatch = new(GraphicsDevice);
+        Assets = new(Content, GraphicsDevice);
     }
 
     protected override void Update(GameTime gameTime)
@@ -42,9 +43,9 @@ public class Game1 : Game
     protected override void Draw(GameTime gameTime)
     {
         GraphicsDevice.Clear(Color.Black);
-        spriteBatch.Begin();
+        SpriteBatch.Begin();
 
-        spriteBatch.End();
+        SpriteBatch.End();
         base.Draw(gameTime);
     }
 }

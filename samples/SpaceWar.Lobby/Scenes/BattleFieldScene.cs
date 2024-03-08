@@ -7,7 +7,6 @@ namespace SpaceWar.Scenes;
 
 public sealed class BattleFieldScene : IDisposable
 {
-    readonly GameAssets assets;
     readonly IRollbackSession<PlayerInputs, GameState> rollbackSession;
     GameSession gameSession = null!;
 
@@ -28,41 +27,31 @@ public sealed class BattleFieldScene : IDisposable
     };
 
 
-    public BattleFieldScene(
-        GameAssets assets,
-        int port,
-        IReadOnlyList<Player> players
-    )
+    public BattleFieldScene(int port)
     {
-        this.assets = assets;
-
-        var localPlayer = players.FirstOrDefault(x => x.IsLocal());
-        if (localPlayer is null)
-            throw new InvalidOperationException("No local player defined");
-
         rollbackSession = RollbackNetcode.CreateSession<PlayerInputs, GameState>(port, options);
-        rollbackSession.AddPlayers(players);
     }
 
-    public BattleFieldScene(
-        GameAssets assets,
-        int port,
-        int playerCount,
-        IPEndPoint host
-    )
+    public BattleFieldScene(int port, int playerCount, IPEndPoint host)
     {
-        this.assets = assets;
         rollbackSession = RollbackNetcode.CreateSpectatorSession<PlayerInputs, GameState>(
             port, host, playerCount, options
         );
     }
 
-    public void Initialize(Game1 game)
+    public void Initialize(Game1 game, IReadOnlyList<Player> players)
     {
+        var localPlayer = players.FirstOrDefault(x => x.IsLocal());
+        if (localPlayer is null)
+            throw new InvalidOperationException("No local player defined");
+
+        rollbackSession.AddPlayers(players);
         var numPlayers = rollbackSession.NumberOfPlayers;
+
         GameState gs = new();
         gs.Init(game.Window, numPlayers);
         NonGameState ngs = new(numPlayers, game.Window);
+
         foreach (var player in rollbackSession.GetPlayers())
         {
             PlayerConnectionInfo playerInfo = new();
@@ -79,11 +68,8 @@ public sealed class BattleFieldScene : IDisposable
             ngs.StatusText.Append("Connecting to peers ...");
         }
 
-        if (rollbackSession.IsSpectating)
-            gameSession = new(gs, ngs, new(assets, game.SpriteBatch), rollbackSession);
-
+        gameSession = new(gs, ngs, new(game.Assets, game.SpriteBatch), rollbackSession);
         rollbackSession.SetHandler(gameSession);
-
         rollbackSession.Start();
     }
 
