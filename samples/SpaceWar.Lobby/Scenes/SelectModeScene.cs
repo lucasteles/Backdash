@@ -1,13 +1,7 @@
-﻿using SpaceWar.Models;
+﻿namespace SpaceWar.Scenes;
 
-namespace SpaceWar.Scenes;
-
-public sealed class LobbyScene : IScene
+public sealed class SelectModeScene : IScene
 {
-    public const string LobbyName = "spacewar";
-
-    PlayerMode? playerMode;
-
     public void Initialize(Game1 game)
     {
         throw new NotImplementedException();

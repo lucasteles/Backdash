@@ -5,7 +5,7 @@ using SpaceWar.Logic;
 
 namespace SpaceWar.Scenes;
 
-public sealed class BattleFieldScene : IDisposable
+public sealed class BattleFieldScene : IScene
 {
     readonly IRollbackSession<PlayerInputs, GameState> rollbackSession;
     GameSession gameSession = null!;
@@ -27,9 +27,15 @@ public sealed class BattleFieldScene : IDisposable
     };
 
 
-    public BattleFieldScene(int port)
+    public BattleFieldScene(int port, IReadOnlyList<Player> players)
     {
+        var localPlayer = players.FirstOrDefault(x => x.IsLocal());
+        if (localPlayer is null)
+            throw new InvalidOperationException("No local player defined");
+
         rollbackSession = RollbackNetcode.CreateSession<PlayerInputs, GameState>(port, options);
+
+        rollbackSession.AddPlayers(players);
     }
 
     public BattleFieldScene(int port, int playerCount, IPEndPoint host)
@@ -39,13 +45,8 @@ public sealed class BattleFieldScene : IDisposable
         );
     }
 
-    public void Initialize(Game1 game, IReadOnlyList<Player> players)
+    public void Initialize(Game1 game)
     {
-        var localPlayer = players.FirstOrDefault(x => x.IsLocal());
-        if (localPlayer is null)
-            throw new InvalidOperationException("No local player defined");
-
-        rollbackSession.AddPlayers(players);
         var numPlayers = rollbackSession.NumberOfPlayers;
 
         GameState gs = new();
@@ -74,6 +75,6 @@ public sealed class BattleFieldScene : IDisposable
     }
 
     public void Update(GameTime gameTime) => gameSession.Update(gameTime);
-    public void Draw() => gameSession.Draw();
+    public void Draw(SpriteBatch spriteBatch) => gameSession.Draw();
     public void Dispose() => rollbackSession.Dispose();
 }

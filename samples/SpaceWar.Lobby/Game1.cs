@@ -1,13 +1,15 @@
 #nullable disable
 
+using SpaceWar.Scenes;
+
 namespace SpaceWar;
 
 public class Game1 : Game
 {
     readonly GraphicsDeviceManager graphics;
-
     public SpriteBatch SpriteBatch { get; private set; }
     public GameAssets Assets { get; private set; }
+    public SceneManager Scene { get; }
 
     public Game1()
     {
@@ -15,8 +17,8 @@ public class Game1 : Game
         Content.RootDirectory = "Content";
         Window.Title = "SpaceWar";
         IsMouseVisible = true;
+        Scene = new(this, new SelectModeScene());
     }
-
 
     protected override void Initialize()
     {
@@ -37,6 +39,7 @@ public class Game1 : Game
         if (Keyboard.GetState().IsKeyDown(Keys.Escape))
             Exit();
 
+        Scene.Update(gameTime);
         base.Update(gameTime);
     }
 
@@ -44,8 +47,14 @@ public class Game1 : Game
     {
         GraphicsDevice.Clear(Color.Black);
         SpriteBatch.Begin();
-
+        Scene.Draw(SpriteBatch);
         SpriteBatch.End();
         base.Draw(gameTime);
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        Scene.Dispose();
+        base.Dispose(disposing);
     }
 }
