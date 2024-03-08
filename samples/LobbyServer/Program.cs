@@ -33,7 +33,6 @@ app.MapPost("lobby", Results<Ok<EnterLobbyResponse>, BadRequest, Conflict, Unpro
         || context.Connection.RemoteIpAddress is not { } userIp)
         return BadRequest();
 
-    userIp.MapToIPv4();
     var name = req.LobbyName.Trim().ToLower();
     var lobby = cache.GetOrCreate(name, e =>
     {
