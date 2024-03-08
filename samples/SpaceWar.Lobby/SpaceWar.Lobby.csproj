@@ -4,6 +4,7 @@
         <TargetFramework>net8.0</TargetFramework>
         <RollForward>Major</RollForward>
         <PublishReadyToRun>false</PublishReadyToRun>
+        <RootNamespace>SpaceWar</RootNamespace>
         <TieredCompilation>false</TieredCompilation>
     </PropertyGroup>
     <PropertyGroup>
@@ -19,6 +20,6 @@
         <EmbeddedResource Include="Icon.bmp"/>
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\SpaceWar.Shared\SpaceWar.Shared.csproj"/>
+      <ProjectReference Include="..\SpaceWar.Shared\SpaceWar.Shared.csproj" />
     </ItemGroup>
 </Project>
