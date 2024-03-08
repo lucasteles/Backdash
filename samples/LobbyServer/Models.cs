@@ -63,13 +63,6 @@ public sealed class Lobby(string name, DateTimeOffset createdAt)
         }
     }
 
-    public bool HasUserName(string username)
-    {
-        lock (locker)
-            return entries
-                .Any(p => p.Peer.Username.Equals(username, StringComparison.OrdinalIgnoreCase));
-    }
-
     public void AddPeer(LobbyEntry entry)
     {
         lock (locker)
@@ -82,8 +75,21 @@ public sealed class Lobby(string name, DateTimeOffset createdAt)
         }
     }
 
+    public LobbyEntry? FindPeer(string username)
+    {
+        lock (locker)
+            return entries.FirstOrDefault(p =>
+                p.Peer.Username.Equals(username, StringComparison.OrdinalIgnoreCase));
+    }
+
+    public LobbyEntry? FindPeer(PeerToken token)
+    {
+        lock (locker)
+            return entries.FirstOrDefault(p => p.Token == token);
+    }
+
     public Peer? GetPlayer(PeerToken token) =>
-        entries.SingleOrDefault(x => x.Mode is PeerMode.Player && x.Token == token)?.Peer;
+        FindPeer(token) is {Mode: PeerMode.Player, Peer: var player} ? player : null;
 }
 
 public sealed record LobbyRequest(string LobbyName, int Port, string UserName, PeerMode Mode);

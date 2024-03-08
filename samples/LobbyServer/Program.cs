@@ -22,7 +22,7 @@ app.UseSwagger().UseSwaggerUI();
 app.MapGet("lobby/{name}", Results<Ok<Lobby>, NotFound> (IMemoryCache cache, string name) =>
     cache.Get<Lobby>(name.ToLower()) is { } lobby ? Ok(lobby) : NotFound());
 
-app.MapPost("lobby", Results<Ok<LobbyResponse>, BadRequest, Conflict, UnprocessableEntity> (
+app.MapPost("lobby", Results<Ok<LobbyResponse>, BadRequest, UnprocessableEntity> (
     HttpContext context, TimeProvider time, IMemoryCache cache, LobbyRequest req) =>
 {
     if (string.IsNullOrWhiteSpace(req.LobbyName)
@@ -31,15 +31,17 @@ app.MapPost("lobby", Results<Ok<LobbyResponse>, BadRequest, Conflict, Unprocessa
         || context.Connection.RemoteIpAddress is not { } userIp)
         return BadRequest();
 
+    userIp.MapToIPv4();
     var name = req.LobbyName.Trim().ToLower();
     var lobby = cache.GetOrCreate(name, e =>
     {
         e.SetSlidingExpiration(Lobby.DefaultExpiration);
         return new Lobby(name, time.GetUtcNow());
     });
-
     if (lobby is null || lobby.Ready) return UnprocessableEntity();
-    if (lobby.HasUserName(req.UserName)) return Conflict();
+
+    if (lobby.FindPeer(req.UserName) is { } existingPeer)
+        return Ok(new LobbyResponse(lobby, existingPeer.Token));
 
     PeerEndpoint endpoint = new(userIp.ToString(), req.Port);
     Peer peer = new(req.UserName, endpoint);
