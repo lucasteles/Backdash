@@ -11,23 +11,22 @@ public enum PeerMode : byte
 
 public sealed record PeerEndpoint(string IP, int Port);
 
-public sealed class Peer(string username, PeerEndpoint endpoint, bool ready = false)
+public sealed class Peer(string username, PeerEndpoint endpoint)
 {
     public PeerId PeerId { get; } = Guid.NewGuid();
     public string Username { get; } = username;
 
     public PeerEndpoint Endpoint { get; } = endpoint;
-    public bool Ready { get; private set; } = ready;
-
+    public bool Ready { get; private set; }
     public void ToggleReady() => Ready = !Ready;
 }
 
 public sealed record LobbyEntry(Peer Peer, PeerMode Mode)
 {
-    public PeerToken Token { get; } = PeerToken.NewGuid();
+    public PeerToken Token { get; init; } = PeerToken.NewGuid();
 }
 
-public sealed record SpectatorMapping(PeerId Host, IEnumerable<PeerId> Endpoints);
+public sealed record SpectatorMapping(PeerId Host, IEnumerable<PeerId> Watchers);
 
 public sealed class Lobby(string name, DateTimeOffset createdAt)
 {
@@ -41,13 +40,26 @@ public sealed class Lobby(string name, DateTimeOffset createdAt)
     public DateTimeOffset CreatedAt { get; } = createdAt;
     public DateTimeOffset ExpiresAt => CreatedAt + DefaultExpiration;
 
-    public IEnumerable<Peer> Players =>
-        entries.Where(x => x.Mode is PeerMode.Player).Take(MaxPlayers).Select(x => x.Peer);
-
-    public IEnumerable<Peer> Spectators =>
-        entries.Where(x => x.Mode is PeerMode.Spectator).Select(x => x.Peer);
-
     public bool Ready => Players.Count() > 1 && Players.All(p => p.Ready);
+
+    public IEnumerable<Peer> Players
+    {
+        get
+        {
+            lock (locker)
+                return entries.Where(x => x.Mode is PeerMode.Player).Take(MaxPlayers)
+                    .Select(x => x.Peer);
+        }
+    }
+
+    public IEnumerable<Peer> Spectators
+    {
+        get
+        {
+            lock (locker)
+                return entries.Where(x => x.Mode is PeerMode.Spectator).Select(x => x.Peer);
+        }
+    }
 
     public IEnumerable<SpectatorMapping> SpectatorMapping
     {
@@ -75,23 +87,37 @@ public sealed class Lobby(string name, DateTimeOffset createdAt)
         }
     }
 
-    public LobbyEntry? FindPeer(string username)
+    public void RemovePeer(LobbyEntry entry)
+    {
+        lock (locker)
+        {
+            if (Ready) return;
+            entries.Remove(entry);
+        }
+    }
+
+    public void ChangePeerMode(LobbyEntry entry, PeerMode mode)
+    {
+        if (Ready || entry.Mode == mode) return;
+        RemovePeer(entry);
+        if (entry.Peer.Ready) entry.Peer.ToggleReady();
+        AddPeer(entry with {Mode = mode});
+    }
+
+    public LobbyEntry? FindEntry(string username)
     {
         lock (locker)
             return entries.FirstOrDefault(p =>
                 p.Peer.Username.Equals(username, StringComparison.OrdinalIgnoreCase));
     }
 
-    public LobbyEntry? FindPeer(PeerToken token)
+    public LobbyEntry? FindEntry(PeerToken token)
     {
         lock (locker)
             return entries.FirstOrDefault(p => p.Token == token);
     }
-
-    public Peer? GetPlayer(PeerToken token) =>
-        FindPeer(token) is {Mode: PeerMode.Player, Peer: var player} ? player : null;
 }
 
-public sealed record LobbyRequest(string LobbyName, int Port, string UserName, PeerMode Mode);
+public sealed record EnterLobbyRequest(string LobbyName, int Port, string UserName, PeerMode Mode);
 
-public sealed record LobbyResponse(Lobby Lobby, Guid Token);
+public sealed record EnterLobbyResponse(PeerId PeerId, PeerToken Token);
