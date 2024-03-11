@@ -234,30 +234,33 @@ public sealed class LobbyScene(string username, PlayerMode mode) : Scene
         lobbyInfo = await client.GetLobby(user);
 
         if (lobbyInfo.Ready)
+            StartBattleScene();
+    }
+
+    void StartBattleScene()
+    {
+        currentState = LobbyState.Starting;
+        List<Player> players = [];
+
+        for (var i = 0; i < lobbyInfo.Players.Length; i++)
         {
-            currentState = LobbyState.Starting;
-            List<Player> players = [];
+            var player = lobbyInfo.Players[i];
+            var playerNumber = i + 1;
 
-            for (var i = 0; i < lobbyInfo.Players.Length; i++)
-            {
-                var player = lobbyInfo.Players[i];
-                var playerNumber = i + 1;
-
-                players.Add(player.PeerId == user.PeerId
-                    ? new LocalPlayer(playerNumber)
-                    : new RemotePlayer(playerNumber, player.Endpoint.ToIPEndpoint()));
-            }
-
-            if (lobbyInfo.SpectatorMapping.SingleOrDefault(m => m.Host == user.PeerId)
-                is {Watchers: { } spectatorIds})
-            {
-                var spectators = lobbyInfo.Spectators.Where(s => spectatorIds.Contains(s.PeerId));
-                foreach (var spectator in spectators)
-                    players.Add(new Spectator(spectator.Endpoint.ToIPEndpoint()));
-            }
-
-            LoadScene(new BattleScene(Config.Port, players));
+            players.Add(player.PeerId == user.PeerId
+                ? new LocalPlayer(playerNumber)
+                : new RemotePlayer(playerNumber, player.Endpoint.ToIPEndpoint()));
         }
+
+        if (lobbyInfo.SpectatorMapping.SingleOrDefault(m => m.Host == user.PeerId)
+            is {Watchers: { } spectatorIds})
+        {
+            var spectators = lobbyInfo.Spectators.Where(s => spectatorIds.Contains(s.PeerId));
+            foreach (var spectator in spectators)
+                players.Add(new Spectator(spectator.Endpoint.ToIPEndpoint()));
+        }
+
+        LoadScene(new BattleScene(Config.Port, players));
     }
 
     bool PendingNetworkCall()
