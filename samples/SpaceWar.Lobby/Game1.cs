@@ -7,12 +7,14 @@ namespace SpaceWar;
 
 public class Game1 : Game
 {
+    readonly AppSettings appSettings;
     readonly GraphicsDeviceManager graphics;
     public SpriteBatch SpriteBatch { get; private set; }
     public SceneManager SceneManager { get; private set; }
 
-    public Game1()
+    public Game1(AppSettings appSettings)
     {
+        this.appSettings = appSettings;
         graphics = new(this);
         Content.RootDirectory = "Content";
         IsMouseVisible = true;
@@ -27,7 +29,8 @@ public class Game1 : Game
         base.Initialize();
         SceneManager = new(this, startScene: new ChooseNameScene());
         Services.AddService(SceneManager);
-        Services.AddService(new LobbyClient());
+        Services.AddService(appSettings);
+        Services.AddService(new LobbyClient(appSettings));
     }
 
     protected override void LoadContent()

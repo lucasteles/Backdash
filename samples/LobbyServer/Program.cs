@@ -20,8 +20,19 @@ builder.Services
 var app = builder.Build();
 app.UseSwagger().UseSwaggerUI();
 
-app.MapGet("lobby/{name}", Results<Ok<Lobby>, NotFound> (IMemoryCache cache, string name) =>
-    cache.Get<Lobby>(name.ToLower()) is { } lobby ? Ok(lobby) : NotFound());
+app.MapGet("lobby/{name}",
+    Results<Ok<Lobby>, NotFound, ForbidHttpResult> (
+        IMemoryCache cache, string name, [FromQuery] Guid token
+    ) =>
+    {
+        if (cache.Get<Lobby>(name.ToLower()) is not { } lobby)
+            return NotFound();
+
+        if (lobby.FindEntry(token) is null)
+            return Forbid();
+
+        return Ok(lobby);
+    });
 
 app.MapPost("lobby", Results<Ok<EnterLobbyResponse>, BadRequest, Conflict, UnprocessableEntity> (
     HttpContext context, TimeProvider time, IMemoryCache cache, EnterLobbyRequest req) =>
@@ -42,19 +53,19 @@ app.MapPost("lobby", Results<Ok<EnterLobbyResponse>, BadRequest, Conflict, Unpro
     if (lobby is null || lobby.Ready) return UnprocessableEntity();
 
     PeerEndpoint endpoint = new(userIp.ToString(), req.Port);
-    Peer peer = new(req.UserName, endpoint);
+    Peer peer = new(req.Username, endpoint);
 
-    if (lobby.FindEntry(req.UserName) is not null)
+    if (lobby.FindEntry(req.Username) is not null)
         return Conflict();
 
     LobbyEntry entry = new(peer, req.Mode);
     lobby.AddPeer(entry);
-    return Ok(new EnterLobbyResponse(entry.Peer.PeerId, entry.Token));
+    return Ok(new EnterLobbyResponse(name, entry.Peer.PeerId, entry.Token));
 });
 
-app.MapDelete("lobby/{name}/{token}",
+app.MapDelete("lobby/{name}",
     Results<NoContent, NotFound, BadRequest, UnprocessableEntity>
-        (IMemoryCache cache, string name, Guid token) =>
+        (IMemoryCache cache, string name, [FromQuery] Guid token) =>
     {
         if (string.IsNullOrWhiteSpace(name)) return BadRequest();
         if (cache.Get<Lobby>(name.ToLower()) is not { } lobby ||
@@ -67,9 +78,9 @@ app.MapDelete("lobby/{name}/{token}",
         return NoContent();
     });
 
-app.MapPut("lobby/{name}/{token}/ready",
+app.MapPut("lobby/{name}",
     Results<NoContent, NotFound, BadRequest, UnprocessableEntity> (
-        IMemoryCache cache, string name, Guid token
+        IMemoryCache cache, string name, [FromQuery] Guid token
     ) =>
     {
         if (string.IsNullOrWhiteSpace(name)) return BadRequest();
@@ -85,9 +96,10 @@ app.MapPut("lobby/{name}/{token}/ready",
         return NoContent();
     });
 
-app.MapPut("lobby/{name}/{token}/mode/{mode}",
+app.MapPut("lobby/{name}/mode/{mode}",
     Results<NoContent, NotFound, BadRequest, UnprocessableEntity> (
-        IMemoryCache cache, string name, Guid token,
+        IMemoryCache cache, string name,
+        [FromQuery] Guid token,
         [FromRoute] PeerMode mode
     ) =>
     {

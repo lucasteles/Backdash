@@ -118,6 +118,6 @@ public sealed class Lobby(string name, DateTimeOffset createdAt)
     }
 }
 
-public sealed record EnterLobbyRequest(string LobbyName, int Port, string UserName, PeerMode Mode);
+public sealed record EnterLobbyRequest(string LobbyName, int Port, string Username, PeerMode Mode);
 
-public sealed record EnterLobbyResponse(PeerId PeerId, PeerToken Token);
+public sealed record EnterLobbyResponse(string Username, PeerId PeerId, PeerToken Token);
