@@ -44,6 +44,21 @@ public sealed class LobbyScene(string username, PlayerMode mode) : Scene
         }
     }
 
+    protected override void Dispose(bool disposing)
+    {
+        if (user is null)
+            return;
+
+        try
+        {
+            client.LeaveLobby(user).GetAwaiter().GetResult();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+        }
+    }
+
     void DrawLoading(SpriteBatch spriteBatch, Vector2 center)
     {
         const string loadingText = "Loading...";
@@ -67,12 +82,11 @@ public sealed class LobbyScene(string username, PlayerMode mode) : Scene
             Color.Orange, 0, Vector2.Zero, 0.5f, SpriteEffects.None, 0);
     }
 
-
     async Task RequestLobby()
     {
         var config = Services.GetService<AppSettings>();
         user = await client.EnterLobby(config.LobbyName, username, mode);
-        lobbyInfo = await client.GetLobby(user, config.LobbyName);
+        lobbyInfo = await client.GetLobby(user);
         currentState = LobbyState.Waiting;
     }
 

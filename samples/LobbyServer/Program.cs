@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 using LobbyServer;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -47,25 +48,29 @@ app.MapPost("lobby", Results<Ok<EnterLobbyResponse>, BadRequest, Conflict, Unpro
         || context.Connection.RemoteIpAddress is not { } userIp)
         return BadRequest();
 
-    var name = req.LobbyName.Trim().ToLower();
+    var lobbyName = Normalize.Name(req.LobbyName);
+    var userName = Normalize.Name(req.Username);
     var expiration = configuration.GetValue<TimeSpan>("LobbyExpiration");
+    var allowRecreate = configuration.GetValue<bool>("AllowRecreate");
 
-    var lobby = cache.GetOrCreate(name, e =>
+    var lobby = cache.GetOrCreate(lobbyName, e =>
     {
         e.SetSlidingExpiration(expiration);
-        return new Lobby(name, expiration, time.GetUtcNow());
+        return new Lobby(lobbyName, expiration, time.GetUtcNow());
     });
-    if (lobby is null || lobby.Ready) return UnprocessableEntity();
+
+    if (lobby is null || lobby.Ready)
+        return UnprocessableEntity();
 
     PeerEndpoint endpoint = new(userIp.ToString(), req.Port);
-    Peer peer = new(req.Username, endpoint);
+    Peer peer = new(userName, endpoint);
 
-    if (lobby.FindEntry(req.Username) is not null)
+    if (!allowRecreate && lobby.FindEntry(userName) is not null)
         return Conflict();
 
     LobbyEntry entry = new(peer, req.Mode);
     lobby.AddPeer(entry);
-    return Ok(new EnterLobbyResponse(name, entry.Peer.PeerId, entry.Token));
+    return Ok(new EnterLobbyResponse(userName, lobbyName, entry.Peer.PeerId, entry.Token));
 });
 
 app.MapDelete("lobby/{name}",
@@ -73,7 +78,8 @@ app.MapDelete("lobby/{name}",
         (IMemoryCache cache, string name, [FromQuery] Guid token) =>
     {
         if (string.IsNullOrWhiteSpace(name)) return BadRequest();
-        if (cache.Get<Lobby>(name.ToLower()) is not { } lobby ||
+        var lobbyName = Normalize.Name(name);
+        if (cache.Get<Lobby>(lobbyName) is not { } lobby ||
             lobby.FindEntry(token) is not { } entry)
             return NotFound();
 
@@ -83,7 +89,7 @@ app.MapDelete("lobby/{name}",
         lobby.RemovePeer(entry);
 
         if (lobby.IsEmpty())
-            cache.Remove(name);
+            cache.Remove(lobbyName);
 
         return NoContent();
     });
@@ -94,7 +100,8 @@ app.MapPut("lobby/{name}",
     ) =>
     {
         if (string.IsNullOrWhiteSpace(name)) return BadRequest();
-        if (cache.Get<Lobby>(name.ToLower()) is not { } lobby ||
+        var lobbyName = Normalize.Name(name);
+        if (cache.Get<Lobby>(lobbyName) is not { } lobby ||
             lobby.FindEntry(token) is not { } entry)
             return NotFound();
 
@@ -114,7 +121,8 @@ app.MapPut("lobby/{name}/mode/{mode}",
     ) =>
     {
         if (string.IsNullOrWhiteSpace(name)) return BadRequest();
-        if (cache.Get<Lobby>(name.ToLower()) is not { } lobby ||
+        var lobbyName = Normalize.Name(name);
+        if (cache.Get<Lobby>(lobbyName) is not { } lobby ||
             lobby.FindEntry(token) is not { } entry)
             return NotFound();
 

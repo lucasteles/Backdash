@@ -38,17 +38,17 @@ public sealed class LobbyClient(AppSettings appSettings)
                ?? throw new InvalidOperationException();
     }
 
-    public async Task<Lobby> GetLobby(User user, string lobbyName)
-    {
-        var response = await client.PostAsJsonAsync(
-            $"/lobby/{lobbyName}?token={user.Token}",
+    public async Task<Lobby> GetLobby(User user) =>
+        await client.GetFromJsonAsync<Lobby>
+        (
+            $"/lobby/{user.LobbyName}?token={user.Token}",
             JsonOptions
-        );
+        )
+        ?? throw new InvalidOperationException();
 
-        if (response.StatusCode is HttpStatusCode.Forbidden)
-            throw new InvalidOperationException("Not authorized");
-
-        return await response.Content.ReadFromJsonAsync<Lobby>()
-               ?? throw new InvalidOperationException();
+    public async Task LeaveLobby(User user)
+    {
+        var response = await client.DeleteAsync($"/lobby/{user.LobbyName}?token={user.Token}");
+        response.EnsureSuccessStatusCode();
     }
 }

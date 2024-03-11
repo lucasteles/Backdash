@@ -125,4 +125,8 @@ public sealed class Lobby(string name, TimeSpan expiration, DateTimeOffset creat
 
 public sealed record EnterLobbyRequest(string LobbyName, int Port, string Username, PeerMode Mode);
 
-public sealed record EnterLobbyResponse(string Username, PeerId PeerId, PeerToken Token);
+public sealed record EnterLobbyResponse(
+    string Username,
+    string LobbyName,
+    PeerId PeerId,
+    PeerToken Token);
