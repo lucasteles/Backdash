@@ -40,7 +40,7 @@ public sealed class Lobby(
 
     readonly object locker = new();
 
-    readonly HashSet<LobbyEntry> entries = [];
+    readonly List<LobbyEntry> entries = [];
 
     public string Name { get; } = name;
     public PeerId Owner { get; private set; } = owner;
@@ -114,7 +114,7 @@ public sealed class Lobby(
     public LobbyEntry? FindEntry(string username)
     {
         lock (locker)
-            return entries.FirstOrDefault(p =>
+            return entries.Find(p =>
                 p.Peer.Username.Equals(username, StringComparison.OrdinalIgnoreCase));
     }
 
@@ -134,8 +134,8 @@ public sealed class Lobby(
     {
         lock (locker)
         {
-            entries.RemoveWhere(entry => now - entry.LastRead > purgeTimeout);
-            if (entries.Count > 0 && entries.All(x => x.Peer.PeerId != Owner))
+            entries.RemoveAll(entry => now - entry.LastRead >= purgeTimeout);
+            if (entries.Count > 0 && entries.TrueForAll(x => x.Peer.PeerId != Owner))
                 Owner = entries.OrderByDescending(x => x.LastRead).First().Peer.PeerId;
         }
     }
@@ -147,4 +147,5 @@ public sealed record EnterLobbyResponse(
     string Username,
     string LobbyName,
     PeerId PeerId,
-    PeerToken Token);
+    PeerToken Token
+);
