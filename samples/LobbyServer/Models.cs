@@ -13,16 +13,17 @@ public sealed record PeerEndpoint(string IP, int Port);
 
 public sealed class Peer(string username, PeerEndpoint endpoint)
 {
-    public PeerId PeerId { get; } = Guid.NewGuid();
+    public PeerId PeerId { get; init; } = Guid.NewGuid();
     public string Username { get; } = username;
     public PeerEndpoint Endpoint { get; } = endpoint;
     public bool Ready { get; private set; }
     public void ToggleReady() => Ready = !Ready;
 }
 
-public sealed record LobbyEntry(Peer Peer, PeerMode Mode, DateTimeOffset EnteredAt)
+public sealed record LobbyEntry(Peer Peer, PeerMode Mode)
 {
     public PeerToken Token { get; init; } = PeerToken.NewGuid();
+    public required DateTimeOffset LastRead { get; set; }
 }
 
 public sealed record SpectatorMapping(PeerId Host, IEnumerable<PeerId> Watchers);
@@ -31,6 +32,7 @@ public sealed class Lobby(
     string name,
     PeerId owner,
     TimeSpan expiration,
+    TimeSpan purgeTimeout,
     DateTimeOffset createdAt
 )
 {
@@ -41,7 +43,7 @@ public sealed class Lobby(
     readonly HashSet<LobbyEntry> entries = [];
 
     public string Name { get; } = name;
-    public PeerId Owner { get; } = owner;
+    public PeerId Owner { get; private set; } = owner;
     public DateTimeOffset CreatedAt { get; } = createdAt;
     public DateTimeOffset ExpiresAt => CreatedAt + expiration;
 
@@ -126,6 +128,18 @@ public sealed class Lobby(
     {
         lock (locker)
             return entries.Count is 0;
+    }
+
+    public void Purge(DateTimeOffset now)
+    {
+        lock (locker)
+        {
+            entries.RemoveWhere(entry => now - entry.LastRead > purgeTimeout);
+            if (entries.Count > 0 && entries.All(x => x.Peer.PeerId != Owner))
+            {
+                Owner = entries.OrderByDescending(x => x.LastRead).First().Peer.PeerId;
+            }
+        }
     }
 }
 

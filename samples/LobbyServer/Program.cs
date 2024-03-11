@@ -1,6 +1,5 @@
 using System.Net;
 using System.Text.Json.Serialization;
-using System.Text.RegularExpressions;
 using LobbyServer;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -23,15 +22,20 @@ var app = builder.Build();
 app.UseSwagger().UseSwaggerUI();
 
 app.MapGet("lobby/{name}",
-    Results<Ok<Lobby>, NotFound, ForbidHttpResult> (
-        IMemoryCache cache, string name, [FromQuery] Guid token
+    Results<Ok<Lobby>, NotFound, UnauthorizedHttpResult> (
+        IMemoryCache cache, TimeProvider time,
+        string name, [FromQuery] Guid token
     ) =>
     {
         if (cache.Get<Lobby>(name.ToLower()) is not { } lobby)
             return NotFound();
 
-        if (lobby.FindEntry(token) is null)
-            return Forbid();
+        if (lobby.FindEntry(token) is not { } user)
+            return Unauthorized();
+
+        var now = time.GetUtcNow();
+        user.LastRead = now;
+        lobby.Purge(now);
 
         return Ok(lobby);
     });
@@ -49,31 +53,44 @@ app.MapPost("lobby", Results<Ok<EnterLobbyResponse>, BadRequest, Conflict, Unpro
         return BadRequest();
 
     var lobbyName = Normalize.Name(req.LobbyName);
-    var userName = Normalize.Name(req.Username);
     var expiration = configuration.GetValue<TimeSpan>("LobbyExpiration");
-
-    PeerEndpoint endpoint = new(userIp.ToString(), req.Port);
-    Peer peer = new(userName, endpoint);
+    var purgeTimeout = configuration.GetValue<TimeSpan>("PurgeTimeout");
+    var userName = Normalize.Name(req.Username);
+    var peerId = Guid.NewGuid();
     var now = time.GetUtcNow();
 
     var lobby = cache.GetOrCreate(lobbyName, e =>
     {
         e.SetSlidingExpiration(expiration);
-        return new Lobby(lobbyName, peer.PeerId, expiration, now);
+        return new Lobby(
+            name: lobbyName,
+            owner: peerId,
+            expiration: expiration,
+            purgeTimeout: purgeTimeout,
+            createdAt: now
+        );
     });
 
     if (lobby is null || lobby.Ready)
         return UnprocessableEntity();
 
-    if (lobby.FindEntry(userName) is { } user)
+    var userNameIndex = 2;
+    var nextUserName = userName;
+    while (lobby.FindEntry(nextUserName) is not null)
+        nextUserName = $"{userName}{userNameIndex++}";
+    userName = nextUserName;
+
+    PeerEndpoint userEndpoint = new(userIp.ToString(), req.Port);
+    Peer peer = new(userName, userEndpoint)
     {
-        if (peer.Endpoint != user.Peer.Endpoint)
-            return Conflict();
+        PeerId = peerId,
+    };
 
-        return Ok(new EnterLobbyResponse(userName, lobbyName, user.Peer.PeerId, user.Token));
-    }
+    LobbyEntry entry = new(peer, req.Mode)
+    {
+        LastRead = now,
+    };
 
-    LobbyEntry entry = new(peer, req.Mode, now);
     lobby.AddPeer(entry);
     return Ok(new EnterLobbyResponse(userName, lobbyName, entry.Peer.PeerId, entry.Token));
 });
