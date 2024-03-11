@@ -1,3 +1,5 @@
+using System.Net;
+
 namespace SpaceWar.Models;
 
 public sealed class Peer
@@ -8,4 +10,7 @@ public sealed class Peer
     public bool Ready { get; init; }
 }
 
-public sealed record PeerEndpoint(string IP, int Port);
+public sealed record PeerEndpoint(string IP, int Port)
+{
+    public IPEndPoint ToIPEndpoint() => new(IPAddress.Parse(IP), Port);
+}

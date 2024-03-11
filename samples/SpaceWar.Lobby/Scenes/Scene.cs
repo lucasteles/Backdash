@@ -8,14 +8,15 @@ public abstract class Scene : IDisposable
     protected GameServiceContainer Services { get; private set; }
     protected Rectangle Viewport { get; private set; }
     protected GameAssets Assets { get; private set; }
-
     protected GameWindow Window { get; private set; }
+    protected AppSettings Config { get; private set; }
 
     public void Configure(Game1 game)
     {
         Services = game.Services;
         Viewport = game.GraphicsDevice.Viewport.Bounds;
         Assets = game.Services.GetService<GameAssets>();
+        Config = Services.GetService<AppSettings>();
         Window = game.Window;
     }
 

@@ -1,5 +1,6 @@
 #nullable disable
 using System.Diagnostics;
+using Backdash;
 using SpaceWar.Models;
 using SpaceWar.Util;
 
@@ -34,7 +35,7 @@ public sealed class LobbyScene(string username, PlayerMode mode) : Scene
             return;
 
 
-        if (keyboard.IsKeyPressed(Keys.Enter))
+        if (mode is PlayerMode.Player && keyboard.IsKeyPressed(Keys.Enter))
         {
             networkCall = ToggleReady();
             return;
@@ -57,7 +58,7 @@ public sealed class LobbyScene(string username, PlayerMode mode) : Scene
 
         switch (currentState)
         {
-            case LobbyState.Loading:
+            case LobbyState.Loading or LobbyState.Starting:
                 DrawLoading(spriteBatch, center);
                 break;
             case LobbyState.Error:
@@ -95,10 +96,17 @@ public sealed class LobbyScene(string username, PlayerMode mode) : Scene
         spriteBatch.DrawString(Assets.MainFont, lobbyInfo.Name, new Vector2(left, top),
             Color.Cyan);
 
-        var usernameSize = Assets.MainFont.MeasureString(user.Username);
+        Color usernameColor;
+        if (mode is PlayerMode.Spectator)
+            usernameColor = Color.LightBlue;
+        else
+            usernameColor = ready ? Color.Lime : Color.Orange;
+
+        var usernameSize =
+            Assets.MainFont.MeasureString(user.Username);
         spriteBatch.DrawString(Assets.MainFont, user.Username,
             new Vector2(Viewport.Right - padding - usernameSize.X, top),
-            ready ? Color.Lime : Color.Orange, 0, Vector2.Zero, 1, SpriteEffects.None, 0);
+            usernameColor, 0, Vector2.Zero, 1, SpriteEffects.None, 0);
         top += padding + (int) usernameSize.Y;
 
         Rectangle line = new(Viewport.Left, top, Viewport.Width, lineWidth);
@@ -215,8 +223,7 @@ public sealed class LobbyScene(string username, PlayerMode mode) : Scene
 
     async Task RequestLobby()
     {
-        var config = Services.GetService<AppSettings>();
-        user = await client.EnterLobby(config.LobbyName, username, mode);
+        user = await client.EnterLobby(Config.LobbyName, username, mode);
         await RefreshLobby();
         currentState = LobbyState.Waiting;
     }
@@ -225,6 +232,32 @@ public sealed class LobbyScene(string username, PlayerMode mode) : Scene
     {
         lastRefresh = Stopwatch.GetTimestamp();
         lobbyInfo = await client.GetLobby(user);
+
+        if (lobbyInfo.Ready)
+        {
+            currentState = LobbyState.Starting;
+            List<Player> players = [];
+
+            for (var i = 0; i < lobbyInfo.Players.Length; i++)
+            {
+                var player = lobbyInfo.Players[i];
+                var playerNumber = i + 1;
+
+                players.Add(player.PeerId == user.PeerId
+                    ? new LocalPlayer(playerNumber)
+                    : new RemotePlayer(playerNumber, player.Endpoint.ToIPEndpoint()));
+            }
+
+            if (lobbyInfo.SpectatorMapping.SingleOrDefault(m => m.Host == user.PeerId)
+                is {Watchers: { } spectatorIds})
+            {
+                var spectators = lobbyInfo.Spectators.Where(s => spectatorIds.Contains(s.PeerId));
+                foreach (var spectator in spectators)
+                    players.Add(new Spectator(spectator.Endpoint.ToIPEndpoint()));
+            }
+
+            LoadScene(new BattleScene(Config.Port, players));
+        }
     }
 
     bool PendingNetworkCall()
@@ -251,6 +284,7 @@ public sealed class LobbyScene(string username, PlayerMode mode) : Scene
     {
         Loading,
         Waiting,
+        Starting,
         Error,
     }
 }
