@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace SpaceWar.Scenes;
@@ -49,7 +49,11 @@ public sealed class ChooseNameScene : Scene
 
         var keyboard = Keyboard.GetState();
         if (keyboard.IsKeyDown(Keys.Enter))
-            LoadScene(new ChooseModeScene(username.ToString()));
+        {
+            var strName = username.ToString();
+            LoadScene(new ChooseModeScene(strName));
+            Window.Title = $"Space War - {strName}";
+        }
     }
 
     public override void Draw(SpriteBatch spriteBatch)
@@ -64,10 +68,10 @@ public sealed class ChooseNameScene : Scene
         if (showCursor)
         {
             Rectangle cursorRect = new(
-                (int) (center.X + halfSize.X),
-                (int) (center.Y - cursorSize.Y / 2),
-                (int) cursorSize.X,
-                (int) (cursorSize.Y * 0.9)
+                (int)(center.X + halfSize.X),
+                (int)(center.Y - cursorSize.Y / 2),
+                (int)cursorSize.X,
+                (int)(cursorSize.Y * 0.9)
             );
             spriteBatch.Draw(Assets.Blank, cursorRect, Color.White);
         }

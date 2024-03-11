@@ -1,25 +1,14 @@
-﻿using SpaceWar.Models;
+using SpaceWar.Models;
 
 namespace SpaceWar.Scenes;
 
-public sealed class LobbyScene : Scene
+public sealed class LobbyScene(string username, PlayerMode mode) : Scene
 {
     public const string LobbyName = "spacewar";
 
-    PlayerMode? playerMode;
+    public override void Initialize() { }
 
-    public override void Initialize()
-    {
-        throw new NotImplementedException();
-    }
+    public override void Update(GameTime gameTime) { }
 
-    public override void Update(GameTime gameTime)
-    {
-        throw new NotImplementedException();
-    }
-
-    public override void Draw(SpriteBatch spriteBatch)
-    {
-        throw new NotImplementedException();
-    }
+    public override void Draw(SpriteBatch spriteBatch) { }
 }

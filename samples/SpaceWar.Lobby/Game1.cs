@@ -1,6 +1,7 @@
 #nullable disable
 
 using SpaceWar.Scenes;
+using SpaceWar.Util;
 
 namespace SpaceWar;
 
@@ -26,6 +27,7 @@ public class Game1 : Game
         base.Initialize();
         SceneManager = new(this, startScene: new ChooseNameScene());
         Services.AddService(SceneManager);
+        Services.AddService(new LobbyClient());
     }
 
     protected override void LoadContent()

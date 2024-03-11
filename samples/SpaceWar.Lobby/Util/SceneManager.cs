@@ -1,6 +1,6 @@
-﻿using SpaceWar.Scenes;
+using SpaceWar.Scenes;
 
-namespace SpaceWar;
+namespace SpaceWar.Util;
 
 public sealed class SceneManager : IDisposable
 {

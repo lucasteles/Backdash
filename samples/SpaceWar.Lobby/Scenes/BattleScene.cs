@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using Backdash;
 using Backdash.Core;
 using SpaceWar.Logic;

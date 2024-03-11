@@ -1,4 +1,6 @@
-﻿#nullable disable
+#nullable disable
+using SpaceWar.Util;
+
 namespace SpaceWar.Scenes;
 
 public abstract class Scene : IDisposable
