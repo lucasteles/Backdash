@@ -51,4 +51,10 @@ public sealed class LobbyClient(AppSettings appSettings)
         var response = await client.DeleteAsync($"/lobby/{user.LobbyName}?token={user.Token}");
         response.EnsureSuccessStatusCode();
     }
+
+    public async Task ToggleReady(User user)
+    {
+        var response = await client.PutAsync($"/lobby/{user.LobbyName}?token={user.Token}", null);
+        response.EnsureSuccessStatusCode();
+    }
 }

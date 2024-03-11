@@ -136,9 +136,7 @@ public sealed class Lobby(
         {
             entries.RemoveWhere(entry => now - entry.LastRead > purgeTimeout);
             if (entries.Count > 0 && entries.All(x => x.Peer.PeerId != Owner))
-            {
                 Owner = entries.OrderByDescending(x => x.LastRead).First().Peer.PeerId;
-            }
         }
     }
 }

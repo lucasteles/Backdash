@@ -1,4 +1,5 @@
 #nullable disable
+using System.Diagnostics;
 using SpaceWar.Models;
 using SpaceWar.Util;
 
@@ -12,19 +13,43 @@ public sealed class LobbyScene(string username, PlayerMode mode) : Scene
     User user;
     Lobby lobbyInfo;
     Task networkCall;
+    bool ready;
+    long lastRefresh = Stopwatch.GetTimestamp();
+
+    readonly TimeSpan refreshInterval = TimeSpan.FromSeconds(2);
+    readonly KeyboardController keyboard = new();
 
     public override void Initialize()
     {
         client = Services.GetService<LobbyClient>();
         networkCall = RequestLobby();
+        keyboard.Update();
     }
 
     public override void Update(GameTime gameTime)
     {
+        keyboard.Update();
+
         if (PendingNetworkCall())
             return;
 
-        if (currentState is LobbyState.Waiting) { }
+
+        if (keyboard.IsKeyPressed(Keys.Enter))
+        {
+            networkCall = ToggleReady();
+            return;
+        }
+
+        if (currentState is LobbyState.Waiting &&
+            Stopwatch.GetElapsedTime(lastRefresh) > refreshInterval
+           )
+            _ = ReloadLobby();
+    }
+
+    async Task ToggleReady()
+    {
+        await client.ToggleReady(user);
+        ready = true;
     }
 
     public override void Draw(SpriteBatch spriteBatch)
@@ -39,16 +64,15 @@ public sealed class LobbyScene(string username, PlayerMode mode) : Scene
             case LobbyState.Error:
                 DrawError(spriteBatch);
                 break;
-            case LobbyState.Waiting or LobbyState.Ready:
+            case LobbyState.Waiting:
+                DrawLobby(spriteBatch);
                 break;
         }
     }
 
     protected override void Dispose(bool disposing)
     {
-        if (user is null)
-            return;
-
+        if (user is null) return;
         try
         {
             client.LeaveLobby(user).GetAwaiter().GetResult();
@@ -56,6 +80,114 @@ public sealed class LobbyScene(string username, PlayerMode mode) : Scene
         catch (Exception e)
         {
             Console.WriteLine(e);
+        }
+    }
+
+    void DrawLobby(SpriteBatch spriteBatch)
+    {
+        const int padding = 15;
+        const int halfPadding = padding / 2;
+        const int lineWidth = 2;
+        const float smTextScale = 0.6f;
+        var lineColor = Color.DarkGray;
+        var left = Viewport.Left + padding;
+        var top = Viewport.Top + padding;
+
+        spriteBatch.DrawString(Assets.MainFont, lobbyInfo.Name, new Vector2(left, top),
+            Color.Cyan);
+
+        var usernameSize = Assets.MainFont.MeasureString(user.Username);
+        spriteBatch.DrawString(Assets.MainFont, user.Username,
+            new Vector2(Viewport.Right - padding - usernameSize.X, top),
+            ready ? Color.Lime : Color.Orange, 0, Vector2.Zero, 1, SpriteEffects.None, 0);
+        top += padding + (int) usernameSize.Y;
+
+        Rectangle line = new(Viewport.Left, top, Viewport.Width, lineWidth);
+        spriteBatch.Draw(Assets.Blank, line, lineColor);
+        top += lineWidth + halfPadding;
+
+        var note = ready ? "waiting other players..." : "press enter to start.";
+        var noteSize = Assets.MainFont.MeasureString(note);
+        spriteBatch.DrawString(Assets.MainFont, note, new(Viewport.Center.X, top),
+            Color.Bisque, 0, new(noteSize.X / 2, 0), smTextScale, SpriteEffects.None, 0);
+        top += (int) (noteSize.Y * smTextScale) + halfPadding;
+
+        line = new(Viewport.Left, top, Viewport.Width, lineWidth);
+        spriteBatch.Draw(Assets.Blank, line, lineColor);
+        top += lineWidth;
+
+        var splitHeight = Viewport.Height - top;
+        line = new(Viewport.Center.X, top, lineWidth, splitHeight);
+        spriteBatch.Draw(Assets.Blank, line, lineColor);
+        splitHeight -= padding;
+        top += halfPadding;
+
+        Rectangle playersRect =
+            new(left - halfPadding, top, Viewport.Width / 2 - padding, splitHeight);
+        Rectangle spectatorsRect = new(Viewport.Center.X + lineWidth + halfPadding, top,
+            Viewport.Width / 2 - lineWidth - padding, splitHeight);
+        spriteBatch.Draw(Assets.Blank, playersRect, Color.DarkSlateGray);
+        spriteBatch.Draw(Assets.Blank, spectatorsRect, Color.DarkSlateGray);
+
+        const string playersTitle = "Players";
+        const string spectatorsTitle = "Spectators";
+        var playersTitleSize = Assets.MainFont.MeasureString(playersTitle);
+        var spectatorsTitleSize = Assets.MainFont.MeasureString(spectatorsTitle);
+
+        spriteBatch.DrawString(Assets.MainFont, playersTitle,
+            new(playersRect.Center.X - playersTitleSize.X / 2, top), Color.MediumSeaGreen);
+        spriteBatch.DrawString(Assets.MainFont, spectatorsTitle,
+            new(spectatorsRect.Center.X - spectatorsTitleSize.X / 2, top), Color.MediumSeaGreen);
+
+        top += (int) Math.Max(playersTitleSize.Y, spectatorsTitleSize.Y);
+        top += halfPadding;
+        line = new(playersRect.Left, top, playersRect.Width, halfPadding);
+        spriteBatch.Draw(Assets.Blank, line, Color.Black);
+        line = new(spectatorsRect.Left, top, spectatorsRect.Width, halfPadding);
+        spriteBatch.Draw(Assets.Blank, line, Color.Black);
+
+        top += padding;
+        spectatorsRect.Inflate(-padding, -padding);
+        playersRect.Inflate(-padding, -padding);
+
+        var playerCount = lobbyInfo.Players.Length;
+        var spectatorCount = lobbyInfo.Spectators.Length;
+        var maxCount = Math.Max(playerCount, spectatorCount);
+
+        for (var i = 0; i < maxCount; i++)
+        {
+            if (i < playerCount)
+            {
+                ref var player = ref lobbyInfo.Players[i];
+
+                Rectangle statusBlock = new(
+                    playersRect.Left, top + (int) usernameSize.Y / 3,
+                    (int) usernameSize.Y / 2, (int) usernameSize.Y / 2
+                );
+                spriteBatch.Draw(Assets.Blank, statusBlock, null,
+                    player.Ready ? Color.LimeGreen : Color.Orange,
+                    0, Vector2.Zero, SpriteEffects.None, 0);
+
+                spriteBatch.DrawString(Assets.MainFont, player.Username,
+                    new(playersRect.Left + statusBlock.Width + padding, top), Color.White);
+            }
+
+            if (i < spectatorCount)
+            {
+                ref var player = ref lobbyInfo.Spectators[i];
+
+                Rectangle statusBlock = new(
+                    spectatorsRect.Left, top + (int) usernameSize.Y / 3,
+                    (int) usernameSize.Y / 2, (int) usernameSize.Y / 2
+                );
+                spriteBatch.Draw(Assets.Blank, statusBlock, null, Color.LightBlue,
+                    0, Vector2.Zero, SpriteEffects.None, 0);
+
+                spriteBatch.DrawString(Assets.MainFont, player.Username,
+                    new(spectatorsRect.Left + statusBlock.Width + padding, top), Color.White);
+            }
+
+            top += (int) usernameSize.Y + halfPadding;
         }
     }
 
@@ -86,8 +218,14 @@ public sealed class LobbyScene(string username, PlayerMode mode) : Scene
     {
         var config = Services.GetService<AppSettings>();
         user = await client.EnterLobby(config.LobbyName, username, mode);
-        lobbyInfo = await client.GetLobby(user);
+        await ReloadLobby();
         currentState = LobbyState.Waiting;
+    }
+
+    async Task ReloadLobby()
+    {
+        lastRefresh = Stopwatch.GetTimestamp();
+        lobbyInfo = await client.GetLobby(user);
     }
 
     bool PendingNetworkCall()
@@ -115,6 +253,5 @@ public sealed class LobbyScene(string username, PlayerMode mode) : Scene
         Loading,
         Waiting,
         Error,
-        Ready,
     }
 }
