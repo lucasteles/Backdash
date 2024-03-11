@@ -15,27 +15,33 @@ public sealed class Peer(string username, PeerEndpoint endpoint)
 {
     public PeerId PeerId { get; } = Guid.NewGuid();
     public string Username { get; } = username;
-
     public PeerEndpoint Endpoint { get; } = endpoint;
     public bool Ready { get; private set; }
     public void ToggleReady() => Ready = !Ready;
 }
 
-public sealed record LobbyEntry(Peer Peer, PeerMode Mode)
+public sealed record LobbyEntry(Peer Peer, PeerMode Mode, DateTimeOffset EnteredAt)
 {
     public PeerToken Token { get; init; } = PeerToken.NewGuid();
 }
 
 public sealed record SpectatorMapping(PeerId Host, IEnumerable<PeerId> Watchers);
 
-public sealed class Lobby(string name, TimeSpan expiration, DateTimeOffset createdAt)
+public sealed class Lobby(
+    string name,
+    PeerId owner,
+    TimeSpan expiration,
+    DateTimeOffset createdAt
+)
 {
     const int MaxPlayers = 4;
 
-    readonly HashSet<LobbyEntry> entries = [];
     readonly object locker = new();
 
+    readonly HashSet<LobbyEntry> entries = [];
+
     public string Name { get; } = name;
+    public PeerId Owner { get; } = owner;
     public DateTimeOffset CreatedAt { get; } = createdAt;
     public DateTimeOffset ExpiresAt => CreatedAt + expiration;
 

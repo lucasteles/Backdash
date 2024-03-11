@@ -51,24 +51,29 @@ app.MapPost("lobby", Results<Ok<EnterLobbyResponse>, BadRequest, Conflict, Unpro
     var lobbyName = Normalize.Name(req.LobbyName);
     var userName = Normalize.Name(req.Username);
     var expiration = configuration.GetValue<TimeSpan>("LobbyExpiration");
-    var allowRecreate = configuration.GetValue<bool>("AllowRecreate");
+
+    PeerEndpoint endpoint = new(userIp.ToString(), req.Port);
+    Peer peer = new(userName, endpoint);
+    var now = time.GetUtcNow();
 
     var lobby = cache.GetOrCreate(lobbyName, e =>
     {
         e.SetSlidingExpiration(expiration);
-        return new Lobby(lobbyName, expiration, time.GetUtcNow());
+        return new Lobby(lobbyName, peer.PeerId, expiration, now);
     });
 
     if (lobby is null || lobby.Ready)
         return UnprocessableEntity();
 
-    PeerEndpoint endpoint = new(userIp.ToString(), req.Port);
-    Peer peer = new(userName, endpoint);
+    if (lobby.FindEntry(userName) is { } user)
+    {
+        if (peer.Endpoint != user.Peer.Endpoint)
+            return Conflict();
 
-    if (!allowRecreate && lobby.FindEntry(userName) is not null)
-        return Conflict();
+        return Ok(new EnterLobbyResponse(userName, lobbyName, user.Peer.PeerId, user.Token));
+    }
 
-    LobbyEntry entry = new(peer, req.Mode);
+    LobbyEntry entry = new(peer, req.Mode, now);
     lobby.AddPeer(entry);
     return Ok(new EnterLobbyResponse(userName, lobbyName, entry.Peer.PeerId, entry.Token));
 });
