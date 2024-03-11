@@ -8,30 +8,30 @@ public class Game1 : Game
 {
     readonly GraphicsDeviceManager graphics;
     public SpriteBatch SpriteBatch { get; private set; }
-    public GameAssets Assets { get; private set; }
-    public SceneManager Scene { get; }
+    public SceneManager SceneManager { get; private set; }
 
     public Game1()
     {
         graphics = new(this);
         Content.RootDirectory = "Content";
-        Window.Title = "SpaceWar";
         IsMouseVisible = true;
-        Scene = new(this, new SelectModeScene());
     }
 
     protected override void Initialize()
     {
+        Window.Title = "SpaceWar";
         graphics.PreferredBackBufferWidth = 1024;
         graphics.PreferredBackBufferHeight = 768;
         graphics.ApplyChanges();
         base.Initialize();
+        SceneManager = new(this, startScene: new ChooseNameScene());
+        Services.AddService(SceneManager);
     }
 
     protected override void LoadContent()
     {
         SpriteBatch = new(GraphicsDevice);
-        Assets = new(Content, GraphicsDevice);
+        Services.AddService(new GameAssets(Content, GraphicsDevice));
     }
 
     protected override void Update(GameTime gameTime)
@@ -39,7 +39,7 @@ public class Game1 : Game
         if (Keyboard.GetState().IsKeyDown(Keys.Escape))
             Exit();
 
-        Scene.Update(gameTime);
+        SceneManager.Update(gameTime);
         base.Update(gameTime);
     }
 
@@ -47,14 +47,14 @@ public class Game1 : Game
     {
         GraphicsDevice.Clear(Color.Black);
         SpriteBatch.Begin();
-        Scene.Draw(SpriteBatch);
+        SceneManager.Draw(SpriteBatch);
         SpriteBatch.End();
         base.Draw(gameTime);
     }
 
     protected override void Dispose(bool disposing)
     {
-        Scene.Dispose();
+        SceneManager.Dispose();
         base.Dispose(disposing);
     }
 }

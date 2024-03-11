@@ -5,7 +5,7 @@ using SpaceWar.Logic;
 
 namespace SpaceWar.Scenes;
 
-public sealed class BattleFieldScene : IScene
+public sealed class BattleScene : Scene
 {
     readonly IRollbackSession<PlayerInputs, GameState> rollbackSession;
     GameSession gameSession = null!;
@@ -27,7 +27,7 @@ public sealed class BattleFieldScene : IScene
     };
 
 
-    public BattleFieldScene(int port, IReadOnlyList<Player> players)
+    public BattleScene(int port, IReadOnlyList<Player> players)
     {
         var localPlayer = players.FirstOrDefault(x => x.IsLocal());
         if (localPlayer is null)
@@ -38,20 +38,20 @@ public sealed class BattleFieldScene : IScene
         rollbackSession.AddPlayers(players);
     }
 
-    public BattleFieldScene(int port, int playerCount, IPEndPoint host)
+    public BattleScene(int port, int playerCount, IPEndPoint host)
     {
         rollbackSession = RollbackNetcode.CreateSpectatorSession<PlayerInputs, GameState>(
             port, host, playerCount, options
         );
     }
 
-    public void Initialize(Game1 game)
+    public override void Initialize()
     {
         var numPlayers = rollbackSession.NumberOfPlayers;
 
         GameState gs = new();
-        gs.Init(game.Window, numPlayers);
-        NonGameState ngs = new(numPlayers, game.Window);
+        gs.Init(Viewport, numPlayers);
+        NonGameState ngs = new(numPlayers, Viewport);
 
         foreach (var player in rollbackSession.GetPlayers())
         {
@@ -69,12 +69,13 @@ public sealed class BattleFieldScene : IScene
             ngs.StatusText.Append("Connecting to peers ...");
         }
 
-        gameSession = new(gs, ngs, new(game.Assets, game.SpriteBatch), rollbackSession);
+        var spriteBatch = Services.GetService<SpriteBatch>();
+        gameSession = new(gs, ngs, new(Assets, spriteBatch), rollbackSession);
         rollbackSession.SetHandler(gameSession);
         rollbackSession.Start();
     }
 
-    public void Update(GameTime gameTime) => gameSession.Update(gameTime);
-    public void Draw(SpriteBatch spriteBatch) => gameSession.Draw();
-    public void Dispose() => rollbackSession.Dispose();
+    public override void Update(GameTime gameTime) => gameSession.Update(gameTime);
+    public override void Draw(SpriteBatch spriteBatch) => gameSession.Draw();
+    protected override void Dispose(bool disposing) => rollbackSession.Dispose();
 }

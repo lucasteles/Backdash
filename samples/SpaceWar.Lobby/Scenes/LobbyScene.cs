@@ -2,28 +2,23 @@
 
 namespace SpaceWar.Scenes;
 
-public sealed class LobbyScene : IScene
+public sealed class LobbyScene : Scene
 {
     public const string LobbyName = "spacewar";
 
     PlayerMode? playerMode;
 
-    public void Initialize(Game1 game)
+    public override void Initialize()
     {
         throw new NotImplementedException();
     }
 
-    public void Update(GameTime gameTime)
+    public override void Update(GameTime gameTime)
     {
         throw new NotImplementedException();
     }
 
-    public void Draw(SpriteBatch spriteBatch)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void Dispose()
+    public override void Draw(SpriteBatch spriteBatch)
     {
         throw new NotImplementedException();
     }

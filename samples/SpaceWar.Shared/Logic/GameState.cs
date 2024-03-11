@@ -1,18 +1,21 @@
 using Backdash.Data;
+
 namespace SpaceWar.Logic;
+
 public sealed record GameState
 {
     public Array<Ship> Ships = [];
     public Rectangle Bounds;
     public int FrameNumber;
     public int NumberOfShips => Ships.Length;
-    public void Init(GameWindow window, int numberOfPlayers)
+
+    public void Init(Rectangle window, int numberOfPlayers)
     {
         Ships = new(numberOfPlayers);
         for (var i = 0; i < numberOfPlayers; i++)
             Ships[i] = new();
         FrameNumber = 0;
-        Bounds = window.ClientBounds with { X = 0, Y = 0 };
+        Bounds = window;
         Bounds.Inflate(-Config.WindowPadding, -Config.WindowPadding);
         var width = Bounds.Right - Bounds.Left;
         var height = Bounds.Bottom - Bounds.Top;
@@ -24,20 +27,22 @@ public sealed record GameState
             var (cosT, sinT) = (Math.Cos(theta), Math.Sin(theta));
             var x = width / 2.0 + r * cosT;
             var y = height / 2.0 + r * sinT;
-            Ships[i].Id = (byte)(i + 1);
-            Ships[i].Position = new((float)x, (float)y);
+            Ships[i].Id = (byte) (i + 1);
+            Ships[i].Position = new((float) x, (float) y);
             Ships[i].Active = true;
-            Ships[i].Heading = (int)((heading + 180) % 360);
+            Ships[i].Heading = (int) ((heading + 180) % 360);
             Ships[i].Health = Config.StartingHealth;
             Ships[i].Radius = Config.ShipRadius;
         }
     }
+
     static GameInput GetShipAI(in Ship ship) => new(
         Heading: (ship.Heading + 5f) % 360f,
         Thrust: 0,
         Fire: false,
         Missile: false
     );
+
     public GameInput ParseShipInputs(PlayerInputs inputs, in Ship ship)
     {
         if (!ship.Active)
@@ -61,9 +66,10 @@ public sealed record GameState
             inputs.HasFlag(PlayerInputs.Missile)
         );
     }
+
     public void UpdateShip(in Ship ship, in GameInput inputs)
     {
-        ship.Heading = (int)inputs.Heading;
+        ship.Heading = (int) inputs.Heading;
         Vector2 rotation = new(
             MathF.Cos(MathHelper.ToRadians(ship.Heading)),
             MathF.Sin(MathHelper.ToRadians(ship.Heading))
@@ -80,6 +86,7 @@ public sealed record GameState
                 ship.FireCooldown = Config.BulletCooldown;
                 break;
             }
+
         if (inputs.Missile && ship.MissileCooldown is 0 && !ship.Missile.Active)
         {
             ship.MissileCooldown = Config.MissileCooldown;
@@ -94,6 +101,7 @@ public sealed record GameState
                                     rotation * (ship.Radius + ship.Missile.ProjectileRadius);
             ship.Velocity += ship.Missile.Velocity * -2;
         }
+
         ship.Thrust = Math.Sign(inputs.Thrust);
         if (inputs.Thrust != 0)
         {
@@ -102,6 +110,7 @@ public sealed record GameState
             if (magnitude > Config.ShipMaxThrust)
                 ship.Velocity = ship.Velocity * Config.ShipMaxThrust / magnitude;
         }
+
         ship.Position += ship.Velocity;
         if (ship.Position.X - ship.Radius < Bounds.Left ||
             ship.Position.X + ship.Radius > Bounds.Right)
@@ -109,12 +118,14 @@ public sealed record GameState
             ship.Velocity.X *= -1;
             ship.Position.X += ship.Velocity.X * 2;
         }
+
         if (ship.Position.Y - ship.Radius < Bounds.Top ||
             ship.Position.Y + ship.Radius > Bounds.Bottom)
         {
             ship.Velocity.Y *= -1;
             ship.Position.Y += ship.Velocity.Y * 2;
         }
+
         UpdateBullets(ship);
         UpdateMissile(ship);
         if (ship.FireCooldown > 0) ship.FireCooldown--;
@@ -125,6 +136,7 @@ public sealed record GameState
         // ship.Velocity = Vector2.Round(ship.Velocity);
         // ship.Position = Vector2.Round(ship.Position);
     }
+
     void UpdateBullets(Ship ship)
     {
         for (var i = 0; i < ship.Bullets.Length; i++)
@@ -138,6 +150,7 @@ public sealed record GameState
                 bullet.Active = false;
                 continue;
             }
+
             for (var j = 0; j < NumberOfShips; j++)
             {
                 ref var other = ref Ships[j];
@@ -153,6 +166,7 @@ public sealed record GameState
                     bullet.Active = false;
                     continue;
                 }
+
                 if (other.Id == ship.Id || other.Invincible > 0)
                     continue;
                 if (Vector2.Distance(bullet.Position, other.Position) > other.Radius)
@@ -164,6 +178,7 @@ public sealed record GameState
             }
         }
     }
+
     void UpdateMissile(Ship ship)
     {
         if (ship.Missile.Active)
@@ -212,6 +227,7 @@ public sealed record GameState
                             other.Missile.ExplosionRadius += other.Missile.ExplosionRadius / 2;
                         }
                     }
+
                     if (missile.ExplodeTimeout > 0) continue;
                     if (other.Invincible > 0) continue;
                     if (distance - missile.ExplosionRadius > other.Radius) continue;
@@ -223,6 +239,7 @@ public sealed record GameState
                     other.Velocity = pushDirection * Config.ShipMaxThrust;
                     other.Position += other.Velocity * 2;
                 }
+
             if (!Bounds.Contains(missile.Position))
             {
                 var normal = Vector2.Zero;
@@ -232,10 +249,11 @@ public sealed record GameState
                 else if (missile.Position.Y > Bounds.Bottom) normal = -Vector2.UnitY;
                 else missile.ExplodeTimeout = 0;
                 var newVelocity = Vector2.Reflect(missile.Velocity, normal);
-                missile.Heading = (int)MathHelper.ToDegrees(
+                missile.Heading = (int) MathHelper.ToDegrees(
                     MathF.Atan2(newVelocity.Y, newVelocity.X));
                 missile.Velocity = newVelocity;
             }
+
             if (missile.ExplodeTimeout > 0)
                 missile.ExplodeTimeout--;
             if (missile.ExplodeTimeout is 0)
@@ -244,6 +262,7 @@ public sealed record GameState
                 missile.HitBoxTime--;
         }
     }
+
     public void Update(SynchronizedInput<PlayerInputs>[] inputs)
     {
         FrameNumber++;

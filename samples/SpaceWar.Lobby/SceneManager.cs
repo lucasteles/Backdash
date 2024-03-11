@@ -4,21 +4,23 @@ namespace SpaceWar;
 
 public sealed class SceneManager : IDisposable
 {
+    Scene currentScene;
     readonly Game1 game;
-    IScene currentScene;
 
-    public SceneManager(Game1 game, IScene currentScene)
+    public SceneManager(Game1 game, Scene startScene)
     {
         this.game = game;
-        this.currentScene = currentScene;
-        this.currentScene.Initialize(game);
+        currentScene = startScene;
+        currentScene.Configure(this.game);
+        currentScene.Initialize();
     }
 
-    public void ChangeScene(IScene newScene)
+    public void LoadScene(Scene newScene)
     {
         currentScene.Dispose();
-        newScene.Initialize(game);
         currentScene = newScene;
+        currentScene.Configure(game);
+        currentScene.Initialize();
     }
 
     public void Dispose() => currentScene.Dispose();
