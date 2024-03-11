@@ -88,7 +88,7 @@ public sealed class Lobby(
         {
             if (Ready) return;
             if (Players.Count() >= MaxPlayers)
-                entry = entry with {Mode = PeerMode.Spectator};
+                entry = entry with { Mode = PeerMode.Spectator };
 
             entries.Add(entry);
         }
@@ -108,7 +108,7 @@ public sealed class Lobby(
         if (Ready || entry.Mode == mode) return;
         RemovePeer(entry);
         if (entry.Peer.Ready) entry.Peer.ToggleReady();
-        AddPeer(entry with {Mode = mode});
+        AddPeer(entry with { Mode = mode });
     }
 
     public LobbyEntry? FindEntry(string username)
