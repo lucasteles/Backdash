@@ -234,10 +234,18 @@ public sealed class LobbyScene(string username, PlayerMode mode) : Scene
         lobbyInfo = await client.GetLobby(user);
 
         if (lobbyInfo.Ready)
-            StartBattleScene();
+            switch (mode)
+            {
+                case PlayerMode.Player:
+                    StartPlayerBattleScene();
+                    break;
+                case PlayerMode.Spectator:
+                    StartSpectatorBattleScene();
+                    break;
+            }
     }
 
-    void StartBattleScene()
+    void StartPlayerBattleScene()
     {
         currentState = LobbyState.Starting;
         List<Player> players = [];
@@ -261,6 +269,17 @@ public sealed class LobbyScene(string username, PlayerMode mode) : Scene
         }
 
         LoadScene(new BattleScene(Config.Port, players));
+    }
+
+    void StartSpectatorBattleScene()
+    {
+        var hostId = lobbyInfo.SpectatorMapping
+            .SingleOrDefault(x => x.Watchers.Contains(user.PeerId))
+            ?.Host;
+        var host = lobbyInfo.Players.Single(x => x.PeerId == hostId);
+        var hostEndpoint = host.Endpoint.ToIPEndpoint();
+        var playerCount = lobbyInfo.Players.Length;
+        LoadScene(new BattleScene(Config.Port, playerCount, hostEndpoint));
     }
 
     bool PendingNetworkCall()
