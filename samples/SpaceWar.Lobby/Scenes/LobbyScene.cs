@@ -8,7 +8,7 @@ public sealed class LobbyScene(string username, PlayerMode mode) : Scene
 {
     LobbyState currentState = LobbyState.Loading;
     LobbyClient client;
-    string error;
+    string errorMessage;
     User user;
     Lobby lobbyInfo;
     Task networkCall;
@@ -24,22 +24,47 @@ public sealed class LobbyScene(string username, PlayerMode mode) : Scene
         if (PendingNetworkCall())
             return;
 
-        if (currentState is LobbyState.Loading) { }
+        if (currentState is LobbyState.Waiting) { }
     }
 
     public override void Draw(SpriteBatch spriteBatch)
     {
+        var center = Viewport.Center.ToVector2();
+
         switch (currentState)
         {
             case LobbyState.Loading:
-                break;
-            case LobbyState.Waiting:
+                DrawLoading(spriteBatch, center);
                 break;
             case LobbyState.Error:
+                DrawError(spriteBatch);
                 break;
-            case LobbyState.Ready:
+            case LobbyState.Waiting or LobbyState.Ready:
                 break;
         }
+    }
+
+    void DrawLoading(SpriteBatch spriteBatch, Vector2 center)
+    {
+        const string loadingText = "Loading...";
+        var size = Assets.MainFont.MeasureString(loadingText);
+        spriteBatch.DrawString(Assets.MainFont, loadingText,
+            new(center.X, center.Y),
+            Color.White, 0, size / 2, 1, SpriteEffects.None, 0);
+    }
+
+    void DrawError(SpriteBatch spriteBatch)
+    {
+        const string errorLabel = "Failure: ";
+        const int padding = 15;
+        var size = Assets.MainFont.MeasureString(errorLabel);
+        spriteBatch.DrawString(Assets.MainFont, errorLabel,
+            new Vector2(Viewport.Left + padding, Viewport.Top + padding),
+            Color.Red, 0, Vector2.Zero, 1, SpriteEffects.None, 0);
+
+        spriteBatch.DrawString(Assets.MainFont, errorMessage,
+            new Vector2(Viewport.Left + padding, Viewport.Top + size.Y + padding * 2),
+            Color.Orange, 0, Vector2.Zero, 0.5f, SpriteEffects.None, 0);
     }
 
 
@@ -48,7 +73,6 @@ public sealed class LobbyScene(string username, PlayerMode mode) : Scene
         var config = Services.GetService<AppSettings>();
         user = await client.EnterLobby(config.LobbyName, username, mode);
         lobbyInfo = await client.GetLobby(user, config.LobbyName);
-
         currentState = LobbyState.Waiting;
     }
 
@@ -63,7 +87,9 @@ public sealed class LobbyScene(string username, PlayerMode mode) : Scene
         if (networkCall.IsFaulted)
         {
             currentState = LobbyState.Error;
-            error = networkCall.Exception?.Message;
+            errorMessage =
+                networkCall.Exception?.InnerException?.Message
+                ?? networkCall.Exception?.Message;
         }
 
         networkCall = null;

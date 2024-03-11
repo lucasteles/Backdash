@@ -28,9 +28,8 @@ public sealed record LobbyEntry(Peer Peer, PeerMode Mode)
 
 public sealed record SpectatorMapping(PeerId Host, IEnumerable<PeerId> Watchers);
 
-public sealed class Lobby(string name, DateTimeOffset createdAt)
+public sealed class Lobby(string name, TimeSpan expiration, DateTimeOffset createdAt)
 {
-    public static readonly TimeSpan DefaultExpiration = TimeSpan.FromMinutes(5);
     const int MaxPlayers = 4;
 
     readonly HashSet<LobbyEntry> entries = [];
@@ -38,7 +37,7 @@ public sealed class Lobby(string name, DateTimeOffset createdAt)
 
     public string Name { get; } = name;
     public DateTimeOffset CreatedAt { get; } = createdAt;
-    public DateTimeOffset ExpiresAt => CreatedAt + DefaultExpiration;
+    public DateTimeOffset ExpiresAt => CreatedAt + expiration;
 
     public bool Ready => Players.Count() > 1 && Players.All(p => p.Ready);
 
@@ -81,7 +80,7 @@ public sealed class Lobby(string name, DateTimeOffset createdAt)
         {
             if (Ready) return;
             if (Players.Count() >= MaxPlayers)
-                entry = entry with { Mode = PeerMode.Spectator };
+                entry = entry with {Mode = PeerMode.Spectator};
 
             entries.Add(entry);
         }
@@ -101,7 +100,7 @@ public sealed class Lobby(string name, DateTimeOffset createdAt)
         if (Ready || entry.Mode == mode) return;
         RemovePeer(entry);
         if (entry.Peer.Ready) entry.Peer.ToggleReady();
-        AddPeer(entry with { Mode = mode });
+        AddPeer(entry with {Mode = mode});
     }
 
     public LobbyEntry? FindEntry(string username)
@@ -115,6 +114,12 @@ public sealed class Lobby(string name, DateTimeOffset createdAt)
     {
         lock (locker)
             return entries.FirstOrDefault(p => p.Token == token);
+    }
+
+    public bool IsEmpty()
+    {
+        lock (locker)
+            return entries.Count is 0;
     }
 }
 

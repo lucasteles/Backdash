@@ -6,7 +6,7 @@ namespace SpaceWar.Scenes;
 public sealed class ChooseNameScene : Scene
 {
     const int MaxNameSize = 40;
-    const string Label = "User name";
+    const string Label = "Username";
 
     readonly StringBuilder username = new();
     readonly TimeSpan totalCursorBlinkTime = TimeSpan.FromMilliseconds(530);

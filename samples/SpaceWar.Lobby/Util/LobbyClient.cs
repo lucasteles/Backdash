@@ -41,7 +41,7 @@ public sealed class LobbyClient(AppSettings appSettings)
     public async Task<Lobby> GetLobby(User user, string lobbyName)
     {
         var response = await client.PostAsJsonAsync(
-            $"/lobby/{lobbyName}?token={user.UserToken}",
+            $"/lobby/{lobbyName}?token={user.Token}",
             JsonOptions
         );
 

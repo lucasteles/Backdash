@@ -7,6 +7,7 @@ using Microsoft.Extensions.Caching.Memory;
 using static Microsoft.AspNetCore.Http.TypedResults;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Configuration.AddEnvironmentVariables();
 builder.Services
     .AddEndpointsApiExplorer()
     .ConfigureHttpJsonOptions(options => options
@@ -35,7 +36,9 @@ app.MapGet("lobby/{name}",
     });
 
 app.MapPost("lobby", Results<Ok<EnterLobbyResponse>, BadRequest, Conflict, UnprocessableEntity> (
-    HttpContext context, TimeProvider time, IMemoryCache cache, EnterLobbyRequest req) =>
+    HttpContext context, TimeProvider time, IMemoryCache cache, IConfiguration configuration,
+    EnterLobbyRequest req
+) =>
 {
     if (string.IsNullOrWhiteSpace(req.LobbyName)
         || req.LobbyName.Length > 40
@@ -45,10 +48,12 @@ app.MapPost("lobby", Results<Ok<EnterLobbyResponse>, BadRequest, Conflict, Unpro
         return BadRequest();
 
     var name = req.LobbyName.Trim().ToLower();
+    var expiration = configuration.GetValue<TimeSpan>("LobbyExpiration");
+
     var lobby = cache.GetOrCreate(name, e =>
     {
-        e.SetSlidingExpiration(Lobby.DefaultExpiration);
-        return new Lobby(name, time.GetUtcNow());
+        e.SetSlidingExpiration(expiration);
+        return new Lobby(name, expiration, time.GetUtcNow());
     });
     if (lobby is null || lobby.Ready) return UnprocessableEntity();
 
@@ -72,9 +77,14 @@ app.MapDelete("lobby/{name}",
             lobby.FindEntry(token) is not { } entry)
             return NotFound();
 
-        if (lobby.Ready) return UnprocessableEntity();
+        if (lobby.Ready)
+            return UnprocessableEntity();
 
         lobby.RemovePeer(entry);
+
+        if (lobby.IsEmpty())
+            cache.Remove(name);
+
         return NoContent();
     });
 
