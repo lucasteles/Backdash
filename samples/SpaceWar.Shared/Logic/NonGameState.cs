@@ -15,6 +15,7 @@ public enum PlayerConnectState
 
 public class PlayerConnectionInfo
 {
+    public string? Name;
     public PlayerHandle Handle;
     public PlayerConnectState State;
     public int ConnectProgress;

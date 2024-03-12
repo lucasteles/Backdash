@@ -2,11 +2,13 @@ using System.Net;
 using Backdash;
 using Backdash.Core;
 using SpaceWar.Logic;
+using SpaceWar.Models;
 
 namespace SpaceWar.Scenes;
 
 public sealed class BattleScene : Scene
 {
+    readonly IReadOnlyList<Peer> peersInfo;
     readonly IRollbackSession<PlayerInputs, GameState> rollbackSession;
     GameSession gameSession = null!;
 
@@ -26,8 +28,9 @@ public sealed class BattleScene : Scene
         },
     };
 
-    public BattleScene(int port, IReadOnlyList<Player> players)
+    public BattleScene(int port, IReadOnlyList<Player> players, IReadOnlyList<Peer> peersInfo)
     {
+        this.peersInfo = peersInfo;
         var localPlayer = players.FirstOrDefault(x => x.IsLocal());
         if (localPlayer is null)
             throw new InvalidOperationException("No local player defined");
@@ -36,10 +39,13 @@ public sealed class BattleScene : Scene
         rollbackSession.AddPlayers(players);
     }
 
-    public BattleScene(int port, int playerCount, IPEndPoint host) =>
+    public BattleScene(int port, int playerCount, Peer host, IReadOnlyList<Peer> peersInfo)
+    {
+        this.peersInfo = peersInfo;
         rollbackSession = RollbackNetcode.CreateSpectatorSession<PlayerInputs, GameState>(
-            port, host, playerCount, options
+            port, host.Endpoint, playerCount, options
         );
+    }
 
     public override void Initialize()
     {
@@ -54,6 +60,7 @@ public sealed class BattleScene : Scene
             PlayerConnectionInfo playerInfo = new();
             ngs.Players[player.Index] = playerInfo;
             playerInfo.Handle = player;
+            playerInfo.Name = peersInfo[player.Index].Username;
             if (player.IsLocal())
             {
                 playerInfo.ConnectProgress = 100;

@@ -66,6 +66,7 @@ public class Game1 : Game
             PlayerConnectionInfo playerInfo = new();
             ngs.Players[player.Index] = playerInfo;
             playerInfo.Handle = player;
+            playerInfo.Name = $"player{player.Number}";
             if (player.IsLocal())
             {
                 playerInfo.ConnectProgress = 100;
