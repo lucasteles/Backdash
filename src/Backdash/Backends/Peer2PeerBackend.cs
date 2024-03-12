@@ -81,6 +81,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
             port,
             selectedEndianness,
             this.options.Protocol.UdpPacketBufferSize,
+            this.options.UseIPv6,
             udpObservers,
             logger
         );

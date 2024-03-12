@@ -2,7 +2,9 @@ using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network.Protocol;
 using Backdash.Sync;
+
 namespace Backdash;
+
 public sealed class RollbackOptions
 {
     public int SpectatorOffset { get; init; } = Default.SpectatorOffset;
@@ -14,6 +16,7 @@ public sealed class RollbackOptions
     public int PredictionFramesOffset { get; init; } = Default.PredictionFramesOffset;
     public int FrameDelay { get; init; } = Default.FrameDelay;
     public bool RequireIdleInput { get; init; }
+    public bool UseIPv6 { get; init; }
     public short FramesPerSecond { get; init; } = FrameSpan.DefaultFramesPerSecond;
     public LogOptions Log { get; init; } = new();
     public TimeSyncOptions TimeSync { get; init; } = new();

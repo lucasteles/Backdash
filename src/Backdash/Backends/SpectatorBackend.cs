@@ -61,6 +61,7 @@ sealed class SpectatorBackend<TInput, TGameState> :
             port,
             selectedEndianness,
             options.Protocol.UdpPacketBufferSize,
+            options.UseIPv6,
             udpObservers,
             logger
         );

@@ -1,15 +1,10 @@
 global using System;
 global using System.Linq;
-global using Backdash.Tests.Utils;
-global using Backdash.Tests.Utils.Assertions;
-global using Backdash.Tests.Utils.Fixtures;
-global using Backdash.Tests.Utils.Network;
-global using Backdash.Tests.Utils.Types;
 global using Bogus;
 global using FakeItEasy;
 global using FakeItEasy.AutoFakeIt;
 global using FluentAssertions;
 global using FsCheck;
 global using Xunit;
-global using GameInput = Backdash.Sync.Input.GameInput<Backdash.Tests.Utils.TestInput>;
+global using GameInput = Backdash.Sync.Input.GameInput<Backdash.Tests.TestUtils.TestInput>;
 global using Random = System.Random;

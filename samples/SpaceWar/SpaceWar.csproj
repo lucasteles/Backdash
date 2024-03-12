@@ -13,21 +13,12 @@
     <ItemGroup>
         <None Remove="Icon.ico"/>
         <None Remove="Icon.bmp"/>
-        <None Remove="scripts\windows\start_wsl_player1.cmd" />
     </ItemGroup>
     <ItemGroup>
         <EmbeddedResource Include="Icon.ico"/>
         <EmbeddedResource Include="Icon.bmp"/>
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.1.303"/>
-        <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.1.303"/>
+        <ProjectReference Include="..\SpaceWar.Shared\SpaceWar.Shared.csproj"/>
     </ItemGroup>
-    <ItemGroup>
-      <ProjectReference Include="..\..\src\Backdash\Backdash.csproj" />
-    </ItemGroup>
-    <Target Name="RestoreDotnetTools" BeforeTargets="Restore">
-        <Message Text="Restoring dotnet tools" Importance="High"/>
-        <Exec Command="dotnet tool restore"/>
-    </Target>
 </Project>

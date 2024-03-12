@@ -1,13 +1,15 @@
 #nullable disable
 using Backdash;
 using Backdash.Core;
-using Backdash.Data;
 using SpaceWar.Logic;
+
 namespace SpaceWar;
+
 public class Game1 : Game
 {
     readonly GraphicsDeviceManager graphics;
     readonly IRollbackSession<PlayerInputs, GameState> rollbackSession;
+
     readonly RollbackOptions options = new()
     {
         FrameDelay = 2,
@@ -24,8 +26,10 @@ public class Game1 : Game
             // NetworkDelay = FrameSpan.Of(3).Duration(),
         },
     };
+
     GameSession gameSession;
     SpriteBatch spriteBatch;
+
     public Game1(string[] args)
     {
         graphics = new(this);
@@ -33,6 +37,7 @@ public class Game1 : Game
         IsMouseVisible = true;
         rollbackSession = GameSessionFactory.ParseArgs(args, options);
     }
+
     protected override void Initialize()
     {
         graphics.PreferredBackBufferWidth = 1024;
@@ -41,24 +46,27 @@ public class Game1 : Game
         base.Initialize();
         rollbackSession.Start();
     }
+
     protected override void Dispose(bool disposing)
     {
         rollbackSession.Dispose();
         base.Dispose(disposing);
     }
+
     protected override void LoadContent()
     {
         spriteBatch = new(GraphicsDevice);
         GameAssets assets = new(Content, GraphicsDevice);
         var numPlayers = rollbackSession.NumberOfPlayers;
         GameState gs = new();
-        gs.Init(Window, numPlayers);
-        NonGameState ngs = new(numPlayers, Window);
+        gs.Init(GraphicsDevice.Viewport.Bounds, numPlayers);
+        NonGameState ngs = new(numPlayers, GraphicsDevice.Viewport.Bounds);
         foreach (var player in rollbackSession.GetPlayers())
         {
             PlayerConnectionInfo playerInfo = new();
             ngs.Players[player.Index] = playerInfo;
             playerInfo.Handle = player;
+            playerInfo.Name = $"player{player.Number}";
             if (player.IsLocal())
             {
                 playerInfo.ConnectProgress = 100;
@@ -66,14 +74,17 @@ public class Game1 : Game
                 ngs.SetConnectState(player, PlayerConnectState.Connecting);
                 ConfigurePlayerWindow(player);
             }
+
             ngs.StatusText.Clear();
             ngs.StatusText.Append("Connecting to peers ...");
         }
+
         if (rollbackSession.IsSpectating)
             Window.Title = "SpaceWar - Spectator";
         gameSession = new(gs, ngs, new(assets, spriteBatch), rollbackSession);
         rollbackSession.SetHandler(gameSession);
     }
+
     void ConfigurePlayerWindow(PlayerHandle player)
     {
         Window.Title = $"SpaceWar - Player {player.Number}";
@@ -91,6 +102,7 @@ public class Game1 : Game
         var newVertical = offsetY * (height + titleBarHeight) + padding.Y;
         Window.Position = new(newHorizontal, newVertical);
     }
+
     protected override void Update(GameTime gameTime)
     {
         if (Keyboard.GetState().IsKeyDown(Keys.Escape))
@@ -98,6 +110,7 @@ public class Game1 : Game
         gameSession.Update(gameTime);
         base.Update(gameTime);
     }
+
     protected override void Draw(GameTime gameTime)
     {
         GraphicsDevice.Clear(Color.Black);

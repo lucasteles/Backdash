@@ -1,6 +1,8 @@
 using Backdash.Data;
 using Backdash.Network.Messages;
 using Backdash.Network.Protocol.Comm;
+using Backdash.Tests.TestUtils;
+
 namespace Backdash.Tests.Specs.Unit.Input;
 public class InputEncoderTests
 {

@@ -4,7 +4,9 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Backdash.Core;
 using Backdash.Network;
+
 namespace Backdash.Serialization.Buffer;
+
 public readonly ref struct BinarySpanWriter
 {
     public BinarySpanWriter(scoped in Span<byte> buffer, ref int offset)
@@ -12,6 +14,7 @@ public readonly ref struct BinarySpanWriter
         this.buffer = buffer;
         this.offset = ref offset;
     }
+
     readonly ref int offset;
     readonly Span<byte> buffer;
     public Endianness Endianness { get; init; } = Endianness.BigEndian;
@@ -20,8 +23,10 @@ public readonly ref struct BinarySpanWriter
     public int FreeCapacity => Capacity - WrittenCount;
     public Span<byte> CurrentBuffer => buffer[offset..];
     public void Advance(int count) => offset += count;
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     void WriteSpan<T>(in ReadOnlySpan<T> data) where T : struct => Write(MemoryMarshal.AsBytes(data));
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     Span<T> AllocSpanFor<T>(in ReadOnlySpan<T> value) where T : struct
     {
@@ -30,14 +35,17 @@ public readonly ref struct BinarySpanWriter
         Advance(sizeBytes);
         return result;
     }
+
     public void Write(in byte value) => buffer[offset++] = value;
     public void Write(in sbyte value) => buffer[offset++] = unchecked((byte)value);
+
     public void Write(in bool value)
     {
         if (!BitConverter.TryWriteBytes(CurrentBuffer, value))
             throw new BackdashException("Destination too short");
         Advance(sizeof(bool));
     }
+
     public void Write(in short value) => WriteNumber(in value);
     public void Write(in ushort value) => WriteNumber(in value);
     public void Write(in int value) => WriteNumber(in value);
@@ -50,17 +58,20 @@ public readonly ref struct BinarySpanWriter
     public void Write(in Half value) => Write(BitConverter.HalfToInt16Bits(value));
     public void Write(in float value) => Write(BitConverter.SingleToInt32Bits(value));
     public void Write(in double value) => Write(BitConverter.DoubleToInt64Bits(value));
+
     public void Write(Vector2 value)
     {
         Write(value.X);
         Write(value.Y);
     }
+
     public void Write(Vector3 value)
     {
         Write(value.X);
         Write(value.Y);
         Write(value.Z);
     }
+
     public void Write(Vector4 value)
     {
         Write(value.X);
@@ -68,6 +79,7 @@ public readonly ref struct BinarySpanWriter
         Write(value.Z);
         Write(value.W);
     }
+
     public void Write(Quaternion value)
     {
         Write(value.X);
@@ -75,6 +87,7 @@ public readonly ref struct BinarySpanWriter
         Write(value.Z);
         Write(value.W);
     }
+
     public void Write(in ReadOnlySpan<byte> value)
     {
         if (value.Length > FreeCapacity)
@@ -82,8 +95,10 @@ public readonly ref struct BinarySpanWriter
         value.CopyTo(CurrentBuffer);
         Advance(value.Length);
     }
+
     public void Write(in ReadOnlySpan<sbyte> value) => WriteSpan(in value);
     public void Write(in ReadOnlySpan<bool> value) => WriteSpan(in value);
+
     public void Write(in ReadOnlySpan<short> value)
     {
         if (Endianness != Platform.Endianness)
@@ -91,6 +106,7 @@ public readonly ref struct BinarySpanWriter
         else
             WriteSpan(in value);
     }
+
     public void Write(in ReadOnlySpan<ushort> value)
     {
         if (Endianness != Platform.Endianness)
@@ -98,7 +114,9 @@ public readonly ref struct BinarySpanWriter
         else
             WriteSpan(in value);
     }
+
     public void Write(in ReadOnlySpan<char> value) => Write(MemoryMarshal.Cast<char, ushort>(value));
+
     public void Write(in ReadOnlySpan<int> value)
     {
         if (Endianness != Platform.Endianness)
@@ -106,6 +124,7 @@ public readonly ref struct BinarySpanWriter
         else
             WriteSpan(in value);
     }
+
     public void Write(in ReadOnlySpan<uint> value)
     {
         if (Endianness != Platform.Endianness)
@@ -113,6 +132,7 @@ public readonly ref struct BinarySpanWriter
         else
             WriteSpan(in value);
     }
+
     public void Write(in ReadOnlySpan<long> value)
     {
         if (Endianness != Platform.Endianness)
@@ -120,6 +140,7 @@ public readonly ref struct BinarySpanWriter
         else
             WriteSpan(in value);
     }
+
     public void Write(in ReadOnlySpan<ulong> value)
     {
         if (Endianness != Platform.Endianness)
@@ -127,6 +148,7 @@ public readonly ref struct BinarySpanWriter
         else
             WriteSpan(in value);
     }
+
     public void Write(in ReadOnlySpan<Int128> value)
     {
         if (Endianness != Platform.Endianness)
@@ -134,6 +156,7 @@ public readonly ref struct BinarySpanWriter
         else
             WriteSpan(in value);
     }
+
     public void Write(in ReadOnlySpan<UInt128> value)
     {
         if (Endianness != Platform.Endianness)
@@ -141,6 +164,7 @@ public readonly ref struct BinarySpanWriter
         else
             WriteSpan(in value);
     }
+
     public void WriteNumber<T>(in T value) where T : unmanaged, IBinaryInteger<T>
     {
         ref var valueRef = ref Unsafe.AsRef(in value);
@@ -156,8 +180,10 @@ public readonly ref struct BinarySpanWriter
             default:
                 return;
         }
+
         Advance(size);
     }
+
     public void WriteEnum<T>(in T enumValue) where T : unmanaged, Enum
     {
         var refValue = Unsafe.AsRef(in enumValue);

@@ -2,6 +2,9 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using Backdash.Network;
 using Backdash.Serialization.Buffer;
+using Backdash.Tests.TestUtils;
+using Backdash.Tests.TestUtils.Types;
+
 // ReSharper disable CompareOfFloatsByEqualityOperator
 namespace Backdash.Tests.Specs.Unit.Serialization;
 [Collection(SerialCollectionDefinition.Name)]

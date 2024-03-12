@@ -5,6 +5,8 @@ using Backdash.Network.Messages;
 using Backdash.Network.Protocol;
 using Backdash.Network.Protocol.Comm;
 using Backdash.Serialization;
+using Backdash.Tests.TestUtils;
+
 namespace Backdash.Tests.Specs.Unit.Network.Protocol;
 using static Input.InputEncoderTests;
 public class ProtocolInputBufferTests

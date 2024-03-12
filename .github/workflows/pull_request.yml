@@ -22,18 +22,24 @@ jobs:
                 uses: actions/checkout@v3
                 with:
                     fetch-depth: 0
+
             -   name: Setup .NET Core
                 uses: actions/setup-dotnet@v3
                 with:
                     global-json-file: global.json
+
             -   name: Tool Restore
                 run: dotnet tool restore
+
             -   name: Build
-                run: dotnet nuke compile --configuration Release --no-logo
+                run: dotnet nuke build --configuration Release --no-logo
+
             -   name: Lint
                 run: dotnet nuke lint --skip build --no-logo
+
             -   name: Tests
                 run: dotnet nuke test --configuration Release --skip build --no-logo
+
             -   name: Test Result
                 if: ${{ github.actor != 'dependabot[bot]' && (success() || failure()) }}
                 uses: dorny/test-reporter@v1.5.0
@@ -41,31 +47,3 @@ jobs:
                     name: Test Report
                     reporter: dotnet-trx
                     path: tests/**/test_result.xml
-            -   name: Generate Coverage Html Report
-                if: ${{ github.actor != 'dependabot[bot]' }}
-                run: dotnet nuke generate-report --no-logo
-            -   name: Coverage monitor
-                uses: slavcodev/coverage-monitor-action@v1
-                if: ${{ github.actor != 'dependabot[bot]' }}
-                with:
-                    token: ${{ secrets.GITHUB_TOKEN }}
-                    coverage_path: TestReport/Clover.xml
-                    comment_mode: update
-                    threshold_alert: 50
-                    threshold_warning: 80
-                    comment_footer: false
-            -   name: Create CheckRun for code Coverage
-                uses: LouisBrunner/checks-action@v1.2.0
-                if: ${{ github.actor != 'dependabot[bot]' }}
-                with:
-                    token: ${{ secrets.GITHUB_TOKEN }}
-                    name: Coverage Report Summary
-                    conclusion: ${{ job.status }}
-                    output_text_description_file: TestReport/Summary.md
-                    output: '{"summary":"Created by Report-Generator"}'
-            -   name: Upload Report
-                uses: actions/upload-artifact@v3
-                if: ${{ github.actor != 'dependabot[bot]' }}
-                with:
-                    name: test_report
-                    path: ./TestReport
