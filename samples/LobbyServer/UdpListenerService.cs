@@ -14,7 +14,7 @@ public class UdpListenerService(
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        logger.LogInformation("UDP: starting socket");
+        logger.LogInformation("UDP: starting socket at {Port}", settings.Value.UdpPort);
         using Socket socket = new(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
         socket.Blocking = false;
         socket.Bind(new IPEndPoint(IPAddress.Any, settings.Value.UdpPort));
