@@ -5,7 +5,9 @@ using Backdash.Data;
 using Backdash.Network.Messages;
 using Backdash.Sync.Input;
 using Backdash.Sync.Input.Spectator;
-namespace Backdash.Tests.Utils;
+using Backdash.Tests.TestUtils.Types;
+
+namespace Backdash.Tests.TestUtils;
 [Serializable, AttributeUsage(AttributeTargets.Method)]
 public sealed class PropertyTestAttribute : FsCheck.Xunit.PropertyAttribute
 {

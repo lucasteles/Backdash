@@ -27,6 +27,7 @@
     <Folder Include="Specs\Integration\" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Backdash.Utils\Backdash.Utils.csproj" />
     <ProjectReference Include="..\..\src\Backdash\Backdash.csproj" />
   </ItemGroup>
 </Project>

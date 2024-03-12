@@ -1,6 +1,7 @@
 using System.Text;
 using Backdash.Serialization;
-namespace Backdash.Tests.Utils.Network;
+
+namespace Backdash.Tests.TestUtils.Network;
 public readonly record struct StringValue(string Value)
 {
     public static implicit operator string(StringValue value) => value.Value;

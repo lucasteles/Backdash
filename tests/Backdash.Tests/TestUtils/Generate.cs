@@ -1,6 +1,7 @@
 using Backdash.Core;
 using Backdash.Network;
-namespace Backdash.Tests.Utils;
+
+namespace Backdash.Tests.TestUtils;
 static class Generate
 {
     public static readonly Faker Faker = new();

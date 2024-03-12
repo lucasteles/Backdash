@@ -2,7 +2,8 @@ using System.Net;
 using Backdash.Core;
 using Backdash.Network.Client;
 using Backdash.Serialization;
-namespace Backdash.Tests.Utils.Network;
+
+namespace Backdash.Tests.TestUtils.Network;
 sealed class UdpClientContext<T> : IDisposable where T : struct
 {
     public UdpEventObserver<T> Observer { get; }

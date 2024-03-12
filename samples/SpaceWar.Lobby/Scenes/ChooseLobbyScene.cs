@@ -70,10 +70,10 @@ public sealed class ChooseLobbyScene : Scene
         if (showCursor)
         {
             Rectangle cursorRect = new(
-                (int) (center.X + halfSize.X),
-                (int) (center.Y - cursorSize.Y / 2),
-                (int) cursorSize.X,
-                (int) (cursorSize.Y * 0.9)
+                (int)(center.X + halfSize.X),
+                (int)(center.Y - cursorSize.Y / 2),
+                (int)cursorSize.X,
+                (int)(cursorSize.Y * 0.9)
             );
             spriteBatch.Draw(Assets.Blank, cursorRect, Color.White);
         }

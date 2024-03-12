@@ -1,6 +1,8 @@
 using System.Runtime.CompilerServices;
 using Backdash.Network;
 using Backdash.Serialization.Buffer;
+using Backdash.Tests.TestUtils;
+
 namespace Backdash.Tests.Specs.Unit.Serialization;
 public class BinarySpanReadWriteSpanTests
 {

@@ -30,8 +30,8 @@ public sealed class Renderer(
         if (!ship.Active) return;
         var shipSize = ship.Radius * 2;
         Rectangle shipRect = new(
-            (int) ship.Position.X,
-            (int) ship.Position.Y,
+            (int)ship.Position.X,
+            (int)ship.Position.Y,
             shipSize, shipSize
         );
         var rotation = MathHelper.ToRadians(ship.Heading);
@@ -67,13 +67,13 @@ public sealed class Renderer(
             {
                 var explosionSize = ship.Missile.ExplosionRadius * 2;
                 Rectangle explosionRect = new(
-                    (int) ship.Missile.Position.X,
-                    (int) ship.Missile.Position.Y,
+                    (int)ship.Missile.Position.X,
+                    (int)ship.Missile.Position.Y,
                     explosionSize, explosionSize
                 );
-                var spriteStep = (int) MathHelper.Lerp(
+                var spriteStep = (int)MathHelper.Lerp(
                     0, MissileExplosionSpriteMap.Length - 1,
-                    ship.Missile.HitBoxTime / (float) Config.MissileHitBoxTimeout
+                    ship.Missile.HitBoxTime / (float)Config.MissileHitBoxTimeout
                 );
                 var missileSource = MissileExplosionSpriteMap[spriteStep];
                 missileSource.Inflate(-5, -5);
@@ -130,8 +130,8 @@ public sealed class Renderer(
                 textColor = Color.Coral;
                 barColor = Color.Yellow;
                 player.StatusText.Append("Waiting for player");
-                total = (float) player.DisconnectTimeout.TotalMilliseconds;
-                step = (float) (DateTime.UtcNow - player.DisconnectStart).TotalMilliseconds;
+                total = (float)player.DisconnectTimeout.TotalMilliseconds;
+                step = (float)(DateTime.UtcNow - player.DisconnectStart).TotalMilliseconds;
                 step = MathHelper.Clamp(step, 0, total);
                 break;
         }
@@ -147,9 +147,9 @@ public sealed class Renderer(
             textColor, 0, Vector2.Zero, scale, SpriteEffects.None, 0);
         if (total > 0)
             DrawBar(new(
-                (int) ship.Position.X - ship.Radius,
-                (int) ship.Position.Y + ship.Radius
-                                      + (int) size.Y
+                (int)ship.Position.X - ship.Radius,
+                (int)ship.Position.Y + ship.Radius
+                                      + (int)size.Y
                                       + Config.ShipProgressBarHeight,
                 ship.Radius * 2,
                 Config.ShipProgressBarHeight
@@ -229,7 +229,7 @@ public sealed class Renderer(
             SpriteEffects.None, 0);
         Rectangle value = new(
             position.X, position.Y,
-            (int) (actual / total * position.Width),
+            (int)(actual / total * position.Width),
             position.Height
         );
         spriteBatch.Draw(gameAssets.Blank, value, null, color,

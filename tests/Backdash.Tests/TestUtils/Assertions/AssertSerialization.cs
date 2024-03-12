@@ -1,5 +1,7 @@
 using Backdash.Serialization;
-namespace Backdash.Tests.Utils.Assertions;
+using Backdash.Tests.TestUtils.Fixtures;
+
+namespace Backdash.Tests.TestUtils.Assertions;
 static class AssertSerialization
 {
     public static bool Validate<T>(ref T value) where T : struct, IBinarySerializable, IEquatable<T>

@@ -1,4 +1,4 @@
-namespace Backdash.Tests.Utils.Assertions;
+namespace Backdash.Tests.TestUtils.Assertions;
 public sealed class MemoryUsage : IDisposable
 {
     readonly long startingMemory = GC.GetTotalMemory(true) / 1024;

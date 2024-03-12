@@ -1,7 +1,8 @@
 using System.Runtime.CompilerServices;
 using Backdash.Core;
 using Backdash.Serialization;
-namespace Backdash.Tests.Utils;
+
+namespace Backdash.Tests.TestUtils;
 [InlineArray(TestInput.Capacity), Serializable]
 public struct TestInputBuffer
 {

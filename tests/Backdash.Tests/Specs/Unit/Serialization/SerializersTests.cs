@@ -1,6 +1,9 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Backdash.Serialization;
+using Backdash.Tests.TestUtils;
+using Backdash.Tests.TestUtils.Types;
+
 namespace Backdash.Tests.Specs.Unit.Serialization;
 public class SerializersTests
 {

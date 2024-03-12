@@ -1,6 +1,7 @@
 using System.Net;
 using Backdash.Network.Client;
-namespace Backdash.Tests.Utils.Network;
+
+namespace Backdash.Tests.TestUtils.Network;
 sealed class UdpEventObserver<T> : IUdpObserver<T>
     where T : struct
 {

@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
-namespace Backdash.Tests.Utils;
+
+namespace Backdash.Tests.TestUtils;
 public static class WaitFor
 {
     public static async Task BeTrue(

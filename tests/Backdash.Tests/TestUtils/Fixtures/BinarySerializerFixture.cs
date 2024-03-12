@@ -1,7 +1,8 @@
 using System.Buffers;
 using Backdash.Core;
 using Backdash.Serialization.Buffer;
-namespace Backdash.Tests.Utils.Fixtures;
+
+namespace Backdash.Tests.TestUtils.Fixtures;
 readonly ref struct BinarySerializerFixture
 {
     public readonly byte[] Buffer;
