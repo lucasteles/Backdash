@@ -27,7 +27,9 @@ public class Game1 : Game
         graphics.PreferredBackBufferHeight = 768;
         graphics.ApplyChanges();
         base.Initialize();
+
         SceneManager = new(this, startScene: new ChooseNameScene());
+        Services.AddService(SpriteBatch);
         Services.AddService(SceneManager);
         Services.AddService(appSettings);
         Services.AddService(new LobbyClient(appSettings));

@@ -26,7 +26,6 @@ public sealed class BattleScene : Scene
         },
     };
 
-
     public BattleScene(int port, IReadOnlyList<Player> players)
     {
         var localPlayer = players.FirstOrDefault(x => x.IsLocal());
@@ -34,7 +33,6 @@ public sealed class BattleScene : Scene
             throw new InvalidOperationException("No local player defined");
 
         rollbackSession = RollbackNetcode.CreateSession<PlayerInputs, GameState>(port, options);
-
         rollbackSession.AddPlayers(players);
     }
 
