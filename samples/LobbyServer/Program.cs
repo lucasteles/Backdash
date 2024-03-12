@@ -10,20 +10,27 @@ using static Microsoft.AspNetCore.Http.TypedResults;
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables();
 builder.Services
-    .AddEndpointsApiExplorer()
     .ConfigureHttpJsonOptions(options => options
         .SerializerOptions.Converters.Add(new JsonStringEnumConverter()))
     .Configure<JsonOptions>(o => o // For Swagger
         .JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()))
-    .Configure<ForwardedHeadersOptions>(o => o.ForwardedHeaders = ForwardedHeaders.All)
+    .AddEndpointsApiExplorer()
     .AddSwaggerGen(options => options.SupportNonNullableReferenceTypes())
+    .Configure<ForwardedHeadersOptions>(o => o.ForwardedHeaders = ForwardedHeaders.XForwardedFor)
     .AddMemoryCache()
     .AddSingleton(TimeProvider.System);
 
 var app = builder.Build();
-app.UseForwardedHeaders()
-    .UseSwagger()
-    .UseSwaggerUI();
+app.UseForwardedHeaders();
+app.UseSwagger().UseSwaggerUI();
+
+app.MapGet("info", (HttpContext context, TimeProvider time) => new
+{
+    Date = time.GetLocalNow(),
+    ClientIP = context.GetRemoteClientIP()?.ToString(),
+    RemoteIP = context.Connection.RemoteIpAddress?.ToString(),
+    RemoteIPv4 = context.Connection.RemoteIpAddress?.MapToIPv4().ToString(),
+});
 
 app.MapGet("lobby/{name}",
     Results<Ok<Lobby>, NotFound, UnauthorizedHttpResult> (
@@ -53,14 +60,13 @@ app.MapPost("lobby", Results<Ok<EnterLobbyResponse>, BadRequest, Conflict, Unpro
         || req.LobbyName.Length > 40
         || req.Port <= IPEndPoint.MinPort
         || req.Port > IPEndPoint.MaxPort
-        || context.Connection.RemoteIpAddress is not { } userIp)
+        || context.GetRemoteClientIP() is not { } userIp)
         return BadRequest();
 
-    userIp = userIp.MapToIPv4();
-    var lobbyName = Normalize.Name(req.LobbyName);
+    var lobbyName = req.LobbyName.NormalizeName();
     var expiration = configuration.GetValue<TimeSpan>("LobbyExpiration");
     var purgeTimeout = configuration.GetValue<TimeSpan>("PurgeTimeout");
-    var userName = Normalize.Name(req.Username);
+    var userName = req.Username.NormalizeName();
     var peerId = Guid.NewGuid();
     var now = time.GetUtcNow();
 
@@ -108,7 +114,7 @@ app.MapDelete("lobby/{name}",
         (IMemoryCache cache, string name, [FromQuery] Guid token) =>
     {
         if (string.IsNullOrWhiteSpace(name)) return BadRequest();
-        var lobbyName = Normalize.Name(name);
+        var lobbyName = name.NormalizeName();
         if (cache.Get<Lobby>(lobbyName) is not { } lobby ||
             lobby.FindEntry(token) is not { } entry)
             return NotFound();
@@ -130,7 +136,7 @@ app.MapPut("lobby/{name}",
     ) =>
     {
         if (string.IsNullOrWhiteSpace(name)) return BadRequest();
-        var lobbyName = Normalize.Name(name);
+        var lobbyName = name.NormalizeName();
         if (cache.Get<Lobby>(lobbyName) is not { } lobby ||
             lobby.FindEntry(token) is not { } entry)
             return NotFound();
@@ -152,7 +158,7 @@ app.MapPut("lobby/{name}/mode/{mode}",
     ) =>
     {
         if (string.IsNullOrWhiteSpace(name)) return BadRequest();
-        var lobbyName = Normalize.Name(name);
+        var lobbyName = name.NormalizeName();
         if (cache.Get<Lobby>(lobbyName) is not { } lobby ||
             lobby.FindEntry(token) is not { } entry)
             return NotFound();
