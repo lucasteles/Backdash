@@ -6,10 +6,9 @@ public class AppSettings
     public string Username = string.Empty;
     public readonly int Port = 9000;
 
+    // public readonly Uri LobbyUrl = new("http://localhost:9999");
+    public readonly Uri LobbyUrl = new("https://lobby-server.fly.dev");
     public readonly int LobbyPort = 8888;
-
-    // public readonly Uri LobbyUrl = new("https://lobby-server.fly.dev");
-    public readonly Uri LobbyUrl = new("http://localhost:9999");
 
     public AppSettings(string[] args)
     {

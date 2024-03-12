@@ -30,7 +30,7 @@ public class UdpListenerService(
                     .ConfigureAwait(false);
 
                 if (receivedSize is 0) continue;
-                endpoint = (IPEndPoint) endpoint.Create(address);
+                endpoint = (IPEndPoint)endpoint.Create(address);
                 logger.LogInformation("New request from {Endpoint}", endpoint);
 
                 if (!Guid.TryParse(Encoding.UTF8.GetString(buffer), out var peerToken))

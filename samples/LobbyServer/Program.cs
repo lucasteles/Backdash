@@ -15,8 +15,8 @@ builder.Services
     .AddSwaggerGen(options =>
     {
         options.SupportNonNullableReferenceTypes();
-        options.MapType<IPAddress>(() => new() {Type = "string"});
-        options.MapType<IPEndPoint>(() => new() {Type = "string"});
+        options.MapType<IPAddress>(() => new() { Type = "string" });
+        options.MapType<IPEndPoint>(() => new() { Type = "string" });
     })
     .Configure<ForwardedHeadersOptions>(o => o.ForwardedHeaders = ForwardedHeaders.XForwardedFor)
     .AddMemoryCache()
@@ -29,7 +29,7 @@ var app = builder.Build();
 app.UseForwardedHeaders();
 app.UseSwagger().UseSwaggerUI();
 
-app.MapGet("info", (HttpContext context, TimeProvider time) => (object) new
+app.MapGet("info", (HttpContext context, TimeProvider time) => (object)new
 {
     Date = time.GetLocalNow(),
     ClientIP = context.GetRemoteClientIP(),

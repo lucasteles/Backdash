@@ -50,7 +50,7 @@ public sealed class Lobby(
     public DateTimeOffset ExpiresAt => CreatedAt + expiration;
 
     public bool Ready =>
-        Players.Count() > 1 && Players.All(p => p is {Connected: true, Ready: true});
+        Players.Count() > 1 && Players.All(p => p is { Connected: true, Ready: true });
 
     public IEnumerable<Peer> Players
     {
@@ -91,7 +91,7 @@ public sealed class Lobby(
         {
             if (Ready) return;
             if (Players.Count() >= MaxPlayers)
-                entry = entry with {Mode = PeerMode.Spectator};
+                entry = entry with { Mode = PeerMode.Spectator };
 
             entries.Add(entry);
         }
@@ -111,7 +111,7 @@ public sealed class Lobby(
         if (Ready || entry.Mode == mode) return;
         RemovePeer(entry);
         if (entry.Peer.Ready) entry.Peer.ToggleReady();
-        AddPeer(entry with {Mode = mode});
+        AddPeer(entry with { Mode = mode });
     }
 
     public LobbyEntry? FindEntry(string username)
