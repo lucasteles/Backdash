@@ -5,65 +5,17 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace LobbyServer;
+namespace Backdash.JsonConverters;
 
-public static class JsonConfig
-{
-    static readonly JsonConverter[] Converters =
-    [
-        new JsonStringEnumConverter(),
-        new JsonIPAddressConverter(),
-        new JsonIPEndPointConverter(),
-    ];
-
-    public static void Options(JsonSerializerOptions options)
-    {
-        foreach (var converter in Converters)
-            options.Converters.Add(converter);
-    }
-}
-
-public sealed class JsonIPAddressConverter : JsonConverter<IPAddress>
-{
-    public const int MaxIPv4StringLength = 15;
-    public const int MaxIPv6StringLength = 65;
-
-    public override IPAddress Read(ref Utf8JsonReader reader,
-        Type typeToConvert, JsonSerializerOptions options)
-    {
-        if (reader.TokenType != JsonTokenType.String)
-            throw new JsonException(
-                $"The JSON value could not be converted to {typeof(IPAddress)}");
-
-        Span<char> charData = stackalloc char[MaxIPv6StringLength];
-        var count = Encoding.UTF8.GetChars(
-            reader.HasValueSequence ? reader.ValueSequence.ToArray() : reader.ValueSpan,
-            charData);
-
-        return IPAddress.TryParse(charData[..count], out var value)
-            ? value
-            : throw new JsonException(
-                $"The JSON value could not be converted to {typeof(IPAddress)}");
-    }
-
-    public override void Write(Utf8JsonWriter writer, IPAddress value,
-        JsonSerializerOptions options)
-    {
-        var data = value.AddressFamily is AddressFamily.InterNetwork
-            ? stackalloc char[MaxIPv4StringLength]
-            : stackalloc char[MaxIPv6StringLength];
-
-        if (!value.TryFormat(data, out var charsWritten))
-            throw new JsonException($"IPAddress [{value}] could not be written to JSON.");
-        writer.WriteStringValue(data[..charsWritten]);
-    }
-}
-
+/// <summary>
+/// Json converter for IPEndpoint
+/// </summary>
 public sealed class JsonIPEndPointConverter : JsonConverter<IPEndPoint>
 {
     const int MaxIPv4StringLength = JsonIPAddressConverter.MaxIPv4StringLength + 6;
     const int MaxIPv6StringLength = JsonIPAddressConverter.MaxIPv6StringLength + 8;
 
+    /// <inheritdoc />
     public override IPEndPoint Read(ref Utf8JsonReader reader, Type typeToConvert,
         JsonSerializerOptions options)
     {
@@ -82,6 +34,7 @@ public sealed class JsonIPEndPointConverter : JsonConverter<IPEndPoint>
                 $"The JSON value could not be converted to {typeof(IPEndPoint)}");
     }
 
+    /// <inheritdoc />
     public override void Write(Utf8JsonWriter writer, IPEndPoint value,
         JsonSerializerOptions options)
     {

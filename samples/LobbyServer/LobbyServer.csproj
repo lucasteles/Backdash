@@ -17,4 +17,8 @@
       </Content>
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\..\src\Backdash.Utils\Backdash.Utils.csproj" />
+    </ItemGroup>
+
 </Project>
