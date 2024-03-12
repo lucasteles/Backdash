@@ -5,10 +5,13 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
 using static Microsoft.AspNetCore.Http.TypedResults;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables();
+builder.Services.AddOptions<AppSettings>().BindConfiguration("");
+
 builder.Services
     .ConfigureHttpJsonOptions(options => options
         .SerializerOptions.Converters.Add(new JsonStringEnumConverter()))
@@ -32,27 +35,8 @@ app.MapGet("info", (HttpContext context, TimeProvider time) => new
     RemoteIPv4 = context.Connection.RemoteIpAddress?.MapToIPv4().ToString(),
 });
 
-app.MapGet("lobby/{name}",
-    Results<Ok<Lobby>, NotFound, UnauthorizedHttpResult> (
-        IMemoryCache cache, TimeProvider time,
-        string name, [FromQuery] Guid token
-    ) =>
-    {
-        if (cache.Get<Lobby>(name.ToLower()) is not { } lobby)
-            return NotFound();
-
-        if (lobby.FindEntry(token) is not { } user)
-            return Unauthorized();
-
-        var now = time.GetUtcNow();
-        user.LastRead = now;
-        lobby.Purge(now);
-
-        return Ok(lobby);
-    });
-
 app.MapPost("lobby", Results<Ok<EnterLobbyResponse>, BadRequest, Conflict, UnprocessableEntity> (
-    HttpContext context, TimeProvider time, IMemoryCache cache, IConfiguration configuration,
+    HttpContext context, TimeProvider time, IMemoryCache cache, IOptions<AppSettings> settings,
     EnterLobbyRequest req
 ) =>
 {
@@ -64,8 +48,7 @@ app.MapPost("lobby", Results<Ok<EnterLobbyResponse>, BadRequest, Conflict, Unpro
         return BadRequest();
 
     var lobbyName = req.LobbyName.NormalizeName();
-    var expiration = configuration.GetValue<TimeSpan>("LobbyExpiration");
-    var purgeTimeout = configuration.GetValue<TimeSpan>("PurgeTimeout");
+    var expiration = settings.Value.LobbyExpiration;
     var userName = req.Username.NormalizeName();
     var peerId = Guid.NewGuid();
     var now = time.GetUtcNow();
@@ -77,7 +60,7 @@ app.MapPost("lobby", Results<Ok<EnterLobbyResponse>, BadRequest, Conflict, Unpro
             name: lobbyName,
             owner: peerId,
             expiration: expiration,
-            purgeTimeout: purgeTimeout,
+            purgeTimeout: settings.Value.PurgeTimeout,
             createdAt: now
         );
     });
@@ -109,18 +92,32 @@ app.MapPost("lobby", Results<Ok<EnterLobbyResponse>, BadRequest, Conflict, Unpro
     }
 });
 
+app.MapGet("lobby/{name}",
+    Results<Ok<Lobby>, NotFound, UnauthorizedHttpResult> (
+        IMemoryCache cache, TimeProvider time,
+        string name, [FromAuthorizationHeader] Guid token
+    ) =>
+    {
+        if (cache.Get<Lobby>(name.ToLower()) is not { } lobby) return NotFound();
+        if (lobby.FindEntry(token) is not { } user) return Unauthorized();
+
+        var now = time.GetUtcNow();
+        user.LastRead = now;
+        lobby.Purge(now);
+
+        return Ok(lobby);
+    });
+
 app.MapDelete("lobby/{name}",
-    Results<NoContent, NotFound, BadRequest, UnprocessableEntity>
-        (IMemoryCache cache, string name, [FromQuery] Guid token) =>
+    Results<NoContent, NotFound, BadRequest, UnprocessableEntity, UnauthorizedHttpResult>
+        (IMemoryCache cache, string name, [FromAuthorizationHeader] Guid token) =>
     {
         if (string.IsNullOrWhiteSpace(name)) return BadRequest();
         var lobbyName = name.NormalizeName();
-        if (cache.Get<Lobby>(lobbyName) is not { } lobby ||
-            lobby.FindEntry(token) is not { } entry)
-            return NotFound();
 
-        if (lobby.Ready)
-            return UnprocessableEntity();
+        if (cache.Get<Lobby>(lobbyName) is not { } lobby) return NotFound();
+        if (lobby.FindEntry(token) is not { } entry) return Unauthorized();
+        if (lobby.Ready) return UnprocessableEntity();
 
         lobby.RemovePeer(entry);
 
@@ -131,16 +128,15 @@ app.MapDelete("lobby/{name}",
     });
 
 app.MapPut("lobby/{name}",
-    Results<NoContent, NotFound, BadRequest, UnprocessableEntity> (
-        IMemoryCache cache, string name, [FromQuery] Guid token
+    Results<NoContent, NotFound, BadRequest, UnprocessableEntity, UnauthorizedHttpResult> (
+        IMemoryCache cache, string name, [FromAuthorizationHeader] Guid token
     ) =>
     {
         if (string.IsNullOrWhiteSpace(name)) return BadRequest();
         var lobbyName = name.NormalizeName();
-        if (cache.Get<Lobby>(lobbyName) is not { } lobby ||
-            lobby.FindEntry(token) is not { } entry)
-            return NotFound();
 
+        if (cache.Get<Lobby>(lobbyName) is not { } lobby) return NotFound();
+        if (lobby.FindEntry(token) is not { } entry) return Unauthorized();
         if (lobby.Ready) return UnprocessableEntity();
 
         if (entry.Mode is PeerMode.Player)
@@ -151,18 +147,17 @@ app.MapPut("lobby/{name}",
     });
 
 app.MapPut("lobby/{name}/mode/{mode}",
-    Results<NoContent, NotFound, BadRequest, UnprocessableEntity> (
+    Results<NoContent, NotFound, BadRequest, UnprocessableEntity, UnauthorizedHttpResult> (
         IMemoryCache cache, string name,
-        [FromQuery] Guid token,
+        [FromAuthorizationHeader] Guid token,
         [FromRoute] PeerMode mode
     ) =>
     {
         if (string.IsNullOrWhiteSpace(name)) return BadRequest();
         var lobbyName = name.NormalizeName();
-        if (cache.Get<Lobby>(lobbyName) is not { } lobby ||
-            lobby.FindEntry(token) is not { } entry)
-            return NotFound();
 
+        if (cache.Get<Lobby>(lobbyName) is not { } lobby) return NotFound();
+        if (lobby.FindEntry(token) is not { } entry) return Unauthorized();
         if (lobby.Ready) return UnprocessableEntity();
 
         lobby.ChangePeerMode(entry, mode);
