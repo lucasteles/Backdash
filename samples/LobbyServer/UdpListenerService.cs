@@ -20,7 +20,7 @@ public class UdpListenerService(
         SocketAddress address = new(socket.AddressFamily);
         IPEndPoint endpoint = new(0, 0);
 
-        var buffer = GC.AllocateArray<byte>(36);
+        var buffer = GC.AllocateArray<byte>(36, pinned: true);
         while (!stoppingToken.IsCancellationRequested)
         {
             try
@@ -29,17 +29,16 @@ public class UdpListenerService(
                     .ReceiveFromAsync(buffer, SocketFlags.None, address, stoppingToken)
                     .ConfigureAwait(false);
 
-                if (receivedSize is 0)
+                if (receivedSize is 0) continue;
+                endpoint = (IPEndPoint) endpoint.Create(address);
+                logger.LogInformation("New request from {Endpoint}", endpoint);
+
+                if (!Guid.TryParse(Encoding.UTF8.GetString(buffer), out var peerToken))
                     continue;
 
-                if (Guid.TryParse(Encoding.UTF8.GetString(buffer), out var peerToken))
-                {
-                    endpoint.Create(address);
-
-                    if (repository.FindEntry(peerToken) is not { } entry) return;
-                    entry.Peer.Endpoint = endpoint;
-                    entry.LastRead = time.GetUtcNow();
-                }
+                if (repository.FindEntry(peerToken) is not { } entry) return;
+                entry.Peer.Endpoint = endpoint;
+                entry.LastRead = time.GetUtcNow();
             }
             catch (TaskCanceledException)
             {

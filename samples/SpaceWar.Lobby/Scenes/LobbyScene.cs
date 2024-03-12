@@ -15,7 +15,9 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
     Lobby lobbyInfo;
     Task networkCall;
     bool ready;
+    bool connected;
     long lastRefresh = Stopwatch.GetTimestamp();
+    UdpPuncher udpPuncher;
 
     readonly TimeSpan refreshInterval = TimeSpan.FromSeconds(2);
     readonly KeyboardController keyboard = new();
@@ -24,6 +26,7 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
     {
         client = Services.GetService<LobbyClient>();
         networkCall = RequestLobby();
+        udpPuncher = new(Config.Port, Config.LobbyUrl, Config.LobbyPort);
         keyboard.Update();
     }
 
@@ -42,8 +45,8 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
             return;
         }
 
-        if (currentState is LobbyState.Waiting
-            && Stopwatch.GetElapsedTime(lastRefresh) > refreshInterval)
+        if (currentState is not LobbyState.Waiting) return;
+        if (Stopwatch.GetElapsedTime(lastRefresh) > refreshInterval)
             _ = RefreshLobby();
     }
 
@@ -87,6 +90,8 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
         Color usernameColor;
         if (mode is PlayerMode.Spectator)
             usernameColor = Color.LightBlue;
+        else if (!connected)
+            usernameColor = Color.Red;
         else
             usernameColor = ready ? Color.Lime : Color.Orange;
 
@@ -159,8 +164,14 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
                     playersRect.Left, top + (int) usernameSize.Y / 3,
                     (int) usernameSize.Y / 2, (int) usernameSize.Y / 2
                 );
-                spriteBatch.Draw(Assets.Blank, statusBlock, null,
-                    player.Ready ? Color.LimeGreen : Color.Orange,
+
+                Color statusColor;
+                if (!player.Connected)
+                    statusColor = Color.Red;
+                else
+                    statusColor = player.Ready ? Color.LimeGreen : Color.Orange;
+
+                spriteBatch.Draw(Assets.Blank, statusBlock, null, statusColor,
                     0, Vector2.Zero, SpriteEffects.None, 0);
 
                 spriteBatch.DrawString(Assets.MainFont, player.Username,
@@ -222,6 +233,14 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
     {
         lastRefresh = Stopwatch.GetTimestamp();
         lobbyInfo = await client.GetLobby(user);
+
+        if (connected)
+            return;
+
+        connected = lobbyInfo.Players.SingleOrDefault(x => x.PeerId == user.PeerId) is
+            {Connected: true};
+
+        await udpPuncher.Punch(user.Token);
     }
 
     void CheckPlayersReady()
@@ -300,10 +319,10 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
 
     protected override void Dispose(bool disposing)
     {
-        if (user is null) return;
         try
         {
-            if (lobbyInfo is {Ready: false})
+            udpPuncher.Dispose();
+            if (user is not null && lobbyInfo is {Ready: false})
                 client.LeaveLobby(user).GetAwaiter().GetResult();
         }
         catch (Exception e)
