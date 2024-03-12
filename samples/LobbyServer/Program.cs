@@ -2,6 +2,7 @@ using System.Net;
 using System.Text.Json.Serialization;
 using LobbyServer;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using static Microsoft.AspNetCore.Http.TypedResults;
@@ -14,12 +15,15 @@ builder.Services
         .SerializerOptions.Converters.Add(new JsonStringEnumConverter()))
     .Configure<JsonOptions>(o => o // For Swagger
         .JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()))
+    .Configure<ForwardedHeadersOptions>(o => o.ForwardedHeaders = ForwardedHeaders.All)
     .AddSwaggerGen(options => options.SupportNonNullableReferenceTypes())
     .AddMemoryCache()
     .AddSingleton(TimeProvider.System);
 
 var app = builder.Build();
-app.UseForwardedHeaders().UseSwagger().UseSwaggerUI();
+app.UseForwardedHeaders()
+    .UseSwagger()
+    .UseSwaggerUI();
 
 app.MapGet("lobby/{name}",
     Results<Ok<Lobby>, NotFound, UnauthorizedHttpResult> (
