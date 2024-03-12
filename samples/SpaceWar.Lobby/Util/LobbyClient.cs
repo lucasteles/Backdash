@@ -34,6 +34,9 @@ public sealed class LobbyClient(AppSettings appSettings)
         if (response.StatusCode is HttpStatusCode.Conflict)
             throw new InvalidOperationException("Duplicated username");
 
+        if (response.StatusCode is HttpStatusCode.Conflict)
+            throw new InvalidOperationException("Already started");
+
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<User>()
                ?? throw new InvalidOperationException();

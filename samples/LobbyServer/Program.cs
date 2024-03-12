@@ -1,5 +1,4 @@
 using System.Net;
-using System.Text.Json.Serialization;
 using LobbyServer;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -13,12 +12,15 @@ builder.Configuration.AddEnvironmentVariables();
 builder.Services.AddOptions<AppSettings>().BindConfiguration("");
 
 builder.Services
-    .ConfigureHttpJsonOptions(options => options
-        .SerializerOptions.Converters.Add(new JsonStringEnumConverter()))
-    .Configure<JsonOptions>(o => o // For Swagger
-        .JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()))
+    .ConfigureHttpJsonOptions(options => JsonConfig.Options(options.SerializerOptions))
+    .Configure<JsonOptions>(o => JsonConfig.Options(o.JsonSerializerOptions)) // For Swagger
     .AddEndpointsApiExplorer()
-    .AddSwaggerGen(options => options.SupportNonNullableReferenceTypes())
+    .AddSwaggerGen(options =>
+    {
+        options.SupportNonNullableReferenceTypes();
+        options.MapType<IPAddress>(() => new() {Type = "string"});
+        options.MapType<IPEndPoint>(() => new() {Type = "string"});
+    })
     .Configure<ForwardedHeadersOptions>(o => o.ForwardedHeaders = ForwardedHeaders.XForwardedFor)
     .AddMemoryCache()
     .AddSingleton(TimeProvider.System);
@@ -27,12 +29,12 @@ var app = builder.Build();
 app.UseForwardedHeaders();
 app.UseSwagger().UseSwaggerUI();
 
-app.MapGet("info", (HttpContext context, TimeProvider time) => new
+app.MapGet("info", (HttpContext context, TimeProvider time) => (object) new
 {
     Date = time.GetLocalNow(),
-    ClientIP = context.GetRemoteClientIP()?.ToString(),
-    RemoteIP = context.Connection.RemoteIpAddress?.ToString(),
-    RemoteIPv4 = context.Connection.RemoteIpAddress?.MapToIPv4().ToString(),
+    ClientIP = context.GetRemoteClientIP(),
+    RemoteIP = context.Connection.RemoteIpAddress,
+    RemoteIPv4 = context.Connection.RemoteIpAddress?.MapToIPv4(),
 });
 
 app.MapPost("lobby", Results<Ok<EnterLobbyResponse>, BadRequest, Conflict, UnprocessableEntity> (
@@ -76,7 +78,7 @@ app.MapPost("lobby", Results<Ok<EnterLobbyResponse>, BadRequest, Conflict, Unpro
             nextUserName = $"{userName}{userNameIndex++}";
         userName = nextUserName;
 
-        PeerEndpoint userEndpoint = new(userIp.ToString(), req.Port);
+        IPEndPoint userEndpoint = new(userIp, req.Port);
         Peer peer = new(userName, userEndpoint)
         {
             PeerId = peerId,
@@ -88,17 +90,19 @@ app.MapPost("lobby", Results<Ok<EnterLobbyResponse>, BadRequest, Conflict, Unpro
         };
 
         lobby.AddPeer(entry);
-        return Ok(new EnterLobbyResponse(userName, lobbyName, entry.Peer.PeerId, entry.Token));
+        return Ok(new EnterLobbyResponse(
+            userName, lobbyName, entry.Peer.PeerId, entry.Token, userIp));
     }
 });
 
 app.MapGet("lobby/{name}",
     Results<Ok<Lobby>, NotFound, UnauthorizedHttpResult> (
         IMemoryCache cache, TimeProvider time,
-        string name, [FromAuthorizationHeader] Guid token
+        [FromHeader] Guid token,
+        string name
     ) =>
     {
-        if (cache.Get<Lobby>(name.ToLower()) is not { } lobby) return NotFound();
+        if (cache.Get<Lobby>(name.NormalizeName()) is not { } lobby) return NotFound();
         if (lobby.FindEntry(token) is not { } user) return Unauthorized();
 
         var now = time.GetUtcNow();
@@ -110,7 +114,7 @@ app.MapGet("lobby/{name}",
 
 app.MapDelete("lobby/{name}",
     Results<NoContent, NotFound, BadRequest, UnprocessableEntity, UnauthorizedHttpResult>
-        (IMemoryCache cache, string name, [FromAuthorizationHeader] Guid token) =>
+        (IMemoryCache cache, [FromHeader] Guid token, string name) =>
     {
         if (string.IsNullOrWhiteSpace(name)) return BadRequest();
         var lobbyName = name.NormalizeName();
@@ -129,7 +133,7 @@ app.MapDelete("lobby/{name}",
 
 app.MapPut("lobby/{name}",
     Results<NoContent, NotFound, BadRequest, UnprocessableEntity, UnauthorizedHttpResult> (
-        IMemoryCache cache, string name, [FromAuthorizationHeader] Guid token
+        IMemoryCache cache, [FromHeader] Guid token, string name
     ) =>
     {
         if (string.IsNullOrWhiteSpace(name)) return BadRequest();
@@ -148,8 +152,9 @@ app.MapPut("lobby/{name}",
 
 app.MapPut("lobby/{name}/mode/{mode}",
     Results<NoContent, NotFound, BadRequest, UnprocessableEntity, UnauthorizedHttpResult> (
-        IMemoryCache cache, string name,
-        [FromAuthorizationHeader] Guid token,
+        IMemoryCache cache,
+        [FromHeader] Guid token,
+        [FromRoute] string name,
         [FromRoute] PeerMode mode
     ) =>
     {
@@ -165,3 +170,5 @@ app.MapPut("lobby/{name}/mode/{mode}",
     });
 
 app.Run();
+
+public record Foo(IPAddress Address, IPEndPoint EndPoint);

@@ -1,3 +1,5 @@
+using System.Net;
+
 namespace LobbyServer;
 
 using PeerToken = Guid;
@@ -9,13 +11,11 @@ public enum PeerMode : byte
     Spectator,
 }
 
-public sealed record PeerEndpoint(string IP, int Port);
-
-public sealed class Peer(string username, PeerEndpoint endpoint)
+public sealed class Peer(string username, IPEndPoint endpoint)
 {
     public PeerId PeerId { get; init; } = Guid.NewGuid();
     public string Username { get; } = username;
-    public PeerEndpoint Endpoint { get; } = endpoint;
+    public IPEndPoint Endpoint { get; } = endpoint;
     public bool Ready { get; private set; }
     public void ToggleReady() => Ready = !Ready;
 }
@@ -39,13 +39,13 @@ public sealed class Lobby(
     const int MaxPlayers = 4;
 
     readonly List<LobbyEntry> entries = [];
-
     public readonly object Locker = new();
+
     public string Name { get; } = name;
     public PeerId Owner { get; private set; } = owner;
     public DateTimeOffset CreatedAt { get; } = createdAt;
-    public DateTimeOffset ExpiresAt => CreatedAt + expiration;
 
+    public DateTimeOffset ExpiresAt => CreatedAt + expiration;
     public bool Ready => Players.Count() > 1 && Players.All(p => p.Ready);
 
     public IEnumerable<Peer> Players
@@ -87,7 +87,7 @@ public sealed class Lobby(
         {
             if (Ready) return;
             if (Players.Count() >= MaxPlayers)
-                entry = entry with { Mode = PeerMode.Spectator };
+                entry = entry with {Mode = PeerMode.Spectator};
 
             entries.Add(entry);
         }
@@ -107,7 +107,7 @@ public sealed class Lobby(
         if (Ready || entry.Mode == mode) return;
         RemovePeer(entry);
         if (entry.Peer.Ready) entry.Peer.ToggleReady();
-        AddPeer(entry with { Mode = mode });
+        AddPeer(entry with {Mode = mode});
     }
 
     public LobbyEntry? FindEntry(string username)
@@ -120,7 +120,7 @@ public sealed class Lobby(
     public LobbyEntry? FindEntry(PeerToken token)
     {
         lock (Locker)
-            return entries.FirstOrDefault(p => p.Token == token);
+            return entries.Find(p => p.Token == token);
     }
 
     public bool IsEmpty()
@@ -146,5 +146,6 @@ public sealed record EnterLobbyResponse(
     string Username,
     string LobbyName,
     PeerId PeerId,
-    PeerToken Token
+    PeerToken Token,
+    IPAddress IP
 );
