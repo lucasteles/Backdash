@@ -14,10 +14,19 @@ public class UdpListenerService(
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        logger.LogInformation("UDP: starting socket at {Port}", settings.Value.UdpPort);
+        var port = settings.Value.UdpPort;
+        logger.LogInformation("UDP: starting socket at {Port}", port);
+
         using Socket socket = new(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
         socket.Blocking = false;
-        socket.Bind(new IPEndPoint(IPAddress.Any, settings.Value.UdpPort));
+
+        EndPoint bindEndpoint =
+            string.IsNullOrWhiteSpace(settings.Value.UdpHost)
+                ? new IPEndPoint(IPAddress.Any, port)
+                : new DnsEndPoint(settings.Value.UdpHost, port, AddressFamily.InterNetwork);
+
+        socket.Bind(bindEndpoint);
+
         SocketAddress address = new(socket.AddressFamily);
         IPEndPoint endpoint = new(0, 0);
 
