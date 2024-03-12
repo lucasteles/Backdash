@@ -24,7 +24,7 @@ sealed class UdpSocket : IDisposable
             throw new ArgumentOutOfRangeException(nameof(port));
 
         Port = port;
-        IPEndPoint endpoint = new IPEndPoint(useIPv6 ? IPAddress.IPv6Loopback : IPAddress.Loopback, port);
+        IPEndPoint endpoint = new(useIPv6 ? IPAddress.IPv6Loopback : IPAddress.Loopback, port);
         LocalAddress = endpoint.Serialize();
         socket = new(endpoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp)
         {
@@ -57,10 +57,5 @@ sealed class UdpSocket : IDisposable
     public ValueTask<int> SendToAsync(ReadOnlyMemory<byte> payload, SocketAddress peerAddress, CancellationToken ct) =>
         socket.SendToAsync(payload, SocketFlags.None, peerAddress, ct);
 
-    public void Dispose()
-    {
-        if (socket.Connected)
-            socket.Close();
-        socket.Dispose();
-    }
+    public void Dispose() => socket.Dispose();
 }

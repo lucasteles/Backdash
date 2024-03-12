@@ -29,7 +29,6 @@ public sealed class LobbyClient(AppSettings appSettings)
         var response = await client.PostAsJsonAsync("/lobby", new
         {
             lobbyName,
-            port = appSettings.Port,
             username,
             mode,
         }, JsonOptions);

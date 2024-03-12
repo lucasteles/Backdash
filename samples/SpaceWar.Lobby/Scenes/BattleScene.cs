@@ -1,4 +1,3 @@
-using System.Net;
 using Backdash;
 using Backdash.Core;
 using SpaceWar.Logic;
@@ -17,7 +16,7 @@ public sealed class BattleScene : Scene
         FrameDelay = 2,
         Log = new()
         {
-            EnabledLevel = LogLevel.Error,
+            EnabledLevel = LogLevel.Information,
         },
         Protocol = new()
         {
