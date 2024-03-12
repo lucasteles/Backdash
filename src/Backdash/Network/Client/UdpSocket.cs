@@ -18,13 +18,13 @@ sealed class UdpSocket : IDisposable
     public SocketAddress LocalAddress { get; }
     public AddressFamily AddressFamily => socket.AddressFamily;
 
-    public UdpSocket(int port)
+    public UdpSocket(int port, bool useIPv6 = false)
     {
         if (port is < IPEndPoint.MinPort or > IPEndPoint.MaxPort)
             throw new ArgumentOutOfRangeException(nameof(port));
 
         Port = port;
-        IPEndPoint endpoint = new IPEndPoint(IPAddress.Loopback, port);
+        IPEndPoint endpoint = new IPEndPoint(useIPv6 ? IPAddress.IPv6Loopback : IPAddress.Loopback, port);
         LocalAddress = endpoint.Serialize();
         socket = new(endpoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp)
         {
@@ -47,7 +47,7 @@ sealed class UdpSocket : IDisposable
             socket.IOControl((IOControlCode)SIO_UDP_CONN_RESET, [0, 0, 0, 0,], null);
         }
 
-        IPEndPoint localEp = new(IPAddress.Any, port);
+        IPEndPoint localEp = new(useIPv6 ? IPAddress.IPv6Any : IPAddress.Any, port);
         socket.Bind(localEp);
     }
 
