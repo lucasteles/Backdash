@@ -52,6 +52,7 @@ app.MapPost("lobby", Results<Ok<EnterLobbyResponse>, BadRequest, Conflict, Unpro
         || context.Connection.RemoteIpAddress is not { } userIp)
         return BadRequest();
 
+    userIp = userIp.MapToIPv4();
     var lobbyName = Normalize.Name(req.LobbyName);
     var expiration = configuration.GetValue<TimeSpan>("LobbyExpiration");
     var purgeTimeout = configuration.GetValue<TimeSpan>("PurgeTimeout");
