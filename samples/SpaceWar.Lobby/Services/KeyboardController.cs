@@ -1,6 +1,4 @@
-namespace SpaceWar.Util;
-
-using Microsoft.Xna.Framework.Input;
+namespace SpaceWar.Services;
 
 public class KeyboardController
 {

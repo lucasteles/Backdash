@@ -36,12 +36,10 @@ public sealed class BattleScene : Scene
         rollbackSession.AddPlayers(players);
     }
 
-    public BattleScene(int port, int playerCount, IPEndPoint host)
-    {
+    public BattleScene(int port, int playerCount, IPEndPoint host) =>
         rollbackSession = RollbackNetcode.CreateSpectatorSession<PlayerInputs, GameState>(
             port, host, playerCount, options
         );
-    }
 
     public override void Initialize()
     {

@@ -2,11 +2,11 @@
 using System.Diagnostics;
 using Backdash;
 using SpaceWar.Models;
-using SpaceWar.Util;
+using SpaceWar.Services;
 
 namespace SpaceWar.Scenes;
 
-public sealed class LobbyScene(string username, PlayerMode mode) : Scene
+public sealed class LobbyScene(PlayerMode mode) : Scene
 {
     LobbyState currentState = LobbyState.Loading;
     LobbyClient client;
@@ -108,7 +108,7 @@ public sealed class LobbyScene(string username, PlayerMode mode) : Scene
         spriteBatch.DrawString(Assets.MainFont, user.Username,
             new Vector2(Viewport.Right - padding - usernameSize.X, top),
             usernameColor, 0, Vector2.Zero, 1, SpriteEffects.None, 0);
-        top += padding + (int) usernameSize.Y;
+        top += padding + (int)usernameSize.Y;
 
         Rectangle line = new(Viewport.Left, top, Viewport.Width, lineWidth);
         spriteBatch.Draw(Assets.Blank, line, lineColor);
@@ -118,7 +118,7 @@ public sealed class LobbyScene(string username, PlayerMode mode) : Scene
         var noteSize = Assets.MainFont.MeasureString(note);
         spriteBatch.DrawString(Assets.MainFont, note, new(Viewport.Center.X, top),
             Color.Bisque, 0, new(noteSize.X / 2, 0), smTextScale, SpriteEffects.None, 0);
-        top += (int) (noteSize.Y * smTextScale) + halfPadding;
+        top += (int)(noteSize.Y * smTextScale) + halfPadding;
 
         line = new(Viewport.Left, top, Viewport.Width, lineWidth);
         spriteBatch.Draw(Assets.Blank, line, lineColor);
@@ -147,7 +147,7 @@ public sealed class LobbyScene(string username, PlayerMode mode) : Scene
         spriteBatch.DrawString(Assets.MainFont, spectatorsTitle,
             new(spectatorsRect.Center.X - spectatorsTitleSize.X / 2, top), Color.MediumSeaGreen);
 
-        top += (int) Math.Max(playersTitleSize.Y, spectatorsTitleSize.Y);
+        top += (int)Math.Max(playersTitleSize.Y, spectatorsTitleSize.Y);
         top += halfPadding;
         line = new(playersRect.Left, top, playersRect.Width, halfPadding);
         spriteBatch.Draw(Assets.Blank, line, Color.Black);
@@ -169,8 +169,8 @@ public sealed class LobbyScene(string username, PlayerMode mode) : Scene
                 ref var player = ref lobbyInfo.Players[i];
 
                 Rectangle statusBlock = new(
-                    playersRect.Left, top + (int) usernameSize.Y / 3,
-                    (int) usernameSize.Y / 2, (int) usernameSize.Y / 2
+                    playersRect.Left, top + (int)usernameSize.Y / 3,
+                    (int)usernameSize.Y / 2, (int)usernameSize.Y / 2
                 );
                 spriteBatch.Draw(Assets.Blank, statusBlock, null,
                     player.Ready ? Color.LimeGreen : Color.Orange,
@@ -185,8 +185,8 @@ public sealed class LobbyScene(string username, PlayerMode mode) : Scene
                 ref var player = ref lobbyInfo.Spectators[i];
 
                 Rectangle statusBlock = new(
-                    spectatorsRect.Left, top + (int) usernameSize.Y / 3,
-                    (int) usernameSize.Y / 2, (int) usernameSize.Y / 2
+                    spectatorsRect.Left, top + (int)usernameSize.Y / 3,
+                    (int)usernameSize.Y / 2, (int)usernameSize.Y / 2
                 );
                 spriteBatch.Draw(Assets.Blank, statusBlock, null, Color.LightBlue,
                     0, Vector2.Zero, SpriteEffects.None, 0);
@@ -195,7 +195,7 @@ public sealed class LobbyScene(string username, PlayerMode mode) : Scene
                     new(spectatorsRect.Left + statusBlock.Width + padding, top), Color.White);
             }
 
-            top += (int) usernameSize.Y + halfPadding;
+            top += (int)usernameSize.Y + halfPadding;
         }
     }
 
@@ -224,8 +224,7 @@ public sealed class LobbyScene(string username, PlayerMode mode) : Scene
 
     async Task RequestLobby()
     {
-        if (string.IsNullOrWhiteSpace(username)) return;
-        user = await client.EnterLobby(Config.LobbyName, username, mode);
+        user = await client.EnterLobby(Config.LobbyName, Config.Username, mode);
         await RefreshLobby();
 
         Window.Title = $"Space War - {user.Username}";
@@ -255,7 +254,7 @@ public sealed class LobbyScene(string username, PlayerMode mode) : Scene
 
     void StartPlayerBattleScene()
     {
-        if(lobbyInfo is null) return;
+        if (lobbyInfo is null) return;
 
         currentState = LobbyState.Starting;
         List<Player> players = [];
@@ -267,15 +266,15 @@ public sealed class LobbyScene(string username, PlayerMode mode) : Scene
 
             players.Add(player.PeerId == user.PeerId
                 ? new LocalPlayer(playerNumber)
-                : new RemotePlayer(playerNumber, player.Endpoint.ToIPEndpoint()));
+                : new RemotePlayer(playerNumber, player.Endpoint));
         }
 
         if (lobbyInfo.SpectatorMapping.SingleOrDefault(m => m.Host == user.PeerId)
-            is {Watchers: { } spectatorIds})
+            is { Watchers: { } spectatorIds })
         {
             var spectators = lobbyInfo.Spectators.Where(s => spectatorIds.Contains(s.PeerId));
             foreach (var spectator in spectators)
-                players.Add(new Spectator(spectator.Endpoint.ToIPEndpoint()));
+                players.Add(new Spectator(spectator.Endpoint));
         }
 
         LoadScene(new BattleScene(Config.Port, players));
@@ -287,9 +286,9 @@ public sealed class LobbyScene(string username, PlayerMode mode) : Scene
             .SingleOrDefault(x => x.Watchers.Contains(user.PeerId))
             ?.Host;
         var host = lobbyInfo.Players.Single(x => x.PeerId == hostId);
-        var hostEndpoint = host.Endpoint.ToIPEndpoint();
         var playerCount = lobbyInfo.Players.Length;
-        LoadScene(new BattleScene(Config.Port, playerCount, hostEndpoint));
+
+        LoadScene(new BattleScene(Config.Port, playerCount, host.Endpoint));
     }
 
     bool PendingNetworkCall()

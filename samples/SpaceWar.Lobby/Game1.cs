@@ -1,20 +1,20 @@
 #nullable disable
 
 using SpaceWar.Scenes;
-using SpaceWar.Util;
+using SpaceWar.Services;
 
 namespace SpaceWar;
 
 public class Game1 : Game
 {
-    readonly AppSettings appSettings;
+    readonly AppSettings settings;
     readonly GraphicsDeviceManager graphics;
     public SpriteBatch SpriteBatch { get; private set; }
     public SceneManager SceneManager { get; private set; }
 
     public Game1(AppSettings appSettings)
     {
-        this.appSettings = appSettings;
+        settings = appSettings;
         graphics = new(this);
         Content.RootDirectory = "Content";
         IsMouseVisible = true;
@@ -27,18 +27,19 @@ public class Game1 : Game
         graphics.PreferredBackBufferHeight = 768;
         graphics.ApplyChanges();
         base.Initialize();
-
-        SceneManager = new(this, startScene: new ChooseNameScene());
-        Services.AddService(SpriteBatch);
-        Services.AddService(SceneManager);
-        Services.AddService(appSettings);
-        Services.AddService(new LobbyClient(appSettings));
     }
 
     protected override void LoadContent()
     {
         SpriteBatch = new(GraphicsDevice);
         Services.AddService(new GameAssets(Content, GraphicsDevice));
+
+        Services.AddService(settings);
+        Services.AddService(SpriteBatch);
+        Services.AddService(new LobbyClient(settings));
+
+        SceneManager = new(this, startScene: new ChooseNameScene());
+        Services.AddService(SceneManager);
     }
 
     protected override void Update(GameTime gameTime)

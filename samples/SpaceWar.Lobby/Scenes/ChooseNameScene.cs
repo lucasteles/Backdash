@@ -32,7 +32,11 @@ public sealed class ChooseNameScene : Scene
 
     public override void Initialize()
     {
-        username.Append(Regex.Replace(Environment.UserName, "[^a-zA-Z0-9]", "_"));
+        var currentUser = string.IsNullOrWhiteSpace(Config.Username)
+            ? Environment.UserName
+            : Config.Username;
+
+        username.Append(Regex.Replace(currentUser, "[^a-zA-Z0-9]", "_"));
         cursorSize = Assets.MainFont.MeasureString(" ");
         Window.TextInput += OnTextInput;
     }
@@ -50,9 +54,9 @@ public sealed class ChooseNameScene : Scene
         var keyboard = Keyboard.GetState();
         if (keyboard.IsKeyDown(Keys.Enter))
         {
-            var strName = username.ToString();
-            LoadScene(new ChooseModeScene(strName));
-            Window.Title = $"Space War - {strName}";
+            Config.Username = username.ToString();
+            LoadScene(new ChooseModeScene());
+            Window.Title = $"Space War - {Config.Username}";
         }
     }
 

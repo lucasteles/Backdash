@@ -1,9 +1,9 @@
 using SpaceWar.Models;
-using SpaceWar.Util;
+using SpaceWar.Services;
 
 namespace SpaceWar.Scenes;
 
-public sealed class ChooseModeScene(string username) : Scene
+public sealed class ChooseModeScene : Scene
 {
     const string TitleLabel = "What do you want?";
     const string PlayLabel = "Play";
@@ -28,7 +28,7 @@ public sealed class ChooseModeScene(string username) : Scene
             };
 
         if (keyboard.IsKeyPressed(Keys.Enter))
-            LoadScene(new LobbyScene(username, selectedMode));
+            LoadScene(new LobbyScene(selectedMode));
     }
 
     public override void Draw(SpriteBatch spriteBatch)

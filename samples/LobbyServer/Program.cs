@@ -12,14 +12,14 @@ builder.Configuration.AddEnvironmentVariables();
 builder.Services.AddOptions<AppSettings>().BindConfiguration("");
 
 builder.Services
-    .ConfigureHttpJsonOptions(options => JsonConfig.Options(options.SerializerOptions))
-    .Configure<JsonOptions>(o => JsonConfig.Options(o.JsonSerializerOptions)) // For Swagger
+    .ConfigureHttpJsonOptions(options => options.SerializerOptions.AddCustomConverters())
+    .Configure<JsonOptions>(o => o.JsonSerializerOptions.AddCustomConverters()) // For Swagger
     .AddEndpointsApiExplorer()
     .AddSwaggerGen(options =>
     {
         options.SupportNonNullableReferenceTypes();
-        options.MapType<IPAddress>(() => new() {Type = "string"});
-        options.MapType<IPEndPoint>(() => new() {Type = "string"});
+        options.MapType<IPAddress>(() => new() { Type = "string" });
+        options.MapType<IPEndPoint>(() => new() { Type = "string" });
     })
     .Configure<ForwardedHeadersOptions>(o => o.ForwardedHeaders = ForwardedHeaders.XForwardedFor)
     .AddMemoryCache()
@@ -29,7 +29,7 @@ var app = builder.Build();
 app.UseForwardedHeaders();
 app.UseSwagger().UseSwaggerUI();
 
-app.MapGet("info", (HttpContext context, TimeProvider time) => (object) new
+app.MapGet("info", (HttpContext context, TimeProvider time) => (object)new
 {
     Date = time.GetLocalNow(),
     ClientIP = context.GetRemoteClientIP(),
