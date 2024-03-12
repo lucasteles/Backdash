@@ -19,7 +19,7 @@ builder.Services
     .AddSingleton(TimeProvider.System);
 
 var app = builder.Build();
-app.UseSwagger().UseSwaggerUI();
+app.UseForwardedHeaders().UseSwagger().UseSwaggerUI();
 
 app.MapGet("lobby/{name}",
     Results<Ok<Lobby>, NotFound, UnauthorizedHttpResult> (
