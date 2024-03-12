@@ -8,6 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="Backdash.Utils" Version="0.1.1-beta.27" />
       <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
     </ItemGroup>
 
@@ -15,10 +16,6 @@
       <Content Include="..\..\.dockerignore">
         <Link>.dockerignore</Link>
       </Content>
-    </ItemGroup>
-
-    <ItemGroup>
-      <ProjectReference Include="..\..\src\Backdash.Utils\Backdash.Utils.csproj" />
     </ItemGroup>
 
 </Project>
