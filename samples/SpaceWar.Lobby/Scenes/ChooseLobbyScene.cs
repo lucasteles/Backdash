@@ -4,12 +4,12 @@ using SpaceWar.Services;
 
 namespace SpaceWar.Scenes;
 
-public sealed class ChooseNameScene : Scene
+public sealed class ChooseLobbyScene : Scene
 {
     const int MaxNameSize = 40;
-    const string Label = "Username";
+    const string Label = "Lobby Name";
 
-    readonly StringBuilder username = new();
+    readonly StringBuilder lobbyName = new();
     readonly KeyboardController keyboard = new();
     readonly TimeSpan totalCursorBlinkTime = TimeSpan.FromMilliseconds(530);
 
@@ -19,26 +19,22 @@ public sealed class ChooseNameScene : Scene
 
     void OnTextInput(object? sender, TextInputEventArgs e)
     {
-        if (username.Length > 0 && e.Key is Keys.Back or Keys.Delete)
+        if (lobbyName.Length > 0 && e.Key is Keys.Back or Keys.Delete)
         {
-            username.Length--;
+            lobbyName.Length--;
             return;
         }
 
         if (!char.IsLetterOrDigit(e.Character) && e.Character is not ('_' or '-'))
             return;
 
-        username.Append(e.Character);
-        username.Length = MathHelper.Clamp(username.Length, 0, MaxNameSize);
+        lobbyName.Append(e.Character);
+        lobbyName.Length = MathHelper.Clamp(lobbyName.Length, 0, MaxNameSize);
     }
 
     public override void Initialize()
     {
-        var currentUser = string.IsNullOrWhiteSpace(Config.Username)
-            ? Environment.UserName
-            : Config.Username;
-
-        username.Append(Regex.Replace(currentUser, "[^a-zA-Z0-9]", "_"));
+        lobbyName.Append(Regex.Replace(Config.LobbyName, "[^a-zA-Z0-9]", "_"));
         cursorSize = Assets.MainFont.MeasureString(" ");
         Window.TextInput += OnTextInput;
         keyboard.Update();
@@ -57,19 +53,18 @@ public sealed class ChooseNameScene : Scene
         keyboard.Update();
         if (keyboard.IsKeyPressed(Keys.Enter))
         {
-            Config.Username = username.ToString();
-            LoadScene(new ChooseModeScene());
-            Window.Title = $"Space War - {Config.Username}";
+            Config.LobbyName = lobbyName.ToString();
+            LoadScene(new ChooseNameScene());
         }
     }
 
     public override void Draw(SpriteBatch spriteBatch)
     {
-        var nameSize = Assets.MainFont.MeasureString(username);
+        var nameSize = Assets.MainFont.MeasureString(lobbyName);
         var halfSize = nameSize / 2;
         var center = Viewport.Center.ToVector2();
 
-        spriteBatch.DrawString(Assets.MainFont, username, center, Color.White,
+        spriteBatch.DrawString(Assets.MainFont, lobbyName, center, Color.White,
             0, halfSize, 1, SpriteEffects.None, 0);
 
         if (showCursor)
