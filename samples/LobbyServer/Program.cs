@@ -74,25 +74,28 @@ app.MapPost("lobby", Results<Ok<EnterLobbyResponse>, BadRequest, Conflict, Unpro
     if (lobby is null || lobby.Ready)
         return UnprocessableEntity();
 
-    var userNameIndex = 2;
-    var nextUserName = userName;
-    while (lobby.FindEntry(nextUserName) is not null)
-        nextUserName = $"{userName}{userNameIndex++}";
-    userName = nextUserName;
-
-    PeerEndpoint userEndpoint = new(userIp.ToString(), req.Port);
-    Peer peer = new(userName, userEndpoint)
+    lock (lobby.Locker)
     {
-        PeerId = peerId,
-    };
+        var userNameIndex = 2;
+        var nextUserName = userName;
+        while (lobby.FindEntry(nextUserName) is not null)
+            nextUserName = $"{userName}{userNameIndex++}";
+        userName = nextUserName;
 
-    LobbyEntry entry = new(peer, req.Mode)
-    {
-        LastRead = now,
-    };
+        PeerEndpoint userEndpoint = new(userIp.ToString(), req.Port);
+        Peer peer = new(userName, userEndpoint)
+        {
+            PeerId = peerId,
+        };
 
-    lobby.AddPeer(entry);
-    return Ok(new EnterLobbyResponse(userName, lobbyName, entry.Peer.PeerId, entry.Token));
+        LobbyEntry entry = new(peer, req.Mode)
+        {
+            LastRead = now,
+        };
+
+        lobby.AddPeer(entry);
+        return Ok(new EnterLobbyResponse(userName, lobbyName, entry.Peer.PeerId, entry.Token));
+    }
 });
 
 app.MapDelete("lobby/{name}",
@@ -130,7 +133,8 @@ app.MapPut("lobby/{name}",
         if (lobby.Ready) return UnprocessableEntity();
 
         if (entry.Mode is PeerMode.Player)
-            entry.Peer.ToggleReady();
+            lock (lobby.Locker)
+                entry.Peer.ToggleReady();
 
         return NoContent();
     });

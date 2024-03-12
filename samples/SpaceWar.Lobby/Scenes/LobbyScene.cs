@@ -107,7 +107,7 @@ public sealed class LobbyScene(string username, PlayerMode mode) : Scene
         spriteBatch.DrawString(Assets.MainFont, user.Username,
             new Vector2(Viewport.Right - padding - usernameSize.X, top),
             usernameColor, 0, Vector2.Zero, 1, SpriteEffects.None, 0);
-        top += padding + (int) usernameSize.Y;
+        top += padding + (int)usernameSize.Y;
 
         Rectangle line = new(Viewport.Left, top, Viewport.Width, lineWidth);
         spriteBatch.Draw(Assets.Blank, line, lineColor);
@@ -117,7 +117,7 @@ public sealed class LobbyScene(string username, PlayerMode mode) : Scene
         var noteSize = Assets.MainFont.MeasureString(note);
         spriteBatch.DrawString(Assets.MainFont, note, new(Viewport.Center.X, top),
             Color.Bisque, 0, new(noteSize.X / 2, 0), smTextScale, SpriteEffects.None, 0);
-        top += (int) (noteSize.Y * smTextScale) + halfPadding;
+        top += (int)(noteSize.Y * smTextScale) + halfPadding;
 
         line = new(Viewport.Left, top, Viewport.Width, lineWidth);
         spriteBatch.Draw(Assets.Blank, line, lineColor);
@@ -146,7 +146,7 @@ public sealed class LobbyScene(string username, PlayerMode mode) : Scene
         spriteBatch.DrawString(Assets.MainFont, spectatorsTitle,
             new(spectatorsRect.Center.X - spectatorsTitleSize.X / 2, top), Color.MediumSeaGreen);
 
-        top += (int) Math.Max(playersTitleSize.Y, spectatorsTitleSize.Y);
+        top += (int)Math.Max(playersTitleSize.Y, spectatorsTitleSize.Y);
         top += halfPadding;
         line = new(playersRect.Left, top, playersRect.Width, halfPadding);
         spriteBatch.Draw(Assets.Blank, line, Color.Black);
@@ -168,8 +168,8 @@ public sealed class LobbyScene(string username, PlayerMode mode) : Scene
                 ref var player = ref lobbyInfo.Players[i];
 
                 Rectangle statusBlock = new(
-                    playersRect.Left, top + (int) usernameSize.Y / 3,
-                    (int) usernameSize.Y / 2, (int) usernameSize.Y / 2
+                    playersRect.Left, top + (int)usernameSize.Y / 3,
+                    (int)usernameSize.Y / 2, (int)usernameSize.Y / 2
                 );
                 spriteBatch.Draw(Assets.Blank, statusBlock, null,
                     player.Ready ? Color.LimeGreen : Color.Orange,
@@ -184,8 +184,8 @@ public sealed class LobbyScene(string username, PlayerMode mode) : Scene
                 ref var player = ref lobbyInfo.Spectators[i];
 
                 Rectangle statusBlock = new(
-                    spectatorsRect.Left, top + (int) usernameSize.Y / 3,
-                    (int) usernameSize.Y / 2, (int) usernameSize.Y / 2
+                    spectatorsRect.Left, top + (int)usernameSize.Y / 3,
+                    (int)usernameSize.Y / 2, (int)usernameSize.Y / 2
                 );
                 spriteBatch.Draw(Assets.Blank, statusBlock, null, Color.LightBlue,
                     0, Vector2.Zero, SpriteEffects.None, 0);
@@ -194,7 +194,7 @@ public sealed class LobbyScene(string username, PlayerMode mode) : Scene
                     new(spectatorsRect.Left + statusBlock.Width + padding, top), Color.White);
             }
 
-            top += (int) usernameSize.Y + halfPadding;
+            top += (int)usernameSize.Y + halfPadding;
         }
     }
 
@@ -225,6 +225,8 @@ public sealed class LobbyScene(string username, PlayerMode mode) : Scene
     {
         user = await client.EnterLobby(Config.LobbyName, username, mode);
         await RefreshLobby();
+
+        Window.Title = $"Space War - {user.Username}";
         currentState = LobbyState.Waiting;
     }
 
@@ -261,7 +263,7 @@ public sealed class LobbyScene(string username, PlayerMode mode) : Scene
         }
 
         if (lobbyInfo.SpectatorMapping.SingleOrDefault(m => m.Host == user.PeerId)
-            is {Watchers: { } spectatorIds})
+            is { Watchers: { } spectatorIds })
         {
             var spectators = lobbyInfo.Spectators.Where(s => spectatorIds.Contains(s.PeerId));
             foreach (var spectator in spectators)

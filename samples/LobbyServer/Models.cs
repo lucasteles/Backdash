@@ -38,10 +38,9 @@ public sealed class Lobby(
 {
     const int MaxPlayers = 4;
 
-    readonly object locker = new();
-
     readonly List<LobbyEntry> entries = [];
 
+    public readonly object Locker = new();
     public string Name { get; } = name;
     public PeerId Owner { get; private set; } = owner;
     public DateTimeOffset CreatedAt { get; } = createdAt;
@@ -53,7 +52,7 @@ public sealed class Lobby(
     {
         get
         {
-            lock (locker)
+            lock (Locker)
                 return entries.Where(x => x.Mode is PeerMode.Player).Take(MaxPlayers)
                     .Select(x => x.Peer);
         }
@@ -63,7 +62,7 @@ public sealed class Lobby(
     {
         get
         {
-            lock (locker)
+            lock (Locker)
                 return entries.Where(x => x.Mode is PeerMode.Spectator).Select(x => x.Peer);
         }
     }
@@ -84,7 +83,7 @@ public sealed class Lobby(
 
     public void AddPeer(LobbyEntry entry)
     {
-        lock (locker)
+        lock (Locker)
         {
             if (Ready) return;
             if (Players.Count() >= MaxPlayers)
@@ -96,7 +95,7 @@ public sealed class Lobby(
 
     public void RemovePeer(LobbyEntry entry)
     {
-        lock (locker)
+        lock (Locker)
         {
             if (Ready) return;
             entries.Remove(entry);
@@ -113,26 +112,26 @@ public sealed class Lobby(
 
     public LobbyEntry? FindEntry(string username)
     {
-        lock (locker)
+        lock (Locker)
             return entries.Find(p =>
                 p.Peer.Username.Equals(username, StringComparison.OrdinalIgnoreCase));
     }
 
     public LobbyEntry? FindEntry(PeerToken token)
     {
-        lock (locker)
+        lock (Locker)
             return entries.FirstOrDefault(p => p.Token == token);
     }
 
     public bool IsEmpty()
     {
-        lock (locker)
+        lock (Locker)
             return entries.Count is 0;
     }
 
     public void Purge(DateTimeOffset now)
     {
-        lock (locker)
+        lock (Locker)
         {
             entries.RemoveAll(entry => now - entry.LastRead >= purgeTimeout);
             if (entries.Count > 0 && entries.TrueForAll(x => x.Peer.PeerId != Owner))
