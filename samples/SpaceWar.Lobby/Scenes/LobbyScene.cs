@@ -240,7 +240,7 @@ public sealed class LobbyScene(string username, PlayerMode mode) : Scene
 
     void CheckPlayersReady()
     {
-        if (!lobbyInfo.Ready) return;
+        if (lobbyInfo?.Ready == false) return;
 
         switch (mode)
         {
@@ -255,6 +255,8 @@ public sealed class LobbyScene(string username, PlayerMode mode) : Scene
 
     void StartPlayerBattleScene()
     {
+        if(lobbyInfo is null) return;
+
         currentState = LobbyState.Starting;
         List<Player> players = [];
 
