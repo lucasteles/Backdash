@@ -14,6 +14,7 @@ public class UdpListenerService(
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        logger.LogInformation("UDP: starting socket");
         using Socket socket = new(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
         socket.Blocking = false;
         socket.Bind(new IPEndPoint(IPAddress.Any, settings.Value.UdpPort));
@@ -30,8 +31,8 @@ public class UdpListenerService(
                     .ConfigureAwait(false);
 
                 if (receivedSize is 0) continue;
-                endpoint = (IPEndPoint)endpoint.Create(address);
-                logger.LogInformation("New request from {Endpoint}", endpoint);
+                endpoint = (IPEndPoint) endpoint.Create(address);
+                logger.LogInformation("UDP: New request from {Endpoint}", endpoint);
 
                 if (!Guid.TryParse(Encoding.UTF8.GetString(buffer), out var peerToken))
                     continue;
@@ -50,8 +51,10 @@ public class UdpListenerService(
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "udp socket error");
+                logger.LogError(ex, "UDP: socket error");
             }
         }
+
+        logger.LogInformation("UDP: stopping");
     }
 }

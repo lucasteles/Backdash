@@ -27,7 +27,8 @@ public sealed class UdpPuncher : IDisposable
     public async ValueTask Punch(Guid token, CancellationToken ct = default)
     {
         if (!token.TryFormat(buffer, out var bytesWritten) || bytesWritten is 0) return;
-        await socket.SendToAsync(buffer, remoteEndPoint, ct).ConfigureAwait(false);
+        await socket.SendToAsync(buffer.AsMemory()[..bytesWritten], remoteEndPoint, ct)
+            .ConfigureAwait(false);
     }
 
     public void Dispose() => socket.Dispose();
