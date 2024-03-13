@@ -9,6 +9,8 @@ public sealed class UdpPuncher : IDisposable
     readonly Socket socket;
     readonly byte[] buffer = GC.AllocateArray<byte>(36, pinned: true);
 
+    bool disposed;
+
     public UdpPuncher(int localPort, Uri serverUrl, int serverPort)
     {
         var address = Dns.GetHostAddresses(
@@ -32,5 +34,10 @@ public sealed class UdpPuncher : IDisposable
             .ConfigureAwait(false);
     }
 
-    public void Dispose() => socket.Dispose();
+    public void Dispose()
+    {
+        if (disposed) return;
+        disposed = true;
+        socket.Dispose();
+    }
 }
