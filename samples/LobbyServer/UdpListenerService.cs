@@ -15,21 +15,24 @@ public class UdpListenerService(
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         var port = settings.Value.UdpPort;
-        var bindAddress =
-            !string.IsNullOrWhiteSpace(settings.Value.UdpHost) &&
-            (await Dns.GetHostAddressesAsync(
-                settings.Value.UdpHost,
-                AddressFamily.InterNetwork,
-                stoppingToken)).FirstOrDefault() is { } udpHost
-                ? udpHost
-                : IPAddress.Any;
-
-        IPEndPoint bindEndpoint = new(bindAddress, port);
-        logger.LogInformation("UDP: starting socket at {Endpoint}", bindEndpoint);
+        var bindAddresses =
+            !string.IsNullOrWhiteSpace(settings.Value.UdpHost)
+                ? (await Dns.GetHostAddressesAsync(
+                    settings.Value.UdpHost,
+                    AddressFamily.InterNetwork,
+                    stoppingToken))
+                .DefaultIfEmpty(IPAddress.Any)
+                : [IPAddress.Any];
 
         using Socket socket = new(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
         socket.Blocking = false;
-        socket.Bind(bindEndpoint);
+
+        foreach (var bindAddress in bindAddresses)
+        {
+            IPEndPoint bindEndpoint = new(bindAddress, port);
+            logger.LogInformation("UDP: starting socket at {Endpoint}", bindEndpoint);
+            socket.Bind(bindEndpoint);
+        }
 
         SocketAddress address = new(socket.AddressFamily);
         IPEndPoint endpoint = new(0, 0);
