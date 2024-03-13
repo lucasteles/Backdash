@@ -1,7 +1,9 @@
 using Backdash.Core;
 using Backdash.Network.Client;
 using Backdash.Serialization;
+
 namespace Backdash.Benchmarks.Network;
+
 static class Factory
 {
     public static UdpClient<PingMessage> CreateUdpClient(
@@ -16,6 +18,7 @@ static class Factory
             observers,
             Logger.CreateConsoleLogger(LogLevel.Off)
         );
+
         return client;
     }
 }

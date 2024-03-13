@@ -10,7 +10,6 @@ namespace Backdash.Network.Client;
 interface IUdpClient<in T> : IBackgroundJob, IDisposable where T : struct
 {
     public int Port { get; }
-    public SocketAddress Address { get; }
     ValueTask<int> SendTo(SocketAddress peerAddress, T payload, CancellationToken ct = default);
     ValueTask<int> SendTo(SocketAddress peerAddress, T payload, Memory<byte> buffer, CancellationToken ct = default);
 }
@@ -25,7 +24,6 @@ sealed class UdpClient<T> : IUdpClient<T> where T : struct
     CancellationTokenSource? cancellation;
     public string JobName { get; }
     public int Port => socket.Port;
-    public SocketAddress Address => socket.LocalAddress;
 
     public UdpClient(
         UdpSocket socket,
@@ -44,6 +42,7 @@ sealed class UdpClient<T> : IUdpClient<T> where T : struct
         this.serializer = serializer;
         this.logger = logger;
         this.maxPacketSize = maxPacketSize;
+
         JobName = $"{nameof(UdpClient)} ({socket.Port})";
     }
 

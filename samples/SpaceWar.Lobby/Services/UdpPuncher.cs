@@ -1,38 +1,31 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using SpaceWar.Models;
+using Backdash.Network.Client;
 
 namespace SpaceWar.Services;
 
 public sealed class UdpPuncher : IDisposable
 {
     readonly IPEndPoint remoteEndPoint;
-    readonly Socket socket;
+    readonly UdpSocket socket;
     readonly byte[] buffer = GC.AllocateArray<byte>(36, pinned: true);
-    readonly HashSet<Guid> received = [];
 
     readonly CancellationTokenSource cts = new();
+    public readonly HashSet<(EndPoint, Guid)> Received = [];
+
     bool disposed;
 
     public UdpPuncher(int localPort, Uri serverUrl, int serverPort)
     {
-        var address = Dns.GetHostAddresses(
-            serverUrl.DnsSafeHost, AddressFamily.InterNetwork).FirstOrDefault();
+        var serverAddress =
+            Dns.GetHostAddresses(serverUrl.DnsSafeHost, AddressFamily.InterNetwork).FirstOrDefault()
+            ?? throw new InvalidOperationException($"Unable to get ip address from {serverUrl}");
 
-        if (address is null)
-            throw new ArgumentException(nameof(serverUrl));
+        remoteEndPoint = new(serverAddress, serverPort);
+        socket = new(localPort);
 
-        remoteEndPoint = new(address, serverPort);
-        socket = new(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp)
-        {
-            Blocking = false,
-
-        };
-        // socket.SetIPProtectionLevel(IPProtectionLevel.Unrestricted);
-        socket.Bind(new IPEndPoint(IPAddress.Any, localPort));
         Task.Run(() => Receive(cts.Token));
-
     }
 
     public async Task Connect(Guid token,
@@ -56,31 +49,26 @@ public sealed class UdpPuncher : IDisposable
 
     async ValueTask Receive(CancellationToken stoppingToken)
     {
-        SocketAddress address = new(socket.AddressFamily);
-        IPEndPoint endpoint = new(0, 0);
-
         var recBuffer = GC.AllocateArray<byte>(36, pinned: true);
         while (!stoppingToken.IsCancellationRequested)
         {
             try
             {
-                var receivedSize = await socket
-                    .ReceiveFromAsync(recBuffer, SocketFlags.None, address, stoppingToken)
+                var receiveInfo = await socket.ReceiveAsync(recBuffer, stoppingToken)
                     .ConfigureAwait(false);
 
-                if (receivedSize is 0) continue;
-                endpoint = (IPEndPoint) endpoint.Create(address);
+                if (receiveInfo.ReceivedBytes is 0) continue;
 
                 if (!Guid.TryParse(Encoding.UTF8.GetString(recBuffer), out var peerToken))
                     continue;
 
-                received.Add(peerToken);
+                Received.Add((receiveInfo.RemoteEndPoint, peerToken));
             }
             catch (OperationCanceledException)
             {
                 break;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // skip
             }

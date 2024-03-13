@@ -1,10 +1,11 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
+using Backdash.Core;
 
 namespace Backdash.Network.Client;
 
-sealed class UdpSocket : IDisposable
+public sealed class UdpSocket : IDisposable
 {
     // ReSharper disable InconsistentNaming
     const uint IOC_IN = 0x80000000;
@@ -14,25 +15,30 @@ sealed class UdpSocket : IDisposable
 
     // ReSharper enable InconsistentNaming
     readonly Socket socket;
+    readonly IPEndPoint anyEndPoint;
     public int Port { get; }
-    public SocketAddress LocalAddress { get; }
+
     public AddressFamily AddressFamily => socket.AddressFamily;
 
-    public UdpSocket(int port, bool useIPv6 = false)
+    public UdpSocket(IPEndPoint bindEndpoint)
     {
-        if (port is < IPEndPoint.MinPort or > IPEndPoint.MaxPort)
-            throw new ArgumentOutOfRangeException(nameof(port));
+        anyEndPoint = new(bindEndpoint.AddressFamily switch
+        {
+            AddressFamily.InterNetwork => IPAddress.Any,
+            AddressFamily.InterNetworkV6 => IPAddress.IPv6Any,
+            _ => throw new BackdashException($"Invalid binding endpoint address family {bindEndpoint.AddressFamily}"),
+        }, IPEndPoint.MinPort);
 
-        Port = port;
-        IPEndPoint endpoint = new(useIPv6 ? IPAddress.IPv6Loopback : IPAddress.Loopback, port);
-        LocalAddress = endpoint.Serialize();
-        socket = new(endpoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp)
+        Port = bindEndpoint.Port;
+
+        socket = new(bindEndpoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp)
         {
             ExclusiveAddressUse = false,
             Blocking = false,
         };
         socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.PacketInformation, true);
         socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+
         try
         {
             socket.LingerState = new LingerOption(false, 0);
@@ -48,14 +54,32 @@ sealed class UdpSocket : IDisposable
             socket.SetIPProtectionLevel(IPProtectionLevel.Unrestricted);
         }
 
-        IPEndPoint localEp = new(useIPv6 ? IPAddress.IPv6Any : IPAddress.Any, port);
-        socket.Bind(localEp);
+        socket.Bind(bindEndpoint);
+    }
+
+    public UdpSocket(IPAddress bindAddress, int port) : this(new IPEndPoint(bindAddress, port)) { }
+    public UdpSocket(int port, bool useIPv6 = false) : this(useIPv6 ? IPAddress.IPv6Any : IPAddress.Any, port) { }
+
+    public UdpSocket(string bindHost, int port, AddressFamily addressFamily = AddressFamily.InterNetwork)
+        : this(GetDnsIpAddress(bindHost, addressFamily), port) { }
+
+    static IPAddress GetDnsIpAddress(string host, AddressFamily addressFamily)
+    {
+        var address = Dns.GetHostAddresses(host, addressFamily).FirstOrDefault()
+                      ?? throw new BackdashException($"Unable to retrieve IP Address from host {host}");
+        return address;
     }
 
     public ValueTask<int> ReceiveFromAsync(Memory<byte> buffer, SocketAddress address, CancellationToken ct) =>
         socket.ReceiveFromAsync(buffer, SocketFlags.None, address, ct);
 
+    public ValueTask<SocketReceiveFromResult> ReceiveAsync(Memory<byte> buffer, CancellationToken ct) =>
+        socket.ReceiveFromAsync(buffer, SocketFlags.None, anyEndPoint, ct);
+
     public ValueTask<int> SendToAsync(ReadOnlyMemory<byte> payload, SocketAddress peerAddress, CancellationToken ct) =>
+        socket.SendToAsync(payload, SocketFlags.None, peerAddress, ct);
+
+    public ValueTask<int> SendToAsync(ReadOnlyMemory<byte> payload, EndPoint peerAddress, CancellationToken ct) =>
         socket.SendToAsync(payload, SocketFlags.None, peerAddress, ct);
 
     public void Dispose() => socket.Dispose();

@@ -48,6 +48,9 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
     {
         keyboard.Update();
 
+        if (udpPuncher.Received.Count > 0)
+            Window.Title = $"Received UDP {udpPuncher.Received.Count}";
+
         if (PendingNetworkCall())
             return;
 
