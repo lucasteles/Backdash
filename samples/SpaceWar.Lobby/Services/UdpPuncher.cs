@@ -28,7 +28,7 @@ public sealed class UdpPuncher : IDisposable
         Task.Run(() => Receive(cts.Token));
     }
 
-    public async Task Connect(Guid token,
+    public async Task HandShake(Guid token,
         CancellationToken ct = default
     )
     {

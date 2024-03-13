@@ -37,7 +37,9 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
         using PeriodicTimer timer = new(TimeSpan.FromMilliseconds(300));
         while (lobbyInfo?.Ready != true && await timer.WaitForNextTickAsync())
         {
-            if (connected && lobbyInfo is not null)
+            await udpPuncher.HandShake(user.Token);
+
+            if (lobbyInfo is not null)
                 await udpPuncher.Punch(user.Token,
                     lobbyInfo.Players.Where(x => x.Connected && x.PeerId != user.PeerId)
                         .Select(x => x.Endpoint));
@@ -257,8 +259,6 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
 
         connected = lobbyInfo.Players.SingleOrDefault(x => x.PeerId == user.PeerId) is
             {Connected: true};
-
-        await udpPuncher.Connect(user.Token);
     }
 
     void CheckPlayersReady()

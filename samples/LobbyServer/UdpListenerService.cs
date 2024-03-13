@@ -60,7 +60,7 @@ public class UdpListenerService(
                 if (repository.FindEntry(peerToken) is not { } entry)
                     continue;
 
-                if (entry.Peer.Endpoint is not null)
+                if (entry.Peer.Endpoint is not null && !entry.Peer.Endpoint.Equals(remoteEndPoint))
                     logger.LogInformation(
                         "UDP: player {Name} changed address from {OldEndpoint} to {NewEndpoint}",
                         entry.Peer.Username, entry.Peer.Endpoint, remoteEndPoint);
