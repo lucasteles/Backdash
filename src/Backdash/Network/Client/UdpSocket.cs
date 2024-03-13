@@ -45,6 +45,7 @@ sealed class UdpSocket : IDisposable
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             socket.IOControl((IOControlCode)SIO_UDP_CONN_RESET, [0, 0, 0, 0,], null);
+            socket.SetIPProtectionLevel(IPProtectionLevel.Unrestricted);
         }
 
         IPEndPoint localEp = new(useIPv6 ? IPAddress.IPv6Any : IPAddress.Any, port);
