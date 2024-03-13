@@ -15,8 +15,8 @@ builder.Services
     .AddSwaggerGen(options =>
     {
         options.SupportNonNullableReferenceTypes();
-        options.MapType<IPAddress>(() => new() { Type = "string" });
-        options.MapType<IPEndPoint>(() => new() { Type = "string" });
+        options.MapType<IPAddress>(() => new() {Type = "string"});
+        options.MapType<IPEndPoint>(() => new() {Type = "string"});
     })
     .Configure<ForwardedHeadersOptions>(o => o.ForwardedHeaders = ForwardedHeaders.XForwardedFor)
     .AddMemoryCache()
@@ -29,7 +29,7 @@ var app = builder.Build();
 app.UseForwardedHeaders();
 app.UseSwagger().UseSwaggerUI();
 
-app.MapGet("info", (HttpContext context, TimeProvider time) => (object)new
+app.MapGet("info", (HttpContext context, TimeProvider time) => (object) new
 {
     Date = time.GetLocalNow(),
     ClientIP = context.GetRemoteClientIP(),
@@ -55,15 +55,23 @@ app.MapPost("lobby", Results<Ok<EnterLobbyResponse>, BadRequest, Conflict, Unpro
 app.MapGet("lobby/{name}",
     Results<Ok<Lobby>, NotFound, UnauthorizedHttpResult> (
         LobbyRepository repository, TimeProvider time,
-        [FromHeader] Guid token,
+        [FromHeader] Guid? token,
         string name
     ) =>
     {
-        if (repository.FindEntry(token) is null || repository.FindLobby(name) is not { } lobby)
+        if (repository.FindLobby(name) is not { } lobby)
             return NotFound();
-        if (lobby.FindEntry(token) is null) return Unauthorized();
+
+        if (token is not null)
+        {
+            if (repository.FindEntry(token.Value) is null) return NotFound();
+            if (lobby.FindEntry(token.Value) is null) return Unauthorized();
+        }
 
         lobby.Purge(time.GetUtcNow());
+        if (lobby.IsEmpty())
+            repository.Remove(lobby);
+
         return Ok(lobby);
     });
 

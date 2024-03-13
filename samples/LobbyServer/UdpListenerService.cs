@@ -43,7 +43,7 @@ public class UdpListenerService(
                     .ConfigureAwait(false);
 
                 if (received is not
-                    { ReceivedBytes: var receivedSize, RemoteEndPoint: IPEndPoint remoteEndPoint })
+                    {ReceivedBytes: var receivedSize, RemoteEndPoint: IPEndPoint remoteEndPoint})
                     continue;
 
                 if (received.ReceivedBytes is 0)
@@ -59,6 +59,11 @@ public class UdpListenerService(
 
                 if (repository.FindEntry(peerToken) is not { } entry)
                     continue;
+
+                if (entry.Peer.Endpoint is not null)
+                    logger.LogInformation(
+                        "UDP: player {Name} changed address from {OldEndpoint} to {NewEndpoint}",
+                        entry.Peer.Username, entry.Peer.Endpoint, remoteEndPoint);
 
                 entry.Peer.Endpoint = remoteEndPoint;
                 entry.LastRead = time.GetUtcNow();

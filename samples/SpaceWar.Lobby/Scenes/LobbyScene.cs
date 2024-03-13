@@ -34,7 +34,7 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
 
     public async Task StartPuncher()
     {
-        using PeriodicTimer timer = new(TimeSpan.FromMilliseconds(100));
+        using PeriodicTimer timer = new(TimeSpan.FromMilliseconds(300));
         while (lobbyInfo?.Ready != true && await timer.WaitForNextTickAsync())
         {
             if (connected && lobbyInfo is not null)
