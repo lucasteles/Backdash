@@ -29,6 +29,7 @@ public class Game1 : Game
 
     GameSession gameSession;
     SpriteBatch spriteBatch;
+    Matrix scaleMatrix = Matrix.CreateScale(1);
 
     public Game1(string[] args)
     {
@@ -40,11 +41,32 @@ public class Game1 : Game
 
     protected override void Initialize()
     {
-        graphics.PreferredBackBufferWidth = 1024;
-        graphics.PreferredBackBufferHeight = 768;
-        graphics.ApplyChanges();
+        SetResolution();
         base.Initialize();
         rollbackSession.Start();
+    }
+
+    void SetResolution()
+    {
+        var screen = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode;
+        var windowSize = Config.InternalBounds;
+
+        // adjust size for monitor resolution
+        if (windowSize.Width * 2 >= screen.Width || windowSize.Height * 2 >= screen.Height)
+        {
+            windowSize.Width = 640;
+            windowSize.Height = 480;
+
+            scaleMatrix = Matrix.CreateScale(
+                windowSize.Width / (float) Config.InternalWidth,
+                windowSize.Height / (float) Config.InternalHeight,
+                1f
+            );
+        }
+
+        graphics.PreferredBackBufferWidth = windowSize.Width;
+        graphics.PreferredBackBufferHeight = windowSize.Height;
+        graphics.ApplyChanges();
     }
 
     protected override void Dispose(bool disposing)
@@ -58,9 +80,10 @@ public class Game1 : Game
         spriteBatch = new(GraphicsDevice);
         GameAssets assets = new(Content, GraphicsDevice);
         var numPlayers = rollbackSession.NumberOfPlayers;
+        NonGameState ngs = new(numPlayers);
         GameState gs = new();
-        gs.Init(GraphicsDevice.Viewport.Bounds, numPlayers);
-        NonGameState ngs = new(numPlayers, GraphicsDevice.Viewport.Bounds);
+        gs.Init(numPlayers);
+
         foreach (var player in rollbackSession.GetPlayers())
         {
             PlayerConnectionInfo playerInfo = new();
@@ -129,7 +152,7 @@ public class Game1 : Game
     protected override void Draw(GameTime gameTime)
     {
         GraphicsDevice.Clear(Color.Black);
-        spriteBatch.Begin();
+        spriteBatch.Begin(transformMatrix: scaleMatrix);
         gameSession.Draw();
         spriteBatch.End();
         base.Draw(gameTime);

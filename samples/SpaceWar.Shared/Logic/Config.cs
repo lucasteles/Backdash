@@ -1,6 +1,10 @@
 namespace SpaceWar.Logic;
+
 public static class Config
 {
+    public const int InternalWidth = 1024;
+    public const int InternalHeight = 768;
+
     public const int MaxShips = 4;
     public const int WindowPadding = 8;
     public const int StartingHealth = 100;
@@ -23,4 +27,6 @@ public static class Config
     public const int MissileExplosionTimeout = 60 * 5;
     public const int MissileHitBoxTimeout = 20;
     public const int MissileCooldown = 60 * 5;
+
+    public static readonly Rectangle InternalBounds = new(0, 0, InternalWidth, InternalHeight);
 }

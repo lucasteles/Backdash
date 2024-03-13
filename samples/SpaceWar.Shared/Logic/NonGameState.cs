@@ -25,10 +25,10 @@ public class PlayerConnectionInfo
     public RollbackNetworkStatus PeerNetworkStatus = new();
 }
 
-public class NonGameState(int numberOfPlayers, Rectangle window)
+public class NonGameState(int numberOfPlayers)
 {
     public readonly PlayerConnectionInfo[] Players = new PlayerConnectionInfo[numberOfPlayers];
-    public readonly Background Background = new(window);
+    public readonly Background Background = new();
     public readonly StringBuilder StatusText = new();
     public PlayerHandle? LocalPlayerHandle;
     public TimeSpan SleepTime;

@@ -9,14 +9,15 @@ public sealed record GameState
     public int FrameNumber;
     public int NumberOfShips => Ships.Length;
 
-    public void Init(Rectangle window, int numberOfPlayers)
+    public void Init(int numberOfPlayers)
     {
         Ships = new(numberOfPlayers);
         for (var i = 0; i < numberOfPlayers; i++)
             Ships[i] = new();
         FrameNumber = 0;
-        Bounds = window;
+        Bounds = Config.InternalBounds;
         Bounds.Inflate(-Config.WindowPadding, -Config.WindowPadding);
+
         var width = Bounds.Right - Bounds.Left;
         var height = Bounds.Bottom - Bounds.Top;
         var r = height / 3;
@@ -27,10 +28,10 @@ public sealed record GameState
             var (cosT, sinT) = (Math.Cos(theta), Math.Sin(theta));
             var x = width / 2.0 + r * cosT;
             var y = height / 2.0 + r * sinT;
-            Ships[i].Id = (byte)(i + 1);
-            Ships[i].Position = new((float)x, (float)y);
+            Ships[i].Id = (byte) (i + 1);
+            Ships[i].Position = new((float) x, (float) y);
             Ships[i].Active = true;
-            Ships[i].Heading = (int)((heading + 180) % 360);
+            Ships[i].Heading = (int) ((heading + 180) % 360);
             Ships[i].Health = Config.StartingHealth;
             Ships[i].Radius = Config.ShipRadius;
         }
@@ -69,7 +70,7 @@ public sealed record GameState
 
     public void UpdateShip(in Ship ship, in GameInput inputs)
     {
-        ship.Heading = (int)inputs.Heading;
+        ship.Heading = (int) inputs.Heading;
         Vector2 rotation = new(
             MathF.Cos(MathHelper.ToRadians(ship.Heading)),
             MathF.Sin(MathHelper.ToRadians(ship.Heading))
@@ -249,7 +250,7 @@ public sealed record GameState
                 else if (missile.Position.Y > Bounds.Bottom) normal = -Vector2.UnitY;
                 else missile.ExplodeTimeout = 0;
                 var newVelocity = Vector2.Reflect(missile.Velocity, normal);
-                missile.Heading = (int)MathHelper.ToDegrees(
+                missile.Heading = (int) MathHelper.ToDegrees(
                     MathF.Atan2(newVelocity.Y, newVelocity.X));
                 missile.Velocity = newVelocity;
             }

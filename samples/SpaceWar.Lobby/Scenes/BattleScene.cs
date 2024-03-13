@@ -49,10 +49,9 @@ public sealed class BattleScene : Scene
     public override void Initialize()
     {
         var numPlayers = rollbackSession.NumberOfPlayers;
-
+        NonGameState ngs = new(numPlayers);
         GameState gs = new();
-        gs.Init(Viewport, numPlayers);
-        NonGameState ngs = new(numPlayers, Viewport);
+        gs.Init(numPlayers);
 
         foreach (var player in rollbackSession.GetPlayers())
         {
