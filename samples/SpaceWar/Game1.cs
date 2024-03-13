@@ -119,11 +119,9 @@ public class Game1 : Game
     void ConfigurePlayerWindow(PlayerHandle player)
     {
         Window.Title = $"SpaceWar - Player {player.Number}";
-
         if (graphics.IsFullScreen) return;
         const int titleBarHeight = 50;
-
-        Point padding = new(30, 10 + titleBarHeight);
+        Point padding = new(10, titleBarHeight);
         var size = GraphicsDevice.Viewport.Bounds.Size;
         var display = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode;
 
