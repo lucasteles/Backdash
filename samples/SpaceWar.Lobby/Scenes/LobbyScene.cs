@@ -28,6 +28,20 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
         networkCall = RequestLobby();
         udpPuncher = new(Config.Port, Config.LobbyUrl, Config.LobbyPort);
         keyboard.Update();
+
+        _ = StartPuncher();
+    }
+
+    public async Task StartPuncher()
+    {
+        using PeriodicTimer timer = new(TimeSpan.FromMilliseconds(100));
+        while (lobbyInfo?.Ready != true && await timer.WaitForNextTickAsync())
+        {
+            if (connected && lobbyInfo is not null)
+                await udpPuncher.Punch(user.Token,
+                    lobbyInfo.Players.Where(x => x.Connected && x.PeerId != user.PeerId)
+                        .Select(x => x.Endpoint));
+        }
     }
 
     public override void Update(GameTime gameTime)
@@ -48,11 +62,6 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
         if (currentState is not LobbyState.Waiting) return;
         if (Stopwatch.GetElapsedTime(lastRefresh) > refreshInterval)
             _ = RefreshLobby();
-
-        if (connected)
-            _ = udpPuncher.Punch(user.Token,
-                lobbyInfo.Players.Where(x => x.Connected && x.PeerId != user.PeerId)
-                    .Select(x => x.Endpoint));
     }
 
     async Task ToggleReady()
