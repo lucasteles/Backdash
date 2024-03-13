@@ -48,9 +48,7 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
     {
         keyboard.Update();
 
-        if (udpPuncher.Received.Count > 0)
-            Window.Title = $"Received UDP {udpPuncher.Received.Count}";
-        else if (user is not null)
+        if (user is not null)
             Window.Title = $"Space War - {user.Username}";
 
         if (PendingNetworkCall())
