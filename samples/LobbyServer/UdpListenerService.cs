@@ -48,21 +48,21 @@ public class UdpListenerService(
 
                 if (receivedSize is 0) continue;
                 endpoint = (IPEndPoint) endpoint.Create(address);
-                logger.LogInformation("UDP: New request from {Endpoint}", endpoint);
+                logger.LogInformation("UDP: Received {Size} bytes from {Endpoint}",
+                    receivedSize, endpoint);
 
                 if (!Guid.TryParse(Encoding.UTF8.GetString(buffer), out var peerToken))
                     continue;
 
-                if (repository.FindEntry(peerToken) is not { } entry) return;
+                if (repository.FindEntry(peerToken) is not { } entry)
+                    continue;
+
                 entry.Peer.Endpoint = endpoint;
                 entry.LastRead = time.GetUtcNow();
             }
-            catch (TaskCanceledException)
-            {
-                break;
-            }
             catch (OperationCanceledException)
             {
+                logger.LogInformation("UDP: operation cancelled");
                 break;
             }
             catch (Exception ex)
