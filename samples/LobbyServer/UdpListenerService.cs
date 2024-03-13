@@ -15,6 +15,8 @@ public class UdpListenerService(
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         var port = settings.Value.UdpPort;
+        var ackMsg = "ack"u8.ToArray();
+
         var bindAddresses =
             !string.IsNullOrWhiteSpace(settings.Value.UdpHost)
                 ? (await Dns.GetHostAddressesAsync(
@@ -53,6 +55,8 @@ public class UdpListenerService(
 
                 if (!Guid.TryParse(Encoding.UTF8.GetString(buffer), out var peerToken))
                     continue;
+
+                await socket.SendToAsync(ackMsg, SocketFlags.None, address, stoppingToken);
 
                 if (repository.FindEntry(peerToken) is not { } entry)
                     continue;

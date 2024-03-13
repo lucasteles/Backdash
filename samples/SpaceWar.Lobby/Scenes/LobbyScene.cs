@@ -48,6 +48,11 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
         if (currentState is not LobbyState.Waiting) return;
         if (Stopwatch.GetElapsedTime(lastRefresh) > refreshInterval)
             _ = RefreshLobby();
+
+        if (connected)
+            _ = udpPuncher.Punch(user.Token,
+                lobbyInfo.Players.Where(x => x.Connected && x.PeerId != user.PeerId)
+                    .Select(x => x.Endpoint));
     }
 
     async Task ToggleReady()
@@ -240,7 +245,7 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
         connected = lobbyInfo.Players.SingleOrDefault(x => x.PeerId == user.PeerId) is
             {Connected: true};
 
-        await udpPuncher.Punch(user.Token);
+        await udpPuncher.Connect(user.Token);
     }
 
     void CheckPlayersReady()
