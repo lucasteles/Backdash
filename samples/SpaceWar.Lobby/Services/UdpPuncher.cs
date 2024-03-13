@@ -59,7 +59,9 @@ public sealed class UdpPuncher : IDisposable
 
                 if (receiveInfo.ReceivedBytes is 0) continue;
 
-                if (!Guid.TryParse(Encoding.UTF8.GetString(recBuffer), out var peerToken))
+                var msg = Encoding.UTF8.GetString(recBuffer);
+                Console.WriteLine($"recv: {msg} from {receiveInfo.RemoteEndPoint}");
+                if (!Guid.TryParse(msg, out var peerToken))
                     continue;
 
                 Received.Add((receiveInfo.RemoteEndPoint, peerToken));
