@@ -80,7 +80,15 @@ public class Game1 : Game
         }
 
         if (rollbackSession.IsSpectating)
+        {
             Window.Title = "SpaceWar - Spectator";
+            Window.Position = Window.Position with
+            {
+                X = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width -
+                    GraphicsDevice.Viewport.Width,
+            };
+        }
+
         gameSession = new(gs, ngs, new(assets, spriteBatch), rollbackSession);
         rollbackSession.SetHandler(gameSession);
     }
@@ -88,19 +96,26 @@ public class Game1 : Game
     void ConfigurePlayerWindow(PlayerHandle player)
     {
         Window.Title = $"SpaceWar - Player {player.Number}";
+
         if (graphics.IsFullScreen) return;
         const int titleBarHeight = 50;
-        Point padding = new(50, 40 + titleBarHeight);
-        var bounds = Window.ClientBounds;
-        var (width, height) = (bounds.Width, bounds.Height);
-        var screen = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode;
-        var maxHorizontal = screen.Width / (width + padding.X);
-        var maxVertical = screen.Height / (height + titleBarHeight + padding.Y);
-        var offsetX = player.Index % maxHorizontal;
-        var offsetY = (player.Index - offsetX) % maxVertical;
-        var newHorizontal = offsetX * width + padding.X;
-        var newVertical = offsetY * (height + titleBarHeight) + padding.Y;
-        Window.Position = new(newHorizontal, newVertical);
+
+        Point padding = new(30, 10 + titleBarHeight);
+        var size = GraphicsDevice.Viewport.Bounds.Size;
+        var display = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode;
+
+        var newPosition = player.Number switch
+        {
+            1 => padding,
+            2 => new(padding.X + size.X, padding.Y),
+            3 => new(padding.X, size.Y + padding.Y + titleBarHeight),
+            4 => new(padding.X + size.X, size.Y + padding.Y + titleBarHeight),
+            _ => Window.Position,
+        };
+
+        newPosition.X = MathHelper.Clamp(newPosition.X, 0, display.Width - size.X);
+        newPosition.Y = MathHelper.Clamp(newPosition.Y, 0, display.Height - size.Y);
+        Window.Position = newPosition;
     }
 
     protected override void Update(GameTime gameTime)

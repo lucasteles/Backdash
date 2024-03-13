@@ -43,7 +43,7 @@ public class UdpListenerService(
                     .ConfigureAwait(false);
 
                 if (received is not
-                    {ReceivedBytes: var receivedSize, RemoteEndPoint: IPEndPoint remoteEndPoint})
+                    { ReceivedBytes: var receivedSize, RemoteEndPoint: IPEndPoint remoteEndPoint })
                     continue;
 
                 if (received.ReceivedBytes is 0)
