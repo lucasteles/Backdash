@@ -4,7 +4,7 @@ public class AppSettings
 {
     public string LobbyName = "spacewar";
     public string Username = string.Empty;
-    public readonly int Port = 9000;
+    public readonly int Port = 8888;
 
     // public readonly Uri LobbyUrl = new("http://localhost:9999");
     public readonly Uri LobbyUrl = new("https://lobby-server.fly.dev");
