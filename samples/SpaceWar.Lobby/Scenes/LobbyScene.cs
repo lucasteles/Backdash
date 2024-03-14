@@ -1,5 +1,5 @@
 #nullable disable
-using System.Diagnostics;
+
 using Backdash;
 using SpaceWar.Models;
 using SpaceWar.Services;
@@ -15,21 +15,33 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
     Lobby lobbyInfo;
     Task networkCall;
     bool ready;
-    long lastRefresh = Stopwatch.GetTimestamp();
+    bool connected;
+    UdpPuncher udpPuncher;
 
     readonly TimeSpan refreshInterval = TimeSpan.FromSeconds(2);
+    readonly TimeSpan pingInterval = TimeSpan.FromMilliseconds(300);
     readonly KeyboardController keyboard = new();
+    readonly CancellationTokenSource cts = new();
 
     public override void Initialize()
     {
         client = Services.GetService<LobbyClient>();
         networkCall = RequestLobby();
+        udpPuncher = new(Config.Port, Config.LobbyUrl, Config.LobbyPort);
         keyboard.Update();
+
+        StartPingTimer();
+        StartLobbyRefreshTimer();
     }
 
     public override void Update(GameTime gameTime)
     {
+        if (currentState is LobbyState.Error) return;
+
         keyboard.Update();
+
+        if (user is not null)
+            Window.Title = $"Space War - {user.Username}";
 
         if (PendingNetworkCall())
             return;
@@ -37,14 +49,7 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
         CheckPlayersReady();
 
         if (mode is PlayerMode.Player && keyboard.IsKeyPressed(Keys.Enter))
-        {
             networkCall = ToggleReady();
-            return;
-        }
-
-        if (currentState is LobbyState.Waiting
-            && Stopwatch.GetElapsedTime(lastRefresh) > refreshInterval)
-            _ = RefreshLobby();
     }
 
     async Task ToggleReady()
@@ -87,6 +92,8 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
         Color usernameColor;
         if (mode is PlayerMode.Spectator)
             usernameColor = Color.LightBlue;
+        else if (!connected)
+            usernameColor = Color.Red;
         else
             usernameColor = ready ? Color.Lime : Color.Orange;
 
@@ -159,8 +166,14 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
                     playersRect.Left, top + (int) usernameSize.Y / 3,
                     (int) usernameSize.Y / 2, (int) usernameSize.Y / 2
                 );
-                spriteBatch.Draw(Assets.Blank, statusBlock, null,
-                    player.Ready ? Color.LimeGreen : Color.Orange,
+
+                Color statusColor;
+                if (!player.Connected)
+                    statusColor = Color.Red;
+                else
+                    statusColor = player.Ready ? Color.LimeGreen : Color.Orange;
+
+                spriteBatch.Draw(Assets.Blank, statusBlock, null, statusColor,
                     0, Vector2.Zero, SpriteEffects.None, 0);
 
                 spriteBatch.DrawString(Assets.MainFont, player.Username,
@@ -214,19 +227,26 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
         user = await client.EnterLobby(Config.LobbyName, Config.Username, mode);
         await RefreshLobby();
 
-        Window.Title = $"Space War - {user.Username}";
         currentState = LobbyState.Waiting;
     }
 
     async Task RefreshLobby()
     {
-        lastRefresh = Stopwatch.GetTimestamp();
         lobbyInfo = await client.GetLobby(user);
+
+        await udpPuncher.HandShake(user.Token);
+
+        if (connected) return;
+        connected = lobbyInfo.Players.SingleOrDefault(x => x.PeerId == user.PeerId) is
+            {Connected: true};
     }
 
     void CheckPlayersReady()
     {
         if (lobbyInfo?.Ready == false) return;
+
+        cts.Cancel();
+        udpPuncher.Stop();
 
         switch (mode)
         {
@@ -287,23 +307,72 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
             return true;
 
         if (networkCall.IsFaulted)
-        {
-            currentState = LobbyState.Error;
-            errorMessage =
-                networkCall.Exception?.InnerException?.Message
-                ?? networkCall.Exception?.Message;
-        }
+            SetError(networkCall.Exception);
 
         networkCall = null;
         return true;
     }
 
-    protected override void Dispose(bool disposing)
+    void SetError(Exception ex)
     {
-        if (user is null) return;
+        currentState = LobbyState.Error;
+        errorMessage =
+            ex?.InnerException?.Message
+            ?? networkCall.Exception?.Message;
+    }
+
+    public void StartPingTimer() => Task.Run(async () =>
+    {
+        using PeriodicTimer timer = new(pingInterval);
+
         try
         {
-            if (lobbyInfo is {Ready: false})
+            while (await timer.WaitForNextTickAsync(cts.Token))
+            {
+                if (lobbyInfo is null || lobbyInfo.Ready) continue;
+                await udpPuncher.Ping(user, lobbyInfo.Players, cts.Token);
+                await udpPuncher.Ping(user, lobbyInfo.Spectators, cts.Token);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // skip
+        }
+        catch (Exception ex)
+        {
+            SetError(ex);
+        }
+    });
+
+    public void StartLobbyRefreshTimer() => Task.Run(async () =>
+    {
+        using PeriodicTimer timer = new(refreshInterval);
+
+        try
+        {
+            while (await timer.WaitForNextTickAsync(cts.Token))
+            {
+                if (currentState is not LobbyState.Waiting) continue;
+                await RefreshLobby();
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // skip
+        }
+        catch (Exception ex)
+        {
+            SetError(ex);
+        }
+    });
+
+    protected override void Dispose(bool disposing)
+    {
+        try
+        {
+            cts.Dispose();
+            udpPuncher.Dispose();
+            if (user is not null && lobbyInfo is {Ready: false})
                 client.LeaveLobby(user).GetAwaiter().GetResult();
         }
         catch (Exception e)

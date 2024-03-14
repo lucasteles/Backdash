@@ -1,5 +1,6 @@
 #nullable disable
 
+using SpaceWar.Logic;
 using SpaceWar.Scenes;
 using SpaceWar.Services;
 
@@ -23,8 +24,8 @@ public class Game1 : Game
     protected override void Initialize()
     {
         Window.Title = "SpaceWar";
-        graphics.PreferredBackBufferWidth = 1024;
-        graphics.PreferredBackBufferHeight = 768;
+        graphics.PreferredBackBufferWidth = Config.InternalWidth;
+        graphics.PreferredBackBufferHeight = Config.InternalHeight;
         graphics.ApplyChanges();
         base.Initialize();
     }

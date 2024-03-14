@@ -25,6 +25,7 @@ public static class Extensions
     public static string NormalizeName(this string name) =>
         Regex.Replace(name.Trim().ToLower(), "[^a-zA-Z0-9]", "_");
 
+    public static string WithPrefix(this string value, string prefix) => $"{prefix}::{value}";
 
     static readonly JsonConverter[] CustomJsonConverters =
     [

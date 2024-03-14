@@ -4,18 +4,20 @@ public record struct BackgroundStar(
     bool Big,
     Vector2 Position
 );
+
 public sealed class Background
 {
     public readonly BackgroundStar[] StarMap;
-    public Background(Rectangle bounds)
+
+    public Background()
     {
         StarMap = new BackgroundStar[80];
         var rand = Random.Shared;
         for (var i = 0; i < StarMap.Length; i++)
         {
             StarMap[i].Position = new(
-                rand.NextSingle() * bounds.Width,
-                rand.NextSingle() * bounds.Height
+                rand.NextSingle() * Config.InternalWidth,
+                rand.NextSingle() * Config.InternalHeight
             );
             StarMap[i].Big = rand.NextSingle() > 0.95f;
         }

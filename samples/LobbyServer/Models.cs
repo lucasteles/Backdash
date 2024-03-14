@@ -11,12 +11,14 @@ public enum PeerMode : byte
     Spectator,
 }
 
-public sealed class Peer(string username, IPEndPoint endpoint)
+public sealed class Peer(string username, IPAddress requestAddress)
 {
     public PeerId PeerId { get; init; } = Guid.NewGuid();
     public string Username { get; } = username;
-    public IPEndPoint Endpoint { get; } = endpoint;
+    public IPAddress RequestAddress { get; } = requestAddress;
+    public IPEndPoint? Endpoint { get; set; }
     public bool Ready { get; private set; }
+    public bool Connected => Endpoint is not null;
     public void ToggleReady() => Ready = !Ready;
 }
 
@@ -46,7 +48,9 @@ public sealed class Lobby(
     public DateTimeOffset CreatedAt { get; } = createdAt;
 
     public DateTimeOffset ExpiresAt => CreatedAt + expiration;
-    public bool Ready => Players.Count() > 1 && Players.All(p => p.Ready);
+
+    public bool Ready =>
+        Players.Count() > 1 && Players.All(p => p is { Connected: true, Ready: true });
 
     public IEnumerable<Peer> Players
     {
@@ -140,7 +144,7 @@ public sealed class Lobby(
     }
 }
 
-public sealed record EnterLobbyRequest(string LobbyName, int Port, string Username, PeerMode Mode);
+public sealed record EnterLobbyRequest(string LobbyName, string Username, PeerMode Mode);
 
 public sealed record EnterLobbyResponse(
     string Username,

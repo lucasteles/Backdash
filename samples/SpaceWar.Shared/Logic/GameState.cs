@@ -9,14 +9,15 @@ public sealed record GameState
     public int FrameNumber;
     public int NumberOfShips => Ships.Length;
 
-    public void Init(Rectangle window, int numberOfPlayers)
+    public void Init(int numberOfPlayers)
     {
         Ships = new(numberOfPlayers);
         for (var i = 0; i < numberOfPlayers; i++)
             Ships[i] = new();
         FrameNumber = 0;
-        Bounds = window;
+        Bounds = Config.InternalBounds;
         Bounds.Inflate(-Config.WindowPadding, -Config.WindowPadding);
+
         var width = Bounds.Right - Bounds.Left;
         var height = Bounds.Bottom - Bounds.Top;
         var r = height / 3;

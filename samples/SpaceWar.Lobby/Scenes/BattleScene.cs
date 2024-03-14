@@ -1,4 +1,3 @@
-using System.Net;
 using Backdash;
 using Backdash.Core;
 using SpaceWar.Logic;
@@ -17,7 +16,7 @@ public sealed class BattleScene : Scene
         FrameDelay = 2,
         Log = new()
         {
-            EnabledLevel = LogLevel.Error,
+            EnabledLevel = LogLevel.Information,
         },
         Protocol = new()
         {
@@ -50,10 +49,9 @@ public sealed class BattleScene : Scene
     public override void Initialize()
     {
         var numPlayers = rollbackSession.NumberOfPlayers;
-
+        NonGameState ngs = new(numPlayers);
         GameState gs = new();
-        gs.Init(Viewport, numPlayers);
-        NonGameState ngs = new(numPlayers, Viewport);
+        gs.Init(numPlayers);
 
         foreach (var player in rollbackSession.GetPlayers())
         {
