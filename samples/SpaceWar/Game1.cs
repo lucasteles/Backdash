@@ -58,8 +58,8 @@ public class Game1 : Game
             windowSize.Height = 480;
 
             scaleMatrix = Matrix.CreateScale(
-                windowSize.Width / (float) Config.InternalWidth,
-                windowSize.Height / (float) Config.InternalHeight,
+                windowSize.Width / (float)Config.InternalWidth,
+                windowSize.Height / (float)Config.InternalHeight,
                 1f
             );
         }
