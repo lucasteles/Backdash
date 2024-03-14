@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using Backdash.Network.Client;
+using SpaceWar.Models;
 
 namespace SpaceWar.Services;
 
@@ -9,10 +10,8 @@ public sealed class UdpPuncher : IDisposable
 {
     readonly IPEndPoint remoteEndPoint;
     readonly UdpSocket socket;
-    readonly byte[] buffer = GC.AllocateArray<byte>(36, pinned: true);
-
     readonly CancellationTokenSource cts = new();
-    public readonly HashSet<(EndPoint, Guid)> Received = [];
+    readonly byte[] buffer = GC.AllocateArray<byte>(36, pinned: true);
 
     bool disposed;
 
@@ -28,23 +27,26 @@ public sealed class UdpPuncher : IDisposable
         Task.Run(() => Receive(cts.Token));
     }
 
-    public async Task HandShake(Guid token,
-        CancellationToken ct = default
-    )
+    public async Task HandShake(Guid token, CancellationToken ct = default)
     {
         if (!token.TryFormat(buffer, out var bytesWritten) || bytesWritten is 0) return;
         await socket.SendToAsync(buffer.AsMemory()[..bytesWritten], remoteEndPoint, ct)
             .ConfigureAwait(false);
     }
 
-    public async Task Punch(Guid token,
-        IEnumerable<IPEndPoint> peers,
-        CancellationToken ct = default
-    )
+    public async Task Ping(User user, Peer[] peers, CancellationToken ct = default)
     {
-        if (!token.TryFormat(buffer, out var bytesWritten) || bytesWritten is 0) return;
-        await Task.WhenAll(peers.Select(e =>
-            socket.SendToAsync(buffer.AsMemory()[..bytesWritten], e, ct).AsTask()));
+        if (peers.Length is 0 || !user.Token.TryFormat(buffer, out var bytesWritten) ||
+            bytesWritten is 0)
+            return;
+
+        var msgBytes = buffer.AsMemory()[..bytesWritten];
+        for (var i = 0; i < peers.Length; i++)
+        {
+            var peer = peers[i];
+            if (peer.Connected && peer.PeerId != user.PeerId)
+                await socket.SendToAsync(msgBytes, peer.Endpoint, ct);
+        }
     }
 
     async ValueTask Receive(CancellationToken stoppingToken)
@@ -64,7 +66,7 @@ public sealed class UdpPuncher : IDisposable
                 if (!Guid.TryParse(msg, out var peerToken))
                     continue;
 
-                Received.Add((receiveInfo.RemoteEndPoint, peerToken));
+                Console.WriteLine($"Ping: from {peerToken} at {receiveInfo.RemoteEndPoint}");
             }
             catch (OperationCanceledException)
             {
@@ -77,12 +79,18 @@ public sealed class UdpPuncher : IDisposable
         }
     }
 
+    public void Stop()
+    {
+        if (!cts.IsCancellationRequested)
+            cts.Cancel();
+    }
+
     public void Dispose()
     {
+        Stop();
         if (disposed) return;
         disposed = true;
         socket.Dispose();
-        cts.Cancel();
         cts.Dispose();
     }
 }

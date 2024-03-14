@@ -1,5 +1,5 @@
 #nullable disable
-using System.Diagnostics;
+
 using Backdash;
 using SpaceWar.Models;
 using SpaceWar.Services;
@@ -16,11 +16,12 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
     Task networkCall;
     bool ready;
     bool connected;
-    long lastRefresh = Stopwatch.GetTimestamp();
     UdpPuncher udpPuncher;
 
     readonly TimeSpan refreshInterval = TimeSpan.FromSeconds(2);
+    readonly TimeSpan pingInterval = TimeSpan.FromMilliseconds(300);
     readonly KeyboardController keyboard = new();
+    readonly CancellationTokenSource cts = new();
 
     public override void Initialize()
     {
@@ -29,23 +30,14 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
         udpPuncher = new(Config.Port, Config.LobbyUrl, Config.LobbyPort);
         keyboard.Update();
 
-        _ = StartPuncher();
-    }
-
-    public async Task StartPuncher()
-    {
-        using PeriodicTimer timer = new(TimeSpan.FromMilliseconds(300));
-        while (await timer.WaitForNextTickAsync())
-        {
-            if (lobbyInfo is not null && !lobbyInfo.Ready)
-                await udpPuncher.Punch(user.Token,
-                    lobbyInfo.Players.Where(x => x.Connected && x.PeerId != user.PeerId)
-                        .Select(x => x.Endpoint));
-        }
+        StartPingTimer();
+        StartLobbyRefreshTimer();
     }
 
     public override void Update(GameTime gameTime)
     {
+        if (currentState is LobbyState.Error) return;
+
         keyboard.Update();
 
         if (user is not null)
@@ -57,14 +49,7 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
         CheckPlayersReady();
 
         if (mode is PlayerMode.Player && keyboard.IsKeyPressed(Keys.Enter))
-        {
             networkCall = ToggleReady();
-            return;
-        }
-
-        if (currentState is not LobbyState.Waiting) return;
-        if (Stopwatch.GetElapsedTime(lastRefresh) > refreshInterval)
-            _ = RefreshLobby();
     }
 
     async Task ToggleReady()
@@ -247,7 +232,6 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
 
     async Task RefreshLobby()
     {
-        lastRefresh = Stopwatch.GetTimestamp();
         lobbyInfo = await client.GetLobby(user);
 
         await udpPuncher.HandShake(user.Token);
@@ -261,7 +245,9 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
     {
         if (lobbyInfo?.Ready == false) return;
 
-        udpPuncher.Dispose();
+        cts.Cancel();
+        udpPuncher.Stop();
+
         switch (mode)
         {
             case PlayerMode.Player:
@@ -321,21 +307,70 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
             return true;
 
         if (networkCall.IsFaulted)
-        {
-            currentState = LobbyState.Error;
-            errorMessage =
-                networkCall.Exception?.InnerException?.Message
-                ?? networkCall.Exception?.Message;
-        }
+            SetError(networkCall.Exception);
 
         networkCall = null;
         return true;
     }
 
+    void SetError(Exception ex)
+    {
+        currentState = LobbyState.Error;
+        errorMessage =
+            ex?.InnerException?.Message
+            ?? networkCall.Exception?.Message;
+    }
+
+    public void StartPingTimer() => Task.Run(async () =>
+    {
+        using PeriodicTimer timer = new(pingInterval);
+
+        try
+        {
+            while (await timer.WaitForNextTickAsync(cts.Token))
+            {
+                if (lobbyInfo is null || lobbyInfo.Ready) continue;
+                await udpPuncher.Ping(user, lobbyInfo.Players, cts.Token);
+                await udpPuncher.Ping(user, lobbyInfo.Spectators, cts.Token);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // skip
+        }
+        catch (Exception ex)
+        {
+            SetError(ex);
+        }
+    });
+
+    public void StartLobbyRefreshTimer() => Task.Run(async () =>
+    {
+        using PeriodicTimer timer = new(refreshInterval);
+
+        try
+        {
+            while (await timer.WaitForNextTickAsync(cts.Token))
+            {
+                if (currentState is not LobbyState.Waiting) continue;
+                await RefreshLobby();
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // skip
+        }
+        catch (Exception ex)
+        {
+            SetError(ex);
+        }
+    });
+
     protected override void Dispose(bool disposing)
     {
         try
         {
+            cts.Dispose();
             udpPuncher.Dispose();
             if (user is not null && lobbyInfo is {Ready: false})
                 client.LeaveLobby(user).GetAwaiter().GetResult();
