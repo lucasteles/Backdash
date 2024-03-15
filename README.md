@@ -28,8 +28,12 @@ $ dotnet add package Backdash
 
 Check the samples on [/samples](/samples) 
 
-Watch the working demo:
+### Video Demos:
 
-[![Watch the demo](https://img.youtube.com/vi/JYf2MemyJaY/default.jpg)](https://youtu.be/JYf2MemyJaY)
+| Title           | Link    |
+| --------        | ------- |
+| Console         | [![Console](https://img.youtube.com/vi/n-3G0AE5Ti0/default.jpg)](https://youtu.be/n-3G0AE5Ti0)    |
+| Monogame Local  | [![Monogame Local](https://img.youtube.com/vi/JYf2MemyJaY/default.jpg)](https://youtu.be/JYf2MemyJaY)     |
+| Monogame Online | [![Monogame Online](https://img.youtube.com/vi/LGM_9XfzRUI/default.jpg)](https://youtu.be/LGM_9XfzRUI)    |
 
 
