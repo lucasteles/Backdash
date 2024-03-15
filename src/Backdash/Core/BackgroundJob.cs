@@ -1,17 +1,22 @@
-using System.Diagnostics;
 using System.Threading.Channels;
+
 namespace Backdash.Core;
+
 public interface IBackgroundJob
 {
     string JobName { get; }
+
     Task Start(CancellationToken ct);
 }
+
 interface IBackgroundJobManager : IDisposable
 {
     Task Start(CancellationToken ct);
     void Register(IBackgroundJob job, CancellationToken ct = default);
     void Stop(TimeSpan timeout = default);
+    void ThrowIfError();
 }
+
 sealed class BackgroundJobManager(Logger logger) : IBackgroundJobManager
 {
     readonly HashSet<JobEntry> jobs = [];
@@ -19,6 +24,9 @@ sealed class BackgroundJobManager(Logger logger) : IBackgroundJobManager
     readonly CancellationTokenSource cts = new();
     bool isRunning;
     CancellationToken StoppingToken => cts.Token;
+
+    readonly List<Exception> exceptions = [];
+
     public async Task Start(CancellationToken ct)
     {
         if (isRunning) return;
@@ -36,8 +44,10 @@ sealed class BackgroundJobManager(Logger logger) : IBackgroundJobManager
             jobs.Remove(completedJob);
             tasks.Remove(completed);
         }
+
         logger.Write(LogLevel.Debug, "Finished background tasks");
     }
+
     void AddJobTask(JobEntry entry)
     {
         var job = entry.Job;
@@ -61,12 +71,19 @@ sealed class BackgroundJobManager(Logger logger) : IBackgroundJobManager
             catch (Exception ex)
             {
                 logger.Write(LogLevel.Error, $"job {job.JobName} error: {ex}");
-                if (Debugger.IsAttached) throw;
                 cts.CancelAfter(TimeSpan.FromMilliseconds(100));
+                exceptions.Add(ex);
             }
         }, StoppingToken);
         tasks.Add(task, entry);
     }
+
+    public void ThrowIfError()
+    {
+        if (exceptions.Count is 0) return;
+        throw new AggregateException(exceptions);
+    }
+
     public void Register(IBackgroundJob job, CancellationToken ct = default)
     {
         JobEntry entry = new(job, ct);
@@ -75,6 +92,7 @@ sealed class BackgroundJobManager(Logger logger) : IBackgroundJobManager
         if (!isRunning) return;
         AddJobTask(entry);
     }
+
     public void Stop(TimeSpan timeout = default)
     {
         if (!isRunning) return;
@@ -85,6 +103,7 @@ sealed class BackgroundJobManager(Logger logger) : IBackgroundJobManager
             else
                 cts.CancelAfter(timeout);
     }
+
     public void Dispose()
     {
         try
@@ -96,6 +115,7 @@ sealed class BackgroundJobManager(Logger logger) : IBackgroundJobManager
             cts.Dispose();
         }
     }
+
     readonly struct JobEntry(IBackgroundJob job, CancellationToken stoppingToken) : IEquatable<JobEntry>
     {
         public readonly IBackgroundJob Job = job;

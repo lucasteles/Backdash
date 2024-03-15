@@ -104,6 +104,7 @@ sealed class SpectatorBackend<TInput, TGameState> :
     public IReadOnlyCollection<PlayerHandle> GetSpectators() => [];
     public void BeginFrame()
     {
+        backgroundJobManager.ThrowIfError();
         if (lastReceivedInputTime > 0
             && clock.GetElapsedTime(lastReceivedInputTime) > options.Protocol.DisconnectTimeout)
             Close();

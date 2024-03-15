@@ -93,8 +93,16 @@ sealed class UdpClient<T> : IUdpClient<T> where T : struct
             if (receivedSize is 0)
                 continue;
 
-            serializer.Deserialize(buffer[..receivedSize].Span, ref msg);
-            await observer.OnUdpMessage(msg, address, receivedSize, ct).ConfigureAwait(false);
+            try
+            {
+                serializer.Deserialize(buffer[..receivedSize].Span, ref msg);
+                await observer.OnUdpMessage(msg, address, receivedSize, ct).ConfigureAwait(false);
+            }
+            catch (BackdashDeserializationException ex)
+            {
+                logger.Write(LogLevel.Warning, $"UDP Message error: {ex}");
+                continue;
+            }
         }
 
         // ReSharper disable once RedundantAssignment

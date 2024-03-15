@@ -1,26 +1,37 @@
 using System.Runtime.InteropServices;
+using Backdash.Core;
 using Backdash.Serialization;
 using Backdash.Serialization.Buffer;
+
 namespace Backdash.Network.Messages;
+
 [StructLayout(LayoutKind.Explicit, Pack = 2)]
 struct ProtocolMessage(MessageType type) : IBinarySerializable, IEquatable<ProtocolMessage>, IUtf8SpanFormattable
 {
     [FieldOffset(0)]
     public Header Header = new(type);
+
     [FieldOffset(Header.Size)]
     public SyncRequest SyncRequest;
+
     [FieldOffset(Header.Size)]
     public SyncReply SyncReply;
+
     [FieldOffset(Header.Size)]
     public QualityReport QualityReport;
+
     [FieldOffset(Header.Size)]
     public QualityReply QualityReply;
+
     [FieldOffset(Header.Size)]
     public InputAck InputAck;
+
     [FieldOffset(Header.Size)]
     public KeepAlive KeepAlive;
+
     [FieldOffset(Header.Size)]
     public InputMessage Input;
+
     public readonly void Serialize(BinarySpanWriter writer)
     {
         Header.Serialize(writer);
@@ -47,11 +58,12 @@ struct ProtocolMessage(MessageType type) : IBinarySerializable, IEquatable<Proto
                 Input.Serialize(writer);
                 break;
             case MessageType.Invalid:
-                throw new InvalidOperationException();
+                throw new BackdashSerializationException<ProtocolMessage>("Invalid message type");
             default:
-                throw new InvalidOperationException();
+                throw new BackdashSerializationException<ProtocolMessage>("Unknown message type");
         }
     }
+
     public void Deserialize(BinarySpanReader reader)
     {
         Header.Deserialize(reader);
@@ -78,11 +90,12 @@ struct ProtocolMessage(MessageType type) : IBinarySerializable, IEquatable<Proto
                 Input.Deserialize(reader);
                 break;
             case MessageType.Invalid:
-                throw new InvalidOperationException();
+                throw new BackdashDeserializationException<ProtocolMessage>("Invalid message type");
             default:
-                throw new InvalidOperationException();
+                throw new BackdashDeserializationException<ProtocolMessage>("Unknown message type");
         }
     }
+
     public override readonly string ToString()
     {
         var info =
@@ -100,6 +113,7 @@ struct ProtocolMessage(MessageType type) : IBinarySerializable, IEquatable<Proto
             };
         return $"Msg({Header.Type}){info}";
     }
+
     public readonly bool TryFormat(
         Span<byte> utf8Destination, out int bytesWritten,
         ReadOnlySpan<char> format, IFormatProvider? provider
@@ -123,6 +137,7 @@ struct ProtocolMessage(MessageType type) : IBinarySerializable, IEquatable<Proto
             _ => true,
         };
     }
+
     public readonly bool Equals(ProtocolMessage other) =>
         Header.Type == other.Header.Type && Header.Type switch
         {
@@ -136,6 +151,7 @@ struct ProtocolMessage(MessageType type) : IBinarySerializable, IEquatable<Proto
             MessageType.InputAck => InputAck.Equals(other.InputAck),
             _ => throw new ArgumentOutOfRangeException(nameof(other)),
         };
+
     public override readonly bool Equals(object? obj) => obj is ProtocolMessage msg && Equals(msg);
     public override readonly int GetHashCode() => HashCode.Combine(typeof(ProtocolMessage));
     public static bool operator ==(ProtocolMessage left, ProtocolMessage right) => left.Equals(right);
