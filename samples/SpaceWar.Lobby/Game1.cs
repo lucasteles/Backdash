@@ -23,7 +23,7 @@ public class Game1 : Game
 
     protected override void Initialize()
     {
-        Window.Title = $"SpaceWar {settings.Port}";
+        Window.Title = $"SpaceWar {settings.LocalPort}";
         graphics.PreferredBackBufferWidth = Config.InternalWidth;
         graphics.PreferredBackBufferHeight = Config.InternalHeight;
         graphics.ApplyChanges();

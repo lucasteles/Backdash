@@ -38,7 +38,7 @@ public sealed class ChooseNameScene : Scene
             ? Environment.UserName
             : Config.Username;
 
-        username.Append(Regex.Replace(currentUser, "[^a-zA-Z0-9]", "_"));
+        username.Append(Regex.Replace(currentUser.ToLower(), "[^a-zA-Z0-9]", "_"));
         cursorSize = Assets.MainFont.MeasureString(" ");
         Window.TextInput += OnTextInput;
         keyboard.Update();

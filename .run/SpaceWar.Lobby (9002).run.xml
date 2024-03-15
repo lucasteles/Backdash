@@ -1,7 +1,7 @@
 ﻿<component name="ProjectRunConfigurationManager">
   <configuration default="false" name="SpaceWar.Lobby (9002)" type="DotNetProject" factoryName=".NET Project">
     <option name="EXE_PATH" value="$PROJECT_DIR$/samples/SpaceWar.Lobby/bin/Debug/net8.0/SpaceWar.exe" />
-    <option name="PROGRAM_PARAMETERS" value="9002" />
+    <option name="PROGRAM_PARAMETERS" value="-LocalPort  9002" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/samples/SpaceWar.Lobby/bin/Debug/net8.0" />
     <option name="PASS_PARENT_ENVS" value="1" />
     <option name="USE_EXTERNAL_CONSOLE" value="0" />

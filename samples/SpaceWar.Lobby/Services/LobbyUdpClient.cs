@@ -7,7 +7,7 @@ namespace SpaceWar.Services;
 
 public sealed class LobbyUdpClient : IDisposable
 {
-    readonly IPEndPoint remoteEndPoint;
+    readonly IPEndPoint serverEndpoint;
     readonly UdpSocket socket;
     readonly CancellationTokenSource cts = new();
     readonly byte[] buffer = GC.AllocateArray<byte>(36, pinned: true);
@@ -18,7 +18,7 @@ public sealed class LobbyUdpClient : IDisposable
     public LobbyUdpClient(int localPort, Uri serverUrl, int serverPort)
     {
         var serverAddress = UdpSocket.GetDnsIpAddress(serverUrl.DnsSafeHost);
-        remoteEndPoint = new(serverAddress, serverPort);
+        serverEndpoint = new(serverAddress, serverPort);
         socket = new(localPort);
 
         Task.Run(() => Receive(cts.Token));
@@ -27,7 +27,7 @@ public sealed class LobbyUdpClient : IDisposable
     public async Task HandShake(User user, CancellationToken ct = default)
     {
         if (!user.Token.TryFormat(buffer, out var bytesWritten) || bytesWritten is 0) return;
-        await socket.SendToAsync(buffer.AsMemory()[..bytesWritten], remoteEndPoint, ct)
+        await socket.SendToAsync(buffer.AsMemory()[..bytesWritten], serverEndpoint, ct)
             .ConfigureAwait(false);
     }
 
@@ -42,7 +42,7 @@ public sealed class LobbyUdpClient : IDisposable
         {
             var peer = peers[i];
             if (peer.Connected && peer.PeerId != user.PeerId)
-                await socket.SendToAsync(msgBytes, peer.Endpoint, ct);
+                await socket.SendToAsync(msgBytes, GetFallbackEndpoint(user, peer), ct);
         }
     }
 
@@ -75,6 +75,15 @@ public sealed class LobbyUdpClient : IDisposable
                 // skip
             }
         }
+    }
+
+    // Use local IP when over same network
+    public IPEndPoint GetFallbackEndpoint(User user, Peer peer)
+    {
+        if (Equals(peer.Endpoint.Address, user.IP) && peer.LocalEndpoint is not null)
+            return peer.LocalEndpoint;
+
+        return peer.Endpoint;
     }
 
     public bool IsKnown(Guid id) => knownClients.Contains(id);

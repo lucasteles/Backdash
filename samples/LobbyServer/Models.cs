@@ -16,9 +16,11 @@ public sealed class Peer(string username, IPAddress requestAddress)
     public PeerId PeerId { get; init; } = Guid.NewGuid();
     public string Username { get; } = username;
     public IPAddress RequestAddress { get; } = requestAddress;
+    public IPEndPoint? LocalEndpoint { get; init; }
     public IPEndPoint? Endpoint { get; set; }
     public bool Ready { get; private set; }
     public bool Connected => Endpoint is not null;
+
     public void ToggleReady() => Ready = !Ready;
 }
 
@@ -153,7 +155,12 @@ public sealed class Lobby(
     }
 }
 
-public sealed record EnterLobbyRequest(string LobbyName, string Username, PeerMode Mode);
+public sealed record EnterLobbyRequest(
+    string LobbyName,
+    string Username,
+    PeerMode Mode,
+    IPEndPoint? LocalEndpoint = null
+);
 
 public sealed record EnterLobbyResponse(
     string Username,

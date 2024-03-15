@@ -111,8 +111,8 @@ sealed class SpectatorBackend<TInput, TGameState> :
 
     public void BeginFrame()
     {
-        backgroundJobManager.ThrowIfError();
         host.Update();
+        backgroundJobManager.ThrowIfError();
 
         if (isSynchronizing)
             return;

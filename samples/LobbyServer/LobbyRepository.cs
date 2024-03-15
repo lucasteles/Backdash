@@ -47,6 +47,7 @@ public sealed class LobbyRepository(
             Peer peer = new(userName, remote)
             {
                 PeerId = peerId,
+                LocalEndpoint = req.LocalEndpoint,
             };
 
             LobbyEntry entry = new(peer, req.Mode)

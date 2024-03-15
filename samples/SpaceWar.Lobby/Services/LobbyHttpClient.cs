@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Net.Sockets;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Backdash.JsonConverters;
@@ -21,16 +22,18 @@ public sealed class LobbyHttpClient(AppSettings appSettings)
 
     readonly HttpClient client = new()
     {
-        BaseAddress = appSettings.LobbyUrl,
+        BaseAddress = appSettings.ServerUrl,
     };
 
     public async Task<User> EnterLobby(string lobbyName, string username, PlayerMode mode)
     {
+        var localEndpoint = await GetLocalEndpoint();
         var response = await client.PostAsJsonAsync("/lobby", new
         {
             lobbyName,
             username,
             mode,
+            localEndpoint,
         }, JsonOptions);
 
         if (response.StatusCode is HttpStatusCode.UnprocessableEntity)
@@ -60,5 +63,24 @@ public sealed class LobbyHttpClient(AppSettings appSettings)
     {
         var response = await client.PutAsync($"/lobby/{user.LobbyName}", null);
         response.EnsureSuccessStatusCode();
+    }
+
+    async Task<IPEndPoint?> GetLocalEndpoint()
+    {
+        try
+        {
+            using Socket socket = new(AddressFamily.InterNetwork, SocketType.Dgram, 0);
+            await socket.ConnectAsync("8.8.8.8", 65530);
+            if (socket.LocalEndPoint is not IPEndPoint { Address: { } ipAddress })
+                return null;
+
+            return new(ipAddress, appSettings.LocalPort);
+        }
+        catch (Exception)
+        {
+            // skip
+        }
+
+        return null;
     }
 }

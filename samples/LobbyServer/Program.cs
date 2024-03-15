@@ -20,7 +20,6 @@ builder.Services
     })
     .Configure<ForwardedHeadersOptions>(o => o.ForwardedHeaders = ForwardedHeaders.XForwardedFor)
     .AddMemoryCache()
-    .AddHttpLogging(_ => { })
     .AddSingleton(TimeProvider.System)
     .AddSingleton<LobbyRepository>();
 
@@ -28,7 +27,6 @@ builder.Services.AddHostedService<UdpListenerService>();
 
 var app = builder.Build();
 Console.Title = app.Environment.ApplicationName;
-app.UseHttpLogging();
 app.UseForwardedHeaders();
 app.UseSwagger().UseSwaggerUI();
 

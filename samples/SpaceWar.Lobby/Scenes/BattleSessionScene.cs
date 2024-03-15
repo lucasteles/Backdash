@@ -1,3 +1,4 @@
+using System.Net;
 using Backdash;
 using Backdash.Core;
 using SpaceWar.Logic;
@@ -39,11 +40,15 @@ public sealed class BattleSessionScene : Scene
         rollbackSession.AddPlayers(players);
     }
 
-    public BattleSessionScene(int port, int playerCount, Peer host, IReadOnlyList<Peer> peersInfo)
+    public BattleSessionScene(
+        int port, int playerCount,
+        IPEndPoint host,
+        IReadOnlyList<Peer> peersInfo
+    )
     {
         this.peersInfo = peersInfo;
         rollbackSession = RollbackNetcode.CreateSpectatorSession<PlayerInputs, GameState>(
-            port, host.Endpoint, playerCount, options
+            port, host, playerCount, options
         );
     }
 
