@@ -9,14 +9,14 @@ namespace SpaceWar.Scenes;
 public sealed class LobbyScene(PlayerMode mode) : Scene
 {
     LobbyState currentState = LobbyState.Loading;
-    LobbyClient client;
+    LobbyHttpClient client;
     string errorMessage;
     User user;
     Lobby lobbyInfo;
     Task networkCall;
     bool ready;
     bool connected;
-    UdpPuncher udpPuncher;
+    LobbyUdpClient lobbyUdpClient;
 
     readonly TimeSpan refreshInterval = TimeSpan.FromSeconds(2);
     readonly TimeSpan pingInterval = TimeSpan.FromMilliseconds(300);
@@ -25,9 +25,9 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
 
     public override void Initialize()
     {
-        client = Services.GetService<LobbyClient>();
+        client = Services.GetService<LobbyHttpClient>();
         networkCall = RequestLobby();
-        udpPuncher = new(Config.Port, Config.LobbyUrl, Config.LobbyPort);
+        lobbyUdpClient = new(Config.Port, Config.LobbyUrl, Config.LobbyPort);
         keyboard.Update();
 
         StartPingTimer();
@@ -234,7 +234,7 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
     {
         lobbyInfo = await client.GetLobby(user);
 
-        await udpPuncher.HandShake(user.Token);
+        await lobbyUdpClient.HandShake(user);
 
         if (connected) return;
         connected = lobbyInfo.Players.SingleOrDefault(x => x.PeerId == user.PeerId) is
@@ -246,7 +246,7 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
         if (lobbyInfo?.Ready == false) return;
 
         cts.Cancel();
-        udpPuncher.Stop();
+        lobbyUdpClient.Stop();
 
         switch (mode)
         {
@@ -330,8 +330,8 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
             while (await timer.WaitForNextTickAsync(cts.Token))
             {
                 if (lobbyInfo is null || lobbyInfo.Ready) continue;
-                await udpPuncher.Ping(user, lobbyInfo.Players, cts.Token);
-                await udpPuncher.Ping(user, lobbyInfo.Spectators, cts.Token);
+                await lobbyUdpClient.Ping(user, lobbyInfo.Players, cts.Token);
+                await lobbyUdpClient.Ping(user, lobbyInfo.Spectators, cts.Token);
             }
         }
         catch (OperationCanceledException)
@@ -371,7 +371,7 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
         try
         {
             cts.Dispose();
-            udpPuncher.Dispose();
+            lobbyUdpClient.Dispose();
             if (user is not null && lobbyInfo is { Ready: false })
                 client.LeaveLobby(user).GetAwaiter().GetResult();
         }

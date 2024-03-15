@@ -7,7 +7,7 @@ using SpaceWar.Models;
 
 namespace SpaceWar.Services;
 
-public sealed class LobbyClient(AppSettings appSettings)
+public sealed class LobbyHttpClient(AppSettings appSettings)
 {
     static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
     {
@@ -33,10 +33,7 @@ public sealed class LobbyClient(AppSettings appSettings)
             mode,
         }, JsonOptions);
 
-        if (response.StatusCode is HttpStatusCode.Conflict)
-            throw new InvalidOperationException("Duplicated username");
-
-        if (response.StatusCode is HttpStatusCode.Conflict)
+        if (response.StatusCode is HttpStatusCode.UnprocessableEntity)
             throw new InvalidOperationException("Already started");
 
         response.EnsureSuccessStatusCode();

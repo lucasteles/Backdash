@@ -6,7 +6,7 @@ using SpaceWar.Models;
 
 namespace SpaceWar.Services;
 
-public sealed class UdpPuncher : IDisposable
+public sealed class LobbyUdpClient : IDisposable
 {
     readonly IPEndPoint remoteEndPoint;
     readonly UdpSocket socket;
@@ -15,21 +15,18 @@ public sealed class UdpPuncher : IDisposable
 
     bool disposed;
 
-    public UdpPuncher(int localPort, Uri serverUrl, int serverPort)
+    public LobbyUdpClient(int localPort, Uri serverUrl, int serverPort)
     {
-        var serverAddress =
-            Dns.GetHostAddresses(serverUrl.DnsSafeHost, AddressFamily.InterNetwork).FirstOrDefault()
-            ?? throw new InvalidOperationException($"Unable to get ip address from {serverUrl}");
-
+        var serverAddress = UdpSocket.GetDnsIpAddress(serverUrl.DnsSafeHost);
         remoteEndPoint = new(serverAddress, serverPort);
         socket = new(localPort);
 
         Task.Run(() => Receive(cts.Token));
     }
 
-    public async Task HandShake(Guid token, CancellationToken ct = default)
+    public async Task HandShake(User user, CancellationToken ct = default)
     {
-        if (!token.TryFormat(buffer, out var bytesWritten) || bytesWritten is 0) return;
+        if (!user.Token.TryFormat(buffer, out var bytesWritten) || bytesWritten is 0) return;
         await socket.SendToAsync(buffer.AsMemory()[..bytesWritten], remoteEndPoint, ct)
             .ConfigureAwait(false);
     }

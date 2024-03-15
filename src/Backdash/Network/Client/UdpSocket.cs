@@ -63,7 +63,7 @@ public sealed class UdpSocket : IDisposable
     public UdpSocket(string bindHost, int port, AddressFamily addressFamily = AddressFamily.InterNetwork)
         : this(GetDnsIpAddress(bindHost, addressFamily), port) { }
 
-    static IPAddress GetDnsIpAddress(string host, AddressFamily addressFamily)
+    public static IPAddress GetDnsIpAddress(string host, AddressFamily addressFamily = AddressFamily.InterNetwork)
     {
         var address = Dns.GetHostAddresses(host, addressFamily).FirstOrDefault()
                       ?? throw new BackdashException($"Unable to retrieve IP Address from host {host}");

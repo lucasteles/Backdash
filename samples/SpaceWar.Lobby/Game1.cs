@@ -37,7 +37,7 @@ public class Game1 : Game
         Services.AddService(new GameAssets(Content, GraphicsDevice));
         Services.AddService(settings);
         Services.AddService(SpriteBatch);
-        Services.AddService(new LobbyClient(settings));
+        Services.AddService(new LobbyHttpClient(settings));
 
         SceneManager = new(this, startScene: new ChooseLobbyScene());
         Services.AddService(SceneManager);
