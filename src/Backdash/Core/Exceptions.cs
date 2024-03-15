@@ -12,7 +12,8 @@ public class BackdashException : Exception
 public class BackdashDeserializationException : BackdashException
 {
     internal BackdashDeserializationException(Type type, string message = "") : base(
-        $"Unable to deserialize {type.FullName}. {message}") { }
+        $"Unable to deserialize {type.FullName}. {message}")
+    { }
 }
 
 [Serializable]
@@ -25,7 +26,8 @@ public class BackdashDeserializationException<T> : BackdashDeserializationExcept
 public class BackdashSerializationException : BackdashException
 {
     internal BackdashSerializationException(Type type, string message = "") : base(
-        $"Unable to serialize {type.FullName}. {message}") { }
+        $"Unable to serialize {type.FullName}. {message}")
+    { }
 }
 
 [Serializable]

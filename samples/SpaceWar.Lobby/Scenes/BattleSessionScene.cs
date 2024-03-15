@@ -5,7 +5,7 @@ using SpaceWar.Models;
 
 namespace SpaceWar.Scenes;
 
-public sealed class BattleScene : Scene
+public sealed class BattleSessionScene : Scene
 {
     readonly IReadOnlyList<Peer> peersInfo;
     readonly IRollbackSession<PlayerInputs, GameState> rollbackSession;
@@ -16,18 +16,19 @@ public sealed class BattleScene : Scene
         FrameDelay = 2,
         Log = new()
         {
-            EnabledLevel = LogLevel.Information,
+            EnabledLevel = LogLevel.Warning,
         },
         Protocol = new()
         {
             NumberOfSyncPackets = 10,
             DisconnectTimeout = TimeSpan.FromSeconds(3),
             DisconnectNotifyStart = TimeSpan.FromSeconds(1),
-            LogNetworkStats = true,
+            LogNetworkStats = false,
         },
     };
 
-    public BattleScene(int port, IReadOnlyList<Player> players, IReadOnlyList<Peer> peersInfo)
+    public BattleSessionScene(int port, IReadOnlyList<Player> players,
+        IReadOnlyList<Peer> peersInfo)
     {
         this.peersInfo = peersInfo;
         var localPlayer = players.FirstOrDefault(x => x.IsLocal());
@@ -38,7 +39,7 @@ public sealed class BattleScene : Scene
         rollbackSession.AddPlayers(players);
     }
 
-    public BattleScene(int port, int playerCount, Peer host, IReadOnlyList<Peer> peersInfo)
+    public BattleSessionScene(int port, int playerCount, Peer host, IReadOnlyList<Peer> peersInfo)
     {
         this.peersInfo = peersInfo;
         rollbackSession = RollbackNetcode.CreateSpectatorSession<PlayerInputs, GameState>(

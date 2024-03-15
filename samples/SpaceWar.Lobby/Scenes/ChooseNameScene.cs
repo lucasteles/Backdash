@@ -59,7 +59,6 @@ public sealed class ChooseNameScene : Scene
         {
             Config.Username = username.ToString();
             LoadScene(new ChooseModeScene());
-            Window.Title = $"Space War - {Config.Username}";
         }
     }
 

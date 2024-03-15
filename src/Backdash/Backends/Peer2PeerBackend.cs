@@ -459,6 +459,8 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
                     addedSpectators.Remove(player);
                     CheckInitialSync();
                 }
+                else
+                    callbacks.OnPeerEvent(player, new(PeerEvent.SynchronizationFailure));
 
                 break;
             case ProtocolEvent.NetworkInterrupted:

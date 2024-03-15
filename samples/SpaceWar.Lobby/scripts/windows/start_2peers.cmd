@@ -1,6 +1,6 @@
-dotnet build -c Release %~dp0\..\..
-pushd %~dp0\..\..\bin\Release\net8.0
+call %~dp0\start_server.cmd
+@pushd %~dp0\..\..\bin\Release\net8.0
 del *.log
-start SpaceWar 9000 user1
-start SpaceWar 9001 user2
-popd
+start SpaceWar 9000
+start SpaceWar 9001
+@popd

@@ -20,12 +20,15 @@ builder.Services
     })
     .Configure<ForwardedHeadersOptions>(o => o.ForwardedHeaders = ForwardedHeaders.XForwardedFor)
     .AddMemoryCache()
-    .AddSingleton<LobbyRepository>()
-    .AddSingleton(TimeProvider.System);
+    .AddHttpLogging(_ => { })
+    .AddSingleton(TimeProvider.System)
+    .AddSingleton<LobbyRepository>();
 
 builder.Services.AddHostedService<UdpListenerService>();
 
 var app = builder.Build();
+Console.Title = app.Environment.ApplicationName;
+app.UseHttpLogging();
 app.UseForwardedHeaders();
 app.UseSwagger().UseSwaggerUI();
 
@@ -132,6 +135,13 @@ app.MapPut("lobby/{name}/mode/{mode}",
 
         lobby.ChangePeerMode(entry, mode);
         return NoContent();
+    });
+
+if (app.Environment.IsDevelopment())
+    _ = Task.Run(async () =>
+    {
+        if (Console.ReadKey().Key is ConsoleKey.Escape)
+            await app.StopAsync();
     });
 
 app.Run();

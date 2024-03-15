@@ -9,7 +9,9 @@ using Backdash.Network.Protocol;
 using Backdash.Serialization;
 using Backdash.Sync.Input;
 using Backdash.Sync.Input.Spectator;
+
 namespace Backdash.Backends;
+
 sealed class SpectatorBackend<TInput, TGameState> :
     IRollbackSession<TInput, TGameState>,
     IProtocolNetworkEventHandler,
@@ -33,6 +35,7 @@ sealed class SpectatorBackend<TInput, TGameState> :
     bool disposed;
     long lastReceivedInputTime;
     SynchronizedInput<TInput>[] syncInputBuffer = [];
+
     public SpectatorBackend(int port,
         IPEndPoint hostEndpoint,
         int numberOfPlayers,
@@ -77,6 +80,7 @@ sealed class SpectatorBackend<TInput, TGameState> :
         host.Synchronize();
         isSynchronizing = true;
     }
+
     public void Dispose()
     {
         if (disposed) return;
@@ -86,12 +90,14 @@ sealed class SpectatorBackend<TInput, TGameState> :
         logger.Dispose();
         backgroundJobManager.Dispose();
     }
+
     public void Close()
     {
         logger.Write(LogLevel.Information, "Shutting down connections");
         host.Dispose();
         callbacks.OnSessionClose();
     }
+
     public Frame CurrentFrame { get; private set; } = Frame.Zero;
     public FrameSpan RollbackFrames => FrameSpan.Zero;
     public FrameSpan FramesBehind => FrameSpan.Zero;
@@ -102,39 +108,53 @@ sealed class SpectatorBackend<TInput, TGameState> :
     public ResultCode AddLocalInput(PlayerHandle player, TInput localInput) => ResultCode.Ok;
     public IReadOnlyCollection<PlayerHandle> GetPlayers() => fakePlayers;
     public IReadOnlyCollection<PlayerHandle> GetSpectators() => [];
+
     public void BeginFrame()
     {
         backgroundJobManager.ThrowIfError();
+        host.Update();
+
+        if (isSynchronizing)
+            return;
+
         if (lastReceivedInputTime > 0
             && clock.GetElapsedTime(lastReceivedInputTime) > options.Protocol.DisconnectTimeout)
             Close();
     }
+
     public void AdvanceFrame() => logger.Write(LogLevel.Debug, $"[End Frame {CurrentFrame}]");
     public PlayerConnectionStatus GetPlayerStatus(in PlayerHandle player) => host.Status.ToPlayerStatus();
     public ResultCode AddPlayer(Player player) => ResultCode.NotSupported;
+
     public IReadOnlyList<ResultCode> AddPlayers(IReadOnlyList<Player> players) =>
         Enumerable.Repeat(ResultCode.NotSupported, players.Count).ToArray();
+
     public bool GetNetworkStatus(in PlayerHandle player, ref RollbackNetworkStatus info)
     {
         host.GetNetworkStats(ref info);
         return true;
     }
+
     public void SetFrameDelay(PlayerHandle player, int delayInFrames) { }
+
     public void Start(CancellationToken stoppingToken = default)
     {
         backgroundJobTask = backgroundJobManager.Start(stoppingToken);
         logger.Write(LogLevel.Information, $"Spectating started on host {hostEndpoint}");
     }
+
     public async Task WaitToStop(CancellationToken stoppingToken = default)
     {
         backgroundJobManager.Stop(TimeSpan.Zero);
         await backgroundJobTask.WaitAsync(stoppingToken).ConfigureAwait(false);
     }
+
     public void SetHandler(IRollbackHandler<TGameState> handler)
     {
         ArgumentNullException.ThrowIfNull(handler);
         callbacks = handler;
     }
+
     public void OnNetworkEvent(in ProtocolEventInfo evt)
     {
         ref readonly var player = ref evt.Player;
@@ -158,6 +178,7 @@ sealed class SpectatorBackend<TInput, TGameState> :
                 isSynchronizing = false;
                 break;
             case ProtocolEvent.SyncFailure:
+                callbacks.OnPeerEvent(player, new(PeerEvent.SynchronizationFailure));
                 Close();
                 break;
             case ProtocolEvent.NetworkInterrupted:
@@ -177,6 +198,7 @@ sealed class SpectatorBackend<TInput, TGameState> :
                 break;
         }
     }
+
     public ResultCode SynchronizeInputs()
     {
         if (isSynchronizing)
@@ -189,12 +211,14 @@ sealed class SpectatorBackend<TInput, TGameState> :
             // Haven't received the input from the host yet.  Wait
             return ResultCode.PredictionThreshold;
         }
+
         if (input.Frame > CurrentFrame)
         {
             // The host is way way way far ahead of the spectator.  How'd this
             // happen?  Anyway, the input we need is gone forever.
             return ResultCode.InputDropped;
         }
+
         Trace.Assert(input.Data.Count > 0);
         NumberOfPlayers = input.Data.Count;
         if (syncInputBuffer.Length != NumberOfPlayers)
@@ -204,10 +228,13 @@ sealed class SpectatorBackend<TInput, TGameState> :
         CurrentFrame++;
         return ResultCode.Ok;
     }
+
     public ref readonly SynchronizedInput<TInput> GetInput(int index) =>
         ref syncInputBuffer[index];
+
     public ref readonly SynchronizedInput<TInput> GetInput(in PlayerHandle player) =>
         ref syncInputBuffer[player.Number - 1];
+
     public void Publish(in GameInputEvent<CombinedInputs<TInput>> evt)
     {
         lastReceivedInputTime = clock.GetTimeStamp();

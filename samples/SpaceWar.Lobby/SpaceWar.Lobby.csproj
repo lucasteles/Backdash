@@ -5,7 +5,10 @@
         <RollForward>Major</RollForward>
         <PublishReadyToRun>false</PublishReadyToRun>
         <RootNamespace>SpaceWar</RootNamespace>
+        <AssemblyName>SpaceWar</AssemblyName>
         <TieredCompilation>false</TieredCompilation>
+        <PublishRelease>true</PublishRelease>
+        <PublishSingleFile>true</PublishSingleFile>
     </PropertyGroup>
     <PropertyGroup>
         <ApplicationManifest>app.manifest</ApplicationManifest>
@@ -20,7 +23,7 @@
         <EmbeddedResource Include="Icon.bmp"/>
     </ItemGroup>
     <ItemGroup>
-      <ProjectReference Include="..\..\src\Backdash.Utils\Backdash.Utils.csproj" />
-      <ProjectReference Include="..\SpaceWar.Shared\SpaceWar.Shared.csproj" />
+        <ProjectReference Include="..\..\src\Backdash.Utils\Backdash.Utils.csproj"/>
+        <ProjectReference Include="..\SpaceWar.Shared\SpaceWar.Shared.csproj"/>
     </ItemGroup>
 </Project>

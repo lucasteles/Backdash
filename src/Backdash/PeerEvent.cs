@@ -1,27 +1,36 @@
 using System.Runtime.InteropServices;
 using Backdash.Serialization.Buffer;
+
 namespace Backdash;
+
 public enum PeerEvent : sbyte
 {
     Connected,
     Synchronizing,
     Synchronized,
+    SynchronizationFailure,
     Disconnected,
     ConnectionInterrupted,
     ConnectionResumed,
 }
+
 [StructLayout(LayoutKind.Explicit, Pack = 1)]
 public readonly struct PeerEventInfo(PeerEvent type) : IUtf8SpanFormattable
 {
     const int HeaderSize = sizeof(PeerEvent);
+
     [field: FieldOffset(0)]
     public PeerEvent Type { get; } = type;
+
     [field: FieldOffset(HeaderSize)]
     public SynchronizingEventInfo Synchronizing { get; init; }
+
     [field: FieldOffset(HeaderSize)]
     public SynchronizedEventInfo Synchronized { get; init; }
+
     [field: FieldOffset(HeaderSize)]
     public ConnectionInterruptedEventInfo ConnectionInterrupted { get; init; }
+
     public override string ToString()
     {
         var details = Type switch
@@ -33,6 +42,7 @@ public readonly struct PeerEventInfo(PeerEvent type) : IUtf8SpanFormattable
         };
         return $"Event {Type}: {details}";
     }
+
     public bool TryFormat(
         Span<byte> utf8Destination,
         out int bytesWritten,
@@ -65,9 +75,12 @@ public readonly struct PeerEventInfo(PeerEvent type) : IUtf8SpanFormattable
         }
     }
 }
+
 [StructLayout(LayoutKind.Sequential)]
 public readonly record struct SynchronizingEventInfo(int CurrentStep, int TotalSteps);
+
 [StructLayout(LayoutKind.Sequential)]
 public readonly record struct ConnectionInterruptedEventInfo(TimeSpan DisconnectTimeout);
+
 [StructLayout(LayoutKind.Sequential)]
 public readonly record struct SynchronizedEventInfo(TimeSpan Ping);
