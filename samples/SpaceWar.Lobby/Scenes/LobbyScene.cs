@@ -54,6 +54,8 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
 
     async Task ToggleReady()
     {
+        if (!AllReachable()) return;
+
         await client.ToggleReady(user);
         ready = true;
     }
@@ -87,32 +89,37 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
         var top = Viewport.Top + padding;
 
         spriteBatch.DrawString(Assets.MainFont, lobbyInfo.Name, new Vector2(left, top),
-            Color.Cyan);
+            Color.LightPink);
 
         Color usernameColor;
         if (mode is PlayerMode.Spectator)
-            usernameColor = Color.LightBlue;
+            usernameColor = Color.White;
         else if (!connected)
             usernameColor = Color.Red;
         else
-            usernameColor = ready ? Color.Lime : Color.Orange;
+            usernameColor = ready ? Color.Lime : Color.SkyBlue;
 
         var usernameSize =
             Assets.MainFont.MeasureString(user.Username);
         spriteBatch.DrawString(Assets.MainFont, user.Username,
             new Vector2(Viewport.Right - padding - usernameSize.X, top),
             usernameColor, 0, Vector2.Zero, 1, SpriteEffects.None, 0);
-        top += padding + (int)usernameSize.Y;
+        top += padding + (int) usernameSize.Y;
 
         Rectangle line = new(Viewport.Left, top, Viewport.Width, lineWidth);
         spriteBatch.Draw(Assets.Blank, line, lineColor);
         top += lineWidth + halfPadding;
 
-        var note = ready ? "waiting other players..." : "press enter to start.";
+        string note;
+        if (!AllReachable())
+            note = "connecting to players...";
+        else
+            note = ready ? "waiting other players..." : "press enter to start.";
+
         var noteSize = Assets.MainFont.MeasureString(note);
         spriteBatch.DrawString(Assets.MainFont, note, new(Viewport.Center.X, top),
             Color.Bisque, 0, new(noteSize.X / 2, 0), smTextScale, SpriteEffects.None, 0);
-        top += (int)(noteSize.Y * smTextScale) + halfPadding;
+        top += (int) (noteSize.Y * smTextScale) + halfPadding;
 
         line = new(Viewport.Left, top, Viewport.Width, lineWidth);
         spriteBatch.Draw(Assets.Blank, line, lineColor);
@@ -141,7 +148,7 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
         spriteBatch.DrawString(Assets.MainFont, spectatorsTitle,
             new(spectatorsRect.Center.X - spectatorsTitleSize.X / 2, top), Color.MediumSeaGreen);
 
-        top += (int)Math.Max(playersTitleSize.Y, spectatorsTitleSize.Y);
+        top += (int) Math.Max(playersTitleSize.Y, spectatorsTitleSize.Y);
         top += halfPadding;
         line = new(playersRect.Left, top, playersRect.Width, halfPadding);
         spriteBatch.Draw(Assets.Blank, line, Color.Black);
@@ -163,15 +170,19 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
                 ref var player = ref lobbyInfo.Players[i];
 
                 Rectangle statusBlock = new(
-                    playersRect.Left, top + (int)usernameSize.Y / 3,
-                    (int)usernameSize.Y / 2, (int)usernameSize.Y / 2
+                    playersRect.Left, top + (int) usernameSize.Y / 3,
+                    (int) usernameSize.Y / 2, (int) usernameSize.Y / 2
                 );
 
                 Color statusColor;
-                if (!player.Connected)
+                if (player.PeerId == user.PeerId)
+                    statusColor = usernameColor;
+                else if (!player.Connected)
                     statusColor = Color.Red;
+                else if (!lobbyUdpClient.IsKnown(player.PeerId))
+                    statusColor = Color.Orange;
                 else
-                    statusColor = player.Ready ? Color.LimeGreen : Color.Orange;
+                    statusColor = player.Ready ? Color.LimeGreen : Color.SkyBlue;
 
                 spriteBatch.Draw(Assets.Blank, statusBlock, null, statusColor,
                     0, Vector2.Zero, SpriteEffects.None, 0);
@@ -185,8 +196,8 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
                 ref var player = ref lobbyInfo.Spectators[i];
 
                 Rectangle statusBlock = new(
-                    spectatorsRect.Left, top + (int)usernameSize.Y / 3,
-                    (int)usernameSize.Y / 2, (int)usernameSize.Y / 2
+                    spectatorsRect.Left, top + (int) usernameSize.Y / 3,
+                    (int) usernameSize.Y / 2, (int) usernameSize.Y / 2
                 );
                 spriteBatch.Draw(Assets.Blank, statusBlock, null, Color.LightBlue,
                     0, Vector2.Zero, SpriteEffects.None, 0);
@@ -195,7 +206,7 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
                     new(spectatorsRect.Left + statusBlock.Width + padding, top), Color.White);
             }
 
-            top += (int)usernameSize.Y + halfPadding;
+            top += (int) usernameSize.Y + halfPadding;
         }
     }
 
@@ -238,7 +249,7 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
 
         if (connected) return;
         connected = lobbyInfo.Players.SingleOrDefault(x => x.PeerId == user.PeerId) is
-        { Connected: true };
+            {Connected: true};
     }
 
     void CheckPlayersReady()
@@ -259,6 +270,25 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
         }
     }
 
+    bool AllReachable()
+    {
+        if (lobbyInfo is null || lobbyInfo.Players.Length <= 1)
+            return false;
+
+        for (var i = 0; i < lobbyInfo.Players.Length; i++)
+        {
+            var peer = lobbyInfo.Players[i];
+
+            if (peer.PeerId == user.PeerId)
+                continue;
+
+            if (!peer.Connected || !lobbyUdpClient.IsKnown(peer.PeerId))
+                return false;
+        }
+
+        return true;
+    }
+
     void StartPlayerBattleScene()
     {
         if (lobbyInfo is null) return;
@@ -277,7 +307,7 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
         }
 
         if (lobbyInfo.SpectatorMapping.SingleOrDefault(m => m.Host == user.PeerId)
-            is { Watchers: { } spectatorIds })
+            is {Watchers: { } spectatorIds})
         {
             var spectators = lobbyInfo.Spectators.Where(s => spectatorIds.Contains(s.PeerId));
             foreach (var spectator in spectators)
@@ -372,7 +402,7 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
         {
             cts.Dispose();
             lobbyUdpClient.Dispose();
-            if (user is not null && lobbyInfo is { Ready: false })
+            if (user is not null && lobbyInfo is {Ready: false})
                 client.LeaveLobby(user).GetAwaiter().GetResult();
         }
         catch (Exception e)

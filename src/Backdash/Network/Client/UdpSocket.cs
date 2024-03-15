@@ -83,4 +83,6 @@ public sealed class UdpSocket : IDisposable
         socket.SendToAsync(payload, SocketFlags.None, peerAddress, ct);
 
     public void Dispose() => socket.Dispose();
+
+    public void Close() => socket.Close();
 }

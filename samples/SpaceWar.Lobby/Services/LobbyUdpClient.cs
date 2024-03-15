@@ -1,5 +1,4 @@
 using System.Net;
-using System.Net.Sockets;
 using System.Text;
 using Backdash.Network.Client;
 using SpaceWar.Models;
@@ -13,6 +12,7 @@ public sealed class LobbyUdpClient : IDisposable
     readonly CancellationTokenSource cts = new();
     readonly byte[] buffer = GC.AllocateArray<byte>(36, pinned: true);
 
+    readonly HashSet<Guid> knownClients = [];
     bool disposed;
 
     public LobbyUdpClient(int localPort, Uri serverUrl, int serverPort)
@@ -33,7 +33,7 @@ public sealed class LobbyUdpClient : IDisposable
 
     public async Task Ping(User user, Peer[] peers, CancellationToken ct = default)
     {
-        if (peers.Length is 0 || !user.Token.TryFormat(buffer, out var bytesWritten) ||
+        if (peers.Length is 0 || !user.PeerId.TryFormat(buffer, out var bytesWritten) ||
             bytesWritten is 0)
             return;
 
@@ -60,10 +60,11 @@ public sealed class LobbyUdpClient : IDisposable
 
                 var msg = Encoding.UTF8.GetString(recBuffer);
                 Console.WriteLine($"recv: {msg} from {receiveInfo.RemoteEndPoint}");
+
                 if (!Guid.TryParse(msg, out var peerToken))
                     continue;
 
-                Console.WriteLine($"Ping: from {peerToken} at {receiveInfo.RemoteEndPoint}");
+                knownClients.Add(peerToken);
             }
             catch (OperationCanceledException)
             {
@@ -76,10 +77,14 @@ public sealed class LobbyUdpClient : IDisposable
         }
     }
 
+    public bool IsKnown(Guid id) => knownClients.Contains(id);
+
     public void Stop()
     {
         if (!cts.IsCancellationRequested)
             cts.Cancel();
+
+        socket.Close();
     }
 
     public void Dispose()
