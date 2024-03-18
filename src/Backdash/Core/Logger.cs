@@ -93,7 +93,7 @@ sealed class Logger : IDisposable
         {
             EnabledLevel = level,
         },
-        new ConsoleLogWriter()
+        new ConsoleTextLogWriter()
     );
 
     public void AppendTimestamp(ref LogInterpolatedStringHandler builder)
