@@ -11,9 +11,7 @@
 
 ![](logo.png)
 
-### ⚠️ **WORKING IN PROGRESS**
-
-Fully C# [Rollback Netcode](https://en.wikipedia.org/wiki/Netcode#Rollback) implementation heavily inspired
+Fully C# [Rollback Netcode](https://en.wikipedia.org/wiki/Netcode#Rollback) implementation **heavily** inspired
 on [GGPO](https://github.com/pond3r/ggpo) with full asynchronous IO support.
 
 ## Getting started
@@ -24,16 +22,15 @@ on [GGPO](https://github.com/pond3r/ggpo) with full asynchronous IO support.
 $ dotnet add package Backdash
 ```
 
+### Demo:
+
+| Title           | Link                                                                                                   |
+|-----------------|--------------------------------------------------------------------------------------------------------|
+| Console         | [![Console](https://img.youtube.com/vi/n-3G0AE5Ti0/default.jpg)](https://youtu.be/n-3G0AE5Ti0)         |
+| Monogame Local  | [![Monogame Local](https://img.youtube.com/vi/JYf2MemyJaY/default.jpg)](https://youtu.be/JYf2MemyJaY)  |
+| Monogame Online | [![Monogame Online](https://img.youtube.com/vi/LGM_9XfzRUI/default.jpg)](https://youtu.be/LGM_9XfzRUI) |
+
 ## Samples
 
-Check the samples on [/samples](/samples) 
-
-### Video Demos:
-
-| Title           | Link    |
-| --------        | ------- |
-| Console         | [![Console](https://img.youtube.com/vi/n-3G0AE5Ti0/default.jpg)](https://youtu.be/n-3G0AE5Ti0)    |
-| Monogame Local  | [![Monogame Local](https://img.youtube.com/vi/JYf2MemyJaY/default.jpg)](https://youtu.be/JYf2MemyJaY)     |
-| Monogame Online | [![Monogame Online](https://img.youtube.com/vi/LGM_9XfzRUI/default.jpg)](https://youtu.be/LGM_9XfzRUI)    |
-
+Check the samples on [/samples](/samples)
 
