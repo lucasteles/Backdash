@@ -1,4 +1,4 @@
-namespace Backdash.Helpers.Input;
+namespace Backdash.InputType;
 public static class Extensions
 {
     public static ButtonsInput SetFlag(

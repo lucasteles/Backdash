@@ -1,6 +1,7 @@
 using System.Runtime.InteropServices;
+
 // ReSharper disable InconsistentNaming
-namespace Backdash.Helpers.Input;
+namespace Backdash.InputType;
 [StructLayout(LayoutKind.Sequential, Size = 2), Serializable]
 public record struct Axis
 {
