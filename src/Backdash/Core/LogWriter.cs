@@ -27,7 +27,6 @@ public abstract class TextLogWriter : ILogWriter
     readonly object locker = new();
     bool disposed;
 
-
     /// <inheritdoc />
     public void Write(LogLevel level, char[] chars, int size)
     {

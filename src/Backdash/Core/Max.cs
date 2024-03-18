@@ -1,5 +1,6 @@
 namespace Backdash.Core;
-public static class Max
+
+static class Max
 {
     public const int RemoteConnections = 4;
     public const int NumberOfSpectators = 32;

@@ -2,7 +2,12 @@ using System.Net;
 using Backdash.Backends;
 using Backdash.Core;
 using Backdash.Data;
+
 namespace Backdash;
+
+/// <summary>
+/// The session factory used to create new netcode sessions.
+/// </summary>
 public static class RollbackNetcode
 {
     public static IRollbackSession<TInput, TGameState> CreateSession<TInput, TGameState>(
@@ -13,6 +18,7 @@ public static class RollbackNetcode
         where TInput : struct
         where TGameState : IEquatable<TGameState>, new() =>
         new Peer2PeerBackend<TInput, TGameState>(port, options, BackendServices.Create(options, services));
+
     public static IRollbackSession<TInput, TGameState> CreateSpectatorSession<TInput, TGameState>(
         int port,
         IPEndPoint host,
@@ -24,6 +30,7 @@ public static class RollbackNetcode
         new SpectatorBackend<TInput, TGameState>(
             port, host, numberOfPlayers, options,
             BackendServices.Create(options, services));
+
     public static IRollbackSession<TInput, TGameState> CreateTestSession<TInput, TGameState>(
         FrameSpan? checkDistance = null,
         RollbackOptions? options = null,
