@@ -21,7 +21,8 @@ public readonly record struct Frame :
     ISubtractionOperators<Frame, int, Frame>,
     IAdditionOperators<Frame, FrameSpan, FrameSpan>
 {
-    public const sbyte NullValue = -1;
+    internal const sbyte NullValue = -1;
+
     public static readonly Frame Null = new(NullValue);
     public static readonly Frame Zero = new(0);
     public static readonly Frame MaxValue = new(int.MaxValue);
