@@ -26,8 +26,8 @@ public sealed record GameState
             var heading = (i + 1) * 360f / numberOfPlayers;
             var theta = MathHelper.ToRadians(heading);
             var (cosT, sinT) = (Math.Cos(theta), Math.Sin(theta));
-            var x = width / 2.0 + r * cosT;
-            var y = height / 2.0 + r * sinT;
+            var x = Math.Round(width / 2.0 + r * cosT, 2);
+            var y = Math.Round(height / 2.0 + r * sinT, 2);
             Ships[i].Id = (byte)(i + 1);
             Ships[i].Position = new((float)x, (float)y);
             Ships[i].Active = true;
@@ -48,6 +48,7 @@ public sealed record GameState
     {
         if (!ship.Active)
             return new();
+
         float heading;
         if (inputs.HasFlag(PlayerInputs.RotateRight))
             heading = (ship.Heading + Config.RotateIncrement) % 360f;
@@ -71,7 +72,7 @@ public sealed record GameState
     public void UpdateShip(in Ship ship, in GameInput inputs)
     {
         ship.Heading = (int)inputs.Heading;
-        Vector2 rotation = new(
+        Vector2 dir = new(
             MathF.Cos(MathHelper.ToRadians(ship.Heading)),
             MathF.Sin(MathHelper.ToRadians(ship.Heading))
         );
@@ -82,8 +83,8 @@ public sealed record GameState
                 if (bullet.Active)
                     continue;
                 bullet.Active = true;
-                bullet.Position = ship.Position + rotation * ship.Radius;
-                bullet.Velocity = ship.Velocity + rotation * Config.BulletSpeed;
+                bullet.Position = (ship.Position + dir * ship.Radius).RoundTo();
+                bullet.Velocity = (ship.Velocity + dir * Config.BulletSpeed).RoundTo();
                 ship.FireCooldown = Config.BulletCooldown;
                 break;
             }
@@ -97,19 +98,22 @@ public sealed record GameState
             ship.Missile.ExplosionRadius = Config.MissileExplosionRadius;
             ship.Missile.ExplodeTimeout = Config.MissileExplosionTimeout;
             ship.Missile.HitBoxTime = Config.MissileHitBoxTimeout;
-            ship.Missile.Velocity = rotation * Config.MissileSpeed;
-            ship.Missile.Position = ship.Position + ship.Velocity +
-                                    rotation * (ship.Radius + ship.Missile.ProjectileRadius);
-            ship.Velocity += ship.Missile.Velocity * -2;
+            ship.Missile.Velocity = dir * Config.MissileSpeed;
+            ship.Missile.Position = (
+                ship.Position + ship.Velocity + dir *
+                (ship.Radius + ship.Missile.ProjectileRadius)
+            ).RoundTo();
+
+            ship.Velocity += (ship.Missile.Velocity * -2).RoundTo();
         }
 
         ship.Thrust = Math.Sign(inputs.Thrust);
         if (inputs.Thrust != 0)
         {
-            ship.Velocity += rotation * inputs.Thrust;
+            ship.Velocity += (dir * inputs.Thrust).RoundTo();
             var magnitude = ship.Velocity.Length();
             if (magnitude > Config.ShipMaxThrust)
-                ship.Velocity = ship.Velocity * Config.ShipMaxThrust / magnitude;
+                ship.Velocity = (ship.Velocity * Config.ShipMaxThrust / magnitude).RoundTo();
         }
 
         ship.Position += ship.Velocity;
@@ -129,13 +133,11 @@ public sealed record GameState
 
         UpdateBullets(ship);
         UpdateMissile(ship);
+
         if (ship.FireCooldown > 0) ship.FireCooldown--;
         if (ship.MissileCooldown > 0) ship.MissileCooldown--;
         if (ship.Invincible > 0) ship.Invincible--;
         if (ship.Health <= 0) ship.Active = false;
-        // LATER: validate multiplatform float precision
-        // ship.Velocity = Vector2.Round(ship.Velocity);
-        // ship.Position = Vector2.Round(ship.Position);
     }
 
     void UpdateBullets(Ship ship)
@@ -187,8 +189,10 @@ public sealed record GameState
             ref var missile = ref ship.Missile;
             missile.Position += missile.Velocity;
             if (missile.Velocity.Length() < Config.MissileMaxSpeed)
-                missile.Velocity +=
-                    Vector2.Normalize(missile.Velocity) * Config.MissileAcceleration;
+                missile.Velocity += (
+                    Vector2.Normalize(missile.Velocity) * Config.MissileAcceleration
+                ).RoundTo();
+
             if (missile.HitBoxTime <= 0)
                 missile.Active = false;
             else
@@ -237,7 +241,7 @@ public sealed record GameState
                     other.Health -= Config.MissileDamage;
                     other.Invincible = Config.MissileInvincibleTime;
                     var pushDirection = Vector2.Normalize(other.Position - missile.Position);
-                    other.Velocity = pushDirection * Config.ShipMaxThrust;
+                    other.Velocity = (pushDirection * Config.ShipMaxThrust).RoundTo();
                     other.Position += other.Velocity * 2;
                 }
 

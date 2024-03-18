@@ -5,7 +5,8 @@ publish() {
     dotnet publish . \
         --configuration Release --self-contained \
         --output "$output_path" \
-        -r $1 -p:DebugType=None -p:DebugSymbols=false
+        -r $1 -p:DebugType=None -p:DebugSymbols=false \
+        -p:EnableCompressionInSingleFile=false
 }
 
 publish "win-x64"
