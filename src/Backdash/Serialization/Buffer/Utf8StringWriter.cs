@@ -4,7 +4,7 @@ namespace Backdash.Serialization.Buffer;
 
 using System.Text;
 
-public readonly ref struct Utf8StringWriter
+readonly ref struct Utf8StringWriter
 {
     readonly Span<byte> buffer;
     readonly ref int offset;
