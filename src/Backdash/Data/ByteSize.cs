@@ -1,7 +1,9 @@
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using Backdash.Serialization.Buffer;
+
 namespace Backdash.Data;
+
 public readonly record struct ByteSize(long ByteCount)
     :
         IComparable<ByteSize>,
@@ -42,6 +44,7 @@ public readonly record struct ByteSize(long ByteCount)
     public double GigaBytes => ByteCount / BytesToGigaByte;
     public double TeraBytes => ByteCount / BytesToTeraByte;
     public int CompareTo(ByteSize other) => ByteCount.CompareTo(other.ByteCount);
+
     ReadOnlySpan<char> GetMaxBinarySymbol()
     {
         if (Math.Abs(TebiBytes) >= 1)
@@ -54,6 +57,7 @@ public readonly record struct ByteSize(long ByteCount)
             return KibiByteSymbol;
         return ByteSymbol;
     }
+
     ReadOnlySpan<char> GetMaxDecimalSymbol()
     {
         if (Math.Abs(TeraBytes) >= 1)
@@ -66,6 +70,7 @@ public readonly record struct ByteSize(long ByteCount)
             return KiloByteSymbol;
         return ByteSymbol;
     }
+
     public double GetValue(Measure measure) =>
         measure switch
         {
@@ -80,10 +85,12 @@ public readonly record struct ByteSize(long ByteCount)
             Measure.TeraByte => TeraBytes,
             _ => ByteCount,
         };
+
     double GetValueForSymbol(ReadOnlySpan<char> symbol) => GetValue(SymbolToMeasure(symbol));
     const string defaultFormat = "0.##";
     const string binaryFormat = "binary";
     const string decimalFormat = "decimal";
+
     public string ToString(string? format, IFormatProvider? formatProvider)
     {
         format ??= decimalFormat;
@@ -93,12 +100,14 @@ public readonly record struct ByteSize(long ByteCount)
             var binaryValue = GetValueForSymbol(maxBinarySymbol);
             return binaryValue.ToString($"{defaultFormat} {maxBinarySymbol}", formatProvider);
         }
+
         if (format.Equals(decimalFormat, StringComparison.OrdinalIgnoreCase))
         {
             var maxDecimalSymbol = GetMaxDecimalSymbol();
             var decimalValue = GetValueForSymbol(maxDecimalSymbol);
             return decimalValue.ToString($"{defaultFormat} {maxDecimalSymbol}", formatProvider);
         }
+
         var symbol = FindSymbol(format);
         if (symbol.IsEmpty)
             return ByteCount.ToString(format, formatProvider);
@@ -114,9 +123,11 @@ public readonly record struct ByteSize(long ByteCount)
             formatProvider
         );
     }
+
     public string ToString(string? format) => ToString(format, null);
     public string ToString(Measure measure) => ToString(MeasureToSymbol(measure));
     public override string ToString() => ToString(null, null);
+
     public bool TryFormat(
         Span<byte> utf8Destination,
         out int bytesWritten,
@@ -134,6 +145,7 @@ public readonly record struct ByteSize(long ByteCount)
             writer.Write(" "u8);
             return writer.WriteChars(maxBinarySymbol);
         }
+
         if (format.Equals(decimalFormat, StringComparison.OrdinalIgnoreCase))
         {
             var maxDecimalSymbol = GetMaxDecimalSymbol();
@@ -142,6 +154,7 @@ public readonly record struct ByteSize(long ByteCount)
             writer.Write(" "u8);
             return writer.WriteChars(maxDecimalSymbol);
         }
+
         var symbol = FindSymbol(format);
         if (symbol.IsEmpty)
             return writer.Write(ByteCount, format, provider);
@@ -155,8 +168,10 @@ public readonly record struct ByteSize(long ByteCount)
             writer.Write(" "u8);
             return writer.WriteChars(symbol);
         }
+
         return writer.Write(value, format, provider);
     }
+
     static ReadOnlySpan<char> FindSymbol(ReadOnlySpan<char> str)
     {
         const StringComparison cmp = StringComparison.Ordinal;
@@ -171,6 +186,7 @@ public readonly record struct ByteSize(long ByteCount)
         if (str.Contains(ByteSymbol, cmp)) return ByteSymbol;
         return [];
     }
+
     public static ByteSize SizeOf<T>() where T : struct => (ByteSize)Unsafe.SizeOf<T>();
     public static bool operator >(ByteSize left, ByteSize right) => left.ByteCount > right.ByteCount;
     public static bool operator >=(ByteSize left, ByteSize right) => left.ByteCount >= right.ByteCount;
@@ -200,6 +216,7 @@ public readonly record struct ByteSize(long ByteCount)
     public static ByteSize FromMebiBytes(double value) => new((long)(value * BytesToMebiByte));
     public static ByteSize FromGibiBytes(double value) => new((long)(value * BytesToGibiByte));
     public static ByteSize FromTebiBytes(double value) => new((long)(value * BytesToTebiByte));
+
     static Measure SymbolToMeasure(ReadOnlySpan<char> symbol) =>
         symbol switch
         {
@@ -214,6 +231,7 @@ public readonly record struct ByteSize(long ByteCount)
             ByteSymbol => Measure.Byte,
             _ => Measure.Unknown,
         };
+
     static string MeasureToSymbol(Measure measure) =>
         measure switch
         {
@@ -228,6 +246,7 @@ public readonly record struct ByteSize(long ByteCount)
             Measure.Byte => ByteSymbol,
             _ => string.Empty,
         };
+
     public enum Measure : sbyte
     {
         Byte = 0,

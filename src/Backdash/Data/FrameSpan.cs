@@ -1,7 +1,9 @@
 using System.Diagnostics;
 using System.Numerics;
 using Backdash.Serialization.Buffer;
+
 namespace Backdash.Data;
+
 [DebuggerDisplay("{ToString()}")]
 public readonly record struct FrameSpan :
     IComparable<FrameSpan>,
@@ -27,9 +29,12 @@ public readonly record struct FrameSpan :
     public TimeSpan Duration(short fps = DefaultFramesPerSecond) => GetDuration(FrameCount, fps);
     public Frame Value => new(FrameCount);
     public int CompareTo(FrameSpan other) => FrameCount.CompareTo(other.FrameCount);
+
     public string ToString(string? format, IFormatProvider? formatProvider) =>
         FrameCount.ToString(format ?? "0 frames;-# frames", formatProvider);
+
     public override string ToString() => ToString(null, null);
+
     public bool TryFormat(
         Span<byte> utf8Destination, out int bytesWritten,
         ReadOnlySpan<char> format,
@@ -42,16 +47,23 @@ public readonly record struct FrameSpan :
         if (!writer.Write(" frames"u8)) return false;
         return true;
     }
+
     public static FrameSpan Of(int count) => new(count);
+
     public static FrameSpan FromSeconds(double seconds, short fps = DefaultFramesPerSecond) =>
         new((int)(seconds * fps));
+
     public static FrameSpan FromTimeSpan(TimeSpan time, short fps = DefaultFramesPerSecond) =>
         FromSeconds(time.TotalSeconds, fps);
+
     public static FrameSpan FromMilliseconds(double milliseconds, short fps = DefaultFramesPerSecond) =>
         FromSeconds(milliseconds / 1000, fps);
+
     public static double InSeconds(int frameCount, short fps = DefaultFramesPerSecond) => frameCount / (double)fps;
+
     public static TimeSpan GetDuration(int frameCount, short fps = DefaultFramesPerSecond) =>
         TimeSpan.FromSeconds(InSeconds(frameCount, fps));
+
     public static FrameSpan Min(in FrameSpan left, in FrameSpan right) => left <= right ? left : right;
     public static FrameSpan Max(in FrameSpan left, in FrameSpan right) => left >= right ? left : right;
     public static bool operator >(FrameSpan left, FrameSpan right) => left.FrameCount > right.FrameCount;

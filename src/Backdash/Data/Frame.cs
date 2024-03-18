@@ -1,7 +1,9 @@
 using System.Diagnostics;
 using System.Numerics;
 using Backdash.Serialization.Buffer;
+
 namespace Backdash.Data;
+
 [DebuggerDisplay("{ToString()}")]
 public readonly record struct Frame :
     IComparable<Frame>,
@@ -32,9 +34,12 @@ public readonly record struct Frame :
     public int CompareTo(Frame other) => Number.CompareTo(other.Number);
     public int CompareTo(int other) => Number.CompareTo(other);
     public bool Equals(int other) => Number == other;
+
     public string ToString(string? format, IFormatProvider? formatProvider) =>
         Number.ToString(format ?? "Frame(0);Frame(-#)", formatProvider);
+
     public override string ToString() => ToString(null, null);
+
     public bool TryFormat(
         Span<byte> utf8Destination, out int bytesWritten,
         ReadOnlySpan<char> format,
@@ -45,6 +50,7 @@ public readonly record struct Frame :
         Utf8StringWriter writer = new(in utf8Destination, ref bytesWritten);
         return writer.Write(Number, format);
     }
+
     public static explicit operator int(Frame frame) => frame.Number;
     public static explicit operator Frame(int frame) => new(frame);
     public static Frame Min(in Frame left, in Frame right) => left <= right ? left : right;
