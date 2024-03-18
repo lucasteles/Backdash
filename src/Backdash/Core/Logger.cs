@@ -2,16 +2,46 @@ using System.Buffers;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
+
 namespace Backdash.Core;
+
+/// <summary>
+/// Defines logging severity levels.
+/// </summary>
 public enum LogLevel : byte
 {
-    Off = byte.MaxValue,
+    /// <summary>
+    /// Specifies that a logging category should not write any messages.
+    /// </summary>
+    None = byte.MaxValue,
+
+    /// <summary>
+    /// Logs that contain the most detailed messages.
+    /// </summary>
     Trace = 0,
+
+    /// <summary>
+    /// Logs that are used for interactive investigation during development.
+    /// </summary>
     Debug,
+
+    /// <summary>
+    /// Logs that track the general flow of the application.
+    /// </summary>
     Information,
+
+    /// <summary>
+    /// Logs that highlight an abnormal or unexpected event in the application flow,
+    /// but do not otherwise cause the application execution to stop.
+    /// </summary>
     Warning,
+
+    /// <summary>
+    /// Logs that highlight when the current flow of execution is stopped due to a failure
+    /// </summary>
     Error,
 }
+
 sealed class Logger : IDisposable
 {
     public readonly LogLevel EnabledLevel;
@@ -19,6 +49,7 @@ sealed class Logger : IDisposable
     readonly ArrayPool<char> pool = ArrayPool<char>.Shared;
     readonly LogOptions options;
     readonly ILogWriter writer;
+
     public Logger(
         LogOptions options,
         ILogWriter writer
@@ -29,7 +60,9 @@ sealed class Logger : IDisposable
         EnabledLevel = options.EnabledLevel;
         JobName = $"Log Flush {writer.GetType()}";
     }
+
     public void Write(LogLevel level, string text) => Write(level, $"{text}");
+
     public void Write(
         LogLevel level,
         [InterpolatedStringHandlerArgument("", "level")]
@@ -52,7 +85,9 @@ sealed class Logger : IDisposable
             pool.Return(buffer);
         }
     }
+
     public bool IsEnabledFor(in LogLevel level) => level >= EnabledLevel;
+
     public static Logger CreateConsoleLogger(LogLevel level) => new(
         new LogOptions
         {
@@ -60,6 +95,7 @@ sealed class Logger : IDisposable
         },
         new ConsoleLogWriter()
     );
+
     public void AppendTimestamp(ref LogInterpolatedStringHandler builder)
     {
         if (!options.AppendTimestamps) return;
@@ -67,12 +103,14 @@ sealed class Logger : IDisposable
         builder.AppendFormatted(elapsed, options.TimestampFormat);
         builder.AppendFormatted(" "u8);
     }
+
     public void AppendLevel(in LogLevel level, ref LogInterpolatedStringHandler builder)
     {
         if (!options.AppendLevel) return;
         builder.AppendFormatted(ShortLevelName(level));
         builder.AppendFormatted(": "u8);
     }
+
     public void AppendThreadId(ref LogInterpolatedStringHandler builder)
     {
         if (!options.AppendThreadId) return;
@@ -80,6 +118,7 @@ sealed class Logger : IDisposable
         builder.AppendFormatted(Environment.CurrentManagedThreadId);
         builder.AppendFormatted("] "u8);
     }
+
     static string ShortLevelName(LogLevel level) =>
         level switch
         {
@@ -88,9 +127,10 @@ sealed class Logger : IDisposable
             LogLevel.Information => "inf",
             LogLevel.Warning => "warn",
             LogLevel.Error => "err",
-            LogLevel.Off => throw new InvalidOperationException(),
+            LogLevel.None => throw new InvalidOperationException(),
             _ => "",
         };
+
     public void Dispose() => writer.Dispose();
     public string JobName { get; }
 }

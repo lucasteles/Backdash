@@ -79,13 +79,13 @@ sealed class UdpClient<T> : IUdpClient<T> where T : struct
             }
             catch (SocketException ex)
             {
-                if (logger.EnabledLevel is not LogLevel.Off)
+                if (logger.EnabledLevel is not LogLevel.None)
                     logger.Write(LogLevel.Error, $"Socket error: {ex}");
                 break;
             }
             catch (Exception ex)
             {
-                if (logger.EnabledLevel is not LogLevel.Off)
+                if (logger.EnabledLevel is not LogLevel.None)
                     logger.Write(LogLevel.Error, $"Socket error: {ex}");
                 break;
             }

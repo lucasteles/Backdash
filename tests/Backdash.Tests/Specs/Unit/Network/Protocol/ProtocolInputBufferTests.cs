@@ -153,7 +153,7 @@ public class ProtocolInputBufferTests
         {
             CurrentStatus = ProtocolStatus.Running,
         };
-        faker.Provide(Logger.CreateConsoleLogger(LogLevel.Off));
+        faker.Provide(Logger.CreateConsoleLogger(LogLevel.None));
         faker.Provide<IBinaryWriter<TestInput>>(new TestInputSerializer());
         faker.Provide(options);
         faker.Provide(state);

@@ -8,7 +8,7 @@ var totalDuration = TimeSpan.FromSeconds(10);
 var snapshotInterval = TimeSpan.FromSeconds(0);
 var printSnapshots = false;
 
-var logger = Logger.CreateConsoleLogger(LogLevel.Off);
+var logger = Logger.CreateConsoleLogger(LogLevel.None);
 using BackgroundJobManager jobs = new(logger);
 
 const int bufferSize = Max.CompressedBytes * Max.RemoteConnections;
