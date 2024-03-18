@@ -35,7 +35,7 @@ public readonly record struct FrameSpan :
     /// <summary>Returns max frame span value</summary>
     public static readonly FrameSpan MaxValue = new(int.MaxValue);
 
-    /// <summary>Returns the <see cref="System.Int32"/> count of frames in the current frame span <see cref="Frame"/>.</summary>
+    /// <summary>Returns the <see cref="int"/> count of frames in the current frame span <see cref="Frame"/>.</summary>
     public readonly int FrameCount = 0;
 
     /// <summary>
@@ -99,7 +99,7 @@ public readonly record struct FrameSpan :
         FromSeconds(milliseconds / 1000, fps);
 
     /// <summary>
-    /// Returns <see cref="System.Double"/> seconds for <paramref name="frameCount"/> at specified <paramref name="fps"/>.
+    /// Returns <see cref="double"/> seconds for <paramref name="frameCount"/> at specified <paramref name="fps"/>.
     /// </summary>
     public static double InSeconds(int frameCount, short fps = DefaultFramesPerSecond) => frameCount / (double)fps;
 

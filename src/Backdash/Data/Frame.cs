@@ -36,7 +36,7 @@ public readonly record struct Frame :
     /// <summary>Returns max frame value</summary>
     public static readonly Frame MaxValue = new(int.MaxValue);
 
-    /// <summary>Returns the <see cref="System.Int32"/> value for the current <see cref="Frame"/>.</summary>
+    /// <summary>Returns the <see cref="int"/> value for the current <see cref="Frame"/>.</summary>
     public readonly int Number = NullValue;
 
     /// <summary>
