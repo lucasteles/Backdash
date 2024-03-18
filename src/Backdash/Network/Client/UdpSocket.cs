@@ -26,7 +26,7 @@ public sealed class UdpSocket : IDisposable
         {
             AddressFamily.InterNetwork => IPAddress.Any,
             AddressFamily.InterNetworkV6 => IPAddress.IPv6Any,
-            _ => throw new BackdashException($"Invalid binding endpoint address family {bindEndpoint.AddressFamily}"),
+            _ => throw new NetcodeException($"Invalid binding endpoint address family {bindEndpoint.AddressFamily}"),
         }, IPEndPoint.MinPort);
 
         Port = bindEndpoint.Port;
@@ -66,7 +66,7 @@ public sealed class UdpSocket : IDisposable
     public static IPAddress GetDnsIpAddress(string host, AddressFamily addressFamily = AddressFamily.InterNetwork)
     {
         var address = Dns.GetHostAddresses(host, addressFamily).FirstOrDefault()
-                      ?? throw new BackdashException($"Unable to retrieve IP Address from host {host}");
+                      ?? throw new NetcodeException($"Unable to retrieve IP Address from host {host}");
         return address;
     }
 

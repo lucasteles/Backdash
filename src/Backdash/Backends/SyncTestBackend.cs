@@ -188,7 +188,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
             {
                 var message = $"Frame number {info.Frame} does not match saved frame number {frame}";
                 logger.Write(LogLevel.Error, message);
-                if (throwError) throw new BackdashException(message);
+                if (throwError) throw new NetcodeException(message);
             }
             ref readonly var last = ref synchronizer.GetLastSavedFrame();
             var checksum = last.Checksum;
@@ -198,7 +198,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
                 LogSaveState(last, "last");
                 var message = $"Checksum for frame {frame} does not match saved ({checksum} != {info.Checksum})";
                 logger.Write(LogLevel.Error, message);
-                if (throwError) throw new BackdashException(message);
+                if (throwError) throw new NetcodeException(message);
             }
             logger.Write(LogLevel.Debug, $"Checksum {checksum} for frame {info.Frame} matches");
         }

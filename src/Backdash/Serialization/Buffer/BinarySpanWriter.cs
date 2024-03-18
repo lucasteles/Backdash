@@ -42,7 +42,7 @@ public readonly ref struct BinarySpanWriter
     public void Write(in bool value)
     {
         if (!BitConverter.TryWriteBytes(CurrentBuffer, value))
-            throw new BackdashException("Destination too short");
+            throw new NetcodeException("Destination too short");
         Advance(sizeof(bool));
     }
 

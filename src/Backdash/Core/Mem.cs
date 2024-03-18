@@ -35,7 +35,7 @@ static class Mem
         where TEnum : unmanaged, Enum
         where TInt : unmanaged, IBinaryInteger<TInt>
     {
-        if (Unsafe.SizeOf<TEnum>() != Unsafe.SizeOf<TInt>()) throw new BackdashException("type mismatch");
+        if (Unsafe.SizeOf<TEnum>() != Unsafe.SizeOf<TInt>()) throw new NetcodeException("type mismatch");
         return ref Unsafe.As<TEnum, TInt>(ref enumValue);
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -43,7 +43,7 @@ static class Mem
         where TEnum : unmanaged, Enum
         where TInt : unmanaged, IBinaryInteger<TInt>
     {
-        if (Unsafe.SizeOf<TEnum>() != Unsafe.SizeOf<TInt>()) throw new BackdashException("type mismatch");
+        if (Unsafe.SizeOf<TEnum>() != Unsafe.SizeOf<TInt>()) throw new NetcodeException("type mismatch");
         return ref Unsafe.As<TInt, TEnum>(ref intValue);
     }
     public static bool EqualBytes(ReadOnlySpan<byte> left, ReadOnlySpan<byte> right, bool truncate = false)

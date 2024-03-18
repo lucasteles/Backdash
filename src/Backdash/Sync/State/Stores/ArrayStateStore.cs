@@ -21,7 +21,7 @@ public sealed class ArrayStateStore<TState> : IStateStore<TState> where TState :
             AdvanceHead();
             return ref current;
         }
-        throw new BackdashException($"Save state not found for frame {frame}");
+        throw new NetcodeException($"Save state not found for frame {frame}");
     }
     public ref readonly SavedFrame<TState> Last()
     {

@@ -25,7 +25,7 @@ sealed class IntegerBinarySerializer<T>(Endianness endianness)
         {
             Endianness.BigEndian => valueRef.TryWriteBigEndian(buffer, out size) ? size : 0,
             Endianness.LittleEndian => valueRef.TryWriteLittleEndian(buffer, out size) ? size : 0,
-            _ => throw new BackdashException("Invalid integer serialization mode")
+            _ => throw new NetcodeException("Invalid integer serialization mode")
         };
     }
     public int Deserialize(ReadOnlySpan<byte> data, ref T value)
@@ -35,7 +35,7 @@ sealed class IntegerBinarySerializer<T>(Endianness endianness)
         {
             Endianness.BigEndian => T.ReadBigEndian(data[..size], isUnsigned),
             Endianness.LittleEndian => T.ReadLittleEndian(data[..size], isUnsigned),
-            _ => throw new BackdashException("Invalid integer serialization mode"),
+            _ => throw new NetcodeException("Invalid integer serialization mode"),
         };
         return size;
     }

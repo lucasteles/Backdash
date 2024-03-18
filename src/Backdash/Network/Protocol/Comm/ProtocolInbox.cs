@@ -106,7 +106,7 @@ sealed class ProtocolInbox<TInput>(
                 logger.Write(LogLevel.Error, "Invalid UdpProtocol message");
                 break;
             default:
-                throw new BackdashException($"Unknown UdpMsg type: {message.Header.Type}");
+                throw new NetcodeException($"Unknown UdpMsg type: {message.Header.Type}");
         }
         return handled;
     }

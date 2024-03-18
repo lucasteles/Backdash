@@ -44,7 +44,7 @@ public sealed class BinaryStateStore<TState>(
             AdvanceHead();
             return ref Deserialize(i);
         }
-        throw new BackdashException($"Save state not found for frame {frame}");
+        throw new NetcodeException($"Save state not found for frame {frame}");
     }
     public ref readonly SavedFrame<TState> Last()
     {
