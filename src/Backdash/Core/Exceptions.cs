@@ -18,7 +18,8 @@ public class NetcodeException : Exception
 public class NetcodeDeserializationException : NetcodeException
 {
     internal NetcodeDeserializationException(Type type, string message = "") : base(
-        $"Unable to deserialize {type.FullName}. {message}") { }
+        $"Unable to deserialize {type.FullName}. {message}")
+    { }
 }
 
 /// <summary>
@@ -38,7 +39,8 @@ public class NetcodeDeserializationException<T> : NetcodeDeserializationExceptio
 public class NetcodeSerializationException : NetcodeException
 {
     internal NetcodeSerializationException(Type type, string message = "") : base(
-        $"Unable to serialize {type.FullName}. {message}") { }
+        $"Unable to serialize {type.FullName}. {message}")
+    { }
 }
 
 /// <summary>
