@@ -62,6 +62,9 @@ to build some samples.
 
 ## Building from source
 
+You need to have installed [.NET 8 SDK](https://dotnet.microsoft.com/en-us/download)
+![](https://raw.githubusercontent.com/lucasteles/Backdash/site/dotnet_version_badge.svg)
+
 1. Clone this repo.
 2. Building
     - With samples run `dotnet build -c Release Backdash.sln` on the root directory.
