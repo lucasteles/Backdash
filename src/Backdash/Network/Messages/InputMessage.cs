@@ -95,7 +95,7 @@ struct PeerStatusBuffer
     }
 }
 [Serializable, InlineArray(Max.CompressedBytes)]
-public struct InputMessageBuffer
+struct InputMessageBuffer
 {
     byte element0;
     public InputMessageBuffer(ReadOnlySpan<byte> bits) => bits.CopyTo(this);
