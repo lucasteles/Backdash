@@ -33,6 +33,8 @@ Rollback [Netcode](https://words.infil.net/w02-netcode.html)_) into new and exis
 $ dotnet add package Backdash
 ```
 
+💡 Please check the **[DOCUMENTATION](https://lucasteles.github.io/Backdash/docs/introduction)** for usage details.
+
 ### Demos:
 
 | Title           | Link                                                                                                   |
@@ -48,11 +50,23 @@ Check the samples on the [/samples](https://github.com/lucasteles/Backdash/tree/
 There are examples for up to 4 players:
 
 - [Simple console game](https://github.com/lucasteles/Backdash/tree/master/samples/ConsoleGame)
-- [Monogame SpaceWar](https://github.com/lucasteles/Backdash/tree/master/samples/SpaceWar)
-- [Monogame SpaceWar with Lobby over internet](https://github.com/lucasteles/Backdash/tree/master/samples/SpaceWar.Lobby) [^1]
+- [Monogame SpaceWar](https://github.com/lucasteles/Backdash/tree/master/samples/SpaceWar)[^2]
+- [Monogame SpaceWar with Lobby over internet](https://github.com/lucasteles/Backdash/tree/master/samples/SpaceWar.Lobby) [^1][^2]
 
 [^1]: The sample needs a [web server](https://github.com/lucasteles/Backdash/tree/master/samples/LobbyServer) to
 exchange players addresses. check the sample `README.md` for more information.
+
+[^2]: If you are using *ARM* *MacOS*
+you [may need the x64 version of .NET SDK](https://community.monogame.net/t/tutorial-for-setting-up-monogame-on-m1-m2-apple-silicon/19669)
+to build some samples.
+
+## Building from source
+
+1. Clone this repo.
+2. Building
+    - With samples run `dotnet build -c Release Backdash.sln` on the root directory.
+    - SDK only run `dotnet build -c Release src/Backdash` on the root directory.
+    - Alternatively open the solution file `Backdash.sln` on your IDE.
 
 ## Licensing
 
