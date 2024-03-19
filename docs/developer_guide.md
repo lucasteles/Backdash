@@ -67,10 +67,6 @@ the [`RollbackNetcode.CreateSession`](https://lucasteles.github.io/Backdash/api/
 function passing the port to bind to locally and optionally other configuration with
 a instance of [`RollbackOptions`](https://lucasteles.github.io/Backdash/api/Backdash.RollbackOptions.html).
 
-You should also set
-the [`IRollbackHandler<TState>`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackHandler-1.html) object
-filled in with your game's callback functions for managing game state.
-
 For example, giving the user pre-defined types for the **Game State** and **Game Input**
 
 ```csharp
@@ -121,83 +117,142 @@ var session = RollbackNetcode.CreateSession<MyGameInput, MyGameState>(networkPor
 
 ```
 
-The `GGPOSession` object should only be used for a single game session. If you need to connect to another opponent,
-close your existing object using `ggpo_close_session` and start a new one:
+You should also define an implementation of
+the [`IRollbackHandler<TState>`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackHandler-1.html)
+filled in with your game's callback functions for managing game state.
 
+```csharp
+public class MySessionHandler : IRollbackHandler<MyGameState>
+{
+    public void OnSessionStart() { /* ... */ }
+    public void OnSessionClose() { /* ... */ }
+    public void SaveState(in Frame frame, ref MyGameState state) { /* ... */ }
+    public void LoadState(in Frame frame, in MyGameState gameState) { /* ... */ }
+    public void AdvanceFrame() { /* ... */ }
+    public void TimeSync(FrameSpan framesAhead) { /* ... */ }
+    public void OnPeerEvent(PlayerHandle player, PeerEventInfo evt) { /* ... */ }
+}
 ```
-   /* Close the current session and start a new one */
-   ggpo_close_session(ggpo);
+
+And then, set it into the session:
+
+```csharp
+session.SetHandler(new MySessionHandler());
+```
+
+The [`IRollbackSession`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackSession-2.html) object should only
+be used for a single game session. If you need to connect to another opponent, dispose your existing object using
+the [`.Dispose`](https://learn.microsoft.com/pt-br/dotnet/api/system.idisposable.dispose?view=net-8.0)
+method and start a new one:
+
+```csharp
+/* Close the current session to start a new one */
+session.Dispose();
 ```
 
 ### Sending Player Locations
 
-When you created the GGPOSession object passed in the number of players participating in the game, but didn't actually
-describe how to contact them. To do so, call the `ggpo_add_player` function with a `GGPOPlayer` object describing each
-player. The following example show how you might use ggpo_add_player in a 2 player game:
+When you created the [`IRollbackSession`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackSession-2.html)
+you don't specify any information about the players participating in the game. To do so, call
+the [`.AddPlayer()`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackSession-2.html#Backdash_IRollbackSession_2_AddPlayers_System_Collections_Generic_IReadOnlyList_Backdash_Player__)
+method function with a instance of [`Player`](https://lucasteles.github.io/Backdash/api/Backdash.Player.html) for each
+player. The following example show how you might
+use [`.AddPlayer()`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackSession-2.html#Backdash_IRollbackSession_2_AddPlayers_System_Collections_Generic_IReadOnlyList_Backdash_Player__)
+in a 2 player game:
 
+```csharp
+LocalPlayer player1 = new(1); // local player number 1
+
+var player2Endpoint = IPEndPoint.Parse("192.168.0.100:8001"); // player 2 ip and port
+RemotePlayer player2 = new(2, player2Endpoint); // remote player number 2
+
+ResultCode result;
+result = session.AddPlayer(player1);
+// ...
+result = session.AddPlayer(player2);
+// ...
 ```
-GGPOPlayer p1, p2;
-GGPOPlayerHandle player_handles[2];
 
-p1.size = p2.size = sizeof(GGPOPlayer);
-p1.type = GGPO_PLAYERTYPE_LOCAL;                // local player
-p2.type = GGPO_PLAYERTYPE_REMOTE;               // remote player
-strcpy(p2.remote.ip_address, "192.168.0.100");  // ip addess of the player
-p2.remote.ip_address.port = 8001;               // port of that player
+Check the [samples](https://github.com/lucasteles/Backdash/tree/master/samples) more complex cases.
 
-result = ggpo_add_player(ggpo, &p1,  &player_handles[0]);
-...
-result = ggpo_add_player(ggpo, &p2,  &player_handles[1]);
+### Starting session
+
+After setting up players you must call the
+session [.Start()](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackSession-2.html#Backdash_IRollbackSession_2_Start_System_Threading_CancellationToken_)
+method. This will start all the background work like socket receiver, input queue, peer synchronization, etc.
+
+```csharp
+session.Start();
 ```
 
 ### Synchronizing Local and Remote Inputs
 
-Input synchronization happens at the top of each game frame. This is done by calling `ggpo_add_local_input` for each
-local player and `ggpo_synchronize_input` to fetch the inputs for remote players.
-Be sure to check the return value of `ggpo_synchronize_inputs`. If it returns a value other than `GGPO_OK`, you should
-not advance your game state. This usually happens because [Backdash](https://github.com/lucasteles/Backdash) has not
-received packets from the remote player in a
-while and has reached its internal prediction limit.
+Input synchronization happens on
+the [session](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackSession-1.html) at the top of each game frame.
+This is done by
+calling [`AddLocalInput`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackSession-1.html#Backdash_IRollbackSession_1_AddLocalInput_Backdash_PlayerHandle__0_)
+for each local player
+and [`SynchronizeInputs`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackSession-1.html#Backdash_IRollbackSession_1_SynchronizeInputs)
+to fetch the inputs for remote players. Be sure to check the return value of `SynchronizeInputs`. If it returns a value
+other than [ResultCode.Ok`](https://lucasteles.github.io/Backdash/api/Backdash.ResultCode.html), you should
+**not advance your game state**. This usually happens because [Backdash](https://github.com/lucasteles/Backdash) has not
+received packets from the remote player in a while and has reached its internal prediction limit.
+
+After synchronizing you can read the players inputs using
+the [`GetInput`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackSession-1.html#Backdash_IRollbackSession_1_GetInput_System_Int32_)
+method for a single player
+or [`GetInputs`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackSession-1.html#Backdash_IRollbackSession_1_GetInputs_System_Span_Backdash_Data_SynchronizedInput__0___)
+to load all players inputs into a buffer.
 
 For example, if your code looks like this currently for a local game:
 
-```
-   GameInputs &p1, &p2;
-   GetControllerInputs(0, &p1); /* read p1's controller inputs */
-   GetControllerInputs(1, &p2); /* read p2's controller inputs */
-   AdvanceGameState(&p1, &p2, &gamestate); /* send p1 and p2 to the game */
+```csharp
+MyGameInput player1Input = GetControllerInput(0);
+MyGameInput player2Input = GetControllerInput(1);
+
+/* send p1 and p2 to the game */
+AdvanceGameState(player1Input, player2Input, gameState);
 ```
 
 You should change it to read as follows:
 
+```csharp
+// usually a reusable reference
+var gameInputs = new MyGameInput[2];
+
+// you must keep the player handlers or read then with session.GetPlayers()
+var player1Handle = player1.Handle;
+
+var localInput = GetControllerInput(0); // read the controller
+
+// notify Backdash of the local player's inputs
+var result = session.AddLocalInput(player1Handle, localInput);
+
+if (result is ResultCode.Ok)
+{
+    result = session.SynchronizeInputs();
+    if (result is ResultCode.Ok)
+    {
+        session.GetInputs(gameInputs);
+        AdvanceGameState(gameInputs[0], gameInputs[1], gameState);
+    }
+}
 ```
-   GameInputs p[2];
-   GetControllerInputs(0, &p[0]); /* read the controller */
 
-   /* notify [Backdash](https://github.com/lucasteles/Backdash) of the local player's inputs */
-   result = ggpo_add_local_input(ggpo,               // the session object
-                                 player_handles[0],  // handle for p1
-                                 &p[0],              // p1's inputs
-                                 sizeof(p[0]));      // size of p1's inputs
-
-   /* synchronize the local and remote inputs */
-   if (GGPO_SUCCEEDED(result)) {
-      result = ggpo_synchronize_inputs(ggpo,         // the session object
-                                       p,            // array of inputs
-                                       sizeof(p));   // size of all inputs
-      if (GGPO_SUCCEEDED(result)) {
-         /* pass both inputs to our advance function */
-         AdvanceGameState(&p[0], &p[1], &gamestate);
-      }
-   }
-```
-
-You should call `ggpo_synchronize_inputs` every frame, even those that happen during a rollback. Make sure you always
-use the values returned from `ggpo_synchronize_inputs` rather than the values you've read from the local controllers to
-advance your game state. During a rollback `ggpo_synchronize_inputs` will replace the values passed
-into `ggpo_add_local_input` with the values used for previous frames. Also, if you've manually added input delay for the
-local player to smooth out the effect of rollbacks, the inputs you pass into `ggpo_add_local_input` won't actually be
-returned in `ggpo_synchronize_inputs` until after the frame delay.
+You should
+call [`SynchronizeInputs`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackSession-1.html#Backdash_IRollbackSession_1_SynchronizeInputs)
+every frame, even those that happen during a rollback. Make sure you always use the values returned
+from [`GetInputs`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackSession-1.html#Backdash_IRollbackSession_1_GetInputs_System_Span_Backdash_Data_SynchronizedInput__0___)
+rather than the values you've read from the local controllers to advance your game state. During a
+rollback [`SynchronizeInputs`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackSession-1.html#Backdash_IRollbackSession_1_SynchronizeInputs)
+will replace the values passed
+into [`AddLocalInput`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackSession-1.html#Backdash_IRollbackSession_1_AddLocalInput_Backdash_PlayerHandle__0_)
+with the values used for previous frames. Also, if you've manually added input delay for the local player to smooth out
+the effect of rollbacks, the inputs you pass
+into [`AddLocalInput`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackSession-1.html#Backdash_IRollbackSession_1_AddLocalInput_Backdash_PlayerHandle__0_)
+won't actually be returned
+in [`GetInputs`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackSession-1.html#Backdash_IRollbackSession_1_GetInputs_System_Span_Backdash_Data_SynchronizedInput__0___)
+until after the frame delay.
 
 ### Implementing your save, load, and free Callbacks
 
