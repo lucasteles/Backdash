@@ -1,35 +1,34 @@
 using Backdash.Core;
 using Backdash.Network.Protocol;
 using Backdash.Sync.Input;
+
 namespace Backdash.Sync;
-public sealed class TimeSyncOptions
-{
-    public int FrameWindowSize { get; init; } = 40;
-    public int MinUniqueFrames { get; init; } = 10;
-    public int MinFrameAdvantage { get; init; } = 3;
-    public int MaxFrameAdvantage { get; init; } = 9;
-}
+
 interface ITimeSync<TInput> where TInput : struct
 {
     void AdvanceFrame(in GameInput<TInput> input, in ProtocolState.AdvantageState state);
     int RecommendFrameWaitDuration(bool requireIdleInput);
 }
+
 static file class TimeSyncCounter
 {
     static int counter;
     public static int Increment() => counter++;
 }
+
 sealed class TimeSync<TInput>(
     TimeSyncOptions options,
     Logger logger
 ) : ITimeSync<TInput>
     where TInput : struct
 {
-    readonly int minFrameAdvantage = options.MinFrameAdvantage;
-    readonly int maxFrameAdvantage = options.MaxFrameAdvantage;
     readonly int[] local = new int[options.FrameWindowSize];
     readonly int[] remote = new int[options.FrameWindowSize];
     readonly GameInput<TInput>[] lastInputs = new GameInput<TInput>[options.MinUniqueFrames];
+
+    int MinFrameAdvantage => options.MinFrameAdvantage;
+    int MaxFrameAdvantage => options.MaxFrameAdvantage;
+
     public void AdvanceFrame(in GameInput<TInput> input, int advantage, int remoteAdvantage)
     {
         // Remember the last frame and frame advantage
@@ -37,8 +36,10 @@ sealed class TimeSync<TInput>(
         local[input.Frame.Number % local.Length] = advantage;
         remote[input.Frame.Number % remote.Length] = remoteAdvantage;
     }
+
     public void AdvanceFrame(in GameInput<TInput> input, in ProtocolState.AdvantageState state) =>
         AdvanceFrame(in input, state.LocalFrameAdvantage.FrameCount, state.RemoteFrameAdvantage.FrameCount);
+
     public int RecommendFrameWaitDuration(bool requireIdleInput)
     {
         // Average our local and remote frame advantages
@@ -57,7 +58,7 @@ sealed class TimeSync<TInput>(
         logger.Write(LogLevel.Trace, $"iteration {iteration}:  sleep frames is {sleepFrames}");
         // Some things just aren't worth correcting for.  Make sure
         // the difference is relevant before proceeding.
-        if (sleepFrames < minFrameAdvantage)
+        if (sleepFrames < MinFrameAdvantage)
             return 0;
         // Make sure our input had been "idle enough" before recommending
         // a sleep.  This tries to make the emulator sleep while the
@@ -73,14 +74,16 @@ sealed class TimeSync<TInput>(
                     sw.SpinOnce();
                     continue;
                 }
+
                 logger.Write(LogLevel.Debug,
                     $"iteration {iteration}:  rejecting due to input stuff at position {i}!");
                 return 0;
             }
         }
-        var recommendation = Math.Min(sleepFrames, maxFrameAdvantage);
+
+        var recommendation = Math.Min(sleepFrames, MaxFrameAdvantage);
         logger.Write(LogLevel.Information,
-            $"time sync: recommending sleep: {recommendation}, total:{sleepFrames}, max:{maxFrameAdvantage}");
+            $"time sync: recommending sleep: {recommendation}, total:{sleepFrames}, max:{MaxFrameAdvantage}");
         // Success!!! Recommend the number of frames to sleep and adjust
         return recommendation;
     }
