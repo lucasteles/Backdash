@@ -37,14 +37,54 @@ public sealed class RollbackOptions
     /// <value>Defaults to <see langword="true"/></value>
     public bool NetworkEndianness { get; init; } = true;
 
+    /// <summary>
+    ///
+    /// </summary>
+    /// <inheritdoc cref="Default.PredictionFrames"/>
     public int PredictionFrames { get; init; } = Default.PredictionFrames;
+
+    /// <summary>
+    ///
+    /// </summary>
+    /// <inheritdoc cref="Default.InputQueueLength"/>
     public int InputQueueLength { get; init; } = Default.InputQueueLength;
+
+    /// <summary>
+    ///
+    /// </summary>
+    /// <inheritdoc cref="Default.InputQueueLength"/>
     public int SpectatorInputBufferLength { get; init; } = Default.InputQueueLength;
+
+    /// <summary>
+    ///
+    /// </summary>
+    /// <inheritdoc cref="Default.PredictionFramesOffset"/>
     public int PredictionFramesOffset { get; init; } = Default.PredictionFramesOffset;
+
+    /// <summary>
+    ///
+    /// </summary>
+    /// <inheritdoc cref="Default.FrameDelay"/>
     public int FrameDelay { get; init; } = Default.FrameDelay;
+
+    /// <summary>
+    ///
+    /// </summary>
+    /// <value>Defaults to <see langword="false"/></value>
     public bool UseIPv6 { get; init; }
+
+    /// <summary>
+    ///
+    /// </summary>
+    /// <inheritdoc cref="FrameSpan.DefaultFramesPerSecond"/>
     public short FramesPerSecond { get; init; } = FrameSpan.DefaultFramesPerSecond;
+
+    /// <summary>Logging options. <seealso cref="LogOptions"/></summary>
     public LogOptions Log { get; init; } = new();
+
+    /// <summary>Time synchronization options. <seealso cref="TimeSyncOptions"/></summary>
     public TimeSyncOptions TimeSync { get; init; } = new();
+
+    /// <summary>Networking Protocol options. <seealso cref="ProtocolOptions"/></summary>
     public ProtocolOptions Protocol { get; init; } = new();
 }
