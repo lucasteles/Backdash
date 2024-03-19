@@ -15,6 +15,6 @@ record struct CombinedInputs<TInput> where TInput : struct
 [InlineArray(Capacity)]
 struct InputArray<TInput> where TInput : struct
 {
-    public const int Capacity = Max.RemoteConnections;
+    public const int Capacity = Max.NumberOfPlayers;
     public TInput element0;
 }

@@ -145,7 +145,7 @@ class PropertyTestGenerators
     public static Arbitrary<PeerStatusBuffer> PeerStatusBufferGenerator() =>
         Gen.Sized(testSize =>
             {
-                var size = Math.Min(testSize, Max.RemoteConnections);
+                var size = Math.Min(testSize, Max.NumberOfPlayers);
                 return Gen.ArrayOf(size, Arb.Generate<ConnectStatus>());
             })
             .Select(arr =>
@@ -162,7 +162,7 @@ class PropertyTestGenerators
         from inputSize in Arb.Generate<byte>()
         from peerConnectStats in Gen.Sized(testSize =>
         {
-            var size = Math.Min(testSize, Max.RemoteConnections);
+            var size = Math.Min(testSize, Max.NumberOfPlayers);
             return Gen.ArrayOf(size, Arb.Generate<ConnectStatus>());
         })
         from inputBuffer in Gen.Sized(testSize =>

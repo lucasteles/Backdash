@@ -150,7 +150,8 @@ public interface IRollbackSession<TInput, TState> : IRollbackSession<TInput>
     IReadOnlyList<ResultCode> AddPlayers(IReadOnlyList<Player> players);
 
     /// <summary>
-    /// Starts the background work for the session.
+    /// Starts the background work for the session
+    /// (Socket receiver, input queue, peer synchronization, etc).
     /// </summary>
     void Start(CancellationToken stoppingToken = default);
 

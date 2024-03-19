@@ -53,7 +53,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         ArgumentNullException.ThrowIfNull(options);
         ThrowHelpers.ThrowIfArgumentIsZeroOrLess(port);
         ThrowHelpers.ThrowIfArgumentIsZeroOrLess(options.FramesPerSecond);
-        ThrowHelpers.ThrowIfArgumentOutOfBounds(options.SpectatorOffset, min: Max.RemoteConnections);
+        ThrowHelpers.ThrowIfArgumentOutOfBounds(options.SpectatorOffset, min: Max.NumberOfPlayers);
         ThrowHelpers.ThrowIfTypeTooBigForStack<GameInput<TInput>>();
         this.options = options;
         inputSerializer = services.InputSerializer;
@@ -63,7 +63,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         peerInputEventQueue = new ProtocolInputEventQueue<TInput>();
         peerCombinedInputsEventPublisher = new ProtocolCombinedInputsEventPublisher<TInput>(peerInputEventQueue);
         inputGroupSerializer = new CombinedInputsSerializer<TInput>(inputSerializer);
-        localConnections = new(Max.RemoteConnections);
+        localConnections = new(Max.NumberOfPlayers);
         spectators = [];
         endpoints = [];
         udpObservers = new();
@@ -230,11 +230,11 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
 
     ResultCode AddLocalPlayer(in LocalPlayer player)
     {
-        if (addedPlayers.Count >= Max.RemoteConnections)
+        if (addedPlayers.Count >= Max.NumberOfPlayers)
             return ResultCode.TooManyPlayers;
         PlayerHandle handle = new(player.Handle.Type, player.Handle.Number, addedPlayers.Count);
         if (!addedPlayers.Add(handle))
-            return ResultCode.Duplicated;
+            return ResultCode.DuplicatedPlayer;
         player.Handle = handle;
         endpoints.Add(null);
         Array.Resize(ref syncInputBuffer, syncInputBuffer.Length + 1);
@@ -244,11 +244,11 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
 
     ResultCode AddRemotePlayer(RemotePlayer player)
     {
-        if (addedPlayers.Count >= Max.RemoteConnections)
+        if (addedPlayers.Count >= Max.NumberOfPlayers)
             return ResultCode.TooManyPlayers;
         PlayerHandle handle = new(player.Handle.Type, player.Handle.Number, addedPlayers.Count);
         if (!addedPlayers.Add(handle))
-            return ResultCode.Duplicated;
+            return ResultCode.DuplicatedPlayer;
         player.Handle = handle;
         var endpoint = player.EndPoint;
         var protocol = peerConnectionFactory.Create(
@@ -278,13 +278,16 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
     {
         if (spectators.Count >= Max.NumberOfSpectators)
             return ResultCode.TooManySpectators;
+
         // Currently, we can only add spectators before the game starts.
         if (!isSynchronizing)
-            return ResultCode.InvalidRequest;
+            return ResultCode.AlreadySynchronized;
+
         var queue = spectators.Count;
         PlayerHandle spectatorHandle = new(PlayerType.Spectator, options.SpectatorOffset + queue, queue);
         if (!addedSpectators.Add(spectatorHandle))
-            return ResultCode.Duplicated;
+            return ResultCode.DuplicatedPlayer;
+
         spectator.Handle = spectatorHandle;
         var protocol = peerConnectionFactory.Create(
             new(spectatorHandle, spectator.EndPoint, localConnections, options.FramesPerSecond),

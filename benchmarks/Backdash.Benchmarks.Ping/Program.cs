@@ -11,7 +11,7 @@ var printSnapshots = false;
 var logger = Logger.CreateConsoleLogger(LogLevel.None);
 using BackgroundJobManager jobs = new(logger);
 
-const int bufferSize = Max.CompressedBytes * Max.RemoteConnections;
+const int bufferSize = Max.CompressedBytes * Max.NumberOfPlayers;
 var sendBuffer1 = Mem.CreatePinnedMemory(bufferSize);
 var sendBuffer2 = Mem.CreatePinnedMemory(bufferSize);
 

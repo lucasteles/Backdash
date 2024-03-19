@@ -4,7 +4,9 @@ using Backdash.Data;
 using Backdash.Network;
 using Backdash.Sync.Input;
 using Backdash.Sync.State;
+
 namespace Backdash.Backends;
+
 sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGameState>
     where TInput : struct
     where TGameState : IEquatable<TGameState>, new()
@@ -15,21 +17,24 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         JsonElement State,
         GameInput<TInput> Input
     );
+
     readonly Synchronizer<TInput, TGameState> synchronizer;
     readonly TaskCompletionSource tsc = new();
     readonly Logger logger;
     readonly HashSet<PlayerHandle> addedPlayers = [];
     readonly HashSet<PlayerHandle> addedSpectators = [];
     readonly Queue<SavedFrame> savedFrames = [];
-    readonly SynchronizedInput<TInput>[] syncInputBuffer = new SynchronizedInput<TInput>[Max.RemoteConnections];
+    readonly SynchronizedInput<TInput>[] syncInputBuffer = new SynchronizedInput<TInput>[Max.NumberOfPlayers];
     readonly FrameSpan checkDistance;
     readonly bool throwError;
     readonly IInputGenerator<TInput>? inputGenerator;
+
     readonly JsonSerializerOptions jsonOptions = new()
     {
         WriteIndented = false,
         IncludeFields = true,
     };
+
     IRollbackHandler<TGameState> callbacks;
     bool inRollback;
     bool running;
@@ -37,6 +42,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
     GameInput<TInput> currentInput;
     GameInput<TInput> lastInput;
     Frame lastVerified = Frame.Zero;
+
     public SyncTestBackend(
         RollbackOptions options,
         FrameSpan checkDistance,
@@ -59,7 +65,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
             addedPlayers,
             services.StateStore,
             services.ChecksumProvider,
-            new(Max.RemoteConnections)
+            new(Max.NumberOfPlayers)
         )
         {
             Callbacks = callbacks,
@@ -67,6 +73,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         currentInput = new();
         lastInput = new();
     }
+
     public void Dispose() => tsc.SetResult();
     public int NumberOfPlayers => Math.Max(addedPlayers.Count, 1);
     public int NumberOfSpectators => addedSpectators.Count;
@@ -74,10 +81,13 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
     public bool IsSpectating => false;
     public FrameSpan FramesBehind => synchronizer.FramesBehind;
     public FrameSpan RollbackFrames => synchronizer.RollbackFrames;
+
     public IReadOnlyCollection<PlayerHandle> GetPlayers() =>
         addedPlayers.Count is 0 ? [new PlayerHandle(PlayerType.Local, 1, 0)] : addedPlayers;
+
     public IReadOnlyCollection<PlayerHandle> GetSpectators() => addedSpectators;
     public void DisconnectPlayer(in PlayerHandle player) { }
+
     public void Start(CancellationToken stoppingToken = default)
     {
         if (!running)
@@ -85,32 +95,39 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
             callbacks.OnSessionStart();
             running = true;
         }
+
         backGroundJobTask = tsc.Task.WaitAsync(stoppingToken);
     }
+
     public async Task WaitToStop(CancellationToken stoppingToken = default)
     {
         // ReSharper disable once MethodSupportsCancellation
         tsc.SetCanceled();
         await backGroundJobTask.WaitAsync(stoppingToken);
     }
+
     public ResultCode AddPlayer(Player player)
     {
-        if (addedPlayers.Count >= Max.RemoteConnections)
+        if (addedPlayers.Count >= Max.NumberOfPlayers)
             return ResultCode.TooManyPlayers;
+
         if (!addedPlayers.Add(player.Handle))
-            return ResultCode.Duplicated;
+            return ResultCode.DuplicatedPlayer;
+
         if (player.IsSpectator())
         {
             if (!addedSpectators.Add(player.Handle))
-                return ResultCode.Duplicated;
+                return ResultCode.DuplicatedPlayer;
         }
         else
         {
             if (!addedPlayers.Add(player.Handle))
-                return ResultCode.Duplicated;
+                return ResultCode.DuplicatedPlayer;
         }
+
         return ResultCode.Ok;
     }
+
     public IReadOnlyList<ResultCode> AddPlayers(IReadOnlyList<Player> players)
     {
         var result = new ResultCode[players.Count];
@@ -118,13 +135,16 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
             result[index] = AddPlayer(players[index]);
         return result;
     }
+
     public PlayerConnectionStatus GetPlayerStatus(in PlayerHandle player)
     {
         if (addedPlayers.Contains(player) || addedSpectators.Contains(player))
             return player.IsLocal() ? PlayerConnectionStatus.Local : PlayerConnectionStatus.Connected;
         return PlayerConnectionStatus.Unknown;
     }
+
     public bool GetNetworkStatus(in PlayerHandle player, ref RollbackNetworkStatus info) => false;
+
     public ResultCode AddLocalInput(PlayerHandle player, TInput localInput)
     {
         if (!running)
@@ -135,7 +155,9 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         currentInput.Data = localInput;
         return ResultCode.Ok;
     }
+
     public void BeginFrame() => logger.Write(LogLevel.Trace, $"Beginning of frame({synchronizer.CurrentFrame})...");
+
     public ResultCode SynchronizeInputs()
     {
         if (inRollback)
@@ -148,13 +170,17 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
                 synchronizer.SaveCurrentFrame();
             lastInput = currentInput;
         }
+
         syncInputBuffer[0] = new(lastInput.Data, false);
         return ResultCode.Ok;
     }
+
     public ref readonly SynchronizedInput<TInput> GetInput(in PlayerHandle player) =>
         ref syncInputBuffer[player.InternalQueue];
+
     public ref readonly SynchronizedInput<TInput> GetInput(int index) =>
         ref syncInputBuffer[index];
+
     public void AdvanceFrame()
     {
         logger.Write(LogLevel.Trace, $"End of frame({synchronizer.CurrentFrame})...");
@@ -190,6 +216,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
                 logger.Write(LogLevel.Error, message);
                 if (throwError) throw new NetcodeException(message);
             }
+
             ref readonly var last = ref synchronizer.GetLastSavedFrame();
             var checksum = last.Checksum;
             if (info.Checksum != checksum)
@@ -200,11 +227,14 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
                 logger.Write(LogLevel.Error, message);
                 if (throwError) throw new NetcodeException(message);
             }
+
             logger.Write(LogLevel.Debug, $"Checksum {checksum} for frame {info.Frame} matches");
         }
+
         lastVerified = frame;
         inRollback = false;
     }
+
     void LogSaveState(SavedFrame info, string description)
     {
         const LogLevel level = LogLevel.Information;
@@ -215,6 +245,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         LogJson(level, info.State);
         logger.Write(level, "====================================");
     }
+
     void LogSaveState(SavedFrame<TGameState> info, string description)
     {
         const LogLevel level = LogLevel.Information;
@@ -223,6 +254,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         LogJson(level, info.GameState);
         logger.Write(level, "====================================");
     }
+
     void LogJson<TValue>(LogLevel level, TValue value)
     {
         var jsonChunks = JsonSerializer
@@ -232,12 +264,14 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         foreach (var chunk in jsonChunks)
             logger.Write(level, chunk);
     }
+
     public void SetFrameDelay(PlayerHandle player, int delayInFrames)
     {
         ThrowHelpers.ThrowIfArgumentOutOfBounds(player.InternalQueue, 0, addedPlayers.Count);
         ThrowHelpers.ThrowIfArgumentIsNegative(delayInFrames);
         synchronizer.SetFrameDelay(player, delayInFrames);
     }
+
     public void SetHandler(IRollbackHandler<TGameState> handler)
     {
         ArgumentNullException.ThrowIfNull(handler);

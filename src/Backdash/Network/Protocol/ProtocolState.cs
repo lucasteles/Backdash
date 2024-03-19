@@ -18,7 +18,7 @@ sealed class ProtocolState(
     public readonly AdvantageState Fairness = new(fps);
     public readonly Statistics Stats = new();
     public readonly ConnectionsState LocalConnectStatuses = localConnectStatuses;
-    public readonly ConnectionsState PeerConnectStatuses = new(Max.RemoteConnections, Frame.Null);
+    public readonly ConnectionsState PeerConnectStatuses = new(Max.NumberOfPlayers, Frame.Null);
     public ProtocolStatus CurrentStatus;
     public sealed class ConnectionState
     {
