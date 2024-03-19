@@ -1,4 +1,4 @@
-﻿namespace Backdash;
+namespace Backdash;
 
 /// <summary>
 /// Defines player type.

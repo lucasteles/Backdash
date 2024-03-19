@@ -2,6 +2,7 @@ using System.Net;
 using Backdash.Backends;
 using Backdash.Core;
 using Backdash.Data;
+using Backdash.Network.Client;
 
 namespace Backdash;
 
@@ -10,6 +11,14 @@ namespace Backdash;
 /// </summary>
 public static class RollbackNetcode
 {
+    /// <summary>
+    /// Initializes new multiplayer session.
+    /// </summary>
+    /// <param name="port">The <see cref="UdpSocket"/> port</param>
+    /// <param name="options">Session configuration</param>
+    /// <param name="services">Session customizable dependencies</param>
+    /// <typeparam name="TInput">Game input type</typeparam>
+    /// <typeparam name="TGameState">Game state type</typeparam>
     public static IRollbackSession<TInput, TGameState> CreateSession<TInput, TGameState>(
         int port,
         RollbackOptions options,
@@ -19,6 +28,16 @@ public static class RollbackNetcode
         where TGameState : IEquatable<TGameState>, new() =>
         new Peer2PeerBackend<TInput, TGameState>(port, options, BackendServices.Create(options, services));
 
+    /// <summary>
+    /// Initializes new spectator session.
+    /// </summary>
+    /// <param name="port">The <see cref="UdpSocket"/> port</param>
+    /// <param name="host">The host <see cref="IPEndPoint"/> to be watched.</param>
+    /// <param name="numberOfPlayers">Session player count</param>
+    /// <param name="options">Session configuration</param>
+    /// <param name="services">Session customizable dependencies</param>
+    /// <typeparam name="TInput">Game input type</typeparam>
+    /// <typeparam name="TGameState">Game state type</typeparam>
     public static IRollbackSession<TInput, TGameState> CreateSpectatorSession<TInput, TGameState>(
         int port,
         IPEndPoint host,
@@ -31,7 +50,16 @@ public static class RollbackNetcode
             port, host, numberOfPlayers, options,
             BackendServices.Create(options, services));
 
-    public static IRollbackSession<TInput, TGameState> CreateTestSession<TInput, TGameState>(
+    /// <summary>
+    /// Initializes new sync test session.
+    /// </summary>
+    /// <param name="checkDistance">Total forced rollback frames.</param>
+    /// <param name="options">Session configuration</param>
+    /// <param name="services">Session customizable dependencies</param>
+    /// <param name="throwException">If true, throws on state de-synchronization.</param>
+    /// <typeparam name="TInput">Game input type</typeparam>
+    /// <typeparam name="TGameState">Game state type</typeparam>
+    public static IRollbackSession<TInput, TGameState> CreateSyncTestSession<TInput, TGameState>(
         FrameSpan? checkDistance = null,
         RollbackOptions? options = null,
         SessionServices<TInput, TGameState>? services = null,
