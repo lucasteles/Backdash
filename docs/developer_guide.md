@@ -254,66 +254,232 @@ won't actually be returned
 in [`GetInputs`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackSession-1.html#Backdash_IRollbackSession_1_GetInputs_System_Span_Backdash_Data_SynchronizedInput__0___)
 until after the frame delay.
 
-### Implementing your save, load, and free Callbacks
+### Implementing your `save`, `load`, and `clear` handlers
 
-[Backdash](https://github.com/lucasteles/Backdash) will use the `load_game_state` and `save_game_state` callbacks to
-periodically save and restore the state of your
-game. The `save_game_state` function should create a buffer containing enough information to restore the current state
-of the game and return it in the `buffer` out parameter. The `load_game_state` function should restore the game state
-from a previously saved buffer. For example:
+[Backdash](https://github.com/lucasteles/Backdash) will use
+the [`LoadState`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackHandler-1.html#Backdash_IRollbackHandler_1_LoadState_Backdash_Data_Frame___0__)
+and [`SaveState`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackHandler-1.html#Backdash_IRollbackHandler_1_SaveState_Backdash_Data_Frame___0__)
+callbacks to periodically save and restore the state of your game.
+The [`SaveState`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackHandler-1.html#Backdash_IRollbackHandler_1_SaveState_Backdash_Data_Frame___0__)
+function is called using a pre-loaded state buffer. Because of this the state type must have a public parameterless
+constructor. You must copy every value from the current state into the `ref` parameter of `SaveState`.
 
-```
-struct GameState gamestate;  // Suppose the authoritative value of our game's state is in here.
+The [`LoadState`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackHandler-1.html#Backdash_IRollbackHandler_1_LoadState_Backdash_Data_Frame___0__)
+function should restore the game state from a previously saved buffer. copying values from the `in` parameter
+of `LoadState`.
 
-bool __cdecl
-ggpo_save_game_state_callback(unsigned char **buffer, int *len,
-                              int *checksum, int frame)
+You can optionally
+implement [`ClearState`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackHandler-1.html#Backdash_IRollbackHandler_1_ClearState__0__)
+to ensure the state is reset before save.
+
+For example:
+
+```csharp
+public record MyGameState
 {
-   *len = sizeof(gamestate);
-   *buffer = (unsigned char *)malloc(*len);
-   if (!*buffer) {
-      return false;
-   }
-   memcpy(*buffer, &gamestate, *len);
-   return true;
+    public int Value1;
+    public Vector2 Value2;
 }
 
-bool __cdecl
-ggpo_load_game_state_callback(unsigned char *buffer, int len)
+public class MySessionHandler : IRollbackHandler<MyGameState>
 {
-   memcpy(&gamestate, buffer, len);
-   return true;
+    MyGameState currentGameState = new();
+
+    public void SaveState(in Frame frame, ref MyGameState state)
+    {
+        state.Value1 = currentGameState.Value1;
+        state.Value2 = currentGameState.Value2;
+    }
+
+    public void LoadState(in Frame frame, in MyGameState gameState)
+    {
+        currentGameState.Value1 = gameState.Value1;
+        currentGameState.Value2 = gameState.Value2;
+    }
+
+    /* ... */
 }
 ```
 
-[Backdash](https://github.com/lucasteles/Backdash) will call your `free_buffer` callback to dispose of the memory you
-allocated in your `save_game_state` callback
-when it is no longer need.
+The **Game State Type** must implement `IEquatable<>` and have a parameterless default constructor and also have a valid
+implementation of `.GetHashCode()`, the hashcode is used as the state [checksum](https://en.wikipedia.org/wiki/Checksum)
+for consistency validation. Because of that we recommend the usage
+of a [`record type`](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/record) for the
+game state instead of normal class. Also use
+the [`Backdash.Array<T>`](https://lucasteles.github.io/Backdash/api/Backdash.Data.Array-1.html) instead of the default
+BCL array (`T[]`). Our array is a superset of the default array but implements valid `IEquetable<>` and `GetHashCode()`.
 
-```
-void __cdecl
-ggpo_free_buffer(void *buffer)
+You can also choose to not use the `HashCode` as the **Game State** checksum, for this you just need to implement a
+[`IChecksumProvider<T>`](https://lucasteles.github.io/Backdash/api/Backdash.Sync.State.IChecksumProvider-1.html) for
+your **Game State** type. You can pass it on
+the [services](https://lucasteles.github.io/Backdash/api/Backdash.SessionServices-2.html#Backdash_SessionServices_2_ChecksumProvider)
+parameter
+of [`RollbackNetcode.CreateSession`](https://lucasteles.github.io/Backdash/api/Backdash.RollbackNetcode.html#Backdash_RollbackNetcode_CreateSession__2_System_Int32_Backdash_RollbackOptions_Backdash_SessionServices___0___1__)
+
+### Advance Frame Callback
+
+This callback is called when a rollback occurs, just after
+the [`SaveState`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackHandler-1.html#Backdash_IRollbackHandler_1_SaveState_Backdash_Data_Frame___0__)
+here you must synchronize inputs and advance the state. Usually something like:
+
+```csharp
+// ...
+public void AdvanceFrame()
 {
-   free(buffer);
+    session.SynchronizeInputs();
+    session.GetInputs(gameInputs);
+    AdvanceGameState(gameInputs[0], gameInputs[1], gameState);
+}
+// ...
+```
+
+### Remaining Callbacks
+
+There is other callbacks in
+the [`IRollbackHandler<TState>`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackHandler-1.html) for
+connection starting/closing the session, peer events, etc.
+
+Check the
+**[API Docs for more information](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackHandler-1.html)**.
+
+### Frame Lifecycle
+
+We're almost done. The last step is notify [Backdash](https://github.com/lucasteles/Backdash) every time your frame
+starts and every time the **game state** finishes advancing by one frame.
+
+Just
+call [`BeginFrame`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackSession-1.html#Backdash_IRollbackSession_1_BeginFrame)
+method on session at the beginning of each frame
+and [`AdvanceFrame`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackSession-1.html#Backdash_IRollbackSession_1_AdvanceFrame)
+after you've finished one frame **but before you've started the next**.
+
+So, the code for each frame should be something close to:
+
+```csharp
+readonly MyGameInput gameInputs = new MyGameInput[2];
+
+public void Update(){
+    session.BeginFrame();
+
+    var localInput = GetControllerInput(localPlayer.Index);
+    var result = session.AddLocalInput(localPlayer, localInput);
+
+    if (result is not ResultCode.Ok)
+        return;
+
+    result = session.SynchronizeInputs();
+    if (result is not ResultCode.Ok)
+        return;
+
+    session.GetInputs(gameInputs);
+    AdvanceGameState(gameInputs[0], gameInputs[1], gameState);
+
+    session.AdvanceFrame();
 }
 ```
 
-### Implementing Remaining Callbacks
+## Input Type Encoding
 
-As mentioned previously, there are no optional callbacks in the `GGPOSessionCallbacks` structure. They all need to at
-least `return true`, but the remaining callbacks do not necessarily need to be implemented right away. See the comments
-in `ggponet.h` for more information.
+We **heavily** recommend tha you encode your game input inside
+a [`Enum`](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/enum) with
+[`FlagsAttribute`](https://learn.microsoft.com/en-us/dotnet/fundamentals/runtime-libraries/system-flagsattribute).
 
-### Calling the [Backdash](https://github.com/lucasteles/Backdash) Advance and Idle Functions
+**Enum flags** are easy to compose and can represent a large number of inputs in a very low byte count, which is
+important
+because the inputs is what is transmitted over the network to other players.
 
-We're almost done. Promise. The last step is notify [Backdash](https://github.com/lucasteles/Backdash) every time your
-gamestate finishes advancing by one frame. Just
-call `ggpo_advance_frame` after you've finished one frame but before you've started the next.
+Example, we can encode all usable digital buttons of a **XBox DPad** using only
+[a `short` type](https://learn.microsoft.com/en-us/dotnet/api/system.int16) (_only 2 bytes_):
 
-[Backdash](https://github.com/lucasteles/Backdash) also needs some amount of time to send and receive packets do its own
-internal bookkeeping. At least once per-frame
-you should call the `ggpo_idle` function with the number of milliseconds you're
-allowing [Backdash](https://github.com/lucasteles/Backdash) to spend.
+```csharp
+[Flags]
+public enum PadButtonInputs : short
+{
+    None = 0,
+    Select = 1 << 0,
+    Up = 1 << 1,
+    Down = 1 << 2,
+    Left = 1 << 3,
+    Right = 1 << 4,
+    X = 1 << 5,
+    Y = 1 << 6,
+    A = 1 << 7,
+    B = 1 << 8,
+    LeftBumper = 1 << 9,
+    RightBumper = 1 << 10,
+    LeftTrigger = 1 << 11,
+    RightTrigger = 1 << 12,
+    LeftStickButton = 1 << 13,
+    RightStickButton = 1 << 14,
+}
+```
+
+The serialization of enums and mostly of primitive types is automatically handled
+by [Backdash](https://github.com/lucasteles/Backdash).
+
+We can even handle serialization of complex structs that **does not** have any reference type member.
+**⚠️ But for this**
+no [`Endianess convertion`](https://lucasteles.github.io/Backdash/api/Backdash.RollbackOptions.html#Backdash_RollbackOptions_NetworkEndianness)
+is applied.
+
+If you need a more complex input type and
+support [`Endianess convertion`](https://lucasteles.github.io/Backdash/api/Backdash.RollbackOptions.html#Backdash_RollbackOptions_NetworkEndianness)
+you must implement
+an [`IBinarySerializer<TInput>`](https://lucasteles.github.io/Backdash/api/Backdash.Serialization.IBinarySerializer-1.html)
+for your input type, and pass it to
+the [services](https://lucasteles.github.io/Backdash/api/Backdash.SessionServices-2.html#Backdash_SessionServices_2_ChecksumProvider)
+parameter
+of [`RollbackNetcode.CreateSession`](https://lucasteles.github.io/Backdash/api/Backdash.RollbackNetcode.html#Backdash_RollbackNetcode_CreateSession__2_System_Int32_Backdash_RollbackOptions_Backdash_SessionServices___0___1__)
+
+> 💡 The easiest way to implement a binary serializer is deriving
+> from [`BinarySerializer<T>`](https://lucasteles.github.io/Backdash/api/Backdash.Serialization.BinarySerializer-1.html)
+
+**Example:**
+
+Giving an input type composed as:
+
+```csharp
+[Flags]
+public enum PadButtons : short
+{
+    None = 0,
+    Select = 1 << 0,
+    Up = 1 << 1,
+    Down = 1 << 2,
+    Left = 1 << 3,
+    Right = 1 << 4,
+    X = 1 << 5,
+    Y = 1 << 6,
+    A = 1 << 7,
+    B = 1 << 8,
+
+    LeftBumper = 1 << 9,
+    RightBumper = 1 << 10,
+    LeftStickButton = 1 << 11,
+    RightStickButton = 1 << 12,
+}
+
+public record struct Axis
+{
+    public sbyte X;
+    public sbyte Y;
+}
+
+public record struct MyPadInputs
+{
+    public PadButtons Buttons;
+    public byte LeftTrigger;
+    public byte RightTrigger;
+    public Axis LeftAxis;
+    public Axis RightAxis;
+}
+
+```
+
+You can implement the serializer as:
+
+```csharp
+```
 
 ## Tuning Your Application: Frame Delay vs. Speculative Execution
 
@@ -341,154 +507,14 @@ flash occurs on the first frame of the rollback, your 2-second flash will be ent
 remote player will never get to see it!  In this case, you're better off either specifying a higher frame latency value
 or redesigning your video renderer to delay the flash until after the rollback occurs.
 
-## Sample Application
+## Sample Applications
 
-The Vector War application in the source directory contains a simple application which
-uses [Backdash](https://github.com/lucasteles/Backdash) to synchronize the two
-clients. The command line arguments are:
+Check the samples on the [samples](https://github.com/lucasteles/Backdash/tree/master/samples) directory:
 
-```
-vectorwar.exe  <localport>  <num players> ('local' | <remote ip>:<remote port>) for each player
-```
+There are examples for up to 4 players:
 
-See the .cmd files in the bin directory for examples on how to start 2, 3, and 4 player games.
+- [Simple console game](https://github.com/lucasteles/Backdash/tree/master/samples/ConsoleGame)
+- [Monogame SpaceWar](https://github.com/lucasteles/Backdash/tree/master/samples/SpaceWar)
+- [Monogame SpaceWar with Lobby over internet](https://github.com/lucasteles/Backdash/tree/master/samples/SpaceWar.Lobby)
 
-## Best Practices and Troubleshooting
-
-Below is a list of recommended best practices you should consider while porting your application to GGPO. Many of these
-recommendations are easy to follow even if you're not starting a game from scratch. Most applications will already
-conform to most of the recommendations below.
-
-### Isolate Game State from Non-Game State
-
-[Backdash](https://github.com/lucasteles/Backdash) will periodically request that you save and load the entire state of
-your game. For most games the state that needs
-to be saved is a tiny fraction of the entire game. Usually the video and audio renderers, look up tables, textures,
-sound data and your code segments are either constant from frame to frame or not involved in the calculation of game
-state. These do not need to be saved or restored.
-
-You should isolate non-game state from the game state as much as possible. For example, you may consider encapsulating
-all your game state into a single C structure. This both clearly delineates what is game state and was is not and makes
-it trivial to implement the save and load callbacks (see the Reference Guide for more information).
-
-### Define a Fixed Time Quanta for Advancing Your Game State
-
-[Backdash](https://github.com/lucasteles/Backdash) will occasionally need to rollback and single-step your application
-frame by frame. This is difficult to do if your
-game state advances by a variable tick rate. You should try to make your game state advanced by a fixed time quanta per
-frame, even if your render loop does not.
-
-### Separate Updating Game State from Rendering in Your Game Loop
-
-[Backdash](https://github.com/lucasteles/Backdash) will call your advance frame callback many times during a rollback.
-Any effects or sounds which are genearted
-during the rollback need to be deferred until after the rollback is finished. This is most easily accomplished by
-separating your game state from your render state. When you're finished, your game loop may look something like this:
-
-```
-   Bool finished = FALSE;
-   GameState state;
-   Inputs inputs;
-
-   do {
-      GetControllerInputs(&inputs);
-      finished = AdvanceGameState(&inputs, &state);
-      if (!finished) {
-         RenderCurrentFrame(&gamestate);
-      }
-   while (!finished);
-```
-
-In other words, your game state should be determined solely by the inputs, your rendering code should be driven by the
-current game state, and you should have a way to easily advance the game state forward using a set of inputs without
-rendering.
-
-### Make Sure Your Game State Advances Deterministically
-
-Once you have your game state identified, make sure the next game state is computed solely from your game inputs. This
-should happen naturally if you have correctly identified all the game state and inputs, but it can be tricky sometimes.
-Here are some things which are easy to overlook:
-
-#### Beware of Random Number Generators
-
-Many games use random numbers in the computing of the next game state. If you use one, you must ensure that they are
-fully deterministic, that the seed for the random number generator is same at frame 0 for both players, and that the
-state of the random number generator is included in your game state. Doing both of these will ensure that the random
-numbers which get generated for a particular frame are always the same, regardless of how many
-times [Backdash](https://github.com/lucasteles/Backdash) needs to
-rollback to that frame.
-
-#### Beware of External Time Sources (aka. Wall clock time)
-
-Be careful if you use the current time of day in your game state calculation. This may be used for an effect on the game
-or to derive other game state (e.g. using the timer as a seed to the random number generator). The time on two computers
-or game consoles is almost never in sync and using time in your game state calculations can lead to synchronization
-issues. You should either eliminate the use of time in your game state or include the current time for one of the
-players as part of the input to a frame and always use that time in your calculations.
-
-The use of external time sources in non-gamestate calculations is fine (e.g. computing the duration of effects on
-screen, or the attenuation of audio samples).
-
-### Beware of Dangling References
-
-If your game state contains any dynamically allocated memory be very careful in your save and load functions to rebase
-your pointers as you save and load your data. One way to mitigate this is to use a base and offset to reference
-allocated memory instead of a pointer. This can greatly reduce the number of pointers you need to rebase.
-
-### Beware of Static Variables or Other Hidden State
-
-The language your game is written in may have features which make it difficult to track down all your state. Static
-automatic variables in C are an example of this behavior. You need to track down all these locations and convert them to
-a form which can be saved. For example, compare:
-
-```
-   // This will totally get you into trouble.
-   int get_next_counter(void) {
-      static int counter = 0; /* no way to roll this back... */
-      counter++;
-      return counter;
-   }
-```
-
-To:
-
-```
-   // If you must, this is better
-   static int global_counter = 0; /* move counter to a global */
-
-   int get_next_counter(void) {
-      global_counter++;
-      return global_counter; /* use the global value */
-   }
-
-   bool __cdecl
-   ggpo_load_game_state_callback(unsigned char *buffer, int len)
-   {
-      ...
-      global_counter = *((int *)buffer) /* restore it in load callback */
-      ...
-      return true;
-   }
-```
-
-### Use the [Backdash](https://github.com/lucasteles/Backdash) Sync Test Feature. A Lot.
-
-Once you've ported your application to [Backdash](https://github.com/lucasteles/Backdash), you can use
-the `ggpo_start_synctest` function to help track down synchronization issues which may be the result of leaky game
-state.
-
-The sync test session is a special, single player session which is designed to find errors in your simulation's
-determinism. When running in a synctest session, [Backdash](https://github.com/lucasteles/Backdash) will execute a 1
-frame rollback for every frame of your game. It
-compares the state of the frame when it was executed the first time to the state executed during the rollback, and
-raises an error if they differ. If you used the `ggpo_log` function during your game's execution, you can diff the log
-of the initial frame vs the log of the rollback frame to track down errors.
-
-By running synctest on developer systems continuously when writing game code, you can identify desync causing bugs
-immediately after they're introduced.
-
-## Where to Go from Here
-
-This document describes the most basic features of GGPO. To learn more, I recommend starting with reading the comments
-in the `ggponet.h` header and just diving into the code. Good luck!
-
+See the `.cmd`/`.sh` files in the `scripts` directory for examples on how to start 2, 3, and 4 player games.

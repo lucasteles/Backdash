@@ -34,8 +34,8 @@ public record struct PadInputs
     }
 
     public PadButtons Buttons;
-    public byte LT;
-    public byte RT;
+    public byte LeftTrigger;
+    public byte RightTrigger;
     public Axis LeftAxis;
     public Axis RightAxis;
 }
