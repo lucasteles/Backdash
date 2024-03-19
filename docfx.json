@@ -28,6 +28,7 @@
             {
                 "files": [
                     "docs/images/**",
+                    "assets/images/banner.png",
                     "logo.png"
                 ]
             }
