@@ -6,7 +6,10 @@ using Backdash.Tests.TestUtils;
 using Backdash.Tests.TestUtils.Types;
 
 // ReSharper disable CompareOfFloatsByEqualityOperator
+#pragma warning disable S1244
+
 namespace Backdash.Tests.Specs.Unit.Serialization;
+
 [Collection(SerialCollectionDefinition.Name)]
 public class BinarySpanReadWriteValueTests
 {
@@ -20,6 +23,7 @@ public class BinarySpanReadWriteValueTests
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
+
     [PropertyTest]
     public bool SingleSByte(sbyte value, Endianness endianness)
     {
@@ -30,6 +34,7 @@ public class BinarySpanReadWriteValueTests
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
+
     [PropertyTest]
     public bool SingleBool(bool value, Endianness endianness)
     {
@@ -40,6 +45,7 @@ public class BinarySpanReadWriteValueTests
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
+
     [PropertyTest]
     public bool SingleChar(char value, Endianness endianness)
     {
@@ -50,6 +56,7 @@ public class BinarySpanReadWriteValueTests
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
+
     [PropertyTest]
     public bool SingleShort(short value, Endianness endianness)
     {
@@ -60,6 +67,7 @@ public class BinarySpanReadWriteValueTests
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
+
     [PropertyTest]
     public bool SingleUShort(ushort value, Endianness endianness)
     {
@@ -70,6 +78,7 @@ public class BinarySpanReadWriteValueTests
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
+
     [PropertyTest]
     public bool SingleInt(int value, Endianness endianness)
     {
@@ -80,6 +89,7 @@ public class BinarySpanReadWriteValueTests
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
+
     [PropertyTest]
     public bool SingleUInt(uint value, Endianness endianness)
     {
@@ -90,6 +100,7 @@ public class BinarySpanReadWriteValueTests
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
+
     [PropertyTest]
     public bool SingleLong(long value, Endianness endianness)
     {
@@ -100,6 +111,7 @@ public class BinarySpanReadWriteValueTests
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
+
     [PropertyTest]
     public bool SingleULong(ulong value, Endianness endianness)
     {
@@ -110,6 +122,7 @@ public class BinarySpanReadWriteValueTests
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
+
     [PropertyTest]
     public bool SingleInt128(Int128 value, Endianness endianness)
     {
@@ -120,6 +133,7 @@ public class BinarySpanReadWriteValueTests
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
+
     [PropertyTest]
     public bool SingleIntU128(UInt128 value, Endianness endianness)
     {
@@ -130,6 +144,7 @@ public class BinarySpanReadWriteValueTests
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
+
     [PropertyTest]
     public bool SingleHalf(Half value, Endianness endianness)
     {
@@ -140,6 +155,7 @@ public class BinarySpanReadWriteValueTests
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
+
     [PropertyTest]
     public bool SingleFloat(float value, Endianness endianness)
     {
@@ -150,6 +166,7 @@ public class BinarySpanReadWriteValueTests
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
+
     [PropertyTest]
     public bool SingleDouble(double value, Endianness endianness)
     {
@@ -160,6 +177,7 @@ public class BinarySpanReadWriteValueTests
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
+
     [PropertyTest]
     public bool SingleVector2(Vector2 value, Endianness endianness)
     {
@@ -170,6 +188,7 @@ public class BinarySpanReadWriteValueTests
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
+
     [PropertyTest]
     public bool SingleVector3(Vector3 value, Endianness endianness)
     {
@@ -180,6 +199,7 @@ public class BinarySpanReadWriteValueTests
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
+
     [PropertyTest]
     public bool SingleVector4(Vector4 value, Endianness endianness)
     {
@@ -190,6 +210,7 @@ public class BinarySpanReadWriteValueTests
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
+
     [PropertyTest]
     public bool SingleQuaternion(Quaternion value, Endianness endianness)
     {
@@ -200,8 +221,10 @@ public class BinarySpanReadWriteValueTests
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
+
     static int writeOffset;
     static int readOffset;
+
     static int Setup<T>(
         Endianness endianness,
         out BinarySpanWriter writer,
@@ -222,25 +245,32 @@ public class BinarySpanReadWriteValueTests
         };
         return size;
     }
+
     [Collection(SerialCollectionDefinition.Name)]
     public class ReadWriteEnumTests
     {
         [PropertyTest] public bool TestIntEnum(IntEnum value, Endianness endianness) => TestEnum(value, endianness);
         [PropertyTest] public bool TestUIntEnum(UIntEnum value, Endianness endianness) => TestEnum(value, endianness);
         [PropertyTest] public bool TestLongEnum(LongEnum value, Endianness endianness) => TestEnum(value, endianness);
+
         [PropertyTest]
         public bool TestULongEnum(ULongEnum value, Endianness endianness) =>
             TestEnum(value, endianness);
+
         [PropertyTest]
         public bool TestShortEnum(ShortEnum value, Endianness endianness) =>
             TestEnum(value, endianness);
+
         [PropertyTest]
         public bool TestUShortEnum(UShortEnum value, Endianness endianness) =>
             TestEnum(value, endianness);
+
         [PropertyTest] public bool TestByteEnum(ByteEnum value, Endianness endianness) => TestEnum(value, endianness);
+
         [PropertyTest]
         public bool TestSByteEnum(SByteEnum value, Endianness endianness) =>
             TestEnum(value, endianness);
+
         bool TestEnum<T>(T value, Endianness endianness) where T : unmanaged, Enum
         {
             var size = Setup<T>(endianness, out var writer, out var reader);
@@ -251,25 +281,32 @@ public class BinarySpanReadWriteValueTests
             return EqualityComparer<T>.Default.Equals(read, value);
         }
     }
+
     [Collection(SerialCollectionDefinition.Name)]
     public class ReadWriteBinaryIntegerTests
     {
         [PropertyTest] public bool TestInt(int value, Endianness endianness) => TestInteger(value, endianness);
         [PropertyTest] public bool TestUInt(uint value, Endianness endianness) => TestInteger(value, endianness);
         [PropertyTest] public bool TestLong(long value, Endianness endianness) => TestInteger(value, endianness);
+
         [PropertyTest]
         public bool TestULong(ulong value, Endianness endianness) =>
             TestInteger(value, endianness);
+
         [PropertyTest]
         public bool TestShort(short value, Endianness endianness) =>
             TestInteger(value, endianness);
+
         [PropertyTest]
         public bool TestUShort(ushort value, Endianness endianness) =>
             TestInteger(value, endianness);
+
         [PropertyTest] public bool TestByte(byte value, Endianness endianness) => TestInteger(value, endianness);
+
         [PropertyTest]
         public bool TestSByte(sbyte value, Endianness endianness) =>
             TestInteger(value, endianness);
+
         bool TestInteger<T>(T value, Endianness endianness) where T : unmanaged, IBinaryInteger<T>, IMinMaxValue<T>
         {
             var size = Setup<T>(endianness, out var writer, out var reader);

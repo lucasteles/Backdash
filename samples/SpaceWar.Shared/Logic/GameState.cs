@@ -108,7 +108,7 @@ public sealed record GameState
         }
 
         ship.Thrust = Math.Sign(inputs.Thrust);
-        if (inputs.Thrust != 0)
+        if (ship.Thrust != 0)
         {
             ship.Velocity += (dir * inputs.Thrust).RoundTo();
             var magnitude = ship.Velocity.Length();

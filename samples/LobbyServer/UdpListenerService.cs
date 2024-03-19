@@ -68,9 +68,9 @@ public class UdpListenerService(
                 entry.Peer.Endpoint = remoteEndPoint;
                 entry.LastRead = time.GetUtcNow();
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException ex)
             {
-                logger.LogInformation("UDP: operation cancelled");
+                logger.LogInformation(ex, "UDP: operation cancelled");
                 break;
             }
             catch (Exception ex)

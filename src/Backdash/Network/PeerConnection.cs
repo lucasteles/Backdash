@@ -125,10 +125,10 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : struct
                 syncRequest.Update();
                 break;
             case ProtocolStatus.Running:
-            {
-                CheckDisconnection();
-                break;
-            }
+                {
+                    CheckDisconnection();
+                    break;
+                }
             case ProtocolStatus.Disconnected:
                 break;
         }
