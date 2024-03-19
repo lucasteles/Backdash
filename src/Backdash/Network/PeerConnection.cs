@@ -8,7 +8,9 @@ using Backdash.Network.Protocol.Comm;
 using Backdash.Sync;
 using Backdash.Sync.Input;
 using Timer = System.Timers.Timer;
+
 namespace Backdash.Network;
+
 sealed class PeerConnection<TInput> : IDisposable where TInput : struct
 {
     readonly ProtocolOptions options;
@@ -25,6 +27,7 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : struct
     readonly Timer networkStatsTimer;
     readonly Timer keepAliveTimer;
     long startedAt;
+
     public PeerConnection(ProtocolOptions options,
         ProtocolState state,
         Logger logger,
@@ -56,6 +59,7 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : struct
         networkStatsTimer.Elapsed += OnNetworkStatsTick;
         state.StoppingToken.Register(() => networkStatsTimer.Stop());
     }
+
     public void Dispose()
     {
         state.CurrentStatus = ProtocolStatus.Disconnected;
@@ -69,6 +73,7 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : struct
         keepAliveTimer.Dispose();
         outbox.Dispose();
     }
+
     public void Disconnect()
     {
         if (state.CurrentStatus is ProtocolStatus.Disconnected) return;
@@ -76,6 +81,7 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : struct
         if (!state.StoppingTokenSource.IsCancellationRequested)
             state.StoppingTokenSource.CancelAfter(options.ShutdownTime);
     }
+
     public void Start()
     {
         startedAt = clock.GetTimeStamp();
@@ -83,6 +89,7 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : struct
         networkStatsTimer.Start();
         keepAliveTimer.Start();
     }
+
     public void Update()
     {
         switch (state.CurrentStatus)
@@ -91,21 +98,25 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : struct
                 syncRequest.Update();
                 break;
             case ProtocolStatus.Running:
-                {
-                    ResendInputs();
-                    CheckDisconnection();
-                    break;
-                }
+            {
+                ResendInputs();
+                CheckDisconnection();
+                break;
+            }
             case ProtocolStatus.Disconnected:
                 break;
         }
     }
+
     public SendInputResult SendInput(in GameInput<TInput> input) => inputBuffer.SendInput(in input);
     public ProtocolStatus Status => state.CurrentStatus;
     public bool IsRunning => state.CurrentStatus is ProtocolStatus.Running;
+
     public PlayerHandle Player => state.Player;
+
     // require idle input should be a configuration parameter
-    public int GetRecommendFrameDelay(bool requireIdleInput) => timeSync.RecommendFrameWaitDuration(requireIdleInput);
+    public int GetRecommendFrameDelay() => timeSync.RecommendFrameWaitDuration();
+
     public void SetLocalFrameNumber(Frame localFrame, short fps = FrameSpan.DefaultFramesPerSecond)
     {
         /*
@@ -123,6 +134,7 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : struct
          */
         state.Fairness.LocalFrameAdvantage = remoteFrame - localFrame;
     }
+
     public bool SendInputAck()
     {
         if (inbox.LastReceivedInput.Frame.IsNull)
@@ -136,6 +148,7 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : struct
         };
         return outbox.SendMessage(in msg);
     }
+
     public void GetNetworkStats(ref RollbackNetworkStatus info)
     {
         var stats = state.Stats;
@@ -157,13 +170,16 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : struct
         info.Received.Bandwidth = stats.Received.Bandwidth;
         info.Received.LastFrame = inbox.LastReceivedInput.Frame;
     }
+
     public bool GetPeerConnectStatus(int id, out Frame frame)
     {
         frame = state.PeerConnectStatuses[id].LastFrame;
         return !state.PeerConnectStatuses[id].Disconnected;
     }
+
     public IUdpObserver<ProtocolMessage> GetUdpObserver() => inbox;
     public void Synchronize() => syncRequest.Synchronize();
+
     public void ResendInputs()
     {
         var lastReceivedInputTime = state.Stats.LastReceivedInputTime;
@@ -173,6 +189,7 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : struct
             $"{state.Player} haven't exchanged packets in a while (last received:{inbox.LastReceivedInput.Frame.Number} last sent:{inputBuffer.LastSent.Frame.Number}). Resending");
         inputBuffer.SendPendingInputs();
     }
+
     public void CheckDisconnection()
     {
         if (state.Stats.Received.LastTime <= 0 || options.DisconnectTimeout <= TimeSpan.Zero) return;
@@ -192,6 +209,7 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : struct
                 $"{state.Player} endpoint has stopped receiving packets for {(int)lastReceivedTime.TotalMilliseconds}ms. Sending notification");
             return;
         }
+
         if (lastReceivedTime > options.DisconnectTimeout && !state.Connection.DisconnectEventSent)
         {
             state.Connection.DisconnectEventSent = true;
@@ -200,6 +218,7 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : struct
             networkEventHandler.OnNetworkEvent(ProtocolEvent.Disconnected, state.Player);
         }
     }
+
     void OnKeepAliveTick(object? sender, ElapsedEventArgs e)
     {
         if (state.CurrentStatus is not ProtocolStatus.Running)
@@ -213,6 +232,7 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : struct
             KeepAlive = new(),
         });
     }
+
     void OnQualityReportTick(object? sender, ElapsedEventArgs e)
     {
         if (state.CurrentStatus is not ProtocolStatus.Running)
@@ -227,6 +247,7 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : struct
                 },
             });
     }
+
     void OnNetworkStatsTick(object? sender, ElapsedEventArgs e)
     {
         const int udpHeaderSize = 8;
@@ -243,6 +264,7 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : struct
             logger.Write(LogLevel.Information, $"Network Stats(send): {state.Stats.Send}");
             logger.Write(LogLevel.Information, $"Network Stats(recv): {state.Stats.Received}");
         }
+
         void UpdateStats(ref ProtocolState.PackagesStats stats)
         {
             var totalUdpHeaderSize = (ByteSize)(totalHeaderSize * stats.TotalPackets);

@@ -7,7 +7,7 @@ namespace Backdash.Sync;
 interface ITimeSync<TInput> where TInput : struct
 {
     void AdvanceFrame(in GameInput<TInput> input, in ProtocolState.AdvantageState state);
-    int RecommendFrameWaitDuration(bool requireIdleInput);
+    int RecommendFrameWaitDuration();
 }
 
 static file class TimeSyncCounter
@@ -40,7 +40,7 @@ sealed class TimeSync<TInput>(
     public void AdvanceFrame(in GameInput<TInput> input, in ProtocolState.AdvantageState state) =>
         AdvanceFrame(in input, state.LocalFrameAdvantage.FrameCount, state.RemoteFrameAdvantage.FrameCount);
 
-    public int RecommendFrameWaitDuration(bool requireIdleInput)
+    public int RecommendFrameWaitDuration()
     {
         // Average our local and remote frame advantages
         var localAdvantage = local.Average();
@@ -60,11 +60,12 @@ sealed class TimeSync<TInput>(
         // the difference is relevant before proceeding.
         if (sleepFrames < MinFrameAdvantage)
             return 0;
+
         // Make sure our input had been "idle enough" before recommending
         // a sleep.  This tries to make the emulator sleep while the
         // user's input isn't sweeping in arcs (e.g. fireball motions in
         // Street Fighter), which could cause the player to miss moves.
-        if (requireIdleInput)
+        if (options.RequireIdleInput)
         {
             SpinWait sw = new();
             for (var i = 1; i < lastInputs.Length; i++)
