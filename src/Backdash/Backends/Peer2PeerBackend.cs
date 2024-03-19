@@ -263,7 +263,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         player.Handle = handle;
         var endpoint = player.EndPoint;
         var protocol = peerConnectionFactory.Create(
-            new(player.Handle, endpoint, localConnections, options.FramesPerSecond),
+            new(player.Handle, endpoint, localConnections),
             inputSerializer,
             peerInputEventQueue
         );
@@ -301,7 +301,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
 
         spectator.Handle = spectatorHandle;
         var protocol = peerConnectionFactory.Create(
-            new(spectatorHandle, spectator.EndPoint, localConnections, options.FramesPerSecond),
+            new(spectatorHandle, spectator.EndPoint, localConnections),
             inputGroupSerializer, peerCombinedInputsEventPublisher
         );
         udpObservers.Add(protocol.GetUdpObserver());

@@ -69,12 +69,15 @@ sealed class SpectatorBackend<TInput, TGameState> :
             logger
         );
         backgroundJobManager.Register(udp);
+
         PeerConnectionFactory peerConnectionFactory = new(
             this, clock, services.Random, services.DelayStrategy, logger,
             backgroundJobManager, udp, options.Protocol, options.TimeSync
         );
+
         ProtocolState protocolState =
-            new(new PlayerHandle(PlayerType.Remote, 0), hostEndpoint, localConnections, options.FramesPerSecond);
+            new(new PlayerHandle(PlayerType.Remote, 0), hostEndpoint, localConnections);
+
         host = peerConnectionFactory.Create(protocolState, inputGroupSerializer, this);
         udpObservers.Add(host.GetUdpObserver());
         host.Synchronize();
@@ -235,7 +238,7 @@ sealed class SpectatorBackend<TInput, TGameState> :
     public ref readonly SynchronizedInput<TInput> GetInput(in PlayerHandle player) =>
         ref syncInputBuffer[player.Number - 1];
 
-    public void Publish(in GameInputEvent<CombinedInputs<TInput>> evt)
+    void IProtocolInputEventPublisher<CombinedInputs<TInput>>.Publish(in GameInputEvent<CombinedInputs<TInput>> evt)
     {
         lastReceivedInputTime = clock.GetTimeStamp();
         var (_, input) = evt;

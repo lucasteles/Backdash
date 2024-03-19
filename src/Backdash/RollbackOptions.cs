@@ -1,8 +1,10 @@
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network;
+using Backdash.Network.Client;
 using Backdash.Network.Protocol;
 using Backdash.Sync;
+using Backdash.Sync.State;
 
 namespace Backdash;
 
@@ -38,6 +40,18 @@ public sealed class RollbackOptions
     public bool NetworkEndianness { get; init; } = true;
 
     /// <summary>
+    /// Max length for player input queues.
+    /// </summary>
+    /// <inheritdoc cref="Default.InputQueueLength"/>
+    public int InputQueueLength { get; init; } = Default.InputQueueLength;
+
+    /// <summary>
+    /// Max length for spectators input queues.
+    /// </summary>
+    /// <inheritdoc cref="Default.InputQueueLength"/>
+    public int SpectatorInputBufferLength { get; init; } = Default.InputQueueLength;
+
+    /// <summary>
     /// Max allowed prediction frames.
     /// </summary>
     /// <seealso cref="ResultCode.PredictionThreshold"/>
@@ -45,37 +59,26 @@ public sealed class RollbackOptions
     public int PredictionFrames { get; init; } = Default.PredictionFrames;
 
     /// <summary>
-    ///
-    /// </summary>
-    /// <inheritdoc cref="Default.InputQueueLength"/>
-    public int InputQueueLength { get; init; } = Default.InputQueueLength;
-
-    /// <summary>
-    ///
-    /// </summary>
-    /// <inheritdoc cref="Default.InputQueueLength"/>
-    public int SpectatorInputBufferLength { get; init; } = Default.InputQueueLength;
-
-    /// <summary>
-    ///
+    /// Value to be incremented on <see cref="PredictionFrames"/> in state store <see cref="IStateStore{TState}.Initialize"/>
     /// </summary>
     /// <inheritdoc cref="Default.PredictionFramesOffset"/>
+    /// <seealso cref="IStateStore{TState}"/>
     public int PredictionFramesOffset { get; init; } = Default.PredictionFramesOffset;
 
     /// <summary>
-    ///
+    /// Amount of frames to delay for local input
     /// </summary>
     /// <inheritdoc cref="Default.FrameDelay"/>
     public int FrameDelay { get; init; } = Default.FrameDelay;
 
     /// <summary>
-    ///
+    /// Config <see cref="UdpSocket"/> to use IPv6.
     /// </summary>
     /// <value>Defaults to <see langword="false"/></value>
     public bool UseIPv6 { get; init; }
 
     /// <summary>
-    ///
+    /// Base FPS used to estimate fairness (frame advantage) over peers.
     /// </summary>
     /// <inheritdoc cref="FrameSpan.DefaultFramesPerSecond"/>
     public short FramesPerSecond { get; init; } = FrameSpan.DefaultFramesPerSecond;
