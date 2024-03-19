@@ -12,7 +12,8 @@ namespace Backdash;
 public interface IRollbackHandler<TState> where TState : notnull
 {
     /// <summary>
-    /// Called at start of a game session, after synchronization.
+    /// Called at start of a game session, when all the clients have synchronized.
+    /// You may begin sending inputs with.
     /// </summary>
     void OnSessionStart();
 
