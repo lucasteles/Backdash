@@ -26,6 +26,7 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : struct
     readonly Timer qualityReportTimer;
     readonly Timer networkStatsTimer;
     readonly Timer keepAliveTimer;
+    readonly Timer resendInputsTimer;
     long startedAt;
 
     public PeerConnection(ProtocolOptions options,
@@ -49,15 +50,20 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : struct
         this.inbox = inbox;
         this.outbox = outbox;
         this.inputBuffer = inputBuffer;
+
         keepAliveTimer = new(options.KeepAliveInterval);
         keepAliveTimer.Elapsed += OnKeepAliveTick;
-        state.StoppingToken.Register(() => keepAliveTimer.Stop());
+
+        resendInputsTimer = new(options.ResendInputInterval);
+        resendInputsTimer.Elapsed += OnResendInputs;
+
         qualityReportTimer = new(options.QualityReportInterval);
         qualityReportTimer.Elapsed += OnQualityReportTick;
-        state.StoppingToken.Register(() => qualityReportTimer.Stop());
+
         networkStatsTimer = new(options.NetworkStatsInterval);
         networkStatsTimer.Elapsed += OnNetworkStatsTick;
-        state.StoppingToken.Register(() => networkStatsTimer.Stop());
+
+        state.StoppingToken.Register(StopTimers);
     }
 
     public void Dispose()
@@ -65,13 +71,34 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : struct
         state.CurrentStatus = ProtocolStatus.Disconnected;
         if (!state.StoppingTokenSource.IsCancellationRequested)
             state.StoppingTokenSource.Cancel();
+
+        StopTimers();
+        keepAliveTimer.Elapsed -= OnKeepAliveTick;
+        resendInputsTimer.Elapsed -= OnKeepAliveTick;
         qualityReportTimer.Elapsed -= OnQualityReportTick;
-        qualityReportTimer.Dispose();
         networkStatsTimer.Elapsed -= OnNetworkStatsTick;
         networkStatsTimer.Dispose();
-        keepAliveTimer.Elapsed -= OnKeepAliveTick;
+        qualityReportTimer.Dispose();
         keepAliveTimer.Dispose();
+        resendInputsTimer.Dispose();
+
         outbox.Dispose();
+    }
+
+    void StopTimers()
+    {
+        keepAliveTimer.Stop();
+        resendInputsTimer.Stop();
+        qualityReportTimer.Stop();
+        networkStatsTimer.Stop();
+    }
+
+    void StartTimers()
+    {
+        keepAliveTimer.Start();
+        resendInputsTimer.Start();
+        qualityReportTimer.Start();
+        networkStatsTimer.Start();
     }
 
     public void Disconnect()
@@ -84,10 +111,10 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : struct
 
     public void Start()
     {
+        if (startedAt is 0)
+            StartTimers();
+
         startedAt = clock.GetTimeStamp();
-        qualityReportTimer.Start();
-        networkStatsTimer.Start();
-        keepAliveTimer.Start();
     }
 
     public void Update()
@@ -99,7 +126,6 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : struct
                 break;
             case ProtocolStatus.Running:
             {
-                ResendInputs();
                 CheckDisconnection();
                 break;
             }
@@ -180,16 +206,6 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : struct
     public IUdpObserver<ProtocolMessage> GetUdpObserver() => inbox;
     public void Synchronize() => syncRequest.Synchronize();
 
-    public void ResendInputs()
-    {
-        var lastReceivedInputTime = state.Stats.LastReceivedInputTime;
-        if (lastReceivedInputTime <= 0 || clock.GetElapsedTime(lastReceivedInputTime) <= options.ResendInputInterval)
-            return;
-        logger.Write(LogLevel.Debug,
-            $"{state.Player} haven't exchanged packets in a while (last received:{inbox.LastReceivedInput.Frame.Number} last sent:{inputBuffer.LastSent.Frame.Number}). Resending");
-        inputBuffer.SendPendingInputs();
-    }
-
     public void CheckDisconnection()
     {
         if (state.Stats.Received.LastTime <= 0 || options.DisconnectTimeout <= TimeSpan.Zero) return;
@@ -233,6 +249,21 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : struct
         {
             KeepAlive = new(),
         });
+    }
+
+    void OnResendInputs(object? sender, ElapsedEventArgs e)
+    {
+        if (state.CurrentStatus is not ProtocolStatus.Running)
+            return;
+
+        var lastReceivedInputTime = state.Stats.LastReceivedInputTime;
+        if (lastReceivedInputTime <= 0 || clock.GetElapsedTime(lastReceivedInputTime) <= options.ResendInputInterval)
+            return;
+
+        logger.Write(LogLevel.Information,
+            $"{state.Player} haven't exchanged packets in a while (last received:{inbox.LastReceivedInput.Frame.Number} last sent:{inputBuffer.LastSent.Frame.Number}). Resending");
+
+        inputBuffer.SendPendingInputs();
     }
 
     void OnQualityReportTick(object? sender, ElapsedEventArgs e)
