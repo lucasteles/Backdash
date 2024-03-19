@@ -1,12 +1,14 @@
 using Backdash.Core;
+
 namespace Backdash.Network.Protocol;
+
 public class ProtocolOptions
 {
     public int UdpPacketBufferSize { get; init; } = Default.UdpPacketBufferSize;
     public int MaxPendingInputs { get; init; } = Default.MaxPendingInputs;
     public int MaxPackageQueue { get; init; } = Default.MaxPackageQueue;
     public int NumberOfSyncPackets { get; init; } = Default.NumberOfSyncPackets;
-    public int MaxSeqDistance { get; init; } = Default.MaxSeqDistance;
+    public int MaxSequenceDistance { get; init; } = Default.MaxSeqDistance;
     public bool LogNetworkStats { get; init; }
     public int MaxSyncRetries { get; init; } = Default.MaxSyncRetries;
     public DelayStrategy DelayStrategy { get; init; } = DelayStrategy.Gaussian;

@@ -9,6 +9,8 @@ namespace Backdash;
 /// <summary>
 /// The session factory used to create new netcode sessions.
 /// </summary>
+///  <seealso cref="IRollbackSession{TInput}"/>
+///  <seealso cref="IRollbackSession{TInput,TGameState}"/>
 public static class RollbackNetcode
 {
     /// <summary>

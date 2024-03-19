@@ -53,7 +53,7 @@ sealed class ProtocolInbox<TInput>(
                 return;
             }
             var skipped = (ushort)(seqNum - nextRecvSeq);
-            if (skipped > options.MaxSeqDistance)
+            if (skipped > options.MaxSequenceDistance)
             {
                 logger.Write(LogLevel.Debug, $"dropping out of order packet (seq: {seqNum}, last seq:{nextRecvSeq})");
                 return;
