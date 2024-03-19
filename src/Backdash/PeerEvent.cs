@@ -50,9 +50,10 @@ public enum PeerEvent : sbyte
 }
 
 /// <summary>
-/// <see cref="PeerEventInfo"/> event data struct.
+/// Data structure for <see cref="PeerEventInfo"/> notifications.
+/// <seealso cref="IRollbackHandler{TState}.OnPeerEvent"/>
 /// </summary>
-/// <param name="type"></param>
+/// <param name="type">Event notification type</param>
 [StructLayout(LayoutKind.Explicit, Pack = 1)]
 public readonly struct PeerEventInfo(PeerEvent type) : IUtf8SpanFormattable
 {
