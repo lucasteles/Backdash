@@ -71,55 +71,59 @@ public class ProtocolOptions
     public bool LogNetworkStats { get; init; }
 
     /// <summary>
-    ///
+    /// The time to wait before the first <see cref="PeerEvent.ConnectionInterrupted"/> timeout will be sent.
     /// </summary>
     /// <inheritdoc cref="Default.DisconnectNotifyStart"/>
     public TimeSpan DisconnectNotifyStart { get; init; } = TimeSpan.FromMilliseconds(Default.DisconnectNotifyStart);
 
     /// <summary>
-    ///
-    /// </summary>
-    /// <inheritdoc cref="Default.UdpShutdownTime"/>
-    public TimeSpan ShutdownTime { get; init; } = TimeSpan.FromMilliseconds(Default.UdpShutdownTime);
-
-    /// <summary>
-    ///
+    /// The session will automatically disconnect from a remote peer if it has not received a packet in the timeout window.
+    /// You will be notified of the disconnect via <see cref="PeerEvent.Disconnected"/> event.
     /// </summary>
     /// <inheritdoc cref="Default.DisconnectTimeout"/>
     public TimeSpan DisconnectTimeout { get; init; } = TimeSpan.FromMilliseconds(Default.DisconnectTimeout);
 
     /// <summary>
-    ///
+    /// The time to wait before end the session.
+    /// </summary>
+    /// <inheritdoc cref="Default.UdpShutdownTime"/>
+    public TimeSpan ShutdownTime { get; init; } = TimeSpan.FromMilliseconds(Default.UdpShutdownTime);
+
+    /// <summary>
+    /// The time to wait before resend synchronization retries after the first.
     /// </summary>
     /// <inheritdoc cref="Default.SyncRetryInterval"/>
+    /// <seealso cref="SyncFirstRetryInterval"/>
     public TimeSpan SyncRetryInterval { get; init; } = TimeSpan.FromMilliseconds(Default.SyncRetryInterval);
 
     /// <summary>
-    ///
+    /// The time to wait before resend the first synchronization request retry.
     /// </summary>
     /// <inheritdoc cref="Default.SyncFirstRetryInterval"/>
+    /// <seealso cref="SyncRetryInterval"/>
     public TimeSpan SyncFirstRetryInterval { get; init; } = TimeSpan.FromMilliseconds(Default.SyncFirstRetryInterval);
 
     /// <summary>
-    ///
+    /// When the time from the last send package until now is greater then this, sends a keep alive packets.
     /// </summary>
     /// <inheritdoc cref="Default.KeepAliveInterval"/>
     public TimeSpan KeepAliveInterval { get; init; } = TimeSpan.FromMilliseconds(Default.KeepAliveInterval);
 
     /// <summary>
-    ///
+    /// The time to wait before send the next quality report package (determines ping).
     /// </summary>
     /// <inheritdoc cref="Default.QualityReportInterval"/>
     public TimeSpan QualityReportInterval { get; init; } = TimeSpan.FromMilliseconds(Default.QualityReportInterval);
 
     /// <summary>
-    ///
+    /// The time to wait before recalculate network statistics.
     /// </summary>
     /// <inheritdoc cref="Default.NetworkStatsInterval"/>
+    /// <seealso cref="PeerNetworkStats"/>
     public TimeSpan NetworkStatsInterval { get; init; } = TimeSpan.FromMilliseconds(Default.NetworkStatsInterval);
 
     /// <summary>
-    ///
+    /// When the time from the last send input until now is greater then this, resends pending inputs.
     /// </summary>
     /// <inheritdoc cref="Default.ResendInputInterval"/>
     public TimeSpan ResendInputInterval { get; init; } = TimeSpan.FromMilliseconds(Default.ResendInputInterval);

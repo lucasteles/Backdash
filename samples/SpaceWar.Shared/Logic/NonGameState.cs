@@ -22,7 +22,7 @@ public class PlayerConnectionInfo
     public DateTime DisconnectStart;
     public TimeSpan DisconnectTimeout;
     public readonly StringBuilder StatusText = new();
-    public RollbackNetworkStatus PeerNetworkStatus = new();
+    public PeerNetworkStats PeerNetworkStats = new();
 }
 
 public class NonGameState(int numberOfPlayers)

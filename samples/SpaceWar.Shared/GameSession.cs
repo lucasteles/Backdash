@@ -92,7 +92,7 @@ public sealed class GameSession(
             ref var player = ref nonGameState.Players[i];
             if (!player.Handle.IsRemote())
                 continue;
-            session.GetNetworkStatus(player.Handle, ref player.PeerNetworkStatus);
+            session.GetNetworkStatus(player.Handle, ref player.PeerNetworkStats);
         }
     }
 

@@ -98,11 +98,11 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : struct
                 syncRequest.Update();
                 break;
             case ProtocolStatus.Running:
-                {
-                    ResendInputs();
-                    CheckDisconnection();
-                    break;
-                }
+            {
+                ResendInputs();
+                CheckDisconnection();
+                break;
+            }
             case ProtocolStatus.Disconnected:
                 break;
         }
@@ -149,7 +149,7 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : struct
         return outbox.SendMessage(in msg);
     }
 
-    public void GetNetworkStats(ref RollbackNetworkStatus info)
+    public void GetNetworkStats(ref PeerNetworkStats info)
     {
         var stats = state.Stats;
         info.Ping = stats.RoundTripTime;
@@ -223,9 +223,11 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : struct
     {
         if (state.CurrentStatus is not ProtocolStatus.Running)
             return;
+
         var lastSend = state.Stats.Send.LastTime;
         if (lastSend is 0 || clock.GetElapsedTime(lastSend) < options.KeepAliveInterval)
             return;
+
         logger.Write(LogLevel.Information, "Sending keep alive packet");
         outbox.SendMessage(new ProtocolMessage(MessageType.KeepAlive)
         {

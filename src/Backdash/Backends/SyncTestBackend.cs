@@ -143,7 +143,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         return PlayerConnectionStatus.Unknown;
     }
 
-    public bool GetNetworkStatus(in PlayerHandle player, ref RollbackNetworkStatus info) => false;
+    public bool GetNetworkStatus(in PlayerHandle player, ref PeerNetworkStats info) => false;
 
     public ResultCode AddLocalInput(PlayerHandle player, TInput localInput)
     {

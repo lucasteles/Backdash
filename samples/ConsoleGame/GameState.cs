@@ -27,7 +27,7 @@ public class NonGameState
     public float SyncProgress;
     public string LastError = "";
     public PlayerStatus RemotePlayerStatus;
-    public RollbackNetworkStatus PeerNetworkStatus = new();
+    public PeerNetworkStats PeerNetworkStats = new();
     public DateTime LostConnectionTime;
     public TimeSpan DisconnectTimeout;
 }

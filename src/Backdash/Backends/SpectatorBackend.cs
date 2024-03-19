@@ -132,7 +132,7 @@ sealed class SpectatorBackend<TInput, TGameState> :
     public IReadOnlyList<ResultCode> AddPlayers(IReadOnlyList<Player> players) =>
         Enumerable.Repeat(ResultCode.NotSupported, players.Count).ToArray();
 
-    public bool GetNetworkStatus(in PlayerHandle player, ref RollbackNetworkStatus info)
+    public bool GetNetworkStatus(in PlayerHandle player, ref PeerNetworkStats info)
     {
         host.GetNetworkStats(ref info);
         return true;

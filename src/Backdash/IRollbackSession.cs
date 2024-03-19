@@ -115,7 +115,7 @@ public interface IRollbackSession<TInput> : IRollbackSessionInfo, IDisposable wh
     /// Gets statistics and information about a player into <paramref name="info"/>.
     /// Returns <see langword="false"/> if the request player is not connected or synchronized.
     /// </summary>
-    bool GetNetworkStatus(in PlayerHandle player, ref RollbackNetworkStatus info);
+    bool GetNetworkStatus(in PlayerHandle player, ref PeerNetworkStats info);
 
     /// <summary>
     /// Change the amount of delay frames for local input.

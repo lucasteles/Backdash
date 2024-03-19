@@ -40,7 +40,7 @@ public sealed class Game : IRollbackHandler<GameState>
         session.BeginFrame();
         if (nonGameState.IsRunning)
             UpdatePlayers();
-        session.GetNetworkStatus(nonGameState.RemotePlayer, ref nonGameState.PeerNetworkStatus);
+        session.GetNetworkStatus(nonGameState.RemotePlayer, ref nonGameState.PeerNetworkStats);
         view.Draw(in currentState, nonGameState);
     }
     void UpdatePlayers()

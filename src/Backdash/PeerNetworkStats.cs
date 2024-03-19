@@ -1,11 +1,13 @@
 using Backdash.Data;
+using Backdash.Network.Protocol;
 
 namespace Backdash;
 
 /// <summary>
-/// Holds current session network stats
+/// Holds current session network stats.
+/// Calculated in intervals of <see cref="ProtocolOptions.NetworkStatsInterval"/>.
 /// </summary>
-public sealed class RollbackNetworkStatus
+public sealed class PeerNetworkStats
 {
     /// <summary>Current roundtrip ping time</summary>
     public TimeSpan Ping { get; internal set; }

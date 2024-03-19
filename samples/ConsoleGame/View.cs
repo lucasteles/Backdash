@@ -142,7 +142,7 @@ public class View
     }
     void DrawStats(NonGameState nonGameState)
     {
-        var peer = nonGameState.PeerNetworkStatus;
+        var peer = nonGameState.PeerNetworkStats;
         var info = nonGameState.SessionInfo;
         Console.WriteLine(
             $"""

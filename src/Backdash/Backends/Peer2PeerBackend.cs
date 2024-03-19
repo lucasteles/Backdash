@@ -217,7 +217,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
             _ => int.MaxValue,
         };
 
-    public bool GetNetworkStatus(in PlayerHandle player, ref RollbackNetworkStatus info)
+    public bool GetNetworkStatus(in PlayerHandle player, ref PeerNetworkStats info)
     {
         if (!IsPlayerKnown(in player)) return false;
         if (isSynchronizing) return false;
