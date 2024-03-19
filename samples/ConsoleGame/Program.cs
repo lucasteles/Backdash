@@ -31,7 +31,7 @@ RollbackOptions options = new()
     },
     Protocol = new()
     {
-        NumberOfSyncPackets = 10,
+        NumberOfSyncRoundtrips = 10,
         // LogNetworkStats = true,
         // NetworkDelay = TimeSpan.FromMilliseconds(300),
         // DelayStrategy = Backdash.Network.DelayStrategy.Constant,
@@ -44,7 +44,7 @@ if (endpoints is ["spectate", { } hostArg] && IPEndPoint.TryParse(hostArg, out v
     session = RollbackNetcode.CreateSpectatorSession<GameInput, GameState>(
         port, host, playerCount, options, new()
         {
-            LogWriter = new FileLogWriter($"log_spectator_{port}.log", append: false),
+            LogWriter = new FileTextLogWriter($"log_spectator_{port}.log", append: false),
         }
     );
 // not a spectator, creating a peer 2 peer game session
@@ -84,7 +84,7 @@ static IRollbackSession<GameInput, GameState> CreatePlayerSession(
     if (localPlayer is null)
         throw new InvalidOperationException("No local player defined");
     // Write logs in a file with player number
-    var fileLogWriter = new FileLogWriter($"log_player_{localPlayer.Number}.log", append: false);
+    var fileLogWriter = new FileTextLogWriter($"log_player_{localPlayer.Number}.log", append: false);
     var session = RollbackNetcode.CreateSession<GameInput, GameState>(
         port,
         options,

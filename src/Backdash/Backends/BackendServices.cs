@@ -29,8 +29,8 @@ sealed class BackendServices<TInput, TGameState>
         InputGenerator = services?.InputGenerator;
         InputSerializer = services?.InputSerializer ?? BinarySerializerFactory
             .FindOrThrow<TInput>(options.NetworkEndianness);
-        var logWriter = services?.LogWriter is null || options.Log.EnabledLevel is LogLevel.Off
-            ? new ConsoleLogWriter()
+        var logWriter = services?.LogWriter is null || options.Log.EnabledLevel is LogLevel.None
+            ? new ConsoleTextLogWriter()
             : services.LogWriter;
         Logger = new Logger(options.Log, logWriter);
         Clock = new Clock();

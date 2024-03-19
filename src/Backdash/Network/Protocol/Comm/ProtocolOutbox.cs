@@ -4,8 +4,11 @@ using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network.Client;
 using Backdash.Network.Messages;
+
 namespace Backdash.Network.Protocol.Comm;
+
 interface IProtocolOutbox : IMessageSender, IBackgroundJob, IDisposable;
+
 sealed class ProtocolOutbox(
     ProtocolState state,
     ProtocolOptions options,
@@ -22,6 +25,7 @@ sealed class ProtocolOutbox(
         public SocketAddress Recipient;
         public ProtocolMessage Body;
     }
+
     readonly Channel<QueueEntry> sendQueue =
         Channel.CreateBounded<QueueEntry>(
             new BoundedChannelOptions(options.MaxPackageQueue)
@@ -31,9 +35,11 @@ sealed class ProtocolOutbox(
                 AllowSynchronousContinuations = true,
                 FullMode = BoundedChannelFullMode.DropOldest,
             });
+
     readonly ushort magicNumber = random.MagicNumber();
     int nextSendSeq;
     public string JobName { get; } = $"{nameof(ProtocolOutbox)} {state.Player} {udp.Port}";
+
     QueueEntry CreateNextEntry(in ProtocolMessage msg) =>
         new()
         {
@@ -41,19 +47,22 @@ sealed class ProtocolOutbox(
             Recipient = state.PeerAddress.Address,
             Body = msg,
         };
+
     public ValueTask SendMessageAsync(in ProtocolMessage msg, CancellationToken ct)
     {
         var nextEntry = CreateNextEntry(in msg);
         return sendQueue.Writer.WriteAsync(nextEntry, ct);
     }
+
     public bool SendMessage(in ProtocolMessage msg)
     {
         var nextEntry = CreateNextEntry(in msg);
         return sendQueue.Writer.TryWrite(nextEntry);
     }
+
     public async Task Start(CancellationToken ct)
     {
-        var sendLatency = options.NetworkDelay;
+        var sendLatency = options.NetworkLatency;
         var reader = sendQueue.Reader;
         var buffer = Mem.CreatePinnedMemory(options.UdpPacketBufferSize);
         while (!ct.IsCancellationRequested)
@@ -77,6 +86,7 @@ sealed class ProtocolOutbox(
                         // await Task.Delay(delayDiff, ct).ConfigureAwait(false)
                     }
                 }
+
                 var bytesSent = await udp
                     .SendTo(entry.Recipient, message, buffer, ct)
                     .ConfigureAwait(false);
@@ -86,5 +96,6 @@ sealed class ProtocolOutbox(
             }
         }
     }
+
     public void Dispose() => sendQueue.Writer.TryComplete();
 }

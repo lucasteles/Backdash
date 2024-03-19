@@ -59,7 +59,7 @@ sealed class ProtocolSynchronizer(
     }
     public void Synchronize()
     {
-        state.Sync.RemainingRoundtrips = options.NumberOfSyncPackets;
+        state.Sync.RemainingRoundtrips = options.NumberOfSyncRoundtrips;
         state.CurrentStatus = ProtocolStatus.Syncing;
         retryCounter = 0;
         active = true;
@@ -79,7 +79,7 @@ sealed class ProtocolSynchronizer(
             eventHandler.OnNetworkEvent(ProtocolEvent.SyncFailure, state.Player);
             return;
         }
-        var firstIteration = state.Sync.RemainingRoundtrips == options.NumberOfSyncPackets;
+        var firstIteration = state.Sync.RemainingRoundtrips == options.NumberOfSyncRoundtrips;
         var interval = firstIteration ? options.SyncFirstRetryInterval : options.SyncRetryInterval;
         var elapsed = clock.GetElapsedTime(lastRequest);
         if (elapsed < interval)

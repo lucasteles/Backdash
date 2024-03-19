@@ -3,8 +3,16 @@ using System.Runtime.InteropServices;
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Serialization;
+
 namespace Backdash.Sync.State.Stores;
+
 using SavedFrameBytes = (Memory<byte> Buffer, int Size);
+
+/// <summary>
+/// Binary store for temporary save and restore game states using <see cref="IBinarySerializer{T}"/>.
+/// </summary>
+/// <param name="serializer"></param>
+/// <typeparam name="TState"></typeparam>
 public sealed class BinaryStateStore<TState>(
     IBinarySerializer<TState> serializer
 ) : IStateStore<TState> where TState : notnull, new()
@@ -13,13 +21,19 @@ public sealed class BinaryStateStore<TState>(
     byte[]? memory;
     SavedFrame<TState>[] savedStates = [];
     SavedFrameBytes[] savedBytes = [];
+
+    /// <inheritdoc />
     public void Initialize(int size)
     {
         savedStates = new SavedFrame<TState>[size];
         for (int i = 0; i < size; i++)
             savedStates[i] = new(Frame.Null, new TState(), 0);
     }
+
+    /// <inheritdoc />
     public ref TState GetCurrent() => ref savedStates[head].GameState;
+
+    /// <inheritdoc />
     public ref readonly SavedFrame<TState> SaveCurrent(in Frame frame, in int checksum)
     {
         ref var current = ref savedStates[head];
@@ -32,9 +46,12 @@ public sealed class BinaryStateStore<TState>(
             ref var bytes = ref savedBytes[head];
             bytes.Size = serializer.Serialize(in current.GameState, bytes.Buffer.Span);
         }
+
         AdvanceHead();
         return ref current;
     }
+
+    /// <inheritdoc />
     public ref readonly SavedFrame<TState> Load(Frame frame)
     {
         for (var i = 0; i < savedStates.Length; i++)
@@ -44,12 +61,16 @@ public sealed class BinaryStateStore<TState>(
             AdvanceHead();
             return ref Deserialize(i);
         }
-        throw new BackdashException($"Save state not found for frame {frame}");
+
+        throw new NetcodeException($"Save state not found for frame {frame}");
     }
+
+    /// <inheritdoc />
     public ref readonly SavedFrame<TState> Last()
     {
         var index = LastIndex();
         return ref Deserialize(index);
+
         int LastIndex()
         {
             var i = head - 1;
@@ -58,6 +79,7 @@ public sealed class BinaryStateStore<TState>(
             return i;
         }
     }
+
     ref SavedFrame<TState> Deserialize(int index)
     {
         ref var frame = ref savedStates[index];
@@ -65,7 +87,9 @@ public sealed class BinaryStateStore<TState>(
         serializer.Deserialize(bytes.Buffer.Span[..bytes.Size], ref frame.GameState);
         return ref frame;
     }
+
     void AdvanceHead() => head = (head + 1) % savedStates.Length;
+
     void AllocateResources(in TState saved)
     {
         ArrayBufferWriter<byte> bufferWriter = new();
@@ -80,9 +104,12 @@ public sealed class BinaryStateStore<TState>(
             slot.Size = bufferWriter.WrittenCount;
             slot.Buffer = MemoryMarshal.CreateFromPinnedArray(memory, i * inputSize, inputSize);
         }
+
         ref var first = ref savedBytes[0];
         bufferSpan[..inputSize].CopyTo(first.Buffer.Span);
         first.Size = inputSize;
     }
+
+    /// <inheritdoc />
     public void Dispose() => memory = null!;
 }

@@ -242,9 +242,9 @@ public sealed class Renderer(
         for (var i = 0; i < gs.NumberOfShips; i++)
         {
             var player = ngs.Players[i];
-            if (!player.Handle.IsRemote() || player.PeerNetworkStatus.Ping <= maxPing)
+            if (!player.Handle.IsRemote() || player.PeerNetworkStats.Ping <= maxPing)
                 continue;
-            maxPing = player.PeerNetworkStatus.Ping;
+            maxPing = player.PeerNetworkStats.Ping;
         }
 
         statsString.Clear();

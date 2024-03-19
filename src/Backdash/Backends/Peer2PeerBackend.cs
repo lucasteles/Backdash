@@ -53,7 +53,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         ArgumentNullException.ThrowIfNull(options);
         ThrowHelpers.ThrowIfArgumentIsZeroOrLess(port);
         ThrowHelpers.ThrowIfArgumentIsZeroOrLess(options.FramesPerSecond);
-        ThrowHelpers.ThrowIfArgumentOutOfBounds(options.SpectatorOffset, min: Max.RemoteConnections);
+        ThrowHelpers.ThrowIfArgumentOutOfBounds(options.SpectatorOffset, min: Max.NumberOfPlayers);
         ThrowHelpers.ThrowIfTypeTooBigForStack<GameInput<TInput>>();
         this.options = options;
         inputSerializer = services.InputSerializer;
@@ -63,7 +63,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         peerInputEventQueue = new ProtocolInputEventQueue<TInput>();
         peerCombinedInputsEventPublisher = new ProtocolCombinedInputsEventPublisher<TInput>(peerInputEventQueue);
         inputGroupSerializer = new CombinedInputsSerializer<TInput>(inputSerializer);
-        localConnections = new(Max.RemoteConnections);
+        localConnections = new(Max.NumberOfPlayers);
         spectators = [];
         endpoints = [];
         udpObservers = new();
@@ -163,36 +163,47 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         };
         if (isSynchronizing)
             return ResultCode.NotSynchronized;
+
         if (player.Type is not PlayerType.Local)
             return ResultCode.InvalidPlayerHandle;
+
         if (!IsPlayerKnown(in player))
             return ResultCode.PlayerOutOfRange;
+
         if (synchronizer.InRollback)
             return ResultCode.InRollback;
+
         if (!synchronizer.AddLocalInput(in player, ref input))
             return ResultCode.PredictionThreshold;
+
         // Update the local connect status state to indicate that we've got a
         // confirmed local frame for this player.  this must come first so it
         // gets incorporated into the next packet we send.
         if (input.Frame.IsNull)
             return ResultCode.Ok;
+
         logger.Write(LogLevel.Trace,
             $"setting local connect status for local queue {player.InternalQueue} to {input.Frame}");
         localConnections[player].LastFrame = input.Frame;
+
         // Send the input to all the remote players.
         var sent = true;
         for (var i = 0; i < endpoints.Count; i++)
         {
             if (endpoints[i] is not { } endpoint)
                 continue;
+
             var result = endpoint.SendInput(in input);
+
             if (result is SendInputResult.Ok) continue;
+
             sent = false;
             logger.Write(LogLevel.Warning, $"Unable to send input to queue {i}, {result}");
         }
 
         if (!sent)
             return ResultCode.InputDropped;
+
         return ResultCode.Ok;
     }
 
@@ -206,7 +217,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
             _ => int.MaxValue,
         };
 
-    public bool GetNetworkStatus(in PlayerHandle player, ref RollbackNetworkStatus info)
+    public bool GetNetworkStatus(in PlayerHandle player, ref PeerNetworkStats info)
     {
         if (!IsPlayerKnown(in player)) return false;
         if (isSynchronizing) return false;
@@ -230,11 +241,11 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
 
     ResultCode AddLocalPlayer(in LocalPlayer player)
     {
-        if (addedPlayers.Count >= Max.RemoteConnections)
+        if (addedPlayers.Count >= Max.NumberOfPlayers)
             return ResultCode.TooManyPlayers;
         PlayerHandle handle = new(player.Handle.Type, player.Handle.Number, addedPlayers.Count);
         if (!addedPlayers.Add(handle))
-            return ResultCode.Duplicated;
+            return ResultCode.DuplicatedPlayer;
         player.Handle = handle;
         endpoints.Add(null);
         Array.Resize(ref syncInputBuffer, syncInputBuffer.Length + 1);
@@ -244,15 +255,15 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
 
     ResultCode AddRemotePlayer(RemotePlayer player)
     {
-        if (addedPlayers.Count >= Max.RemoteConnections)
+        if (addedPlayers.Count >= Max.NumberOfPlayers)
             return ResultCode.TooManyPlayers;
         PlayerHandle handle = new(player.Handle.Type, player.Handle.Number, addedPlayers.Count);
         if (!addedPlayers.Add(handle))
-            return ResultCode.Duplicated;
+            return ResultCode.DuplicatedPlayer;
         player.Handle = handle;
         var endpoint = player.EndPoint;
         var protocol = peerConnectionFactory.Create(
-            new(player.Handle, endpoint, localConnections, options.FramesPerSecond),
+            new(player.Handle, endpoint, localConnections),
             inputSerializer,
             peerInputEventQueue
         );
@@ -278,16 +289,19 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
     {
         if (spectators.Count >= Max.NumberOfSpectators)
             return ResultCode.TooManySpectators;
+
         // Currently, we can only add spectators before the game starts.
         if (!isSynchronizing)
-            return ResultCode.InvalidRequest;
+            return ResultCode.AlreadySynchronized;
+
         var queue = spectators.Count;
         PlayerHandle spectatorHandle = new(PlayerType.Spectator, options.SpectatorOffset + queue, queue);
         if (!addedSpectators.Add(spectatorHandle))
-            return ResultCode.Duplicated;
+            return ResultCode.DuplicatedPlayer;
+
         spectator.Handle = spectatorHandle;
         var protocol = peerConnectionFactory.Create(
-            new(spectatorHandle, spectator.EndPoint, localConnections, options.FramesPerSecond),
+            new(spectatorHandle, spectator.EndPoint, localConnections),
             inputGroupSerializer, peerCombinedInputsEventPublisher
         );
         udpObservers.Add(protocol.GetUdpObserver());
@@ -424,7 +438,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
             var interval = 0;
             for (i = 0; i < endpoints.Count; i++)
                 if (endpoints[i] is { } endpoint)
-                    interval = Math.Max(interval, endpoint.GetRecommendFrameDelay(options.RequireIdleInput));
+                    interval = Math.Max(interval, endpoint.GetRecommendFrameDelay());
             if (interval <= 0) return;
             callbacks.TimeSync(new(interval));
             nextRecommendedInterval = currentFrame.Number + options.RecommendationInterval;

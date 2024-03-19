@@ -65,7 +65,7 @@ record struct InputMessage : IBinarySerializable, IUtf8SpanFormattable
         return true;
     }
 }
-[Serializable, InlineArray(Max.RemoteConnections)]
+[Serializable, InlineArray(Max.NumberOfPlayers)]
 struct PeerStatusBuffer
 {
     ConnectStatus element0;
@@ -95,7 +95,7 @@ struct PeerStatusBuffer
     }
 }
 [Serializable, InlineArray(Max.CompressedBytes)]
-public struct InputMessageBuffer
+struct InputMessageBuffer
 {
     byte element0;
     public InputMessageBuffer(ReadOnlySpan<byte> bits) => bits.CopyTo(this);

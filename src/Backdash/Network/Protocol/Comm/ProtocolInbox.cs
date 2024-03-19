@@ -53,7 +53,7 @@ sealed class ProtocolInbox<TInput>(
                 return;
             }
             var skipped = (ushort)(seqNum - nextRecvSeq);
-            if (skipped > options.MaxSeqDistance)
+            if (skipped > options.MaxSequenceDistance)
             {
                 logger.Write(LogLevel.Debug, $"dropping out of order packet (seq: {seqNum}, last seq:{nextRecvSeq})");
                 return;
@@ -106,7 +106,7 @@ sealed class ProtocolInbox<TInput>(
                 logger.Write(LogLevel.Error, "Invalid UdpProtocol message");
                 break;
             default:
-                throw new BackdashException($"Unknown UdpMsg type: {message.Header.Type}");
+                throw new NetcodeException($"Unknown UdpMsg type: {message.Header.Type}");
         }
         return handled;
     }
@@ -229,12 +229,12 @@ sealed class ProtocolInbox<TInput>(
         }
         logger.Write(LogLevel.Debug,
             $"Checking sync state ({state.Sync.RemainingRoundtrips} round trips remaining)");
-        if (options.NumberOfSyncPackets >= state.Sync.RemainingRoundtrips)
+        if (options.NumberOfSyncRoundtrips >= state.Sync.RemainingRoundtrips)
             state.Sync.TotalRoundtripsPing = TimeSpan.Zero;
         state.Sync.TotalRoundtripsPing += elapsed;
         if (--state.Sync.RemainingRoundtrips == 0)
         {
-            var ping = state.Sync.TotalRoundtripsPing / options.NumberOfSyncPackets;
+            var ping = state.Sync.TotalRoundtripsPing / options.NumberOfSyncRoundtrips;
             logger.Write(LogLevel.Information,
                 $"Player {state.Player.Number} Synchronized! (Ping: {ping.TotalMilliseconds:f4})");
             state.CurrentStatus = ProtocolStatus.Running;
@@ -252,8 +252,8 @@ sealed class ProtocolInbox<TInput>(
                 new ProtocolEventInfo(ProtocolEvent.Synchronizing, state.Player)
                 {
                     Synchronizing = new(
-                        TotalSteps: options.NumberOfSyncPackets,
-                        CurrentStep: options.NumberOfSyncPackets - state.Sync.RemainingRoundtrips
+                        TotalSteps: options.NumberOfSyncRoundtrips,
+                        CurrentStep: options.NumberOfSyncRoundtrips - state.Sync.RemainingRoundtrips
                     ),
                 }
             );

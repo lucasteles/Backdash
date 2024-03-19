@@ -150,8 +150,6 @@ resharper_max_initializer_elements_on_line = 1
 resharper_trailing_comma_in_multiline_lists = true
 resharper_wrap_array_initializer_style = chop_if_long
 resharper_empty_block_style = together_same_line
-# LATER: TEMPORARY removing XML Docs until release
-dotnet_diagnostic.CS1591.severity = silent
 # FALSE POSITIVES
 dotnet_diagnostic.S2094.severity = silent # empty class (false positive)
 dotnet_diagnostic.S3925.severity = silent # Update this implementation of 'ISerializable' to conform to the recommended serialization pattern.

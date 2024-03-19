@@ -8,7 +8,9 @@ using Backdash.Serialization;
 using Backdash.Tests.TestUtils;
 
 namespace Backdash.Tests.Specs.Unit.Network.Protocol;
+
 using static Input.InputEncoderTests;
+
 public class ProtocolInputBufferTests
 {
     static ProtocolMessage GetSampleMessage(int startFrame = 0) => new(MessageType.Input)
@@ -23,6 +25,7 @@ public class ProtocolInputBufferTests
             PeerConnectStatus = new(new ConnectionsState(4, Frame.Null).Statuses),
         },
     };
+
     static GameInput[] GetSampleInputs(int startFrame = 0) =>
     [
         Generate.GameInput(startFrame + 0, [1 << 0]),
@@ -30,12 +33,14 @@ public class ProtocolInputBufferTests
         Generate.GameInput(startFrame + 2, [1 << 2]),
         Generate.GameInput(startFrame + 3, [1 << 3]),
     ];
+
     [Fact]
     public void ValidateTestSampleSerialization()
     {
         var decompressedInput = DecompressToList(GetSampleMessage().Input);
         decompressedInput.Should().BeEquivalentTo(GetSampleInputs());
     }
+
     [Fact]
     public void ShouldSendSingleInput()
     {
@@ -61,6 +66,7 @@ public class ProtocolInputBufferTests
         decompressedInput.Single().Should().BeEquivalentTo(input);
         queue.SendInput(input).Should().Be(SendInputResult.Ok);
     }
+
     [Fact]
     public void ShouldCompressMultipleBufferedInputs()
     {
@@ -77,6 +83,7 @@ public class ProtocolInputBufferTests
         var lastMessageSent = Fake.GetCalls(sender).Last().Arguments.Single();
         lastMessageSent.Should().BeEquivalentTo(GetSampleMessage());
     }
+
     [Fact]
     public void ShouldSkipAckedInputs()
     {
@@ -106,6 +113,7 @@ public class ProtocolInputBufferTests
         var lastSentMessage = Fake.GetCalls(sender).Last().Arguments.Single();
         lastSentMessage.Should().BeEquivalentTo(expectedMessage);
     }
+
     [Fact]
     public void ShouldHandleWhenMaxInputSizeReached()
     {
@@ -124,6 +132,7 @@ public class ProtocolInputBufferTests
             else
                 Assert.Fail("Inputs setup");
         }
+
         var lastSend = queue.LastSent;
         var lastFrame = inputs.Max(i => i.Frame.Number);
         var calls = Fake.GetCalls(sender).ToArray();
@@ -137,6 +146,7 @@ public class ProtocolInputBufferTests
         const int total = Max.CompressedBytes * ByteSize.ByteToBits;
         message.Input.NumBits.Should().BeInRange(total - tolerance, total + tolerance);
     }
+
     static AutoFakeIt GetFaker()
     {
         AutoFakeIt faker = new();
@@ -147,18 +157,18 @@ public class ProtocolInputBufferTests
         ProtocolState state = new(
             Generate.PlayerHandle(),
             Generate.Peer(),
-            Generate.ConnectionsState(),
-            FrameSpan.DefaultFramesPerSecond
+            Generate.ConnectionsState()
         )
         {
             CurrentStatus = ProtocolStatus.Running,
         };
-        faker.Provide(Logger.CreateConsoleLogger(LogLevel.Off));
+        faker.Provide(Logger.CreateConsoleLogger(LogLevel.None));
         faker.Provide<IBinaryWriter<TestInput>>(new TestInputSerializer());
         faker.Provide(options);
         faker.Provide(state);
         return faker;
     }
+
     static AutoFakeIt GetFakerWithSender()
     {
         var faker = GetFaker();

@@ -7,10 +7,10 @@ static class Generate
     public static readonly Faker Faker = new();
     public static Randomizer Random => Faker.Random;
     public static PeerAddress Peer() => Faker.Internet.IpEndPoint();
-    public static ConnectionsState ConnectionsState() => new(Max.RemoteConnections);
+    public static ConnectionsState ConnectionsState() => new(Max.NumberOfPlayers);
     public static PlayerHandle PlayerHandle() => new(
         Random.Enum<PlayerType>(),
-        Random.Int(1, Max.RemoteConnections)
+        Random.Int(1, Max.NumberOfPlayers)
     );
     public static GameInput GameInput(int frame, byte[] input)
     {

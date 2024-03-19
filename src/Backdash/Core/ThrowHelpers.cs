@@ -30,7 +30,7 @@ static class ThrowHelpers
     {
         var size = Mem.SizeOf<T>();
         if (size > Mem.MaxStackLimit)
-            throw new BackdashException($"{typeof(T).Name} size too big for stack: {size}");
+            throw new NetcodeException($"{typeof(T).Name} size too big for stack: {size}");
     }
     public static void ThrowIfTypeIsReferenceOrContainsReferences<T>() where T : struct
     {

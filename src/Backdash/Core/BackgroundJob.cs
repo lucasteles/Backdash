@@ -2,7 +2,7 @@ using System.Threading.Channels;
 
 namespace Backdash.Core;
 
-public interface IBackgroundJob
+interface IBackgroundJob
 {
     string JobName { get; }
 
@@ -30,7 +30,7 @@ sealed class BackgroundJobManager(Logger logger) : IBackgroundJobManager
     public async Task Start(CancellationToken ct)
     {
         if (isRunning) return;
-        if (jobs.Count is 0) throw new BackdashException("No jobs registered");
+        if (jobs.Count is 0) throw new NetcodeException("No jobs registered");
         ct.Register(() => Stop(TimeSpan.Zero));
         logger.Write(LogLevel.Debug, "Starting background tasks");
         foreach (var job in jobs) AddJobTask(new(job.Job, job.StoppingToken));

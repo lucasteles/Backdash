@@ -1,8 +1,13 @@
 namespace Backdash.Core;
-public static class Max
+
+static class Max
 {
-    public const int RemoteConnections = 4;
+    ///<value>4</value>
+    public const int NumberOfPlayers = 4;
+
+    ///<value>32</value>
     public const int NumberOfSpectators = 32;
+
     public const int CompressedBytes = 512;
     public const int UdpPacketSize = 65_527;
 }

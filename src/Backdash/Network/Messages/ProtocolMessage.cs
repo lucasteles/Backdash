@@ -58,9 +58,9 @@ struct ProtocolMessage(MessageType type) : IBinarySerializable, IEquatable<Proto
                 Input.Serialize(writer);
                 break;
             case MessageType.Invalid:
-                throw new BackdashSerializationException<ProtocolMessage>("Invalid message type");
+                throw new NetcodeSerializationException<ProtocolMessage>("Invalid message type");
             default:
-                throw new BackdashSerializationException<ProtocolMessage>("Unknown message type");
+                throw new NetcodeSerializationException<ProtocolMessage>("Unknown message type");
         }
     }
 
@@ -90,9 +90,9 @@ struct ProtocolMessage(MessageType type) : IBinarySerializable, IEquatable<Proto
                 Input.Deserialize(reader);
                 break;
             case MessageType.Invalid:
-                throw new BackdashDeserializationException<ProtocolMessage>("Invalid message type");
+                throw new NetcodeDeserializationException<ProtocolMessage>("Invalid message type");
             default:
-                throw new BackdashDeserializationException<ProtocolMessage>("Unknown message type");
+                throw new NetcodeDeserializationException<ProtocolMessage>("Unknown message type");
         }
     }
 

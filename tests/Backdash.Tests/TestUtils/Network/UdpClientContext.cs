@@ -25,7 +25,7 @@ sealed class UdpClientContext<T> : IDisposable where T : struct
             socket,
             serializer,
             Observer,
-            Logger.CreateConsoleLogger(LogLevel.Off));
+            Logger.CreateConsoleLogger(LogLevel.None));
     }
 
     public int Port => Client.Port;

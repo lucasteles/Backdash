@@ -17,7 +17,7 @@ public static class GameSessionFactory
         if (playerCount > Config.MaxShips)
             throw new InvalidOperationException("Too many players");
         if (endpoints is ["sync-test"])
-            return RollbackNetcode.CreateTestSession<PlayerInputs, GameState>(
+            return RollbackNetcode.CreateSyncTestSession<PlayerInputs, GameState>(
                 options: options,
                 services: new()
                 {

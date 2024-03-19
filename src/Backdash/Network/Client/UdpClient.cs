@@ -79,13 +79,13 @@ sealed class UdpClient<T> : IUdpClient<T> where T : struct
             }
             catch (SocketException ex)
             {
-                if (logger.EnabledLevel is not LogLevel.Off)
+                if (logger.EnabledLevel is not LogLevel.None)
                     logger.Write(LogLevel.Error, $"Socket error: {ex}");
                 break;
             }
             catch (Exception ex)
             {
-                if (logger.EnabledLevel is not LogLevel.Off)
+                if (logger.EnabledLevel is not LogLevel.None)
                     logger.Write(LogLevel.Error, $"Socket error: {ex}");
                 break;
             }
@@ -98,7 +98,7 @@ sealed class UdpClient<T> : IUdpClient<T> where T : struct
                 serializer.Deserialize(buffer[..receivedSize].Span, ref msg);
                 await observer.OnUdpMessage(msg, address, receivedSize, ct).ConfigureAwait(false);
             }
-            catch (BackdashDeserializationException ex)
+            catch (NetcodeDeserializationException ex)
             {
                 logger.Write(LogLevel.Warning, $"UDP Message error: {ex}");
                 continue;
