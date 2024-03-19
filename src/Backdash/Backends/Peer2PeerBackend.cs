@@ -163,36 +163,47 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         };
         if (isSynchronizing)
             return ResultCode.NotSynchronized;
+
         if (player.Type is not PlayerType.Local)
             return ResultCode.InvalidPlayerHandle;
+
         if (!IsPlayerKnown(in player))
             return ResultCode.PlayerOutOfRange;
+
         if (synchronizer.InRollback)
             return ResultCode.InRollback;
+
         if (!synchronizer.AddLocalInput(in player, ref input))
             return ResultCode.PredictionThreshold;
+
         // Update the local connect status state to indicate that we've got a
         // confirmed local frame for this player.  this must come first so it
         // gets incorporated into the next packet we send.
         if (input.Frame.IsNull)
             return ResultCode.Ok;
+
         logger.Write(LogLevel.Trace,
             $"setting local connect status for local queue {player.InternalQueue} to {input.Frame}");
         localConnections[player].LastFrame = input.Frame;
+
         // Send the input to all the remote players.
         var sent = true;
         for (var i = 0; i < endpoints.Count; i++)
         {
             if (endpoints[i] is not { } endpoint)
                 continue;
+
             var result = endpoint.SendInput(in input);
+
             if (result is SendInputResult.Ok) continue;
+
             sent = false;
             logger.Write(LogLevel.Warning, $"Unable to send input to queue {i}, {result}");
         }
 
         if (!sent)
             return ResultCode.InputDropped;
+
         return ResultCode.Ok;
     }
 

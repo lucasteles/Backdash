@@ -38,8 +38,9 @@ public sealed class RollbackOptions
     public bool NetworkEndianness { get; init; } = true;
 
     /// <summary>
-    ///
+    /// Max allowed prediction frames.
     /// </summary>
+    /// <seealso cref="ResultCode.PredictionThreshold"/>
     /// <inheritdoc cref="Default.PredictionFrames"/>
     public int PredictionFrames { get; init; } = Default.PredictionFrames;
 

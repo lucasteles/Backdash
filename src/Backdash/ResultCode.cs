@@ -18,6 +18,7 @@ public enum ResultCode : short
 
     /// <summary>When emulator reached prediction barrier.</summary>
     /// <seealso cref="RollbackOptions.PredictionFrames"/>
+    /// <seealso cref="IRollbackSession{TInput}.AddLocalInput"/>
     PredictionThreshold,
 
     /// <summary>The synchronization with peer was not finished.</summary>
