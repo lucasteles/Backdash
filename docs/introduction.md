@@ -14,6 +14,9 @@ And also adding more options
 for [configuration](https://lucasteles.github.io/Backdash/api/Backdash.RollbackOptions.html)
 and [extensibility](https://lucasteles.github.io/Backdash/api/Backdash.SessionServices-2.html).
 
+> 💡 This is not able to run on [Unity](https://unity.com/) until they
+> finish [the CoreCLR port](https://blog.unity.com/engine-platform/porting-unity-to-coreclr).
+
 ## How Does It Work?
 
 Rollback networking is designed to be integrated into a fully deterministic peer-to-peer engine. With full determinism,
@@ -45,10 +48,3 @@ game state without rendering its outcome, [Backdash](https://github.com/lucastel
 - [Fight the Lag! The Trick Behind GGPO's Low Latency Netcode](https://drive.google.com/file/d/1cV0fY8e_SC1hIFF5E1rT8XRVRzPjU8W9/view)
 - [Cross Counter LIVE feat. Mike Z](https://www.youtube.com/watch?v=Tu2kAdmUCaI&t=41m22s) _(video)_.
 
-## Installing
-
-[NuGet package](https://www.nuget.org/packages/Backdash) available:
-
-```ps
-$ dotnet add package Backdash
-```

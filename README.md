@@ -50,7 +50,7 @@ Check the samples on the [/samples](https://github.com/lucasteles/Backdash/tree/
 There are examples for up to 4 players:
 
 - [Simple console game](https://github.com/lucasteles/Backdash/tree/master/samples/ConsoleGame)
-- [Monogame SpaceWar](https://github.com/lucasteles/Backdash/tree/master/samples/SpaceWar)[^2]
+- [Monogame SpaceWar](https://github.com/lucasteles/Backdash/tree/master/samples/SpaceWar) [^2]
 - [Monogame SpaceWar with Lobby over internet](https://github.com/lucasteles/Backdash/tree/master/samples/SpaceWar.Lobby) [^1][^2]
 
 [^1]: The sample needs a [web server](https://github.com/lucasteles/Backdash/tree/master/samples/LobbyServer) to
