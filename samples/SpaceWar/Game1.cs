@@ -19,7 +19,7 @@ public class Game1 : Game
         },
         Protocol = new()
         {
-            NumberOfSyncPackets = 10,
+            NumberOfSyncRoundtrips = 10,
             DisconnectTimeout = TimeSpan.FromSeconds(3),
             DisconnectNotifyStart = TimeSpan.FromSeconds(1),
             LogNetworkStats = true,

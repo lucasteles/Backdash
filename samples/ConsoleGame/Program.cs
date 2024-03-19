@@ -31,7 +31,7 @@ RollbackOptions options = new()
     },
     Protocol = new()
     {
-        NumberOfSyncPackets = 10,
+        NumberOfSyncRoundtrips = 10,
         // LogNetworkStats = true,
         // NetworkDelay = TimeSpan.FromMilliseconds(300),
         // DelayStrategy = Backdash.Network.DelayStrategy.Constant,
