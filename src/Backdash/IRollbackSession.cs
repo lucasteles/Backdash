@@ -14,7 +14,7 @@ public interface IRollbackSessionInfo
     Frame CurrentFrame { get; }
 
     /// <summary>
-    /// Returns <c>true</c> if the client type is <see cref="PlayerType.Spectator"/>
+    /// Returns <see langword="true"/> if the client type is <see cref="PlayerType.Spectator"/>
     /// </summary>
     bool IsSpectating { get; }
 
@@ -113,7 +113,7 @@ public interface IRollbackSession<TInput> : IRollbackSessionInfo, IDisposable wh
 
     /// <summary>
     /// Gets statistics and information about a player into <paramref name="info"/>.
-    /// Returns <c>false</c> if the request player is not connected or synchronized.
+    /// Returns <see langword="false"/> if the request player is not connected or synchronized.
     /// </summary>
     bool GetNetworkStatus(in PlayerHandle player, ref RollbackNetworkStatus info);
 

@@ -38,8 +38,8 @@ public abstract class TextLogWriter : ILogWriter
     /// <summary>
     /// Releases all resources currently used by this <see cref="TextLogWriter"/> instance.
     /// </summary>
-    /// <param name="disposing"><c>true</c> if this method is being invoked by the <see cref="Dispose()"/> method,
-    /// otherwise <c>false</c>.</param>
+    /// <param name="disposing"><see langword="true"/> if this method is being invoked by the <see cref="Dispose()"/> method,
+    /// otherwise <see langword="false"/>.</param>
     protected virtual void Dispose(bool disposing)
     {
         if (!disposing) return;

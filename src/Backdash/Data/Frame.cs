@@ -56,12 +56,12 @@ public readonly record struct Frame :
     public Frame Previous() => new(Number - 1);
 
     /// <summary>
-    /// Returns <c>true</c> if the current frame is a null frame
+    /// Returns <see langword="true"/> if the current frame is a null frame
     /// </summary>
     public bool IsNull => Number is NullValue;
 
     /// <summary>
-    /// Returns <c>true</c> if the current frame is not a null frame
+    /// Returns <see langword="true"/> if the current frame is not a null frame
     /// </summary>
     public bool IsNotNull => !IsNull;
 

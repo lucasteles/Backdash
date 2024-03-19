@@ -38,17 +38,17 @@ public readonly struct PlayerHandle : IUtf8SpanFormattable,
     }
 
     /// <summary>
-    /// Returns <c>true</c> if player is <see cref="PlayerType.Spectator"/>
+    /// Returns <see langword="true"/> if player is <see cref="PlayerType.Spectator"/>
     /// </summary>
     public bool IsSpectator() => Type is PlayerType.Spectator;
 
     /// <summary>
-    /// Returns <c>true</c> if player is <see cref="PlayerType.Remote"/>
+    /// Returns <see langword="true"/> if player is <see cref="PlayerType.Remote"/>
     /// </summary>
     public bool IsRemote() => Type is PlayerType.Remote;
 
     /// <summary>
-    /// Returns <c>true</c> if player is <see cref="PlayerType.Local"/>
+    /// Returns <see langword="true"/> if player is <see cref="PlayerType.Local"/>
     /// </summary>
     public bool IsLocal() => Type is PlayerType.Local;
 

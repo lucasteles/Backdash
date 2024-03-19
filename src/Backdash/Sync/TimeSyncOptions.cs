@@ -37,6 +37,6 @@ public sealed class TimeSyncOptions
     /// user's input isn't sweeping in arcs (e.g. fireball motions in
     /// Street Fighter), which could cause the player to miss moves.
     /// </summary>
-    /// <value>Defaults to <c>false</c></value>
+    /// <value>Defaults to <see langword="false"/></value>
     public bool RequireIdleInput { get; init; }
 }
