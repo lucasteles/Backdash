@@ -75,4 +75,5 @@ You need to have installed [.NET 8 SDK](https://dotnet.microsoft.com/en-us/downl
 
 [Backdash](https://github.com/lucasteles/Backdash) is available under The MIT License. This
 means [Backdash](https://github.com/lucasteles/Backdash) is free for commercial and non-commercial use.
+
 Attribution is not required, but appreciated.
