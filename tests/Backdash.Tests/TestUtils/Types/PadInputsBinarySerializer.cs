@@ -1,4 +1,4 @@
-﻿using Backdash.GamePad;
+using Backdash.GamePad;
 using Backdash.Serialization;
 using Backdash.Serialization.Buffer;
 
@@ -10,7 +10,7 @@ public class PadInputsBinarySerializer : BinarySerializer<PadInputs>
     {
         binaryWriter.Write((short)data.Buttons);
         binaryWriter.Write(data.LeftTrigger);
-        binaryWriter.Write(data.LeftTrigger);
+        binaryWriter.Write(data.RightTrigger);
 
         binaryWriter.Write(data.LeftAxis.X);
         binaryWriter.Write(data.LeftAxis.Y);

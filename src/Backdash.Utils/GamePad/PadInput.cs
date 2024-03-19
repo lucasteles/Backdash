@@ -3,7 +3,8 @@ using System.Runtime.InteropServices;
 // ReSharper disable InconsistentNaming
 namespace Backdash.GamePad;
 
-[StructLayout(LayoutKind.Sequential), Serializable]
+[Serializable]
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
 public record struct PadInputs
 {
     [Flags, Serializable]

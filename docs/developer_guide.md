@@ -422,6 +422,8 @@ We can even handle serialization of complex structs that **does not** have any r
 no [`Endianess convertion`](https://lucasteles.github.io/Backdash/api/Backdash.RollbackOptions.html#Backdash_RollbackOptions_NetworkEndianness)
 is applied.
 
+### Custom Serializer
+
 If you need a more complex input type and
 support [`Endianess convertion`](https://lucasteles.github.io/Backdash/api/Backdash.RollbackOptions.html#Backdash_RollbackOptions_NetworkEndianness)
 you must implement
@@ -465,6 +467,7 @@ public record struct Axis
     public sbyte Y;
 }
 
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
 public record struct MyPadInputs
 {
     public PadButtons Buttons;
@@ -479,6 +482,34 @@ public record struct MyPadInputs
 You can implement the serializer as:
 
 ```csharp
+public class MyPadInputsBinarySerializer : BinarySerializer<PadInputs>
+{
+    protected override void Serialize(in BinarySpanWriter binaryWriter, in PadInputs data)
+    {
+        binaryWriter.Write((short)data.Buttons);
+        binaryWriter.Write(data.LeftTrigger);
+        binaryWriter.Write(data.RightTrigger);
+
+        binaryWriter.Write(data.LeftAxis.X);
+        binaryWriter.Write(data.LeftAxis.Y);
+
+        binaryWriter.Write(data.RightAxis.X);
+        binaryWriter.Write(data.RightAxis.Y);
+    }
+
+    protected override void Deserialize(in BinarySpanReader binaryReader, ref PadInputs result)
+    {
+        result.Buttons = (PadButtons)binaryReader.ReadShort();
+        result.LeftTrigger = binaryReader.ReadByte();
+        result.RightTrigger = binaryReader.ReadByte();
+
+        result.LeftAxis.X = binaryReader.ReadSByte();
+        result.LeftAxis.Y = binaryReader.ReadSByte();
+
+        result.RightAxis.X = binaryReader.ReadSByte();
+        result.RightAxis.Y = binaryReader.ReadSByte();
+    }
+}
 ```
 
 ## Tuning Your Application: Frame Delay vs. Speculative Execution
