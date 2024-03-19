@@ -38,7 +38,7 @@ game state without rendering its outcome, [Backdash](https://github.com/lucastel
 
 ## Learning resources
 
-**More information about how it works and why is it good:**
+More information about how it works and why is it good:
 
 - [Analysis: Why Rollback Netcode Is Better](https://www.youtube.com/watch?v=0NLe4IpdS1w) _(video)_.
 - [Infil's Netcode Article](https://words.infil.net/w02-netcode-p2.html).

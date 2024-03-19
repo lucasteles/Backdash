@@ -1,2 +1,8 @@
 -   name: Introduction
     href: introduction.md
+
+-   name: Developer Guide
+    href: developer_guide.md
+
+-   name: Best Practices and Troubleshooting
+    href: troubleshooting.md

@@ -97,6 +97,16 @@ public interface IRollbackSession<TInput> : IRollbackSessionInfo, IDisposable wh
     }
 
     /// <summary>
+    /// Copy the value of all synchronized inputs into the <paramref name="buffer"/>.
+    /// This must be called after <see cref="SynchronizeInputs"/>
+    /// </summary>
+    public void GetInputs(Span<TInput> buffer)
+    {
+        for (var i = 0; i < buffer.Length; i++)
+            buffer[i] = GetInput(i);
+    }
+
+    /// <summary>
     /// Should be called at the start of each frame of your application
     /// </summary>
     void BeginFrame();

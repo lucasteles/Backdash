@@ -23,12 +23,15 @@ public static class RollbackNetcode
     /// <typeparam name="TGameState">Game state type</typeparam>
     public static IRollbackSession<TInput, TGameState> CreateSession<TInput, TGameState>(
         int port,
-        RollbackOptions options,
+        RollbackOptions? options = null,
         SessionServices<TInput, TGameState>? services = null
     )
         where TInput : struct
-        where TGameState : IEquatable<TGameState>, new() =>
-        new Peer2PeerBackend<TInput, TGameState>(port, options, BackendServices.Create(options, services));
+        where TGameState : IEquatable<TGameState>, new()
+    {
+        options ??= new();
+        return new Peer2PeerBackend<TInput, TGameState>(port, options, BackendServices.Create(options, services));
+    }
 
     /// <summary>
     /// Initializes new spectator session.
@@ -44,13 +47,16 @@ public static class RollbackNetcode
         int port,
         IPEndPoint host,
         int numberOfPlayers,
-        RollbackOptions options,
+        RollbackOptions? options = null,
         SessionServices<TInput, TGameState>? services = null)
         where TInput : struct
-        where TGameState : IEquatable<TGameState>, new() =>
-        new SpectatorBackend<TInput, TGameState>(
+        where TGameState : IEquatable<TGameState>, new()
+    {
+        options ??= new();
+        return new SpectatorBackend<TInput, TGameState>(
             port, host, numberOfPlayers, options,
             BackendServices.Create(options, services));
+    }
 
     /// <summary>
     /// Initializes new sync test session.
