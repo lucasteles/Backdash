@@ -23,12 +23,12 @@ and [extensibility](https://lucasteles.github.io/Backdash/api/Backdash.SessionSe
 ## How Does It Work?
 
 Rollback networking is designed to be integrated into a fully deterministic peer-to-peer engine. With full determinism,
-the game is guaranteed to play out the same way on all players computers if we simply feed them the same inputs. One way
-to achieve this is to exchange inputs for all players over the network, only execution a frame of gameplay logic when
+the game is guaranteed to play out the same way on all player's computers if we simply feed them the same inputs. One way
+to achieve this is to exchange inputs for all players over the network, only executing a frame of gameplay logic when
 all players have received all the inputs from their peers. This often results in sluggish, unresponsive gameplay. The
 longer it takes to get inputs over the network, the slower the game becomes.
 
-In rollback networking, game logic is allowed to proceed with just the inputs from the local player. If the remote
+In rollback networking, the game logic is allowed to proceed with just the inputs from the local player. If the remote
 inputs have not yet arrived when it's time to execute a frame, the networking code will predict what it expects the
 remote players to do based on previously seen inputs. Since there's no waiting, the game feels just as responsive as it
 does offline. When those inputs finally arrive over the network, they can be compared to the ones that were predicted
@@ -41,7 +41,7 @@ game state without rendering its outcome, [Backdash](https://github.com/lucastel
 
 ## Learning resources
 
-More information about how it works and why is it good:
+More information about how it works and why it is good:
 
 - [Analysis: Why Rollback Netcode Is Better](https://www.youtube.com/watch?v=0NLe4IpdS1w) _(video)_.
 - [Infil's Netcode Article](https://words.infil.net/w02-netcode-p2.html).
