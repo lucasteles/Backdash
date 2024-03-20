@@ -7,9 +7,9 @@ not starting a game from scratch. Most applications will already conform to most
 ## Isolate **Game State** from **Non-Game State**
 
 [Backdash](https://github.com/lucasteles/Backdash) will periodically request that you save and load the entire state of
-your game. For most games the state that needs to be saved is a tiny fraction of the entire game. Usually the video and
-audio renderers, look up tables, textures, sound data and your code segments are either constant from frame to frame or
-not involved in the calculation of game state. These do not need to be saved or restored.
+your game. For most games, the state that needs to be saved is a tiny fraction of the entire game. Usually, the video and
+audio renderers, look-up tables, textures, sound data, and your code segments are either constant from frame to frame or
+not involved in the calculation of the game state. These do not need to be saved or restored.
 
 You should isolate **non-game state** from the **game state** as **much as possible**. For example, you may consider
 encapsulating all your game state into a single `class`/`record` type. This both clearly delineates what is
@@ -24,7 +24,7 @@ game state advanced by a fixed time quanta per frame, even if your render loop d
 ## Separate Updating Game State from Rendering in Your Game Loop
 
 [Backdash](https://github.com/lucasteles/Backdash) will call your advance frame callback many times during a rollback.
-Any effects or sounds which are genearted
+Any effects or sounds which are generated
 during the rollback need to be deferred until after the rollback is finished. This is most easily accomplished by
 separating your game state from your render state. When you're finished, your game loop may look something like this:
 
@@ -43,19 +43,19 @@ separating your game state from your render state. When you're finished, your ga
 ```
 
 In other words, your game state should be determined solely by the inputs, your rendering code should be driven by the
-current game state, and you should have a way to easily advance the game state forward using a set of inputs without
+current game state and you should have a way to easily advance the game state forward using a set of inputs without
 rendering.
 
 ## Make Sure Your Game State Advances Deterministically
 
 Once you have your game state identified, make sure the next game state is computed solely from your game inputs. This
 should happen naturally if you have correctly identified all the game state and inputs, but it can be tricky sometimes.
-Here are some things which are easy to overlook:
+Here are some things that are easy to overlook:
 
 ### Beware of Random Number Generators
 
 Many games use random numbers in the computing of the next game state. If you use one, you must ensure that they are
-fully deterministic, that the seed for the random number generator is same at frame 0 for both players, and that the
+fully deterministic, that the seed for the random number generator is the same at frame 0 for both players, and that the
 state of the random number generator is included in your game state. Doing both of these will ensure that the random
 numbers which get generated for a particular frame are always the same, regardless of how many
 times [Backdash](https://github.com/lucasteles/Backdash) needs to rollback to that frame.
@@ -63,7 +63,7 @@ times [Backdash](https://github.com/lucasteles/Backdash) needs to rollback to th
 ### Beware of External Time Sources (aka. Wall clock time)
 
 Be careful if you use the current time of day in your game state calculation. This may be used for an effect on the game
-or to derive other game state (e.g. using the timer as a seed to the random number generator). The time on two computers
+or to derive another game state (e.g. using the timer as a seed to the random number generator). The time on two computers
 or game consoles is almost never in sync and using time in your game state calculations can lead to synchronization
 issues. You should either eliminate the use of time in your game state or include the current time for one of the
 players as part of the input to a frame and always use that time in your calculations.
@@ -74,7 +74,7 @@ screen, or the attenuation of audio samples_).
 ## Beware of Dangling References
 
 If your game state contains any reference type be very careful in your `save` and `load` functions to rebase
-your reference pointers as you `save` and `load` your data. When copying data, be sure that you are no copying a object
+your reference pointers as you `save` and `load` your data. When copying data, be sure that you are no copying an object
 reference instead of the values.
 
 ## Beware of default array type
@@ -85,11 +85,11 @@ still a reference type (**do not copy the reference**) but with implements valid
 
 ## Beware of Static Variables or Other Hidden State
 
-The language your game is written in may have features which make it difficult to track down all your state. [Static
+The language your game is written in may have features that make it difficult to track down all your state. [Static
 automatic variables in `C`](https://www.javatpoint.com/auto-and-static-variable-in-c)
 or [static members in `C#`](https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/classes-and-structs/static-classes-and-static-class-members)
 are examples of this behavior. You need to track down all these locations and convert them to
-a form which can be saved. For example, compare:
+a form that can be saved. For example, compare:
 
 ```csharp
 // This will totally get you into trouble.
@@ -135,7 +135,7 @@ public class MySessionHandler : IRollbackHandler<MyGameState>
 
 Once you've ported your application to [Backdash](https://github.com/lucasteles/Backdash), you can use
 the [`CreateSyncTestSession`](https://lucasteles.github.io/Backdash/api/Backdash.RollbackNetcode.html#Backdash_RollbackNetcode_CreateSyncTestSession__2_System_Nullable_Backdash_Data_FrameSpan__Backdash_RollbackOptions_Backdash_SessionServices___0___1__System_Boolean_)
-function to help track down synchronization issues which may be the result of leaky game state.
+function to help track down synchronization issues which may be the result of a leaky game state.
 
 The sync test session is a special, single player session which is designed to find errors in your simulation's
 determinism. When running in a **sync-test session**, [Backdash](https://github.com/lucasteles/Backdash) by default will
@@ -148,7 +148,7 @@ the rollback frame to track down errors.
 By running **sync-test** on developer systems continuously when writing game code, you can identify **de-sync** causing
 bugs immediately after they're introduced.
 
-You can also set the **sync-test session** to auto generate random inputs to help find de-syncs:
+You can also set the **sync-test session** to auto-generate random inputs to help find de-syncs:
 
 ```csharp
 using Backdash;
