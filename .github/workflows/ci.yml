@@ -68,7 +68,7 @@ jobs:
                 uses: DeathSy/GHA-LoC-Badge@1.0.3
                 with:
                     directory: ./
-                    badge: ./_site/lines_badge.svg
+                    badge: ./docfx/_site/lines_badge.svg
                     patterns: "**/*.fs|**/*.fsx|**/*.cs|**/*.ts|**/*.js"
                     ignore: "node_modules"
 
@@ -77,6 +77,6 @@ jobs:
                 uses: peaceiris/actions-gh-pages@v3
                 with:
                     github_token: ${{ secrets.GITHUB_TOKEN }}
-                    publish_dir: ./_site
+                    publish_dir: ./docfx/_site
                     publish_branch: site
                     force_orphan: true
