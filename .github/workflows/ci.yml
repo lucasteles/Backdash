@@ -13,69 +13,70 @@ jobs:
             group: ${{ github.head_ref || github.ref_name }}
             cancel-in-progress: true
         steps:
-            - name: Checkout Branch
-              uses: actions/checkout@v3
-              with:
-                  fetch-depth: 0
+            -   name: Checkout Branch
+                uses: actions/checkout@v3
+                with:
+                    fetch-depth: 0
 
-            - name: Setup .NET Core
-              uses: actions/setup-dotnet@v3
-              with:
-                  global-json-file: global.json
+            -   name: Setup .NET Core
+                uses: actions/setup-dotnet@v3
+                with:
+                    global-json-file: global.json
 
-            - name: Tool Restore
-              run: dotnet tool restore
+            -   name: Tool Restore
+                run: dotnet tool restore
 
-            - name: Build
-              run: dotnet nuke build
+            -   name: Build
+                run: dotnet nuke build
 
-            - name: Lint
-              run: dotnet nuke lint
+            -   name: Lint
+                run: dotnet nuke lint
 
-            - name: Tests
-              run: dotnet nuke test --configuration Release --skip build --no-logo
+            -   name: Tests
+                run: dotnet nuke test --configuration Release --skip build --no-logo
 
-            - name: Test Result
-              if: ${{ github.actor != 'dependabot[bot]' && (success() || failure()) }}
-              uses: dorny/test-reporter@v1.5.0
-              with:
-                  name: Test Report
-                  reporter: dotnet-trx
-                  path: tests/**/test_result.xml
+            -   name: Test Result
+                if: ${{ github.actor != 'dependabot[bot]' && (success() || failure()) }}
+                uses: dorny/test-reporter@v1.5.0
+                with:
+                    name: Test Report
+                    reporter: dotnet-trx
+                    path: tests/**/test_result.xml
 
-            - name: Generate Coverage Html Report
-              if: ${{ github.actor != 'dependabot[bot]' }}
-              run: dotnet nuke generate-report --no-logo
+            -   name: Generate Coverage Html Report
+                if: ${{ github.actor != 'dependabot[bot]' }}
+                run: dotnet nuke generate-report --no-logo
 
-            - name: Create CheckRun for code Coverage
-              uses: LouisBrunner/checks-action@v1.2.0
-              if: ${{ github.actor != 'dependabot[bot]' }}
-              with:
-                  token: ${{ secrets.GITHUB_TOKEN }}
-                  name: Coverage Report Summary
-                  conclusion: ${{ job.status }}
-                  output_text_description_file: TestReport/Summary.md
-                  output: '{"summary":"Created by Report-Generator"}'
+            -   name: Create CheckRun for code Coverage
+                uses: LouisBrunner/checks-action@v1.2.0
+                if: ${{ github.actor != 'dependabot[bot]' }}
+                with:
+                    token: ${{ secrets.GITHUB_TOKEN }}
+                    name: Coverage Report Summary
+                    conclusion: ${{ job.status }}
+                    output_text_description_file: TestReport/Summary.md
+                    output: '{"summary":"Created by Report-Generator"}'
 
-            - name: Generate Docs
-              run: dotnet docfx
+            -   name: Generate Docs
+                run: dotnet docfx
+                working-directory: docfx
 
-            - name: Generate Coverage Badges
-              run: dotnet nuke generate-badges --no-logo
+            -   name: Generate Coverage Badges
+                run: dotnet nuke generate-badges --no-logo
 
-            - name: Lines of Code Badge
-              uses: DeathSy/GHA-LoC-Badge@1.0.3
-              with:
-                  directory: ./
-                  badge: ./_site/lines_badge.svg
-                  patterns: "**/*.fs|**/*.fsx|**/*.cs|**/*.ts|**/*.js"
-                  ignore: "node_modules"
+            -   name: Lines of Code Badge
+                uses: DeathSy/GHA-LoC-Badge@1.0.3
+                with:
+                    directory: ./
+                    badge: ./_site/lines_badge.svg
+                    patterns: "**/*.fs|**/*.fsx|**/*.cs|**/*.ts|**/*.js"
+                    ignore: "node_modules"
 
-            - name: Publish Badges
-              if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-              uses: peaceiris/actions-gh-pages@v3
-              with:
-                  github_token: ${{ secrets.GITHUB_TOKEN }}
-                  publish_dir: ./_site
-                  publish_branch: site
-                  force_orphan: true
+            -   name: Publish Badges
+                if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+                uses: peaceiris/actions-gh-pages@v3
+                with:
+                    github_token: ${{ secrets.GITHUB_TOKEN }}
+                    publish_dir: ./_site
+                    publish_branch: site
+                    force_orphan: true

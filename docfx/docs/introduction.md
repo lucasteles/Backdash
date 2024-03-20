@@ -16,7 +16,8 @@ And also adding more options
 for [configuration](https://lucasteles.github.io/Backdash/api/Backdash.RollbackOptions.html)
 and [extensibility](https://lucasteles.github.io/Backdash/api/Backdash.SessionServices-2.html).
 
-> 💡 This library is not able to run on [Unity](https://unity.com/) until they
+> [!WARNING]
+> ⚠️ This library is not able to run on [Unity](https://unity.com/) until they
 > finish [the CoreCLR port](https://blog.unity.com/engine-platform/porting-unity-to-coreclr).
 
 ## How Does It Work?

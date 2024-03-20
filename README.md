@@ -9,7 +9,7 @@
 
 # Backdash 🕹️
 
-![](assets/images/banner.png)
+[![](assets/images/banner.png)](https://github.com/lucasteles/Backdash)
 
 Highly configurable and extensible implementation
 of [Rollback Netcode](https://en.wikipedia.org/wiki/Netcode#Rollback) with full asynchronous IO.
@@ -33,7 +33,8 @@ Rollback [Netcode](https://words.infil.net/w02-netcode.html)_) into new and exis
 $ dotnet add package Backdash
 ```
 
-💡 Please check the **[DOCUMENTATION](https://lucasteles.github.io/Backdash/docs/introduction)** for usage details.
+> [!TIP]
+> 💡 Please check the **[DOCUMENTATION](https://lucasteles.github.io/Backdash/docs/introduction)** for usage details.
 
 ### Demos:
 

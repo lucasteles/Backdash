@@ -16,10 +16,10 @@
     <Authors>Lucas Teles - lucas.teles@outlook.com</Authors>
     <Company>lucasteles.dev</Company>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <RepositoryType>GitHub</RepositoryType>
+    <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/lucasteles/Backdash</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/lucasteles/Backdash</RepositoryUrl>
+    <PackageProjectUrl>https://lucasteles.github.io/Backdash</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/lucasteles/Backdash.git</RepositoryUrl>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
@@ -37,6 +37,8 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(MSBuildProjectExtension)' == '.csproj'">
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All"/>
+
     <PackageReference Include="SonarAnalyzer.CSharp" Version="9.21.0.86780">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

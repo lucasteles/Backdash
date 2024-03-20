@@ -1,4 +1,3 @@
-### YamlMime:ManagedReference
 next-version: 0.0.1
 mode: ContinuousDeployment
 continuous-delivery-fallback-tag: ""

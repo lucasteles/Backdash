@@ -1,5 +1,6 @@
 ﻿## Developer Guide
 
+> [!NOTE]
 > adapted from [GGPO](https://github.com/pond3r/ggpo/edit/master/doc/DeveloperGuide.md)
 
 ### Installing
@@ -417,10 +418,13 @@ public enum PadButtonInputs : short
 The serialization of enums and mostly of primitive types is automatically handled
 by [Backdash](https://github.com/lucasteles/Backdash).
 
-We can even handle serialization of complex structs that **does not** have any reference type member.
-**⚠️ But for this**
-no [`Endianess convertion`](https://lucasteles.github.io/Backdash/api/Backdash.RollbackOptions.html#Backdash_RollbackOptions_NetworkEndianness)
-is applied.
+
+
+> [!CAUTION]
+> We can also handle serialization of complex structs that **does not** contains any reference type member. for those
+> no
+> [`Endianess convertion`](https://lucasteles.github.io/Backdash/api/Backdash.RollbackOptions.html#Backdash_RollbackOptions_NetworkEndianness)
+> is applied.
 
 ### Custom Serializer
 

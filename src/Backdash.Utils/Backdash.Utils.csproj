@@ -11,9 +11,6 @@
     <NoWarn>CS1591</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All"/>
-  </ItemGroup>
-  <ItemGroup>
     <Folder Include="GamePad\Serializers\" />
   </ItemGroup>
 </Project>
