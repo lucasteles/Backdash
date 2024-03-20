@@ -7,14 +7,16 @@ It started as [.NET](https://dotnet.microsoft.com) port of the first rollback ne
 SDK [GGPO](https://github.com/pond3r/ggpo) (_written in C++_)
 to be used in any game engine that
 uses [C#](https://dotnet.microsoft.com/en-us/languages/csharp), [F#](https://dotnet.microsoft.com/en-us/languages/fsharp)
-or any [.NET](https://dotnet.microsoft.com) dialect as scripting language. Dispensing with the need to create native
+or any [.NET](https://dotnet.microsoft.com) dialect as scripting
+language ([Godot](https://godotengine.org/), [Monogame](https://monogame.net/), [Stride3D](https://www.stride3d.net),
+etc). Dispensing with the need to create native
 builds and native binds to the _C++_ [GGPO](https://github.com/pond3r/ggpo) code.
 
 And also adding more options
 for [configuration](https://lucasteles.github.io/Backdash/api/Backdash.RollbackOptions.html)
 and [extensibility](https://lucasteles.github.io/Backdash/api/Backdash.SessionServices-2.html).
 
-> 💡 This is not able to run on [Unity](https://unity.com/) until they
+> 💡 This library is not able to run on [Unity](https://unity.com/) until they
 > finish [the CoreCLR port](https://blog.unity.com/engine-platform/porting-unity-to-coreclr).
 
 ## How Does It Work?

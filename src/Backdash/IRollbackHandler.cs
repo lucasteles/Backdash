@@ -38,7 +38,7 @@ public interface IRollbackHandler<TState> where TState : notnull
     void LoadState(in Frame frame, in TState gameState);
 
     /// <summary>
-    /// Optionally clear the state in buffer before load.
+    /// Optionally clear the state in buffer before <see cref="SaveState"/>.
     /// </summary>
     void ClearState(ref TState gameState)
     {
