@@ -17,10 +17,10 @@ Your game probably has many moving parts. [Backdash](https://github.com/lucastel
 
 - **Game State** describes the current state of everything in your game. In a shooter, this would include the position
   of the ship and all the enemies on the screen, the location of all the bullets, how much health each opponent has, the
-  current score, etc. etc.
-
-- **Game Inputs** are the set of things which modify the game state. These obviously include the joystick and button
-  presses done by the player, but can include other non-obvious inputs as well. For example, if your game uses the
+  current score, etc.
+  
+- **Game Inputs** are the set of things that modify the game state. These obviously include the joystick and button
+  presses done by the player but can include other non-obvious inputs as well. For example, if your game uses the
   current time of day to calculate something in the game, the current time of day at the beginning of a frame is also an
   input.
 
@@ -65,8 +65,8 @@ The [`IRollbackSession<TInput, TState>`](https://lucasteles.github.io/Backdash/a
 object is your interface to the [Backdash](https://github.com/lucasteles/Backdash) framework. Create
 one with
 the [`RollbackNetcode.CreateSession`](https://lucasteles.github.io/Backdash/api/Backdash.RollbackNetcode.html#Backdash_RollbackNetcode_CreateSession__2_System_Int32_Backdash_RollbackOptions_Backdash_SessionServices___0___1__)
-function passing the port to bind to locally and optionally other configuration with
-a instance of [`RollbackOptions`](https://lucasteles.github.io/Backdash/api/Backdash.RollbackOptions.html).
+function passing the port to bind to locally and optionally other configurations with
+an instance of [`RollbackOptions`](https://lucasteles.github.io/Backdash/api/Backdash.RollbackOptions.html).
 
 For example, giving the user pre-defined types for the **Game State** and **Game Input**
 
@@ -156,10 +156,10 @@ session.Dispose();
 When you created the [`IRollbackSession`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackSession-2.html)
 you don't specify any information about the players participating in the game. To do so, call
 the [`.AddPlayer()`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackSession-2.html#Backdash_IRollbackSession_2_AddPlayers_System_Collections_Generic_IReadOnlyList_Backdash_Player__)
-method function with a instance of [`Player`](https://lucasteles.github.io/Backdash/api/Backdash.Player.html) for each
-player. The following example show how you might
+method function with an instance of [`Player`](https://lucasteles.github.io/Backdash/api/Backdash.Player.html) for each
+player. The following example shows how you might
 use [`.AddPlayer()`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackSession-2.html#Backdash_IRollbackSession_2_AddPlayers_System_Collections_Generic_IReadOnlyList_Backdash_Player__)
-in a 2 player game:
+in a 2-player game:
 
 ```csharp
 LocalPlayer player1 = new(1); // local player number 1
@@ -174,7 +174,7 @@ result = session.AddPlayer(player2);
 // ...
 ```
 
-Check the [samples](https://github.com/lucasteles/Backdash/tree/master/samples) more complex cases.
+Check the [samples](https://github.com/lucasteles/Backdash/tree/master/samples) for more complex cases.
 
 ### Starting session
 
@@ -199,11 +199,11 @@ other than [ResultCode.Ok`](https://lucasteles.github.io/Backdash/api/Backdash.R
 **not advance your game state**. This usually happens because [Backdash](https://github.com/lucasteles/Backdash) has not
 received packets from the remote player in a while and has reached its internal prediction limit.
 
-After synchronizing you can read the players inputs using
+After synchronizing you can read the player's inputs using
 the [`GetInput`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackSession-1.html#Backdash_IRollbackSession_1_GetInput_System_Int32_)
-method for a single player
+method for a single-player
 or [`GetInputs`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackSession-1.html#Backdash_IRollbackSession_1_GetInputs_System_Span_Backdash_Data_SynchronizedInput__0___)
-to load all players inputs into a buffer.
+to load all player's inputs into a buffer.
 
 For example, if your code looks like this currently for a local game:
 
@@ -262,7 +262,7 @@ the [`LoadState`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackHa
 and [`SaveState`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackHandler-1.html#Backdash_IRollbackHandler_1_SaveState_Backdash_Data_Frame___0__)
 callbacks to periodically save and restore the state of your game.
 The [`SaveState`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackHandler-1.html#Backdash_IRollbackHandler_1_SaveState_Backdash_Data_Frame___0__)
-function is called using a pre-loaded state buffer. Because of this the state type must have a public parameterless
+function is called using a pre-loaded state buffer. Because of this, the state type must have a public parameterless
 constructor. You must copy every value from the current state into the `ref` parameter of `SaveState`.
 
 The [`LoadState`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackHandler-1.html#Backdash_IRollbackHandler_1_LoadState_Backdash_Data_Frame___0__)
@@ -271,7 +271,7 @@ of `LoadState`.
 
 You can optionally
 implement [`ClearState`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackHandler-1.html#Backdash_IRollbackHandler_1_ClearState__0__)
-to ensure the state is reset before save.
+to ensure the state is reset before saving.
 
 For example:
 
@@ -304,9 +304,9 @@ public class MySessionHandler : IRollbackHandler<MyGameState>
 
 The **Game State Type** must implement `IEquatable<>` and have a parameterless default constructor and also have a valid
 implementation of `.GetHashCode()`, the hashcode is used as the state [checksum](https://en.wikipedia.org/wiki/Checksum)
-for consistency validation. Because of that we recommend the usage
+for consistency validation. Because of that, we recommend the usage
 of a [`record type`](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/record) for the
-game state instead of normal class. Also use
+game state instead of a normal class. Also use
 the [`Backdash.Array<T>`](https://lucasteles.github.io/Backdash/api/Backdash.Data.Array-1.html) instead of the default
 BCL array (`T[]`). Our array is a superset of the default array but implements valid `IEquetable<>` and `GetHashCode()`.
 
@@ -336,7 +336,7 @@ public void AdvanceFrame()
 
 ### Remaining Callbacks
 
-There is other callbacks in
+There are other callbacks in
 the [`IRollbackHandler<TState>`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackHandler-1.html) for
 connection starting/closing the session, peer events, etc.
 
@@ -381,15 +381,15 @@ public void Update(){
 
 ## Input Type Encoding
 
-We **heavily** recommend tha you encode your game input inside
+We **heavily** recommend that you encode your game input inside
 a [`Enum`](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/enum) with
 [`FlagsAttribute`](https://learn.microsoft.com/en-us/dotnet/fundamentals/runtime-libraries/system-flagsattribute).
 
 **Enum flags** are easy to compose and can represent a large number of inputs in a very low byte count, which is
 important
-because the inputs is what is transmitted over the network to other players.
+because the inputs are what is transmitted over the network to other players.
 
-Example, we can encode all usable digital buttons of a **XBox DPad** using only
+For example, we can encode all usable digital buttons of a **XBox DPad** using only
 [a `short` type](https://learn.microsoft.com/en-us/dotnet/api/system.int16) (_only 2 bytes_):
 
 ```csharp
@@ -421,7 +421,7 @@ by [Backdash](https://github.com/lucasteles/Backdash).
 
 
 > [!CAUTION]
-> We can also handle serialization of complex structs that **does not** contains any reference type member. for those
+> We can also handle serialization of complex structs that **do not** contain any reference type member. for those
 > no
 > [`Endianess convertion`](https://lucasteles.github.io/Backdash/api/Backdash.RollbackOptions.html#Backdash_RollbackOptions_NetworkEndianness)
 > is applied.
@@ -437,7 +437,8 @@ the [services](https://lucasteles.github.io/Backdash/api/Backdash.SessionService
 parameter
 of [`RollbackNetcode.CreateSession`](https://lucasteles.github.io/Backdash/api/Backdash.RollbackNetcode.html#Backdash_RollbackNetcode_CreateSession__2_System_Int32_Backdash_RollbackOptions_Backdash_SessionServices___0___1__)
 
-> 💡 The easiest way to implement a binary serializer is deriving
+> [!TIP]
+> 💡 The easiest way to implement a binary serializer is by deriving
 > from [`BinarySerializer<T>`](https://lucasteles.github.io/Backdash/api/Backdash.Serialization.BinarySerializer-1.html)
 
 **Example:**
@@ -520,14 +521,14 @@ public class MyPadInputsBinarySerializer : BinarySerializer<PadInputs>
 
 [Backdash](https://github.com/lucasteles/Backdash) uses both frame delay and speculative execution to hide latency. It
 does so by allowing the application developer
-the choice of how many frames that they'd like to delay input by. If it takes more time to transmit a packet than the
+the choice of how many frames they'd like to delay input by. If it takes more time to transmit a packet than the
 number of frames specified by the game, [Backdash](https://github.com/lucasteles/Backdash) will use speculative
 execution to hide the remaining latency. This number
 can be tuned by the application mid-game if you so desire. Choosing a proper value for the frame delay depends very much
 on your game. Here are some helpful hints.
 
-In general you should try to make your frame delay as high as possible without affecting the qualitative experience of
-the game. For example, a fighting game requires pixel perfect accuracy, excellent timing, and extremely tightly
+In general, you should try to make your frame delay as high as possible without affecting the qualitative experience of
+the game. For example, a fighting game requires pixel-perfect accuracy, excellent timing, and extremely tightly
 controlled joystick motions. For this type of game, any frame delay larger than 1 can be noticed by most intermediate
 players, and expert players may even notice a single frame of delay. On the other hand, board games or puzzle games
 which do not have very strict timing requirements may get away with setting the frame latency as high as 4 or 5 before
@@ -552,4 +553,4 @@ There are examples for up to 4 players:
 - [Monogame SpaceWar](https://github.com/lucasteles/Backdash/tree/master/samples/SpaceWar)
 - [Monogame SpaceWar with Lobby over internet](https://github.com/lucasteles/Backdash/tree/master/samples/SpaceWar.Lobby)
 
-See the `.cmd`/`.sh` files in the `scripts` directory for examples on how to start 2, 3, and 4 player games.
+See the `.cmd`/`.sh` files in the `scripts` directory for examples on how to start 2, 3, and 4-player games.
