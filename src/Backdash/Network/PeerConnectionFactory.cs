@@ -13,7 +13,7 @@ sealed class PeerConnectionFactory(
     IDelayStrategy delayStrategy,
     Logger logger,
     IBackgroundJobManager jobManager,
-    IUdpClient<ProtocolMessage> udp,
+    IPeerClient<ProtocolMessage> peer,
     ProtocolOptions options,
     TimeSyncOptions timeSyncOptions
 )
@@ -25,7 +25,7 @@ sealed class PeerConnectionFactory(
     ) where TInput : struct
     {
         var timeSync = new TimeSync<TInput>(timeSyncOptions, logger);
-        var outbox = new ProtocolOutbox(state, options, udp, delayStrategy, random, clock, logger);
+        var outbox = new ProtocolOutbox(state, options, peer, delayStrategy, random, clock, logger);
         var syncManager = new ProtocolSynchronizer(logger, clock, random, state, options, outbox, networkEventHandler);
         var inbox = new ProtocolInbox<TInput>(options, inputSerializer, state, clock, syncManager, outbox,
             networkEventHandler, inputEventQueue, logger);

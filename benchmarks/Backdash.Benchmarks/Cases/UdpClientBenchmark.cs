@@ -60,7 +60,7 @@ public class UdpClientBenchmark
 
         pingerHandler.OnProcessed += OnProcessed;
 
-        IPEndPoint pongerEndpoint = new(IPAddress.Loopback, ponger.Port);
+        IPEndPoint pongerEndpoint = new(IPAddress.Loopback, 9001);
         var pongerAddress = pongerEndpoint.Serialize();
 
         async Task StartSending()

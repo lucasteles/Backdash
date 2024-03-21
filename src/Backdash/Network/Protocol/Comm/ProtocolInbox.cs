@@ -7,7 +7,7 @@ using Backdash.Network.Messages;
 using Backdash.Serialization;
 using Backdash.Sync.Input;
 namespace Backdash.Network.Protocol.Comm;
-interface IProtocolInbox<TInput> : IUdpObserver<ProtocolMessage> where TInput : struct
+interface IProtocolInbox<TInput> : IPeerObserver<ProtocolMessage> where TInput : struct
 {
     GameInput<TInput> LastReceivedInput { get; }
     Frame LastAckedFrame { get; }
@@ -30,7 +30,7 @@ sealed class ProtocolInbox<TInput>(
     readonly Memory<byte> lastReceivedInputBuffer = Mem.CreatePinnedMemory(Max.CompressedBytes);
     public GameInput<TInput> LastReceivedInput => lastReceivedInput;
     public Frame LastAckedFrame { get; private set; } = Frame.Null;
-    public async ValueTask OnUdpMessage(
+    public async ValueTask OnPeerMessage(
         ProtocolMessage message,
         SocketAddress from,
         int bytesReceived,

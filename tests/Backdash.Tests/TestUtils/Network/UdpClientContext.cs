@@ -7,9 +7,10 @@ namespace Backdash.Tests.TestUtils.Network;
 
 sealed class UdpClientContext<T> : IDisposable where T : struct
 {
-    public UdpEventObserver<T> Observer { get; }
-    public UdpClient<T> Client { get; }
+    public PeerEventObserver<T> Observer { get; }
+    public PeerClient<T> Client { get; }
 
+    public int Port { get; }
     public IPEndPoint Loopback { get; }
     public SocketAddress Address { get; }
 
@@ -19,15 +20,15 @@ sealed class UdpClientContext<T> : IDisposable where T : struct
         port ??= PortUtils.FindFreePort();
         UdpSocket socket = new(port.Value);
         Loopback = new(IPAddress.Loopback, port.Value);
+        Port = port.Value;
         Address = Loopback.Serialize();
 
-        Client = new UdpClient<T>(
+        Client = new PeerClient<T>(
             socket,
             serializer,
             Observer,
             Logger.CreateConsoleLogger(LogLevel.None));
     }
 
-    public int Port => Client.Port;
     public void Dispose() => Client.Dispose();
 }

@@ -12,7 +12,7 @@ interface IProtocolOutbox : IMessageSender, IBackgroundJob, IDisposable;
 sealed class ProtocolOutbox(
     ProtocolState state,
     ProtocolOptions options,
-    IUdpClient<ProtocolMessage> udp,
+    IPeerClient<ProtocolMessage> peer,
     IDelayStrategy delayStrategy,
     IRandomNumberGenerator random,
     IClock clock,
@@ -38,7 +38,7 @@ sealed class ProtocolOutbox(
 
     readonly ushort magicNumber = random.MagicNumber();
     int nextSendSeq;
-    public string JobName { get; } = $"{nameof(ProtocolOutbox)} {state.Player} {udp.Port}";
+    public string JobName { get; } = $"{nameof(ProtocolOutbox)} {state.Player}";
 
     QueueEntry CreateNextEntry(in ProtocolMessage msg) =>
         new()
@@ -60,14 +60,14 @@ sealed class ProtocolOutbox(
         return sendQueue.Writer.TryWrite(nextEntry);
     }
 
-    public async Task Start(CancellationToken ct)
+    public async Task Start(CancellationToken cancellationToken)
     {
         var sendLatency = options.NetworkLatency;
         var reader = sendQueue.Reader;
         var buffer = Mem.CreatePinnedMemory(options.UdpPacketBufferSize);
-        while (!ct.IsCancellationRequested)
+        while (!cancellationToken.IsCancellationRequested)
         {
-            await reader.WaitToReadAsync(ct).ConfigureAwait(false);
+            await reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false);
             while (reader.TryRead(out var entry))
             {
                 var message = entry.Body;
@@ -87,8 +87,8 @@ sealed class ProtocolOutbox(
                     }
                 }
 
-                var bytesSent = await udp
-                    .SendTo(entry.Recipient, message, buffer, ct)
+                var bytesSent = await peer
+                    .SendTo(entry.Recipient, message, buffer, cancellationToken)
                     .ConfigureAwait(false);
                 state.Stats.Send.LastTime = clock.GetTimeStamp();
                 state.Stats.Send.TotalBytes += (ByteSize)bytesSent;

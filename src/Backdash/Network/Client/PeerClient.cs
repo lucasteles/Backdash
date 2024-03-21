@@ -7,28 +7,43 @@ using Backdash.Serialization;
 
 namespace Backdash.Network.Client;
 
-interface IUdpClient<in T> : IBackgroundJob, IDisposable where T : struct
+/// <summary>
+/// Client for peer communication
+/// </summary>
+public interface IPeerClient<in T> : IDisposable where T : struct
 {
-    public int Port { get; }
+    /// <summary>
+    /// Send Message to peer
+    /// </summary>
     ValueTask<int> SendTo(SocketAddress peerAddress, T payload, CancellationToken ct = default);
+
+    /// <summary>
+    /// Send Message to peer
+    /// </summary>
     ValueTask<int> SendTo(SocketAddress peerAddress, T payload, Memory<byte> buffer, CancellationToken ct = default);
+
+    /// <summary>
+    /// Start receiving messages
+    /// </summary>
+    Task StartReceiving(CancellationToken cancellationToken);
 }
 
-sealed class UdpClient<T> : IUdpClient<T> where T : struct
+interface IPeerJobClient<in T> : IBackgroundJob, IPeerClient<T> where T : struct;
+
+sealed class PeerClient<T> : IPeerJobClient<T> where T : struct
 {
     readonly UdpSocket socket;
-    readonly IUdpObserver<T> observer;
+    readonly IPeerObserver<T> observer;
     readonly IBinarySerializer<T> serializer;
     readonly Logger logger;
     readonly int maxPacketSize;
     CancellationTokenSource? cancellation;
     public string JobName { get; }
-    public int Port => socket.Port;
 
-    public UdpClient(
+    public PeerClient(
         UdpSocket socket,
         IBinarySerializer<T> serializer,
-        IUdpObserver<T> observer,
+        IPeerObserver<T> observer,
         Logger logger,
         int maxPacketSize = Max.UdpPacketSize
     )
@@ -37,6 +52,7 @@ sealed class UdpClient<T> : IUdpClient<T> where T : struct
         ArgumentNullException.ThrowIfNull(observer);
         ArgumentNullException.ThrowIfNull(serializer);
         ArgumentNullException.ThrowIfNull(logger);
+
         this.socket = socket;
         this.observer = observer;
         this.serializer = serializer;
@@ -46,11 +62,14 @@ sealed class UdpClient<T> : IUdpClient<T> where T : struct
         JobName = $"{nameof(UdpClient)} ({socket.Port})";
     }
 
-    public async Task Start(CancellationToken ct)
+    public Task Start(CancellationToken cancellationToken) =>
+        StartReceiving(cancellationToken);
+
+    public async Task StartReceiving(CancellationToken cancellationToken)
     {
         if (cancellation is not null) return;
         cancellation = new();
-        using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct, cancellation.Token);
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, cancellation.Token);
         var token = cts.Token;
         await ReceiveLoop(token).ConfigureAwait(false);
     }
@@ -96,7 +115,7 @@ sealed class UdpClient<T> : IUdpClient<T> where T : struct
             try
             {
                 serializer.Deserialize(buffer[..receivedSize].Span, ref msg);
-                await observer.OnUdpMessage(msg, address, receivedSize, ct).ConfigureAwait(false);
+                await observer.OnPeerMessage(msg, address, receivedSize, ct).ConfigureAwait(false);
             }
             catch (NetcodeDeserializationException ex)
             {

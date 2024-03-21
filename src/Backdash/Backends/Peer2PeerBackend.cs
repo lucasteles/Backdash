@@ -22,8 +22,8 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
     readonly IBinarySerializer<CombinedInputs<TInput>> inputGroupSerializer;
     readonly Logger logger;
     readonly IStateStore<TGameState> stateStore;
-    readonly IUdpClient<ProtocolMessage> udp;
-    readonly UdpObserverGroup<ProtocolMessage> udpObservers;
+    readonly IProtocolClient udp;
+    readonly PeerObserverGroup<ProtocolMessage> peerObservers;
     readonly Synchronizer<TInput, TGameState> synchronizer;
     readonly ConnectionsState localConnections;
     readonly IBackgroundJobManager backgroundJobManager;
@@ -66,7 +66,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         localConnections = new(Max.NumberOfPlayers);
         spectators = [];
         endpoints = [];
-        udpObservers = new();
+        peerObservers = new();
         callbacks = new EmptySessionHandler<TGameState>(logger);
         synchronizer = new(
             this.options,
@@ -79,15 +79,9 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         {
             Callbacks = callbacks,
         };
-        var selectedEndianness = Platform.GetEndianness(this.options.NetworkEndianness);
-        udp = services.UdpClientFactory.CreateClient(
-            port,
-            selectedEndianness,
-            this.options.Protocol.UdpPacketBufferSize,
-            this.options.UseIPv6,
-            udpObservers,
-            logger
-        );
+
+        udp = services.ProtocolClientFactory.CreateProtocolClient(port, peerObservers);
+
         peerConnectionFactory = new(
             this,
             services.Clock,
@@ -267,7 +261,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
             inputSerializer,
             peerInputEventQueue
         );
-        udpObservers.Add(protocol.GetUdpObserver());
+        peerObservers.Add(protocol.GetUdpObserver());
         endpoints.Add(protocol);
         Array.Resize(ref syncInputBuffer, syncInputBuffer.Length + 1);
         synchronizer.AddQueue(player.Handle);
@@ -304,7 +298,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
             new(spectatorHandle, spectator.EndPoint, localConnections),
             inputGroupSerializer, peerCombinedInputsEventPublisher
         );
-        udpObservers.Add(protocol.GetUdpObserver());
+        peerObservers.Add(protocol.GetUdpObserver());
         spectators.Add(protocol);
         logger.Write(LogLevel.Information, $"Adding {spectator.Handle} at {spectator.EndPoint}");
         protocol.Synchronize();

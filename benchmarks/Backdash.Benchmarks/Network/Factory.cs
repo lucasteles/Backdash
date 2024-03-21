@@ -6,13 +6,13 @@ namespace Backdash.Benchmarks.Network;
 
 static class Factory
 {
-    public static UdpClient<PingMessage> CreateUdpClient(
+    public static PeerClient<PingMessage> CreateUdpClient(
         int port,
-        out UdpObserverGroup<PingMessage> observers
+        out PeerObserverGroup<PingMessage> observers
     )
     {
         observers = new();
-        UdpClient<PingMessage> client = new(
+        PeerClient<PingMessage> client = new(
             new UdpSocket(port),
             BinarySerializerFactory.ForEnum<PingMessage>(),
             observers,

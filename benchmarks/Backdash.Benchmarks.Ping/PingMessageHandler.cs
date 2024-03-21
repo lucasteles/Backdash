@@ -2,13 +2,13 @@ using System.Net;
 using Backdash.Network.Client;
 namespace Backdash.Benchmarks.Ping;
 sealed class PingMessageHandler(
-    IUdpClient<PingMessage> sender,
+    IPeerClient<PingMessage> sender,
     Memory<byte>? buffer = null
-) : IUdpObserver<PingMessage>
+) : IPeerObserver<PingMessage>
 {
     public static long TotalProcessed => _processedCount;
     static long _processedCount;
-    public async ValueTask OnUdpMessage(
+    public async ValueTask OnPeerMessage(
         PingMessage message,
         SocketAddress from,
         int bytesReceived,

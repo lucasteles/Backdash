@@ -20,7 +20,7 @@ sealed class SpectatorBackend<TInput, TGameState> :
     where TGameState : IEquatable<TGameState>, new()
 {
     readonly Logger logger;
-    readonly IUdpClient<ProtocolMessage> udp;
+    readonly IProtocolClient udp;
     readonly IPEndPoint hostEndpoint;
     readonly RollbackOptions options;
     readonly IBackgroundJobManager backgroundJobManager;
@@ -56,18 +56,11 @@ sealed class SpectatorBackend<TInput, TGameState> :
             .Select(x => new PlayerHandle(PlayerType.Remote, x + 1, x)).ToArray();
         IBinarySerializer<CombinedInputs<TInput>> inputGroupSerializer =
             new CombinedInputsSerializer<TInput>(services.InputSerializer);
-        UdpObserverGroup<ProtocolMessage> udpObservers = new();
+        PeerObserverGroup<ProtocolMessage> peerObservers = new();
         callbacks = new EmptySessionHandler<TGameState>(logger);
         inputs = new GameInput<CombinedInputs<TInput>>[options.SpectatorInputBufferLength];
-        var selectedEndianness = Platform.GetEndianness(options.NetworkEndianness);
-        udp = services.UdpClientFactory.CreateClient(
-            port,
-            selectedEndianness,
-            options.Protocol.UdpPacketBufferSize,
-            options.UseIPv6,
-            udpObservers,
-            logger
-        );
+
+        udp = services.ProtocolClientFactory.CreateProtocolClient(port, peerObservers);
         backgroundJobManager.Register(udp);
 
         PeerConnectionFactory peerConnectionFactory = new(
@@ -79,7 +72,7 @@ sealed class SpectatorBackend<TInput, TGameState> :
             new(new PlayerHandle(PlayerType.Remote, 0), hostEndpoint, localConnections);
 
         host = peerConnectionFactory.Create(protocolState, inputGroupSerializer, this);
-        udpObservers.Add(host.GetUdpObserver());
+        peerObservers.Add(host.GetUdpObserver());
         host.Synchronize();
         isSynchronizing = true;
     }

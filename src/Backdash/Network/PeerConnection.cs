@@ -203,7 +203,7 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : struct
         return !state.PeerConnectStatuses[id].Disconnected;
     }
 
-    public IUdpObserver<ProtocolMessage> GetUdpObserver() => inbox;
+    public IPeerObserver<ProtocolMessage> GetUdpObserver() => inbox;
     public void Synchronize() => syncRequest.Synchronize();
 
     public void CheckDisconnection()

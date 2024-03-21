@@ -6,13 +6,13 @@ interface IBackgroundJob
 {
     string JobName { get; }
 
-    Task Start(CancellationToken ct);
+    Task Start(CancellationToken cancellationToken);
 }
 
 interface IBackgroundJobManager : IDisposable
 {
-    Task Start(CancellationToken ct);
-    void Register(IBackgroundJob job, CancellationToken ct = default);
+    Task Start(CancellationToken cancellationToken);
+    void Register(IBackgroundJob job, CancellationToken cancellationToken = default);
     void Stop(TimeSpan timeout = default);
     void ThrowIfError();
 }
@@ -27,11 +27,11 @@ sealed class BackgroundJobManager(Logger logger) : IBackgroundJobManager
 
     readonly List<Exception> exceptions = [];
 
-    public async Task Start(CancellationToken ct)
+    public async Task Start(CancellationToken cancellationToken)
     {
         if (isRunning) return;
         if (jobs.Count is 0) throw new NetcodeException("No jobs registered");
-        ct.Register(() => Stop(TimeSpan.Zero));
+        cancellationToken.Register(() => Stop(TimeSpan.Zero));
         logger.Write(LogLevel.Debug, "Starting background tasks");
         foreach (var job in jobs) AddJobTask(new(job.Job, job.StoppingToken));
         isRunning = true;
@@ -84,9 +84,9 @@ sealed class BackgroundJobManager(Logger logger) : IBackgroundJobManager
         throw new AggregateException(exceptions);
     }
 
-    public void Register(IBackgroundJob job, CancellationToken ct = default)
+    public void Register(IBackgroundJob job, CancellationToken cancellationToken = default)
     {
-        JobEntry entry = new(job, ct);
+        JobEntry entry = new(job, cancellationToken);
         if (!jobs.Add(entry))
             return;
         if (!isRunning) return;

@@ -9,7 +9,7 @@ using Backdash.Tests.TestUtils.Types;
 #pragma warning disable AsyncFixer01
 namespace Backdash.Tests.Specs.Integration.Network;
 
-public class UdpClientTests
+public class PeerClientTests
 {
     [Fact]
     public async Task ShouldSend()
@@ -156,7 +156,7 @@ public class UdpClientTests
 
         async ValueTask HandleMessageAsync(
             OpMessage message,
-            IUdpClient<OpMessage> udpClient,
+            IPeerClient<OpMessage> udpClient,
             SocketAddress sender,
             CancellationToken ct
         )

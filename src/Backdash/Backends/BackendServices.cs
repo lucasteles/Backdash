@@ -5,7 +5,9 @@ using Backdash.Serialization;
 using Backdash.Sync.Input;
 using Backdash.Sync.State;
 using Backdash.Sync.State.Stores;
+
 namespace Backdash.Backends;
+
 sealed class BackendServices<TInput, TGameState>
     where TInput : struct
     where TGameState : IEquatable<TGameState>, new()
@@ -15,11 +17,12 @@ sealed class BackendServices<TInput, TGameState>
     public Logger Logger { get; }
     public IClock Clock { get; }
     public IBackgroundJobManager JobManager { get; }
-    public IUdpClientFactory UdpClientFactory { get; }
+    public IProtocolClientFactory ProtocolClientFactory { get; }
     public IStateStore<TGameState> StateStore { get; }
     public IInputGenerator<TInput>? InputGenerator { get; }
     public IRandomNumberGenerator Random { get; }
     public IDelayStrategy DelayStrategy { get; }
+
     public BackendServices(RollbackOptions options, SessionServices<TInput, TGameState>? services)
     {
         ChecksumProvider = services?.ChecksumProvider ?? ChecksumProviderFactory.Create<TGameState>();
@@ -35,9 +38,10 @@ sealed class BackendServices<TInput, TGameState>
         Logger = new Logger(options.Log, logWriter);
         Clock = new Clock();
         JobManager = new BackgroundJobManager(Logger);
-        UdpClientFactory = new UdpClientFactory();
+        ProtocolClientFactory = new ProtocolClientFactory(options, Logger);
     }
 }
+
 static class BackendServices
 {
     public static BackendServices<TInput, TGameState> Create<TInput, TGameState>(

@@ -29,7 +29,7 @@ var tasks = jobs.Start(stopToken);
 await using Measurer measurer = new(snapshotInterval);
 measurer.Start();
 
-IPEndPoint peer2Endpoint = new(IPAddress.Loopback, peer2.Port);
+IPEndPoint peer2Endpoint = new(IPAddress.Loopback, 9001);
 _ = peer1.SendTo(peer2Endpoint.Serialize(), PingMessage.Ping, sendBuffer1).AsTask();
 
 Console.WriteLine("Press enter to stop.");
@@ -44,17 +44,17 @@ measurer.Stop();
 Console.Clear();
 Console.WriteLine(measurer.Summary(printSnapshots));
 
-IUdpClient<PingMessage> CreateClient(int port, Memory<byte>? buffer = null)
+IPeerClient<PingMessage> CreateClient(int port, Memory<byte>? buffer = null)
 {
-    UdpObserverGroup<PingMessage> observers = new();
-    UdpClient<PingMessage> udp = new(
+    PeerObserverGroup<PingMessage> observers = new();
+    PeerClient<PingMessage> peer = new(
         new UdpSocket(port),
         BinarySerializerFactory.ForEnum<PingMessage>(),
         observers,
         logger,
         bufferSize
     );
-    observers.Add(new PingMessageHandler(udp, buffer));
-    jobs.Register(udp);
-    return udp;
+    observers.Add(new PingMessageHandler(peer, buffer));
+    jobs.Register(peer);
+    return peer;
 }

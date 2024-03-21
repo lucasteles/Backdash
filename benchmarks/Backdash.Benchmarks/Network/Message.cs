@@ -9,16 +9,16 @@ public enum PingMessage : long
 }
 sealed class PingMessageHandler(
     string name,
-    IUdpClient<PingMessage> sender,
+    IPeerClient<PingMessage> sender,
     Memory<byte> sendBuffer
-) : IUdpObserver<PingMessage>
+) : IPeerObserver<PingMessage>
 {
     long processedCount;
     long badMessages;
     public long ProcessedCount => processedCount;
     public long BadMessages => badMessages;
     public event Action<long> OnProcessed = delegate { };
-    public async ValueTask OnUdpMessage(
+    public async ValueTask OnPeerMessage(
         PingMessage message,
         SocketAddress from,
         int bytesReceived,
