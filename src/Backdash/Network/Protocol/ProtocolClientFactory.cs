@@ -13,15 +13,14 @@ interface IProtocolClientFactory
 
 sealed class ProtocolClientFactory(
     RollbackOptions options,
+    IPeerSocketFactory socketFactory,
     Logger logger
 ) : IProtocolClientFactory
 {
     public IProtocolClient CreateProtocolClient(int port, IPeerObserver<ProtocolMessage> observer)
     {
-        UdpSocket socket = new UdpSocket(port, options.UseIPv6);
-
         PeerClient<ProtocolMessage> peerClient = new(
-            socket,
+            socketFactory.Create(port, options),
             new ProtocolMessageBinarySerializer(options.NetworkEndianness),
             observer,
             logger,

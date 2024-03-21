@@ -8,7 +8,7 @@ namespace Backdash.Network.Client;
 /// <summary>
 /// UDP specialized socket interface.
 /// </summary>
-public sealed class UdpSocket : IDisposable
+public sealed class UdpSocket : IPeerSocket
 {
     // ReSharper disable InconsistentNaming
     const uint IOC_IN = 0x80000000;

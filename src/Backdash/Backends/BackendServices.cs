@@ -1,5 +1,6 @@
 using Backdash.Core;
 using Backdash.Network;
+using Backdash.Network.Client;
 using Backdash.Network.Protocol;
 using Backdash.Serialization;
 using Backdash.Sync.Input;
@@ -30,15 +31,20 @@ sealed class BackendServices<TInput, TGameState>
         Random = new DefaultRandomNumberGenerator(services?.Random ?? System.Random.Shared);
         DelayStrategy = DelayStrategyFactory.Create(Random, options.Protocol.DelayStrategy);
         InputGenerator = services?.InputGenerator;
+
         InputSerializer = services?.InputSerializer ?? BinarySerializerFactory
             .FindOrThrow<TInput>(options.NetworkEndianness);
+
         var logWriter = services?.LogWriter is null || options.Log.EnabledLevel is LogLevel.None
             ? new ConsoleTextLogWriter()
             : services.LogWriter;
+
         Logger = new Logger(options.Log, logWriter);
         Clock = new Clock();
         JobManager = new BackgroundJobManager(Logger);
-        ProtocolClientFactory = new ProtocolClientFactory(options, Logger);
+
+        var socketFactory = services?.PeerSocketFactory ?? new PeerSocketFactory();
+        ProtocolClientFactory = new ProtocolClientFactory(options, socketFactory, Logger);
     }
 }
 

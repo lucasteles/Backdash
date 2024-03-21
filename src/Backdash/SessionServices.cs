@@ -1,4 +1,5 @@
 using Backdash.Core;
+using Backdash.Network.Client;
 using Backdash.Serialization;
 using Backdash.Sync.Input;
 using Backdash.Sync.State;
@@ -45,6 +46,11 @@ public sealed class SessionServices<TInput, TGameState>
     /// State store service for session.
     /// </summary>
     public IStateStore<TGameState>? StateStore { get; set; }
+
+    /// <summary>
+    /// State store service for session.
+    /// </summary>
+    public IPeerSocketFactory? PeerSocketFactory { get; set; }
 
     /// <summary>
     /// Default random service

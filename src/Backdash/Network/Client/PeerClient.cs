@@ -32,7 +32,7 @@ interface IPeerJobClient<in T> : IBackgroundJob, IPeerClient<T> where T : struct
 
 sealed class PeerClient<T> : IPeerJobClient<T> where T : struct
 {
-    readonly UdpSocket socket;
+    readonly IPeerSocket socket;
     readonly IPeerObserver<T> observer;
     readonly IBinarySerializer<T> serializer;
     readonly Logger logger;
@@ -41,7 +41,7 @@ sealed class PeerClient<T> : IPeerJobClient<T> where T : struct
     public string JobName { get; }
 
     public PeerClient(
-        UdpSocket socket,
+        IPeerSocket socket,
         IBinarySerializer<T> serializer,
         IPeerObserver<T> observer,
         Logger logger,
@@ -120,7 +120,6 @@ sealed class PeerClient<T> : IPeerJobClient<T> where T : struct
             catch (NetcodeDeserializationException ex)
             {
                 logger.Write(LogLevel.Warning, $"UDP Message error: {ex}");
-                continue;
             }
         }
 
@@ -166,4 +165,34 @@ sealed class PeerClient<T> : IPeerJobClient<T> where T : struct
         cancellation?.Dispose();
         socket.Dispose();
     }
+}
+
+/// <summary>
+/// Create new instances of <see cref="IPeerClient{T}"/>
+/// </summary>
+public static class PeerClientFactory
+{
+    internal static IPeerClient<T> Create<T>(
+        IPeerSocket socket,
+        IBinarySerializer<T> serializer,
+        IPeerObserver<T> observer, Logger logger,
+        int maxPacketSize = Max.UdpPacketSize
+    ) where T : struct =>
+        new PeerClient<T>(socket, serializer, observer, logger, maxPacketSize);
+
+    /// <summary>
+    ///  Creates new <see cref="IPeerClient{T}"/>
+    /// </summary>
+    public static IPeerClient<T> Create<T>(
+        IPeerSocket socket,
+        IPeerObserver<T> observer,
+        IBinarySerializer<T>? serializer = null,
+        int maxPacketSize = Max.UdpPacketSize
+    ) where T : struct =>
+        Create(socket,
+            serializer ?? BinarySerializerFactory.FindOrThrow<T>(),
+            observer,
+            Logger.CreateConsoleLogger(LogLevel.None),
+            maxPacketSize
+        );
 }
