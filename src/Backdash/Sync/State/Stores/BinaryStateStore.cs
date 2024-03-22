@@ -111,5 +111,18 @@ public sealed class BinaryStateStore<TState>(
     }
 
     /// <inheritdoc />
+    public int GetChecksum(in Frame frame)
+    {
+        for (var i = 0; i < savedStates.Length; i++)
+        {
+            ref var current = ref savedStates[i];
+            if (current.Frame == frame)
+                return current.Checksum;
+        }
+
+        return 0;
+    }
+
+    /// <inheritdoc />
     public void Dispose() => memory = null!;
 }

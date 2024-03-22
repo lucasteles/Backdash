@@ -6,6 +6,8 @@ using Backdash.Network.Client;
 using Backdash.Network.Messages;
 using Backdash.Serialization;
 using Backdash.Sync.Input;
+using Backdash.Sync.State;
+
 namespace Backdash.Network.Protocol.Comm;
 
 interface IProtocolInbox<TInput> : IPeerObserver<ProtocolMessage> where TInput : struct
@@ -20,6 +22,7 @@ sealed class ProtocolInbox<TInput>(
     ProtocolState state,
     IClock clock,
     IProtocolSynchronizer sync,
+    IChecksumStore checksumStore,
     IMessageSender messageSender,
     IProtocolNetworkEventHandler networkEvents,
     IProtocolInputEventPublisher<TInput> inputEvents,
@@ -101,6 +104,12 @@ sealed class ProtocolInbox<TInput>(
             case MessageType.QualityReport:
                 handled = OnQualityReport(in message, out replyMsg);
                 break;
+            case MessageType.ConsistencyCheckRequest:
+                handled = OnConsistencyCheckRequest(in message, ref replyMsg);
+                break;
+            case MessageType.ConsistencyCheckReply:
+                handled = OnConsistencyCheckReply(in message);
+                break;
             case MessageType.QualityReply:
                 handled = OnQualityReply(in message);
                 break;
@@ -119,6 +128,65 @@ sealed class ProtocolInbox<TInput>(
 
         return handled;
     }
+
+    bool OnConsistencyCheckReply(in ProtocolMessage message)
+    {
+        var checkFrame = message.ConsistencyCheckReply.Frame;
+        var checksum = message.ConsistencyCheckReply.Checksum;
+        var localChecksum = state.Consistency.AskedChecksum;
+
+        logger.Write(LogLevel.Debug, $"Received consistency request reply for: {checkFrame} #{checksum}");
+
+        if (state.Consistency.AskedFrame != checkFrame || localChecksum is 0 || checksum is 0)
+        {
+            logger.Write(LogLevel.Warning,
+                $"Unable to find reply local checksum for {checkFrame}");
+            return false;
+        }
+
+        if (localChecksum != checksum)
+        {
+            logger.Write(LogLevel.Error,
+                $"Invalid remote checksum on frame {checkFrame} ({localChecksum} != {checksum})");
+            state.StoppingTokenSource.Cancel();
+            return false;
+        }
+
+        logger.Write(LogLevel.Debug, $"Consistency request check for: {checkFrame} OK({checksum})");
+        state.Consistency.LastCheck = clock.GetTimeStamp();
+        state.Consistency.AskedFrame = Frame.Null;
+        state.Consistency.AskedChecksum = 0;
+
+        return true;
+    }
+
+    bool OnConsistencyCheckRequest(in ProtocolMessage message, ref ProtocolMessage replyMsg)
+    {
+        var checkFrame = message.ConsistencyCheckRequest.Frame;
+        var checksum = checksumStore.GetChecksum(checkFrame);
+
+        logger.Write(LogLevel.Debug, $"Received consistency request check for: {checkFrame} (reply {checksum})");
+
+
+        if (checksum is 0)
+        {
+            logger.Write(LogLevel.Warning,
+                $"Unable to find requested local checksum for {checkFrame}");
+            return false;
+        }
+
+        replyMsg = new(MessageType.ConsistencyCheckReply)
+        {
+            ConsistencyCheckReply = new()
+            {
+                Frame = checkFrame,
+                Checksum = checksum,
+            },
+        };
+
+        return true;
+    }
+
     bool OnInput(ref InputMessage msg)
     {
         logger.Write(LogLevel.Trace, $"Acked Frame: {LastAckedFrame}");

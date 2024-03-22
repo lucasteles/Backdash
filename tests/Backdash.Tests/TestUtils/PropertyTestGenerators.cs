@@ -117,6 +117,25 @@ class PropertyTestGenerators
             AckFrame = frame,
         }
     );
+
+    public static Arbitrary<ConsistencyCheckRequest> ConsistencyCheckRequestGenerator() => Arb.From(
+        from frame in Arb.Generate<Frame>()
+        select new ConsistencyCheckRequest
+        {
+            Frame = frame,
+        }
+    );
+
+    public static Arbitrary<ConsistencyCheckReply> ConsistencyCheckReplyGenerator() => Arb.From(
+        from frame in Arb.Generate<Frame>()
+        from checksum in Arb.Generate<int>()
+        select new ConsistencyCheckReply
+        {
+            Frame = frame,
+            Checksum = checksum,
+        }
+    );
+
     public static Arbitrary<KeepAlive> KeepAliveGenerator() =>
         Gen.Constant(new KeepAlive()).ToArbitrary();
 
@@ -245,6 +264,18 @@ class PropertyTestGenerators
                     {
                         Header = header,
                         InputAck = x,
+                    }),
+                MessageType.ConsistencyCheckRequest =>
+                    Arb.Generate<ConsistencyCheckRequest>().Select(x => new ProtocolMessage
+                    {
+                        Header = header,
+                        ConsistencyCheckRequest = x,
+                    }),
+                MessageType.ConsistencyCheckReply =>
+                    Arb.Generate<ConsistencyCheckReply>().Select(x => new ProtocolMessage
+                    {
+                        Header = header,
+                        ConsistencyCheckReply = x,
                     }),
                 _ => throw new ArgumentOutOfRangeException(nameof(header)),
             })

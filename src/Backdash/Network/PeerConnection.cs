@@ -7,6 +7,7 @@ using Backdash.Network.Protocol;
 using Backdash.Network.Protocol.Comm;
 using Backdash.Sync;
 using Backdash.Sync.Input;
+using Backdash.Sync.State;
 using Timer = System.Timers.Timer;
 
 namespace Backdash.Network;
@@ -22,12 +23,15 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : struct
     readonly IProtocolSynchronizer syncRequest;
     readonly IProtocolInbox<TInput> inbox;
     readonly IProtocolOutbox outbox;
+    readonly IChecksumStore checksumStore;
     readonly IProtocolInputBuffer<TInput> inputBuffer;
 
     readonly Timer qualityReportTimer;
     readonly Timer networkStatsTimer;
     readonly Timer keepAliveTimer;
     readonly Timer resendInputsTimer;
+    readonly Timer consistencyCheckTimer;
+
     long startedAt;
 
     public PeerConnection(ProtocolOptions options,
@@ -39,6 +43,7 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : struct
         IProtocolSynchronizer syncRequest,
         IProtocolInbox<TInput> inbox,
         IProtocolOutbox outbox,
+        IChecksumStore checksumStore,
         IProtocolInputBuffer<TInput> inputBuffer)
     {
         this.options = options;
@@ -51,6 +56,7 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : struct
         this.inbox = inbox;
         this.outbox = outbox;
         this.inputBuffer = inputBuffer;
+        this.checksumStore = checksumStore;
 
         keepAliveTimer = new(options.KeepAliveInterval);
         keepAliveTimer.Elapsed += OnKeepAliveTick;
@@ -64,7 +70,8 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : struct
         networkStatsTimer = new(options.NetworkStatsInterval);
         networkStatsTimer.Elapsed += OnNetworkStatsTick;
 
-        state.StoppingToken.Register(StopTimers);
+        consistencyCheckTimer = new(options.ConsistencyCheckInterval);
+        consistencyCheckTimer.Elapsed += OnConsistencyCheck;
     }
 
     public void Dispose()
@@ -80,10 +87,12 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : struct
         resendInputsTimer.Elapsed -= OnKeepAliveTick;
         qualityReportTimer.Elapsed -= OnQualityReportTick;
         networkStatsTimer.Elapsed -= OnNetworkStatsTick;
+        consistencyCheckTimer.Elapsed -= OnConsistencyCheck;
         networkStatsTimer.Dispose();
         qualityReportTimer.Dispose();
         keepAliveTimer.Dispose();
         resendInputsTimer.Dispose();
+        consistencyCheckTimer.Dispose();
 
         outbox.Dispose();
     }
@@ -94,6 +103,7 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : struct
         resendInputsTimer.Stop();
         qualityReportTimer.Stop();
         networkStatsTimer.Stop();
+        consistencyCheckTimer.Stop();
     }
 
     void StartTimers()
@@ -101,6 +111,7 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : struct
         keepAliveTimer.Start();
         resendInputsTimer.Start();
         qualityReportTimer.Start();
+        consistencyCheckTimer.Start();
         networkStatsTimer.Start();
     }
 
@@ -301,6 +312,57 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : struct
             $"{state.Player} haven't exchanged packets in a while (last received:{inbox.LastReceivedInput.Frame.Number} last sent:{inputBuffer.LastSent.Frame.Number}). Resending");
 
         inputBuffer.SendPendingInputs();
+    }
+
+    void OnConsistencyCheck(object? sender, ElapsedEventArgs e)
+    {
+        if (state.CurrentStatus is not ProtocolStatus.Running ||
+            options.ConsistencyCheckInterval == TimeSpan.Zero)
+            return;
+
+        var lastReceivedFrame = inbox.LastReceivedInput.Frame;
+        Frame checkFrame = new(lastReceivedFrame.Number - options.ConsistencyCheckOffset);
+
+        if (checkFrame <= Frame.One)
+            return;
+
+        if (state.Consistency.LastCheck is 0)
+        {
+            state.Consistency.LastCheck = clock.GetTimeStamp();
+            return;
+        }
+
+        state.Consistency.AskedFrame = checkFrame;
+        state.Consistency.AskedChecksum = checksumStore.GetChecksum(state.Consistency.AskedFrame);
+
+        if (state.Consistency.AskedFrame.IsNull || state.Consistency.AskedChecksum is 0)
+            return;
+
+        logger.Write(LogLevel.Trace,
+            $"Start consistency check for frame {state.Consistency.AskedFrame} #{state.Consistency.AskedChecksum}");
+
+        var elapsed = clock.GetElapsedTime(state.Consistency.LastCheck);
+        if (options.ConsistencyCheckTimeout > TimeSpan.Zero &&
+            elapsed > options.ConsistencyCheckTimeout &&
+            !state.Player.IsSpectator()
+           )
+        {
+            logger.Write(LogLevel.Error, $"Consistency check timeout on frame {lastReceivedFrame}. Disconnecting");
+            Disconnect();
+            return;
+        }
+
+        logger.Write(LogLevel.Debug,
+            $"Send consistency request for frame {state.Consistency.AskedFrame} #{state.Consistency.AskedChecksum}");
+
+        outbox
+            .SendMessage(new ProtocolMessage(MessageType.ConsistencyCheckRequest)
+            {
+                ConsistencyCheckRequest = new ConsistencyCheckRequest
+                {
+                    Frame = state.Consistency.AskedFrame,
+                },
+            });
     }
 
     void OnQualityReportTick(object? sender, ElapsedEventArgs e)

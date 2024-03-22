@@ -32,6 +32,12 @@ struct ProtocolMessage(MessageType type) : IBinarySerializable, IEquatable<Proto
     [FieldOffset(Header.Size)]
     public InputMessage Input;
 
+    [FieldOffset(Header.Size)]
+    public ConsistencyCheckRequest ConsistencyCheckRequest;
+
+    [FieldOffset(Header.Size)]
+    public ConsistencyCheckReply ConsistencyCheckReply;
+
     public readonly void Serialize(BinarySpanWriter writer)
     {
         Header.Serialize(writer);
@@ -53,6 +59,12 @@ struct ProtocolMessage(MessageType type) : IBinarySerializable, IEquatable<Proto
                 InputAck.Serialize(writer);
                 break;
             case MessageType.KeepAlive:
+                break;
+            case MessageType.ConsistencyCheckRequest:
+                ConsistencyCheckRequest.Serialize(writer);
+                break;
+            case MessageType.ConsistencyCheckReply:
+                ConsistencyCheckReply.Serialize(writer);
                 break;
             case MessageType.Input:
                 Input.Serialize(writer);
@@ -86,6 +98,12 @@ struct ProtocolMessage(MessageType type) : IBinarySerializable, IEquatable<Proto
                 break;
             case MessageType.KeepAlive:
                 break;
+            case MessageType.ConsistencyCheckRequest:
+                ConsistencyCheckRequest.Deserialize(reader);
+                break;
+            case MessageType.ConsistencyCheckReply:
+                ConsistencyCheckReply.Deserialize(reader);
+                break;
             case MessageType.Input:
                 Input.Deserialize(reader);
                 break;
@@ -103,6 +121,8 @@ struct ProtocolMessage(MessageType type) : IBinarySerializable, IEquatable<Proto
             {
                 MessageType.SyncRequest => SyncRequest.ToString(),
                 MessageType.SyncReply => SyncReply.ToString(),
+                MessageType.ConsistencyCheckRequest => ConsistencyCheckRequest.ToString(),
+                MessageType.ConsistencyCheckReply => ConsistencyCheckReply.ToString(),
                 MessageType.Input => Input.ToString(),
                 MessageType.QualityReport => QualityReport.ToString(),
                 MessageType.QualityReply => QualityReply.ToString(),
@@ -131,6 +151,8 @@ struct ProtocolMessage(MessageType type) : IBinarySerializable, IEquatable<Proto
             MessageType.SyncReply => writer.Write(SyncReply),
             MessageType.QualityReply => writer.Write(QualityReply),
             MessageType.QualityReport => writer.Write(QualityReport),
+            MessageType.ConsistencyCheckRequest => writer.Write(ConsistencyCheckRequest),
+            MessageType.ConsistencyCheckReply => writer.Write(ConsistencyCheckReply),
             MessageType.InputAck => writer.Write(InputAck),
             MessageType.KeepAlive => writer.Write("{}"u8),
             MessageType.Invalid => writer.Write("{Invalid}"u8),
@@ -144,6 +166,8 @@ struct ProtocolMessage(MessageType type) : IBinarySerializable, IEquatable<Proto
             MessageType.Invalid => other.Header.Type is MessageType.Invalid,
             MessageType.SyncRequest => SyncRequest.Equals(other.SyncRequest),
             MessageType.SyncReply => SyncReply.Equals(other.SyncReply),
+            MessageType.ConsistencyCheckRequest => ConsistencyCheckRequest.Equals(other.ConsistencyCheckRequest),
+            MessageType.ConsistencyCheckReply => ConsistencyCheckReply.Equals(other.ConsistencyCheckReply),
             MessageType.Input => Input.Equals(other.Input),
             MessageType.QualityReport => QualityReport.Equals(other.QualityReport),
             MessageType.QualityReply => QualityReply.Equals(other.QualityReply),

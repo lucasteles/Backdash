@@ -6,7 +6,7 @@ namespace Backdash.Sync.State;
 /// Repository for temporary save and restore game states.
 /// </summary>
 /// <typeparam name="TState">Game state type.</typeparam>
-public interface IStateStore<TState> : IDisposable where TState : notnull, new()
+public interface IStateStore<TState> : IChecksumStore, IDisposable where TState : notnull, new()
 {
     /// <summary>
     /// Initialize the state buffer with capacity of <paramref name="size"/>

@@ -59,5 +59,18 @@ public sealed class ArrayStateStore<TState> : IStateStore<TState> where TState :
     void AdvanceHead() => head = (head + 1) % savedStates.Length;
 
     /// <inheritdoc />
+    public int GetChecksum(in Frame frame)
+    {
+        for (var i = 0; i < savedStates.Length; i++)
+        {
+            ref var current = ref savedStates[i];
+            if (current.Frame == frame)
+                return current.Checksum;
+        }
+
+        return 0;
+    }
+
+    /// <inheritdoc />
     public void Dispose() { }
 }

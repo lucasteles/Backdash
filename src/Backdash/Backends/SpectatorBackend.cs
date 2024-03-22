@@ -9,6 +9,7 @@ using Backdash.Network.Protocol;
 using Backdash.Serialization;
 using Backdash.Sync.Input;
 using Backdash.Sync.Input.Spectator;
+using Backdash.Sync.State;
 
 namespace Backdash.Backends;
 
@@ -72,7 +73,7 @@ sealed class SpectatorBackend<TInput, TGameState> :
         ProtocolState protocolState =
             new(new PlayerHandle(PlayerType.Remote, 0), hostEndpoint, localConnections);
 
-        host = peerConnectionFactory.Create(protocolState, inputGroupSerializer, this);
+        host = peerConnectionFactory.Create(protocolState, inputGroupSerializer, new EmptyChecksumStore(), this);
         peerObservers.Add(host.GetUdpObserver());
         host.Synchronize();
         isSynchronizing = true;

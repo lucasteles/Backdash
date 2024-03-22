@@ -41,11 +41,20 @@ static class Default
     ///<value>Defaults to <c>32_768</c></value>
     public const int MaxSeqDistance = 1 << 15;
 
+    ///<value>Defaults to <c>500</c> milliseconds</value>
+    public const int ConsistencyCheckInterval = 500;
+
+    ///<value>Defaults to <c>6_000</c> milliseconds</value>
+    public const int ConsistencyCheckTimeout = 6_000;
+
+    ///<value>Defaults to <c>8</c></value>
+    public const int ConsistencyCheckOffset = 8;
+
     ///<value>Defaults to <c>1000</c> milliseconds</value>
     public const int SyncRetryInterval = 1000;
 
-    ///<value>Defaults to <c>500</c> milliseconds</value>
-    public const int SyncFirstRetryInterval = 500;
+    ///<value>Defaults to <c>1000</c> milliseconds</value>
+    public const int SyncFirstRetryInterval = 1000;
 
     ///<value>Defaults to <c>200</c> milliseconds</value>
     public const int KeepAliveInterval = 200;

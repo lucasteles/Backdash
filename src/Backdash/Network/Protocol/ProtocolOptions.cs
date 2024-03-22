@@ -90,6 +90,35 @@ public class ProtocolOptions
     public TimeSpan ShutdownTime { get; init; } = TimeSpan.FromMilliseconds(Default.UdpShutdownTime);
 
     /// <summary>
+    /// Offset to be applied to frame on checksum consistency check.
+    /// The sent frame is (<c>LastReceivedFrame - ConsistencyCheckOffset</c>).
+    /// </summary>
+    /// <inheritdoc cref="Default.ConsistencyCheckOffset"/>
+    /// <seealso cref="ConsistencyCheckTimeout"/>
+    /// <seealso cref="ConsistencyCheckInterval"/>
+    public int ConsistencyCheckOffset { get; init; } = Default.ConsistencyCheckOffset;
+
+    /// <summary>
+    /// The time to wait before send next consistency check (0 to disable).
+    /// On each interval one peer requests a frame to other peer which must respond
+    /// with the state checksum of that frame.
+    /// </summary>
+    /// <inheritdoc cref="Default.ConsistencyCheckInterval"/>
+    /// <seealso cref="ConsistencyCheckOffset"/>
+    /// <seealso cref="ConsistencyCheckTimeout"/>
+    public TimeSpan ConsistencyCheckInterval { get; init; } =
+        TimeSpan.FromMilliseconds(Default.ConsistencyCheckInterval);
+
+    /// <summary>
+    /// Max wait time for non-success consistency checks (0 to disable)
+    /// </summary>
+    /// <inheritdoc cref="Default.ConsistencyCheckTimeout"/>
+    /// <seealso cref="ConsistencyCheckOffset"/>
+    /// <seealso cref="ConsistencyCheckInterval"/>
+    public TimeSpan ConsistencyCheckTimeout { get; init; } =
+        TimeSpan.FromMilliseconds(Default.ConsistencyCheckTimeout);
+
+    /// <summary>
     /// The time to wait before resend synchronization retries after the first.
     /// </summary>
     /// <inheritdoc cref="Default.SyncRetryInterval"/>
