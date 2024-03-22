@@ -27,7 +27,7 @@ public static class RollbackNetcode
         SessionServices<TInput, TGameState>? services = null
     )
         where TInput : struct
-        where TGameState : IEquatable<TGameState>, new()
+        where TGameState : notnull, new()
     {
         options ??= new();
         return new Peer2PeerBackend<TInput, TGameState>(port, options, BackendServices.Create(options, services));
@@ -50,7 +50,7 @@ public static class RollbackNetcode
         RollbackOptions? options = null,
         SessionServices<TInput, TGameState>? services = null)
         where TInput : struct
-        where TGameState : IEquatable<TGameState>, new()
+        where TGameState : notnull, new()
     {
         options ??= new();
         return new SpectatorBackend<TInput, TGameState>(
@@ -74,7 +74,7 @@ public static class RollbackNetcode
         bool throwException = true
     )
         where TInput : struct
-        where TGameState : IEquatable<TGameState>, new()
+        where TGameState : notnull, new()
     {
         options ??= new()
         {

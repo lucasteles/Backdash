@@ -9,7 +9,7 @@ namespace Backdash.Sync.Input;
 
 sealed class Synchronizer<TInput, TState>
     where TInput : struct
-    where TState : IEquatable<TState>, new()
+    where TState : notnull, new()
 {
     readonly RollbackOptions options;
     readonly Logger logger;
@@ -78,7 +78,9 @@ sealed class Synchronizer<TInput, TState>
 
         if (currentFrame == 0)
             SaveCurrentFrame();
+
         logger.Write(LogLevel.Debug, $"Sending non-delayed local frame {currentFrame} to queue {queue}");
+
         input.Frame = currentFrame;
         AddInput(in queue, ref input);
         return true;

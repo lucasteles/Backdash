@@ -8,6 +8,7 @@ using Backdash.Sync.Input.Spectator;
 using Backdash.Tests.TestUtils.Types;
 
 namespace Backdash.Tests.TestUtils;
+
 [Serializable, AttributeUsage(AttributeTargets.Method)]
 public sealed class PropertyTestAttribute : FsCheck.Xunit.PropertyAttribute
 {
@@ -18,6 +19,7 @@ public sealed class PropertyTestAttribute : FsCheck.Xunit.PropertyAttribute
         Arbitrary = [typeof(PropertyTestGenerators)];
     }
 }
+
 [Serializable]
 class PropertyTestGenerators
 {
@@ -26,6 +28,7 @@ class PropertyTestGenerators
         from y in Arb.Generate<int>()
         select new Point(x, y)
     );
+
     public static Arbitrary<SimpleStructData> SimpleStructDataGenerator() =>
         Arb.From(
             from f1 in Arb.Generate<int>()
@@ -49,6 +52,7 @@ class PropertyTestGenerators
                 Field8 = f8,
                 Field9 = f9,
             });
+
     public static Arbitrary<MarshalStructData> MarshalStructDataGenerator() =>
         Arb.From(
             from f1 in Arb.Generate<int>()
@@ -62,10 +66,12 @@ class PropertyTestGenerators
                 Field3 = f3,
                 FieldArray = fArray,
             });
+
     public static Arbitrary<Frame> FrameGenerator() => Arb.From(
         from frame in Arb.Generate<PositiveInt>()
         select new Frame(frame.Item)
     );
+
     public static Arbitrary<ConnectStatus> ConnectStatusGenerator() => Arb.From(
         from disconnected in Arb.Generate<bool>()
         from lastFrame in Arb.Generate<Frame>()
@@ -75,6 +81,7 @@ class PropertyTestGenerators
             LastFrame = lastFrame,
         }
     );
+
     public static Arbitrary<Header> HeaderGenerator() => Arb.From(
         from msgType in Arb.Generate<MessageType>()
         from magic in Arb.Generate<ushort>()
@@ -86,19 +93,23 @@ class PropertyTestGenerators
             SequenceNumber = seqNum,
         }
     );
+
     public static Arbitrary<float> FloatGenerator() =>
         Arb.Default.Float32().Generator
             .Where(float.IsNormal)
             .ToArbitrary();
+
     public static Arbitrary<double> DoubleGenerator() =>
         Arb.Default.Float().Generator
             .Where(double.IsNormal)
             .ToArbitrary();
+
     public static Arbitrary<Half> HalfGenerator() =>
         Arb.Generate<float>()
             .Where(x => x >= (float)Half.MinValue && x < (float)Half.MaxValue)
             .Select(x => (Half)x)
             .ToArbitrary();
+
     public static Arbitrary<InputAck> InputAckGenerator() => Arb.From(
         from frame in Arb.Generate<Frame>()
         select new InputAck
@@ -108,6 +119,7 @@ class PropertyTestGenerators
     );
     public static Arbitrary<KeepAlive> KeepAliveGenerator() =>
         Gen.Constant(new KeepAlive()).ToArbitrary();
+
     public static Arbitrary<QualityReply> QualityReplyGenerator() => Arb.From(
         from pong in Arb.Generate<uint>()
         select new QualityReply
@@ -115,6 +127,7 @@ class PropertyTestGenerators
             Pong = pong,
         }
     );
+
     public static Arbitrary<QualityReport> QualityReportGenerator() => Arb.From(
         from frameAdv in Arb.Generate<byte>()
         from ping in Arb.Generate<uint>()
@@ -124,6 +137,7 @@ class PropertyTestGenerators
             Ping = ping,
         }
     );
+
     public static Arbitrary<SyncReply> SyncReplyGenerator() => Arb.From(
         from reply in Arb.Generate<uint>()
         from pong in Arb.Generate<uint>()
@@ -133,6 +147,7 @@ class PropertyTestGenerators
             Pong = pong,
         }
     );
+
     public static Arbitrary<SyncRequest> SyncRequestGenerator() => Arb.From(
         from randRequest in Arb.Generate<uint>()
         from remoteEp in Arb.Generate<byte>()
@@ -142,6 +157,7 @@ class PropertyTestGenerators
             Ping = randRequest,
         }
     );
+
     public static Arbitrary<PeerStatusBuffer> PeerStatusBufferGenerator() =>
         Gen.Sized(testSize =>
             {
@@ -155,6 +171,7 @@ class PropertyTestGenerators
                 return result;
             })
             .ToArbitrary();
+
     public static Arbitrary<InputMessage> InputMsgGenerator() => Arb.From(
         from startFrame in Arb.Generate<Frame>()
         from disconnectReq in Arb.Generate<bool>()
@@ -181,6 +198,7 @@ class PropertyTestGenerators
             Bits = new(inputBuffer),
         }
     );
+
     public static Arbitrary<ProtocolMessage> UpdMsgGenerator() =>
         Arb.Generate<Header>()
             .Where(h => h.Type is not MessageType.Invalid)
@@ -231,10 +249,12 @@ class PropertyTestGenerators
                 _ => throw new ArgumentOutOfRangeException(nameof(header)),
             })
             .ToArbitrary();
+
     public static Arbitrary<TestInput> TestInputGenerator() => Arb.From(
         from bytes in Gen.ArrayOf(TestInput.Capacity, Arb.Generate<byte>())
         select new TestInput(bytes)
     );
+
     public static Arbitrary<Version> VersionGenerator() =>
         Arb.Generate<byte>()
             .Select(x => (int)x)
@@ -245,6 +265,7 @@ class PropertyTestGenerators
                 return new Version(ma, mi, bu, re);
             })
             .ToArbitrary();
+
     public static Arbitrary<GameInput<TInput>> GameInputBufferGenerator<TInput>()
         where TInput : struct
         => Arb.From(
@@ -256,6 +277,7 @@ class PropertyTestGenerators
                 Data = data,
             }
         );
+
     public static Arbitrary<PendingGameInputs> PendingGameInputBufferGenerator() =>
         Gen.Sized(testSize =>
             {
@@ -271,17 +293,20 @@ class PropertyTestGenerators
             })
             .Select(gis => new PendingGameInputs(gis))
             .ToArbitrary();
+
     public static Arbitrary<Vector2> Vector2Generator() => Arb.From(
         from x in Arb.Generate<float>()
         from y in Arb.Generate<float>()
         select new Vector2(x, y)
     );
+
     public static Arbitrary<Vector3> Vector3Generator() => Arb.From(
         from x in Arb.Generate<float>()
         from y in Arb.Generate<float>()
         from z in Arb.Generate<float>()
         select new Vector3(x, y, z)
     );
+
     public static Arbitrary<Vector4> Vector4Generator() => Arb.From(
         from x in Arb.Generate<float>()
         from y in Arb.Generate<float>()
@@ -289,6 +314,7 @@ class PropertyTestGenerators
         from w in Arb.Generate<float>()
         select new Vector4(x, y, z, w)
     );
+
     public static Arbitrary<Quaternion> QuaternionGenerator() => Arb.From(
         from x in Arb.Generate<float>()
         from y in Arb.Generate<float>()
@@ -296,6 +322,7 @@ class PropertyTestGenerators
         from w in Arb.Generate<float>()
         select new Quaternion(x, y, z, w)
     );
+
     public static Arbitrary<CombinedInputs<T>> InputGroupGenerator<T>() where T : struct =>
         Gen.Sized(testSize =>
             {
@@ -304,9 +331,11 @@ class PropertyTestGenerators
             })
             .Select(arr => new CombinedInputs<T>(arr))
             .ToArbitrary();
+
     public static Arbitrary<Array<T>> EquatableArrayGenerator<T>() where T : IEquatable<T> =>
         Gen.Sized(size => Gen.ArrayOf(size, Arb.Generate<T>()))
             .Select(arr => new Array<T>(arr))
             .ToArbitrary();
 }
+
 record PendingGameInputs(GameInput[] Values);

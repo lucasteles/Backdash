@@ -4,6 +4,7 @@ using Backdash.Network.Protocol.Comm;
 using Backdash.Tests.TestUtils;
 
 namespace Backdash.Tests.Specs.Unit.Input;
+
 public class InputEncoderTests
 {
     [Fact]
@@ -27,6 +28,7 @@ public class InputEncoderTests
                 "00000100-00001000"
             );
     }
+
     [Fact]
     public void ShouldCompressAndDecompressSampleSkippingFrames()
     {
@@ -52,6 +54,7 @@ public class InputEncoderTests
                 "00001000-00010000"
             );
     }
+
     [Fact]
     public void ShouldCompressAndDecompressSample2()
     {
@@ -65,6 +68,7 @@ public class InputEncoderTests
         var decompressedInputs = DecompressToList(compressed, lastAcked);
         decompressedInputs.Should().BeEquivalentTo(inputList);
     }
+
     // [PropertyTest]
     [PropertyTest(Replay = "2086077644,297296175", MaxTest = 1)]
     internal void ShouldCompressAndDecompress(PendingGameInputs gameInput)
@@ -77,6 +81,7 @@ public class InputEncoderTests
         var decompressedInputs = DecompressToList(compressed, lastAcked);
         decompressedInputs.Should().BeEquivalentTo(gameInput.Values);
     }
+
     [PropertyTest]
     internal bool CompressEmpty(GameInput gameInput)
     {
@@ -94,6 +99,7 @@ public class InputEncoderTests
         ReadOnlySpan<byte> bits = compressed.Bits;
         return bits.ToArray().All(b => b is 0);
     }
+
     static InputMessage GetCompressedInput(in GameInput lastAcked, params GameInput[] pendingInputs)
     {
         InputMessage inputMsg = new();
@@ -102,6 +108,7 @@ public class InputEncoderTests
             inputMsg.InputSize = (byte)first.Data.Length;
             inputMsg.StartFrame = first.Frame;
         }
+
         Span<byte> lastBytes = stackalloc byte[lastAcked.Data.Length];
         lastAcked.Data.CopyTo(lastBytes);
         var compressor = InputEncoder.GetCompressor(ref inputMsg, lastBytes);
@@ -111,12 +118,15 @@ public class InputEncoderTests
             if (!compressor.Write(t.Data.Buffer[..t.Data.Length]))
                 throw new InvalidOperationException();
         }
+
         compressor.Count.Should().Be(pendingInputs.Length);
         inputMsg.NumBits = compressor.BitOffset;
         return inputMsg;
     }
+
     internal static IReadOnlyList<GameInput> DecompressToList(InputMessage inputMsg) =>
         DecompressToList(inputMsg, new());
+
     // LATER: after encoding refactoring this ends having too many logic, must be improved
     internal static IReadOnlyList<GameInput> DecompressToList(InputMessage inputMsg, GameInput lastRecv)
     {
@@ -139,6 +149,7 @@ public class InputEncoderTests
             currentFrame++;
             inputs.Add(lastRecv);
         }
+
         return inputs;
     }
 }

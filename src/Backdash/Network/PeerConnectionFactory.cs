@@ -6,6 +6,7 @@ using Backdash.Network.Protocol.Comm;
 using Backdash.Serialization;
 using Backdash.Sync;
 namespace Backdash.Network;
+
 sealed class PeerConnectionFactory(
     IProtocolNetworkEventHandler networkEventHandler,
     IClock clock,
@@ -31,12 +32,15 @@ sealed class PeerConnectionFactory(
             networkEventHandler, inputEventQueue, logger);
         var inputBuffer = new ProtocolInputBuffer<TInput>(
             options, inputSerializer, state, logger, timeSync, outbox, inbox);
+
         jobManager.Register(outbox, state.StoppingToken);
+
         PeerConnection<TInput> connection = new(
             options, state, logger, clock, timeSync, networkEventHandler,
             syncManager, inbox, outbox, inputBuffer
         );
         state.StoppingToken.Register(() => connection.Disconnect());
+
         return connection;
     }
 }

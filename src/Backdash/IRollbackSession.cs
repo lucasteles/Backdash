@@ -142,7 +142,7 @@ public interface IRollbackSession<TInput> : IRollbackSessionInfo, IDisposable wh
 /// <typeparam name="TState">Game state type</typeparam>
 public interface IRollbackSession<TInput, TState> : IRollbackSession<TInput>
     where TInput : struct
-    where TState : IEquatable<TState>
+    where TState : notnull
 {
     /// <summary>
     /// Add the <paramref name="player"/> into current session.

@@ -15,14 +15,14 @@ public class Game1 : Game
         FrameDelay = 2,
         Log = new()
         {
-            EnabledLevel = LogLevel.Error,
+            EnabledLevel = LogLevel.Information,
         },
         Protocol = new()
         {
             NumberOfSyncRoundtrips = 10,
             DisconnectTimeout = TimeSpan.FromSeconds(3),
             DisconnectNotifyStart = TimeSpan.FromSeconds(1),
-            LogNetworkStats = true,
+            LogNetworkStats = false,
             // NetworkDelay = FrameSpan.Of(3).Duration(),
         },
     };

@@ -11,7 +11,7 @@ namespace Backdash.Backends;
 
 sealed class BackendServices<TInput, TGameState>
     where TInput : struct
-    where TGameState : IEquatable<TGameState>, new()
+    where TGameState : notnull, new()
 {
     public IBinarySerializer<TInput> InputSerializer { get; }
     public IChecksumProvider<TGameState> ChecksumProvider { get; }
@@ -54,7 +54,7 @@ static class BackendServices
         RollbackOptions options,
         SessionServices<TInput, TGameState>? services
     )
-        where TGameState : IEquatable<TGameState>, new()
+        where TGameState : notnull, new()
         where TInput : struct =>
         new(options, services);
 }

@@ -14,7 +14,7 @@ namespace Backdash;
 /// <typeparam name="TGameState">Game state type</typeparam>
 public sealed class SessionServices<TInput, TGameState>
     where TInput : struct
-    where TGameState : IEquatable<TGameState>, new()
+    where TGameState : notnull, new()
 {
     /// <summary>
     /// Serializer for session input.

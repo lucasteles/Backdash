@@ -32,7 +32,8 @@ static class Default
     ///<value>Defaults to <c>64</c></value>
     public const int MaxPackageQueue = 64;
 
-    public const int NumberOfSyncPackets = 5;
+    ///<value>Defaults to <c>10</c></value>
+    public const int NumberOfSyncPackets = 10;
 
     ///<value>Defaults to <c>100</c> milliseconds</value>
     public const long UdpShutdownTime = 100;

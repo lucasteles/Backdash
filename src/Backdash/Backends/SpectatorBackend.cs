@@ -17,7 +17,7 @@ sealed class SpectatorBackend<TInput, TGameState> :
     IProtocolNetworkEventHandler,
     IProtocolInputEventPublisher<CombinedInputs<TInput>>
     where TInput : struct
-    where TGameState : IEquatable<TGameState>, new()
+    where TGameState : notnull, new()
 {
     readonly Logger logger;
     readonly IProtocolClient udp;
@@ -35,6 +35,7 @@ sealed class SpectatorBackend<TInput, TGameState> :
     bool disposed;
     long lastReceivedInputTime;
     SynchronizedInput<TInput>[] syncInputBuffer = [];
+    bool closed;
 
     public SpectatorBackend(int port,
         IPEndPoint hostEndpoint,
@@ -89,6 +90,8 @@ sealed class SpectatorBackend<TInput, TGameState> :
 
     public void Close()
     {
+        if (closed) return;
+        closed = true;
         logger.Write(LogLevel.Information, "Shutting down connections");
         host.Dispose();
         callbacks.OnSessionClose();

@@ -33,6 +33,9 @@ public readonly record struct Frame :
     /// <summary>Return frame value <c>0</c></summary>
     public static readonly Frame Zero = new(0);
 
+    /// <summary>Return frame value <c>1</c></summary>
+    public static readonly Frame One = new(1);
+
     /// <summary>Returns max frame value</summary>
     public static readonly Frame MaxValue = new(int.MaxValue);
 

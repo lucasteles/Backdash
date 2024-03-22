@@ -9,7 +9,7 @@ namespace Backdash.Backends;
 
 sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGameState>
     where TInput : struct
-    where TGameState : IEquatable<TGameState>, new()
+    where TGameState : notnull, new()
 {
     readonly record struct SavedFrame(
         Frame Frame,

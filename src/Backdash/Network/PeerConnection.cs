@@ -23,6 +23,7 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : struct
     readonly IProtocolInbox<TInput> inbox;
     readonly IProtocolOutbox outbox;
     readonly IProtocolInputBuffer<TInput> inputBuffer;
+
     readonly Timer qualityReportTimer;
     readonly Timer networkStatsTimer;
     readonly Timer keepAliveTimer;
@@ -73,6 +74,8 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : struct
             state.StoppingTokenSource.Cancel();
 
         StopTimers();
+        DispatchDisconnectEvent();
+
         keepAliveTimer.Elapsed -= OnKeepAliveTick;
         resendInputsTimer.Elapsed -= OnKeepAliveTick;
         qualityReportTimer.Elapsed -= OnQualityReportTick;
@@ -103,10 +106,15 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : struct
 
     public void Disconnect()
     {
-        if (state.CurrentStatus is ProtocolStatus.Disconnected) return;
         state.CurrentStatus = ProtocolStatus.Disconnected;
+
         if (!state.StoppingTokenSource.IsCancellationRequested)
+        {
+            DispatchInterruptedEvent(options.ShutdownTime);
             state.StoppingTokenSource.CancelAfter(options.ShutdownTime);
+        }
+        else
+            DispatchDisconnectEvent();
     }
 
     public void Start()
@@ -210,28 +218,57 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : struct
     {
         if (state.Stats.Received.LastTime <= 0 || options.DisconnectTimeout <= TimeSpan.Zero) return;
         var lastReceivedTime = clock.GetElapsedTime(state.Stats.Received.LastTime);
-        if (lastReceivedTime > options.DisconnectNotifyStart
-            && state.Connection is { DisconnectNotifySent: false, DisconnectEventSent: false })
+        if (lastReceivedTime > options.DisconnectNotifyStart &&
+            DispatchInterruptedEvent(options.DisconnectTimeout - options.DisconnectNotifyStart))
         {
-            networkEventHandler.OnNetworkEvent(new(ProtocolEvent.NetworkInterrupted, state.Player)
-            {
-                NetworkInterrupted = new()
-                {
-                    DisconnectTimeout = options.DisconnectTimeout - options.DisconnectNotifyStart,
-                },
-            });
-            state.Connection.DisconnectNotifySent = true;
             logger.Write(LogLevel.Warning,
                 $"{state.Player} endpoint has stopped receiving packets for {(int)lastReceivedTime.TotalMilliseconds}ms. Sending notification");
             return;
         }
 
-        if (lastReceivedTime > options.DisconnectTimeout && !state.Connection.DisconnectEventSent)
+        if (lastReceivedTime > options.DisconnectTimeout)
         {
-            state.Connection.DisconnectEventSent = true;
+            if (!DispatchDisconnectEvent()) return;
             logger.Write(LogLevel.Warning,
                 $"{state.Player} endpoint has stopped receiving packets for {(int)lastReceivedTime.TotalMilliseconds}ms. Disconnecting");
+        }
+    }
+
+    readonly object eventLocker = new();
+
+    bool DispatchInterruptedEvent(TimeSpan timeout)
+    {
+        lock (eventLocker)
+        {
+            if (state.Connection is not { DisconnectNotifySent: false, DisconnectEventSent: false })
+                return false;
+
+            networkEventHandler.OnNetworkEvent(new(ProtocolEvent.NetworkInterrupted, state.Player)
+            {
+                NetworkInterrupted = new()
+                {
+                    DisconnectTimeout = timeout,
+                },
+            });
+
+            state.Connection.DisconnectNotifySent = true;
+
+            return true;
+        }
+    }
+
+    bool DispatchDisconnectEvent()
+    {
+        lock (eventLocker)
+        {
+            if (state.Connection.DisconnectEventSent)
+                return false;
+
+            state.Connection.DisconnectEventSent = true;
+
             networkEventHandler.OnNetworkEvent(ProtocolEvent.Disconnected, state.Player);
+
+            return true;
         }
     }
 
@@ -270,6 +307,7 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : struct
     {
         if (state.CurrentStatus is not ProtocolStatus.Running)
             return;
+
         outbox
             .SendMessage(new ProtocolMessage(MessageType.QualityReport)
             {
