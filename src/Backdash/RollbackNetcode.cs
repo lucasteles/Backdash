@@ -3,6 +3,7 @@ using Backdash.Backends;
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network.Client;
+using Backdash.Sync.Input.Confirmed;
 
 namespace Backdash;
 
@@ -57,6 +58,24 @@ public static class RollbackNetcode
             port, host, numberOfPlayers, options,
             BackendServices.Create(options, services));
     }
+
+    /// <summary>
+    /// Initializes new replay session.
+    /// </summary>
+    /// <param name="numberOfPlayers">Session player count</param>
+    /// <param name="inputs">Inputs to be replayed</param>
+    /// <param name="services">Session customizable dependencies</param>
+    /// <typeparam name="TInput">Game input type</typeparam>
+    /// <typeparam name="TGameState">Game state type</typeparam>
+    public static IRollbackSession<TInput, TGameState> CreateReplaySession<TInput, TGameState>(
+        int numberOfPlayers,
+        IReadOnlyList<ConfirmedInputs<TInput>> inputs,
+        SessionServices<TInput, TGameState>? services = null)
+        where TInput : struct
+        where TGameState : notnull, new() =>
+        new ReplayBackend<TInput, TGameState>(
+            numberOfPlayers, inputs,
+            BackendServices.Create(new RollbackOptions(), services));
 
     /// <summary>
     /// Initializes new sync test session.
