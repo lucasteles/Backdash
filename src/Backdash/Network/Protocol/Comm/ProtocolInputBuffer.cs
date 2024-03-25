@@ -5,7 +5,9 @@ using Backdash.Network.Messages;
 using Backdash.Serialization;
 using Backdash.Sync;
 using Backdash.Sync.Input;
+
 namespace Backdash.Network.Protocol.Comm;
+
 interface IProtocolInputBuffer<TInput> where TInput : struct
 {
     int PendingNumber { get; }
@@ -13,6 +15,7 @@ interface IProtocolInputBuffer<TInput> where TInput : struct
     SendInputResult SendInput(in GameInput<TInput> input);
     SendInputResult SendPendingInputs();
 }
+
 enum SendInputResult : byte
 {
     Ok = 0,
@@ -20,6 +23,7 @@ enum SendInputResult : byte
     MessageBodyOverflow,
     AlreadyAcked,
 }
+
 sealed class ProtocolInputBuffer<TInput> : IProtocolInputBuffer<TInput>
     where TInput : struct
 {
@@ -38,6 +42,7 @@ sealed class ProtocolInputBuffer<TInput> : IProtocolInputBuffer<TInput>
     readonly IMessageSender sender;
     readonly IProtocolInbox<TInput> inbox;
     public int PendingNumber => pendingOutput.Count;
+
     public ProtocolInputBuffer(ProtocolOptions options,
         IBinaryWriter<TInput> inputSerializer,
         ProtocolState state,
@@ -58,8 +63,10 @@ sealed class ProtocolInputBuffer<TInput> : IProtocolInputBuffer<TInput>
         workingBufferMemory = Mem.CreatePinnedMemory(WorkingBufferFactor * inputSize);
         pendingOutput = new(options.MaxPendingInputs);
     }
+
     const int WorkingBufferFactor = 3;
     bool IsQueueFull() => pendingOutput.Count >= options.MaxPendingInputs;
+
     public SendInputResult SendInput(in GameInput<TInput> input)
     {
         if (state.CurrentStatus is ProtocolStatus.Running)
@@ -69,14 +76,17 @@ sealed class ProtocolInputBuffer<TInput> : IProtocolInputBuffer<TInput>
             timeSync.AdvanceFrame(in input, in state.Fairness);
             pendingOutput.Enqueue(input);
         }
+
         return SendPendingInputs();
     }
+
     public SendInputResult SendPendingInputs()
     {
         var createMessageResult = CreateInputMessage(out var inputMessage);
         sender.SendMessage(in inputMessage);
         return createMessageResult;
     }
+
     SendInputResult CreateInputMessage(out ProtocolMessage protocolMessage)
     {
         Span<byte> workingBuffer = workingBufferMemory.Span;
@@ -99,6 +109,7 @@ sealed class ProtocolInputBuffer<TInput> : IProtocolInputBuffer<TInput>
                 lastAckedInput = acked;
                 lastAckSize = inputSerializer.Serialize(in lastAckedInput.Data, lastAckBytes);
             }
+
             Trace.Assert(lastAckedInput.Frame.IsNull || lastAckedInput.Frame.Next() == lastAckFrame);
             var current = pendingOutput.Peek();
             var currentSize = inputSerializer.Serialize(in current.Data, currentBytes);
@@ -134,10 +145,12 @@ sealed class ProtocolInputBuffer<TInput> : IProtocolInputBuffer<TInput>
                     break;
                 }
             }
+
             inputMessage.InputSize = (byte)lastSentSize;
             inputMessage.NumBits = compressor.BitOffset;
             inputMessage.DisconnectRequested = state.CurrentStatus is ProtocolStatus.Disconnected;
         }
+
         inputMessage.AckFrame = inbox.LastReceivedInput.Frame;
         state.LocalConnectStatuses.CopyTo(inputMessage.PeerConnectStatus);
         Trace.Assert(inputMessage.NumBits <= Max.CompressedBytes * ByteSize.ByteToBits);

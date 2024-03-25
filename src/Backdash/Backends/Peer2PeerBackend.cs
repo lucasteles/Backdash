@@ -8,7 +8,7 @@ using Backdash.Network.Protocol;
 using Backdash.Network.Protocol.Comm;
 using Backdash.Serialization;
 using Backdash.Sync.Input;
-using Backdash.Sync.Input.Spectator;
+using Backdash.Sync.Input.Confirmed;
 using Backdash.Sync.State;
 
 namespace Backdash.Backends;
@@ -19,7 +19,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
 {
     readonly RollbackOptions options;
     readonly IBinarySerializer<TInput> inputSerializer;
-    readonly IBinarySerializer<CombinedInputs<TInput>> inputGroupSerializer;
+    readonly IBinarySerializer<ConfirmedInputs<TInput>> inputGroupSerializer;
     readonly Logger logger;
     readonly IStateStore<TGameState> stateStore;
     readonly IProtocolClient udp;
@@ -28,15 +28,18 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
     readonly ConnectionsState localConnections;
     readonly IBackgroundJobManager backgroundJobManager;
     readonly ProtocolInputEventQueue<TInput> peerInputEventQueue;
-    readonly IProtocolInputEventPublisher<CombinedInputs<TInput>> peerCombinedInputsEventPublisher;
+    readonly IProtocolInputEventPublisher<ConfirmedInputs<TInput>> peerCombinedInputsEventPublisher;
     readonly PeerConnectionFactory peerConnectionFactory;
-    readonly List<PeerConnection<CombinedInputs<TInput>>> spectators;
+    readonly List<PeerConnection<ConfirmedInputs<TInput>>> spectators;
     readonly List<PeerConnection<TInput>?> endpoints;
     readonly HashSet<PlayerHandle> addedPlayers = [];
     readonly HashSet<PlayerHandle> addedSpectators = [];
+    readonly IInputListener<TInput>? inputListener;
+
     bool isSynchronizing = true;
     int nextRecommendedInterval;
     Frame nextSpectatorFrame = Frame.Zero;
+    Frame nextListenerFrame = Frame.Zero;
     IRollbackHandler<TGameState> callbacks;
     SynchronizedInput<TInput>[] syncInputBuffer = [];
     Task backgroundJobTask = Task.CompletedTask;
@@ -61,9 +64,11 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         stateStore = services.StateStore;
         backgroundJobManager = services.JobManager;
         logger = services.Logger;
+        inputListener = services.InputListener;
+
         peerInputEventQueue = new ProtocolInputEventQueue<TInput>();
         peerCombinedInputsEventPublisher = new ProtocolCombinedInputsEventPublisher<TInput>(peerInputEventQueue);
-        inputGroupSerializer = new CombinedInputsSerializer<TInput>(inputSerializer);
+        inputGroupSerializer = new ConfirmedInputsSerializer<TInput>(inputSerializer);
         localConnections = new(Max.NumberOfPlayers);
         spectators = [];
         endpoints = [];
@@ -431,16 +436,33 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         {
             if (NumberOfSpectators > 0)
             {
-                GameInput<CombinedInputs<TInput>> confirmed = new(nextSpectatorFrame);
+                GameInput<ConfirmedInputs<TInput>> confirmed = new(nextSpectatorFrame);
                 while (nextSpectatorFrame <= minConfirmedFrame)
                 {
-                    logger.Write(LogLevel.Debug, $"pushing frame {nextSpectatorFrame} to spectators");
                     if (!synchronizer.GetConfirmedInputGroup(in nextSpectatorFrame, ref confirmed))
                         break;
+
+                    logger.Write(LogLevel.Debug, $"pushing frame {nextSpectatorFrame} to spectators");
                     for (var s = 0; s < spectators.Count; s++)
                         if (spectators[s].IsRunning)
                             spectators[s].SendInput(in confirmed);
+
                     nextSpectatorFrame++;
+                }
+            }
+
+            if (inputListener is not null)
+            {
+                GameInput<ConfirmedInputs<TInput>> confirmed = new(nextListenerFrame);
+                while (nextListenerFrame <= minConfirmedFrame)
+                {
+                    if (!synchronizer.GetConfirmedInputGroup(in nextListenerFrame, ref confirmed))
+                        break;
+
+                    logger.Write(LogLevel.Debug, $"pushing frame {nextListenerFrame} to listener");
+                    inputListener.OnConfirmed(in confirmed.Frame, in confirmed.Data);
+
+                    nextListenerFrame++;
                 }
             }
 
