@@ -14,7 +14,7 @@ sealed class SaveInputsToFileListener(string filename) : IInputListener<PlayerIn
     {
         for (var i = 0; i < inputs.Count; i++)
         {
-            var input = (ushort) inputs.Inputs[i];
+            var input = (ushort)inputs.Inputs[i];
             Array.Clear(inputBuffer);
             if (!input.TryFormat(inputBuffer, out _))
                 throw new InvalidOperationException("unable to save input");
@@ -39,7 +39,7 @@ sealed class SaveInputsToFileListener(string filename) : IInputListener<PlayerIn
             for (var i = 0; i < players; i++)
             {
                 if (ushort.TryParse(buffer.AsSpan().Slice(i * InputSize, InputSize), out var value))
-                    inputsBuffer[i] = (PlayerInputs) value;
+                    inputsBuffer[i] = (PlayerInputs)value;
             }
 
             yield return new ConfirmedInputs<PlayerInputs>(inputsBuffer.AsSpan()[..players]);
