@@ -96,6 +96,7 @@ sealed class ProtocolOutbox(
                 state.Stats.Send.LastTime = clock.GetTimeStamp();
                 state.Stats.Send.TotalBytes += (ByteSize)bytesSent;
                 state.Stats.Send.TotalPackets++;
+                message.Dispose();
             }
         }
     }

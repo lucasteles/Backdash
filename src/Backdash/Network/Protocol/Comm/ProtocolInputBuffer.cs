@@ -94,12 +94,15 @@ sealed class ProtocolInputBuffer<TInput> : IProtocolInputBuffer<TInput>
         Span<byte> lastAckBytes = workingBuffer[..inputSize];
         Span<byte> sendBuffer = workingBuffer.Slice(inputSize, inputSize);
         Span<byte> currentBytes = workingBuffer.Slice(inputSize * 2, inputSize);
+
         var messageBodyOverflow = false;
         var lastAckFrame = inbox.LastAckedFrame;
+
         InputMessage inputMessage = new()
         {
             StartFrame = Frame.Zero,
         };
+
         if (pendingOutput.Count > 0)
         {
             while (pendingOutput.Peek().Frame < lastAckFrame)
@@ -155,10 +158,12 @@ sealed class ProtocolInputBuffer<TInput> : IProtocolInputBuffer<TInput>
         state.LocalConnectStatuses.CopyTo(inputMessage.PeerConnectStatus);
         Trace.Assert(inputMessage.NumBits <= Max.CompressedBytes * ByteSize.ByteToBits);
         Trace.Assert(lastAckFrame.IsNull || inputMessage.StartFrame == lastAckFrame);
+
         protocolMessage = new(MessageType.Input)
         {
             Input = inputMessage,
         };
+
         return messageBodyOverflow
             ? SendInputResult.MessageBodyOverflow
             : SendInputResult.Ok;

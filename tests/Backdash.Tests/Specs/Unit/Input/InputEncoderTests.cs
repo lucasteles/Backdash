@@ -70,7 +70,7 @@ public class InputEncoderTests
     }
 
     // [PropertyTest]
-    [PropertyTest(Replay = "2086077644,297296175", MaxTest = 1)]
+    [PropertyTest]
     internal void ShouldCompressAndDecompress(PendingGameInputs gameInput)
     {
         GameInput lastAcked = new(new TestInput())
@@ -102,7 +102,7 @@ public class InputEncoderTests
 
     static InputMessage GetCompressedInput(in GameInput lastAcked, params GameInput[] pendingInputs)
     {
-        InputMessage inputMsg = new();
+        InputMessage inputMsg = new([]);
         if (pendingInputs is [var first, ..])
         {
             inputMsg.InputSize = (byte)first.Data.Length;

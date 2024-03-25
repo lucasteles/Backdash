@@ -1,4 +1,6 @@
+using System.Buffers;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using Backdash.Core;
 using Backdash.Data;
@@ -8,18 +10,33 @@ using Backdash.Serialization.Buffer;
 namespace Backdash.Network.Messages;
 
 [Serializable]
-struct InputMessage() : IBinarySerializable, IUtf8SpanFormattable, IEquatable<InputMessage>
+struct InputMessage : IDisposable, IBinarySerializable, IUtf8SpanFormattable, IEquatable<InputMessage>
 {
-    public PeerStatusBuffer PeerConnectStatus = default;
-    public Frame StartFrame = default;
-    public bool DisconnectRequested = default;
-    public Frame AckFrame = default;
-    public ushort NumBits = default;
-    public byte InputSize = default;
+    public PeerStatusBuffer PeerConnectStatus;
+    public Frame StartFrame;
+    public bool DisconnectRequested;
+    public Frame AckFrame;
+    public ushort NumBits;
+    public byte InputSize;
     public Memory<byte> Bits = Memory<byte>.Empty;
 
+    public InputMessage() => InitBits();
+
+    public InputMessage(ReadOnlySpan<byte> bits) : this()
+    {
+        InitBits();
+        bits.CopyTo(Bits.Span);
+    }
+
+    public void InitBits()
+    {
+        var buffer = ArrayPool<byte>.Shared.Rent(Max.CompressedBytes);
+        buffer.AsSpan().Clear();
+        Bits = buffer;
+    }
+
     public readonly int InputByteSize() => (int)Math.Ceiling(NumBits / (float)ByteSize.ByteToBits);
-    public readonly Memory<byte> InputBytes() => Bits[.. InputByteSize()];
+    public readonly Memory<byte> InputBytes() => Bits[..InputByteSize()];
 
     public void Clear()
     {
@@ -59,6 +76,10 @@ struct InputMessage() : IBinarySerializable, IUtf8SpanFormattable, IEquatable<In
         InputSize = reader.ReadByte();
         NumBits = reader.ReadUShort();
         var bitCount = (int)Math.Ceiling(NumBits / (float)ByteSize.ByteToBits);
+
+        if (Bits.Length is 0)
+            InitBits();
+
         reader.ReadByte(Bits.Span[..bitCount]);
     }
 
@@ -80,12 +101,18 @@ struct InputMessage() : IBinarySerializable, IUtf8SpanFormattable, IEquatable<In
         DisconnectRequested == other.DisconnectRequested &&
         AckFrame.Equals(other.AckFrame) && NumBits == other.NumBits &&
         InputSize == other.InputSize &&
-        Mem.EqualBytes(InputBytes().Span, other.InputBytes().Span);
+        Mem.EqualBytes(InputBytes().Span, other.InputBytes().Span, truncate: true);
 
     public override readonly bool Equals(object? obj) => obj is InputMessage other && Equals(other);
 
     public override readonly int GetHashCode() => HashCode.Combine(
         PeerConnectStatus, StartFrame, DisconnectRequested, AckFrame, NumBits, InputSize, Bits);
+
+    public readonly void Dispose()
+    {
+        if (Bits.Length > 0 && MemoryMarshal.ToEnumerable<byte>(Bits) is byte[] array)
+            ArrayPool<byte>.Shared.Return(array);
+    }
 
     public static bool operator ==(InputMessage left, InputMessage right) => left.Equals(right);
     public static bool operator !=(InputMessage left, InputMessage right) => !left.Equals(right);

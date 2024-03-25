@@ -8,19 +8,41 @@ static class AssertSerialization
     public static bool Validate<T>(ref T value, Func<T>? ctor = null)
         where T : struct, IBinarySerializable, IEquatable<T>
     {
-        using BinarySerializerFixture fixture = new();
-        value.Serialize(fixture.Writer);
         var result = ctor?.Invoke() ?? new();
-        result.Deserialize(fixture.Reader);
-        return result.Equals(value);
+        try
+        {
+            using BinarySerializerFixture fixture = new();
+            value.Serialize(fixture.Writer);
+            result.Deserialize(fixture.Reader);
+            return result.Equals(value);
+        }
+        finally
+        {
+            if (value is IDisposable disposableValue)
+                disposableValue.Dispose();
+
+            if (result is IDisposable disposableRes)
+                disposableRes.Dispose();
+        }
     }
 
     public static bool Offset<T>(ref T value, Func<T>? ctor = null) where T : struct, IBinarySerializable, IEquatable<T>
     {
-        using BinarySerializerFixture fixture = new();
-        value.Serialize(fixture.Writer);
         var result = ctor?.Invoke() ?? new();
-        result.Deserialize(fixture.Reader);
-        return fixture.ReadOffset == fixture.WriteOffset;
+        try
+        {
+            using BinarySerializerFixture fixture = new();
+            value.Serialize(fixture.Writer);
+            result.Deserialize(fixture.Reader);
+            return fixture.ReadOffset == fixture.WriteOffset;
+        }
+        finally
+        {
+            if (value is IDisposable disposableValue)
+                disposableValue.Dispose();
+
+            if (result is IDisposable disposableRes)
+                disposableRes.Dispose();
+        }
     }
 }

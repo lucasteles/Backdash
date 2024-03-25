@@ -188,14 +188,13 @@ class PropertyTestGenerators
             var size = Math.Min(testSize, Max.CompressedBytes);
             return Gen.ArrayOf(size, Arb.Generate<byte>());
         })
-        select new InputMessage
+        select new InputMessage(inputBuffer)
         {
             PeerConnectStatus = new(peerConnectStats),
             StartFrame = startFrame,
             DisconnectRequested = disconnectReq,
             AckFrame = ackFrame,
             InputSize = inputSize,
-            Bits = inputBuffer,
             NumBits = checked((ushort)(inputBuffer.Length * ByteSize.ByteToBits)),
         }
     );
