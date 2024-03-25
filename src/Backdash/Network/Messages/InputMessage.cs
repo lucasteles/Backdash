@@ -4,7 +4,9 @@ using Backdash.Core;
 using Backdash.Data;
 using Backdash.Serialization;
 using Backdash.Serialization.Buffer;
+
 namespace Backdash.Network.Messages;
+
 [Serializable]
 record struct InputMessage : IBinarySerializable, IUtf8SpanFormattable
 {
@@ -15,6 +17,7 @@ record struct InputMessage : IBinarySerializable, IUtf8SpanFormattable
     public ushort NumBits;
     public byte InputSize;
     public InputMessageBuffer Bits;
+
     public void Clear()
     {
         Mem.Clear(Bits);
@@ -25,6 +28,7 @@ record struct InputMessage : IBinarySerializable, IUtf8SpanFormattable
         NumBits = 0;
         InputSize = 0;
     }
+
     public readonly void Serialize(BinarySpanWriter writer)
     {
         ReadOnlySpan<ConnectStatus> peerStatuses = PeerConnectStatus;
@@ -40,6 +44,7 @@ record struct InputMessage : IBinarySerializable, IUtf8SpanFormattable
         var bitCount = (int)Math.Ceiling(NumBits / (float)ByteSize.ByteToBits);
         writer.Write(Bits[..bitCount]);
     }
+
     public void Deserialize(BinarySpanReader reader)
     {
         var peerCount = reader.ReadByte();
@@ -53,6 +58,7 @@ record struct InputMessage : IBinarySerializable, IUtf8SpanFormattable
         var bitCount = (int)Math.Ceiling(NumBits / (float)ByteSize.ByteToBits);
         reader.ReadByte(Bits[..bitCount]);
     }
+
     public readonly bool TryFormat(
         Span<byte> utf8Destination, out int bytesWritten,
         ReadOnlySpan<char> format, IFormatProvider? provider)
@@ -65,11 +71,13 @@ record struct InputMessage : IBinarySerializable, IUtf8SpanFormattable
         return true;
     }
 }
+
 [Serializable, InlineArray(Max.NumberOfPlayers)]
 struct PeerStatusBuffer
 {
     ConnectStatus element0;
     public PeerStatusBuffer(ReadOnlySpan<ConnectStatus> buffer) => buffer.CopyTo(this);
+
     public override readonly string ToString()
     {
         ReadOnlySpan<ConnectStatus> values = this;
@@ -90,10 +98,12 @@ struct PeerStatusBuffer
                 builder.Append(')');
             }
         }
+
         builder.Append(']');
         return builder.ToString();
     }
 }
+
 [Serializable, InlineArray(Max.CompressedBytes)]
 struct InputMessageBuffer
 {

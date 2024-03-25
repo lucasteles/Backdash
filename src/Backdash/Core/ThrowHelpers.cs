@@ -1,6 +1,8 @@
 using System.Globalization;
 using System.Runtime.CompilerServices;
+
 namespace Backdash.Core;
+
 static class ThrowHelpers
 {
     public static void ThrowIfArgumentOutOfBounds(int argument,
@@ -12,6 +14,7 @@ static class ThrowHelpers
         if (argument < min || argument > max)
             throw new ArgumentOutOfRangeException(argument.ToString(CultureInfo.InvariantCulture), paramName);
     }
+
     public static void ThrowIfArgumentIsZeroOrLess(int argument,
         [CallerArgumentExpression(nameof(argument))]
         string? paramName = null)
@@ -19,6 +22,7 @@ static class ThrowHelpers
         if (argument <= 0)
             throw new ArgumentOutOfRangeException(argument.ToString(CultureInfo.InvariantCulture), paramName);
     }
+
     public static void ThrowIfArgumentIsNegative(int argument,
         [CallerArgumentExpression(nameof(argument))]
         string? paramName = null)
@@ -26,12 +30,14 @@ static class ThrowHelpers
         if (argument < 0)
             throw new ArgumentOutOfRangeException(argument.ToString(CultureInfo.InvariantCulture), paramName);
     }
+
     public static void ThrowIfTypeTooBigForStack<T>() where T : struct
     {
         var size = Mem.SizeOf<T>();
         if (size > Mem.MaxStackLimit)
             throw new NetcodeException($"{typeof(T).Name} size too big for stack: {size}");
     }
+
     public static void ThrowIfTypeIsReferenceOrContainsReferences<T>() where T : struct
     {
         if (Mem.IsReferenceOrContainsReferences<T>())

@@ -1,5 +1,7 @@
 using System.Security.Cryptography;
+
 namespace Backdash.Core;
+
 interface IRandomNumberGenerator
 {
     uint SyncNumber();
@@ -7,6 +9,7 @@ interface IRandomNumberGenerator
     int NextInt();
     double NextGaussian();
 }
+
 sealed class DefaultRandomNumberGenerator(Random random) : IRandomNumberGenerator
 {
     public uint SyncNumber()
@@ -16,6 +19,7 @@ sealed class DefaultRandomNumberGenerator(Random random) : IRandomNumberGenerato
         gen.GetBytes(buff);
         return BitConverter.ToUInt32(buff);
     }
+
     public ushort MagicNumber()
     {
         using var gen = RandomNumberGenerator.Create();
@@ -23,7 +27,9 @@ sealed class DefaultRandomNumberGenerator(Random random) : IRandomNumberGenerato
         gen.GetBytes(buff);
         return BitConverter.ToUInt16(buff);
     }
+
     public int NextInt() => random.Next();
+
     public double NextGaussian()
     {
         double u, v, s;
@@ -33,6 +39,7 @@ sealed class DefaultRandomNumberGenerator(Random random) : IRandomNumberGenerato
             v = (2.0 * random.NextDouble()) - 1.0;
             s = (u * u) + (v * v);
         } while (s >= 1.0);
+
         var fac = Math.Sqrt(-2.0 * Math.Log(s) / s);
         return u * fac;
     }

@@ -1,6 +1,8 @@
 using System.Reflection;
+
 #pragma warning disable S3011
 namespace Backdash.Core;
+
 static class TypeHelpers
 {
     public static T? Instantiate<T>(bool allowPrivateConstructor = true) where T : notnull
@@ -16,6 +18,7 @@ static class TypeHelpers
             return (T)ctor.Invoke([]);
         return default;
     }
+
     public static bool HasInvariantHashCode<T>() where T : notnull
     {
         var comparer = EqualityComparer<T>.Default;

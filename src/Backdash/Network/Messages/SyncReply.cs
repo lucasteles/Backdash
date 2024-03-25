@@ -1,21 +1,26 @@
 using Backdash.Serialization;
 using Backdash.Serialization.Buffer;
+
 namespace Backdash.Network.Messages;
+
 [Serializable]
 record struct SyncReply : IBinarySerializable, IUtf8SpanFormattable
 {
     public uint RandomReply; /* please reply back with this random data */
     public long Pong;
+
     public readonly void Serialize(BinarySpanWriter writer)
     {
         writer.Write(in RandomReply);
         writer.Write(in Pong);
     }
+
     public void Deserialize(BinarySpanReader reader)
     {
         RandomReply = reader.ReadUInt();
         Pong = reader.ReadLong();
     }
+
     public readonly bool TryFormat(
         Span<byte> utf8Destination,
         out int bytesWritten, ReadOnlySpan<char> format,
