@@ -15,6 +15,7 @@ sealed class SaveInputsToFileListener(string filename) : IInputListener<PlayerIn
         for (var i = 0; i < inputs.Count; i++)
         {
             var input = (ushort) inputs.Inputs[i];
+            Array.Clear(inputBuffer);
             if (!input.TryFormat(inputBuffer, out _))
                 throw new InvalidOperationException("unable to save input");
 
