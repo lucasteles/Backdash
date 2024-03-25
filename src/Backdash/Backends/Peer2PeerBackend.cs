@@ -112,6 +112,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         stateStore.Dispose();
         logger.Dispose();
         backgroundJobManager.Dispose();
+        inputListener?.Dispose();
     }
 
     public void Close()

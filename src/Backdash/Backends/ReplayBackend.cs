@@ -102,6 +102,9 @@ sealed class ReplayBackend<TInput, TGameState> : IRollbackSession<TInput, TGameS
         if (isSynchronizing)
             return ResultCode.NotSynchronized;
 
+        if (CurrentFrame.Number >= inputList.Count)
+            return ResultCode.NotSynchronized;
+
         var confirmed = inputList[CurrentFrame.Number];
 
         if (confirmed.Count is 0 && CurrentFrame == Frame.Zero)
