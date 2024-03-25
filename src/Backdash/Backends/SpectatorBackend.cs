@@ -8,14 +8,14 @@ using Backdash.Network.Messages;
 using Backdash.Network.Protocol;
 using Backdash.Serialization;
 using Backdash.Sync.Input;
-using Backdash.Sync.Input.Spectator;
+using Backdash.Sync.Input.Confirmed;
 
 namespace Backdash.Backends;
 
 sealed class SpectatorBackend<TInput, TGameState> :
     IRollbackSession<TInput, TGameState>,
     IProtocolNetworkEventHandler,
-    IProtocolInputEventPublisher<CombinedInputs<TInput>>
+    IProtocolInputEventPublisher<ConfirmedInputs<TInput>>
     where TInput : struct
     where TGameState : notnull, new()
 {
@@ -26,8 +26,8 @@ sealed class SpectatorBackend<TInput, TGameState> :
     readonly IBackgroundJobManager backgroundJobManager;
     readonly IClock clock;
     readonly ConnectionsState localConnections = new(0);
-    readonly GameInput<CombinedInputs<TInput>>[] inputs;
-    readonly PeerConnection<CombinedInputs<TInput>> host;
+    readonly GameInput<ConfirmedInputs<TInput>>[] inputs;
+    readonly PeerConnection<ConfirmedInputs<TInput>> host;
     readonly PlayerHandle[] fakePlayers;
     IRollbackHandler<TGameState> callbacks;
     bool isSynchronizing;
@@ -55,11 +55,11 @@ sealed class SpectatorBackend<TInput, TGameState> :
         NumberOfPlayers = numberOfPlayers;
         fakePlayers = Enumerable.Range(0, numberOfPlayers)
             .Select(x => new PlayerHandle(PlayerType.Remote, x + 1, x)).ToArray();
-        IBinarySerializer<CombinedInputs<TInput>> inputGroupSerializer =
-            new CombinedInputsSerializer<TInput>(services.InputSerializer);
+        IBinarySerializer<ConfirmedInputs<TInput>> inputGroupSerializer =
+            new ConfirmedInputsSerializer<TInput>(services.InputSerializer);
         PeerObserverGroup<ProtocolMessage> peerObservers = new();
         callbacks = new EmptySessionHandler<TGameState>(logger);
-        inputs = new GameInput<CombinedInputs<TInput>>[options.SpectatorInputBufferLength];
+        inputs = new GameInput<ConfirmedInputs<TInput>>[options.SpectatorInputBufferLength];
 
         udp = services.ProtocolClientFactory.CreateProtocolClient(port, peerObservers);
         backgroundJobManager.Register(udp);
@@ -234,7 +234,7 @@ sealed class SpectatorBackend<TInput, TGameState> :
     public ref readonly SynchronizedInput<TInput> GetInput(in PlayerHandle player) =>
         ref syncInputBuffer[player.Number - 1];
 
-    void IProtocolInputEventPublisher<CombinedInputs<TInput>>.Publish(in GameInputEvent<CombinedInputs<TInput>> evt)
+    void IProtocolInputEventPublisher<ConfirmedInputs<TInput>>.Publish(in GameInputEvent<ConfirmedInputs<TInput>> evt)
     {
         lastReceivedInputTime = clock.GetTimeStamp();
         var (_, input) = evt;

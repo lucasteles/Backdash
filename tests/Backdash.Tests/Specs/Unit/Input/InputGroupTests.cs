@@ -1,22 +1,22 @@
 using Backdash.Network;
 using Backdash.Serialization;
-using Backdash.Sync.Input.Spectator;
+using Backdash.Sync.Input.Confirmed;
 using Backdash.Tests.TestUtils;
 
 namespace Backdash.Tests.Specs.Unit.Input;
-public class CombinedInputsTests
+public class ConfirmedInputsTests
 {
     [PropertyTest]
-    internal void ShouldSerializeAndDeserializeGroupSamples(CombinedInputs<int> inputData, bool network)
+    internal void ShouldSerializeAndDeserializeGroupSamples(ConfirmedInputs<int> inputData, bool network)
     {
-        IBinarySerializer<CombinedInputs<int>> serializer =
-            new CombinedInputsSerializer<int>(new IntegerBinarySerializer<int>(Platform.GetEndianness(network)))
+        IBinarySerializer<ConfirmedInputs<int>> serializer =
+            new ConfirmedInputsSerializer<int>(new IntegerBinarySerializer<int>(Platform.GetEndianness(network)))
             {
                 Network = network,
             };
         Span<byte> buffer = stackalloc byte[(inputData.Count * sizeof(int)) + 1];
         var writtenCount = serializer.Serialize(inputData, buffer);
-        CombinedInputs<int> result = new();
+        ConfirmedInputs<int> result = new();
         var readCount = serializer.Deserialize(buffer, ref result);
         readCount.Should().Be(writtenCount);
         result.Should().BeEquivalentTo(inputData);

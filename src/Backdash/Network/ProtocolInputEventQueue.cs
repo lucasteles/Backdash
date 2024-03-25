@@ -1,7 +1,8 @@
 using System.Diagnostics;
 using System.Threading.Channels;
 using Backdash.Sync.Input;
-using Backdash.Sync.Input.Spectator;
+using Backdash.Sync.Input.Confirmed;
+
 namespace Backdash.Network;
 readonly record struct GameInputEvent<TInput>(PlayerHandle Player, GameInput<TInput> Input)
     where TInput : struct
@@ -45,10 +46,10 @@ sealed class ProtocolInputEventQueue<TInput> : IProtocolInputEventQueue<TInput> 
     }
 }
 sealed class ProtocolCombinedInputsEventPublisher<TInput>(IProtocolInputEventPublisher<TInput> peerInputEventPublisher)
-    : IProtocolInputEventPublisher<CombinedInputs<TInput>>
+    : IProtocolInputEventPublisher<ConfirmedInputs<TInput>>
     where TInput : struct
 {
-    public void Publish(in GameInputEvent<CombinedInputs<TInput>> evt)
+    public void Publish(in GameInputEvent<ConfirmedInputs<TInput>> evt)
     {
         var player = evt.Player;
         var frame = evt.Input.Frame;

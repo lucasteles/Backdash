@@ -4,6 +4,7 @@ using Backdash.Network.Client;
 using Backdash.Network.Protocol;
 using Backdash.Serialization;
 using Backdash.Sync.Input;
+using Backdash.Sync.Input.Confirmed;
 using Backdash.Sync.State;
 using Backdash.Sync.State.Stores;
 
@@ -23,11 +24,13 @@ sealed class BackendServices<TInput, TGameState>
     public IInputGenerator<TInput>? InputGenerator { get; }
     public IRandomNumberGenerator Random { get; }
     public IDelayStrategy DelayStrategy { get; }
+    public IInputListener<TInput>? InputListener { get; }
 
     public BackendServices(RollbackOptions options, SessionServices<TInput, TGameState>? services)
     {
         ChecksumProvider = services?.ChecksumProvider ?? ChecksumProviderFactory.Create<TGameState>();
         StateStore = services?.StateStore ?? StateStoreFactory.Create(services?.StateSerializer);
+        InputListener = services?.InputListener;
         Random = new DefaultRandomNumberGenerator(services?.Random ?? System.Random.Shared);
         DelayStrategy = DelayStrategyFactory.Create(Random, options.Protocol.DelayStrategy);
         InputGenerator = services?.InputGenerator;

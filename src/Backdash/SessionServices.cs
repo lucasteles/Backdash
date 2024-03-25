@@ -2,6 +2,7 @@ using Backdash.Core;
 using Backdash.Network.Client;
 using Backdash.Serialization;
 using Backdash.Sync.Input;
+using Backdash.Sync.Input.Confirmed;
 using Backdash.Sync.State;
 using Backdash.Sync.State.Stores;
 
@@ -56,4 +57,9 @@ public sealed class SessionServices<TInput, TGameState>
     /// Default random service
     /// </summary>
     public Random? Random { get; set; }
+
+    /// <summary>
+    /// Service to listen for confirmed inputs
+    /// </summary>
+    public IInputListener<TInput>? InputListener { get; set; }
 }

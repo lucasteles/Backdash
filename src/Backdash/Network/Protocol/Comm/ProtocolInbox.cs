@@ -6,6 +6,7 @@ using Backdash.Network.Client;
 using Backdash.Network.Messages;
 using Backdash.Serialization;
 using Backdash.Sync.Input;
+
 namespace Backdash.Network.Protocol.Comm;
 
 interface IProtocolInbox<TInput> : IPeerObserver<ProtocolMessage> where TInput : struct
@@ -119,6 +120,7 @@ sealed class ProtocolInbox<TInput>(
 
         return handled;
     }
+
     bool OnInput(ref InputMessage msg)
     {
         logger.Write(LogLevel.Trace, $"Acked Frame: {LastAckedFrame}");

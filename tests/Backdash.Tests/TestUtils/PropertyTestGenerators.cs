@@ -4,7 +4,7 @@ using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network.Messages;
 using Backdash.Sync.Input;
-using Backdash.Sync.Input.Spectator;
+using Backdash.Sync.Input.Confirmed;
 using Backdash.Tests.TestUtils.Types;
 
 namespace Backdash.Tests.TestUtils;
@@ -323,13 +323,13 @@ class PropertyTestGenerators
         select new Quaternion(x, y, z, w)
     );
 
-    public static Arbitrary<CombinedInputs<T>> InputGroupGenerator<T>() where T : struct =>
+    public static Arbitrary<ConfirmedInputs<T>> InputGroupGenerator<T>() where T : struct =>
         Gen.Sized(testSize =>
             {
                 var size = Math.Min(testSize, InputArray<T>.Capacity);
                 return Gen.ArrayOf(size, Arb.Generate<T>());
             })
-            .Select(arr => new CombinedInputs<T>(arr))
+            .Select(arr => new ConfirmedInputs<T>(arr))
             .ToArbitrary();
 
     public static Arbitrary<Array<T>> EquatableArrayGenerator<T>() where T : IEquatable<T> =>

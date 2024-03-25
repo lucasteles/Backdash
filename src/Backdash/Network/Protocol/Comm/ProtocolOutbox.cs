@@ -74,7 +74,9 @@ sealed class ProtocolOutbox(
                 message.Header.Magic = magicNumber;
                 message.Header.SequenceNumber = (ushort)nextSendSeq;
                 nextSendSeq++;
+
                 logger.Write(LogLevel.Trace, $"send {message} on {state.Player}");
+
                 if (sendLatency > TimeSpan.Zero)
                 {
                     var jitter = delayStrategy.Jitter(sendLatency);
@@ -90,6 +92,7 @@ sealed class ProtocolOutbox(
                 var bytesSent = await peer
                     .SendTo(entry.Recipient, message, buffer, cancellationToken)
                     .ConfigureAwait(false);
+
                 state.Stats.Send.LastTime = clock.GetTimeStamp();
                 state.Stats.Send.TotalBytes += (ByteSize)bytesSent;
                 state.Stats.Send.TotalPackets++;
