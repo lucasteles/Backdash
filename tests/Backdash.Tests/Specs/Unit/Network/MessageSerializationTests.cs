@@ -50,8 +50,16 @@ public class MessageSerializationTests
     internal bool SyncRequestOffset(SyncRequest value) => AssertSerialization.Offset(ref value);
 
     [PropertyTest]
-    internal bool InputMsgSerialize(InputMessage value) => AssertSerialization.Validate(ref value);
+    internal bool InputMsgSerialize(InputMessage value) => AssertSerialization.Validate(ref value, () => new()
+    {
+        // ReSharper disable once AccessToModifiedClosure
+        Bits = new byte[value.Bits.Length],
+    });
 
     [PropertyTest]
-    internal bool InputMsgOffset(InputMessage value) => AssertSerialization.Offset(ref value);
+    internal bool InputMsgOffset(InputMessage value) => AssertSerialization.Offset(ref value, () => new()
+    {
+        // ReSharper disable once AccessToModifiedClosure
+        Bits = new byte[value.Bits.Length],
+    });
 }

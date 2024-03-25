@@ -1,4 +1,3 @@
-using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Backdash.Core;
@@ -9,7 +8,7 @@ using Backdash.Serialization.Buffer;
 namespace Backdash.Network.Messages;
 
 [Serializable]
-record struct InputMessage() : IBinarySerializable, IUtf8SpanFormattable
+struct InputMessage() : IBinarySerializable, IUtf8SpanFormattable, IEquatable<InputMessage>
 {
     public PeerStatusBuffer PeerConnectStatus = default;
     public Frame StartFrame = default;
@@ -18,6 +17,9 @@ record struct InputMessage() : IBinarySerializable, IUtf8SpanFormattable
     public ushort NumBits = default;
     public byte InputSize = default;
     public Memory<byte> Bits = Memory<byte>.Empty;
+
+    public readonly int InputByteSize() => (int)Math.Ceiling(NumBits / (float)ByteSize.ByteToBits);
+    public readonly Memory<byte> InputBytes() => Bits[.. InputByteSize()];
 
     public void Clear()
     {
@@ -57,12 +59,7 @@ record struct InputMessage() : IBinarySerializable, IUtf8SpanFormattable
         InputSize = reader.ReadByte();
         NumBits = reader.ReadUShort();
         var bitCount = (int)Math.Ceiling(NumBits / (float)ByteSize.ByteToBits);
-
-        var bits = Bits.Span;
-        if (bits.Length is 0)
-            bits = ArrayPool<byte>.Shared.Rent(bitCount);
-
-        reader.ReadByte(bits[..bitCount]);
+        reader.ReadByte(Bits.Span[..bitCount]);
     }
 
     public readonly bool TryFormat(
@@ -76,6 +73,22 @@ record struct InputMessage() : IBinarySerializable, IUtf8SpanFormattable
         if (!writer.Write(NumBits)) return false;
         return true;
     }
+
+    public readonly bool Equals(InputMessage other) =>
+        PeerConnectStatus[..].SequenceEqual(other.PeerConnectStatus) &&
+        StartFrame.Equals(other.StartFrame) &&
+        DisconnectRequested == other.DisconnectRequested &&
+        AckFrame.Equals(other.AckFrame) && NumBits == other.NumBits &&
+        InputSize == other.InputSize &&
+        Mem.EqualBytes(InputBytes().Span, other.InputBytes().Span);
+
+    public override readonly bool Equals(object? obj) => obj is InputMessage other && Equals(other);
+
+    public override readonly int GetHashCode() => HashCode.Combine(
+        PeerConnectStatus, StartFrame, DisconnectRequested, AckFrame, NumBits, InputSize, Bits);
+
+    public static bool operator ==(InputMessage left, InputMessage right) => left.Equals(right);
+    public static bool operator !=(InputMessage left, InputMessage right) => !left.Equals(right);
 }
 
 [Serializable, InlineArray(Max.NumberOfPlayers)]
