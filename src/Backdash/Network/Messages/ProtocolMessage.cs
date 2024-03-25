@@ -29,7 +29,7 @@ struct ProtocolMessage(MessageType type) : IBinarySerializable, IEquatable<Proto
     [FieldOffset(Header.Size)]
     public KeepAlive KeepAlive;
 
-    [FieldOffset(Header.Size)]
+    [FieldOffset(Header.Size + 2)]
     public InputMessage Input;
 
     public readonly void Serialize(BinarySpanWriter writer)

@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Backdash.Core;
@@ -8,19 +9,19 @@ using Backdash.Serialization.Buffer;
 namespace Backdash.Network.Messages;
 
 [Serializable]
-record struct InputMessage : IBinarySerializable, IUtf8SpanFormattable
+record struct InputMessage() : IBinarySerializable, IUtf8SpanFormattable
 {
-    public PeerStatusBuffer PeerConnectStatus;
-    public Frame StartFrame;
-    public bool DisconnectRequested;
-    public Frame AckFrame;
-    public ushort NumBits;
-    public byte InputSize;
-    public InputMessageBuffer Bits;
+    public PeerStatusBuffer PeerConnectStatus = default;
+    public Frame StartFrame = default;
+    public bool DisconnectRequested = default;
+    public Frame AckFrame = default;
+    public ushort NumBits = default;
+    public byte InputSize = default;
+    public Memory<byte> Bits = Memory<byte>.Empty;
 
     public void Clear()
     {
-        Mem.Clear(Bits);
+        Mem.Clear(Bits.Span);
         PeerConnectStatus[..].Clear();
         StartFrame = Frame.Zero;
         DisconnectRequested = false;
@@ -42,7 +43,7 @@ record struct InputMessage : IBinarySerializable, IUtf8SpanFormattable
         writer.Write(in InputSize);
         writer.Write(in NumBits);
         var bitCount = (int)Math.Ceiling(NumBits / (float)ByteSize.ByteToBits);
-        writer.Write(Bits[..bitCount]);
+        writer.Write(Bits.Span[..bitCount]);
     }
 
     public void Deserialize(BinarySpanReader reader)
@@ -56,7 +57,12 @@ record struct InputMessage : IBinarySerializable, IUtf8SpanFormattable
         InputSize = reader.ReadByte();
         NumBits = reader.ReadUShort();
         var bitCount = (int)Math.Ceiling(NumBits / (float)ByteSize.ByteToBits);
-        reader.ReadByte(Bits[..bitCount]);
+
+        var bits = Bits.Span;
+        if (bits.Length is 0)
+            bits = ArrayPool<byte>.Shared.Rent(bitCount);
+
+        reader.ReadByte(bits[..bitCount]);
     }
 
     public readonly bool TryFormat(
@@ -102,12 +108,4 @@ struct PeerStatusBuffer
         builder.Append(']');
         return builder.ToString();
     }
-}
-
-[Serializable, InlineArray(Max.CompressedBytes)]
-struct InputMessageBuffer
-{
-    byte element0;
-    public InputMessageBuffer(ReadOnlySpan<byte> bits) => bits.CopyTo(this);
-    public override readonly string ToString() => Mem.GetBitString(this);
 }

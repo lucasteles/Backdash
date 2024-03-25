@@ -96,7 +96,7 @@ public class InputEncoderTests
         };
         GameInput[] inputs = [gameInput, twinInput];
         var compressed = GetCompressedInput(in lastAcked, inputs);
-        ReadOnlySpan<byte> bits = compressed.Bits;
+        ReadOnlySpan<byte> bits = compressed.Bits.Span;
         return bits.ToArray().All(b => b is 0);
     }
 

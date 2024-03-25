@@ -117,6 +117,7 @@ class PropertyTestGenerators
             AckFrame = frame,
         }
     );
+
     public static Arbitrary<KeepAlive> KeepAliveGenerator() =>
         Gen.Constant(new KeepAlive()).ToArbitrary();
 
@@ -194,8 +195,8 @@ class PropertyTestGenerators
             DisconnectRequested = disconnectReq,
             AckFrame = ackFrame,
             InputSize = inputSize,
+            Bits = inputBuffer,
             NumBits = checked((ushort)(inputBuffer.Length * ByteSize.ByteToBits)),
-            Bits = new(inputBuffer),
         }
     );
 
