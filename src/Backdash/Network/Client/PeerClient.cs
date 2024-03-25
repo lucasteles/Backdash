@@ -78,7 +78,6 @@ sealed class PeerClient<T> : IPeerJobClient<T> where T : struct
     {
         var buffer = Mem.CreatePinnedMemory(maxPacketSize);
         SocketAddress address = new(socket.AddressFamily);
-        T msg = default;
         while (!ct.IsCancellationRequested)
         {
             int receivedSize;
@@ -114,6 +113,7 @@ sealed class PeerClient<T> : IPeerJobClient<T> where T : struct
 
             try
             {
+                T msg = new();
                 serializer.Deserialize(buffer[..receivedSize].Span, ref msg);
                 await observer.OnPeerMessage(msg, address, receivedSize, ct).ConfigureAwait(false);
             }

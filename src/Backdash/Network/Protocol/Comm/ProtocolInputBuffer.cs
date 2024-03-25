@@ -125,7 +125,7 @@ sealed class ProtocolInputBuffer<TInput> : IProtocolInputBuffer<TInput>
                 sendBuffer.Clear();
             else
                 lastAckBytes[..lastAckSize].CopyTo(sendBuffer);
-            var compressor = InputEncoder.GetCompressor(ref inputMessage, sendBuffer);
+            var compressor = InputEncoder.GetCompressor(in inputMessage, sendBuffer);
             var count = pendingOutput.Count;
             var n = 0;
             while (n++ < count)

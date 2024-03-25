@@ -111,7 +111,7 @@ public class InputEncoderTests
 
         Span<byte> lastBytes = stackalloc byte[lastAcked.Data.Length];
         lastAcked.Data.CopyTo(lastBytes);
-        var compressor = InputEncoder.GetCompressor(ref inputMsg, lastBytes);
+        var compressor = InputEncoder.GetCompressor(in inputMsg, lastBytes);
         for (var i = 0; i < pendingInputs.Length; i++)
         {
             ref var t = ref pendingInputs[i];
@@ -137,7 +137,7 @@ public class InputEncoderTests
         var currentFrame = inputMsg.StartFrame;
         var nextFrame = lastRecv.Frame.Next();
         currentFrame.Number.Should().BeLessOrEqualTo(nextFrame.Number);
-        var decompressor = InputEncoder.GetDecompressor(ref inputMsg);
+        var decompressor = InputEncoder.GetDecompressor(in inputMsg);
         var framesAhead = nextFrame.Number - currentFrame.Number;
         if (decompressor.Skip(framesAhead))
             currentFrame += framesAhead;

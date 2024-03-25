@@ -5,9 +5,9 @@ namespace Backdash.Network.Protocol.Comm;
 
 static class InputEncoder
 {
-    public static DeltaXorRle.Encoder GetCompressor(ref InputMessage inputMsg, Span<byte> lastBuffer) =>
+    public static DeltaXorRle.Encoder GetCompressor(in InputMessage inputMsg, Span<byte> lastBuffer) =>
         new(inputMsg.Bits.Span, lastBuffer);
 
-    public static DeltaXorRle.Decoder GetDecompressor(ref InputMessage inputMsg) =>
+    public static DeltaXorRle.Decoder GetDecompressor(in InputMessage inputMsg) =>
         new(inputMsg.Bits.Span, inputMsg.NumBits);
 }
