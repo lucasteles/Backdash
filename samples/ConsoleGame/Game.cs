@@ -1,18 +1,25 @@
 using System.Diagnostics;
 using Backdash;
 using Backdash.Data;
+
 namespace ConsoleGame;
+
 public sealed class Game : IRollbackHandler<GameState>
 {
     // Rollback NetCode Session
     readonly IRollbackSession<GameInput> session;
+
     readonly CancellationTokenSource cancellation;
+
     // State that does not affect the game
     readonly NonGameState nonGameState;
+
     // Draw the game state on console
     readonly View view;
+
     // Actual game state
     GameState currentState = GameLogic.InitialState();
+
     public Game(IRollbackSession<GameInput> session, CancellationTokenSource cancellation)
     {
         view = new View();
@@ -34,6 +41,7 @@ public sealed class Game : IRollbackHandler<GameState>
                     SessionInfo = session,
                 };
     }
+
     // Game Loop
     public void Update()
     {
@@ -43,6 +51,7 @@ public sealed class Game : IRollbackHandler<GameState>
         session.GetNetworkStatus(nonGameState.RemotePlayer, ref nonGameState.PeerNetworkStats);
         view.Draw(in currentState, nonGameState);
     }
+
     void UpdatePlayers()
     {
         if (nonGameState.LocalPlayer is { } localPlayer)
@@ -58,6 +67,7 @@ public sealed class Game : IRollbackHandler<GameState>
                 return;
             }
         }
+
         var syncResult = session.SynchronizeInputs();
         if (syncResult is not ResultCode.Ok)
         {
@@ -65,12 +75,17 @@ public sealed class Game : IRollbackHandler<GameState>
             nonGameState.LastError = @$"{syncResult} {DateTime.Now:mm\:ss\.fff}";
             return;
         }
+
         var (input1, input2) = (session.GetInput(0), session.GetInput(1));
         GameLogic.AdvanceState(ref currentState, input1, input2);
         session.AdvanceFrame();
     }
+
     static void Log(string message) =>
+#pragma warning disable S6670
         Trace.WriteLine($"{DateTime.UtcNow:hh:mm:ss.zzz} GAME => {message}");
+#pragma warning restore S6670
+
     // Session Callbacks
     public void OnSessionStart()
     {
@@ -78,18 +93,21 @@ public sealed class Game : IRollbackHandler<GameState>
         nonGameState.IsRunning = true;
         nonGameState.RemotePlayerStatus = PlayerStatus.Running;
     }
+
     public void OnSessionClose()
     {
         Log("GAME CLOSED");
         nonGameState.IsRunning = false;
         nonGameState.RemotePlayerStatus = PlayerStatus.Disconnected;
     }
+
     public void TimeSync(FrameSpan framesAhead)
     {
         Console.SetCursorPosition(1, 0);
         Console.WriteLine("> Syncing...");
         Thread.Sleep(framesAhead.Duration());
     }
+
     public void OnPeerEvent(PlayerHandle player, PeerEventInfo evt)
     {
         Log($"PEER EVENT: {evt} from {player}");
@@ -121,16 +139,19 @@ public sealed class Game : IRollbackHandler<GameState>
                 break;
         }
     }
+
     public void SaveState(in Frame frame, ref GameState state)
     {
         state.Position1 = currentState.Position1;
         state.Position2 = currentState.Position2;
     }
+
     public void LoadState(in Frame frame, in GameState gameState)
     {
         currentState.Position1 = gameState.Position1;
         currentState.Position2 = gameState.Position2;
     }
+
     public void AdvanceFrame()
     {
         session.SynchronizeInputs();
