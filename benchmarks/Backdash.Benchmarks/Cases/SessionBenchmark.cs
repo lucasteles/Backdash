@@ -1,10 +1,6 @@
-using System.Diagnostics;
 using System.Net;
-using Backdash.Benchmarks.Network;
 using Backdash.Core;
 using Backdash.Data;
-using Backdash.Sync.Input;
-using Backdash.Sync.State;
 
 #pragma warning disable CS0649, AsyncFixer01, AsyncFixer02
 // ReSharper disable AccessToDisposedClosure
@@ -24,14 +20,12 @@ public record struct GameState;
 
 [InProcess]
 [RPlotExporter]
-[MemoryDiagnoser, ExceptionDiagnoser]
+[MemoryDiagnoser, ExceptionDiagnoser, ThreadingDiagnoser]
 [RankColumn, IterationsColumn]
 public class SessionBenchmark
 {
-    [Params(1000)]
+    [Params(10_000)]
     public int N;
-
-    // readonly RandomInputGenerator<GameInput> inputGenerator = new(new(42));
 
     IRollbackSession<GameInput, GameState> peer1 = null!;
     IRollbackSession<GameInput, GameState> peer2 = null!;
@@ -78,41 +72,30 @@ public class SessionBenchmark
         var p1 = peer1.GetPlayers().Single(x => x.IsLocal());
         var p2 = peer2.GetPlayers().Single(x => x.IsLocal());
 
-        var input = GameInput.None;
-        while (true)
-        {
-            peer1.BeginFrame();
-            peer2.BeginFrame();
+        var input = GameInput.Up | GameInput.Right;
 
-            if (peer1.AddLocalInput(p1, input) is ResultCode.NotSynchronized)
-                await Task.Delay(100);
-            else
+        await Task.WhenAll(
+            Task.Run(() =>
             {
-                peer1.AdvanceFrame();
-                break;
-            }
-
-            if (peer2.AddLocalInput(p2, input) is ResultCode.NotSynchronized)
-                await Task.Delay(100);
-            else
+                while (peer1.CurrentFrame.Number < N)
+                {
+                    peer1.BeginFrame();
+                    if (peer1.AddLocalInput(p1, input) is ResultCode.Ok &&
+                        peer1.SynchronizeInputs() is ResultCode.Ok)
+                        peer1.AdvanceFrame();
+                }
+            }),
+            Task.Run(() =>
             {
-                peer2.AdvanceFrame();
-                break;
-            }
-        }
-
-        for (var i = 0; i < N; i++)
-        {
-            peer1.BeginFrame();
-            if (peer1.AddLocalInput(p1, input) is ResultCode.Ok &&
-                peer1.SynchronizeInputs() is ResultCode.Ok)
-                peer1.AdvanceFrame();
-
-            peer2.BeginFrame();
-            if (peer2.AddLocalInput(p2, input) is ResultCode.Ok &&
-                peer2.SynchronizeInputs() is ResultCode.Ok)
-                peer2.AdvanceFrame();
-        }
+                while (peer2.CurrentFrame.Number < N)
+                {
+                    peer2.BeginFrame();
+                    if (peer2.AddLocalInput(p2, input) is ResultCode.Ok &&
+                        peer2.SynchronizeInputs() is ResultCode.Ok)
+                        peer2.AdvanceFrame();
+                }
+            })
+        );
 
         await cts.CancelAsync();
         await Task.WhenAll(peer1.WaitToStop(), peer2.WaitToStop());
