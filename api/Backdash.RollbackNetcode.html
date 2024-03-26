@@ -1,0 +1,407 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Class RollbackNetcode | Backdash Netcode </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Class RollbackNetcode | Backdash Netcode ">
+      
+      <meta name="description" content="The session factory used to create new netcode sessions.">
+      <link rel="icon" href="../docs/images/favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+  </head>
+
+  <script type="module" src="./../public/docfx.min.js"></script>
+
+  <script>
+    const theme = localStorage.getItem('theme') || 'auto'
+    document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+  </script>
+
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../docs/images/logo.png" alt="Backdash">
+            Backdash
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled="" placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" style="margin-top: -.65em; margin-left: -.8em" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="Backdash.RollbackNetcode">
+
+
+
+  <h1 id="Backdash_RollbackNetcode" data-uid="Backdash.RollbackNetcode" class="text-break">
+Class RollbackNetcode  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/RollbackNetcode.cs"><i class="bi bi-code-slash"></i></a>
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Backdash.html">Backdash</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Backdash.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>The session factory used to create new netcode sessions.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static class RollbackNetcode</code></pre>
+  </div>
+
+
+
+
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+      <div><span class="xref">RollbackNetcode</span></div>
+    </dd>
+  </dl>
+
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.memberwiseclone">object.MemberwiseClone()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
+    </div>
+  </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="Backdash_RollbackNetcode_CreateReplaySession_" data-uid="Backdash.RollbackNetcode.CreateReplaySession*"></a>
+
+  <h3 id="Backdash_RollbackNetcode_CreateReplaySession__2_System_Int32_System_Collections_Generic_IReadOnlyList_Backdash_Sync_Input_Confirmed_ConfirmedInputs___0___Backdash_SessionServices___0___1__" data-uid="Backdash.RollbackNetcode.CreateReplaySession``2(System.Int32,System.Collections.Generic.IReadOnlyList{Backdash.Sync.Input.Confirmed.ConfirmedInputs{``0}},Backdash.SessionServices{``0,``1})">
+  CreateReplaySession&lt;TInput, TGameState&gt;(int, IReadOnlyList&lt;ConfirmedInputs&lt;TInput&gt;&gt;, SessionServices&lt;TInput, TGameState&gt;?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/RollbackNetcode.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Initializes new replay session.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static IRollbackSession&lt;TInput, TGameState&gt; CreateReplaySession&lt;TInput, TGameState&gt;(int numberOfPlayers, IReadOnlyList&lt;ConfirmedInputs&lt;TInput&gt;&gt; inputs, SessionServices&lt;TInput, TGameState&gt;? services = null) where TInput : struct where TGameState : notnull, new()</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>numberOfPlayers</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>Session player count</p>
+</dd>
+    <dt><code>inputs</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1">IReadOnlyList</a>&lt;<a class="xref" href="Backdash.Sync.Input.Confirmed.ConfirmedInputs-1.html">ConfirmedInputs</a>&lt;TInput&gt;&gt;</dt>
+    <dd><p>Inputs to be replayed</p>
+</dd>
+    <dt><code>services</code> <a class="xref" href="Backdash.SessionServices-2.html">SessionServices</a>&lt;TInput, TGameState&gt;</dt>
+    <dd><p>Session customizable dependencies</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.IRollbackSession-2.html">IRollbackSession</a>&lt;TInput, TGameState&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>TInput</code></dt>
+    <dd><p>Game input type</p>
+</dd>
+    <dt><code>TGameState</code></dt>
+    <dd><p>Game state type</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_RollbackNetcode_CreateSession_" data-uid="Backdash.RollbackNetcode.CreateSession*"></a>
+
+  <h3 id="Backdash_RollbackNetcode_CreateSession__2_System_Int32_Backdash_RollbackOptions_Backdash_SessionServices___0___1__" data-uid="Backdash.RollbackNetcode.CreateSession``2(System.Int32,Backdash.RollbackOptions,Backdash.SessionServices{``0,``1})">
+  CreateSession&lt;TInput, TGameState&gt;(int, RollbackOptions?, SessionServices&lt;TInput, TGameState&gt;?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/RollbackNetcode.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Initializes new multiplayer session.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static IRollbackSession&lt;TInput, TGameState&gt; CreateSession&lt;TInput, TGameState&gt;(int port, RollbackOptions? options = null, SessionServices&lt;TInput, TGameState&gt;? services = null) where TInput : struct where TGameState : notnull, new()</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>port</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The <a class="xref" href="Backdash.Network.Client.UdpSocket.html">UdpSocket</a> port</p>
+</dd>
+    <dt><code>options</code> <a class="xref" href="Backdash.RollbackOptions.html">RollbackOptions</a></dt>
+    <dd><p>Session configuration</p>
+</dd>
+    <dt><code>services</code> <a class="xref" href="Backdash.SessionServices-2.html">SessionServices</a>&lt;TInput, TGameState&gt;</dt>
+    <dd><p>Session customizable dependencies</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.IRollbackSession-2.html">IRollbackSession</a>&lt;TInput, TGameState&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>TInput</code></dt>
+    <dd><p>Game input type</p>
+</dd>
+    <dt><code>TGameState</code></dt>
+    <dd><p>Game state type</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_RollbackNetcode_CreateSpectatorSession_" data-uid="Backdash.RollbackNetcode.CreateSpectatorSession*"></a>
+
+  <h3 id="Backdash_RollbackNetcode_CreateSpectatorSession__2_System_Int32_System_Net_IPEndPoint_System_Int32_Backdash_RollbackOptions_Backdash_SessionServices___0___1__" data-uid="Backdash.RollbackNetcode.CreateSpectatorSession``2(System.Int32,System.Net.IPEndPoint,System.Int32,Backdash.RollbackOptions,Backdash.SessionServices{``0,``1})">
+  CreateSpectatorSession&lt;TInput, TGameState&gt;(int, IPEndPoint, int, RollbackOptions?, SessionServices&lt;TInput, TGameState&gt;?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/RollbackNetcode.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Initializes new spectator session.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static IRollbackSession&lt;TInput, TGameState&gt; CreateSpectatorSession&lt;TInput, TGameState&gt;(int port, IPEndPoint host, int numberOfPlayers, RollbackOptions? options = null, SessionServices&lt;TInput, TGameState&gt;? services = null) where TInput : struct where TGameState : notnull, new()</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>port</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>The <a class="xref" href="Backdash.Network.Client.UdpSocket.html">UdpSocket</a> port</p>
+</dd>
+    <dt><code>host</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.net.ipendpoint">IPEndPoint</a></dt>
+    <dd><p>The host <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.net.ipendpoint">IPEndPoint</a> to be watched.</p>
+</dd>
+    <dt><code>numberOfPlayers</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>Session player count</p>
+</dd>
+    <dt><code>options</code> <a class="xref" href="Backdash.RollbackOptions.html">RollbackOptions</a></dt>
+    <dd><p>Session configuration</p>
+</dd>
+    <dt><code>services</code> <a class="xref" href="Backdash.SessionServices-2.html">SessionServices</a>&lt;TInput, TGameState&gt;</dt>
+    <dd><p>Session customizable dependencies</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.IRollbackSession-2.html">IRollbackSession</a>&lt;TInput, TGameState&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>TInput</code></dt>
+    <dd><p>Game input type</p>
+</dd>
+    <dt><code>TGameState</code></dt>
+    <dd><p>Game state type</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_RollbackNetcode_CreateSyncTestSession_" data-uid="Backdash.RollbackNetcode.CreateSyncTestSession*"></a>
+
+  <h3 id="Backdash_RollbackNetcode_CreateSyncTestSession__2_System_Nullable_Backdash_Data_FrameSpan__Backdash_RollbackOptions_Backdash_SessionServices___0___1__System_Boolean_" data-uid="Backdash.RollbackNetcode.CreateSyncTestSession``2(System.Nullable{Backdash.Data.FrameSpan},Backdash.RollbackOptions,Backdash.SessionServices{``0,``1},System.Boolean)">
+  CreateSyncTestSession&lt;TInput, TGameState&gt;(FrameSpan?, RollbackOptions?, SessionServices&lt;TInput, TGameState&gt;?, bool)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/RollbackNetcode.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Initializes new sync test session.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static IRollbackSession&lt;TInput, TGameState&gt; CreateSyncTestSession&lt;TInput, TGameState&gt;(FrameSpan? checkDistance = null, RollbackOptions? options = null, SessionServices&lt;TInput, TGameState&gt;? services = null, bool throwException = true) where TInput : struct where TGameState : notnull, new()</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>checkDistance</code> <a class="xref" href="Backdash.Data.FrameSpan.html">FrameSpan</a>?</dt>
+    <dd><p>Total forced rollback frames.</p>
+</dd>
+    <dt><code>options</code> <a class="xref" href="Backdash.RollbackOptions.html">RollbackOptions</a></dt>
+    <dd><p>Session configuration</p>
+</dd>
+    <dt><code>services</code> <a class="xref" href="Backdash.SessionServices-2.html">SessionServices</a>&lt;TInput, TGameState&gt;</dt>
+    <dd><p>Session customizable dependencies</p>
+</dd>
+    <dt><code>throwException</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p>If true, throws on state de-synchronization.</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.IRollbackSession-2.html">IRollbackSession</a>&lt;TInput, TGameState&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>TInput</code></dt>
+    <dd><p>Game input type</p>
+</dd>
+    <dt><code>TGameState</code></dt>
+    <dd><p>Game state type</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h2 id="seealso">See Also</h2>
+  <div class="seealso">
+      <div><a class="xref" href="Backdash.IRollbackSession-1.html">IRollbackSession</a>&lt;TInput&gt;</div>
+      <div><a class="xref" href="Backdash.IRollbackSession-2.html">IRollbackSession</a>&lt;TInput, TState&gt;</div>
+  </div>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/RollbackNetcode.cs" class="edit-link">Edit this page</a>
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Developed by <a href="https://lucasteles.dev/">Lucas Teles</a>.</span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
