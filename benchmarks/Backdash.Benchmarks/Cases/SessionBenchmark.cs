@@ -58,6 +58,9 @@ public class SessionBenchmark
         peer2.AddPlayer(new RemotePlayer(1, IPAddress.Loopback, 9000));
         peer2.AddPlayer(new LocalPlayer(2));
 
+        peer1.SetHandler(new Handler(peer1));
+        peer2.SetHandler(new Handler(peer2));
+
         peer1.Start(cts.Token);
         peer2.Start(cts.Token);
     }
@@ -116,37 +119,34 @@ public class SessionBenchmark
     }
 }
 
-sealed class FakeStateStore : IStateStore<GameState>
+sealed class Handler(IRollbackSession<GameInput> session) : IRollbackHandler<GameState>
 {
-    public void Dispose()
+    public void OnSessionStart()
     {
     }
 
-    public void Initialize(int size)
+    public void OnSessionClose()
     {
     }
 
-    SavedFrame<GameState> savedFrame = new(Frame.Zero, new(), 0);
-
-    public ref readonly SavedFrame<GameState> Load(Frame frame)
+    public void SaveState(in Frame frame, ref GameState state)
     {
-        savedFrame.Frame = frame;
-        return ref savedFrame;
     }
 
-    public ref readonly SavedFrame<GameState> Last()
+    public void LoadState(in Frame frame, in GameState gameState)
     {
-        return ref savedFrame;
     }
 
-    public ref GameState GetCurrent()
+    public void AdvanceFrame()
     {
-        return ref savedFrame.GameState;
+        session.AdvanceFrame();
     }
 
-    public ref readonly SavedFrame<GameState> SaveCurrent(in Frame frame, in int checksum)
+    public void TimeSync(FrameSpan framesAhead)
     {
-        savedFrame.Frame = frame;
-        return ref savedFrame;
+    }
+
+    public void OnPeerEvent(PlayerHandle player, PeerEventInfo evt)
+    {
     }
 }
