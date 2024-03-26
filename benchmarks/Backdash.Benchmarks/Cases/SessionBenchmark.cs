@@ -37,12 +37,12 @@ public class SessionBenchmark
         cts = new();
 
         peer1 = RollbackNetcode.CreateSession<GameInput, GameState>(9000,
-            new() {Log = new(LogLevel.None)}, new()
+            new() { Log = new(LogLevel.None) }, new()
             {
             });
 
         peer2 = RollbackNetcode.CreateSession<GameInput, GameState>(9001,
-            new() {Log = new(LogLevel.None)}, new()
+            new() { Log = new(LogLevel.None) }, new()
             {
             });
 
