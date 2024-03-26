@@ -41,7 +41,7 @@ sealed class ProtocolInbox<TInput>(
         CancellationToken stoppingToken
     )
     {
-        using (message)
+        try
         {
             if (!from.Equals(state.PeerAddress.Address))
                 return;
@@ -87,6 +87,10 @@ sealed class ProtocolInbox<TInput>(
                     state.Connection.DisconnectNotifySent = false;
                 }
             }
+        }
+        finally
+        {
+            message.Dispose();
         }
     }
 
