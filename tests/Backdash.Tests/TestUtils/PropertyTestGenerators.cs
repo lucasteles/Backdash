@@ -117,6 +117,7 @@ class PropertyTestGenerators
             AckFrame = frame,
         }
     );
+
     public static Arbitrary<KeepAlive> KeepAliveGenerator() =>
         Gen.Constant(new KeepAlive()).ToArbitrary();
 
@@ -187,7 +188,7 @@ class PropertyTestGenerators
             var size = Math.Min(testSize, Max.CompressedBytes);
             return Gen.ArrayOf(size, Arb.Generate<byte>());
         })
-        select new InputMessage
+        select new InputMessage(inputBuffer)
         {
             PeerConnectStatus = new(peerConnectStats),
             StartFrame = startFrame,
@@ -195,7 +196,6 @@ class PropertyTestGenerators
             AckFrame = ackFrame,
             InputSize = inputSize,
             NumBits = checked((ushort)(inputBuffer.Length * ByteSize.ByteToBits)),
-            Bits = new(inputBuffer),
         }
     );
 

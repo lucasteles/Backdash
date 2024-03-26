@@ -70,32 +70,39 @@ sealed class ProtocolOutbox(
             await reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false);
             while (reader.TryRead(out var entry))
             {
-                var message = entry.Body;
-                message.Header.Magic = magicNumber;
-                message.Header.SequenceNumber = (ushort)nextSendSeq;
-                nextSendSeq++;
-
-                logger.Write(LogLevel.Trace, $"send {message} on {state.Player}");
-
-                if (sendLatency > TimeSpan.Zero)
+                try
                 {
-                    var jitter = delayStrategy.Jitter(sendLatency);
-                    SpinWait sw = new();
-                    while (clock.GetElapsedTime(entry.QueueTime) <= jitter)
+                    var message = entry.Body;
+                    message.Header.Magic = magicNumber;
+                    message.Header.SequenceNumber = (ushort)nextSendSeq;
+                    nextSendSeq++;
+
+                    logger.Write(LogLevel.Trace, $"send {message} on {state.Player}");
+
+                    if (sendLatency > TimeSpan.Zero)
                     {
-                        sw.SpinOnce();
-                        // LATER: allocations here with Task.Delay
-                        // await Task.Delay(delayDiff, ct).ConfigureAwait(false)
+                        var jitter = delayStrategy.Jitter(sendLatency);
+                        SpinWait sw = new();
+                        while (clock.GetElapsedTime(entry.QueueTime) <= jitter)
+                        {
+                            sw.SpinOnce();
+                            // LATER: allocations here with Task.Delay
+                            // await Task.Delay(delayDiff, ct).ConfigureAwait(false)
+                        }
                     }
+
+                    var bytesSent = await peer
+                        .SendTo(entry.Recipient, message, buffer, cancellationToken)
+                        .ConfigureAwait(false);
+
+                    state.Stats.Send.LastTime = clock.GetTimeStamp();
+                    state.Stats.Send.TotalBytes += (ByteSize)bytesSent;
+                    state.Stats.Send.TotalPackets++;
                 }
-
-                var bytesSent = await peer
-                    .SendTo(entry.Recipient, message, buffer, cancellationToken)
-                    .ConfigureAwait(false);
-
-                state.Stats.Send.LastTime = clock.GetTimeStamp();
-                state.Stats.Send.TotalBytes += (ByteSize)bytesSent;
-                state.Stats.Send.TotalPackets++;
+                finally
+                {
+                    entry.Body.Dispose();
+                }
             }
         }
     }

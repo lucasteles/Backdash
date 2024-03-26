@@ -6,7 +6,8 @@ using Backdash.Serialization.Buffer;
 namespace Backdash.Network.Messages;
 
 [StructLayout(LayoutKind.Explicit, Pack = 2)]
-struct ProtocolMessage(MessageType type) : IBinarySerializable, IEquatable<ProtocolMessage>, IUtf8SpanFormattable
+struct ProtocolMessage(MessageType type)
+    : IDisposable, IBinarySerializable, IEquatable<ProtocolMessage>, IUtf8SpanFormattable
 {
     [FieldOffset(0)]
     public Header Header = new(type);
@@ -29,7 +30,7 @@ struct ProtocolMessage(MessageType type) : IBinarySerializable, IEquatable<Proto
     [FieldOffset(Header.Size)]
     public KeepAlive KeepAlive;
 
-    [FieldOffset(Header.Size)]
+    [FieldOffset(Header.Size + 2)]
     public InputMessage Input;
 
     public readonly void Serialize(BinarySpanWriter writer)
@@ -112,6 +113,12 @@ struct ProtocolMessage(MessageType type) : IBinarySerializable, IEquatable<Proto
                 _ => "unknown",
             };
         return $"Msg({Header.Type}){info}";
+    }
+
+    public readonly void Dispose()
+    {
+        if (Header.Type is MessageType.Input)
+            Input.Dispose();
     }
 
     public readonly bool TryFormat(

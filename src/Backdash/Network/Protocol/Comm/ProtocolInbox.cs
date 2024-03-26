@@ -41,50 +41,60 @@ sealed class ProtocolInbox<TInput>(
         CancellationToken stoppingToken
     )
     {
-        if (!from.Equals(state.PeerAddress.Address))
-            return;
-        var seqNum = message.Header.SequenceNumber;
-        if (message.Header.Type is not MessageType.SyncRequest and not MessageType.SyncReply)
+        try
         {
-            if (state.CurrentStatus is not ProtocolStatus.Running)
-            {
-                logger.Write(LogLevel.Debug, $"recv skip (not ready): {message} on {state.Player}");
+            if (!from.Equals(state.PeerAddress.Address))
                 return;
+
+            var seqNum = message.Header.SequenceNumber;
+
+            if (message.Header.Type is not MessageType.SyncRequest and not MessageType.SyncReply)
+            {
+                if (state.CurrentStatus is not ProtocolStatus.Running)
+                {
+                    logger.Write(LogLevel.Debug, $"recv skip (not ready): {message} on {state.Player}");
+                    return;
+                }
+
+                if (message.Header.Magic != remoteMagicNumber)
+                {
+                    logger.Write(LogLevel.Debug, $"recv rejecting: {message} on {state.Player}");
+                    return;
+                }
+
+                var skipped = (ushort)(seqNum - nextRecvSeq);
+                if (skipped > options.MaxSequenceDistance)
+                {
+                    logger.Write(LogLevel.Debug,
+                        $"dropping out of order packet (seq: {seqNum}, last seq:{nextRecvSeq})");
+                    return;
+                }
             }
 
-            if (message.Header.Magic != remoteMagicNumber)
+            nextRecvSeq = seqNum;
+            logger.Write(LogLevel.Trace, $"recv {message} from {state.Player}");
+            if (HandleMessage(in message, out var replyMsg))
             {
-                logger.Write(LogLevel.Debug, $"recv rejecting: {message} on {state.Player}");
-                return;
-            }
+                if (replyMsg.Header.Type is not MessageType.Invalid)
+                    await messageSender.SendMessageAsync(in replyMsg, stoppingToken).ConfigureAwait(false);
 
-            var skipped = (ushort)(seqNum - nextRecvSeq);
-            if (skipped > options.MaxSequenceDistance)
-            {
-                logger.Write(LogLevel.Debug, $"dropping out of order packet (seq: {seqNum}, last seq:{nextRecvSeq})");
-                return;
+                state.Stats.Received.LastTime = clock.GetTimeStamp();
+                state.Stats.Received.TotalPackets++;
+                state.Stats.Received.TotalBytes += (ByteSize)bytesReceived;
+                if (state.Connection.DisconnectNotifySent && state.CurrentStatus is ProtocolStatus.Running)
+                {
+                    networkEvents.OnNetworkEvent(ProtocolEvent.NetworkResumed, state.Player);
+                    state.Connection.DisconnectNotifySent = false;
+                }
             }
         }
-
-        nextRecvSeq = seqNum;
-        logger.Write(LogLevel.Trace, $"recv {message} from {state.Player}");
-        if (HandleMessage(ref message, out var replyMsg))
+        finally
         {
-            if (replyMsg.Header.Type is not MessageType.Invalid)
-                await messageSender.SendMessageAsync(in replyMsg, stoppingToken).ConfigureAwait(false);
-
-            state.Stats.Received.LastTime = clock.GetTimeStamp();
-            state.Stats.Received.TotalPackets++;
-            state.Stats.Received.TotalBytes += (ByteSize)bytesReceived;
-            if (state.Connection.DisconnectNotifySent && state.CurrentStatus is ProtocolStatus.Running)
-            {
-                networkEvents.OnNetworkEvent(ProtocolEvent.NetworkResumed, state.Player);
-                state.Connection.DisconnectNotifySent = false;
-            }
+            message.Dispose();
         }
     }
 
-    bool HandleMessage(ref ProtocolMessage message, out ProtocolMessage replyMsg)
+    bool HandleMessage(in ProtocolMessage message, out ProtocolMessage replyMsg)
     {
         var handled = false;
         replyMsg = new(MessageType.Invalid);
@@ -97,7 +107,7 @@ sealed class ProtocolInbox<TInput>(
                 handled = OnSyncReply(in message, ref replyMsg);
                 break;
             case MessageType.Input:
-                handled = OnInput(ref message.Input);
+                handled = OnInput(in message.Input);
                 break;
             case MessageType.QualityReport:
                 handled = OnQualityReport(in message, out replyMsg);
@@ -121,7 +131,7 @@ sealed class ProtocolInbox<TInput>(
         return handled;
     }
 
-    bool OnInput(ref InputMessage msg)
+    bool OnInput(in InputMessage msg)
     {
         logger.Write(LogLevel.Trace, $"Acked Frame: {LastAckedFrame}");
         /*
@@ -167,7 +177,7 @@ sealed class ProtocolInbox<TInput>(
                 lastReceivedFrame = msg.StartFrame.Previous();
             var nextFrame = lastReceivedFrame.Next();
             var currentFrame = msg.StartFrame;
-            var decompressor = InputEncoder.GetDecompressor(ref msg);
+            var decompressor = InputEncoder.GetDecompressor(in msg);
             if (currentFrame < nextFrame)
             {
                 var framesAhead = nextFrame.Number - currentFrame.Number;
