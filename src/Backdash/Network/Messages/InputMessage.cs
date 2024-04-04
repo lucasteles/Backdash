@@ -1,4 +1,6 @@
+using System.Buffers;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using Backdash.Core;
 using Backdash.Data;
@@ -8,7 +10,7 @@ using Backdash.Serialization.Buffer;
 namespace Backdash.Network.Messages;
 
 [Serializable]
-record struct InputMessage : IBinarySerializable, IUtf8SpanFormattable
+struct InputMessage : IDisposable, IBinarySerializable, IUtf8SpanFormattable, IEquatable<InputMessage>
 {
     public PeerStatusBuffer PeerConnectStatus;
     public Frame StartFrame;
@@ -16,11 +18,29 @@ record struct InputMessage : IBinarySerializable, IUtf8SpanFormattable
     public Frame AckFrame;
     public ushort NumBits;
     public byte InputSize;
-    public InputMessageBuffer Bits;
+    public Memory<byte> Bits = Memory<byte>.Empty;
+
+    public InputMessage() => InitBits();
+
+    public InputMessage(ReadOnlySpan<byte> bits) : this()
+    {
+        InitBits();
+        bits.CopyTo(Bits.Span);
+    }
+
+    public void InitBits()
+    {
+        var buffer = ArrayPool<byte>.Shared.Rent(Max.CompressedBytes);
+        buffer.AsSpan().Clear();
+        Bits = buffer;
+    }
+
+    public readonly int InputByteSize() => (int)Math.Ceiling(NumBits / (float)ByteSize.ByteToBits);
+    public readonly Memory<byte> InputBytes() => Bits[..InputByteSize()];
 
     public void Clear()
     {
-        Mem.Clear(Bits);
+        Mem.Clear(Bits.Span);
         PeerConnectStatus[..].Clear();
         StartFrame = Frame.Zero;
         DisconnectRequested = false;
@@ -42,7 +62,7 @@ record struct InputMessage : IBinarySerializable, IUtf8SpanFormattable
         writer.Write(in InputSize);
         writer.Write(in NumBits);
         var bitCount = (int)Math.Ceiling(NumBits / (float)ByteSize.ByteToBits);
-        writer.Write(Bits[..bitCount]);
+        writer.Write(Bits.Span[..bitCount]);
     }
 
     public void Deserialize(BinarySpanReader reader)
@@ -56,7 +76,11 @@ record struct InputMessage : IBinarySerializable, IUtf8SpanFormattable
         InputSize = reader.ReadByte();
         NumBits = reader.ReadUShort();
         var bitCount = (int)Math.Ceiling(NumBits / (float)ByteSize.ByteToBits);
-        reader.ReadByte(Bits[..bitCount]);
+
+        if (Bits.Length is 0)
+            InitBits();
+
+        reader.ReadByte(Bits.Span[..bitCount]);
     }
 
     public readonly bool TryFormat(
@@ -70,6 +94,28 @@ record struct InputMessage : IBinarySerializable, IUtf8SpanFormattable
         if (!writer.Write(NumBits)) return false;
         return true;
     }
+
+    public readonly bool Equals(InputMessage other) =>
+        PeerConnectStatus[..].SequenceEqual(other.PeerConnectStatus) &&
+        StartFrame.Equals(other.StartFrame) &&
+        DisconnectRequested == other.DisconnectRequested &&
+        AckFrame.Equals(other.AckFrame) && NumBits == other.NumBits &&
+        InputSize == other.InputSize &&
+        Mem.EqualBytes(InputBytes().Span, other.InputBytes().Span, truncate: true);
+
+    public override readonly bool Equals(object? obj) => obj is InputMessage other && Equals(other);
+
+    public override readonly int GetHashCode() => HashCode.Combine(
+        PeerConnectStatus, StartFrame, DisconnectRequested, AckFrame, NumBits, InputSize, Bits);
+
+    public readonly void Dispose()
+    {
+        if (Bits.Length > 0 && MemoryMarshal.ToEnumerable<byte>(Bits) is byte[] array)
+            ArrayPool<byte>.Shared.Return(array);
+    }
+
+    public static bool operator ==(InputMessage left, InputMessage right) => left.Equals(right);
+    public static bool operator !=(InputMessage left, InputMessage right) => !left.Equals(right);
 }
 
 [Serializable, InlineArray(Max.NumberOfPlayers)]
@@ -102,12 +148,4 @@ struct PeerStatusBuffer
         builder.Append(']');
         return builder.ToString();
     }
-}
-
-[Serializable, InlineArray(Max.CompressedBytes)]
-struct InputMessageBuffer
-{
-    byte element0;
-    public InputMessageBuffer(ReadOnlySpan<byte> bits) => bits.CopyTo(this);
-    public override readonly string ToString() => Mem.GetBitString(this);
 }
