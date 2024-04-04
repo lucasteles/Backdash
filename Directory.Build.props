@@ -31,6 +31,10 @@
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReadmeFile>logo.png</PackageReadmeFile>
+  </PropertyGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)\logo.png" Pack="true" PackagePath="\"/>
     <None Include="$(MSBuildThisFileDirectory)\README.md" Pack="true" PackagePath="\"/>
