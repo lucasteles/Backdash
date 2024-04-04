@@ -6,6 +6,8 @@ on:
 env:
     DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
     DOTNET_CLI_TELEMETRY_OPTOUT: true
+    GITHUB_ACTIONS: true
+
 jobs:
     build:
         runs-on: ubuntu-latest
@@ -57,9 +59,8 @@ jobs:
                     output_text_description_file: TestReport/Summary.md
                     output: '{"summary":"Created by Report-Generator"}'
 
-            -   name: Generate Docs
-                run: dotnet docfx
-                working-directory: docfx
+            -   name: Build Docs
+                run: dotnet nuke build-docs
 
             -   name: Generate Coverage Badges
                 run: dotnet nuke generate-badges --no-logo

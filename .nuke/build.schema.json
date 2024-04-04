@@ -84,7 +84,9 @@
             "enum": [
               "BrowseReport",
               "Build",
+              "BuildDocs",
               "Clean",
+              "Docs",
               "Format",
               "GenerateBadges",
               "GenerateReport",
@@ -108,7 +110,9 @@
             "enum": [
               "BrowseReport",
               "Build",
+              "BuildDocs",
               "Clean",
+              "Docs",
               "Format",
               "GenerateBadges",
               "GenerateReport",
