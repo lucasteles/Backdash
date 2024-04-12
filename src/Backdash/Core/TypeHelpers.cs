@@ -1,6 +1,6 @@
+#if !AOT_COMPATIBLE
 using System.Reflection;
 
-#pragma warning disable S3011
 namespace Backdash.Core;
 
 static class TypeHelpers
@@ -12,7 +12,9 @@ static class TypeHelpers
             return default;
         var flags = BindingFlags.Instance | BindingFlags.Public;
         if (allowPrivateConstructor)
+#pragma warning disable S3011
             flags |= BindingFlags.NonPublic;
+#pragma warning restore S3011
         var ctor = type.GetConstructor(flags, null, Type.EmptyTypes, null);
         if (ctor is not null)
             return (T)ctor.Invoke([]);
@@ -29,3 +31,4 @@ static class TypeHelpers
                && comparer.GetHashCode(state1) == comparer.GetHashCode(state3);
     }
 }
+#endif
