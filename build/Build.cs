@@ -153,6 +153,19 @@ class MainBuild : NukeBuild
         .Description("Update all project .NET tools")
         .Executes(UpdateLocalTools);
 
+    Target BuildNative => _ => _
+        .Description("Builds as an AOT Native library")
+        .DependsOn(Restore)
+        .Executes(() =>
+            DotNetPublish(s => s
+                .EnableNoLogo()
+                .EnableNoRestore()
+                .SetProject(Solution.FindProject("Backdash"))
+                .SetConfiguration(Configuration.Release)
+                .AddProperty("DefineConstants", "AOT_COMPATIBLE")
+                .SetProcessArgumentConfigurator(args => args.Add("--use-current-runtime"))
+            ));
+
     public static int Main() => Execute<MainBuild>();
 
     protected override void OnBuildInitialized() =>
