@@ -1,8 +1,12 @@
 using System.Numerics;
-using System.Reflection;
-using System.Runtime.InteropServices;
 using Backdash.Core;
 using Backdash.Network;
+
+#if !AOT_COMPATIBLE
+using System.Reflection;
+using System.Runtime.InteropServices;
+#endif
+
 namespace Backdash.Serialization;
 
 static class BinarySerializerFactory
@@ -13,6 +17,7 @@ static class BinarySerializerFactory
         var mode = Platform.GetEndianness(networkEndianness);
         return new IntegerBinarySerializer<TInput>(mode);
     }
+
     public static IBinarySerializer<TInput> ForEnum<TInput>(bool networkEndianness = true)
         where TInput : unmanaged, Enum =>
         Type.GetTypeCode(typeof(TInput)) switch
@@ -27,6 +32,7 @@ static class BinarySerializerFactory
             TypeCode.SByte => new EnumBinarySerializer<TInput, sbyte>(ForInteger<sbyte>(networkEndianness)),
             _ => throw new InvalidTypeArgumentException<TInput>(),
         };
+
     public static IBinarySerializer<TInput> ForStruct<TInput>(bool marshall = false)
         where TInput : struct
     {
@@ -37,15 +43,23 @@ static class BinarySerializerFactory
             throw new ArgumentException("Struct input expected");
         if (inputType is { IsLayoutSequential: false, IsExplicitLayout: false })
             throw new ArgumentException("Input struct should have explicit or sequential layout ");
+#if AOT_COMPATIBLE
+        throw ThrowHelpers.StructMustNotHaveReferenceTypeMembers();
+#else
         if (!marshall)
             ThrowHelpers.ThrowIfTypeIsReferenceOrContainsReferences<TInput>();
         return marshall
             ? new StructMarshalBinarySerializer<TInput>()
             : new StructBinarySerializer<TInput>();
+#endif
     }
+
     public static IBinarySerializer<TInput>? Get<TInput>(bool networkEndianness = true)
         where TInput : struct
     {
+#if AOT_COMPATIBLE
+        throw new InvalidOperationException($"Unable to infer serializer for type {typeof(TInput).FullName}");
+#else
         var inputType = typeof(TInput);
         Type[] integerInterfaces = [typeof(IBinaryInteger<>), typeof(IMinMaxValue<>)];
         return inputType switch
@@ -80,7 +94,9 @@ static class BinarySerializerFactory
                     .Invoke(null, [false]) as IBinarySerializer<TInput>,
             _ => null,
         };
+#endif
     }
+
     public static IBinarySerializer<TInput> FindOrThrow<TInput>(bool networkEndianness = true)
         where TInput : struct =>
         Get<TInput>(networkEndianness)

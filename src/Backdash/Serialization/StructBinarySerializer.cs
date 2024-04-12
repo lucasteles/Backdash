@@ -14,6 +14,8 @@ sealed class StructBinarySerializer<T> : IBinarySerializer<T> where T : struct
     }
 }
 
+
+#if !AOT_COMPATIBLE
 sealed class StructMarshalBinarySerializer<T> : IBinarySerializer<T> where T : struct
 {
     public int Serialize(in T data, Span<byte> buffer) => Mem.MarshallStruct(in data, in buffer);
@@ -24,3 +26,4 @@ sealed class StructMarshalBinarySerializer<T> : IBinarySerializer<T> where T : s
         return Unsafe.SizeOf<T>();
     }
 }
+#endif
