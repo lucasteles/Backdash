@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 namespace Backdash.Tests;
+
 public static class Initializer
 {
     public const int DefaultSeed = 42;

@@ -3,6 +3,7 @@ using Backdash.Core;
 using Backdash.Serialization;
 
 namespace Backdash.Tests.TestUtils;
+
 [InlineArray(TestInput.Capacity), Serializable]
 public struct TestInputBuffer
 {

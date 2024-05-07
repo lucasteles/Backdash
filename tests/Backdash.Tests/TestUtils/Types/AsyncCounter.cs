@@ -1,4 +1,5 @@
 namespace Backdash.Tests.TestUtils.Types;
+
 public sealed class AsyncCounter
 {
     int currentCount = 0;

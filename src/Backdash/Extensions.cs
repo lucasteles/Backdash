@@ -4,6 +4,7 @@ using Backdash.Network;
 using Backdash.Network.Protocol;
 using Backdash.Serialization;
 namespace Backdash;
+
 static class InternalExtensions
 {
     public static void EnqueueNext<T>(this Queue<T> queue, in T value)

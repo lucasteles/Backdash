@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using Backdash.Core;
 using Backdash.Network;
 namespace Backdash.Serialization;
+
 sealed class PrimitiveBinarySerializer<T> : IBinarySerializer<T> where T : unmanaged
 {
     public int Serialize(in T data, Span<byte> buffer) => Mem.WriteStruct(in data, buffer);

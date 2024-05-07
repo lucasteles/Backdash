@@ -1,5 +1,6 @@
 using Backdash.Serialization;
 namespace Backdash.Sync.State.Stores;
+
 static class StateStoreFactory
 {
     public static IStateStore<TState> Create<TState>(IBinarySerializer<TState>? stateSerializer = null)

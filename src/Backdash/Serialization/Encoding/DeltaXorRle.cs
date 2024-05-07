@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Backdash.Core;
 using Backdash.Data;
 namespace Backdash.Serialization.Encoding;
+
 static class DeltaXorRle
 {
     [DebuggerDisplay("{ToString()}")]

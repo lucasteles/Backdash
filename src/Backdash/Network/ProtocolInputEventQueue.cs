@@ -4,6 +4,7 @@ using Backdash.Sync.Input;
 using Backdash.Sync.Input.Confirmed;
 
 namespace Backdash.Network;
+
 readonly record struct GameInputEvent<TInput>(PlayerHandle Player, GameInput<TInput> Input)
     where TInput : struct
 {

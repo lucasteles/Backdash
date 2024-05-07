@@ -2,6 +2,7 @@ using System.Net;
 using Backdash.Network.Client;
 #pragma warning disable CS9113 // Parameter is unread.
 namespace Backdash.Benchmarks.Network;
+
 public enum PingMessage : long
 {
     Ping = 111111111,

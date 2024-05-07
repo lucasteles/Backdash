@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using Backdash.Network;
 using Backdash.Serialization.Buffer;
 namespace Backdash.Benchmarks.Cases;
+
 [RPlotExporter]
 [InProcess, MemoryDiagnoser]
 public class ReadWriteIntegerBenchmark

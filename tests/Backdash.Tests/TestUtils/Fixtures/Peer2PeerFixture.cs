@@ -2,6 +2,7 @@ using Backdash.Serialization;
 using Backdash.Tests.TestUtils.Network;
 
 namespace Backdash.Tests.TestUtils.Fixtures;
+
 [Serializable]
 sealed class Peer2PeerFixture<T> : IDisposable where T : struct
 {

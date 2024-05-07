@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework.Content;
 namespace SpaceWar;
+
 public record ShipAsset(Texture2D Ship, Texture2D Missile);
 public class GameAssets(ContentManager content, GraphicsDevice graphics)
 {

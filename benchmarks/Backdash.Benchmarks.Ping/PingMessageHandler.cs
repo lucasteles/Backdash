@@ -1,6 +1,7 @@
 using System.Net;
 using Backdash.Network.Client;
 namespace Backdash.Benchmarks.Ping;
+
 sealed class PingMessageHandler(
     IPeerClient<PingMessage> sender,
     Memory<byte>? buffer = null

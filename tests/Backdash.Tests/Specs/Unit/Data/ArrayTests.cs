@@ -2,6 +2,7 @@ using Backdash.Data;
 using Backdash.Tests.TestUtils;
 
 namespace Backdash.Tests.Specs.Unit.Data;
+
 public class ArrayTests
 {
     [PropertyTest]

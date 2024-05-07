@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Sockets;
 
 namespace Backdash.Tests.TestUtils.Network;
+
 static class PortUtils
 {
     public static int FindFreePort()

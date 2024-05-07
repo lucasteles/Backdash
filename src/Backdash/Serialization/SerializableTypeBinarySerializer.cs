@@ -2,6 +2,7 @@ using System.Runtime.CompilerServices;
 using Backdash.Network;
 using Backdash.Serialization.Buffer;
 namespace Backdash.Serialization;
+
 class SerializableTypeBinarySerializer<T> : IBinarySerializer<T>
     where T : struct, IBinarySerializable
 {

@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Backdash.Core;
 using Backdash.Data;
 namespace Backdash.Sync.Input;
+
 sealed class InputQueue<TInput> where TInput : struct
 {
     readonly Logger logger;

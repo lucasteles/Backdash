@@ -1,6 +1,7 @@
 using Backdash.Data;
 using Backdash.Serialization.Encoding;
 namespace Backdash.Tests.Specs.Unit.Serialization.Encoding;
+
 public class DeltaXorRleTests
 {
     [Fact]

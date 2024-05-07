@@ -1,6 +1,7 @@
 // ReSharper disable UnassignedField.Global
 using Backdash.Core;
 namespace Backdash.Benchmarks.Cases;
+
 [RPlotExporter]
 [InProcess, MemoryDiagnoser]
 public class GetBitStringBenchmark

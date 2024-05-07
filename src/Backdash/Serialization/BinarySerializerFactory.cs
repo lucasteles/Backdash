@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using Backdash.Core;
 using Backdash.Network;
 namespace Backdash.Serialization;
+
 static class BinarySerializerFactory
 {
     public static IBinarySerializer<TInput> ForInteger<TInput>(bool networkEndianness = true)

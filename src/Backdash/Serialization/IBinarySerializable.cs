@@ -1,5 +1,6 @@
 using Backdash.Serialization.Buffer;
 namespace Backdash.Serialization;
+
 interface IBinarySerializable
 {
     void Serialize(BinarySpanWriter writer);

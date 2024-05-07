@@ -1,6 +1,7 @@
 using System.Numerics;
 using Backdash;
 namespace ConsoleGame;
+
 [Flags]
 public enum GameInput
 {

@@ -1,6 +1,7 @@
 using Backdash.Serialization;
 using Backdash.Serialization.Buffer;
 namespace ConsoleGame;
+
 public sealed class MyStateSerializer : BinarySerializer<GameState>
 {
     protected override void Serialize(in BinarySpanWriter binaryWriter, in GameState data)

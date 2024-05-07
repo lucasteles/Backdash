@@ -1,5 +1,6 @@
 using System.Numerics;
 namespace ConsoleGame;
+
 public class View
 {
     readonly ConsoleColor defaultColor = ConsoleColor.Gray;

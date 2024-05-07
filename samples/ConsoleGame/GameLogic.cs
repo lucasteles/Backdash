@@ -1,5 +1,6 @@
 using System.Numerics;
 namespace ConsoleGame;
+
 public static class GameLogic
 {
     public const int GridSize = 5;

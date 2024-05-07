@@ -1,5 +1,6 @@
 using Backdash.Network.Protocol;
 namespace Backdash.Network;
+
 interface IProtocolNetworkEventHandler : IDisposable
 {
     void OnNetworkEvent(in ProtocolEventInfo evt);

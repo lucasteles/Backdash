@@ -2,6 +2,7 @@ using System.Net;
 using Backdash.Network.Client;
 
 namespace Backdash.Tests.TestUtils.Network;
+
 sealed class PeerEventObserver<T> : IPeerObserver<T>
     where T : struct
 {

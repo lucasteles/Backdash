@@ -1,4 +1,5 @@
 namespace SpaceWar.Logic;
+
 [Flags]
 public enum PlayerInputs : ushort
 {

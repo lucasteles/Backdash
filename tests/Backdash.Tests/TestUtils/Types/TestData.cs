@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 // ReSharper disable UnusedMember.Global, NotAccessedField.Global, EnumUnderlyingTypeIsInt
 #pragma warning disable S2344, S1939
 namespace Backdash.Tests.TestUtils.Types;
+
 public enum IntEnum : int
 {
     A = int.MinValue, B, C, D, E, F, G, H, I, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z = int.MaxValue,

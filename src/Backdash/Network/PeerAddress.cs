@@ -1,5 +1,6 @@
 using System.Net;
 namespace Backdash.Network;
+
 sealed class PeerAddress(IPEndPoint endPoint) : IEquatable<PeerAddress>
 {
     public IPEndPoint EndPoint { get; } = endPoint;

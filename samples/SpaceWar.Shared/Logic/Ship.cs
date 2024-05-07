@@ -1,5 +1,6 @@
 using Backdash.Data;
 namespace SpaceWar.Logic;
+
 public sealed record Ship
 {
     public byte Id;
