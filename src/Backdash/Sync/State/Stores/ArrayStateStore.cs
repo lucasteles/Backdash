@@ -16,7 +16,7 @@ public sealed class ArrayStateStore<TState> : IStateStore<TState> where TState :
     {
         savedStates = new SavedFrame<TState>[size];
         for (int i = 0; i < size; i++)
-            savedStates[i] = new(Frame.Null, new TState(), 0);
+            savedStates[i] = new(Frame.Null, new(), 0);
     }
 
     /// <inheritdoc />
