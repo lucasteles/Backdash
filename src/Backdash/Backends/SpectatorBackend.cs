@@ -70,7 +70,7 @@ sealed class SpectatorBackend<TInput, TGameState> :
         );
 
         ProtocolState protocolState =
-            new(new PlayerHandle(PlayerType.Remote, 0), hostEndpoint, localConnections);
+            new(new(PlayerType.Remote, 0), hostEndpoint, localConnections);
 
         host = peerConnectionFactory.Create(protocolState, inputGroupSerializer, this);
         peerObservers.Add(host.GetUdpObserver());

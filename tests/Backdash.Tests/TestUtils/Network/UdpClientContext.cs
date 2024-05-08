@@ -23,7 +23,7 @@ sealed class UdpClientContext<T> : IDisposable where T : struct
         Port = port.Value;
         Address = Loopback.Serialize();
 
-        Client = new PeerClient<T>(
+        Client = new(
             socket,
             serializer,
             Observer,

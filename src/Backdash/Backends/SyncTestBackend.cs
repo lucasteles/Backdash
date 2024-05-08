@@ -83,7 +83,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
     public FrameSpan RollbackFrames => synchronizer.RollbackFrames;
 
     public IReadOnlyCollection<PlayerHandle> GetPlayers() =>
-        addedPlayers.Count is 0 ? [new PlayerHandle(PlayerType.Local, 1, 0)] : addedPlayers;
+        addedPlayers.Count is 0 ? [new(PlayerType.Local, 1, 0)] : addedPlayers;
 
     public IReadOnlyCollection<PlayerHandle> GetSpectators() => addedSpectators;
     public void DisconnectPlayer(in PlayerHandle player) { }

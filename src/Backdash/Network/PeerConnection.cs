@@ -282,7 +282,7 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : struct
             return;
 
         logger.Write(LogLevel.Information, "Sending keep alive packet");
-        outbox.SendMessage(new ProtocolMessage(MessageType.KeepAlive)
+        outbox.SendMessage(new(MessageType.KeepAlive)
         {
             KeepAlive = new(),
         });
@@ -309,7 +309,7 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : struct
             return;
 
         outbox
-            .SendMessage(new ProtocolMessage(MessageType.QualityReport)
+            .SendMessage(new(MessageType.QualityReport)
             {
                 QualityReport = new()
                 {

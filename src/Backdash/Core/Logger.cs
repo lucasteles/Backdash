@@ -42,24 +42,14 @@ public enum LogLevel : byte
     Error,
 }
 
-sealed class Logger : IDisposable
+sealed class Logger(
+    LogOptions options,
+    ILogWriter writer
+) : IDisposable
 {
-    public readonly LogLevel EnabledLevel;
+    public readonly LogLevel EnabledLevel = options.EnabledLevel;
     readonly long start = Stopwatch.GetTimestamp();
     readonly ArrayPool<char> pool = ArrayPool<char>.Shared;
-    readonly LogOptions options;
-    readonly ILogWriter writer;
-
-    public Logger(
-        LogOptions options,
-        ILogWriter writer
-    )
-    {
-        this.options = options;
-        this.writer = writer;
-        EnabledLevel = options.EnabledLevel;
-        JobName = $"Log Flush {writer.GetType()}";
-    }
 
     public void Write(LogLevel level, string text) => Write(level, $"{text}");
 
@@ -89,7 +79,7 @@ sealed class Logger : IDisposable
     public bool IsEnabledFor(in LogLevel level) => level >= EnabledLevel;
 
     public static Logger CreateConsoleLogger(LogLevel level) => new(
-        new LogOptions
+        new()
         {
             EnabledLevel = level,
         },
@@ -132,5 +122,5 @@ sealed class Logger : IDisposable
         };
 
     public void Dispose() => writer.Dispose();
-    public string JobName { get; }
+    public string JobName { get; } = $"Log Flush {writer.GetType()}";
 }

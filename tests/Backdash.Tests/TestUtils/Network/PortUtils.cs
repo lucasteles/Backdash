@@ -10,7 +10,7 @@ static class PortUtils
         TcpListener? tcpListener = null;
         try
         {
-            tcpListener = new TcpListener(IPAddress.Loopback, 0);
+            tcpListener = new(IPAddress.Loopback, 0);
             tcpListener.Start();
             return ((IPEndPoint)tcpListener.LocalEndpoint).Port;
         }

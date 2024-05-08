@@ -281,7 +281,7 @@ sealed class ProtocolInbox<TInput>(
         else
         {
             networkEvents.OnNetworkEvent(
-                new ProtocolEventInfo(ProtocolEvent.Synchronizing, state.Player)
+                new(ProtocolEvent.Synchronizing, state.Player)
                 {
                     Synchronizing = new(
                         TotalSteps: options.NumberOfSyncRoundtrips,

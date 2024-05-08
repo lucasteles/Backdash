@@ -76,7 +76,7 @@ public sealed class RemotePlayer(int playerNumber, IPEndPoint endpoint) : Player
     /// <param name="ipAddress">Player IP Address</param>
     /// <param name="port">Player remote port number</param>
     public RemotePlayer(int playerNumber, IPAddress ipAddress, int port)
-        : this(playerNumber, new IPEndPoint(ipAddress, port)) { }
+        : this(playerNumber, new(ipAddress, port)) { }
 
     /// <summary>
     /// Player network endpoint
@@ -95,7 +95,7 @@ public sealed class Spectator(IPEndPoint endpoint) : Player(PlayerType.Spectator
     /// </summary>
     /// <param name="ipAddress">Player IP Address</param>
     /// <param name="port">Player remote port number</param>
-    public Spectator(IPAddress ipAddress, int port) : this(new IPEndPoint(ipAddress, port)) { }
+    public Spectator(IPAddress ipAddress, int port) : this(new(ipAddress, port)) { }
 
     /// <summary>
     /// Player network endpoint

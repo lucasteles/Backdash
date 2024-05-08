@@ -26,7 +26,7 @@ sealed class ProtocolInputEventQueue<TInput> : IProtocolInputEventQueue<TInput> 
 {
     bool disposed;
     readonly Channel<GameInputEvent<TInput>> channel = Channel.CreateUnbounded<GameInputEvent<TInput>>(
-        new UnboundedChannelOptions
+        new()
         {
             SingleWriter = false,
             SingleReader = true,
@@ -58,9 +58,9 @@ sealed class ProtocolCombinedInputsEventPublisher<TInput>(IProtocolInputEventPub
         {
             ref readonly var current = ref evt.Input.Data.Inputs[i];
             peerInputEventPublisher.Publish(
-                new GameInputEvent<TInput>(
+                new(
                     player,
-                    new GameInput<TInput>(current, frame))
+                    new(current, frame))
             );
         }
     }

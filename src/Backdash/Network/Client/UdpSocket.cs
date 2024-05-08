@@ -54,7 +54,7 @@ public sealed class UdpSocket : IPeerSocket
 
         try
         {
-            socket.LingerState = new LingerOption(false, 0);
+            socket.LingerState = new(false, 0);
         }
         catch
         {
@@ -72,7 +72,7 @@ public sealed class UdpSocket : IPeerSocket
 
 
     /// <inheritdoc  />
-    public UdpSocket(IPAddress bindAddress, int port) : this(new IPEndPoint(bindAddress, port)) { }
+    public UdpSocket(IPAddress bindAddress, int port) : this(new(bindAddress, port)) { }
 
     /// <inheritdoc  />
     public UdpSocket(int port, bool useIPv6 = false) : this(useIPv6 ? IPAddress.IPv6Any : IPAddress.Any, port) { }

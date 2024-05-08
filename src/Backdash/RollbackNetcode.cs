@@ -75,7 +75,7 @@ public static class RollbackNetcode
         where TGameState : notnull, new() =>
         new ReplayBackend<TInput, TGameState>(
             numberOfPlayers, inputs,
-            BackendServices.Create(new RollbackOptions(), services));
+            BackendServices.Create(new(), services));
 
     /// <summary>
     /// Initializes new sync test session.
