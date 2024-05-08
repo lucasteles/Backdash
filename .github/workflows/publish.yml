@@ -83,7 +83,7 @@ jobs:
         name: Publish Nuget
         runs-on: ubuntu-latest
         #Only release if there has been a commit/version change
-        if: github.event.inputs.release_nuget == 'true' && github.ref == 'refs/heads/master' && needs.build.outputs.CommitsSinceVersionSource > 0
+        if: github.event.inputs.release_nuget == 'true' # && github.ref == 'refs/heads/master' && needs.build.outputs.CommitsSinceVersionSource > 0
         needs: build
         steps:
             -   name: Download lib nuget package artifact
