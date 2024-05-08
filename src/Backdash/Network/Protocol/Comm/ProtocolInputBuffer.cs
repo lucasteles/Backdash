@@ -114,17 +114,22 @@ sealed class ProtocolInputBuffer<TInput> : IProtocolInputBuffer<TInput>
             }
 
             Trace.Assert(lastAckedInput.Frame.IsNull || lastAckedInput.Frame.Next() == lastAckFrame);
+
             var current = pendingOutput.Peek();
             var currentSize = inputSerializer.Serialize(in current.Data, currentBytes);
             inputMessage.InputSize = (byte)currentSize;
             inputMessage.StartFrame = current.Frame;
+
             Trace.Assert(lastAckedInput.Frame.IsNull || lastAckedInput.Frame.Next() == inputMessage.StartFrame);
+
             if (lastAckedInput.Frame.IsNull && lastSentSize < currentSize)
                 lastSentSize = currentSize;
+
             if (lastAckSize is 0)
                 sendBuffer.Clear();
             else
                 lastAckBytes[..lastAckSize].CopyTo(sendBuffer);
+
             var compressor = InputEncoder.GetCompressor(in inputMessage, sendBuffer);
             var count = pendingOutput.Count;
             var n = 0;

@@ -63,7 +63,7 @@ public static class GameSessionFactory
 
         var session = RollbackNetcode.CreateSession<PlayerInputs, GameState>(port, options, new()
         {
-            // LogWriter = new FileLogWriter($"log_{localPlayer.Number}.log"),
+            // LogWriter = new Backdash.Core.FileTextLogWriter($"log_{localPlayer.Number}.log"),
             InputListener = saveInputsListener,
         });
 

@@ -551,16 +551,19 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
             var queueConnected = true;
             if (endpoints[i] is { IsRunning: true } endpoint)
                 queueConnected = endpoint.GetPeerConnectStatus(i, out _);
+
             ref var localConn = ref localConnections[i];
+
             if (!localConn.Disconnected)
                 totalMinConfirmed = Frame.Min(in localConnections[i].LastFrame, in totalMinConfirmed);
+
             logger.Write(LogLevel.Trace,
                 $"Queue {i} => connected: {!localConn.Disconnected}; last received: {localConn.LastFrame}; min confirmed: {totalMinConfirmed}");
-            if (!queueConnected && !localConn.Disconnected)
+
+            if (!queueConnected && !localConn.Disconnected && endpoints[i] is { Player: var handler })
             {
                 logger.Write(LogLevel.Information, $"disconnecting {i} by remote request");
-                PlayerHandle handle = new(PlayerType.Remote, i);
-                DisconnectPlayerQueue(in handle, in totalMinConfirmed);
+                DisconnectPlayerQueue(in handler, in totalMinConfirmed);
             }
 
             logger.Write(LogLevel.Trace, $"Queue {i} => min confirmed = {totalMinConfirmed}");
@@ -608,10 +611,10 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
                 // check to see if this disconnect notification is further back than we've been before.  If
                 // so, we need to re-adjust.  This can happen when we detect our own disconnect at frame n
                 // and later receive a disconnect notification for frame n-1.
-                if (!localStatus.Disconnected || localStatus.LastFrame > queueMinConfirmed)
+                if ((!localStatus.Disconnected || localStatus.LastFrame > queueMinConfirmed)
+                    && endpoints[queue] is { Player: var handle })
                 {
                     logger.Write(LogLevel.Information, $"disconnecting queue {queue} by remote request");
-                    PlayerHandle handle = new(PlayerType.Remote, queue);
                     DisconnectPlayerQueue(in handle, in queueMinConfirmed);
                 }
             }
