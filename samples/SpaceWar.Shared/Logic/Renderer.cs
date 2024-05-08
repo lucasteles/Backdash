@@ -38,7 +38,7 @@ public sealed class Renderer(
         if (ship.Thrust > 0)
             spriteBatch.Draw(
                 gameAssets.Thrust, ship.Position, null, Color.White, rotation,
-                new Vector2(
+                new(
                     gameAssets.Thrust.Bounds.Width + ship.Radius / 2f,
                     gameAssets.Thrust.Bounds.Height - ship.Radius / 2f),
                 1, SpriteEffects.None, 0);
@@ -72,10 +72,10 @@ public sealed class Renderer(
                     explosionSize, explosionSize
                 );
                 var spriteStep = (int)MathHelper.Lerp(
-                    0, MissileExplosionSpriteMap.Length - 1,
+                    0, missileExplosionSpriteMap.Length - 1,
                     ship.Missile.HitBoxTime / (float)Config.MissileHitBoxTimeout
                 );
-                var missileSource = MissileExplosionSpriteMap[spriteStep];
+                var missileSource = missileExplosionSpriteMap[spriteStep];
                 missileSource.Inflate(-5, -5);
                 spriteBatch.Draw(gameAssets.ExplosionSheet, explosionRect, missileSource,
                     Color.White, 0, missileSource.Size.ToVector2() / 2,
@@ -149,8 +149,8 @@ public sealed class Renderer(
             DrawBar(new(
                 (int)ship.Position.X - ship.Radius,
                 (int)ship.Position.Y + ship.Radius
-                                      + (int)size.Y
-                                      + Config.ShipProgressBarHeight,
+                                     + (int)size.Y
+                                     + Config.ShipProgressBarHeight,
                 ship.Radius * 2,
                 Config.ShipProgressBarHeight
             ), barColor, step, total, 0);
@@ -210,7 +210,7 @@ public sealed class Renderer(
                 3 => new(bounds.Right - padding - size.X, bounds.Bottom - padding - size.Y),
                 _ => throw new ArgumentOutOfRangeException(nameof(num), num, null),
             };
-        var color = Colors[num];
+        var color = colors[num];
         spriteBatch.DrawString(
             gameAssets.MainFont,
             scoreString,
@@ -261,13 +261,13 @@ public sealed class Renderer(
         statsBox.Inflate(padding * 2, padding);
         statsBox.Offset(-padding / 2, padding);
         spriteBatch.Draw(gameAssets.Blank, statsBox, null,
-            new Color(0x303030),
+            new(0x303030),
             0, Vector2.Zero, SpriteEffects.None, 0);
         spriteBatch.DrawString(gameAssets.MainFont, statsString, statsPos, Color.White,
             0, Vector2.Zero, scale, SpriteEffects.None, 0);
     }
 
-    static readonly Rectangle[] MissileExplosionSpriteMap =
+    static readonly Rectangle[] missileExplosionSpriteMap =
     [
         new(1, 1, 89, 89),
         new(93, 1, 89, 89),
@@ -279,7 +279,7 @@ public sealed class Renderer(
         new(277, 93, 89, 89),
     ];
 
-    static readonly Color[] Colors =
+    static readonly Color[] colors =
     [
         Color.Green,
         Color.Red,

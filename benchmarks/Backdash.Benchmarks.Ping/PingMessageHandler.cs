@@ -1,5 +1,6 @@
 using System.Net;
 using Backdash.Network.Client;
+
 namespace Backdash.Benchmarks.Ping;
 
 sealed class PingMessageHandler(
@@ -7,8 +8,9 @@ sealed class PingMessageHandler(
     Memory<byte>? buffer = null
 ) : IPeerObserver<PingMessage>
 {
-    public static long TotalProcessed => _processedCount;
-    static long _processedCount;
+    public static long TotalProcessed => processedCount;
+    static long processedCount;
+
     public async ValueTask OnPeerMessage(
         PingMessage message,
         SocketAddress from,
@@ -18,7 +20,7 @@ sealed class PingMessageHandler(
     {
         if (stoppingToken.IsCancellationRequested)
             return;
-        Interlocked.Increment(ref _processedCount);
+        Interlocked.Increment(ref processedCount);
         var reply = message switch
         {
             PingMessage.Ping => PingMessage.Pong,

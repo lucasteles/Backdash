@@ -1,12 +1,14 @@
 using System.Numerics;
+
 namespace ConsoleGame;
 
 public static class GameLogic
 {
     public const int GridSize = 5;
-    static readonly Vector2 UpLeft = Vector2.Zero;
-    static readonly Vector2 DownRight = new(GridSize - 1);
-    static readonly Vector2 Center = new(MathF.Floor(GridSize / 2f));
+    public static readonly Vector2 UpLeft = Vector2.Zero;
+    public static readonly Vector2 DownRight = new(GridSize - 1);
+    public static readonly Vector2 Center = new(MathF.Floor(GridSize / 2f));
+
     public static GameState InitialState() => new()
     {
         Position1 = UpLeft,
@@ -15,6 +17,7 @@ public static class GameLogic
         Score2 = 0,
         Target = Center,
     };
+
     public static void AdvanceState(
         ref GameState currentState,
         GameInput inputPlayer1,
@@ -49,6 +52,7 @@ public static class GameLogic
             }
         }
     }
+
     public static Vector2 Move(Vector2 pos, GameInput input)
     {
         var direction = Vector2.Zero;
@@ -61,8 +65,9 @@ public static class GameLogic
         if (input.HasFlag(GameInput.Left))
             direction = -Vector2.UnitX;
         pos += direction;
-        return Vector2.Clamp(pos, Vector2.Zero, new Vector2(GridSize - 1));
+        return Vector2.Clamp(pos, Vector2.Zero, new(GridSize - 1));
     }
+
     public static GameInput ReadKeyboardInput(out bool disconnectRequest)
     {
         disconnectRequest = false;
@@ -75,6 +80,7 @@ public static class GameLogic
             Thread.Sleep(100);
             return GameInput.None;
         }
+
         if (press.Key is ConsoleKey.Escape)
             disconnectRequest = true;
         return press.Key switch

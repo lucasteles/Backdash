@@ -89,7 +89,7 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
         var left = Viewport.Left + Padding;
         var top = Viewport.Top + Padding;
 
-        spriteBatch.DrawString(Assets.MainFont, lobbyInfo.Name, new Vector2(left, top),
+        spriteBatch.DrawString(Assets.MainFont, lobbyInfo.Name, new(left, top),
             Color.Gold);
 
         Color usernameColor;
@@ -103,7 +103,7 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
         var usernameSize =
             Assets.MainFont.MeasureString(user.Username);
         spriteBatch.DrawString(Assets.MainFont, user.Username,
-            new Vector2(Viewport.Right - Padding - usernameSize.X, top),
+            new(Viewport.Right - Padding - usernameSize.X, top),
             usernameColor, 0, Vector2.Zero, 1, SpriteEffects.None, 0);
         top += Padding + (int)usernameSize.Y;
 
@@ -282,11 +282,11 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
         const int padding = 15;
         var size = Assets.MainFont.MeasureString(errorLabel);
         spriteBatch.DrawString(Assets.MainFont, errorLabel,
-            new Vector2(Viewport.Left + padding, Viewport.Top + padding),
+            new(Viewport.Left + padding, Viewport.Top + padding),
             Color.Red, 0, Vector2.Zero, 1, SpriteEffects.None, 0);
 
         spriteBatch.DrawString(Assets.MainFont, errorMessage,
-            new Vector2(Viewport.Left + padding, Viewport.Top + size.Y + padding * 2),
+            new(Viewport.Left + padding, Viewport.Top + size.Y + padding * 2),
             Color.Orange, 0, Vector2.Zero, 0.5f, SpriteEffects.None, 0);
     }
 

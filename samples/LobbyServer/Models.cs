@@ -2,8 +2,8 @@ using System.Net;
 
 namespace LobbyServer;
 
-using PeerToken = Guid;
 using PeerId = Guid;
+using PeerToken = Guid;
 
 public enum PeerMode : byte
 {

@@ -10,7 +10,7 @@ namespace SpaceWar.Services;
 
 public sealed class LobbyHttpClient(AppSettings appSettings)
 {
-    static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
+    static readonly JsonSerializerOptions jsonOptions = new(JsonSerializerDefaults.Web)
     {
         Converters =
         {
@@ -34,14 +34,14 @@ public sealed class LobbyHttpClient(AppSettings appSettings)
             username,
             mode,
             localEndpoint,
-        }, JsonOptions);
+        }, jsonOptions);
 
         if (response.StatusCode is HttpStatusCode.UnprocessableEntity)
             throw new InvalidOperationException("Already started");
 
         response.EnsureSuccessStatusCode();
 
-        var result = await response.Content.ReadFromJsonAsync<User>(JsonOptions)
+        var result = await response.Content.ReadFromJsonAsync<User>(jsonOptions)
                      ?? throw new InvalidOperationException();
 
         client.DefaultRequestHeaders.Clear();
@@ -50,7 +50,7 @@ public sealed class LobbyHttpClient(AppSettings appSettings)
     }
 
     public async Task<Lobby> GetLobby(User user) =>
-        await client.GetFromJsonAsync<Lobby>($"/lobby/{user.LobbyName}", JsonOptions)
+        await client.GetFromJsonAsync<Lobby>($"/lobby/{user.LobbyName}", jsonOptions)
         ?? throw new InvalidOperationException();
 
     public async Task LeaveLobby(User user)

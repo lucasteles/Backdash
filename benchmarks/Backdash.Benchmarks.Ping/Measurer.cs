@@ -153,7 +153,7 @@ public sealed class Measurer : IAsyncDisposable
         };
 
         public static MeasureSnapshot Next(MeasureSnapshot initial, MeasureSnapshot previous) =>
-            Diff(new MeasureSnapshot(), initial, previous);
+            Diff(new(), initial, previous);
 
         public static MeasureSnapshot Zero { get; } = new()
         {

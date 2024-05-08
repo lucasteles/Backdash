@@ -61,7 +61,7 @@ public sealed class LobbyRepository(
 
             lobby.AddPeer(entry);
 
-            return new EnterLobbyResponse(
+            return new(
                 userName, lobbyName, entry.Peer.PeerId, entry.Token, remote);
         }
     }

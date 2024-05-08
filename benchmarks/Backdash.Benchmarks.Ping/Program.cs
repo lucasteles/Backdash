@@ -1,7 +1,7 @@
 using System.Net;
+using Backdash.Benchmarks.Ping;
 using Backdash.Core;
 using Backdash.Network.Client;
-using Backdash.Benchmarks.Ping;
 using Backdash.Serialization;
 
 var totalDuration = TimeSpan.FromSeconds(10);

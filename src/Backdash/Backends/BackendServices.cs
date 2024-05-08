@@ -42,7 +42,7 @@ sealed class BackendServices<TInput, TGameState>
             ? new ConsoleTextLogWriter()
             : services.LogWriter;
 
-        Logger = new Logger(options.Log, logWriter);
+        Logger = new(options.Log, logWriter);
         Clock = new Clock();
         JobManager = new BackgroundJobManager(Logger);
 

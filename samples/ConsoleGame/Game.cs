@@ -22,7 +22,7 @@ public sealed class Game : IRollbackHandler<GameState>
 
     public Game(IRollbackSession<GameInput> session, CancellationTokenSource cancellation)
     {
-        view = new View();
+        view = new();
         this.session = session;
         this.cancellation = cancellation;
         var players = session.GetPlayers();

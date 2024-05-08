@@ -42,7 +42,7 @@ sealed class SaveInputsToFileListener(string filename) : IInputListener<PlayerIn
                     inputsBuffer[i] = (PlayerInputs)value;
             }
 
-            yield return new ConfirmedInputs<PlayerInputs>(inputsBuffer.AsSpan()[..players]);
+            yield return new(inputsBuffer.AsSpan()[..players]);
 
             if (replayStream.Read(lineBreak) is 0 || lineBreak[0] != '\n')
                 throw new InvalidOperationException("invalid replay file content");

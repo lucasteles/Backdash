@@ -31,9 +31,11 @@ dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity:sug
 dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity:suggestion
 dotnet_style_parentheses_in_other_binary_operators = always_for_clarity:suggestion
 dotnet_style_parentheses_in_other_operators = never_if_unnecessary:suggestion
+
 # Modifier preferences
 dotnet_style_require_accessibility_modifiers = omit_if_default:warning
 dotnet_style_readonly_field = true:suggestion
+
 # Expression-level preferences
 dotnet_style_object_initializer = true:suggestion
 dotnet_style_collection_initializer = true:suggestion
@@ -46,9 +48,14 @@ dotnet_style_prefer_inferred_anonymous_type_member_names = true:suggestion
 dotnet_style_prefer_auto_properties = true:silent
 dotnet_style_prefer_conditional_expression_over_assignment = true:silent
 dotnet_style_prefer_conditional_expression_over_return = true:silent
+
 # Style Definitions
 dotnet_naming_style.pascal_case_style.capitalization = pascal_case
+dotnet_naming_style.pascal_case_style.required_prefix =
+
 dotnet_naming_style.camel_case_style.capitalization = camel_case
+dotnet_naming_style.camel_case_style.required_prefix =
+
 # constant case preferences
 dotnet_naming_symbols.constant_fields.applicable_kinds = field
 dotnet_naming_symbols.constant_fields.applicable_accessibilities = *
@@ -56,17 +63,23 @@ dotnet_naming_symbols.constant_fields.required_modifiers = const
 dotnet_naming_rule.constant_fields_should_be_pascal_case.severity = suggestion
 dotnet_naming_rule.constant_fields_should_be_pascal_case.symbols = constant_fields
 dotnet_naming_rule.constant_fields_should_be_pascal_case.style = pascal_case_style
+
 # fields case preferences
-dotnet_naming_symbols.private_field_symbols.applicable_kinds = field
-dotnet_naming_symbols.private_field_symbols.applicable_accessibilities = private
-dotnet_naming_rule.private_field_symbols_should_be_camel_case.symbols = private_field_symbols
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private
+
+dotnet_naming_rule.private_field_symbols_should_be_camel_case.symbols = private_fields
 dotnet_naming_rule.private_field_symbols_should_be_camel_case.severity = warning
 dotnet_naming_rule.private_field_symbols_should_be_camel_case.style = camel_case_style
-dotnet_naming_symbols.protected_field_symbols.applicable_kinds = field, property
-dotnet_naming_symbols.protected_field_symbols.applicable_accessibilities = protected
-dotnet_naming_rule.protected_field_symbols_should_be_camel_case.symbols = protected_field_symbols
+
+
+dotnet_naming_symbols.protected_fields.applicable_kinds = field
+dotnet_naming_symbols.protected_fields.applicable_accessibilities = protected
+
+dotnet_naming_rule.protected_field_symbols_should_be_camel_case.symbols = protected_fields
 dotnet_naming_rule.protected_field_symbols_should_be_camel_case.severity = suggestion
 dotnet_naming_rule.protected_field_symbols_should_be_camel_case.style = camel_case_style
+
 # var preferences
 csharp_style_var_for_built_in_types = true:silent
 csharp_style_var_when_type_is_apparent = true:silent
@@ -154,10 +167,9 @@ resharper_max_initializer_elements_on_line = 1
 resharper_trailing_comma_in_multiline_lists = true
 resharper_wrap_array_initializer_style = chop_if_long
 resharper_empty_block_style = together_same_line
-resharper_arrange_type_member_modifiers_highlighting = unset
-resharper_arrange_object_creation_when_type_not_evident_highlighting = unset
 # FALSE POSITIVES
 dotnet_diagnostic.S2094.severity = silent # empty class (false positive)
 dotnet_diagnostic.S3925.severity = silent # Update this implementation of 'ISerializable' to conform to the recommended serialization pattern.
+
 [Usings.cs]
 dotnet_diagnostic.IDE0005.severity = silent # Using directive is unnecessary.

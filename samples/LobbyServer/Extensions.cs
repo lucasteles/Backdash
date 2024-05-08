@@ -27,7 +27,7 @@ public static class Extensions
 
     public static string WithPrefix(this string value, string prefix) => $"{prefix}::{value}";
 
-    static readonly JsonConverter[] CustomJsonConverters =
+    static readonly JsonConverter[] customJsonConverters =
     [
         new JsonStringEnumConverter(),
         new JsonIPAddressConverter(),
@@ -36,7 +36,7 @@ public static class Extensions
 
     public static void AddCustomConverters(this JsonSerializerOptions options)
     {
-        foreach (var converter in CustomJsonConverters)
+        foreach (var converter in customJsonConverters)
             options.Converters.Add(converter);
     }
 }
