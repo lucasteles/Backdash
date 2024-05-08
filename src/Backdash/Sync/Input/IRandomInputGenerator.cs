@@ -18,19 +18,17 @@ public interface IInputGenerator<out TInput> where TInput : struct
 /// Random input value provider
 /// </summary>
 /// <typeparam name="TInput"></typeparam>
-public sealed class RandomInputGenerator<TInput>
-    : IInputGenerator<TInput> where TInput : unmanaged
+public sealed class RandomInputGenerator<TInput> : IInputGenerator<TInput> where TInput : unmanaged
 {
-    Random Random { get; }
+    Random Random { get; } = Random.Shared;
 
     /// <summary>
     /// Initializes new <see cref="RandomInputGenerator{TInput}"/>
     /// </summary>
-    public RandomInputGenerator(Random? random = null)
+    public RandomInputGenerator()
     {
         ThrowHelpers.ThrowIfTypeTooBigForStack<TInput>();
         ThrowHelpers.ThrowIfTypeIsReferenceOrContainsReferences<TInput>();
-        Random = random ?? Random.Shared;
     }
 
     /// <inheritdoc />

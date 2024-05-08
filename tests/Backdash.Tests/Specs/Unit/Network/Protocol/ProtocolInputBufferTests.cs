@@ -15,9 +15,10 @@ public class ProtocolInputBufferTests
 {
     static ProtocolMessage GetSampleMessage(int startFrame = 0) => new(MessageType.Input)
     {
-        Input = new([3, 8, 224, 0, 5, 44, 32, 129, 7])
+        Input = new()
         {
             InputSize = 1,
+            Bits = new([3, 8, 224, 0, 5, 44, 32, 129, 7]),
             AckFrame = Frame.Null,
             StartFrame = new(startFrame),
             NumBits = 74,
@@ -50,9 +51,10 @@ public class ProtocolInputBufferTests
         A.CallTo(() => faker.Resolve<IProtocolInbox<TestInput>>().LastAckedFrame).Returns(Frame.Null);
         ProtocolMessage message = new(MessageType.Input)
         {
-            Input = new([103])
+            Input = new()
             {
                 InputSize = 4,
+                Bits = new([103]),
                 AckFrame = Frame.Null,
                 StartFrame = Frame.Zero,
                 NumBits = 11,
@@ -88,7 +90,6 @@ public class ProtocolInputBufferTests
         var faker = GetFakerWithSender();
         var sender = faker.Resolve<IMessageSender>();
         var queue = faker.Generate<ProtocolInputBuffer<TestInput>>();
-
         // setting up first inputs
         GameInput[] previousInputs =
         [
@@ -97,22 +98,17 @@ public class ProtocolInputBufferTests
         ];
         foreach (var input in previousInputs)
             queue.SendInput(input).Should().Be(SendInputResult.Ok);
-
         // setting up new inputs to check
         const int startFrame = 2;
         A.CallTo(() => faker.Resolve<IProtocolInbox<TestInput>>().LastAckedFrame).Returns(new(startFrame));
         var newInputs = GetSampleInputs(startFrame);
-
         foreach (var input in newInputs)
             queue.SendInput(input).Should().Be(SendInputResult.Ok);
-
         var expectedMessage = GetSampleMessage(startFrame);
-
         A.CallTo(sender)
             .Where(x => x.Method.Name == nameof(IMessageSender.SendMessage))
             .WithReturnType<bool>()
             .MustHaveHappened(previousInputs.Length + newInputs.Length, Times.Exactly);
-
         // assert only the last aggregated message
         var lastSentMessage = Fake.GetCalls(sender).Last().Arguments.Single();
         lastSentMessage.Should().BeEquivalentTo(expectedMessage);

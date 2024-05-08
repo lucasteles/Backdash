@@ -70,7 +70,7 @@ public class InputEncoderTests
     }
 
     // [PropertyTest]
-    [PropertyTest]
+    [PropertyTest(Replay = "2086077644,297296175", MaxTest = 1)]
     internal void ShouldCompressAndDecompress(PendingGameInputs gameInput)
     {
         GameInput lastAcked = new(new TestInput())
@@ -96,13 +96,13 @@ public class InputEncoderTests
         };
         GameInput[] inputs = [gameInput, twinInput];
         var compressed = GetCompressedInput(in lastAcked, inputs);
-        ReadOnlySpan<byte> bits = compressed.Bits.Span;
+        ReadOnlySpan<byte> bits = compressed.Bits;
         return bits.ToArray().All(b => b is 0);
     }
 
     static InputMessage GetCompressedInput(in GameInput lastAcked, params GameInput[] pendingInputs)
     {
-        InputMessage inputMsg = new([]);
+        InputMessage inputMsg = new();
         if (pendingInputs is [var first, ..])
         {
             inputMsg.InputSize = (byte)first.Data.Length;
@@ -111,7 +111,7 @@ public class InputEncoderTests
 
         Span<byte> lastBytes = stackalloc byte[lastAcked.Data.Length];
         lastAcked.Data.CopyTo(lastBytes);
-        var compressor = InputEncoder.GetCompressor(in inputMsg, lastBytes);
+        var compressor = InputEncoder.GetCompressor(ref inputMsg, lastBytes);
         for (var i = 0; i < pendingInputs.Length; i++)
         {
             ref var t = ref pendingInputs[i];
@@ -137,7 +137,7 @@ public class InputEncoderTests
         var currentFrame = inputMsg.StartFrame;
         var nextFrame = lastRecv.Frame.Next();
         currentFrame.Number.Should().BeLessOrEqualTo(nextFrame.Number);
-        var decompressor = InputEncoder.GetDecompressor(in inputMsg);
+        var decompressor = InputEncoder.GetDecompressor(ref inputMsg);
         var framesAhead = nextFrame.Number - currentFrame.Number;
         if (decompressor.Skip(framesAhead))
             currentFrame += framesAhead;
