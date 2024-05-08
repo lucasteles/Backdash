@@ -1,4 +1,5 @@
 using System.Net;
+using System.Runtime.CompilerServices;
 
 namespace Backdash.Network.Client;
 
@@ -21,6 +22,7 @@ sealed class PeerObserverGroup<T> : IPeerObserver<T>
     public void Add(IPeerObserver<T> observer) => observers.Add(observer);
     public void Remove(IPeerObserver<T> observer) => observers.Remove(observer);
 
+    [AsyncMethodBuilder(typeof(PoolingAsyncValueTaskMethodBuilder))]
     public async ValueTask OnPeerMessage(
         T message, SocketAddress from, int bytesReceived, CancellationToken stoppingToken
     )

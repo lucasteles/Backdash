@@ -2,6 +2,7 @@ using System.Buffers;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
 using Backdash.Core;
 using Backdash.Serialization;
 
@@ -134,6 +135,7 @@ sealed class PeerClient<T> : IPeerJobClient<T> where T : struct
     ) =>
         socket.SendToAsync(payload, peerAddress, ct);
 
+    [AsyncMethodBuilder(typeof(PoolingAsyncValueTaskMethodBuilder<>))]
     public async ValueTask<int> SendTo(
         SocketAddress peerAddress,
         T payload,
@@ -142,11 +144,12 @@ sealed class PeerClient<T> : IPeerJobClient<T> where T : struct
     )
     {
         var bodySize = serializer.Serialize(in payload, buffer.Span);
-        var sentSize = await SendTo(peerAddress, buffer[..bodySize], ct);
+        var sentSize = await SendTo(peerAddress, buffer[..bodySize], ct).ConfigureAwait(false);
         Trace.Assert(sentSize == bodySize);
         return sentSize;
     }
 
+    [AsyncMethodBuilder(typeof(PoolingAsyncValueTaskMethodBuilder<>))]
     public async ValueTask<int> SendTo(
         SocketAddress peerAddress,
         T payload,
@@ -154,7 +157,7 @@ sealed class PeerClient<T> : IPeerJobClient<T> where T : struct
     )
     {
         var buffer = ArrayPool<byte>.Shared.Rent(maxPacketSize);
-        var sentBytes = await SendTo(peerAddress, payload, buffer, ct);
+        var sentBytes = await SendTo(peerAddress, payload, buffer, ct).ConfigureAwait(false);
         ArrayPool<byte>.Shared.Return(buffer);
         return sentBytes;
     }

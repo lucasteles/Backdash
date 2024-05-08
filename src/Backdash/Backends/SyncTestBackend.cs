@@ -102,8 +102,8 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
     public async Task WaitToStop(CancellationToken stoppingToken = default)
     {
         // ReSharper disable once MethodSupportsCancellation
-        tsc.SetCanceled();
-        await backGroundJobTask.WaitAsync(stoppingToken);
+        tsc.SetCanceled(stoppingToken);
+        await backGroundJobTask.WaitAsync(stoppingToken).ConfigureAwait(false);
     }
 
     public ResultCode AddPlayer(Player player)

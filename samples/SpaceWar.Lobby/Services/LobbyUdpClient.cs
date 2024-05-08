@@ -1,4 +1,5 @@
 using System.Net;
+using System.Runtime.CompilerServices;
 using System.Text;
 using Backdash.Network.Client;
 using SpaceWar.Models;
@@ -46,6 +47,7 @@ public sealed class LobbyUdpClient : IDisposable
         }
     }
 
+    [AsyncMethodBuilder(typeof(PoolingAsyncValueTaskMethodBuilder))]
     async ValueTask Receive(CancellationToken stoppingToken)
     {
         var recBuffer = GC.AllocateArray<byte>(36, pinned: true);

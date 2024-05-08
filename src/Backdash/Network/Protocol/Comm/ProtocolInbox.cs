@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Net;
+using System.Runtime.CompilerServices;
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network.Client;
@@ -34,6 +35,7 @@ sealed class ProtocolInbox<TInput>(
     public GameInput<TInput> LastReceivedInput => lastReceivedInput;
     public Frame LastAckedFrame { get; private set; } = Frame.Null;
 
+    [AsyncMethodBuilder(typeof(PoolingAsyncValueTaskMethodBuilder))]
     public async ValueTask OnPeerMessage(
         ProtocolMessage message,
         SocketAddress from,

@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Text;
 using Backdash.Core;
 using Backdash.Data;
@@ -57,6 +58,7 @@ public sealed class Measurer : IAsyncDisposable
         Snapshot();
     }
 
+    [AsyncMethodBuilder(typeof(PoolingAsyncValueTaskMethodBuilder))]
     public async ValueTask DisposeAsync()
     {
         try
