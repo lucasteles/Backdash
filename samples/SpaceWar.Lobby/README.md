@@ -2,26 +2,26 @@
 
 This shows a basic example of NAT traversal using [UDP hole punching](https://en.wikipedia.org/wiki/UDP_hole_punching)
 
-# How it works?
+# How does it work?
 
-This enable a P2P connection over the internet, this is possible using
+This enables a P2P connection over the internet, this is possible using
 a [middle server](https://github.com/lucasteles/Backdash/tree/master/samples/LobbyServer)
 which all clients know.
-The server catches the IP address and port of a client and send it to the others.
+The server catches the IP address and port of a client and sends it to the others.
 
-The current server runs almost as a simple http with json responses. It keeps the lobbies info with sliding expiration
+The current server runs almost as a simple HTTP with JSON responses. It keeps the lobby info with sliding expiration
 cache.
 
 When a client enters the lobby the server responds with a token of type `Guid`/`UUID`. It is used a very
 basic `Authentication` mechanism.
 
-The client use http pooling to get updated information of each lobby member/peer.
+The client uses HTTP pooling to get updated information on each lobby member/peer.
 
-When logged-in every client needs to send a `UDP` package with their token to the server. So the
-server updates their `IP` and open `Port` using the package headers metadata.
+When logged in, every client needs to send a `UDP` package with their token to the server. The server uses the package header metadata  
+to keep track of their `IP` and open `Port`.
 
-> ⚠️ UDP Hole punching usually **does not** work witch clients behind the same NAT. To mitigate this the server
-> also tracks the clients local IPs and ports. So they can check if the peer is at the same network
+> ⚠️ UDP Hole punching usually **does not** work with clients behind the same NAT. To mitigate this the server
+> also tracks the local IP and port on each client to check if the peer is on the same network.
 
 ## Controls
 
