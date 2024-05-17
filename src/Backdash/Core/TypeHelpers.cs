@@ -1,4 +1,4 @@
-#if !AOT_COMPATIBLE
+#if !AOT_ENABLED
 using System.Reflection;
 
 namespace Backdash.Core;

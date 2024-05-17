@@ -14,8 +14,7 @@ sealed class StructBinarySerializer<T> : IBinarySerializer<T> where T : struct
     }
 }
 
-
-#if !AOT_COMPATIBLE
+#if !AOT_ENABLED
 sealed class StructMarshalBinarySerializer<T> : IBinarySerializer<T> where T : struct
 {
     public int Serialize(in T data, Span<byte> buffer) => Mem.MarshallStruct(in data, in buffer);

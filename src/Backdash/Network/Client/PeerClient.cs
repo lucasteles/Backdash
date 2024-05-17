@@ -183,7 +183,7 @@ public static class PeerClientFactory
     ) where T : struct =>
         new PeerClient<T>(socket, serializer, observer, logger, maxPacketSize);
 
-#if !AOT_COMPATIBLE
+#if !AOT_ENABLED
     /// <summary>
     ///  Creates new <see cref="IPeerClient{T}"/>
     /// </summary>

@@ -162,7 +162,7 @@ class MainBuild : NukeBuild
                 .EnableNoRestore()
                 .SetProject(Solution.FindProject("Backdash"))
                 .SetConfiguration(Configuration.Release)
-                .AddProperty("DefineConstants", "AOT_COMPATIBLE")
+                .AddProperty("DefineConstants", "AOT_ENABLED")
                 .SetProcessArgumentConfigurator(args => args.Add("--use-current-runtime"))
             ));
 

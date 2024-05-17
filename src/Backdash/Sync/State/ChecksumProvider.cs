@@ -35,7 +35,7 @@ static class ChecksumProviderFactory
 {
     public static IChecksumProvider<T> Create<T>() where T : notnull
     {
-#if !AOT_COMPATIBLE
+#if !AOT_ENABLED
         if (Core.TypeHelpers.HasInvariantHashCode<T>())
             return new HashCodeChecksumProvider<T>();
 #endif

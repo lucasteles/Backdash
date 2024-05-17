@@ -195,7 +195,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         savedFrames.Enqueue(new(
             Frame: frame,
             Input: lastInput,
-#if AOT_COMPATIBLE
+#if AOT_ENABLED
             State: lastSaved.GameState.ToString() ?? string.Empty,
 #else
             State: JsonSerializer.Serialize(lastSaved.GameState, jsonOptions),
@@ -244,7 +244,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         const LogLevel level = LogLevel.Information;
         logger.Write(level, $"=== SAVED STATE [{description.ToUpper()}] ({info.Frame}) ===\n");
         logger.Write(level, $"INPUT FRAME {info.Input.Frame}:");
-#if AOT_COMPATIBLE
+#if AOT_ENABLED
         logger.Write(level, info.Input.Data.ToString() ?? string.Empty);
 #else
         logger.Write(level, JsonSerializer.Serialize(info.Input.Data, jsonOptions));
@@ -266,7 +266,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
     void LogJson<TValue>(LogLevel level, TValue value)
     {
         var jsonChunks =
-#if AOT_COMPATIBLE
+#if AOT_ENABLED
             (value?.ToString() ?? string.Empty)
 #else
             JsonSerializer.Serialize(value, jsonOptions)

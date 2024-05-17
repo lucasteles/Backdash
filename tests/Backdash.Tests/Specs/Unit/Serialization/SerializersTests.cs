@@ -225,7 +225,7 @@ public class SerializersTests
         .And
         .BeOfType<EnumBinarySerializer<T, TInt>>();
 
-#if !AOT_COMPATIBLE
+#if !AOT_ENABLED
     [PropertyTest]
     public bool ShouldSerializeMarshalStruct(MarshalStructData value)
     {

@@ -54,7 +54,7 @@ static class Mem
         return right[..minLength].SequenceEqual(left[..minLength]);
     }
 
-#if !AOT_COMPATIBLE
+#if !AOT_ENABLED
     public static unsafe int MarshallStruct<T>(in T message, in Span<byte> body)
         where T : struct
     {

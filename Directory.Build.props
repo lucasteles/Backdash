@@ -23,7 +23,7 @@
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
 
-    <!--    <DefineConstants>AOT_COMPATIBLE</DefineConstants>-->
+<!--        <DefineConstants>AOT_ENABLED</DefineConstants>-->
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">

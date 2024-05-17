@@ -2,7 +2,7 @@ using System.Numerics;
 using Backdash.Core;
 using Backdash.Network;
 
-#if !AOT_COMPATIBLE
+#if !AOT_ENABLED
 using System.Reflection;
 using System.Runtime.InteropServices;
 #endif
@@ -35,7 +35,7 @@ static class BinarySerializerFactory
             throw new ArgumentException("Struct input expected");
         if (inputType is { IsLayoutSequential: false, IsExplicitLayout: false })
             throw new ArgumentException("Input struct should have explicit or sequential layout ");
-#if AOT_COMPATIBLE
+#if AOT_ENABLED
         if (marshall)
             throw new InvalidOperationException("Marshalling is not valid on AOT");
 
@@ -53,7 +53,7 @@ static class BinarySerializerFactory
     public static IBinarySerializer<TInput>? Get<TInput>(bool networkEndianness = true)
         where TInput : struct
     {
-#if AOT_COMPATIBLE
+#if AOT_ENABLED
         return null;
 #else
         var inputType = typeof(TInput);
