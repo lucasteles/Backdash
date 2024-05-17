@@ -19,19 +19,11 @@ static class BinarySerializerFactory
     }
 
     public static IBinarySerializer<TInput> ForEnum<TInput>(bool networkEndianness = true)
-        where TInput : unmanaged, Enum =>
-        Type.GetTypeCode(typeof(TInput)) switch
-        {
-            TypeCode.Int32 => new EnumBinarySerializer<TInput, int>(ForInteger<int>(networkEndianness)),
-            TypeCode.UInt32 => new EnumBinarySerializer<TInput, uint>(ForInteger<uint>(networkEndianness)),
-            TypeCode.UInt64 => new EnumBinarySerializer<TInput, ulong>(ForInteger<ulong>(networkEndianness)),
-            TypeCode.Int64 => new EnumBinarySerializer<TInput, long>(ForInteger<long>(networkEndianness)),
-            TypeCode.Int16 => new EnumBinarySerializer<TInput, short>(ForInteger<short>(networkEndianness)),
-            TypeCode.UInt16 => new EnumBinarySerializer<TInput, ushort>(ForInteger<ushort>(networkEndianness)),
-            TypeCode.Byte => new EnumBinarySerializer<TInput, byte>(ForInteger<byte>(networkEndianness)),
-            TypeCode.SByte => new EnumBinarySerializer<TInput, sbyte>(ForInteger<sbyte>(networkEndianness)),
-            _ => throw new InvalidTypeArgumentException<TInput>(),
-        };
+        where TInput : unmanaged, Enum
+    {
+        var mode = Platform.GetEndianness(networkEndianness);
+        return new EnumBinarySerializer<TInput>(mode);
+    }
 
     public static IBinarySerializer<TInput> ForStruct<TInput>(bool marshall = false)
         where TInput : struct

@@ -23,14 +23,6 @@ static class Mem
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ref T ReadUnaligned<T>(scoped in ReadOnlySpan<byte> data, out int size) where T : struct
-    {
-        size = Unsafe.SizeOf<T>();
-        ArgumentOutOfRangeException.ThrowIfGreaterThan(size, data.Length);
-        return ref Unsafe.As<byte, T>(ref MemoryMarshal.GetReference(data));
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Span<byte> GetSpan<T>(scoped ref T data) where T : struct
     {
         ThrowHelpers.ThrowIfTypeIsReferenceOrContainsReferences<T>();

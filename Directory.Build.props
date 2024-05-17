@@ -22,6 +22,8 @@
     <RepositoryUrl>https://github.com/lucasteles/Backdash.git</RepositoryUrl>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+    <!--    <DefineConstants>AOT_COMPATIBLE</DefineConstants>-->
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
