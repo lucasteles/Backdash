@@ -14,7 +14,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
     readonly record struct SavedFrame(
         Frame Frame,
         int Checksum,
-        JsonElement State,
+        string State,
         GameInput<TInput> Input
     );
 
@@ -195,7 +195,11 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         savedFrames.Enqueue(new(
             Frame: frame,
             Input: lastInput,
-            State: JsonSerializer.SerializeToElement(lastSaved.GameState, jsonOptions),
+#if AOT_ENABLED
+            State: lastSaved.GameState.ToString() ?? string.Empty,
+#else
+            State: JsonSerializer.Serialize(lastSaved.GameState, jsonOptions),
+#endif
             Checksum: lastSaved.Checksum
         ));
         if (frame - lastVerified != checkDistance.Value)
@@ -240,7 +244,11 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         const LogLevel level = LogLevel.Information;
         logger.Write(level, $"=== SAVED STATE [{description.ToUpper()}] ({info.Frame}) ===\n");
         logger.Write(level, $"INPUT FRAME {info.Input.Frame}:");
+#if AOT_ENABLED
+        logger.Write(level, info.Input.Data.ToString() ?? string.Empty);
+#else
         logger.Write(level, JsonSerializer.Serialize(info.Input.Data, jsonOptions));
+#endif
         logger.Write(level, $"GAME STATE #{info.Checksum}:");
         LogJson(level, info.State);
         logger.Write(level, "====================================");
@@ -257,8 +265,12 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
 
     void LogJson<TValue>(LogLevel level, TValue value)
     {
-        var jsonChunks = JsonSerializer
-            .Serialize(value, jsonOptions)
+        var jsonChunks =
+#if AOT_ENABLED
+            (value?.ToString() ?? string.Empty)
+#else
+            JsonSerializer.Serialize(value, jsonOptions)
+#endif
             .Chunk(LogStringBuffer.Capacity / 2)
             .Select(x => new string(x));
         foreach (var chunk in jsonChunks)

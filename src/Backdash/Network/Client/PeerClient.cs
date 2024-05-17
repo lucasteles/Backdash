@@ -183,6 +183,7 @@ public static class PeerClientFactory
     ) where T : struct =>
         new PeerClient<T>(socket, serializer, observer, logger, maxPacketSize);
 
+#if !AOT_ENABLED
     /// <summary>
     ///  Creates new <see cref="IPeerClient{T}"/>
     /// </summary>
@@ -198,4 +199,5 @@ public static class PeerClientFactory
             Logger.CreateConsoleLogger(LogLevel.None),
             maxPacketSize
         );
+#endif
 }

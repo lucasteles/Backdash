@@ -22,6 +22,9 @@
     <RepositoryUrl>https://github.com/lucasteles/Backdash.git</RepositoryUrl>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+    <!-- uncomment to enable AOT build -->
+    <!-- <DefineConstants>AOT_ENABLED</DefineConstants> -->
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">

@@ -1,5 +1,3 @@
-using Backdash.Core;
-
 namespace Backdash.Sync.State;
 
 /// <summary>
@@ -37,8 +35,11 @@ static class ChecksumProviderFactory
 {
     public static IChecksumProvider<T> Create<T>() where T : notnull
     {
-        if (TypeHelpers.HasInvariantHashCode<T>())
+#if !AOT_ENABLED
+        if (Core.TypeHelpers.HasInvariantHashCode<T>())
             return new HashCodeChecksumProvider<T>();
+#endif
+
         return new EmptyChecksumProvider<T>();
     }
 }

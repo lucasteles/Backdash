@@ -1,8 +1,12 @@
 using System.Numerics;
-using System.Reflection;
-using System.Runtime.InteropServices;
 using Backdash.Core;
 using Backdash.Network;
+
+#if !AOT_ENABLED
+using System.Reflection;
+using System.Runtime.InteropServices;
+#endif
+
 namespace Backdash.Serialization;
 
 static class BinarySerializerFactory
@@ -13,20 +17,14 @@ static class BinarySerializerFactory
         var mode = Platform.GetEndianness(networkEndianness);
         return new IntegerBinarySerializer<TInput>(mode);
     }
+
     public static IBinarySerializer<TInput> ForEnum<TInput>(bool networkEndianness = true)
-        where TInput : unmanaged, Enum =>
-        Type.GetTypeCode(typeof(TInput)) switch
-        {
-            TypeCode.Int32 => new EnumBinarySerializer<TInput, int>(ForInteger<int>(networkEndianness)),
-            TypeCode.UInt32 => new EnumBinarySerializer<TInput, uint>(ForInteger<uint>(networkEndianness)),
-            TypeCode.UInt64 => new EnumBinarySerializer<TInput, ulong>(ForInteger<ulong>(networkEndianness)),
-            TypeCode.Int64 => new EnumBinarySerializer<TInput, long>(ForInteger<long>(networkEndianness)),
-            TypeCode.Int16 => new EnumBinarySerializer<TInput, short>(ForInteger<short>(networkEndianness)),
-            TypeCode.UInt16 => new EnumBinarySerializer<TInput, ushort>(ForInteger<ushort>(networkEndianness)),
-            TypeCode.Byte => new EnumBinarySerializer<TInput, byte>(ForInteger<byte>(networkEndianness)),
-            TypeCode.SByte => new EnumBinarySerializer<TInput, sbyte>(ForInteger<sbyte>(networkEndianness)),
-            _ => throw new InvalidTypeArgumentException<TInput>(),
-        };
+        where TInput : unmanaged, Enum
+    {
+        var mode = Platform.GetEndianness(networkEndianness);
+        return new EnumBinarySerializer<TInput>(mode);
+    }
+
     public static IBinarySerializer<TInput> ForStruct<TInput>(bool marshall = false)
         where TInput : struct
     {
@@ -37,15 +35,27 @@ static class BinarySerializerFactory
             throw new ArgumentException("Struct input expected");
         if (inputType is { IsLayoutSequential: false, IsExplicitLayout: false })
             throw new ArgumentException("Input struct should have explicit or sequential layout ");
+#if AOT_ENABLED
+        if (marshall)
+            throw new InvalidOperationException("Marshalling is not valid on AOT");
+
+        ThrowHelpers.ThrowIfTypeIsReferenceOrContainsReferences<TInput>();
+        return new StructBinarySerializer<TInput>();
+#else
         if (!marshall)
             ThrowHelpers.ThrowIfTypeIsReferenceOrContainsReferences<TInput>();
         return marshall
             ? new StructMarshalBinarySerializer<TInput>()
             : new StructBinarySerializer<TInput>();
+#endif
     }
+
     public static IBinarySerializer<TInput>? Get<TInput>(bool networkEndianness = true)
         where TInput : struct
     {
+#if AOT_ENABLED
+        return null;
+#else
         var inputType = typeof(TInput);
         Type[] integerInterfaces = [typeof(IBinaryInteger<>), typeof(IMinMaxValue<>)];
         return inputType switch
@@ -80,7 +90,9 @@ static class BinarySerializerFactory
                     .Invoke(null, [false]) as IBinarySerializer<TInput>,
             _ => null,
         };
+#endif
     }
+
     public static IBinarySerializer<TInput> FindOrThrow<TInput>(bool networkEndianness = true)
         where TInput : struct =>
         Get<TInput>(networkEndianness)
