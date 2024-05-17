@@ -44,7 +44,11 @@ static class BinarySerializerFactory
         if (inputType is { IsLayoutSequential: false, IsExplicitLayout: false })
             throw new ArgumentException("Input struct should have explicit or sequential layout ");
 #if AOT_COMPATIBLE
-        throw ThrowHelpers.StructMustNotHaveReferenceTypeMembers();
+        if (marshall)
+            throw new InvalidOperationException("Marshalling is not valid on AOT");
+
+        ThrowHelpers.ThrowIfTypeIsReferenceOrContainsReferences<TInput>();
+        return new StructBinarySerializer<TInput>();
 #else
         if (!marshall)
             ThrowHelpers.ThrowIfTypeIsReferenceOrContainsReferences<TInput>();
@@ -58,7 +62,7 @@ static class BinarySerializerFactory
         where TInput : struct
     {
 #if AOT_COMPATIBLE
-        throw new InvalidOperationException($"Unable to infer serializer for type {typeof(TInput).FullName}");
+        return null;
 #else
         var inputType = typeof(TInput);
         Type[] integerInterfaces = [typeof(IBinaryInteger<>), typeof(IMinMaxValue<>)];
