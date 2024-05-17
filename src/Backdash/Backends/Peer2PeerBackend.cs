@@ -249,13 +249,17 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
     {
         if (addedPlayers.Count >= Max.NumberOfPlayers)
             return ResultCode.TooManyPlayers;
+
         PlayerHandle handle = new(player.Handle.Type, player.Handle.Number, addedPlayers.Count);
         if (!addedPlayers.Add(handle))
             return ResultCode.DuplicatedPlayer;
+
         player.Handle = handle;
         endpoints.Add(null);
+
         Array.Resize(ref syncInputBuffer, syncInputBuffer.Length + 1);
         synchronizer.AddQueue(player.Handle);
+
         return ResultCode.Ok;
     }
 

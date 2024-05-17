@@ -18,7 +18,7 @@ Your game probably has many moving parts. [Backdash](https://github.com/lucastel
 - **Game State** describes the current state of everything in your game. In a shooter, this would include the position
   of the ship and all the enemies on the screen, the location of all the bullets, how much health each opponent has, the
   current score, etc.
-  
+
 - **Game Inputs** are the set of things that modify the game state. These obviously include the joystick and button
   presses done by the player but can include other non-obvious inputs as well. For example, if your game uses the
   current time of day to calculate something in the game, the current time of day at the beginning of a frame is also an
@@ -551,6 +551,7 @@ There are examples for up to 4 players:
 
 - [Simple console game](https://github.com/lucasteles/Backdash/tree/master/samples/ConsoleGame)
 - [Monogame SpaceWar](https://github.com/lucasteles/Backdash/tree/master/samples/SpaceWar)
-- [Monogame SpaceWar with Lobby over internet](https://github.com/lucasteles/Backdash/tree/master/samples/SpaceWar.Lobby)
+- [Monogame SpaceWar with lobby over internet](https://github.com/lucasteles/Backdash/tree/master/samples/SpaceWar.Lobby)
+- [Godot SpaceWar with lobby over internet](https://github.com/lucasteles/BackdashGodotSample)
 
-See the `.cmd`/`.sh` files in the `scripts` directory for examples on how to start 2, 3, and 4-player games.
+> See the `.cmd`/`.sh` files in the `scripts` directory for examples on how to start 2, 3, and 4-player games.

@@ -61,14 +61,16 @@ sealed class Logger(
     {
         if (!builder.Enabled || !IsEnabledFor(in level)) return;
         ReadOnlySpan<byte> bufferSpan = builder.Buffer;
+
         var size = Math.Min(builder.Length, bufferSpan.Length);
         var utf8Bytes = bufferSpan[..size];
         var charCount = Encoding.UTF8.GetCharCount(utf8Bytes);
         var buffer = pool.Rent(charCount);
+
         try
         {
             Encoding.UTF8.GetChars(utf8Bytes, buffer);
-            writer.Write(level, buffer, size);
+            writer.Write(level, buffer, charCount);
         }
         finally
         {

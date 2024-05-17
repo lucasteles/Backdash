@@ -40,10 +40,11 @@ $ dotnet add package Backdash
 
 | Title           | Link                                                                                                   |
 |-----------------|--------------------------------------------------------------------------------------------------------|
-| Console         | [![Console](https://img.youtube.com/vi/n-3G0AE5Ti0/default.jpg)](https://youtu.be/n-3G0AE5Ti0)         |
+| Terminal        | [![Terminal](https://img.youtube.com/vi/n-3G0AE5Ti0/default.jpg)](https://youtu.be/n-3G0AE5Ti0)         |
 | Monogame Local  | [![Monogame Local](https://img.youtube.com/vi/JYf2MemyJaY/default.jpg)](https://youtu.be/JYf2MemyJaY)  |
-| Monogame Online | [![Monogame Online](https://img.youtube.com/vi/LGM_9XfzRUI/default.jpg)](https://youtu.be/LGM_9XfzRUI) |
-| Save / Replay   | [![Save and replay](https://img.youtube.com/vi/iSbOJpLCx5M/default.jpg)](https://youtu.be/iSbOJpLCx5M) |
+| Monogame Lobby  | [![Monogame Online](https://img.youtube.com/vi/LGM_9XfzRUI/default.jpg)](https://youtu.be/LGM_9XfzRUI) |
+| Godot Lobby     | [![Godot Online](https://img.youtube.com/vi/8M8QnTiJZzA/default.jpg)](https://youtu.be/8M8QnTiJZzA) |
+| Save/Load Replay| [![Save and load Replay](https://img.youtube.com/vi/iSbOJpLCx5M/default.jpg)](https://youtu.be/iSbOJpLCx5M) |
 
 ## Samples
 
@@ -53,7 +54,8 @@ There are examples for up to 4 players:
 
 - [Simple console game](https://github.com/lucasteles/Backdash/tree/master/samples/ConsoleGame)
 - [Monogame SpaceWar](https://github.com/lucasteles/Backdash/tree/master/samples/SpaceWar) [^2]
-- [Monogame SpaceWar with Lobby over internet](https://github.com/lucasteles/Backdash/tree/master/samples/SpaceWar.Lobby) [^1][^2]
+- [Monogame SpaceWar with lobby over internet](https://github.com/lucasteles/Backdash/tree/master/samples/SpaceWar.Lobby) [^1][^2]
+- [Godot SpaceWar with lobby over internet](https://github.com/lucasteles/BackdashGodotSample)
 
 [^1]: The sample needs a [web server](https://github.com/lucasteles/Backdash/tree/master/samples/LobbyServer) to
 exchange players addresses. check the sample `README.md` for more information.
