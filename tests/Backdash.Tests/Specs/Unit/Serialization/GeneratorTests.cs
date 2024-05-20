@@ -1,6 +1,5 @@
 ﻿using System.Numerics;
 using Backdash.Serialization;
-using Backdash.Serialization.Buffer;
 
 namespace Backdash.Tests.Specs.Unit.Serialization;
 
@@ -18,6 +17,16 @@ public class GameState
 
     public Vector2 Value4;
     public SubState Value5 = new();
+
+    public int[] Value6 = new int[5];
+
+    public SubState[] Value7 = new SubState[3];
+
+    public GameState()
+    {
+        for (int i = 0; i < Value7.Length; i++)
+            Value7[i] = new();
+    }
 }
 
 [StateSerializer<SubState>]
@@ -46,6 +55,25 @@ public class GeneratorTests
                 Sub1 = -1,
                 Sub2 = 99,
             },
+            Value6 = [89, 78, 11, 65, 789],
+            Value7 =
+            [
+                new()
+                {
+                    Sub1 = -2,
+                    Sub2 = 98,
+                },
+                new()
+                {
+                    Sub1 = -3,
+                    Sub2 = 97,
+                },
+                new()
+                {
+                    Sub1 = -4,
+                    Sub2 = 96,
+                },
+            ]
         };
 
         var size = serializer.Serialize(in data, buffer);

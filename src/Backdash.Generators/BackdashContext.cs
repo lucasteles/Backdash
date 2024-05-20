@@ -11,4 +11,4 @@ record BackdashContext(
 
 record ParentClass(string Name, ParentClass? Parent);
 
-record ClassMember(string Name, ITypeSymbol Type);
+record struct ClassMember(string Name, ITypeSymbol Type);

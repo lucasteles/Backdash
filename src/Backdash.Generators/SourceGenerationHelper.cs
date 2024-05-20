@@ -29,34 +29,86 @@ static class SourceGenerationHelper
         StringBuilder writes = new();
         StringBuilder reads = new();
         const string tab = "\t\t";
+        var arrays = 0;
+
         foreach (var member in item.Members)
         {
-            if (member.Type.TypeKind is TypeKind.Array)
-                continue;
-
-            if (member.Type.IsUnmanagedType)
+            if (member.Type is IArrayTypeSymbol { ElementType: { } itemType })
             {
-                writes.Append(tab);
-                writes.AppendLine($"binaryWriter.Write(in data.{member.Name});");
-
-                reads.Append(tab);
-                reads.AppendLine($"result.{member.Name} = binaryReader.Read{member.Type.Name}();");
-            }
-            else if (serializerMap.TryGetValue(member.Type.ToDisplayString(), out var memberSerializer))
-            {
-                var serializerName = $"{memberSerializer.NameSpace}.{memberSerializer.Name}.Shared";
+                var arrayIndex = ++arrays;
+                var path = $"data.{member.Name}";
 
                 writes.AppendLine(
-                    $"""
-                     {tab}var byteCount = {serializerName}.Serialize(in data.{member.Name}, binaryWriter.CurrentBuffer);
-                     {tab}binaryWriter.Advance(byteCount);
-                     """);
+                    $$"""
+                              binaryWriter.Write({{path}}.Length);
+                              for(var i = 0; i < {{path}}.Length; i++)
+                              {
+                      """);
 
                 reads.AppendLine(
-                    $"""
-                     {tab}var byteCount = {serializerName}.Deserialize(binaryReader.CurrentBuffer, ref result.{member.Name});
-                     {tab}binaryReader.Advance(byteCount);
-                     """);
+                    $$"""
+                              var size{{arrayIndex}} = binaryReader.ReadInt32();
+                              for(var i = 0; i < size{{arrayIndex}}; i++)
+                              {
+                      """);
+
+                if (itemType.IsUnmanagedType)
+                {
+                    writes.Append(tab);
+                    writes.AppendLine($"binaryWriter.Write(in data.{member.Name}[i]);");
+
+                    reads.Append(tab);
+                    reads.AppendLine($"result.{member.Name}[i] = binaryReader.Read{itemType.Name}();");
+                }
+                else if (serializerMap.TryGetValue(itemType.ToDisplayString(), out var memberSerializer))
+                {
+                    var serializerName = $"{memberSerializer.NameSpace}.{memberSerializer.Name}.Shared";
+
+                    writes.AppendLine(
+                        $"""
+                         {tab}var byteCount{arrayIndex} = {serializerName}.Serialize(in data.{member.Name}[i], binaryWriter.CurrentBuffer);
+                         {tab}binaryWriter.Advance(byteCount{arrayIndex});
+                         """);
+
+                    reads.AppendLine(
+                        $"""
+                         {tab}var byteCount{arrayIndex} = {serializerName}.Deserialize(binaryReader.CurrentBuffer, ref result.{member.Name}[i]);
+                         {tab}binaryReader.Advance(byteCount{arrayIndex});
+                         """);
+                }
+
+
+                writes.Append(tab);
+                writes.AppendLine("}");
+                reads.Append(tab);
+                reads.AppendLine("}");
+            }
+            else
+            {
+                if (member.Type.IsUnmanagedType)
+                {
+                    writes.Append(tab);
+                    writes.AppendLine($"binaryWriter.Write(in data.{member.Name});");
+
+                    reads.Append(tab);
+                    reads.AppendLine($"result.{member.Name} = binaryReader.Read{member.Type.Name}();");
+                }
+                else if (serializerMap.TryGetValue(member.Type.ToDisplayString(), out var memberSerializer))
+                {
+                    var serializerName = $"{memberSerializer.NameSpace}.{memberSerializer.Name}.Shared";
+
+                    writes.AppendLine(
+                        $"""
+                         {tab}var byteCount = {serializerName}.Serialize(in data.{member.Name}, binaryWriter.CurrentBuffer);
+                         {tab}binaryWriter.Advance(byteCount);
+                         """);
+
+                    reads.AppendLine(
+                        $"""
+                         {tab}var byteCount = {serializerName}.Deserialize(binaryReader.CurrentBuffer, ref result.{member.Name});
+                         {tab}binaryReader.Advance(byteCount);
+                         """);
+                }
             }
         }
 
