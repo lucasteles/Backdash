@@ -232,6 +232,9 @@ public readonly ref struct BinarySpanWriter
             WriteSpan(in value);
     }
 
+    /// <summary>Writes an <see cref="string"/> <paramref name="value"/> into buffer as UTF8.</summary>
+    public void Write(in string value) => Write(value.AsSpan());
+
     /// <summary>Writes a <see cref="IBinaryInteger{T}"/> <paramref name="value"/> into buffer.</summary>
     /// <typeparam name="T">A numeric type that implements <see cref="IBinaryInteger{T}"/>.</typeparam>
     public void WriteNumber<T>(in T value) where T : unmanaged, IBinaryInteger<T>
@@ -254,7 +257,7 @@ public readonly ref struct BinarySpanWriter
     }
 
     /// <summary>Writes the <see cref="Enum"/> <paramref name="enumValue"/> into buffer.</summary>
-    /// <typeparam name="T">A enum type.</typeparam>
+    /// <typeparam name="T">An enum type.</typeparam>
     public void WriteEnum<T>(in T enumValue) where T : unmanaged, Enum
     {
         var refValue = Unsafe.AsRef(in enumValue);

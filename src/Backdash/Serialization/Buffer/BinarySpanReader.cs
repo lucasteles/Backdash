@@ -250,7 +250,7 @@ public readonly ref struct BinarySpanReader
     }
 
     /// <summary>Reads single <see cref="Enum"/> value from buffer.</summary>
-    /// <typeparam name="T">A enum type.</typeparam>
+    /// <typeparam name="T">An enum type.</typeparam>
     public T ReadEnum<T>() where T : unmanaged, Enum
     {
         switch (Type.GetTypeCode(typeof(T)))
