@@ -44,10 +44,14 @@ public class BinarySerializerGenerator : IIncrementalGenerator
     {
         if (valuesToGenerate.IsDefaultOrEmpty) return;
         StringBuilder sb = new();
+
+        var serializerMap = valuesToGenerate
+            .ToImmutableDictionary(x => x.StateType, x => x);
+
         foreach (var item in valuesToGenerate)
         {
             sb.Clear();
-            SourceGenerationHelper.CreateSerializer(item, sb);
+            SourceGenerationHelper.CreateSerializer(item, serializerMap, sb);
             var fileName = SourceGenerationHelper.CreateSourceName(
                 item.NameSpace,
                 item.Parent,

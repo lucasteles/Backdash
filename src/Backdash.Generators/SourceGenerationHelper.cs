@@ -1,11 +1,16 @@
-﻿using System.Text;
+﻿using System.Collections.Immutable;
+using System.Text;
 using Microsoft.CodeAnalysis;
 
 namespace Backdash.Generators;
 
 static class SourceGenerationHelper
 {
-    public static void CreateSerializer(BackdashContext item, StringBuilder sb)
+    public static void CreateSerializer(
+        BackdashContext item,
+        ImmutableDictionary<string, BackdashContext> serializerMap,
+        StringBuilder sb
+    )
     {
         var hasNamespace = !string.IsNullOrEmpty(item.NameSpace);
         if (hasNamespace)
@@ -29,19 +34,29 @@ static class SourceGenerationHelper
             if (member.Type.TypeKind is TypeKind.Array)
                 continue;
 
-            writes.Append(tab);
-            writes.AppendLine($"binaryWriter.Write(in data.{member.Name});");
-
-            reads.Append(tab);
-
-
             if (member.Type.IsUnmanagedType)
             {
+                writes.Append(tab);
+                writes.AppendLine($"binaryWriter.Write(in data.{member.Name});");
+
+                reads.Append(tab);
                 reads.AppendLine($"result.{member.Name} = binaryReader.Read{member.Type.Name}();");
             }
-            else
+            else if (serializerMap.TryGetValue(member.Type.ToDisplayString(), out var memberSerializer))
             {
-                reads.AppendLine($"binaryReader.Read{member.Type.Name}(ref result.{member.Name});");
+                var serializerName = $"{memberSerializer.NameSpace}.{memberSerializer.Name}.Shared";
+
+                writes.AppendLine(
+                    $"""
+                     {tab}var byteCount = {serializerName}.Serialize(in data.{member.Name}, binaryWriter.CurrentBuffer);
+                     {tab}binaryWriter.Advance(byteCount);
+                     """);
+
+                reads.AppendLine(
+                    $"""
+                     {tab}var byteCount = {serializerName}.Deserialize(binaryReader.CurrentBuffer, ref result.{member.Name});
+                     {tab}binaryReader.Advance(byteCount);
+                     """);
             }
         }
 

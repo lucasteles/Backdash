@@ -56,20 +56,3 @@ public class GeneratorTests
         result.Should().BeEquivalentTo(data);
     }
 }
-
-public static class SerializationExtensions
-{
-    public static void Write(this BinarySpanWriter writer, in SubState? value)
-    {
-        if (value is null) return;
-        var byteCount = SubStateSerializer.Shared.Serialize(in value, writer.CurrentBuffer);
-        writer.Advance(byteCount);
-    }
-
-    public static void ReadSubState(this BinarySpanReader reader, ref SubState? value)
-    {
-        if (value is null) return;
-        var byteCount = SubStateSerializer.Shared.Deserialize(reader.CurrentBuffer, ref value);
-        reader.Advance(byteCount);
-    }
-}
