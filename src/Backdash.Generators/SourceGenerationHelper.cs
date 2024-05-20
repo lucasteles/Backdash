@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Microsoft.CodeAnalysis;
 
 namespace Backdash.Generators;
 
@@ -25,10 +26,15 @@ static class SourceGenerationHelper
         const string tab = "\t\t";
         foreach (var member in item.Members)
         {
+            if (member.Type.TypeKind is TypeKind.Array)
+                continue;
+
             writes.Append(tab);
             writes.AppendLine($"binaryWriter.Write(in data.{member.Name});");
 
             reads.Append(tab);
+
+
             if (member.Type.IsUnmanagedType)
             {
                 reads.AppendLine($"result.{member.Name} = binaryReader.Read{member.Type.Name}();");

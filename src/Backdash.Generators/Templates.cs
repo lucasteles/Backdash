@@ -23,4 +23,18 @@ class Templates
         }
 
         """;
+
+    public const string SerializerExtensions =
+        """
+        namespace Backdash.Serializer.Extensions
+        {
+            using Backdash.Serialization;
+            using Backdash.Serialization.Buffer;
+
+            public static class BinarySerializerExtensions
+            {
+            [[METHODS]]
+            }
+        }
+        """;
 }
