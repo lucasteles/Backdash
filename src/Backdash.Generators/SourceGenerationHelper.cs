@@ -26,10 +26,17 @@ static class SourceGenerationHelper
         foreach (var member in item.Members)
         {
             writes.Append(tab);
-            writes.AppendLine($"binaryWriter.Write(data.{member.Name});");
+            writes.AppendLine($"binaryWriter.Write(in data.{member.Name});");
 
             reads.Append(tab);
-            reads.AppendLine($"result.{member.Name} = binaryReader.Read{member.Type.Name}();");
+            if (member.Type.IsUnmanagedType)
+            {
+                reads.AppendLine($"result.{member.Name} = binaryReader.Read{member.Type.Name}();");
+            }
+            else
+            {
+                reads.AppendLine($"binaryReader.Read{member.Type.Name}(ref result.{member.Name});");
+            }
         }
 
         sb.Replace("[[WRITES]]", writes.ToString());

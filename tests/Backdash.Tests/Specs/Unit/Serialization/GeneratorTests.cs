@@ -1,10 +1,8 @@
 ﻿using System.Numerics;
 using Backdash.Serialization;
+using Backdash.Serialization.Buffer;
 
 namespace Backdash.Tests.Specs.Unit.Serialization;
-
-[StateSerializer<GameState>]
-public partial class GameStateSerializer;
 
 public class SubState
 {
@@ -19,8 +17,14 @@ public class GameState
     public bool Value3;
 
     public Vector2 Value4;
-    // public SubState? Value5;
+    public SubState Value5 = new();
 }
+
+[StateSerializer<SubState>]
+public partial class SubStateSerializer;
+
+[StateSerializer<GameState>]
+public partial class GameStateSerializer;
 
 public class GeneratorTests
 {
@@ -37,6 +41,11 @@ public class GeneratorTests
             Value2 = 1,
             Value3 = true,
             Value4 = new(20, 30),
+            Value5 = new()
+            {
+                Sub1 = -1,
+                Sub2 = 99,
+            },
         };
 
         var size = serializer.Serialize(in data, buffer);
@@ -45,5 +54,22 @@ public class GeneratorTests
         serializer.Deserialize(buffer[..size], ref result);
 
         result.Should().BeEquivalentTo(data);
+    }
+}
+
+public static class SerializationExtensions
+{
+    public static void Write(this BinarySpanWriter writer, in SubState? value)
+    {
+        if (value is null) return;
+        var byteCount = SubStateSerializer.Shared.Serialize(in value, writer.CurrentBuffer);
+        writer.Advance(byteCount);
+    }
+
+    public static void ReadSubState(this BinarySpanReader reader, ref SubState? value)
+    {
+        if (value is null) return;
+        var byteCount = SubStateSerializer.Shared.Deserialize(reader.CurrentBuffer, ref value);
+        reader.Advance(byteCount);
     }
 }
