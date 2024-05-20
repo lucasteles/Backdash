@@ -186,7 +186,7 @@ public readonly ref struct BinarySpanReader
     public Half ReadHalf() => BitConverter.Int16BitsToHalf(ReadInt16());
 
     /// <summary>Reads single <see cref="float"/> from buffer.</summary>
-    public float ReadFloat() => BitConverter.Int32BitsToSingle(ReadInt32());
+    public float ReadSingle() => BitConverter.Int32BitsToSingle(ReadInt32());
 
     /// <summary>Reads single <see cref="double"/> from buffer.</summary>
     public double ReadDouble() => BitConverter.Int64BitsToDouble(ReadInt64());
@@ -194,37 +194,37 @@ public readonly ref struct BinarySpanReader
     /// <summary>Reads single <see cref="Vector2"/> from buffer.</summary>
     public Vector2 ReadVector2()
     {
-        var x = ReadFloat();
-        var y = ReadFloat();
+        var x = ReadSingle();
+        var y = ReadSingle();
         return new(x, y);
     }
 
     /// <summary>Reads single <see cref="Vector3"/> from buffer.</summary>
     public Vector3 ReadVector3()
     {
-        var x = ReadFloat();
-        var y = ReadFloat();
-        var z = ReadFloat();
+        var x = ReadSingle();
+        var y = ReadSingle();
+        var z = ReadSingle();
         return new(x, y, z);
     }
 
     /// <summary>Reads single <see cref="Vector4"/> from buffer.</summary>
     public Vector4 ReadVector4()
     {
-        var x = ReadFloat();
-        var y = ReadFloat();
-        var z = ReadFloat();
-        var w = ReadFloat();
+        var x = ReadSingle();
+        var y = ReadSingle();
+        var z = ReadSingle();
+        var w = ReadSingle();
         return new(x, y, z, w);
     }
 
     /// <summary>Reads single <see cref="Quaternion"/> from buffer.</summary>
     public Quaternion ReadQuaternion()
     {
-        var x = ReadFloat();
-        var y = ReadFloat();
-        var z = ReadFloat();
-        var w = ReadFloat();
+        var x = ReadSingle();
+        var y = ReadSingle();
+        var z = ReadSingle();
+        var w = ReadSingle();
         return new Quaternion(x, y, z, w);
     }
 

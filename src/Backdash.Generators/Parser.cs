@@ -76,11 +76,11 @@ static class Parser
             switch (member)
             {
                 case IPropertySymbol property:
-                    members.Add(new(property.Name, property.Type));
+                    members.Add(new(property.Name, true, property.Type));
                     break;
 
                 case IFieldSymbol field:
-                    members.Add(new(field.Name, field.Type));
+                    members.Add(new(field.Name, false, field.Type));
                     break;
             }
         }

@@ -31,8 +31,11 @@ static class SourceGenerationHelper
         const string tab = "\t\t";
         var arrays = 0;
 
+
         foreach (var member in item.Members)
         {
+            var paramModifier = member.IsProperty ? string.Empty : "in ";
+
             if (member.Type is IArrayTypeSymbol { ElementType: { } itemType })
             {
                 var arrayIndex = ++arrays;
@@ -52,15 +55,7 @@ static class SourceGenerationHelper
                               {
                       """);
 
-                if (itemType.IsUnmanagedType)
-                {
-                    writes.Append(tab);
-                    writes.AppendLine($"binaryWriter.Write(in data.{member.Name}[i]);");
-
-                    reads.Append(tab);
-                    reads.AppendLine($"result.{member.Name}[i] = binaryReader.Read{itemType.Name}();");
-                }
-                else if (serializerMap.TryGetValue(itemType.ToDisplayString(), out var memberSerializer))
+                if (serializerMap.TryGetValue(itemType.ToDisplayString(), out var memberSerializer))
                 {
                     var serializerName = $"{memberSerializer.NameSpace}.{memberSerializer.Name}.Shared";
 
@@ -76,6 +71,14 @@ static class SourceGenerationHelper
                          {tab}binaryReader.Advance(byteCount{arrayIndex});
                          """);
                 }
+                else if (itemType.IsUnmanagedType)
+                {
+                    writes.Append(tab);
+                    writes.AppendLine($"binaryWriter.Write({paramModifier}data.{member.Name}[i]);");
+
+                    reads.Append(tab);
+                    reads.AppendLine($"result.{member.Name}[i] = binaryReader.Read{itemType.Name}();");
+                }
 
 
                 writes.Append(tab);
@@ -85,15 +88,7 @@ static class SourceGenerationHelper
             }
             else
             {
-                if (member.Type.IsUnmanagedType)
-                {
-                    writes.Append(tab);
-                    writes.AppendLine($"binaryWriter.Write(in data.{member.Name});");
-
-                    reads.Append(tab);
-                    reads.AppendLine($"result.{member.Name} = binaryReader.Read{member.Type.Name}();");
-                }
-                else if (serializerMap.TryGetValue(member.Type.ToDisplayString(), out var memberSerializer))
+                if (serializerMap.TryGetValue(member.Type.ToDisplayString(), out var memberSerializer))
                 {
                     var serializerName = $"{memberSerializer.NameSpace}.{memberSerializer.Name}.Shared";
 
@@ -108,6 +103,14 @@ static class SourceGenerationHelper
                          {tab}var byteCount = {serializerName}.Deserialize(binaryReader.CurrentBuffer, ref result.{member.Name});
                          {tab}binaryReader.Advance(byteCount);
                          """);
+                }
+                else if (member.Type.IsUnmanagedType)
+                {
+                    writes.Append(tab);
+                    writes.AppendLine($"binaryWriter.Write({paramModifier}data.{member.Name});");
+
+                    reads.Append(tab);
+                    reads.AppendLine($"result.{member.Name} = binaryReader.Read{member.Type.Name}();");
                 }
             }
         }

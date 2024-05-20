@@ -9,6 +9,8 @@ public class SubState
     public long Sub2;
 }
 
+public record struct MyVector2(float X, float Y);
+
 public class GameState
 {
     public int Value1;
@@ -20,7 +22,7 @@ public class GameState
 
     public int[] Value6 = new int[5];
 
-    public SubState[] Value7 = new SubState[3];
+    public MyVector2[] Value7 = new MyVector2[3];
 
     public GameState()
     {
@@ -28,6 +30,9 @@ public class GameState
             Value7[i] = new();
     }
 }
+
+[StateSerializer<MyVector2>]
+public partial class MyVector2Serializer;
 
 [StateSerializer<SubState>]
 public partial class SubStateSerializer;
@@ -58,21 +63,9 @@ public class GeneratorTests
             Value6 = [89, 78, 11, 65, 789],
             Value7 =
             [
-                new()
-                {
-                    Sub1 = -2,
-                    Sub2 = 98,
-                },
-                new()
-                {
-                    Sub1 = -3,
-                    Sub2 = 97,
-                },
-                new()
-                {
-                    Sub1 = -4,
-                    Sub2 = 96,
-                },
+                new(-2, 98),
+                new(-3, 97),
+                new(-4, 96),
             ]
         };
 
