@@ -18,7 +18,7 @@ record struct ConnectStatus : IBinarySerializable
 
     public void Deserialize(BinarySpanReader reader)
     {
-        Disconnected = reader.ReadBool();
-        LastFrame = new(reader.ReadInt());
+        Disconnected = reader.ReadBoolean();
+        LastFrame = new(reader.ReadInt32());
     }
 }

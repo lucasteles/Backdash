@@ -1,9 +1,9 @@
-﻿namespace Backdash.Generators;
-
-using System.Text;
+﻿using System.Text;
 using Microsoft.CodeAnalysis.Text;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
+
+namespace Backdash.Generators;
 
 /// <inheritdoc />
 [Generator]
@@ -12,7 +12,6 @@ public class BinarySerializerGenerator : IIncrementalGenerator
     /// <inheritdoc />
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-
         var serializerDeclarations = context
             .SyntaxProvider
             .CreateSyntaxProvider(
@@ -25,8 +24,10 @@ public class BinarySerializerGenerator : IIncrementalGenerator
             .Where(static m => m.Target is not null)
             .Select(static (arg, ct) =>
             {
-                var (target, semanticModel) = arg;
-                return Parser.GetGenerationContext(semanticModel, target, ct);
+                if (arg.Target is null) return null;
+                var (target, typeParam) = arg.Target.Value;
+
+                return Parser.GetGenerationContext(arg.SemanticModel, target, typeParam, ct);
             })
             .Where(static m => m is not null)
             .Select(static (arg, _) => arg!)

@@ -17,8 +17,8 @@ record struct SyncRequest : IBinarySerializable, IUtf8SpanFormattable
 
     public void Deserialize(BinarySpanReader reader)
     {
-        RandomRequest = reader.ReadUInt();
-        Ping = reader.ReadLong();
+        RandomRequest = reader.ReadUInt32();
+        Ping = reader.ReadInt64();
     }
 
     public readonly bool TryFormat(

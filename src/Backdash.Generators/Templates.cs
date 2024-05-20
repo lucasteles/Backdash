@@ -7,16 +7,18 @@ class Templates
         using Backdash.Serialization;
         using Backdash.Serialization.Buffer;
 
-        public class [[NAME]]Serializer : BinarySerializer<[[TYPE]]>
+        public partial class [[NAME]]: BinarySerializer<[[TYPE]]>
         {
             protected override void Serialize(in BinarySpanWriter binaryWriter, in [[TYPE]] data)
             {
-                [[WRITES]]
+        [[WRITES]]
             }
+
             protected override void Deserialize(in BinarySpanReader binaryReader, ref [[TYPE]] result)
             {
-                [[READS]]
+        [[READS]]
             }
         }
+
         """;
 }

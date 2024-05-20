@@ -70,7 +70,7 @@ public readonly ref struct BinarySpanReader
     public void ReadSByte(in Span<sbyte> values) => ReadSpan(values);
 
     /// <summary>Reads single <see cref="bool"/> from buffer.</summary>
-    public bool ReadBool()
+    public bool ReadBoolean()
     {
         var value = BitConverter.ToBoolean(CurrentBuffer);
         Advance(sizeof(bool));
@@ -78,13 +78,13 @@ public readonly ref struct BinarySpanReader
     }
 
     /// <summary>Reads a span of <see cref="bool"/> from buffer into <paramref name="values"/>.</summary>
-    public void ReadBool(in Span<bool> values) => ReadSpan(values);
+    public void ReadBoolean(in Span<bool> values) => ReadSpan(values);
 
     /// <summary>Reads single <see cref="short"/> from buffer.</summary>
-    public short ReadShort() => ReadNumber<short>(false);
+    public short ReadInt16() => ReadNumber<short>(false);
 
     /// <summary>Reads a span of <see cref="short"/> from buffer into <paramref name="values"/>.</summary>
-    public void ReadShort(in Span<short> values)
+    public void ReadInt16(in Span<short> values)
     {
         ReadSpan(values);
         if (Endianness != Platform.Endianness)
@@ -92,10 +92,10 @@ public readonly ref struct BinarySpanReader
     }
 
     /// <summary>Reads single <see cref="ushort"/> from buffer.</summary>
-    public ushort ReadUShort() => ReadNumber<ushort>(true);
+    public ushort ReadUInt16() => ReadNumber<ushort>(true);
 
     /// <summary>Reads a span of <see cref="ushort"/> from buffer into <paramref name="values"/>.</summary>
-    public void ReadUShort(in Span<ushort> values)
+    public void ReadUInt16(in Span<ushort> values)
     {
         ReadSpan(values);
         if (Endianness != Platform.Endianness)
@@ -103,7 +103,7 @@ public readonly ref struct BinarySpanReader
     }
 
     /// <summary>Reads single <see cref="char"/> from buffer.</summary>
-    public char ReadChar() => (char)ReadUShort();
+    public char ReadChar() => (char)ReadUInt16();
 
     /// <summary>Reads a span of <see cref="char"/> from buffer into <paramref name="values"/>.</summary>
     public void ReadChar(in Span<char> values)
@@ -117,10 +117,10 @@ public readonly ref struct BinarySpanReader
     }
 
     /// <summary>Reads single <see cref="int"/> from buffer.</summary>
-    public int ReadInt() => ReadNumber<int>(false);
+    public int ReadInt32() => ReadNumber<int>(false);
 
     /// <summary>Reads a span of <see cref="int"/> from buffer into <paramref name="values"/>.</summary>
-    public void ReadInt(in Span<int> values)
+    public void ReadInt32(in Span<int> values)
     {
         ReadSpan(values);
         if (Endianness != Platform.Endianness)
@@ -128,10 +128,10 @@ public readonly ref struct BinarySpanReader
     }
 
     /// <summary>Reads single <see cref="uint"/> from buffer.</summary>
-    public uint ReadUInt() => ReadNumber<uint>(true);
+    public uint ReadUInt32() => ReadNumber<uint>(true);
 
     /// <summary>Reads a span of <see cref="uint"/> from buffer into <paramref name="values"/>.</summary>
-    public void ReadUInt(in Span<uint> values)
+    public void ReadUInt32(in Span<uint> values)
     {
         ReadSpan(values);
         if (Endianness != Platform.Endianness)
@@ -139,10 +139,10 @@ public readonly ref struct BinarySpanReader
     }
 
     /// <summary>Reads single <see cref="long"/> from buffer.</summary>
-    public long ReadLong() => ReadNumber<long>(false);
+    public long ReadInt64() => ReadNumber<long>(false);
 
     /// <summary>Reads a span of <see cref="long"/> from buffer into <paramref name="values"/>.</summary>
-    public void ReadLong(in Span<long> values)
+    public void ReadInt64(in Span<long> values)
     {
         ReadSpan(values);
         if (Endianness != Platform.Endianness)
@@ -150,10 +150,10 @@ public readonly ref struct BinarySpanReader
     }
 
     /// <summary>Reads single <see cref="ulong"/> from buffer.</summary>
-    public ulong ReadULong() => ReadNumber<ulong>(true);
+    public ulong ReadUInt64() => ReadNumber<ulong>(true);
 
     /// <summary>Reads a span of <see cref="ulong"/> from buffer into <paramref name="values"/>.</summary>
-    public void ReadULong(in Span<ulong> values)
+    public void ReadUInt64(in Span<ulong> values)
     {
         ReadSpan(values);
         if (Endianness != Platform.Endianness)
@@ -183,13 +183,13 @@ public readonly ref struct BinarySpanReader
     }
 
     /// <summary>Reads single <see cref="Half"/> from buffer.</summary>
-    public Half ReadHalf() => BitConverter.Int16BitsToHalf(ReadShort());
+    public Half ReadHalf() => BitConverter.Int16BitsToHalf(ReadInt16());
 
     /// <summary>Reads single <see cref="float"/> from buffer.</summary>
-    public float ReadFloat() => BitConverter.Int32BitsToSingle(ReadInt());
+    public float ReadFloat() => BitConverter.Int32BitsToSingle(ReadInt32());
 
     /// <summary>Reads single <see cref="double"/> from buffer.</summary>
-    public double ReadDouble() => BitConverter.Int64BitsToDouble(ReadLong());
+    public double ReadDouble() => BitConverter.Int64BitsToDouble(ReadInt64());
 
     /// <summary>Reads single <see cref="Vector2"/> from buffer.</summary>
     public Vector2 ReadVector2()
@@ -256,45 +256,45 @@ public readonly ref struct BinarySpanReader
         switch (Type.GetTypeCode(typeof(T)))
         {
             case TypeCode.Int32:
-                {
-                    var value = ReadInt();
-                    return Unsafe.As<int, T>(ref value);
-                }
+            {
+                var value = ReadInt32();
+                return Unsafe.As<int, T>(ref value);
+            }
             case TypeCode.UInt32:
-                {
-                    var value = ReadUInt();
-                    return Unsafe.As<uint, T>(ref value);
-                }
+            {
+                var value = ReadUInt32();
+                return Unsafe.As<uint, T>(ref value);
+            }
             case TypeCode.Int64:
-                {
-                    var value = ReadLong();
-                    return Unsafe.As<long, T>(ref value);
-                }
+            {
+                var value = ReadInt64();
+                return Unsafe.As<long, T>(ref value);
+            }
             case TypeCode.UInt64:
-                {
-                    var value = ReadULong();
-                    return Unsafe.As<ulong, T>(ref value);
-                }
+            {
+                var value = ReadUInt64();
+                return Unsafe.As<ulong, T>(ref value);
+            }
             case TypeCode.Int16:
-                {
-                    var value = ReadShort();
-                    return Unsafe.As<short, T>(ref value);
-                }
+            {
+                var value = ReadInt16();
+                return Unsafe.As<short, T>(ref value);
+            }
             case TypeCode.UInt16:
-                {
-                    var value = ReadUShort();
-                    return Unsafe.As<ushort, T>(ref value);
-                }
+            {
+                var value = ReadUInt16();
+                return Unsafe.As<ushort, T>(ref value);
+            }
             case TypeCode.Byte:
-                {
-                    var value = ReadByte();
-                    return Unsafe.As<byte, T>(ref value);
-                }
+            {
+                var value = ReadByte();
+                return Unsafe.As<byte, T>(ref value);
+            }
             case TypeCode.SByte:
-                {
-                    var value = ReadSByte();
-                    return Unsafe.As<sbyte, T>(ref value);
-                }
+            {
+                var value = ReadSByte();
+                return Unsafe.As<sbyte, T>(ref value);
+            }
             default: throw new InvalidOperationException("Unknown enum underlying type");
         }
     }

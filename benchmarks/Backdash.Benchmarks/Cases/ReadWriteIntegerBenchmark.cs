@@ -42,7 +42,7 @@ public class ReadWriteIntegerBenchmark
         {
             offset = 0;
             MemoryMarshal.Write(span, Number);
-            reader.ReadInt();
+            reader.ReadInt32();
         }
     }
 }

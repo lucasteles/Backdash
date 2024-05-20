@@ -2,7 +2,7 @@
 namespace Backdash.Serialization;
 
 /// <summary>
-/// Enable game state serializer source generator for <typeparam name="TState">TState</typeparam>
+/// Enable game state serializer source generator for <typeparamref name="TState"/>.
 /// </summary>
 /// <typeparam name="TState">Game State Type</typeparam>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]

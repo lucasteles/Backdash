@@ -1,4 +1,6 @@
-﻿using System.Threading;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -19,12 +21,12 @@ static class Parser
             node.IsKind(SyntaxKind.RecordStructDeclaration));
 
 
-    public static TypeDeclarationSyntax? GetStructSemanticTargetForGeneration(
+    public static (TypeDeclarationSyntax, ITypeSymbol)? GetStructSemanticTargetForGeneration(
         GeneratorSyntaxContext context)
     {
-        var structDeclarationSyntax = (TypeDeclarationSyntax)context.Node;
+        var declarationSyntax = (TypeDeclarationSyntax)context.Node;
 
-        foreach (var attributeListSyntax in structDeclarationSyntax.AttributeLists)
+        foreach (var attributeListSyntax in declarationSyntax.AttributeLists)
         {
             foreach (var attributeSyntax in attributeListSyntax.Attributes)
             {
@@ -35,21 +37,25 @@ static class Parser
                 var attributeContainingTypeSymbol = attributeSymbol.ContainingType;
                 var fullName = attributeContainingTypeSymbol.ToDisplayString();
 
-                if (fullName.StartsWith(BackdashSerializerAttribute))
-                    return structDeclarationSyntax;
+                if (!fullName.StartsWith(BackdashSerializerAttribute)
+                    || !attributeContainingTypeSymbol.IsGenericType
+                    || attributeContainingTypeSymbol.TypeArguments.FirstOrDefault() is not { } typeArg
+                   )
+                    continue;
+
+                return (declarationSyntax, typeArg);
             }
         }
 
         return null;
     }
 
-    public static BackdashContext? GetGenerationContext(
-        SemanticModel model,
+    public static BackdashContext? GetGenerationContext(SemanticModel model,
         TypeDeclarationSyntax? syntax,
-        CancellationToken ct
-    )
+        ITypeSymbol? typeParam,
+        CancellationToken ct)
     {
-        if (syntax is null)
+        if (syntax is null || typeParam is null)
             return null;
 
         ct.ThrowIfCancellationRequested();
@@ -57,10 +63,34 @@ static class Parser
         if (model.GetDeclaredSymbol(syntax, ct) is not { } nameSymbol)
             return null;
 
+        List<ClassMember> members = [];
+
+        foreach (var member in typeParam.GetMembers())
+        {
+            if (member.DeclaredAccessibility is Accessibility.Private or Accessibility.Protected)
+                continue;
+
+            if (member.Kind is not (SymbolKind.Property or SymbolKind.Field))
+                continue;
+
+            switch (member)
+            {
+                case IPropertySymbol property:
+                    members.Add(new(property.Name, property.Type));
+                    break;
+
+                case IFieldSymbol field:
+                    members.Add(new(field.Name, field.Type));
+                    break;
+            }
+        }
+
         return new(
             Name: nameSymbol.Name,
             NameSpace: GetNameSpace(syntax),
-            Parent: GetParentClasses(syntax)
+            StateType: typeParam.ToDisplayString(),
+            Parent: GetParentClasses(syntax),
+            Members: [.. members]
         );
     }
 

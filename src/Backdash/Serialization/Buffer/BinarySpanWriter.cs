@@ -109,14 +109,14 @@ public readonly ref struct BinarySpanWriter
     public void Write(in double value) => Write(BitConverter.DoubleToInt64Bits(value));
 
     /// <summary>Writes single <see cref="Vector2"/> <paramref name="value"/> into buffer.</summary>
-    public void Write(Vector2 value)
+    public void Write(in Vector2 value)
     {
         Write(value.X);
         Write(value.Y);
     }
 
     /// <summary>Writes single <see cref="Vector3"/> <paramref name="value"/> into buffer.</summary>
-    public void Write(Vector3 value)
+    public void Write(in Vector3 value)
     {
         Write(value.X);
         Write(value.Y);
@@ -124,7 +124,7 @@ public readonly ref struct BinarySpanWriter
     }
 
     /// <summary>Writes single <see cref="Vector4"/> <paramref name="value"/> into buffer.</summary>
-    public void Write(Vector4 value)
+    public void Write(in Vector4 value)
     {
         Write(value.X);
         Write(value.Y);
@@ -133,7 +133,7 @@ public readonly ref struct BinarySpanWriter
     }
 
     /// <summary>Writes single <see cref="Quaternion"/> <paramref name="value"/> into buffer.</summary>
-    public void Write(Quaternion value)
+    public void Write(in Quaternion value)
     {
         Write(value.X);
         Write(value.Y);
@@ -264,53 +264,53 @@ public readonly ref struct BinarySpanWriter
         switch (Type.GetTypeCode(typeof(T)))
         {
             case TypeCode.Int32:
-                {
-                    var tmp = Unsafe.As<T, int>(ref refValue);
-                    Write(in tmp);
-                    break;
-                }
+            {
+                var tmp = Unsafe.As<T, int>(ref refValue);
+                Write(in tmp);
+                break;
+            }
             case TypeCode.UInt32:
-                {
-                    var tmp = Unsafe.As<T, uint>(ref refValue);
-                    Write(in tmp);
-                    break;
-                }
+            {
+                var tmp = Unsafe.As<T, uint>(ref refValue);
+                Write(in tmp);
+                break;
+            }
             case TypeCode.Int64:
-                {
-                    var tmp = Unsafe.As<T, long>(ref refValue);
-                    Write(in tmp);
-                    break;
-                }
+            {
+                var tmp = Unsafe.As<T, long>(ref refValue);
+                Write(in tmp);
+                break;
+            }
             case TypeCode.UInt64:
-                {
-                    var tmp = Unsafe.As<T, ulong>(ref refValue);
-                    Write(in tmp);
-                    break;
-                }
+            {
+                var tmp = Unsafe.As<T, ulong>(ref refValue);
+                Write(in tmp);
+                break;
+            }
             case TypeCode.Int16:
-                {
-                    var tmp = Unsafe.As<T, short>(ref refValue);
-                    Write(in tmp);
-                    break;
-                }
+            {
+                var tmp = Unsafe.As<T, short>(ref refValue);
+                Write(in tmp);
+                break;
+            }
             case TypeCode.UInt16:
-                {
-                    var tmp = Unsafe.As<T, ushort>(ref refValue);
-                    Write(in tmp);
-                    break;
-                }
+            {
+                var tmp = Unsafe.As<T, ushort>(ref refValue);
+                Write(in tmp);
+                break;
+            }
             case TypeCode.Byte:
-                {
-                    var tmp = Unsafe.As<T, byte>(ref refValue);
-                    Write(in tmp);
-                    break;
-                }
+            {
+                var tmp = Unsafe.As<T, byte>(ref refValue);
+                Write(in tmp);
+                break;
+            }
             case TypeCode.SByte:
-                {
-                    var tmp = Unsafe.As<T, sbyte>(ref refValue);
-                    Write(in tmp);
-                    break;
-                }
+            {
+                var tmp = Unsafe.As<T, sbyte>(ref refValue);
+                Write(in tmp);
+                break;
+            }
             default: throw new InvalidOperationException("Unknown enum underlying type");
         }
     }

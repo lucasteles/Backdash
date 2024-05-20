@@ -11,7 +11,7 @@ record struct InputAck : IBinarySerializable, IUtf8SpanFormattable
     public readonly void Serialize(BinarySpanWriter writer) => writer.Write(in AckFrame.Number);
 
     public void Deserialize(BinarySpanReader reader) =>
-        AckFrame = new(reader.ReadInt());
+        AckFrame = new(reader.ReadInt32());
 
     public readonly bool TryFormat(
         Span<byte> utf8Destination,

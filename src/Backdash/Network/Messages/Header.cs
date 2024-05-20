@@ -23,7 +23,7 @@ record struct Header(MessageType Type) : IBinarySerializable
     public void Deserialize(BinarySpanReader reader)
     {
         Type = (MessageType)reader.ReadByte();
-        Magic = reader.ReadUShort();
-        SequenceNumber = reader.ReadUShort();
+        Magic = reader.ReadUInt16();
+        SequenceNumber = reader.ReadUInt16();
     }
 }

@@ -17,8 +17,8 @@ record struct SyncReply : IBinarySerializable, IUtf8SpanFormattable
 
     public void Deserialize(BinarySpanReader reader)
     {
-        RandomReply = reader.ReadUInt();
-        Pong = reader.ReadLong();
+        RandomReply = reader.ReadUInt32();
+        Pong = reader.ReadInt64();
     }
 
     public readonly bool TryFormat(

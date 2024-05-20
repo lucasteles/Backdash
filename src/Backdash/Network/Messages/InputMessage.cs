@@ -50,11 +50,11 @@ record struct InputMessage : IBinarySerializable, IUtf8SpanFormattable
         var peerCount = reader.ReadByte();
         for (var i = 0; i < peerCount; i++)
             PeerConnectStatus[i].Deserialize(reader);
-        StartFrame = new(reader.ReadInt());
-        DisconnectRequested = reader.ReadBool();
-        AckFrame = new(reader.ReadInt());
+        StartFrame = new(reader.ReadInt32());
+        DisconnectRequested = reader.ReadBoolean();
+        AckFrame = new(reader.ReadInt32());
         InputSize = reader.ReadByte();
-        NumBits = reader.ReadUShort();
+        NumBits = reader.ReadUInt16();
         var bitCount = (int)Math.Ceiling(NumBits / (float)ByteSize.ByteToBits);
         reader.ReadByte(Bits[..bitCount]);
     }
