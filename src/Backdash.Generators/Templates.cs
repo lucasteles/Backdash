@@ -9,6 +9,8 @@ class Templates
 
         public partial class [[NAME]]: BinarySerializer<[[TYPE]]>
         {
+            public static readonly IBinarySerializer<[[TYPE]]> Shared = new [[NAME]]();
+
             protected override void Serialize(in BinarySpanWriter binaryWriter, in [[TYPE]] data)
             {
         [[WRITES]]

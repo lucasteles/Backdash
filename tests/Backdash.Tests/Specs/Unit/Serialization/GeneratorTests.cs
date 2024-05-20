@@ -6,12 +6,20 @@ namespace Backdash.Tests.Specs.Unit.Serialization;
 [StateSerializer<GameState>]
 public partial class GameStateSerializer;
 
+public class SubState
+{
+    public short Sub1;
+    public long Sub2;
+}
+
 public class GameState
 {
     public int Value1;
     public long Value2;
     public bool Value3;
+
     public Vector2 Value4;
+    // public SubState? Value5;
 }
 
 public class GeneratorTests
@@ -21,7 +29,7 @@ public class GeneratorTests
     {
         Span<byte> buffer = new byte[1024];
 
-        IBinarySerializer<GameState> serializer = new GameStateSerializer();
+        var serializer = GameStateSerializer.Shared;
 
         GameState data = new()
         {
