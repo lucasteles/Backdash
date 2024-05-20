@@ -8,13 +8,13 @@
     <NoWarn>CS1591</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Bogus" Version="35.5.1" />
-    <PackageReference Include="FakeItEasy" Version="8.2.0" />
-    <PackageReference Include="FakeItEasy.AutoFakeIt" Version="2.0.0" />
+    <PackageReference Include="Bogus" Version="35.5.1"/>
+    <PackageReference Include="FakeItEasy" Version="8.2.0"/>
+    <PackageReference Include="FakeItEasy.AutoFakeIt" Version="2.0.0"/>
     <PackageReference Include="FluentAssertions" Version="6.12.0"/>
     <PackageReference Include="FsCheck.Xunit" Version="2.16.6"/>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0"/>
-    <PackageReference Include="xunit" Version="2.8.0" />
+    <PackageReference Include="xunit" Version="2.8.0"/>
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
@@ -25,10 +25,17 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Specs\Integration\" />
+    <Folder Include="Specs\Integration\"/>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Backdash.Utils\Backdash.Utils.csproj" />
-    <ProjectReference Include="..\..\src\Backdash\Backdash.csproj" />
+    <ProjectReference Include="..\..\src\Backdash.Generators\Backdash.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
+    <ProjectReference Include="..\..\src\Backdash.Utils\Backdash.Utils.csproj"/>
+    <ProjectReference Include="..\..\src\Backdash\Backdash.csproj"/>
   </ItemGroup>
+
+
+  <Target Name="Restart build server" BeforeTargets="Restore">
+    <Message Text="Restarting build server (cache clean)" Importance="High"/>
+    <Exec Command="dotnet build-server shutdown"/>
+  </Target>
 </Project>

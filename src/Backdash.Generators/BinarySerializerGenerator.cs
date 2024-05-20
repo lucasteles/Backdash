@@ -1,0 +1,58 @@
+﻿namespace Backdash.Generators;
+
+using System.Text;
+using Microsoft.CodeAnalysis.Text;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
+
+/// <inheritdoc />
+[Generator]
+public class BinarySerializerGenerator : IIncrementalGenerator
+{
+    /// <inheritdoc />
+    public void Initialize(IncrementalGeneratorInitializationContext context)
+    {
+
+        var serializerDeclarations = context
+            .SyntaxProvider
+            .CreateSyntaxProvider(
+                static (s, _) => Parser.IsTypeTargetForGeneration(s),
+                static (ct, _) => (
+                    Target: Parser.GetStructSemanticTargetForGeneration(ct),
+                    ct.SemanticModel
+                )
+            )
+            .Where(static m => m.Target is not null)
+            .Select(static (arg, ct) =>
+            {
+                var (target, semanticModel) = arg;
+                return Parser.GetGenerationContext(semanticModel, target, ct);
+            })
+            .Where(static m => m is not null)
+            .Select(static (arg, _) => arg!)
+            .Collect();
+
+        context.RegisterSourceOutput(serializerDeclarations, static (spc, source) =>
+            Execute(source, spc));
+    }
+
+    static void Execute(
+        ImmutableArray<BackdashContext> valuesToGenerate,
+        SourceProductionContext context
+    )
+    {
+        if (valuesToGenerate.IsDefaultOrEmpty) return;
+        StringBuilder sb = new();
+        foreach (var item in valuesToGenerate)
+        {
+            sb.Clear();
+            SourceGenerationHelper.CreateSerializer(item, sb);
+            var fileName = SourceGenerationHelper.CreateSourceName(
+                item.NameSpace,
+                item.Parent,
+                item.Name);
+
+            context.AddSource(fileName, SourceText.From(sb.ToString(), Encoding.UTF8));
+        }
+    }
+}
