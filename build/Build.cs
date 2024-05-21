@@ -44,7 +44,7 @@ class MainBuild : NukeBuild
                 .EnableNoRestore()));
 
     Target Lint => _ => _
-        .Description("Check for codebase formatting and analysers")
+        .Description("Check for codebase formatting and analyzers")
         .DependsOn(Build)
         .Executes(() => DotNetFormat(c => c
             .EnableNoRestore()
@@ -52,7 +52,7 @@ class MainBuild : NukeBuild
             .SetProject(Solution)));
 
     Target Format => _ => _
-        .Description("Try fix codebase formatting and analysers")
+        .Description("Try fix codebase formatting and analyzers")
         .DependsOn(Build)
         .Executes(() => DotNetFormat(c => c
             .EnableNoRestore()
