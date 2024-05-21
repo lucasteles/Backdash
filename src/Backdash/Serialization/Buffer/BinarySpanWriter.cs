@@ -264,53 +264,53 @@ public readonly ref struct BinarySpanWriter
         switch (Type.GetTypeCode(typeof(T)))
         {
             case TypeCode.Int32:
-            {
-                var tmp = Unsafe.As<T, int>(ref refValue);
-                Write(in tmp);
-                break;
-            }
+                {
+                    var tmp = Unsafe.As<T, int>(ref refValue);
+                    Write(in tmp);
+                    break;
+                }
             case TypeCode.UInt32:
-            {
-                var tmp = Unsafe.As<T, uint>(ref refValue);
-                Write(in tmp);
-                break;
-            }
+                {
+                    var tmp = Unsafe.As<T, uint>(ref refValue);
+                    Write(in tmp);
+                    break;
+                }
             case TypeCode.Int64:
-            {
-                var tmp = Unsafe.As<T, long>(ref refValue);
-                Write(in tmp);
-                break;
-            }
+                {
+                    var tmp = Unsafe.As<T, long>(ref refValue);
+                    Write(in tmp);
+                    break;
+                }
             case TypeCode.UInt64:
-            {
-                var tmp = Unsafe.As<T, ulong>(ref refValue);
-                Write(in tmp);
-                break;
-            }
+                {
+                    var tmp = Unsafe.As<T, ulong>(ref refValue);
+                    Write(in tmp);
+                    break;
+                }
             case TypeCode.Int16:
-            {
-                var tmp = Unsafe.As<T, short>(ref refValue);
-                Write(in tmp);
-                break;
-            }
+                {
+                    var tmp = Unsafe.As<T, short>(ref refValue);
+                    Write(in tmp);
+                    break;
+                }
             case TypeCode.UInt16:
-            {
-                var tmp = Unsafe.As<T, ushort>(ref refValue);
-                Write(in tmp);
-                break;
-            }
+                {
+                    var tmp = Unsafe.As<T, ushort>(ref refValue);
+                    Write(in tmp);
+                    break;
+                }
             case TypeCode.Byte:
-            {
-                var tmp = Unsafe.As<T, byte>(ref refValue);
-                Write(in tmp);
-                break;
-            }
+                {
+                    var tmp = Unsafe.As<T, byte>(ref refValue);
+                    Write(in tmp);
+                    break;
+                }
             case TypeCode.SByte:
-            {
-                var tmp = Unsafe.As<T, sbyte>(ref refValue);
-                Write(in tmp);
-                break;
-            }
+                {
+                    var tmp = Unsafe.As<T, sbyte>(ref refValue);
+                    Write(in tmp);
+                    break;
+                }
             default: throw new InvalidOperationException("Unknown enum underlying type");
         }
     }

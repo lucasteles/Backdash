@@ -1,4 +1,4 @@
-﻿namespace Backdash.Analyzers;
+namespace Backdash.Analyzers;
 
 class Templates
 {

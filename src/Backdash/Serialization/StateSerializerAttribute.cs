@@ -1,4 +1,4 @@
-﻿#pragma warning disable S2326
+#pragma warning disable S2326
 namespace Backdash.Serialization;
 
 /// <summary>

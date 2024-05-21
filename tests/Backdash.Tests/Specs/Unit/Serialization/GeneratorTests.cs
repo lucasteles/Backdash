@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+using System.Numerics;
 using Backdash.Data;
 using Backdash.Serialization;
 
