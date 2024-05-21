@@ -41,7 +41,7 @@ public class BinarySpanReadWriteValueTests
         var size = Setup<bool>(endianness, out var writer, out var reader);
         writer.Write(value);
         writer.WrittenCount.Should().Be(size);
-        var read = reader.ReadBool();
+        var read = reader.ReadBoolean();
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
@@ -63,7 +63,7 @@ public class BinarySpanReadWriteValueTests
         var size = Setup<short>(endianness, out var writer, out var reader);
         writer.Write(value);
         writer.WrittenCount.Should().Be(size);
-        var read = reader.ReadShort();
+        var read = reader.ReadInt16();
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
@@ -74,7 +74,7 @@ public class BinarySpanReadWriteValueTests
         var size = Setup<ushort>(endianness, out var writer, out var reader);
         writer.Write(value);
         writer.WrittenCount.Should().Be(size);
-        var read = reader.ReadUShort();
+        var read = reader.ReadUInt16();
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
@@ -85,7 +85,7 @@ public class BinarySpanReadWriteValueTests
         var size = Setup<int>(endianness, out var writer, out var reader);
         writer.Write(value);
         writer.WrittenCount.Should().Be(size);
-        var read = reader.ReadInt();
+        var read = reader.ReadInt32();
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
@@ -96,7 +96,7 @@ public class BinarySpanReadWriteValueTests
         var size = Setup<uint>(endianness, out var writer, out var reader);
         writer.Write(value);
         writer.WrittenCount.Should().Be(size);
-        var read = reader.ReadUInt();
+        var read = reader.ReadUInt32();
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
@@ -107,7 +107,7 @@ public class BinarySpanReadWriteValueTests
         var size = Setup<long>(endianness, out var writer, out var reader);
         writer.Write(value);
         writer.WrittenCount.Should().Be(size);
-        var read = reader.ReadLong();
+        var read = reader.ReadInt64();
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
@@ -118,7 +118,7 @@ public class BinarySpanReadWriteValueTests
         var size = Setup<ulong>(endianness, out var writer, out var reader);
         writer.Write(value);
         writer.WrittenCount.Should().Be(size);
-        var read = reader.ReadULong();
+        var read = reader.ReadUInt64();
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
@@ -162,7 +162,7 @@ public class BinarySpanReadWriteValueTests
         var size = Setup<float>(endianness, out var writer, out var reader);
         writer.Write(value);
         writer.WrittenCount.Should().Be(size);
-        var read = reader.ReadFloat();
+        var read = reader.ReadSingle();
         reader.ReadCount.Should().Be(size);
         return value == read;
     }

@@ -6,7 +6,7 @@ namespace Backdash.Network.Messages;
 [Serializable]
 record struct SyncRequest : IBinarySerializable, IUtf8SpanFormattable
 {
-    public uint RandomRequest; /* please reply back with this random data */
+    public uint RandomRequest; /* please reply with this random data */
     public long Ping;
 
     public readonly void Serialize(BinarySpanWriter writer)
@@ -17,8 +17,8 @@ record struct SyncRequest : IBinarySerializable, IUtf8SpanFormattable
 
     public void Deserialize(BinarySpanReader reader)
     {
-        RandomRequest = reader.ReadUInt();
-        Ping = reader.ReadLong();
+        RandomRequest = reader.ReadUInt32();
+        Ping = reader.ReadInt64();
     }
 
     public readonly bool TryFormat(

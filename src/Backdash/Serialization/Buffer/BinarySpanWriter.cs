@@ -109,14 +109,14 @@ public readonly ref struct BinarySpanWriter
     public void Write(in double value) => Write(BitConverter.DoubleToInt64Bits(value));
 
     /// <summary>Writes single <see cref="Vector2"/> <paramref name="value"/> into buffer.</summary>
-    public void Write(Vector2 value)
+    public void Write(in Vector2 value)
     {
         Write(value.X);
         Write(value.Y);
     }
 
     /// <summary>Writes single <see cref="Vector3"/> <paramref name="value"/> into buffer.</summary>
-    public void Write(Vector3 value)
+    public void Write(in Vector3 value)
     {
         Write(value.X);
         Write(value.Y);
@@ -124,7 +124,7 @@ public readonly ref struct BinarySpanWriter
     }
 
     /// <summary>Writes single <see cref="Vector4"/> <paramref name="value"/> into buffer.</summary>
-    public void Write(Vector4 value)
+    public void Write(in Vector4 value)
     {
         Write(value.X);
         Write(value.Y);
@@ -133,7 +133,7 @@ public readonly ref struct BinarySpanWriter
     }
 
     /// <summary>Writes single <see cref="Quaternion"/> <paramref name="value"/> into buffer.</summary>
-    public void Write(Quaternion value)
+    public void Write(in Quaternion value)
     {
         Write(value.X);
         Write(value.Y);

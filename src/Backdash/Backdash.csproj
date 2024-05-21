@@ -19,4 +19,12 @@
     <InternalsVisibleTo Include="$(AssemblyName).Benchmarks"/>
     <InternalsVisibleTo Include="$(AssemblyName).Benchmarks.Ping"/>
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Backdash.Analyzers\Backdash.Analyzers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="true" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="$(OutputPath)\Backdash.Analyzers.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false"/>
+  </ItemGroup>
 </Project>

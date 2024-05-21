@@ -17,8 +17,8 @@ record struct QualityReport : IBinarySerializable, IUtf8SpanFormattable
 
     public void Deserialize(BinarySpanReader reader)
     {
-        FrameAdvantage = reader.ReadInt();
-        Ping = reader.ReadLong();
+        FrameAdvantage = reader.ReadInt32();
+        Ping = reader.ReadInt64();
     }
 
     public readonly bool TryFormat(Span<byte> utf8Destination, out int bytesWritten, ReadOnlySpan<char> format,

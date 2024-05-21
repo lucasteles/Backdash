@@ -12,7 +12,7 @@ record struct QualityReply : IBinarySerializable, IUtf8SpanFormattable
         writer.Write(in Pong);
 
     public void Deserialize(BinarySpanReader reader) =>
-        Pong = reader.ReadLong();
+        Pong = reader.ReadInt64();
 
     public readonly bool TryFormat(Span<byte> utf8Destination, out int bytesWritten, ReadOnlySpan<char> format,
         IFormatProvider? provider)
