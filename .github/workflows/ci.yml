@@ -16,12 +16,10 @@ jobs:
             cancel-in-progress: true
         steps:
             -   name: Checkout Branch
-                uses: actions/checkout@v3
-                with:
-                    fetch-depth: 0
+                uses: actions/checkout@v4
 
             -   name: Setup .NET Core
-                uses: actions/setup-dotnet@v3
+                uses: actions/setup-dotnet@v4
                 with:
                     global-json-file: global.json
 
@@ -73,9 +71,9 @@ jobs:
                     patterns: "**/*.fs|**/*.fsx|**/*.cs|**/*.ts|**/*.js"
                     ignore: "node_modules"
 
-            -   name: Publish Badges
+            -   name: Publish Docs
                 if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-                uses: peaceiris/actions-gh-pages@v3
+                uses: peaceiris/actions-gh-pages@v4
                 with:
                     github_token: ${{ secrets.GITHUB_TOKEN }}
                     publish_dir: ./docfx/_site

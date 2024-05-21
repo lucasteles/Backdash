@@ -11,6 +11,8 @@ on:
 env:
     DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
     DOTNET_CLI_TELEMETRY_OPTOUT: true
+    GITHUB_ACTIONS: true
+
 jobs:
     build:
         runs-on: ubuntu-latest
@@ -19,12 +21,10 @@ jobs:
             cancel-in-progress: true
         steps:
             -   name: Checkout Branch
-                uses: actions/checkout@v3
-                with:
-                    fetch-depth: 0
+                uses: actions/checkout@v4
 
             -   name: Setup .NET Core
-                uses: actions/setup-dotnet@v3
+                uses: actions/setup-dotnet@v4
                 with:
                     global-json-file: global.json
 
