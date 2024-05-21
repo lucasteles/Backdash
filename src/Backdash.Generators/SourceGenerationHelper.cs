@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
 
@@ -31,20 +32,20 @@ static class SourceGenerationHelper
         const string tab = "\t\t";
         var arrays = 0;
 
-
         foreach (var member in item.Members)
         {
             var paramModifier = member.IsProperty ? string.Empty : "in ";
+            const string sizeProp = "Length";
 
-            if (member.Type is IArrayTypeSymbol { ElementType: { } itemType })
+            if (IsArrayLike(member.Type, out var itemType))
             {
                 var arrayIndex = ++arrays;
                 var path = $"data.{member.Name}";
 
                 writes.AppendLine(
                     $$"""
-                              binaryWriter.Write({{path}}.Length);
-                              for(var i = 0; i < {{path}}.Length; i++)
+                              binaryWriter.Write({{path}}.{{sizeProp}});
+                              for(var i = 0; i < {{path}}.{{sizeProp}}; i++)
                               {
                       """);
 
@@ -79,7 +80,6 @@ static class SourceGenerationHelper
                     reads.Append(tab);
                     reads.AppendLine($"result.{member.Name}[i] = binaryReader.Read{itemType.Name}();");
                 }
-
 
                 writes.Append(tab);
                 writes.AppendLine("}");
@@ -119,6 +119,26 @@ static class SourceGenerationHelper
         sb.Replace("[[READS]]", reads.ToString());
 
         if (hasNamespace) sb.Append('}');
+    }
+
+    static bool IsArrayLike(ITypeSymbol memberType, out ITypeSymbol elementType)
+    {
+        elementType = memberType;
+
+        if (memberType is IArrayTypeSymbol { ElementType: { } itemType })
+        {
+            elementType = itemType;
+            return true;
+        }
+
+        if (memberType is INamedTypeSymbol { TypeArguments.Length: 1 } named &&
+            named.ToDisplayString().StartsWith("Backdash.Data.Array"))
+        {
+            elementType = named.TypeArguments.First();
+            return true;
+        }
+
+        return false;
     }
 
     internal static string CreateSourceName(string nameSpace, ParentClass? parent, string name)

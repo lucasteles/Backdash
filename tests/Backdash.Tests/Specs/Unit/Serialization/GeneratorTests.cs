@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using Backdash.Data;
 using Backdash.Serialization;
 
 namespace Backdash.Tests.Specs.Unit.Serialization;
@@ -23,11 +24,16 @@ public class GameState
     public int[] Value6 = new int[5];
 
     public MyVector2[] Value7 = new MyVector2[3];
+    public Array<MyVector2> Value8;
 
     public GameState()
     {
+        Value8 = new(Value7.Length);
         for (int i = 0; i < Value7.Length; i++)
+        {
             Value7[i] = new();
+            Value8[i] = new();
+        }
     }
 }
 
@@ -62,6 +68,12 @@ public class GeneratorTests
             },
             Value6 = [89, 78, 11, 65, 789],
             Value7 =
+            [
+                new(-2, 98),
+                new(-3, 97),
+                new(-4, 96),
+            ],
+            Value8 =
             [
                 new(-2, 98),
                 new(-3, 97),
