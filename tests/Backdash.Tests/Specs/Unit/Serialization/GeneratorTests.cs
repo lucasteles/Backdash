@@ -75,9 +75,9 @@ public class GeneratorTests
             ],
             Value8 =
             [
-                new(-2, 98),
-                new(-3, 97),
-                new(-4, 96),
+                new(-12, 198),
+                new(-13, 197),
+                new(-14, 196),
             ]
         };
 
