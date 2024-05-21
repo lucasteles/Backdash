@@ -10,13 +10,14 @@ class MainBuild : NukeBuild
     [Parameter("Don't open the coverage report")]
     readonly bool NoBrowse;
 
+    [Parameter("Production Git Branch")] readonly string MasterBranch = "master";
+
     [Solution] readonly Solution Solution;
     [Parameter] readonly string TestResultFile = "test_result.xml";
     AbsolutePath CoverageFiles => RootDirectory / "**" / "coverage.cobertura.xml";
     AbsolutePath TestReportDirectory => RootDirectory / "TestReport";
     AbsolutePath DocsPath => RootDirectory / "docfx";
     AbsolutePath DocsSitePath => DocsPath / "_site";
-    const string MainBranch = "master";
 
     Target Clean => _ => _
         .Description("Clean project directories")
@@ -41,7 +42,10 @@ class MainBuild : NukeBuild
                 .SetProjectFile(Solution)
                 .SetConfiguration(Configuration)
                 .EnableNoLogo()
-                .EnableNoRestore()));
+                .EnableNoRestore()
+                .SetProperty("UseSharedCompilation", false)
+                .SetProcessArgumentConfigurator(args => args.Add("/nodeReuse:false")))
+        );
 
     Target Lint => _ => _
         .Description("Check for codebase formatting and analyzers")
@@ -135,7 +139,7 @@ class MainBuild : NukeBuild
             DotNetBuild(s => s.SetProjectFile(Solution).SetConfiguration(Configuration.Release));
             DocFX.Build(c => c
                 .SetProcessWorkingDirectory(DocsPath)
-                .SetProcessEnvironmentVariable(DocFX.DocFXSourceBranchName, MainBranch)
+                .SetProcessEnvironmentVariable(DocFX.DocFXSourceBranchName, MasterBranch)
             );
         });
 
@@ -146,7 +150,7 @@ class MainBuild : NukeBuild
             DotNetBuild(s => s.SetProjectFile(Solution).SetConfiguration(Configuration.Release));
             DocFX.Serve(c => c
                 .SetProcessWorkingDirectory(DocsPath)
-                .SetProcessEnvironmentVariable(DocFX.DocFXSourceBranchName, MainBranch));
+                .SetProcessEnvironmentVariable(DocFX.DocFXSourceBranchName, MasterBranch));
         });
 
     Target UpdateTools => _ => _
@@ -170,4 +174,16 @@ class MainBuild : NukeBuild
 
     protected override void OnBuildInitialized() =>
         DotNetToolRestore(c => c.DisableProcessLogOutput());
+
+    protected override void OnBuildFinished()
+    {
+        try
+        {
+            DotNet("build-server shutdown");
+        }
+        catch (Exception ex)
+        {
+            Log.Warning("Failure shutting build server down:{Error}", ex.Message);
+        }
+    }
 }

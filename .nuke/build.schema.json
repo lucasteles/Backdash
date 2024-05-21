@@ -49,6 +49,10 @@
             "VSCode"
           ]
         },
+        "MasterBranch": {
+          "type": "string",
+          "description": "Production Git Branch"
+        },
         "NoBrowse": {
           "type": "boolean",
           "description": "Don't open the coverage report"
