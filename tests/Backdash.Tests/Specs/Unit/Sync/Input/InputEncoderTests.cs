@@ -3,7 +3,7 @@ using Backdash.Network.Messages;
 using Backdash.Network.Protocol.Comm;
 using Backdash.Tests.TestUtils;
 
-namespace Backdash.Tests.Specs.Unit.Input;
+namespace Backdash.Tests.Specs.Unit.Sync.Input;
 
 public class InputEncoderTests
 {

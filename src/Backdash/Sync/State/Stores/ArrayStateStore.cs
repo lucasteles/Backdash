@@ -12,10 +12,10 @@ public sealed class ArrayStateStore<TState> : IStateStore<TState> where TState :
     int head;
 
     /// <inheritdoc />
-    public void Initialize(int size)
+    public void Initialize(int saveCount)
     {
-        savedStates = new SavedFrame<TState>[size];
-        for (int i = 0; i < size; i++)
+        savedStates = new SavedFrame<TState>[saveCount];
+        for (int i = 0; i < saveCount; i++)
             savedStates[i] = new(Frame.Null, new(), 0);
     }
 

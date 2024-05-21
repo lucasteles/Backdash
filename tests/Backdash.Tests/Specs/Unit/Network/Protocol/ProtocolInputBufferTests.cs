@@ -5,11 +5,12 @@ using Backdash.Network.Messages;
 using Backdash.Network.Protocol;
 using Backdash.Network.Protocol.Comm;
 using Backdash.Serialization;
+using Backdash.Tests.Specs.Unit.Sync.Input;
 using Backdash.Tests.TestUtils;
 
 namespace Backdash.Tests.Specs.Unit.Network.Protocol;
 
-using static Input.InputEncoderTests;
+using static InputEncoderTests;
 
 public class ProtocolInputBufferTests
 {

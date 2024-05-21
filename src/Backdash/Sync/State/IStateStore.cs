@@ -9,10 +9,10 @@ namespace Backdash.Sync.State;
 public interface IStateStore<TState> : IDisposable where TState : notnull, new()
 {
     /// <summary>
-    /// Initialize the state buffer with capacity of <paramref name="size"/>
+    /// Initialize the state buffer with capacity of <paramref name="saveCount"/>
     /// </summary>
-    /// <param name="size"></param>
-    void Initialize(int size);
+    /// <param name="saveCount"></param>
+    void Initialize(int saveCount);
 
     /// <summary>
     /// Returns a <see cref="SavedFrame{TState}" /> for <paramref name="frame"/>.

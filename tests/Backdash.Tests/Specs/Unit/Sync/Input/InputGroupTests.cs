@@ -3,7 +3,7 @@ using Backdash.Serialization;
 using Backdash.Sync.Input.Confirmed;
 using Backdash.Tests.TestUtils;
 
-namespace Backdash.Tests.Specs.Unit.Input;
+namespace Backdash.Tests.Specs.Unit.Sync.Input;
 
 public class ConfirmedInputsTests
 {
