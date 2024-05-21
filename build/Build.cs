@@ -35,11 +35,24 @@ class MainBuild : NukeBuild
             .SetProjectFile(Solution)));
 
     Target Build => _ => _
-        .Description("Builds Solution")
+        .Description("Builds SDK")
         .DependsOn(Restore)
         .Executes(() =>
             DotNetBuild(s => s
                 .SetProjectFile(Solution)
+                .SetConfiguration(Configuration)
+                .EnableNoLogo()
+                .EnableNoRestore()
+                .SetProperty("UseSharedCompilation", false)
+                .SetProcessArgumentConfigurator(args => args.Add("/nodeReuse:false")))
+        );
+
+    Target BuildSamples => _ => _
+        .Description("Builds SDK and Samples")
+        .DependsOn(Restore)
+        .Executes(() =>
+            DotNetBuild(s => s
+                .SetProjectFile(RootDirectory / "Backdash.Samples.sln")
                 .SetConfiguration(Configuration)
                 .EnableNoLogo()
                 .EnableNoRestore()

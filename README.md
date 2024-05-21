@@ -69,11 +69,14 @@ to build some samples.
 You need to have installed [.NET 8 SDK](https://dotnet.microsoft.com/en-us/download)
 ![](https://raw.githubusercontent.com/lucasteles/Backdash/site/dotnet_version_badge.svg)
 
-1. Clone this repo.
-2. Building
-    - With samples run `dotnet build -c Release Backdash.sln` on the root directory.
-    - SDK only run `dotnet build -c Release src/Backdash` on the root directory.
-    - Alternatively open the solution file `Backdash.sln` on your IDE.
+1. Clone this repository.
+2. Restore tools
+   - On root directory run: `dotnet tool restore`
+3. Building Library (_root directory_)
+    - SDK only: `dotnet nuke build --configuration Release`
+        - Alternatively open the solution file `Backdash.sln` on your IDE.
+    - SDK and samples `dotnet nuke build-samples --configuration Release`.
+        - Alternatively open the solution file `Backdash.Samples.sln` on your IDE.
 
 ## Licensing
 
