@@ -7,7 +7,8 @@ record BackdashContext(
     string NameSpace,
     string StateType,
     ParentClass? Parent,
-    ClassMember[] Members);
+    ClassMember[] Members
+);
 
 record ParentClass(string Name, ParentClass? Parent);
 

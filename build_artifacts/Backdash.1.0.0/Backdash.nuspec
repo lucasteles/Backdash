@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>Backdash</id>
+    <version>1.0.0</version>
+    <authors>Lucas Teles - lucas.teles@outlook.com</authors>
+    <license type="expression">MIT</license>
+    <licenseUrl>https://licenses.nuget.org/MIT</licenseUrl>
+    <icon>logo.png</icon>
+    <readme>README.md</readme>
+    <projectUrl>https://lucasteles.github.io/Backdash</projectUrl>
+    <description>Rollback netcode library</description>
+    <tags>rollback, netcode, network, peer to peer, online, game, multiplayer</tags>
+    <repository type="git" url="https://github.com/lucasteles/Backdash.git" commit="6878496e0deb32f15b99ce4fbb0063a9589054d9" />
+    <dependencies>
+      <group targetFramework="net8.0">
+        <dependency id="Backdash.Generators" version="1.0.0" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+</package>

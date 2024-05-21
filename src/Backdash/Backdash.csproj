@@ -2,7 +2,6 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
-    <IncludeBuildOutput>false</IncludeBuildOutput>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PackageId>Backdash</PackageId>
     <Description>Rollback netcode library</Description>
@@ -19,5 +18,13 @@
     <InternalsVisibleTo Include="$(AssemblyName).Tests"/>
     <InternalsVisibleTo Include="$(AssemblyName).Benchmarks"/>
     <InternalsVisibleTo Include="$(AssemblyName).Benchmarks.Ping"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Backdash.Generators\Backdash.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="true"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="$(OutputPath)\Backdash.Generators.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false"/>
   </ItemGroup>
 </Project>

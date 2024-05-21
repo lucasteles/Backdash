@@ -34,7 +34,6 @@
     <ProjectReference Include="..\..\src\Backdash\Backdash.csproj"/>
   </ItemGroup>
 
-
   <Target Name="Restart build server" BeforeTargets="Restore">
     <Message Text="Restarting build server (cache clean)" Importance="High"/>
     <Exec Command="dotnet build-server shutdown"/>
