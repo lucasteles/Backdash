@@ -1,6 +1,6 @@
 using Microsoft.CodeAnalysis;
 
-namespace Backdash.Generators;
+namespace Backdash.Analysers;
 
 record BackdashContext(
     string Name,

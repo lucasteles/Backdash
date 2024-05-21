@@ -3,7 +3,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
 
-namespace Backdash.Generators;
+namespace Backdash.Analysers;
 
 static class SourceGenerationHelper
 {

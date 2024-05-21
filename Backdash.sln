@@ -30,7 +30,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpaceWar.Lobby", "samples\S
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Backdash.Utils", "src\Backdash.Utils\Backdash.Utils.csproj", "{BA97CA2F-E2BB-40FE-9911-FCBD620A8D96}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Backdash.Generators", "src\Backdash.Generators\Backdash.Generators.csproj", "{FD3F38F9-3D7B-4D8E-ABE7-81A78D6309BA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Backdash.Analysers", "src\Backdash.Analysers\Backdash.Analysers.csproj", "{FD3F38F9-3D7B-4D8E-ABE7-81A78D6309BA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
