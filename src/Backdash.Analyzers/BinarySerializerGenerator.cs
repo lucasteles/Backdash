@@ -33,8 +33,7 @@ public class BinarySerializerGenerator : IIncrementalGenerator
             .Select(static (arg, _) => arg!)
             .Collect();
 
-        context.RegisterSourceOutput(serializerDeclarations, static (spc, source) =>
-            Execute(source, spc));
+        context.RegisterSourceOutput(serializerDeclarations, static (spc, source) => Execute(source, spc));
     }
 
     static void Execute(
