@@ -3,7 +3,7 @@ using Microsoft.CodeAnalysis.Text;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 
-namespace Backdash.Analysers;
+namespace Backdash.Analyzers;
 
 /// <inheritdoc />
 [Generator]

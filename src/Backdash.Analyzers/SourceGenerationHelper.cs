@@ -1,9 +1,8 @@
 ﻿using System.Collections.Immutable;
-using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
 
-namespace Backdash.Analysers;
+namespace Backdash.Analyzers;
 
 static class SourceGenerationHelper
 {

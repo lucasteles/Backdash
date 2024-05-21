@@ -2,8 +2,6 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
-    <LangVersion>12</LangVersion>
-    <ImplicitUsings>false</ImplicitUsings>
   </PropertyGroup>
 
   <ItemGroup>
