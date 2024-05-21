@@ -35,7 +35,7 @@ _ = peer1.SendTo(peer2Endpoint.Serialize(), PingMessage.Ping, sendBuffer1).AsTas
 Console.WriteLine("Press enter to stop.");
 SpinWait.SpinUntil(() => Console.KeyAvailable || stopToken.IsCancellationRequested);
 
-cts.Cancel();
+await cts.CancelAsync();
 
 await tasks.ConfigureAwait(false);
 

@@ -142,4 +142,4 @@ if (app.Environment.IsDevelopment())
             await app.StopAsync();
     });
 
-app.Run();
+await app.RunAsync();
