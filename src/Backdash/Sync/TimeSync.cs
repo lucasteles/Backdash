@@ -4,7 +4,7 @@ using Backdash.Sync.Input;
 
 namespace Backdash.Sync;
 
-interface ITimeSync<TInput> where TInput : struct
+interface ITimeSync<TInput> where TInput : unmanaged
 {
     void AdvanceFrame(in GameInput<TInput> input, in ProtocolState.AdvantageState state);
     int RecommendFrameWaitDuration();
@@ -20,7 +20,7 @@ sealed class TimeSync<TInput>(
     TimeSyncOptions options,
     Logger logger
 ) : ITimeSync<TInput>
-    where TInput : struct
+    where TInput : unmanaged
 {
     readonly int[] local = new int[options.FrameWindowSize];
     readonly int[] remote = new int[options.FrameWindowSize];

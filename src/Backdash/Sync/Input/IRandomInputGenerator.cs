@@ -6,7 +6,7 @@ namespace Backdash.Sync.Input;
 /// Input value provider
 /// </summary>
 /// <typeparam name="TInput"></typeparam>
-public interface IInputGenerator<out TInput> where TInput : struct
+public interface IInputGenerator<out TInput> where TInput : unmanaged
 {
     /// <summary>
     /// Returns the next input

@@ -31,7 +31,7 @@ static class ThrowHelpers
             throw new ArgumentOutOfRangeException(argument.ToString(CultureInfo.InvariantCulture), paramName);
     }
 
-    public static void ThrowIfTypeTooBigForStack<T>() where T : struct
+    public static void ThrowIfTypeTooBigForStack<T>() where T : unmanaged
     {
         var size = Mem.SizeOf<T>();
         if (size > Mem.MaxStackLimit)

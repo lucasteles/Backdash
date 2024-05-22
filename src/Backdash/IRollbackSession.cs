@@ -33,7 +33,7 @@ public interface IRollbackSessionInfo
 /// Context for a multiplayer game session.
 /// </summary>
 /// <typeparam name="TInput">Game input type</typeparam>
-public interface IRollbackSession<TInput> : IRollbackSessionInfo, IDisposable where TInput : struct
+public interface IRollbackSession<TInput> : IRollbackSessionInfo, IDisposable where TInput : unmanaged
 {
     /// <summary>
     /// Returns the number of player in the current session
@@ -141,7 +141,7 @@ public interface IRollbackSession<TInput> : IRollbackSessionInfo, IDisposable wh
 /// <typeparam name="TInput">Game input type</typeparam>
 /// <typeparam name="TState">Game state type</typeparam>
 public interface IRollbackSession<TInput, TState> : IRollbackSession<TInput>
-    where TInput : struct
+    where TInput : unmanaged
     where TState : notnull
 {
     /// <summary>

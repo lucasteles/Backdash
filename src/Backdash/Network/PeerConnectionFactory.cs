@@ -23,7 +23,7 @@ sealed class PeerConnectionFactory(
         ProtocolState state,
         IBinarySerializer<TInput> inputSerializer,
         IProtocolInputEventPublisher<TInput> inputEventQueue
-    ) where TInput : struct
+    ) where TInput : unmanaged
     {
         var timeSync = new TimeSync<TInput>(timeSyncOptions, logger);
         var outbox = new ProtocolOutbox(state, options, peer, delayStrategy, random, clock, logger);

@@ -3,7 +3,7 @@ using Backdash.Core;
 using Backdash.Data;
 namespace Backdash.Sync.Input;
 
-sealed class InputQueue<TInput> where TInput : struct
+sealed class InputQueue<TInput> where TInput : unmanaged
 {
     readonly Logger logger;
     readonly GameInput<TInput>[] inputs;

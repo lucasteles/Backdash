@@ -10,7 +10,7 @@ using Backdash.Sync.Input;
 
 namespace Backdash.Network.Protocol.Comm;
 
-interface IProtocolInbox<TInput> : IPeerObserver<ProtocolMessage> where TInput : struct
+interface IProtocolInbox<TInput> : IPeerObserver<ProtocolMessage> where TInput : unmanaged
 {
     GameInput<TInput> LastReceivedInput { get; }
     Frame LastAckedFrame { get; }
@@ -26,7 +26,7 @@ sealed class ProtocolInbox<TInput>(
     IProtocolNetworkEventHandler networkEvents,
     IProtocolInputEventPublisher<TInput> inputEvents,
     Logger logger
-) : IProtocolInbox<TInput> where TInput : struct
+) : IProtocolInbox<TInput> where TInput : unmanaged
 {
     ushort remoteMagicNumber;
     ushort nextRecvSeq;

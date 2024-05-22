@@ -16,7 +16,7 @@ sealed class SpectatorBackend<TInput, TGameState> :
     IRollbackSession<TInput, TGameState>,
     IProtocolNetworkEventHandler,
     IProtocolInputEventPublisher<ConfirmedInputs<TInput>>
-    where TInput : struct
+    where TInput : unmanaged
     where TGameState : notnull, new()
 {
     readonly Logger logger;

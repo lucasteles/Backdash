@@ -173,7 +173,7 @@ static class Mem
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int SizeOf<TInput>() where TInput : struct => Unsafe.SizeOf<TInput>();
+    public static int SizeOf<TInput>() where TInput : unmanaged => Unsafe.SizeOf<TInput>();
 
     public static bool IsReferenceOrContainsReferences<T>() => RuntimeHelpers.IsReferenceOrContainsReferences<T>();
 }

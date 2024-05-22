@@ -7,7 +7,7 @@ using Backdash.Sync.Input.Confirmed;
 namespace Backdash.Backends;
 
 sealed class ReplayBackend<TInput, TGameState> : IRollbackSession<TInput, TGameState>
-    where TInput : struct
+    where TInput : unmanaged
     where TGameState : notnull, new()
 {
     readonly Logger logger;

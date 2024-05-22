@@ -51,7 +51,7 @@ static class BinarySerializerFactory
     }
 
     public static IBinarySerializer<TInput>? Get<TInput>(bool networkEndianness = true)
-        where TInput : struct
+        where TInput : unmanaged
     {
 #if AOT_ENABLED
         return null;
@@ -94,7 +94,7 @@ static class BinarySerializerFactory
     }
 
     public static IBinarySerializer<TInput> FindOrThrow<TInput>(bool networkEndianness = true)
-        where TInput : struct =>
+        where TInput : unmanaged =>
         Get<TInput>(networkEndianness)
         ?? throw new InvalidOperationException($"Unable to infer serializer for type {typeof(TInput).FullName}");
 }

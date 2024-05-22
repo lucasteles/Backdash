@@ -4,7 +4,7 @@ using Backdash.Serialization.Buffer;
 namespace Backdash.Sync.Input.Confirmed;
 
 sealed class ConfirmedInputsSerializer<T>(IBinarySerializer<T> inputSerializer)
-    : BinarySerializer<ConfirmedInputs<T>> where T : struct
+    : BinarySerializer<ConfirmedInputs<T>> where T : unmanaged
 {
     protected override void Serialize(in BinarySpanWriter binaryWriter, in ConfirmedInputs<T> data)
     {

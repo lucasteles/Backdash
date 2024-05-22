@@ -192,7 +192,7 @@ public static class PeerClientFactory
         IPeerObserver<T> observer,
         IBinarySerializer<T>? serializer = null,
         int maxPacketSize = Max.UdpPacketSize
-    ) where T : struct =>
+    ) where T : unmanaged =>
         Create(socket,
             serializer ?? BinarySerializerFactory.FindOrThrow<T>(),
             observer,

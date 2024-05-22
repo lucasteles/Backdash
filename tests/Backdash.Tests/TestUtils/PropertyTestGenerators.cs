@@ -268,7 +268,7 @@ class PropertyTestGenerators
             .ToArbitrary();
 
     public static Arbitrary<GameInput<TInput>> GameInputBufferGenerator<TInput>()
-        where TInput : struct
+        where TInput : unmanaged
         => Arb.From(
             from frame in Arb.Generate<Frame>()
             from data in Arb.Generate<TInput>()
@@ -324,7 +324,7 @@ class PropertyTestGenerators
         select new Quaternion(x, y, z, w)
     );
 
-    public static Arbitrary<ConfirmedInputs<T>> InputGroupGenerator<T>() where T : struct =>
+    public static Arbitrary<ConfirmedInputs<T>> InputGroupGenerator<T>() where T : unmanaged =>
         Gen.Sized(testSize =>
             {
                 var size = Math.Min(testSize, InputArray<T>.Capacity);

@@ -14,7 +14,7 @@ namespace Backdash;
 /// <typeparam name="TInput">Input type</typeparam>
 /// <typeparam name="TGameState">Game state type</typeparam>
 public sealed class SessionServices<TInput, TGameState>
-    where TInput : struct
+    where TInput : unmanaged
     where TGameState : notnull, new()
 {
     /// <summary>

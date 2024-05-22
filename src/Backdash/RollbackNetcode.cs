@@ -27,7 +27,7 @@ public static class RollbackNetcode
         RollbackOptions? options = null,
         SessionServices<TInput, TGameState>? services = null
     )
-        where TInput : struct
+        where TInput : unmanaged
         where TGameState : notnull, new()
     {
         options ??= new();
@@ -50,7 +50,7 @@ public static class RollbackNetcode
         int numberOfPlayers,
         RollbackOptions? options = null,
         SessionServices<TInput, TGameState>? services = null)
-        where TInput : struct
+        where TInput : unmanaged
         where TGameState : notnull, new()
     {
         options ??= new();
@@ -71,7 +71,7 @@ public static class RollbackNetcode
         int numberOfPlayers,
         IReadOnlyList<ConfirmedInputs<TInput>> inputs,
         SessionServices<TInput, TGameState>? services = null)
-        where TInput : struct
+        where TInput : unmanaged
         where TGameState : notnull, new() =>
         new ReplayBackend<TInput, TGameState>(
             numberOfPlayers, inputs,
@@ -92,7 +92,7 @@ public static class RollbackNetcode
         SessionServices<TInput, TGameState>? services = null,
         bool throwException = true
     )
-        where TInput : struct
+        where TInput : unmanaged
         where TGameState : notnull, new()
     {
         options ??= new()

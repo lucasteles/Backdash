@@ -11,7 +11,7 @@ using Timer = System.Timers.Timer;
 
 namespace Backdash.Network;
 
-sealed class PeerConnection<TInput> : IDisposable where TInput : struct
+sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
 {
     readonly ProtocolOptions options;
     readonly ProtocolState state;

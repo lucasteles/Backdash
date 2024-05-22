@@ -8,7 +8,7 @@ using Backdash.Sync.State;
 namespace Backdash.Sync.Input;
 
 sealed class Synchronizer<TInput, TState>
-    where TInput : struct
+    where TInput : unmanaged
     where TState : notnull, new()
 {
     readonly RollbackOptions options;

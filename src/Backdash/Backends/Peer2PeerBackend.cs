@@ -14,7 +14,7 @@ using Backdash.Sync.State;
 namespace Backdash.Backends;
 
 sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGameState>, IProtocolNetworkEventHandler
-    where TInput : struct
+    where TInput : unmanaged
     where TGameState : notnull, new()
 {
     readonly RollbackOptions options;

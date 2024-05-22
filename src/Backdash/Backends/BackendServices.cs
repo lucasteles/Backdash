@@ -11,7 +11,7 @@ using Backdash.Sync.State.Stores;
 namespace Backdash.Backends;
 
 sealed class BackendServices<TInput, TGameState>
-    where TInput : struct
+    where TInput : unmanaged
     where TGameState : notnull, new()
 {
     public IBinarySerializer<TInput> InputSerializer { get; }
@@ -58,6 +58,6 @@ static class BackendServices
         SessionServices<TInput, TGameState>? services
     )
         where TGameState : notnull, new()
-        where TInput : struct =>
+        where TInput : unmanaged =>
         new(options, services);
 }

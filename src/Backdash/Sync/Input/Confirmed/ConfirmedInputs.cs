@@ -7,7 +7,7 @@ namespace Backdash.Sync.Input.Confirmed;
 /// All confirmed inputs for all players
 /// </summary>
 /// <typeparam name="TInput"></typeparam>
-public record struct ConfirmedInputs<TInput> where TInput : struct
+public record struct ConfirmedInputs<TInput> where TInput : unmanaged
 {
     /// <summary>
     /// Number of inputs
@@ -39,7 +39,7 @@ public record struct ConfirmedInputs<TInput> where TInput : struct
 /// </summary>
 /// <typeparam name="TInput"></typeparam>
 [InlineArray(Capacity)]
-public struct InputArray<TInput> where TInput : struct
+public struct InputArray<TInput> where TInput : unmanaged
 {
     /// <summary>
     /// Max size of <see cref="InputArray{TInput}"/>

@@ -8,7 +8,7 @@ using Backdash.Sync.State;
 namespace Backdash.Backends;
 
 sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGameState>
-    where TInput : struct
+    where TInput : unmanaged
     where TGameState : notnull, new()
 {
     readonly record struct SavedFrame(

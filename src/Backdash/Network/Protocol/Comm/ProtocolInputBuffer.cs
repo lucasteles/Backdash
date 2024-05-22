@@ -8,7 +8,7 @@ using Backdash.Sync.Input;
 
 namespace Backdash.Network.Protocol.Comm;
 
-interface IProtocolInputBuffer<TInput> where TInput : struct
+interface IProtocolInputBuffer<TInput> where TInput : unmanaged
 {
     int PendingNumber { get; }
     GameInput<TInput> LastSent { get; }
@@ -25,7 +25,7 @@ enum SendInputResult : byte
 }
 
 sealed class ProtocolInputBuffer<TInput> : IProtocolInputBuffer<TInput>
-    where TInput : struct
+    where TInput : unmanaged
 {
     readonly Queue<GameInput<TInput>> pendingOutput;
     readonly Memory<byte> workingBufferMemory;

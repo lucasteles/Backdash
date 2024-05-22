@@ -5,7 +5,7 @@ namespace Backdash.Sync.Input.Confirmed;
 /// <summary>
 /// Listen for confirmed input
 /// </summary>
-public interface IInputListener<TInput> : IDisposable where TInput : struct
+public interface IInputListener<TInput> : IDisposable where TInput : unmanaged
 {
     /// <summary>
     /// New confirmed input event handler
