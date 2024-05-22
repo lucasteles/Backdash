@@ -85,10 +85,18 @@ static class SourceGenerationHelper
                     else if (itemType.IsUnmanagedType)
                     {
                         writes.Append(tab);
-                        writes.AppendLine($"binaryWriter.Write({paramModifier}data.{member.Name}[i]);");
+                        writes.AppendLine(
+                            itemType is INamedTypeSymbol { EnumUnderlyingType: not null }
+                                ? $"binaryWriter.WriteEnum<{itemType.Name}>({paramModifier}data.{member.Name}[i]);"
+                                : $"binaryWriter.Write({paramModifier}data.{member.Name}[i]);"
+                        );
 
                         reads.Append(tab);
-                        reads.AppendLine($"result.{member.Name}[i] = binaryReader.Read{itemType.Name}();");
+                        reads.AppendLine(
+                            itemType is INamedTypeSymbol { EnumUnderlyingType: not null }
+                                ? $"result.{member.Name}[i] = binaryReader.ReadEnum<{itemType.Name}>();"
+                                : $"result.{member.Name}[i] = binaryReader.Read{itemType.Name}();"
+                        );
                     }
 
                     writes.Append(tab);
@@ -118,10 +126,18 @@ static class SourceGenerationHelper
                 else if (member.Type.IsUnmanagedType)
                 {
                     writes.Append(tab);
-                    writes.AppendLine($"binaryWriter.Write({paramModifier}data.{member.Name});");
+                    writes.AppendLine(
+                        member.Type is INamedTypeSymbol { EnumUnderlyingType: not null }
+                            ? $"binaryWriter.WriteEnum<{member.Type.Name}>({paramModifier}data.{member.Name});"
+                            : $"binaryWriter.Write({paramModifier}data.{member.Name});"
+                    );
 
                     reads.Append(tab);
-                    reads.AppendLine($"result.{member.Name} = binaryReader.Read{member.Type.Name}();");
+                    reads.AppendLine(
+                        member.Type is INamedTypeSymbol { EnumUnderlyingType: not null }
+                            ? $"result.{member.Name} = binaryReader.ReadEnum<{member.Type.Name}>();"
+                            : $"result.{member.Name} = binaryReader.Read{member.Type.Name}();"
+                    );
                 }
             }
         }
@@ -173,7 +189,7 @@ static class SourceGenerationHelper
     {
         Debug.Assert(type != null);
 
-        if (!type.IsUnmanagedType)
+        if (!type.IsUnmanagedType || type is INamedTypeSymbol { EnumUnderlyingType: not null })
             return false;
 
         return type.SpecialType switch

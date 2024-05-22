@@ -12,6 +12,8 @@ public class SubState
 
 public record struct MyVector2(float X, float Y);
 
+public enum EnumState : uint { None, Foo, Bar }
+
 public class GameState
 {
     public int Value1;
@@ -25,6 +27,8 @@ public class GameState
 
     public MyVector2[] Value7 = new MyVector2[3];
     public EquatableArray<MyVector2> Value8;
+    public EnumState Value9;
+    public EnumState[] Value10 = new EnumState[2];
 
     public GameState()
     {
@@ -78,7 +82,9 @@ public class GeneratorTests
                 new(-12, 198),
                 new(-13, 197),
                 new(-14, 196),
-            ]
+            ],
+            Value9 = EnumState.Foo,
+            Value10 = [EnumState.Foo, EnumState.Bar],
         };
 
         var size = serializer.Serialize(in data, buffer);
