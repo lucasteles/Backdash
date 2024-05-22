@@ -24,7 +24,7 @@ public class GameState
     public int[] Value6 = new int[5];
 
     public MyVector2[] Value7 = new MyVector2[3];
-    public Array<MyVector2> Value8;
+    public EquatableArray<MyVector2> Value8;
 
     public GameState()
     {

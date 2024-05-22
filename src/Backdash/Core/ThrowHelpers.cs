@@ -46,4 +46,11 @@ static class ThrowHelpers
         if (Mem.IsReferenceOrContainsReferences<T>())
             throw StructMustNotHaveReferenceTypeMembers();
     }
+
+    public static void ThrowArgumentOutOfRangeException(string argName) =>
+        throw new ArgumentOutOfRangeException(argName);
+
+#pragma warning disable S112
+    public static void ThrowIndexOutOfRangeException() => throw new IndexOutOfRangeException();
+#pragma warning restore S112
 }

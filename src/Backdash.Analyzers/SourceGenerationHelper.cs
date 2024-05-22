@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Text;
 using Microsoft.CodeAnalysis;
 
@@ -38,52 +39,63 @@ static class SourceGenerationHelper
 
             if (IsArrayLike(member.Type, out var itemType))
             {
-                var arrayIndex = ++arrays;
-                var path = $"data.{member.Name}";
-
-                writes.AppendLine(
-                    $$"""
-                              binaryWriter.Write({{path}}.{{sizeProp}});
-                              for(var i = 0; i < {{path}}.{{sizeProp}}; i++)
-                              {
-                      """);
-
-                reads.AppendLine(
-                    $$"""
-                              var size{{arrayIndex}} = binaryReader.ReadInt32();
-                              for(var i = 0; i < size{{arrayIndex}}; i++)
-                              {
-                      """);
-
-                if (serializerMap.TryGetValue(itemType.ToDisplayString(), out var memberSerializer))
-                {
-                    var serializerName = $"{memberSerializer.NameSpace}.{memberSerializer.Name}.Shared";
-
-                    writes.AppendLine(
-                        $"""
-                         {tab}var byteCount{arrayIndex} = {serializerName}.Serialize(in data.{member.Name}[i], binaryWriter.CurrentBuffer);
-                         {tab}binaryWriter.Advance(byteCount{arrayIndex});
-                         """);
-
-                    reads.AppendLine(
-                        $"""
-                         {tab}var byteCount{arrayIndex} = {serializerName}.Deserialize(binaryReader.CurrentBuffer, ref result.{member.Name}[i]);
-                         {tab}binaryReader.Advance(byteCount{arrayIndex});
-                         """);
-                }
-                else if (itemType.IsUnmanagedType)
+                if (IsTypeArrayCopiable(itemType))
                 {
                     writes.Append(tab);
-                    writes.AppendLine($"binaryWriter.Write({paramModifier}data.{member.Name}[i]);");
+                    writes.AppendLine($"binaryWriter.Write(data.{member.Name});");
 
                     reads.Append(tab);
-                    reads.AppendLine($"result.{member.Name}[i] = binaryReader.Read{itemType.Name}();");
+                    reads.AppendLine($"binaryReader.Read{itemType.Name}(result.{member.Name});");
                 }
+                else
+                {
+                    var arrayIndex = ++arrays;
+                    var path = $"data.{member.Name}";
 
-                writes.Append(tab);
-                writes.AppendLine("}");
-                reads.Append(tab);
-                reads.AppendLine("}");
+                    writes.AppendLine(
+                        $$"""
+                                  binaryWriter.Write({{path}}.{{sizeProp}});
+                                  for(var i = 0; i < {{path}}.{{sizeProp}}; i++)
+                                  {
+                          """);
+
+                    reads.AppendLine(
+                        $$"""
+                                  var size{{arrayIndex}} = binaryReader.ReadInt32();
+                                  for(var i = 0; i < size{{arrayIndex}}; i++)
+                                  {
+                          """);
+
+                    if (serializerMap.TryGetValue(itemType.ToDisplayString(), out var memberSerializer))
+                    {
+                        var serializerName = $"{memberSerializer.NameSpace}.{memberSerializer.Name}.Shared";
+
+                        writes.AppendLine(
+                            $"""
+                             {tab}var byteCount{arrayIndex} = {serializerName}.Serialize(in data.{member.Name}[i], binaryWriter.CurrentBuffer);
+                             {tab}binaryWriter.Advance(byteCount{arrayIndex});
+                             """);
+
+                        reads.AppendLine(
+                            $"""
+                             {tab}var byteCount{arrayIndex} = {serializerName}.Deserialize(binaryReader.CurrentBuffer, ref result.{member.Name}[i]);
+                             {tab}binaryReader.Advance(byteCount{arrayIndex});
+                             """);
+                    }
+                    else if (itemType.IsUnmanagedType)
+                    {
+                        writes.Append(tab);
+                        writes.AppendLine($"binaryWriter.Write({paramModifier}data.{member.Name}[i]);");
+
+                        reads.Append(tab);
+                        reads.AppendLine($"result.{member.Name}[i] = binaryReader.Read{itemType.Name}();");
+                    }
+
+                    writes.Append(tab);
+                    writes.AppendLine("}");
+                    reads.Append(tab);
+                    reads.AppendLine("}");
+                }
             }
             else
             {
@@ -130,8 +142,8 @@ static class SourceGenerationHelper
             return true;
         }
 
-        if (memberType is INamedTypeSymbol { TypeArguments.Length: 1 } named &&
-            named.ToDisplayString().StartsWith("Backdash.Data.Array"))
+        if (memberType is INamedTypeSymbol { TypeArguments.Length: 1 } named
+            && named.ToDisplayString().StartsWith("Backdash.Data.EquatableArray"))
         {
             elementType = named.TypeArguments.First();
             return true;
@@ -155,5 +167,23 @@ static class SourceGenerationHelper
         }
 
         return sb.Append(name).Append(".g.cs").ToString();
+    }
+
+    static bool IsTypeArrayCopiable(ITypeSymbol type)
+    {
+        Debug.Assert(type != null);
+
+        if (!type.IsUnmanagedType)
+            return false;
+
+        return type.SpecialType switch
+        {
+            SpecialType.System_SByte or SpecialType.System_Byte
+                or SpecialType.System_Char or SpecialType.System_Boolean
+                or SpecialType.System_Int16 or SpecialType.System_UInt16
+                or SpecialType.System_Int32 or SpecialType.System_UInt32
+                or SpecialType.System_Int64 or SpecialType.System_UInt64 => true,
+            _ => false,
+        };
     }
 }

@@ -1,4 +1,5 @@
 using Backdash.Data;
+
 namespace SpaceWar.Logic;
 
 public sealed record Ship
@@ -16,14 +17,16 @@ public sealed record Ship
     public int Score;
     public int Thrust;
     public Missile Missile;
-    public readonly Array<Bullet> Bullets = new(Config.MaxBullets);
+    public readonly EquatableArray<Bullet> Bullets = new(Config.MaxBullets);
 }
+
 public record struct Bullet
 {
     public bool Active;
     public Vector2 Position;
     public Vector2 Velocity;
 }
+
 public record struct Missile
 {
     public bool Active;

@@ -36,6 +36,6 @@ static class InternalExtensions
 }
 static class Extensions
 {
-    public static Array<T> ToEquatableArray<T>(this IEnumerable<T> source) where T : IEquatable<T> =>
+    public static EquatableArray<T> ToEquatableArray<T>(this IEnumerable<T> source) where T : IEquatable<T> =>
         new(source as T[] ?? source.ToArray());
 }

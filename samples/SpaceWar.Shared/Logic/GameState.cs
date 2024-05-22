@@ -4,7 +4,7 @@ namespace SpaceWar.Logic;
 
 public sealed record GameState
 {
-    public Array<Ship> Ships = [];
+    public EquatableArray<Ship> Ships = [];
     public Rectangle Bounds;
     public int FrameNumber;
     public int NumberOfShips => Ships.Length;

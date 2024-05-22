@@ -12,47 +12,47 @@ namespace Backdash.Data;
 /// </summary>
 /// <typeparam name="T">The type of element that implements <see cref="IEquatable{T}"/> stored by the array.</typeparam>
 [CollectionBuilder(typeof(ArrayCollectionBuilder), nameof(ArrayCollectionBuilder.Create))]
-public sealed class Array<T>(T[] values) :
+public sealed class EquatableArray<T>(T[] values) :
     IReadOnlyList<T>,
-    IEquatable<Array<T>>,
-    IEqualityOperators<Array<T>, Array<T>, bool>
+    IEquatable<EquatableArray<T>>,
+    IEqualityOperators<EquatableArray<T>, EquatableArray<T>, bool>
     where T : IEquatable<T>
 {
     readonly T[] values = values;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="Array{T}"/> class of size <paramref name="size"/>.
+    /// Initializes a new instance of the <see cref="EquatableArray{T}"/> class of size <paramref name="size"/>.
     /// </summary>
     /// <param name="size">Array capacity</param>
-    public Array(int size) : this(new T[size]) { }
+    public EquatableArray(int size) : this(new T[size]) { }
 
     /// <summary>
-    /// Initializes an empty new instance of the <see cref="Array{T}"/>.
+    /// Initializes an empty new instance of the <see cref="EquatableArray{T}"/>.
     /// </summary>
-    public Array() : this([]) { }
+    public EquatableArray() : this([]) { }
 
     /// <summary>
-    /// Returns an empty <see cref="Array{T}"/>.
+    /// Returns an empty <see cref="EquatableArray{T}"/>.
     /// </summary>
-    public static readonly Array<T> Empty = [];
+    public static readonly EquatableArray<T> Empty = [];
 
     /// <summary>
-    /// Gets the total number of elements in all the dimensions of the <see cref="Array{T}"/>.
+    /// Gets the total number of elements in all the dimensions of the <see cref="EquatableArray{T}"/>.
     /// </summary>
     public int Length => values.Length;
 
     /// <summary>
-    /// Returns a value that indicates whether the current <see cref="Array{T}"/> is empty.
+    /// Returns a value that indicates whether the current <see cref="EquatableArray{T}"/> is empty.
     /// </summary>
     public bool IsEmpty => values.Length is 0;
 
     /// <summary>
-    /// Returns a read-only <see cref="IReadOnlyList{T}"/> wrapper for the current <see cref="Array{T}"/>.
+    /// Returns a read-only <see cref="IReadOnlyList{T}"/> wrapper for the current <see cref="EquatableArray{T}"/>.
     /// </summary>
     public IReadOnlyList<T> AsReadOnly() => values.AsReadOnly();
 
     /// <summary>
-    /// Returns the internal array of the current <see cref="Array{T}"/>.
+    /// Returns the internal array of the current <see cref="EquatableArray{T}"/>.
     /// </summary>
     public T[] AsArray() => values;
 
@@ -69,30 +69,34 @@ public sealed class Array<T>(T[] values) :
     public void CopyTo(Memory<T> destination) => values.CopyTo(destination);
 
     /// <summary>
-    /// Copies the contents of the <see cref="Array{T}"/> into other <see cref="Array{T}"/>.
+    /// Copies the contents of the <see cref="EquatableArray{T}"/> into another <see cref="EquatableArray{T}"/>.
     /// </summary>
-    public void CopyTo(Array<T> destination) => values.CopyTo(destination.AsSpan());
+    public void CopyTo(EquatableArray<T> destination) => values.CopyTo(destination.AsSpan());
 
     /// <summary>
-    /// Returns a reference to specified element of the <see cref="Array{T}"/>.
+    /// Returns a reference to specified element of the <see cref="EquatableArray{T}"/>.
     /// </summary>
     /// <param name="index">array index</param>
     public ref T this[int index] => ref values[index];
 
     /// <summary>
-    /// Returns a reference to specified element at <paramref name="index"/> of the <see cref="Array{T}"/>.
+    /// Returns a reference to specified element at <paramref name="index"/> of the <see cref="EquatableArray{T}"/>.
     /// </summary>
     /// <param name="index">array index</param>
     public ref T this[Index index] => ref values[index];
 
     /// <summary>
-    /// Returns a rage slice as a copy of the current <see cref="Array{T}"/>
+    /// Returns a rage slice as a copy of the current <see cref="EquatableArray{T}"/>
     /// </summary>
-    public Array<T> this[Range range] => new(values[range]);
+    public EquatableArray<T> this[Range range] => new(values[range]);
 
-    /// <inheritdoc cref="Array.Clear(Array,int,int)"/>
+    /// <summary>
+    /// Forms a new Array for the slice out of the current span starting at a specified index for a specified length.
+    /// </summary>
+    public EquatableArray<T> Slice(int start, int length) => new(values.AsSpan().Slice(start, length).ToArray());
+
+    /// <inheritdoc cref="System.Array.Clear(System.Array, int, int)"/>
     public void Clear(int index, int length) => Array.Clear(values, index, length);
-
 
     /// <summary>
     /// Sets a range of elements in an array to the default value of each element type.
@@ -110,7 +114,7 @@ public sealed class Array<T>(T[] values) :
     public void Clear() => Clear(0, values.Length);
 
     /// <inheritdoc/>
-    public bool Equals(Array<T>? other)
+    public bool Equals(EquatableArray<T>? other)
     {
         if (other is null) return false;
         if (ReferenceEquals(this, other) || ReferenceEquals(values, other.values)) return true;
@@ -119,7 +123,7 @@ public sealed class Array<T>(T[] values) :
 
     /// <inheritdoc/>
     public override bool Equals(object? obj) =>
-        ReferenceEquals(this, obj) || (obj is Array<T> other && Equals(other));
+        ReferenceEquals(this, obj) || (obj is EquatableArray<T> other && Equals(other));
 
     /// <inheritdoc/>
     public override int GetHashCode()
@@ -148,7 +152,7 @@ public sealed class Array<T>(T[] values) :
     /// <summary>
     ///  Filters an array of values based on a predicate.
     /// </summary>
-    public Array<T> FindAll(Predicate<T> predicate) => new(Array.FindAll(values, predicate));
+    public EquatableArray<T> FindAll(Predicate<T> predicate) => new(Array.FindAll(values, predicate));
 
     /// <summary>
     ///  Searches for an element that matches the conditions defined by the specified predicate, and returns the first occurrence within the entire Array.
@@ -192,7 +196,7 @@ public sealed class Array<T>(T[] values) :
     /// <summary>
     ///  Crates new array with new size copying elements from source
     /// </summary>
-    public Array<T> ToResized(int newSize)
+    public EquatableArray<T> ToResized(int newSize)
     {
         var copy = new T[newSize];
         var size = Math.Min(newSize, values.Length);
@@ -203,7 +207,7 @@ public sealed class Array<T>(T[] values) :
     /// <summary>
     ///  Create new array with same values
     /// </summary>
-    public Array<T> Clone()
+    public EquatableArray<T> Clone()
     {
         var copy = new T[Length];
         Array.Copy(values, copy, values.Length);
@@ -252,7 +256,7 @@ public sealed class Array<T>(T[] values) :
     /// <summary>
     ///  Sorts the elements of an array in ascending order into a new array.
     /// </summary>
-    public Array<T> ToSorted(IComparer<T>? comparer = null)
+    public EquatableArray<T> ToSorted(IComparer<T>? comparer = null)
     {
         var copy = Clone();
         copy.Sort(comparer);
@@ -262,7 +266,7 @@ public sealed class Array<T>(T[] values) :
     /// <summary>
     ///  Sorts the elements in a range of elements in an Array into a new array
     /// </summary>
-    public Array<T> ToSorted(int index, int length, IComparer<T>? comparer = null)
+    public EquatableArray<T> ToSorted(int index, int length, IComparer<T>? comparer = null)
     {
         var copy = Clone();
         copy.Sort(index, length, comparer);
@@ -272,7 +276,7 @@ public sealed class Array<T>(T[] values) :
     /// <summary>
     ///  Sorts the elements in a range of elements in an Array into a new array
     /// </summary>
-    public Array<T> ToSorted(Range range, IComparer<T>? comparer = null)
+    public EquatableArray<T> ToSorted(Range range, IComparer<T>? comparer = null)
     {
         var copy = Clone();
         copy.Sort(range, comparer);
@@ -293,7 +297,7 @@ public sealed class Array<T>(T[] values) :
     /// <summary>
     ///  Sorts the elements of an array in ascending order according to a key.
     /// </summary>
-    public Array<T> ToSortedBy<TKey>(Func<T, TKey> selector, IComparer<TKey>? comparer = null)
+    public EquatableArray<T> ToSortedBy<TKey>(Func<T, TKey> selector, IComparer<TKey>? comparer = null)
         where TKey : IComparable<TKey>
     {
         var copy = Clone();
@@ -302,9 +306,9 @@ public sealed class Array<T>(T[] values) :
     }
 
     /// <summary>
-    ///  Sorts the elements of an array in ascending order according to a key.
+    ///  Projects each element of the array on a new array
     /// </summary>
-    public Array<TOutput> Map<TOutput>(Func<T, TOutput> projection)
+    public EquatableArray<TOutput> Map<TOutput>(Func<T, TOutput> projection)
         where TOutput : IEquatable<TOutput>
     {
         TOutput[] newArray = new TOutput[values.Length];
@@ -346,33 +350,33 @@ public sealed class Array<T>(T[] values) :
 
 
     /// <inheritdoc cref="AsArray" />
-    public static implicit operator T[](Array<T> array) => array.values;
+    public static implicit operator T[](EquatableArray<T> equatableArray) => equatableArray.values;
 
     /// <inheritdoc cref="AsSpan" />
-    public static implicit operator Span<T>(Array<T> array) => array.values;
+    public static implicit operator Span<T>(EquatableArray<T> equatableArray) => equatableArray.values;
 
-    /// <inheritdoc cref="AsSpan" />
-    public static implicit operator ReadOnlySpan<T>(Array<T> array) => array.values;
+    /// <inheritdoc cref="AsReadOnly" />
+    public static implicit operator ReadOnlySpan<T>(EquatableArray<T> equatableArray) => equatableArray.values;
 
     /// <inheritdoc cref="AsMemory" />
-    public static implicit operator Memory<T>(Array<T> array) => array.values;
+    public static implicit operator Memory<T>(EquatableArray<T> equatableArray) => equatableArray.values;
 
-    /// <inheritdoc cref="Equals(Backdash.Data.Array{T}?)" />
-    public static bool operator ==(Array<T>? left, Array<T>? right) => Equals(left, right);
+    /// <inheritdoc cref="Equals(EquatableArray{T}?)" />
+    public static bool operator ==(EquatableArray<T>? left, EquatableArray<T>? right) => Equals(left, right);
 
-    /// <inheritdoc cref="Equals(Backdash.Data.Array{T}?)" />
-    public static bool operator !=(Array<T>? left, Array<T>? right) => !Equals(left, right);
+    /// <inheritdoc cref="Equals(EquatableArray{T}?)" />
+    public static bool operator !=(EquatableArray<T>? left, EquatableArray<T>? right) => !Equals(left, right);
 
     /// <inheritdoc />
     public struct Enumerator : IEnumerator<T>
     {
-        readonly Array<T> array;
+        readonly EquatableArray<T> equatableArray;
         int index;
         T? current;
 
-        internal Enumerator(Array<T> array)
+        internal Enumerator(EquatableArray<T> equatableArray)
         {
-            this.array = array;
+            this.equatableArray = equatableArray;
             index = 0;
             current = default;
         }
@@ -383,14 +387,14 @@ public sealed class Array<T>(T[] values) :
         /// <inheritdoc />
         public bool MoveNext()
         {
-            if ((uint)index < (uint)array.Length)
+            if ((uint)index < (uint)equatableArray.Length)
             {
-                current = array[index];
+                current = equatableArray[index];
                 index++;
                 return true;
             }
 
-            index = array.Length + 1;
+            index = equatableArray.Length + 1;
             current = default;
             return false;
         }
@@ -402,7 +406,7 @@ public sealed class Array<T>(T[] values) :
         {
             get
             {
-                if (index == array.Length + 1)
+                if (index == equatableArray.Length + 1)
                     throw new InvalidOperationException("Index out of range");
                 return Current;
             }
@@ -417,15 +421,15 @@ public sealed class Array<T>(T[] values) :
 }
 
 /// <summary>
-/// Initialization methods for instances of <see cref="Array{T}"/>.
+/// Initialization methods for instances of <see cref="EquatableArray{T}"/>.
 /// </summary>
 public static class ArrayCollectionBuilder
 {
     /// <summary>
-    /// Produce an <see cref="Array{T}"/> of contents from specified elements.
+    /// Produce an <see cref="EquatableArray{T}"/> of contents from specified elements.
     /// </summary>
     /// <typeparam name="T">The type of element in the array.</typeparam>
     /// <param name="items">The elements to store in the array.</param>
     /// <returns>An array containing the specified items.</returns>
-    public static Array<T> Create<T>(ReadOnlySpan<T> items) where T : IEquatable<T> => new(items.ToArray());
+    public static EquatableArray<T> Create<T>(ReadOnlySpan<T> items) where T : IEquatable<T> => new(items.ToArray());
 }
