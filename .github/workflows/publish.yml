@@ -3,10 +3,16 @@ on:
     workflow_dispatch:
         inputs:
             release_nuget:
-                description: 'Publish Nuget.org?'
+                description: 'Publish Nuget.org ?'
                 type: boolean
                 required: false
                 default: false
+
+            release_github:
+                description: 'Publish GitHub Packages ?'
+                type: boolean
+                required: false
+                default: true
 
 env:
     DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
@@ -60,11 +66,10 @@ jobs:
                     name: buildArtifacts
                     path: ./build_artifacts
 
-    release_preview:
+    release_github:
         name: Publish Github Packages
         runs-on: ubuntu-latest
-        #Only release if there has been a commit/version change
-        if: github.ref == 'refs/heads/master' && needs.build.outputs.IsNewVersion
+        if: github.event.inputs.release_github == 'true' && github.ref == 'refs/heads/master' && needs.build.outputs.IsNewVersion
         needs: build
         steps:
             -   name: Download lib nuget package artifact
@@ -73,17 +78,16 @@ jobs:
                     name: buildArtifacts
                     path: ./build_artifacts
 
-            -   name: Add nuget source
+            -   name: Add NuGet source
                 run: dotnet nuget add source --username lucasteles --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/lucasteles/index.json"
 
             -   name: Release GitHub package
                 run: dotnet nuget push build_artifacts/*.nupkg --api-key ${{ secrets.GITHUB_TOKEN }}  --source "github"
 
-    release:
+    release_nuget:
         name: Publish Nuget
         runs-on: ubuntu-latest
-        #Only release if there has been a commit/version change
-        if: github.event.inputs.release_nuget == 'true' # && github.ref == 'refs/heads/master' && needs.build.outputs.CommitsSinceVersionSource > 0
+        if: github.event.inputs.release_nuget == 'true' && github.ref == 'refs/heads/master' # && needs.build.outputs.CommitsSinceVersionSource > 0
         needs: build
         steps:
             -   name: Download lib nuget package artifact
