@@ -7,5 +7,6 @@
     </PropertyGroup>
     <ItemGroup>
       <ProjectReference Include="..\..\src\Backdash\Backdash.csproj" />
+      <ProjectReference Include="..\..\src\Backdash.Analyzers\Backdash.Analyzers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     </ItemGroup>
 </Project>
