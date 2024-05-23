@@ -1,5 +1,6 @@
 using Backdash.Serialization;
-namespace Backdash.Sync.State.Stores;
+
+namespace Backdash.Synchronizing.State.Stores;
 
 static class StateStoreFactory
 {

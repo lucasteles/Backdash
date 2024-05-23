@@ -1,7 +1,7 @@
 using Backdash.Serialization;
 using Backdash.Serialization.Buffer;
 
-namespace Backdash.Sync.Input.Confirmed;
+namespace Backdash.Synchronizing.Input.Confirmed;
 
 sealed class ConfirmedInputsSerializer<T>(IBinarySerializer<T> inputSerializer)
     : BinarySerializer<ConfirmedInputs<T>> where T : unmanaged

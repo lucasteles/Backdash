@@ -1,6 +1,6 @@
 using Backdash.Core;
 
-namespace Backdash.Sync.Input;
+namespace Backdash.Synchronizing.Input;
 
 /// <summary>
 /// Input value provider

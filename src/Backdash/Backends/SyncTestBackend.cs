@@ -2,8 +2,8 @@ using System.Text.Json;
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network;
-using Backdash.Sync.Input;
-using Backdash.Sync.State;
+using Backdash.Synchronizing.Input;
+using Backdash.Synchronizing.State;
 
 namespace Backdash.Backends;
 

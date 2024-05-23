@@ -1,6 +1,6 @@
 using Backdash.Data;
 
-namespace Backdash.Sync.State;
+namespace Backdash.Synchronizing.State;
 
 /// <summary>
 /// Represents a save-state at specific frame.

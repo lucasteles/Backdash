@@ -3,8 +3,8 @@ using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network.Messages;
 using Backdash.Serialization;
-using Backdash.Sync;
-using Backdash.Sync.Input;
+using Backdash.Synchronizing;
+using Backdash.Synchronizing.Input;
 
 namespace Backdash.Network.Protocol.Comm;
 

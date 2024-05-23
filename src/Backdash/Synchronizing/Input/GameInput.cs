@@ -1,6 +1,7 @@
 using Backdash.Data;
 using Backdash.Serialization.Buffer;
-namespace Backdash.Sync.Input;
+
+namespace Backdash.Synchronizing.Input;
 
 record struct GameInput<T>(T Data, Frame Frame) : IUtf8SpanFormattable where T : struct
 {

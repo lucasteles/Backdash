@@ -3,7 +3,7 @@ using Backdash.Core;
 using Backdash.Data;
 using Backdash.Serialization;
 
-namespace Backdash.Sync.State.Stores;
+namespace Backdash.Synchronizing.State.Stores;
 
 using SavedFrameBytes = (Memory<byte> Buffer, int Size);
 

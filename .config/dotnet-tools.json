@@ -19,6 +19,12 @@
       "commands": [
         "docfx"
       ]
+    },
+    "gitversion.tool": {
+      "version": "5.12.0",
+      "commands": [
+        "dotnet-gitversion"
+      ]
     }
   }
 }

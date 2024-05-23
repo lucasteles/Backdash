@@ -1,4 +1,4 @@
-namespace Backdash.Sync;
+namespace Backdash.Synchronizing;
 
 /// <summary>
 /// Time Synchronization options

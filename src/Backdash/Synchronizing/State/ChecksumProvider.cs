@@ -1,4 +1,4 @@
-namespace Backdash.Sync.State;
+namespace Backdash.Synchronizing.State;
 
 /// <summary>
 /// Provider of checksum values for <typeparamref name="T"/>.

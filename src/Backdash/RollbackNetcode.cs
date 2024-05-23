@@ -3,7 +3,7 @@ using Backdash.Backends;
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network.Client;
-using Backdash.Sync.Input.Confirmed;
+using Backdash.Synchronizing.Input.Confirmed;
 
 namespace Backdash;
 

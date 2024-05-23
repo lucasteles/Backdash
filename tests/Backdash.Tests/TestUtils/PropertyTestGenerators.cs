@@ -3,8 +3,8 @@ using System.Numerics;
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network.Messages;
-using Backdash.Sync.Input;
-using Backdash.Sync.Input.Confirmed;
+using Backdash.Synchronizing.Input;
+using Backdash.Synchronizing.Input.Confirmed;
 using Backdash.Tests.TestUtils.Types;
 
 namespace Backdash.Tests.TestUtils;

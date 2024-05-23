@@ -1,6 +1,6 @@
 using Backdash.Network;
 using Backdash.Serialization;
-using Backdash.Sync.Input.Confirmed;
+using Backdash.Synchronizing.Input.Confirmed;
 using Backdash.Tests.TestUtils;
 
 namespace Backdash.Tests.Specs.Unit.Sync.Input;

@@ -5,8 +5,8 @@ using Backdash.Network.Client;
 using Backdash.Network.Messages;
 using Backdash.Network.Protocol;
 using Backdash.Network.Protocol.Comm;
-using Backdash.Sync;
-using Backdash.Sync.Input;
+using Backdash.Synchronizing;
+using Backdash.Synchronizing.Input;
 using Timer = System.Timers.Timer;
 
 namespace Backdash.Network;

@@ -3,10 +3,10 @@ using Backdash.Network;
 using Backdash.Network.Client;
 using Backdash.Network.Protocol;
 using Backdash.Serialization;
-using Backdash.Sync.Input;
-using Backdash.Sync.Input.Confirmed;
-using Backdash.Sync.State;
-using Backdash.Sync.State.Stores;
+using Backdash.Synchronizing.Input;
+using Backdash.Synchronizing.Input.Confirmed;
+using Backdash.Synchronizing.State;
+using Backdash.Synchronizing.State.Stores;
 
 namespace Backdash.Backends;
 

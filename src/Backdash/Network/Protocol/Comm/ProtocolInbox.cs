@@ -6,7 +6,7 @@ using Backdash.Data;
 using Backdash.Network.Client;
 using Backdash.Network.Messages;
 using Backdash.Serialization;
-using Backdash.Sync.Input;
+using Backdash.Synchronizing.Input;
 
 namespace Backdash.Network.Protocol.Comm;
 

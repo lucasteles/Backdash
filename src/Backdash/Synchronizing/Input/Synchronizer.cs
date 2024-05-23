@@ -2,10 +2,10 @@ using System.Diagnostics;
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network;
-using Backdash.Sync.Input.Confirmed;
-using Backdash.Sync.State;
+using Backdash.Synchronizing.Input.Confirmed;
+using Backdash.Synchronizing.State;
 
-namespace Backdash.Sync.Input;
+namespace Backdash.Synchronizing.Input;
 
 sealed class Synchronizer<TInput, TState>
     where TInput : unmanaged

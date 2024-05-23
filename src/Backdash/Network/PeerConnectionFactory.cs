@@ -4,7 +4,8 @@ using Backdash.Network.Messages;
 using Backdash.Network.Protocol;
 using Backdash.Network.Protocol.Comm;
 using Backdash.Serialization;
-using Backdash.Sync;
+using Backdash.Synchronizing;
+
 namespace Backdash.Network;
 
 sealed class PeerConnectionFactory(

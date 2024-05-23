@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Threading.Channels;
-using Backdash.Sync.Input;
-using Backdash.Sync.Input.Confirmed;
+using Backdash.Synchronizing.Input;
+using Backdash.Synchronizing.Input.Confirmed;
 
 namespace Backdash.Network;
 

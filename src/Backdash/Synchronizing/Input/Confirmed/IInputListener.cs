@@ -1,6 +1,6 @@
 using Backdash.Data;
 
-namespace Backdash.Sync.Input.Confirmed;
+namespace Backdash.Synchronizing.Input.Confirmed;
 
 /// <summary>
 /// Listen for confirmed input

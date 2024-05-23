@@ -1,6 +1,6 @@
 using Backdash.Data;
 
-namespace Backdash.Sync.State;
+namespace Backdash.Synchronizing.State;
 
 /// <summary>
 /// Repository for temporary save and restore game states.

@@ -1,7 +1,7 @@
 using System.Runtime.CompilerServices;
 using Backdash.Core;
 
-namespace Backdash.Sync.Input.Confirmed;
+namespace Backdash.Synchronizing.Input.Confirmed;
 
 /// <summary>
 /// All confirmed inputs for all players

@@ -1,7 +1,7 @@
 using Backdash.Core;
 using Backdash.Data;
 
-namespace Backdash.Sync.State.Stores;
+namespace Backdash.Synchronizing.State.Stores;
 
 /// <summary>
 /// Array pool store for temporary save and restore game states.

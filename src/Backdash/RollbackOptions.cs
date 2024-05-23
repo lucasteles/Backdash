@@ -3,8 +3,8 @@ using Backdash.Data;
 using Backdash.Network;
 using Backdash.Network.Client;
 using Backdash.Network.Protocol;
-using Backdash.Sync;
-using Backdash.Sync.State;
+using Backdash.Synchronizing;
+using Backdash.Synchronizing.State;
 
 namespace Backdash;
 

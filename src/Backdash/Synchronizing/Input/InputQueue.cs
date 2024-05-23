@@ -1,7 +1,8 @@
 using System.Diagnostics;
 using Backdash.Core;
 using Backdash.Data;
-namespace Backdash.Sync.Input;
+
+namespace Backdash.Synchronizing.Input;
 
 sealed class InputQueue<TInput> where TInput : unmanaged
 {

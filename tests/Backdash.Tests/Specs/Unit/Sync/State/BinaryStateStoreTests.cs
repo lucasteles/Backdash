@@ -1,7 +1,7 @@
 using System.Numerics;
 using Backdash.Data;
 using Backdash.Serialization;
-using Backdash.Sync.State.Stores;
+using Backdash.Synchronizing.State.Stores;
 using Backdash.Tests.TestUtils;
 
 namespace Backdash.Tests.Specs.Unit.Sync.State;

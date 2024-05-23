@@ -7,8 +7,8 @@ using Backdash.Network.Client;
 using Backdash.Network.Messages;
 using Backdash.Network.Protocol;
 using Backdash.Serialization;
-using Backdash.Sync.Input;
-using Backdash.Sync.Input.Confirmed;
+using Backdash.Synchronizing.Input;
+using Backdash.Synchronizing.Input.Confirmed;
 
 namespace Backdash.Backends;
 

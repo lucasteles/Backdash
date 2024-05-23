@@ -1,8 +1,8 @@
 using Backdash.Core;
 using Backdash.Network.Protocol;
-using Backdash.Sync.Input;
+using Backdash.Synchronizing.Input;
 
-namespace Backdash.Sync;
+namespace Backdash.Synchronizing;
 
 interface ITimeSync<TInput> where TInput : unmanaged
 {
