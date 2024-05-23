@@ -19,8 +19,8 @@ jobs:
         runs-on: ubuntu-latest
         outputs:
             Version: ${{ steps.gitversion.outputs.SemVer }}
-            CommitsSinceVersionSource: ${{ steps.gitversion.outputs.CommitsSinceVersionSource }}
-            PreReleaseTag: ${{ steps.gitversion.outputs.PreReleaseTag }}
+            IsNewVersion: ${{ steps.gitversion.outputs.CommitsSinceVersionSource > 0 }}
+            PreReleaseTag: ${{ steps.gitversion.outputs.NuGetPreReleaseTagV2 }}
         steps:
             -   name: Checkout Branch
                 uses: actions/checkout@v4
@@ -41,21 +41,18 @@ jobs:
                 uses: gittools/actions/gitversion/execute@v1.1.1
                 id: gitversion
 
-            -   name: Display GitVersion outputs
-                run: |
-                    echo "Version: ${{ steps.gitversion.outputs.SemVer }}"
-                    echo "CommitsSinceVersionSource: ${{ steps.gitversion.outputs.CommitsSinceVersionSource }}"
-
             -   name: Tool Restore
                 run: dotnet tool restore
 
             -   name: Test
                 run: dotnet nuke test
             -   name: Build and Pack NuGet package
+                env:
+                    SEM_VER: ${{ steps.gitversion.outputs.SemVer }}
                 run: |
-                    dotnet pack src/Backdash --configuration Release --include-symbols -p:Version='${{ steps.gitversion.outputs.SemVer }}' --output ./build_artifacts
-                    dotnet pack src/Backdash.Utils --configuration Release --include-symbols -p:Version='${{ steps.gitversion.outputs.SemVer }}' --output ./build_artifacts
-                    dotnet pack src/Backdash.Analyzers --configuration Release --include-symbols -p:Version='${{ steps.gitversion.outputs.SemVer }}' --output ./build_artifacts
+                    dotnet pack src/Backdash --configuration Release --include-symbols -p:Version='$SEM_VER' --output ./build_artifacts
+                    dotnet pack src/Backdash.Utils --configuration Release --include-symbols -p:Version='$SEM_VER' --output ./build_artifacts
+                    dotnet pack src/Backdash.Analyzers --configuration Release --include-symbols -p:Version='$SEM_VER' --output ./build_artifacts
 
             -   name: Upload lib NuGet package artifact to GitHub
                 uses: actions/upload-artifact@v3
@@ -67,7 +64,7 @@ jobs:
         name: Publish Github Packages
         runs-on: ubuntu-latest
         #Only release if there has been a commit/version change
-        if: github.ref == 'refs/heads/master' && needs.build.outputs.CommitsSinceVersionSource > 0
+        if: github.ref == 'refs/heads/master' && needs.build.outputs.IsNewVersion
         needs: build
         steps:
             -   name: Download lib nuget package artifact
