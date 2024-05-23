@@ -9,6 +9,7 @@ using Backdash.Network.Protocol.Comm;
 using Backdash.Serialization;
 using Backdash.Synchronizing.Input;
 using Backdash.Synchronizing.Input.Confirmed;
+using Backdash.Synchronizing.Random;
 using Backdash.Synchronizing.State;
 
 namespace Backdash.Backends;
@@ -23,6 +24,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
     readonly Logger logger;
     readonly IStateStore<TGameState> stateStore;
     readonly IProtocolClient udp;
+    readonly IDeterministicRandom deterministicRandom;
     readonly PeerObserverGroup<ProtocolMessage> peerObservers;
     readonly Synchronizer<TInput, TGameState> synchronizer;
     readonly ConnectionsState localConnections;
@@ -43,6 +45,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
     IRollbackHandler<TGameState> callbacks;
     SynchronizedInput<TInput>[] syncInputBuffer = [];
     Task backgroundJobTask = Task.CompletedTask;
+    readonly ushort magicNumber;
     bool disposed;
     bool closed;
 
@@ -65,6 +68,8 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         backgroundJobManager = services.JobManager;
         logger = services.Logger;
         inputListener = services.InputListener;
+        deterministicRandom = services.DeterministicRandom;
+        magicNumber = services.Random.MagicNumber();
 
         peerInputEventQueue = new();
         peerCombinedInputsEventPublisher = new ProtocolCombinedInputsEventPublisher<TInput>(peerInputEventQueue);
@@ -136,6 +141,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
     public FrameSpan FramesBehind => synchronizer.FramesBehind;
     public int NumberOfPlayers => addedPlayers.Count;
     public int NumberOfSpectators => addedSpectators.Count;
+    public ISessionRandom Random => deterministicRandom;
     public bool IsSpectating => false;
     public IReadOnlyCollection<PlayerHandle> GetPlayers() => addedPlayers;
     public IReadOnlyCollection<PlayerHandle> GetSpectators() => addedSpectators;
@@ -274,7 +280,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
 
         var endpoint = player.EndPoint;
         var protocol = peerConnectionFactory.Create(
-            new(player.Handle, endpoint, localConnections),
+            new(player.Handle, endpoint, localConnections, magicNumber),
             inputSerializer, peerInputEventQueue
         );
 
@@ -312,7 +318,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
 
         spectator.Handle = spectatorHandle;
         var protocol = peerConnectionFactory.Create(
-            new(spectatorHandle, spectator.EndPoint, localConnections),
+            new(spectatorHandle, spectator.EndPoint, localConnections, magicNumber),
             inputGroupSerializer, peerCombinedInputsEventPublisher
         );
         peerObservers.Add(protocol.GetUdpObserver());
@@ -355,6 +361,8 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         if (isSynchronizing)
             return ResultCode.NotSynchronized;
         synchronizer.SynchronizeInputs(syncInputBuffer);
+        deterministicRandom.Reseed(CurrentFrame.Number);
+
         return ResultCode.Ok;
     }
 

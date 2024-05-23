@@ -147,6 +147,7 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
     public bool IsRunning => state.CurrentStatus is ProtocolStatus.Running;
 
     public PlayerHandle Player => state.Player;
+    public int RemoteMagicNumber => state.RemoteMagicNumber;
 
     // require idle input should be a configuration parameter
     public int GetRecommendFrameDelay() => timeSync.RecommendFrameWaitDuration();

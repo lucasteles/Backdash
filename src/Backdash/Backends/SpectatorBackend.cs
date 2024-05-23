@@ -9,6 +9,7 @@ using Backdash.Network.Protocol;
 using Backdash.Serialization;
 using Backdash.Synchronizing.Input;
 using Backdash.Synchronizing.Input.Confirmed;
+using Backdash.Synchronizing.Random;
 
 namespace Backdash.Backends;
 
@@ -25,10 +26,12 @@ sealed class SpectatorBackend<TInput, TGameState> :
     readonly RollbackOptions options;
     readonly IBackgroundJobManager backgroundJobManager;
     readonly IClock clock;
+    readonly IDeterministicRandom deterministicRandom;
     readonly ConnectionsState localConnections = new(0);
     readonly GameInput<ConfirmedInputs<TInput>>[] inputs;
     readonly PeerConnection<ConfirmedInputs<TInput>> host;
     readonly PlayerHandle[] fakePlayers;
+
     IRollbackHandler<TGameState> callbacks;
     bool isSynchronizing;
     Task backgroundJobTask = Task.CompletedTask;
@@ -50,6 +53,7 @@ sealed class SpectatorBackend<TInput, TGameState> :
         this.hostEndpoint = hostEndpoint;
         this.options = options;
         backgroundJobManager = services.JobManager;
+        deterministicRandom = services.DeterministicRandom;
         logger = services.Logger;
         clock = services.Clock;
         NumberOfPlayers = numberOfPlayers;
@@ -63,6 +67,7 @@ sealed class SpectatorBackend<TInput, TGameState> :
 
         udp = services.ProtocolClientFactory.CreateProtocolClient(port, peerObservers);
         backgroundJobManager.Register(udp);
+        var magicNumber = services.Random.MagicNumber();
 
         PeerConnectionFactory peerConnectionFactory = new(
             this, clock, services.Random, services.DelayStrategy, logger,
@@ -70,7 +75,7 @@ sealed class SpectatorBackend<TInput, TGameState> :
         );
 
         ProtocolState protocolState =
-            new(new(PlayerType.Remote, 0), hostEndpoint, localConnections);
+            new(new(PlayerType.Remote, 0), hostEndpoint, localConnections, magicNumber);
 
         host = peerConnectionFactory.Create(protocolState, inputGroupSerializer, this);
         peerObservers.Add(host.GetUdpObserver());
@@ -102,6 +107,7 @@ sealed class SpectatorBackend<TInput, TGameState> :
     public FrameSpan FramesBehind => FrameSpan.Zero;
     public int NumberOfPlayers { get; private set; }
     public int NumberOfSpectators => 0;
+    public ISessionRandom Random => deterministicRandom;
     public bool IsSpectating => true;
     public void DisconnectPlayer(in PlayerHandle player) { }
     public ResultCode AddLocalInput(PlayerHandle player, TInput localInput) => ResultCode.Ok;
@@ -122,6 +128,7 @@ sealed class SpectatorBackend<TInput, TGameState> :
     }
 
     public void AdvanceFrame() => logger.Write(LogLevel.Debug, $"[End Frame {CurrentFrame}]");
+
     public PlayerConnectionStatus GetPlayerStatus(in PlayerHandle player) => host.Status.ToPlayerStatus();
     public ResultCode AddPlayer(Player player) => ResultCode.NotSupported;
 
@@ -224,7 +231,10 @@ sealed class SpectatorBackend<TInput, TGameState> :
             Array.Resize(ref syncInputBuffer, NumberOfPlayers);
         for (var i = 0; i < NumberOfPlayers; i++)
             syncInputBuffer[i] = new(input.Data.Inputs[i], false);
+
+        deterministicRandom.Reseed(CurrentFrame.Number);
         CurrentFrame++;
+
         return ResultCode.Ok;
     }
 

@@ -1,4 +1,5 @@
 using System.Numerics;
+using Backdash.Synchronizing.Random;
 
 namespace ConsoleGame;
 
@@ -19,6 +20,7 @@ public static class GameLogic
     };
 
     public static void AdvanceState(
+        ISessionRandom random,
         ref GameState currentState,
         GameInput inputPlayer1,
         GameInput inputPlayer2
@@ -26,30 +28,29 @@ public static class GameLogic
     {
         currentState.Position1 = Move(currentState.Position1, inputPlayer1);
         currentState.Position2 = Move(currentState.Position2, inputPlayer2);
+
         var player1Scored = currentState.Position1 == currentState.Target;
         var player2Scored = currentState.Position2 == currentState.Target;
+
         if (player1Scored && !player2Scored)
             currentState.Score1++;
         if (player2Scored && !player1Scored)
             currentState.Score2++;
+
         if (player1Scored || player2Scored)
         {
-            var currentTarget = currentState.Target;
-            var maxDistance = 0;
-            for (var col = 0; col < GridSize; col++)
-            {
-                for (var row = 0; row < GridSize; row++)
-                {
-                    Vector2 candidate = new(col, row);
-                    var distance1 = (int)Vector2.Distance(currentState.Position1, candidate);
-                    var distance2 = (int)Vector2.Distance(currentState.Position2, candidate);
-                    var distanceT = (int)Vector2.Distance(candidate, currentTarget);
-                    if (MathF.Abs(distance1 - distance2) > 1 || distanceT < maxDistance)
-                        continue;
-                    maxDistance = distanceT;
-                    currentState.Target = candidate;
-                }
-            }
+            Vector2 candidate = currentState.Target;
+            while (
+                candidate == currentState.Target
+                || candidate == currentState.Position1
+                || candidate == currentState.Position2
+            )
+                candidate = new(
+                    random.NextInt(GridSize),
+                    random.NextInt(GridSize)
+                );
+
+            currentState.Target = candidate;
         }
     }
 

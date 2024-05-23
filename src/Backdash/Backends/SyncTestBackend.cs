@@ -3,6 +3,7 @@ using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network;
 using Backdash.Synchronizing.Input;
+using Backdash.Synchronizing.Random;
 using Backdash.Synchronizing.State;
 
 namespace Backdash.Backends;
@@ -21,6 +22,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
     readonly Synchronizer<TInput, TGameState> synchronizer;
     readonly TaskCompletionSource tsc = new();
     readonly Logger logger;
+    readonly IDeterministicRandom deterministicRandom;
     readonly HashSet<PlayerHandle> addedPlayers = [];
     readonly HashSet<PlayerHandle> addedSpectators = [];
     readonly Queue<SavedFrame> savedFrames = [];
@@ -57,6 +59,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         ThrowHelpers.ThrowIfArgumentIsNegative(checkDistance.FrameCount);
         this.checkDistance = checkDistance;
         this.throwError = throwError;
+        deterministicRandom = services.DeterministicRandom;
         inputGenerator = services.InputGenerator;
         logger = services.Logger;
         callbacks ??= new EmptySessionHandler<TGameState>(logger);
@@ -77,6 +80,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
     public void Dispose() => tsc.SetResult();
     public int NumberOfPlayers => Math.Max(addedPlayers.Count, 1);
     public int NumberOfSpectators => addedSpectators.Count;
+    public ISessionRandom Random => deterministicRandom;
     public Frame CurrentFrame => synchronizer.CurrentFrame;
     public bool IsSpectating => false;
     public FrameSpan FramesBehind => synchronizer.FramesBehind;
@@ -172,6 +176,8 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         }
 
         syncInputBuffer[0] = new(lastInput.Data, false);
+
+        deterministicRandom.Reseed(CurrentFrame.Number);
         return ResultCode.Ok;
     }
 
@@ -271,8 +277,8 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
 #else
             JsonSerializer.Serialize(value, jsonOptions)
 #endif
-            .Chunk(LogStringBuffer.Capacity / 2)
-            .Select(x => new string(x));
+                .Chunk(LogStringBuffer.Capacity / 2)
+                .Select(x => new string(x));
         foreach (var chunk in jsonChunks)
             logger.Write(level, chunk);
     }

@@ -1,7 +1,7 @@
 using System.Net;
 using Backdash;
-using Backdash.Sync.Input;
-using Backdash.Sync.Input.Confirmed;
+using Backdash.Synchronizing.Input;
+using Backdash.Synchronizing.Input.Confirmed;
 using SpaceWar.Logic;
 
 namespace SpaceWar;

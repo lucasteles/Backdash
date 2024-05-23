@@ -3,6 +3,7 @@ using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network;
 using Backdash.Synchronizing.Input.Confirmed;
+using Backdash.Synchronizing.Random;
 
 namespace Backdash.Backends;
 
@@ -13,7 +14,7 @@ sealed class ReplayBackend<TInput, TGameState> : IRollbackSession<TInput, TGameS
     readonly Logger logger;
     readonly PlayerHandle[] fakePlayers;
     IRollbackHandler<TGameState> callbacks;
-
+    readonly IDeterministicRandom deterministicRandom;
     bool isSynchronizing = true;
     SynchronizedInput<TInput>[] syncInputBuffer = [];
 
@@ -32,6 +33,7 @@ sealed class ReplayBackend<TInput, TGameState> : IRollbackSession<TInput, TGameS
 
         this.inputList = inputList;
         logger = services.Logger;
+        deterministicRandom = services.DeterministicRandom;
         NumberOfPlayers = numberOfPlayers;
         fakePlayers = Enumerable.Range(0, numberOfPlayers)
             .Select(x => new PlayerHandle(PlayerType.Remote, x + 1, x)).ToArray();
@@ -60,6 +62,7 @@ sealed class ReplayBackend<TInput, TGameState> : IRollbackSession<TInput, TGameS
     public FrameSpan FramesBehind => FrameSpan.Zero;
     public int NumberOfPlayers { get; private set; }
     public int NumberOfSpectators => 0;
+    public ISessionRandom Random => deterministicRandom;
     public bool IsSpectating => true;
     public void DisconnectPlayer(in PlayerHandle player) { }
     public ResultCode AddLocalInput(PlayerHandle player, TInput localInput) => ResultCode.Ok;
@@ -68,10 +71,7 @@ sealed class ReplayBackend<TInput, TGameState> : IRollbackSession<TInput, TGameS
 
     public void BeginFrame() { }
 
-    public void AdvanceFrame()
-    {
-        logger.Write(LogLevel.Debug, $"[End Frame {CurrentFrame}]");
-    }
+    public void AdvanceFrame() => logger.Write(LogLevel.Debug, $"[End Frame {CurrentFrame}]");
 
     public PlayerConnectionStatus GetPlayerStatus(in PlayerHandle player) => PlayerConnectionStatus.Connected;
     public ResultCode AddPlayer(Player player) => ResultCode.NotSupported;
@@ -119,7 +119,9 @@ sealed class ReplayBackend<TInput, TGameState> : IRollbackSession<TInput, TGameS
         for (var i = 0; i < NumberOfPlayers; i++)
             syncInputBuffer[i] = new(confirmed.Inputs[i], false);
 
+        deterministicRandom.Reseed(CurrentFrame.Number);
         CurrentFrame++;
+
         return ResultCode.Ok;
     }
 

@@ -2,6 +2,8 @@ using Backdash.Core;
 
 namespace Backdash.Synchronizing.Input;
 
+using Random = System.Random;
+
 /// <summary>
 /// Input value provider
 /// </summary>

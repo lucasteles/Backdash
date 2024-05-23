@@ -5,6 +5,7 @@ using Backdash.Network.Protocol;
 using Backdash.Serialization;
 using Backdash.Synchronizing.Input;
 using Backdash.Synchronizing.Input.Confirmed;
+using Backdash.Synchronizing.Random;
 using Backdash.Synchronizing.State;
 using Backdash.Synchronizing.State.Stores;
 
@@ -23,6 +24,7 @@ sealed class BackendServices<TInput, TGameState>
     public IStateStore<TGameState> StateStore { get; }
     public IInputGenerator<TInput>? InputGenerator { get; }
     public IRandomNumberGenerator Random { get; }
+    public IDeterministicRandom DeterministicRandom { get; }
     public IDelayStrategy DelayStrategy { get; }
     public IInputListener<TInput>? InputListener { get; }
 
@@ -30,6 +32,7 @@ sealed class BackendServices<TInput, TGameState>
     {
         ChecksumProvider = services?.ChecksumProvider ?? ChecksumProviderFactory.Create<TGameState>();
         StateStore = services?.StateStore ?? StateStoreFactory.Create(services?.StateSerializer);
+        DeterministicRandom = services?.DeterministicRandom ?? new XorSimdRandom();
         InputListener = services?.InputListener;
         Random = new DefaultRandomNumberGenerator(services?.Random ?? System.Random.Shared);
         DelayStrategy = DelayStrategyFactory.Create(Random, options.Protocol.DelayStrategy);

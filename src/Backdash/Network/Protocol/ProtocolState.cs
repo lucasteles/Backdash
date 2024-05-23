@@ -7,7 +7,8 @@ namespace Backdash.Network.Protocol;
 sealed class ProtocolState(
     PlayerHandle player,
     PeerAddress peerAddress,
-    ConnectionsState localConnectStatuses
+    ConnectionsState localConnectStatuses,
+    ushort magicNumber
 )
 {
     public readonly CancellationTokenSource StoppingTokenSource = new();
@@ -20,6 +21,8 @@ sealed class ProtocolState(
     public readonly Statistics Stats = new();
     public readonly ConnectionsState LocalConnectStatuses = localConnectStatuses;
     public readonly ConnectionsState PeerConnectStatuses = new(Max.NumberOfPlayers, Frame.Null);
+    public readonly ushort MagicNumber = magicNumber;
+    public ushort RemoteMagicNumber;
     public ProtocolStatus CurrentStatus;
 
     public sealed class ConnectionState

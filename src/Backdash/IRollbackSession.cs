@@ -1,5 +1,6 @@
 using Backdash.Data;
 using Backdash.Network;
+using Backdash.Synchronizing.Random;
 
 namespace Backdash;
 
@@ -44,6 +45,11 @@ public interface IRollbackSession<TInput> : IRollbackSessionInfo, IDisposable wh
     /// Returns the number of spectators in the current session
     /// </summary>
     int NumberOfSpectators { get; }
+
+    /// <summary>
+    /// Deterministic random value generator
+    /// </summary>
+    ISessionRandom Random { get; }
 
     /// <summary>
     /// Returns a list of all input players in the session.

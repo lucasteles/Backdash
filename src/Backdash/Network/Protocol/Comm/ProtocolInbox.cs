@@ -28,7 +28,6 @@ sealed class ProtocolInbox<TInput>(
     Logger logger
 ) : IProtocolInbox<TInput> where TInput : unmanaged
 {
-    ushort remoteMagicNumber;
     ushort nextRecvSeq;
     GameInput<TInput> lastReceivedInput = new();
     readonly Memory<byte> lastReceivedInputBuffer = Mem.CreatePinnedMemory(Max.CompressedBytes);
@@ -54,7 +53,7 @@ sealed class ProtocolInbox<TInput>(
                 return;
             }
 
-            if (message.Header.Magic != remoteMagicNumber)
+            if (message.Header.Magic != state.RemoteMagicNumber)
             {
                 logger.Write(LogLevel.Debug, $"recv rejecting: {message} on {state.Player}");
                 return;
@@ -235,7 +234,7 @@ sealed class ProtocolInbox<TInput>(
         if (state.CurrentStatus is not ProtocolStatus.Syncing)
         {
             logger.Write(LogLevel.Trace, "Ignoring SyncReply while not syncing");
-            return msg.Header.Magic == remoteMagicNumber;
+            return msg.Header.Magic == state.RemoteMagicNumber;
         }
 
         if (msg.SyncReply.RandomReply != state.Sync.CurrentRandom)
@@ -264,7 +263,7 @@ sealed class ProtocolInbox<TInput>(
             state.CurrentStatus = ProtocolStatus.Running;
             state.Stats.RoundTripTime = ping;
             lastReceivedInput.ResetFrame();
-            remoteMagicNumber = msg.Header.Magic;
+            state.RemoteMagicNumber = msg.Header.Magic;
             networkEvents.OnNetworkEvent(new(ProtocolEvent.Synchronized, state.Player)
             {
                 Synchronized = new(ping),
@@ -289,6 +288,7 @@ sealed class ProtocolInbox<TInput>(
 
     public bool OnSyncRequest(in ProtocolMessage msg, ref ProtocolMessage replyMsg)
     {
+        var remoteMagicNumber = state.RemoteMagicNumber;
         if (remoteMagicNumber is not 0 && msg.Header.Magic != remoteMagicNumber)
         {
             logger.Write(LogLevel.Warning,

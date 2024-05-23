@@ -14,7 +14,6 @@ sealed class ProtocolOutbox(
     ProtocolOptions options,
     IPeerClient<ProtocolMessage> peer,
     IDelayStrategy delayStrategy,
-    IRandomNumberGenerator random,
     IClock clock,
     Logger logger
 ) : IProtocolOutbox
@@ -36,7 +35,6 @@ sealed class ProtocolOutbox(
                 FullMode = BoundedChannelFullMode.DropOldest,
             });
 
-    readonly ushort magicNumber = random.MagicNumber();
     int nextSendSeq;
     public string JobName { get; } = $"{nameof(ProtocolOutbox)} {state.Player}";
 
@@ -71,7 +69,7 @@ sealed class ProtocolOutbox(
             while (reader.TryRead(out var entry))
             {
                 var message = entry.Body;
-                message.Header.Magic = magicNumber;
+                message.Header.Magic = state.MagicNumber;
                 message.Header.SequenceNumber = (ushort)nextSendSeq;
                 nextSendSeq++;
 

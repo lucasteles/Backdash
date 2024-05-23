@@ -1,5 +1,5 @@
 using Backdash.Data;
-using Backdash.Sync.Input.Confirmed;
+using Backdash.Synchronizing.Input.Confirmed;
 using SpaceWar.Logic;
 
 namespace SpaceWar;

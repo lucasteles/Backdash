@@ -3,6 +3,7 @@ using Backdash.Network.Client;
 using Backdash.Serialization;
 using Backdash.Synchronizing.Input;
 using Backdash.Synchronizing.Input.Confirmed;
+using Backdash.Synchronizing.Random;
 using Backdash.Synchronizing.State;
 using Backdash.Synchronizing.State.Stores;
 
@@ -62,4 +63,11 @@ public sealed class SessionServices<TInput, TGameState>
     /// Service to listen for confirmed inputs
     /// </summary>
     public IInputListener<TInput>? InputListener { get; set; }
+
+    /// <summary>
+    /// Service for random value generation in session
+    /// Defaults to <see cref="XorSimdRandom"/>
+    /// <seealso cref="XorShiftRandom"/>
+    /// </summary>
+    public IDeterministicRandom? DeterministicRandom { get; set; }
 }

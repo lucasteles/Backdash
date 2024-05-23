@@ -46,8 +46,10 @@ public sealed class Game : IRollbackHandler<GameState>
     public void Update()
     {
         session.BeginFrame();
+
         if (nonGameState.IsRunning)
             UpdatePlayers();
+
         session.GetNetworkStatus(nonGameState.RemotePlayer, ref nonGameState.PeerNetworkStats);
         view.Draw(in currentState, nonGameState);
     }
@@ -59,6 +61,7 @@ public sealed class Game : IRollbackHandler<GameState>
             var localInput = GameLogic.ReadKeyboardInput(out var disconnectRequest);
             if (disconnectRequest)
                 cancellation.Cancel();
+
             var result = session.AddLocalInput(localPlayer, localInput);
             if (result is not ResultCode.Ok)
             {
@@ -77,7 +80,7 @@ public sealed class Game : IRollbackHandler<GameState>
         }
 
         var (input1, input2) = (session.GetInput(0), session.GetInput(1));
-        GameLogic.AdvanceState(ref currentState, input1, input2);
+        GameLogic.AdvanceState(session.Random, ref currentState, input1, input2);
         session.AdvanceFrame();
     }
 
@@ -156,7 +159,7 @@ public sealed class Game : IRollbackHandler<GameState>
     {
         session.SynchronizeInputs();
         var (input1, input2) = (session.GetInput(0), session.GetInput(1));
-        GameLogic.AdvanceState(ref currentState, input1, input2);
+        GameLogic.AdvanceState(session.Random, ref currentState, input1, input2);
         session.AdvanceFrame();
     }
 }
