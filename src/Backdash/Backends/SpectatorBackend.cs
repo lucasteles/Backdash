@@ -107,7 +107,7 @@ sealed class SpectatorBackend<TInput, TGameState> :
     public FrameSpan FramesBehind => FrameSpan.Zero;
     public int NumberOfPlayers { get; private set; }
     public int NumberOfSpectators => 0;
-    public ISessionRandom Random => deterministicRandom;
+    public IDeterministicRandom Random => deterministicRandom;
     public bool IsSpectating => true;
     public void DisconnectPlayer(in PlayerHandle player) { }
     public ResultCode AddLocalInput(PlayerHandle player, TInput localInput) => ResultCode.Ok;
@@ -232,7 +232,7 @@ sealed class SpectatorBackend<TInput, TGameState> :
         for (var i = 0; i < NumberOfPlayers; i++)
             syncInputBuffer[i] = new(input.Data.Inputs[i], false);
 
-        deterministicRandom.Reseed(CurrentFrame.Number);
+        deterministicRandom.UpdateSeed(CurrentFrame.Number);
         CurrentFrame++;
 
         return ResultCode.Ok;

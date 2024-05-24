@@ -141,7 +141,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
     public FrameSpan FramesBehind => synchronizer.FramesBehind;
     public int NumberOfPlayers => addedPlayers.Count;
     public int NumberOfSpectators => addedSpectators.Count;
-    public ISessionRandom Random => deterministicRandom;
+    public IDeterministicRandom Random => deterministicRandom;
     public bool IsSpectating => false;
     public IReadOnlyCollection<PlayerHandle> GetPlayers() => addedPlayers;
     public IReadOnlyCollection<PlayerHandle> GetSpectators() => addedSpectators;
@@ -361,7 +361,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         if (isSynchronizing)
             return ResultCode.NotSynchronized;
         synchronizer.SynchronizeInputs(syncInputBuffer);
-        deterministicRandom.Reseed(CurrentFrame.Number);
+        deterministicRandom.UpdateSeed(CurrentFrame.Number);
 
         return ResultCode.Ok;
     }

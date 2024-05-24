@@ -25,7 +25,7 @@ public sealed class XorSimdRandom : IDeterministicRandom
     }
 
     /// <inheritdoc />
-    public void Reseed(int newState)
+    public void UpdateSeed(int newState)
     {
         ThrowHelpers.ThrowIfArgumentIsNegative(newState);
         newState = IPAddress.HostToNetworkOrder(newState + 1);

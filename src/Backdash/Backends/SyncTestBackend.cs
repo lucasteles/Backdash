@@ -80,7 +80,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
     public void Dispose() => tsc.SetResult();
     public int NumberOfPlayers => Math.Max(addedPlayers.Count, 1);
     public int NumberOfSpectators => addedSpectators.Count;
-    public ISessionRandom Random => deterministicRandom;
+    public IDeterministicRandom Random => deterministicRandom;
     public Frame CurrentFrame => synchronizer.CurrentFrame;
     public bool IsSpectating => false;
     public FrameSpan FramesBehind => synchronizer.FramesBehind;
@@ -177,7 +177,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
 
         syncInputBuffer[0] = new(lastInput.Data, false);
 
-        deterministicRandom.Reseed(CurrentFrame.Number);
+        deterministicRandom.UpdateSeed(CurrentFrame.Number);
         return ResultCode.Ok;
     }
 

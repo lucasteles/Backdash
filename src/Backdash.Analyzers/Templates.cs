@@ -4,6 +4,7 @@ class Templates
 {
     public const string BaseSerializer =
         """
+        #pragma warning disable CS1591
         using Backdash.Serialization;
         using Backdash.Serialization.Buffer;
 
@@ -22,19 +23,5 @@ class Templates
             }
         }
 
-        """;
-
-    public const string SerializerExtensions =
-        """
-        namespace Backdash.Serializer.Extensions
-        {
-            using Backdash.Serialization;
-            using Backdash.Serialization.Buffer;
-
-            public static class BinarySerializerExtensions
-            {
-            [[METHODS]]
-            }
-        }
         """;
 }

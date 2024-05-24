@@ -49,7 +49,7 @@ public interface IRollbackSession<TInput> : IRollbackSessionInfo, IDisposable wh
     /// <summary>
     /// Deterministic random value generator
     /// </summary>
-    ISessionRandom Random { get; }
+    IDeterministicRandom Random { get; }
 
     /// <summary>
     /// Returns a list of all input players in the session.

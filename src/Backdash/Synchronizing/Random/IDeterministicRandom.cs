@@ -5,8 +5,14 @@ namespace Backdash.Synchronizing.Random;
 /// <summary>
 /// Defines a random number generator
 /// </summary>
-public interface ISessionRandom
+public interface IDeterministicRandom
 {
+    /// <summary>
+    /// Updates the seed for the current random instance
+    /// </summary>
+    /// <param name="newState"></param>
+    void UpdateSeed(int newState);
+
     /// <summary>
     /// Returns a random unsigned integer.
     /// </summary>
@@ -52,14 +58,3 @@ public interface ISessionRandom
     float NextFloat() => (float)Next() / uint.MaxValue;
 }
 
-/// <summary>
-/// Defines a random number generator with mutable state
-/// </summary>
-public interface IDeterministicRandom : ISessionRandom
-{
-    /// <summary>
-    /// Updates the seed for the current random instance
-    /// </summary>
-    /// <param name="newState"></param>
-    void Reseed(int newState);
-}
