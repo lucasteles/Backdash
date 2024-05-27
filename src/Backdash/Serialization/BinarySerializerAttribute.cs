@@ -6,4 +6,4 @@ namespace Backdash.Serialization;
 /// </summary>
 /// <typeparam name="TState">Game State Type</typeparam>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
-public sealed class StateSerializerAttribute<TState> : Attribute;
+public sealed class BinarySerializerAttribute<TState> : Attribute;

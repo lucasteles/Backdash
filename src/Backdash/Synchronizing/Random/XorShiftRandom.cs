@@ -25,9 +25,11 @@ public sealed class XorShiftRandom : IDeterministicRandom
     }
 
     /// <inheritdoc />
-    public void UpdateSeed(int newState)
+    public void UpdateSeed(int newState, int extraState = 0)
     {
         ThrowHelpers.ThrowIfArgumentIsNegative(newState);
-        state = (uint)IPAddress.HostToNetworkOrder(newState + 1);
+        ThrowHelpers.ThrowIfArgumentIsNegative(extraState);
+        newState = unchecked(newState + extraState + 1);
+        state = (uint)IPAddress.HostToNetworkOrder(newState);
     }
 }

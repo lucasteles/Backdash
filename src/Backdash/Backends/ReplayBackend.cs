@@ -2,8 +2,10 @@ using System.Diagnostics;
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network;
+using Backdash.Synchronizing;
 using Backdash.Synchronizing.Input.Confirmed;
 using Backdash.Synchronizing.Random;
+using Backdash.Synchronizing.State;
 
 namespace Backdash.Backends;
 
@@ -17,28 +19,39 @@ sealed class ReplayBackend<TInput, TGameState> : IRollbackSession<TInput, TGameS
     readonly IDeterministicRandom deterministicRandom;
     bool isSynchronizing = true;
     SynchronizedInput<TInput>[] syncInputBuffer = [];
+    TInput[] inputBuffer = [];
 
     bool disposed;
     bool closed;
 
     readonly IReadOnlyList<ConfirmedInputs<TInput>> inputList;
+    readonly SessionReplayControl controls;
+    readonly bool useInputSeedForRandom;
+    readonly IStateStore<TGameState> stateStore;
+    readonly IChecksumProvider<TGameState> checksumProvider;
 
-    public ReplayBackend(
-        int numberOfPlayers,
+    public ReplayBackend(int numberOfPlayers,
+        bool useInputSeedForRandom,
         IReadOnlyList<ConfirmedInputs<TInput>> inputList,
-        BackendServices<TInput, TGameState> services
-    )
+        SessionReplayControl controls,
+        BackendServices<TInput, TGameState> services)
     {
         ArgumentNullException.ThrowIfNull(services);
 
         this.inputList = inputList;
+        this.controls = controls;
+        this.useInputSeedForRandom = useInputSeedForRandom;
         logger = services.Logger;
+        stateStore = services.StateStore;
+        checksumProvider = services.ChecksumProvider;
         deterministicRandom = services.DeterministicRandom;
         NumberOfPlayers = numberOfPlayers;
         fakePlayers = Enumerable.Range(0, numberOfPlayers)
             .Select(x => new PlayerHandle(PlayerType.Remote, x + 1, x)).ToArray();
 
         callbacks = new EmptySessionHandler<TGameState>(logger);
+
+        stateStore.Initialize(controls.MaxBackwardFrames);
     }
 
     public void Dispose()
@@ -63,7 +76,7 @@ sealed class ReplayBackend<TInput, TGameState> : IRollbackSession<TInput, TGameS
     public int NumberOfPlayers { get; private set; }
     public int NumberOfSpectators => 0;
     public IDeterministicRandom Random => deterministicRandom;
-    public bool IsSpectating => true;
+    public SessionMode Mode => SessionMode.Replaying;
     public void DisconnectPlayer(in PlayerHandle player) { }
     public ResultCode AddLocalInput(PlayerHandle player, TInput localInput) => ResultCode.Ok;
     public IReadOnlyCollection<PlayerHandle> GetPlayers() => fakePlayers;
@@ -71,7 +84,24 @@ sealed class ReplayBackend<TInput, TGameState> : IRollbackSession<TInput, TGameS
 
     public void BeginFrame() { }
 
-    public void AdvanceFrame() => logger.Write(LogLevel.Debug, $"[End Frame {CurrentFrame}]");
+    public void AdvanceFrame()
+    {
+        if (controls.IsPaused)
+            return;
+
+        if (controls.IsBackward)
+        {
+            LoadFrame(CurrentFrame.Previous());
+        }
+        else
+        {
+            CurrentFrame++;
+            SaveCurrentFrame();
+        }
+
+        CurrentFrame = Frame.Clamp(CurrentFrame, 0, inputList.Count);
+        logger.Write(LogLevel.Debug, $"[End Frame {CurrentFrame}]");
+    }
 
     public PlayerConnectionStatus GetPlayerStatus(in PlayerHandle player) => PlayerConnectionStatus.Connected;
     public ResultCode AddPlayer(Player player) => ResultCode.NotSupported;
@@ -99,7 +129,7 @@ sealed class ReplayBackend<TInput, TGameState> : IRollbackSession<TInput, TGameS
 
     public ResultCode SynchronizeInputs()
     {
-        if (isSynchronizing)
+        if (isSynchronizing || controls.IsPaused)
             return ResultCode.NotSynchronized;
 
         if (CurrentFrame.Number >= inputList.Count)
@@ -114,15 +144,55 @@ sealed class ReplayBackend<TInput, TGameState> : IRollbackSession<TInput, TGameS
         NumberOfPlayers = confirmed.Count;
 
         if (syncInputBuffer.Length != NumberOfPlayers)
+        {
             Array.Resize(ref syncInputBuffer, NumberOfPlayers);
+            Array.Resize(ref inputBuffer, syncInputBuffer.Length);
+        }
 
         for (var i = 0; i < NumberOfPlayers; i++)
+        {
             syncInputBuffer[i] = new(confirmed.Inputs[i], false);
+            inputBuffer[i] = confirmed.Inputs[i];
+        }
 
-        deterministicRandom.UpdateSeed(CurrentFrame.Number);
-        CurrentFrame++;
+        var inputPopCount = useInputSeedForRandom ? Mem.PopCount<TInput>(inputBuffer.AsSpan()) : 0;
+        deterministicRandom.UpdateSeed(CurrentFrame.Number, inputPopCount);
 
         return ResultCode.Ok;
+    }
+
+    public void SaveCurrentFrame()
+    {
+        var currentFrame = CurrentFrame;
+        ref var nextState = ref stateStore.GetCurrent();
+        callbacks.ClearState(ref nextState);
+        callbacks.SaveState(in currentFrame, ref nextState);
+        var checksum = checksumProvider.Compute(in nextState);
+        ref readonly var next = ref stateStore.SaveCurrent(in currentFrame, in checksum);
+        logger.Write(LogLevel.Trace, $"replay: saved frame {next.Frame} (checksum: {next.Checksum}).");
+    }
+
+    public void LoadFrame(in Frame frame)
+    {
+        if (frame.IsNull || frame == CurrentFrame)
+        {
+            logger.Write(LogLevel.Trace, "Skipping NOP.");
+            return;
+        }
+
+        try
+        {
+            ref readonly var savedFrame = ref stateStore.Load(frame);
+            logger.Write(LogLevel.Trace,
+                $"Loading replay frame {savedFrame.Frame} (checksum: {savedFrame.Checksum})");
+            callbacks.LoadState(in frame, in savedFrame.GameState);
+            CurrentFrame = savedFrame.Frame;
+        }
+        catch (NetcodeException)
+        {
+            controls.IsBackward = false;
+            controls.Pause();
+        }
     }
 
     public ref readonly SynchronizedInput<TInput> GetInput(int index) =>

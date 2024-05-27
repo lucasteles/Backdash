@@ -6,7 +6,7 @@ namespace Backdash.Analyzers;
 
 static class Parser
 {
-    const string BackdashSerializerAttribute = "Backdash.Serialization.StateSerializer";
+    const string BackdashSerializerAttribute = "Backdash.Serialization.BinarySerializerAttribute";
 
     public static bool IsTypeTargetForGeneration(SyntaxNode node)
         => node is TypeDeclarationSyntax { AttributeLists.Count: > 0 } t

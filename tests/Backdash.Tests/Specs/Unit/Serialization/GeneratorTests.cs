@@ -41,13 +41,13 @@ public class GameState
     }
 }
 
-[StateSerializer<MyVector2>]
+[BinarySerializer<MyVector2>]
 public partial class MyVector2Serializer;
 
-[StateSerializer<SubState>]
+[BinarySerializer<SubState>]
 public partial class SubStateSerializer;
 
-[StateSerializer<GameState>]
+[BinarySerializer<GameState>]
 public partial class GameStateSerializer;
 
 public class GeneratorTests

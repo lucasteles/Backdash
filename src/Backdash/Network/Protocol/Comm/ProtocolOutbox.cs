@@ -69,7 +69,7 @@ sealed class ProtocolOutbox(
             while (reader.TryRead(out var entry))
             {
                 var message = entry.Body;
-                message.Header.Magic = state.MagicNumber;
+                message.Header.Magic = state.SyncNumber;
                 message.Header.SequenceNumber = (ushort)nextSendSeq;
                 nextSendSeq++;
 

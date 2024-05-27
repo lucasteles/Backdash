@@ -8,7 +8,7 @@ sealed class ProtocolState(
     PlayerHandle player,
     PeerAddress peerAddress,
     ConnectionsState localConnectStatuses,
-    ushort magicNumber
+    ushort syncNumber
 )
 {
     public readonly CancellationTokenSource StoppingTokenSource = new();
@@ -21,7 +21,7 @@ sealed class ProtocolState(
     public readonly Statistics Stats = new();
     public readonly ConnectionsState LocalConnectStatuses = localConnectStatuses;
     public readonly ConnectionsState PeerConnectStatuses = new(Max.NumberOfPlayers, Frame.Null);
-    public readonly ushort MagicNumber = magicNumber;
+    public readonly ushort SyncNumber = syncNumber;
     public ushort RemoteMagicNumber;
     public ProtocolStatus CurrentStatus;
 

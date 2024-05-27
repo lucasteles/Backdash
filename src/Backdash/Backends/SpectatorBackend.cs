@@ -38,6 +38,7 @@ sealed class SpectatorBackend<TInput, TGameState> :
     bool disposed;
     long lastReceivedInputTime;
     SynchronizedInput<TInput>[] syncInputBuffer = [];
+    TInput[] inputBuffer = [];
     bool closed;
 
     public SpectatorBackend(int port,
@@ -107,8 +108,9 @@ sealed class SpectatorBackend<TInput, TGameState> :
     public FrameSpan FramesBehind => FrameSpan.Zero;
     public int NumberOfPlayers { get; private set; }
     public int NumberOfSpectators => 0;
+
     public IDeterministicRandom Random => deterministicRandom;
-    public bool IsSpectating => true;
+    public SessionMode Mode => SessionMode.Spectating;
     public void DisconnectPlayer(in PlayerHandle player) { }
     public ResultCode AddLocalInput(PlayerHandle player, TInput localInput) => ResultCode.Ok;
     public IReadOnlyCollection<PlayerHandle> GetPlayers() => fakePlayers;
@@ -227,14 +229,23 @@ sealed class SpectatorBackend<TInput, TGameState> :
 
         Trace.Assert(input.Data.Count > 0);
         NumberOfPlayers = input.Data.Count;
+
         if (syncInputBuffer.Length != NumberOfPlayers)
+        {
             Array.Resize(ref syncInputBuffer, NumberOfPlayers);
+            Array.Resize(ref inputBuffer, syncInputBuffer.Length);
+        }
+
         for (var i = 0; i < NumberOfPlayers; i++)
+        {
             syncInputBuffer[i] = new(input.Data.Inputs[i], false);
+            inputBuffer[i] = input.Data.Inputs[i];
+        }
 
-        deterministicRandom.UpdateSeed(CurrentFrame.Number);
+        var inputPopCount = options.UseInputSeedForRandom ? Mem.PopCount<TInput>(inputBuffer.AsSpan()) : 0;
+        deterministicRandom.UpdateSeed(CurrentFrame.Number, inputPopCount);
+
         CurrentFrame++;
-
         return ResultCode.Ok;
     }
 

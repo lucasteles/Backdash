@@ -15,9 +15,9 @@ public interface IRollbackSessionInfo
     Frame CurrentFrame { get; }
 
     /// <summary>
-    /// Returns <see langword="true"/> if the client type is <see cref="PlayerType.Spectator"/>
+    /// Returns the current <see cref="SessionMode"/>
     /// </summary>
-    bool IsSpectating { get; }
+    SessionMode Mode { get; }
 
     /// <summary>
     /// Returns the number of current rollback frames. <seealso cref="FrameSpan"/>
@@ -47,7 +47,8 @@ public interface IRollbackSession<TInput> : IRollbackSessionInfo, IDisposable wh
     int NumberOfSpectators { get; }
 
     /// <summary>
-    /// Deterministic random value generator
+    /// Deterministic random value generator.
+    /// This must be called after <see cref="SynchronizeInputs"/>
     /// </summary>
     IDeterministicRandom Random { get; }
 

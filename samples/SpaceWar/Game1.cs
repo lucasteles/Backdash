@@ -1,6 +1,7 @@
 #nullable disable
 using Backdash;
 using Backdash.Core;
+using Backdash.Synchronizing;
 using SpaceWar.Logic;
 
 namespace SpaceWar;
@@ -9,6 +10,8 @@ public class Game1 : Game
 {
     readonly GraphicsDeviceManager graphics;
     readonly IRollbackSession<PlayerInputs, GameState> rollbackSession;
+    readonly SessionReplayControl replayControls = new();
+    readonly KeyboardController keyboard = new();
 
     readonly RollbackOptions options = new()
     {
@@ -36,7 +39,7 @@ public class Game1 : Game
         graphics = new(this);
         Content.RootDirectory = "Content";
         IsMouseVisible = true;
-        rollbackSession = GameSessionFactory.ParseArgs(args, options);
+        rollbackSession = GameSessionFactory.ParseArgs(args, options, replayControls);
     }
 
     protected override void Initialize()
@@ -102,7 +105,7 @@ public class Game1 : Game
             ngs.StatusText.Append("Connecting to peers ...");
         }
 
-        if (rollbackSession.IsSpectating)
+        if (rollbackSession.Mode is SessionMode.Spectating)
         {
             Window.Title = "SpaceWar - Spectator";
             Window.Position = Window.Position with
@@ -141,10 +144,29 @@ public class Game1 : Game
 
     protected override void Update(GameTime gameTime)
     {
-        if (Keyboard.GetState().IsKeyDown(Keys.Escape))
+        keyboard.Update();
+        if (keyboard.IsKeyPressed(Keys.Escape))
             Exit();
+
+        HandleReplayKeys();
+
         gameSession.Update(gameTime);
         base.Update(gameTime);
+    }
+
+    void HandleReplayKeys()
+    {
+        if (rollbackSession.Mode is not SessionMode.Replaying)
+            return;
+
+        if (keyboard.IsKeyPressed(Keys.Space))
+            replayControls.TogglePause();
+
+        if (keyboard.IsKeyPressed(Keys.Right))
+            replayControls.Play();
+
+        if (keyboard.IsKeyPressed(Keys.Left))
+            replayControls.Play(backwards: true);
     }
 
     protected override void Draw(GameTime gameTime)

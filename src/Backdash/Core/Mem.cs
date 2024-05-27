@@ -176,4 +176,50 @@ static class Mem
     public static int SizeOf<TInput>() where TInput : unmanaged => Unsafe.SizeOf<TInput>();
 
     public static bool IsReferenceOrContainsReferences<T>() => RuntimeHelpers.IsReferenceOrContainsReferences<T>();
+
+    public static int PopCount<T>(in T[] values) where T : unmanaged => PopCount<T>(values.AsSpan());
+
+    public static int PopCount<T>(in ReadOnlySpan<T> values) where T : unmanaged
+    {
+        var bytes = MemoryMarshal.AsBytes(values);
+        var index = 0;
+        var count = 0;
+        while (index < bytes.Length)
+        {
+            var remaining = bytes[index..];
+
+            if (remaining.Length >= sizeof(ulong))
+            {
+                var value = MemoryMarshal.Read<ulong>(remaining[..sizeof(ulong)]);
+                index += sizeof(ulong);
+                count += BitOperations.PopCount(value);
+                continue;
+            }
+
+            if (remaining.Length >= sizeof(uint))
+            {
+                var value = MemoryMarshal.Read<uint>(remaining[..sizeof(uint)]);
+                index += sizeof(uint);
+                count += BitOperations.PopCount(value);
+                continue;
+            }
+
+            if (remaining.Length >= sizeof(ushort))
+            {
+                var value = MemoryMarshal.Read<ushort>(remaining[..sizeof(ushort)]);
+                index += sizeof(ushort);
+                count += ushort.PopCount(value);
+                continue;
+            }
+
+            if (remaining.Length >= sizeof(byte))
+            {
+                var value = remaining[0];
+                index += sizeof(byte);
+                count += byte.PopCount(value);
+            }
+        }
+
+        return count;
+    }
 }

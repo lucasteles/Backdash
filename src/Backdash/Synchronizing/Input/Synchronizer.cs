@@ -112,20 +112,22 @@ sealed class Synchronizer<TInput, TState>
         return true;
     }
 
-    public void SynchronizeInputs(Span<SynchronizedInput<TInput>> output)
+    public void SynchronizeInputs(Span<SynchronizedInput<TInput>> syncOutput, Span<TInput> output)
     {
-        Trace.Assert(output.Length >= NumberOfPlayers);
-        output.Clear();
+        Trace.Assert(syncOutput.Length >= NumberOfPlayers);
+        syncOutput.Clear();
         for (var i = 0; i < NumberOfPlayers; i++)
         {
             if (localConnections[i].Disconnected && currentFrame > localConnections[i].LastFrame)
             {
-                output[i] = new(default, true);
+                syncOutput[i] = new(default, true);
+                output[i] = default;
             }
             else
             {
                 inputQueues[i].GetInput(currentFrame, out var input);
-                output[i] = new(input.Data, false);
+                syncOutput[i] = new(input.Data, false);
+                output[i] = input.Data;
             }
         }
     }

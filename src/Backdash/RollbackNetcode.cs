@@ -3,6 +3,7 @@ using Backdash.Backends;
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network.Client;
+using Backdash.Synchronizing;
 using Backdash.Synchronizing.Input.Confirmed;
 
 namespace Backdash;
@@ -65,16 +66,21 @@ public static class RollbackNetcode
     /// <param name="numberOfPlayers">Session player count</param>
     /// <param name="inputs">Inputs to be replayed</param>
     /// <param name="services">Session customizable dependencies</param>
+    /// <param name="controls">replay control</param>
+    /// <param name="useInputSeedForRandom"><see cref="RollbackOptions.UseInputSeedForRandom"/></param>
     /// <typeparam name="TInput">Game input type</typeparam>
     /// <typeparam name="TGameState">Game state type</typeparam>
     public static IRollbackSession<TInput, TGameState> CreateReplaySession<TInput, TGameState>(
         int numberOfPlayers,
         IReadOnlyList<ConfirmedInputs<TInput>> inputs,
-        SessionServices<TInput, TGameState>? services = null)
+        SessionServices<TInput, TGameState>? services = null,
+        SessionReplayControl? controls = null,
+        bool useInputSeedForRandom = true)
         where TInput : unmanaged
         where TGameState : notnull, new() =>
         new ReplayBackend<TInput, TGameState>(
-            numberOfPlayers, inputs,
+            numberOfPlayers, useInputSeedForRandom, inputs,
+            controls ?? new SessionReplayControl(),
             BackendServices.Create(new(), services));
 
     /// <summary>

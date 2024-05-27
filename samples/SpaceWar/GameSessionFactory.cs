@@ -1,5 +1,6 @@
 using System.Net;
 using Backdash;
+using Backdash.Synchronizing;
 using Backdash.Synchronizing.Input;
 using Backdash.Synchronizing.Input.Confirmed;
 using SpaceWar.Logic;
@@ -9,7 +10,9 @@ namespace SpaceWar;
 public static class GameSessionFactory
 {
     public static IRollbackSession<PlayerInputs, GameState> ParseArgs(
-        string[] args, RollbackOptions options
+        string[] args,
+        RollbackOptions options,
+        SessionReplayControl replayControls
     )
     {
         if (args is not [{ } portArg, { } playerCountArg, .. { } lastArgs]
@@ -42,7 +45,7 @@ public static class GameSessionFactory
             var inputs = SaveInputsToFileListener.GetInputs(playerCount, replayFile).ToArray();
 
             return RollbackNetcode.CreateReplaySession<PlayerInputs, GameState>(
-                playerCount, inputs
+                playerCount, inputs, controls: replayControls
             );
         }
 

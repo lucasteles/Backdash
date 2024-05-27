@@ -27,6 +27,8 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
     readonly HashSet<PlayerHandle> addedSpectators = [];
     readonly Queue<SavedFrame> savedFrames = [];
     readonly SynchronizedInput<TInput>[] syncInputBuffer = new SynchronizedInput<TInput>[Max.NumberOfPlayers];
+    readonly TInput[] inputBuffer = new TInput[Max.NumberOfPlayers];
+    readonly RollbackOptions options;
     readonly FrameSpan checkDistance;
     readonly bool throwError;
     readonly IInputGenerator<TInput>? inputGenerator;
@@ -57,6 +59,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         ThrowHelpers.ThrowIfTypeTooBigForStack<TInput>();
         ThrowHelpers.ThrowIfTypeTooBigForStack<GameInput<TInput>>();
         ThrowHelpers.ThrowIfArgumentIsNegative(checkDistance.FrameCount);
+        this.options = options;
         this.checkDistance = checkDistance;
         this.throwError = throwError;
         deterministicRandom = services.DeterministicRandom;
@@ -82,7 +85,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
     public int NumberOfSpectators => addedSpectators.Count;
     public IDeterministicRandom Random => deterministicRandom;
     public Frame CurrentFrame => synchronizer.CurrentFrame;
-    public bool IsSpectating => false;
+    public SessionMode Mode => SessionMode.SyncTest;
     public FrameSpan FramesBehind => synchronizer.FramesBehind;
     public FrameSpan RollbackFrames => synchronizer.RollbackFrames;
 
@@ -175,9 +178,12 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
             lastInput = currentInput;
         }
 
+        inputBuffer[0] = lastInput.Data;
         syncInputBuffer[0] = new(lastInput.Data, false);
 
-        deterministicRandom.UpdateSeed(CurrentFrame.Number);
+        var inputPopCount = options.UseInputSeedForRandom ? Mem.PopCount<TInput>(inputBuffer.AsSpan()) : 0;
+        deterministicRandom.UpdateSeed(CurrentFrame.Number, inputPopCount);
+
         return ResultCode.Ok;
     }
 
@@ -192,11 +198,14 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         logger.Write(LogLevel.Trace, $"End of frame({synchronizer.CurrentFrame})...");
         synchronizer.IncrementFrame();
         currentInput.Erase();
+
         if (inRollback) return;
+
         // Hold onto the current frame in our queue of saved states.  We'll need
         // the checksum later to verify that our replay of the same frame got the
         // same results.
         ref readonly var lastSaved = ref synchronizer.GetLastSavedFrame();
+
         var frame = synchronizer.CurrentFrame;
         savedFrames.Enqueue(new(
             Frame: frame,
