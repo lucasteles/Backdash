@@ -68,5 +68,5 @@ public record GameState
     }
 }
 
-[StateSerializer<GameState>]
+[BinarySerializer<GameState>]
 public partial class GameStateSerializer;

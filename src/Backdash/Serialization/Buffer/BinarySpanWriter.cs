@@ -141,7 +141,6 @@ public readonly ref struct BinarySpanWriter
         Write(value.W);
     }
 
-
     /// <summary>Writes a span of <see cref="byte"/> <paramref name="value"/> into buffer.</summary>
     public void Write(in ReadOnlySpan<byte> value)
     {

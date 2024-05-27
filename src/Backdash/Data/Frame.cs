@@ -161,4 +161,14 @@ public readonly record struct Frame :
 
     /// <inheritdoc />
     public static FrameSpan operator +(Frame left, FrameSpan right) => right + left.Number;
+
+    /// <summary>
+    /// Clamps frame value to a range
+    /// </summary>
+    public static Frame Clamp(in Frame frame, int min, int max) => new(Math.Clamp(frame.Number, min, max));
+
+    /// <summary>
+    /// Clamps frame value to a range
+    /// </summary>
+    public static Frame Clamp(in Frame frame, in Frame min, in Frame max) => Clamp(in frame, min.Number, max.Number);
 }

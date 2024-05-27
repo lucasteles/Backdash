@@ -44,8 +44,9 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
     Frame nextListenerFrame = Frame.Zero;
     IRollbackHandler<TGameState> callbacks;
     SynchronizedInput<TInput>[] syncInputBuffer = [];
+    TInput[] inputBuffer = [];
     Task backgroundJobTask = Task.CompletedTask;
-    readonly ushort magicNumber;
+    readonly ushort syncNumber;
     bool disposed;
     bool closed;
 
@@ -69,7 +70,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         logger = services.Logger;
         inputListener = services.InputListener;
         deterministicRandom = services.DeterministicRandom;
-        magicNumber = services.Random.MagicNumber();
+        syncNumber = services.Random.MagicNumber();
 
         peerInputEventQueue = new();
         peerCombinedInputsEventPublisher = new ProtocolCombinedInputsEventPublisher<TInput>(peerInputEventQueue);
@@ -140,9 +141,11 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
     public FrameSpan RollbackFrames => synchronizer.RollbackFrames;
     public FrameSpan FramesBehind => synchronizer.FramesBehind;
     public int NumberOfPlayers => addedPlayers.Count;
+
     public int NumberOfSpectators => addedSpectators.Count;
     public IDeterministicRandom Random => deterministicRandom;
-    public bool IsSpectating => false;
+    public SessionMode Mode => SessionMode.Rollback;
+
     public IReadOnlyCollection<PlayerHandle> GetPlayers() => addedPlayers;
     public IReadOnlyCollection<PlayerHandle> GetSpectators() => addedSpectators;
 
@@ -263,10 +266,16 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         player.Handle = handle;
         endpoints.Add(null);
 
-        Array.Resize(ref syncInputBuffer, syncInputBuffer.Length + 1);
+        IncrementInputBufferSize();
         synchronizer.AddQueue(player.Handle);
 
         return ResultCode.Ok;
+    }
+
+    void IncrementInputBufferSize()
+    {
+        Array.Resize(ref syncInputBuffer, syncInputBuffer.Length + 1);
+        Array.Resize(ref inputBuffer, syncInputBuffer.Length);
     }
 
     ResultCode AddRemotePlayer(RemotePlayer player)
@@ -280,13 +289,13 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
 
         var endpoint = player.EndPoint;
         var protocol = peerConnectionFactory.Create(
-            new(player.Handle, endpoint, localConnections, magicNumber),
+            new(player.Handle, endpoint, localConnections, syncNumber),
             inputSerializer, peerInputEventQueue
         );
 
         peerObservers.Add(protocol.GetUdpObserver());
         endpoints.Add(protocol);
-        Array.Resize(ref syncInputBuffer, syncInputBuffer.Length + 1);
+        IncrementInputBufferSize();
         synchronizer.AddQueue(player.Handle);
         logger.Write(LogLevel.Information, $"Adding {player.Handle} at {endpoint}");
         protocol.Synchronize();
@@ -318,7 +327,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
 
         spectator.Handle = spectatorHandle;
         var protocol = peerConnectionFactory.Create(
-            new(spectatorHandle, spectator.EndPoint, localConnections, magicNumber),
+            new(spectatorHandle, spectator.EndPoint, localConnections, syncNumber),
             inputGroupSerializer, peerCombinedInputsEventPublisher
         );
         peerObservers.Add(protocol.GetUdpObserver());
@@ -360,8 +369,10 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
     {
         if (isSynchronizing)
             return ResultCode.NotSynchronized;
-        synchronizer.SynchronizeInputs(syncInputBuffer);
-        deterministicRandom.UpdateSeed(CurrentFrame.Number);
+        synchronizer.SynchronizeInputs(syncInputBuffer, inputBuffer);
+
+        var inputPopCount = options.UseInputSeedForRandom ? Mem.PopCount<TInput>(inputBuffer.AsSpan()) : 0;
+        deterministicRandom.UpdateSeed(CurrentFrame.Number, inputPopCount);
 
         return ResultCode.Ok;
     }

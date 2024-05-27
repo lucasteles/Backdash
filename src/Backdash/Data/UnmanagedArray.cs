@@ -77,7 +77,7 @@ public readonly unsafe struct UnmanagedArray<T>
     /// <inheritdoc />
     public void Dispose()
     {
-        if (!IsCreated || Address is 0)
+        if (!IsCreated || PointerAddress is 0)
             return;
 
         NativeMemory.Free(buffer);
@@ -101,7 +101,7 @@ public readonly unsafe struct UnmanagedArray<T>
     /// <summary>
     /// Pointer address
     /// </summary>
-    public nuint Address => (nuint)buffer;
+    public nuint PointerAddress => (nuint)buffer;
 
     /// <summary>
     /// Returns a span for the current array
@@ -192,7 +192,7 @@ public readonly unsafe struct UnmanagedArray<T>
             throw new ArgumentOutOfRangeException();
 #pragma warning restore S3928
 
-        var startAddress = Address + (nuint)start;
+        var startAddress = PointerAddress + (nuint)start;
         return new(startAddress.ToPointer(), length);
     }
 
@@ -415,7 +415,7 @@ sealed unsafe class UnmanagedArrayDebugView<T>(UnmanagedArray<T> array)
             var handle = GCHandle.Alloc(dst, GCHandleType.Pinned);
             var addr = handle.AddrOfPinnedObject();
 
-            Unsafe.CopyBlock((void*)addr, (void*)array.Address, (uint)(length * Unsafe.SizeOf<T>()));
+            Unsafe.CopyBlock((void*)addr, (void*)array.PointerAddress, (uint)(length * Unsafe.SizeOf<T>()));
 
             handle.Free();
             return dst;

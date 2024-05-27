@@ -10,8 +10,7 @@ public interface IDeterministicRandom
     /// <summary>
     /// Updates the seed for the current random instance
     /// </summary>
-    /// <param name="newState"></param>
-    void UpdateSeed(int newState);
+    void UpdateSeed(int newState, int extraState = 0);
 
     /// <summary>
     /// Returns a random unsigned integer.
@@ -57,4 +56,3 @@ public interface IDeterministicRandom
     /// </summary>
     float NextFloat() => (float)Next() / uint.MaxValue;
 }
-

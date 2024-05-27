@@ -2,6 +2,5 @@ using Backdash.Serialization;
 
 namespace ConsoleGame;
 
-[StateSerializer<GameState>]
+[BinarySerializer<GameState>]
 public partial class GameStateSerializer;
-

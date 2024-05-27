@@ -1,12 +1,15 @@
 // ReSharper disable AccessToDisposedClosure, UnusedVariable
+
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using Backdash;
 using Backdash.Core;
 using Backdash.Data;
 using ConsoleGame;
+
 var frameDuration = FrameSpan.GetDuration(1);
 using CancellationTokenSource cts = new();
+
 // stops the game with ctr+c
 Console.CancelKeyPress += (_, eventArgs) =>
 {
@@ -21,13 +24,14 @@ if (args is not [{ } portArg, { } playerCountArg, .. { } endpoints]
     || !int.TryParse(playerCountArg, out var playerCount)
    )
     throw new InvalidOperationException("Invalid port argument");
+
 // netcode configurations
 RollbackOptions options = new()
 {
     FrameDelay = 2,
     Log = new()
     {
-        EnabledLevel = LogLevel.Debug,
+        EnabledLevel = LogLevel.Information,
     },
     Protocol = new()
     {
@@ -37,8 +41,10 @@ RollbackOptions options = new()
         // DelayStrategy = Backdash.Network.DelayStrategy.Constant,
     },
 };
-// setup the rollback network session
+
+// Set up the rollback network session
 IRollbackSession<GameInput, GameState> session;
+
 // parse console arguments checking if it is a spectator
 if (endpoints is ["spectate", { } hostArg] && IPEndPoint.TryParse(hostArg, out var host))
     session = RollbackNetcode.CreateSpectatorSession<GameInput, GameState>(
@@ -50,12 +56,16 @@ if (endpoints is ["spectate", { } hostArg] && IPEndPoint.TryParse(hostArg, out v
 // not a spectator, creating a peer 2 peer game session
 else
     session = CreatePlayerSession(port, options, ParsePlayers(playerCount, endpoints));
+
 // create the actual game
 Game game = new(session, cts);
+
 // set the session callbacks (like save state, load state, network events, etc..)
 session.SetHandler(game);
+
 // start background worker, like network IO, async messaging
 session.Start(cts.Token);
+
 try
 {
     // kinda run a game-loop using a timer
@@ -67,10 +77,12 @@ catch (OperationCanceledException)
 {
     // skip
 }
+
 // finishing the session
 session.Dispose();
 await session.WaitToStop();
 Console.Clear();
+
 // -------------------------------------------------------------- //
 //    Create and configure a game session                         //
 // -------------------------------------------------------------- //
@@ -91,12 +103,13 @@ static IRollbackSession<GameInput, GameState> CreatePlayerSession(
         new()
         {
             LogWriter = fileLogWriter,
-            // StateSerializer = new MyStateSerializer(),
+            // StateSerializer = new GameStateSerializer(),
         }
     );
     session.AddPlayers(players);
     return session;
 }
+
 static Player[] ParsePlayers(int totalNumberOfPlayers, IEnumerable<string> endpoints)
 {
     var players = endpoints
@@ -104,10 +117,13 @@ static Player[] ParsePlayers(int totalNumberOfPlayers, IEnumerable<string> endpo
             ? player
             : throw new InvalidOperationException("Invalid endpoint address"))
         .ToArray();
+
     if (players.All(x => !x.IsLocal()))
         throw new InvalidOperationException("No defined local player");
+
     return players;
 }
+
 static bool TryParsePlayer(
     int totalNumber,
     int number, string address,
@@ -118,6 +134,7 @@ static bool TryParsePlayer(
         player = new LocalPlayer(number);
         return true;
     }
+
     if (IPEndPoint.TryParse(address, out var endPoint))
     {
         if (number <= totalNumber)
@@ -126,6 +143,7 @@ static bool TryParsePlayer(
             player = new Spectator(endPoint);
         return true;
     }
+
     player = null;
     return false;
 }
