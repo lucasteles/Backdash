@@ -57,8 +57,7 @@ struct ProtocolMessage(MessageType type) : IBinarySerializable, IEquatable<Proto
             case MessageType.Input:
                 Input.Serialize(writer);
                 break;
-            case MessageType.Invalid:
-                throw new NetcodeSerializationException<ProtocolMessage>("Invalid message type");
+            case MessageType.Unknown:
             default:
                 throw new NetcodeSerializationException<ProtocolMessage>("Unknown message type");
         }
@@ -89,10 +88,9 @@ struct ProtocolMessage(MessageType type) : IBinarySerializable, IEquatable<Proto
             case MessageType.Input:
                 Input.Deserialize(reader);
                 break;
-            case MessageType.Invalid:
-                throw new NetcodeDeserializationException<ProtocolMessage>("Invalid message type");
+            case MessageType.Unknown:
             default:
-                throw new NetcodeDeserializationException<ProtocolMessage>("Unknown message type");
+                break;
         }
     }
 
@@ -108,7 +106,7 @@ struct ProtocolMessage(MessageType type) : IBinarySerializable, IEquatable<Proto
                 MessageType.QualityReply => QualityReply.ToString(),
                 MessageType.KeepAlive => KeepAlive.ToString(),
                 MessageType.InputAck => InputAck.ToString(),
-                MessageType.Invalid => "{}",
+                MessageType.Unknown => "{}",
                 _ => "unknown",
             };
         return $"Msg({Header.Type}){info}";
@@ -133,7 +131,7 @@ struct ProtocolMessage(MessageType type) : IBinarySerializable, IEquatable<Proto
             MessageType.QualityReport => writer.Write(QualityReport),
             MessageType.InputAck => writer.Write(InputAck),
             MessageType.KeepAlive => writer.Write("{}"u8),
-            MessageType.Invalid => writer.Write("{Invalid}"u8),
+            MessageType.Unknown => writer.Write("{Invalid}"u8),
             _ => true,
         };
     }
@@ -141,7 +139,7 @@ struct ProtocolMessage(MessageType type) : IBinarySerializable, IEquatable<Proto
     public readonly bool Equals(ProtocolMessage other) =>
         Header.Type == other.Header.Type && Header.Type switch
         {
-            MessageType.Invalid => other.Header.Type is MessageType.Invalid,
+            MessageType.Unknown => other.Header.Type is MessageType.Unknown,
             MessageType.SyncRequest => SyncRequest.Equals(other.SyncRequest),
             MessageType.SyncReply => SyncReply.Equals(other.SyncReply),
             MessageType.Input => Input.Equals(other.Input),

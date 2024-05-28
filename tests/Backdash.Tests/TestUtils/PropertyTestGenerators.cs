@@ -202,7 +202,7 @@ class PropertyTestGenerators
 
     public static Arbitrary<ProtocolMessage> UpdMsgGenerator() =>
         Arb.Generate<Header>()
-            .Where(h => h.Type is not MessageType.Invalid)
+            .Where(h => h.Type is not MessageType.Unknown)
             .SelectMany(header => header.Type switch
             {
                 MessageType.SyncRequest =>

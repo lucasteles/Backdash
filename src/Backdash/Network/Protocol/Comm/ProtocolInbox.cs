@@ -44,6 +44,13 @@ sealed class ProtocolInbox<TInput>(
     {
         if (!from.Equals(state.PeerAddress.Address))
             return;
+
+        if (message.Header.Type is MessageType.Unknown)
+        {
+            logger.Write(LogLevel.Warning, $"Invalid UDP protocol message received from {state.Player}.");
+            return;
+        }
+
         var seqNum = message.Header.SequenceNumber;
         if (message.Header.Type is not MessageType.SyncRequest and not MessageType.SyncReply)
         {
@@ -71,7 +78,7 @@ sealed class ProtocolInbox<TInput>(
         logger.Write(LogLevel.Trace, $"recv {message} from {state.Player}");
         if (HandleMessage(ref message, out var replyMsg))
         {
-            if (replyMsg.Header.Type is not MessageType.Invalid)
+            if (replyMsg.Header.Type is not MessageType.Unknown)
                 await messageSender.SendMessageAsync(in replyMsg, stoppingToken).ConfigureAwait(false);
 
             state.Stats.Received.LastTime = clock.GetTimeStamp();
@@ -88,7 +95,7 @@ sealed class ProtocolInbox<TInput>(
     bool HandleMessage(ref ProtocolMessage message, out ProtocolMessage replyMsg)
     {
         var handled = false;
-        replyMsg = new(MessageType.Invalid);
+        replyMsg = new(MessageType.Unknown);
         switch (message.Header.Type)
         {
             case MessageType.SyncRequest:
@@ -112,11 +119,9 @@ sealed class ProtocolInbox<TInput>(
             case MessageType.KeepAlive:
                 handled = true;
                 break;
-            case MessageType.Invalid:
-                logger.Write(LogLevel.Error, "Invalid UdpProtocol message");
-                break;
+            case MessageType.Unknown:
             default:
-                throw new NetcodeException($"Unknown UdpMsg type: {message.Header.Type}");
+                throw new NetcodeException($"Invalid UDP protocol message received: {message.Header.Type}");
         }
 
         return handled;

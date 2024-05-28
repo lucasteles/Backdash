@@ -3,7 +3,7 @@ namespace Backdash.Network.Messages;
 [Serializable]
 enum MessageType : ushort
 {
-    Invalid,
+    Unknown,
     SyncRequest,
     SyncReply,
     Input,

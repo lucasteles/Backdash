@@ -15,15 +15,24 @@ record struct Header(MessageType Type) : IBinarySerializable
 
     public readonly void Serialize(BinarySpanWriter writer)
     {
-        writer.Write((byte)Type);
+        writer.Write((ushort)Type);
         writer.Write(in Magic);
         writer.Write(in SequenceNumber);
     }
 
     public void Deserialize(BinarySpanReader reader)
     {
-        Type = (MessageType)reader.ReadByte();
-        Magic = reader.ReadUInt16();
-        SequenceNumber = reader.ReadUInt16();
+        try
+        {
+            Type = (MessageType)reader.ReadUInt16();
+            Magic = reader.ReadUInt16();
+            SequenceNumber = reader.ReadUInt16();
+        }
+        catch
+        {
+            Type = MessageType.Unknown;
+            Magic = 0;
+            SequenceNumber = 0;
+        }
     }
 }

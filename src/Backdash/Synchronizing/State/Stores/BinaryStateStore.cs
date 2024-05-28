@@ -99,7 +99,7 @@ public sealed class BinaryStateStore<TState>(
 
         memory = Mem.AllocatePinnedArray(inputSize * saveCount);
         savedBytes = new SavedFrameBytes[saveCount];
-        for (int i = 0; i < saveCount; i++)
+        for (var i = 0; i < saveCount; i++)
         {
             ref var slot = ref savedBytes[i];
             slot.Size = inputSize;
