@@ -163,6 +163,11 @@ public readonly record struct Frame :
     public static FrameSpan operator +(Frame left, FrameSpan right) => right + left.Number;
 
     /// <summary>
+    /// Returns the absolute value of a Frame.
+    /// </summary>
+    public static Frame Abs(in Frame frame) => new(Math.Abs(frame.Number));
+
+    /// <summary>
     /// Clamps frame value to a range
     /// </summary>
     public static Frame Clamp(in Frame frame, int min, int max) => new(Math.Clamp(frame.Number, min, max));

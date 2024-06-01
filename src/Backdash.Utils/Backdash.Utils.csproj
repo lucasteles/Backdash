@@ -10,7 +10,4 @@
     <PackageTags>network, endpoint, multiplayer, json, input</PackageTags>
     <NoWarn>CS1591</NoWarn>
   </PropertyGroup>
-  <ItemGroup>
-    <Folder Include="GamePad\Serializers\" />
-  </ItemGroup>
 </Project>

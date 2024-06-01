@@ -1,4 +1,3 @@
-using Backdash.GamePad;
 using Backdash.Serialization;
 using Backdash.Tests.TestUtils.Types;
 

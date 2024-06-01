@@ -217,7 +217,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
 #endif
             Checksum: lastSaved.Checksum
         ));
-        if (frame - lastVerified != checkDistance.Value)
+        if (frame - lastVerified != checkDistance.FrameValue)
             return;
         // We've gone far enough ahead and should now start replaying frames.
         // Load the last verified frame and set the rollback flag to true.

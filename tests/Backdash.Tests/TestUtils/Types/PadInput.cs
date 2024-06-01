@@ -1,7 +1,8 @@
 using System.Runtime.InteropServices;
+using Backdash.GamePad;
 
 // ReSharper disable InconsistentNaming
-namespace Backdash.GamePad;
+namespace Backdash.Tests.TestUtils.Types;
 
 [Serializable]
 [StructLayout(LayoutKind.Sequential, Pack = 1)]

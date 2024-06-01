@@ -35,7 +35,7 @@ public readonly record struct FrameSpan :
     /// <summary>Returns max frame span value</summary>
     public static readonly FrameSpan MaxValue = new(int.MaxValue);
 
-    /// <summary>Returns the <see cref="int"/> count of frames in the current frame span <see cref="Frame"/>.</summary>
+    /// <summary>Returns the <see cref="int"/> count of frames in the current frame span <see cref="Data.Frame"/>.</summary>
     public readonly int FrameCount = 0;
 
     /// <summary>
@@ -50,8 +50,38 @@ public readonly record struct FrameSpan :
     /// <summary>Returns the time value for the current frame span in <see cref="TimeSpan"/>.</summary>
     public TimeSpan Duration(short fps = DefaultFramesPerSecond) => GetDuration(FrameCount, fps);
 
-    /// <summary>Returns the value for the current frame span as a <see cref="Frame"/>.</summary>
-    public Frame Value => new(FrameCount);
+    /// <summary>Returns the value for the current frame span as a <see cref="Data.Frame"/>.</summary>
+    public Frame FrameValue => new(FrameCount);
+
+    /// <summary>
+    /// Returns frame at the time position in milliseconds
+    /// </summary>
+    public Frame GetFrameAtMilliSecond(double millis, short fps = DefaultFramesPerSecond)
+    {
+        var span = FromMilliseconds(millis, fps);
+        if (span.FrameCount > FrameCount)
+            throw new InvalidOperationException("Out of range frame time");
+
+        return span.FrameValue;
+    }
+
+    /// <summary>
+    /// Returns frame at the time position in seconds
+    /// </summary>
+    public Frame GetFrameAtSecond(double seconds, short fps = DefaultFramesPerSecond)
+    {
+        var span = FromSeconds(seconds, fps);
+        if (span.FrameCount > FrameCount)
+            throw new InvalidOperationException("Out of range frame time");
+
+        return span.FrameValue;
+    }
+
+    /// <summary>
+    /// Returns frame at the timespan position
+    /// </summary>
+    public Frame GetFrameAt(TimeSpan duration, short fps = DefaultFramesPerSecond) =>
+        GetFrameAtMilliSecond(duration.TotalMilliseconds, fps);
 
     /// <inheritdoc />
     public int CompareTo(FrameSpan other) => FrameCount.CompareTo(other.FrameCount);
@@ -72,7 +102,7 @@ public readonly record struct FrameSpan :
     {
         bytesWritten = 0;
         Utf8StringWriter writer = new(in utf8Destination, ref bytesWritten);
-        if (!writer.Write(FrameCount, format)) return false;
+        if (!writer.Write(FrameCount, format, provider)) return false;
         if (!writer.Write(" frames"u8)) return false;
         return true;
     }
@@ -153,4 +183,26 @@ public readonly record struct FrameSpan :
 
     /// <inheritdoc />
     public static FrameSpan operator -(FrameSpan left, FrameSpan right) => new(left.FrameCount - right.FrameCount);
+
+    /// <summary>
+    /// Returns the absolute value of a Frame.
+    /// </summary>
+    public static FrameSpan Abs(in FrameSpan frame) => new(Math.Abs(frame.FrameCount));
+
+    /// <summary>
+    /// Clamps frame value to a range
+    /// </summary>
+    public static FrameSpan Clamp(in FrameSpan frame, int min, int max) => new(Math.Clamp(frame.FrameCount, min, max));
+
+    /// <summary>
+    /// Clamps frame value to a range
+    /// </summary>
+    public static FrameSpan Clamp(in FrameSpan frame, in FrameSpan min, in FrameSpan max) =>
+        Clamp(in frame, min.FrameCount, max.FrameCount);
+
+    /// <summary>
+    /// Clamps frame value to a range
+    /// </summary>
+    public static FrameSpan Clamp(in FrameSpan frame, in Frame min, in Frame max) =>
+        Clamp(in frame, min.Number, max.Number);
 }
