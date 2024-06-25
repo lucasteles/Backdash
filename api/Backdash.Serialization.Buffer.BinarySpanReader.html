@@ -1,0 +1,1519 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Struct BinarySpanReader | Backdash Netcode </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Struct BinarySpanReader | Backdash Netcode ">
+      
+      <meta name="description" content="Binary span reader.">
+      <link rel="icon" href="../docs/images/favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../docs/images/logo.png" alt="Backdash">
+            Backdash
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled="" placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" style="margin-top: -.65em; margin-left: -.8em" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="Backdash.Serialization.Buffer.BinarySpanReader">
+
+
+
+  <h1 id="Backdash_Serialization_Buffer_BinarySpanReader" data-uid="Backdash.Serialization.Buffer.BinarySpanReader" class="text-break">
+Struct BinarySpanReader  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/Buffer/BinarySpanReader.cs"><i class="bi bi-code-slash"></i></a>
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Backdash.html">Backdash</a>.<a class="xref" href="Backdash.Serialization.html">Serialization</a>.<a class="xref" href="Backdash.Serialization.Buffer.html">Buffer</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Backdash.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>Binary span reader.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public readonly ref struct BinarySpanReader</code></pre>
+  </div>
+
+
+
+
+
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.valuetype.equals">ValueType.Equals(object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.valuetype.gethashcode">ValueType.GetHashCode()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.valuetype.tostring">ValueType.ToString()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+  </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="constructors">Constructors
+</h2>
+
+
+  <a id="Backdash_Serialization_Buffer_BinarySpanReader__ctor_" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.#ctor*"></a>
+
+  <h3 id="Backdash_Serialization_Buffer_BinarySpanReader__ctor_System_ReadOnlySpan_System_Byte__System_Int32__" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.#ctor(System.ReadOnlySpan{System.Byte},System.Int32@)">
+  BinarySpanReader(ReadOnlySpan&lt;byte&gt;, ref int)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/Buffer/BinarySpanReader.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Initialize a new <a class="xref" href="Backdash.Serialization.Buffer.BinarySpanReader.html">BinarySpanReader</a> for <code class="paramref">buffer</code></p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public BinarySpanReader(ReadOnlySpan&lt;byte&gt; buffer, ref int offset)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>buffer</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>&gt;</dt>
+    <dd><p>Byte buffer to be read</p>
+</dd>
+    <dt><code>offset</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>Read offset reference</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="properties">Properties
+</h2>
+
+
+  <a id="Backdash_Serialization_Buffer_BinarySpanReader_Capacity_" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.Capacity*"></a>
+
+  <h3 id="Backdash_Serialization_Buffer_BinarySpanReader_Capacity" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.Capacity">
+  Capacity
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/Buffer/BinarySpanReader.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Total buffer capacity in bytes.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int Capacity { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_Buffer_BinarySpanReader_CurrentBuffer_" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.CurrentBuffer*"></a>
+
+  <h3 id="Backdash_Serialization_Buffer_BinarySpanReader_CurrentBuffer" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.CurrentBuffer">
+  CurrentBuffer
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/Buffer/BinarySpanReader.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns a <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.span-1">Span&lt;T&gt;</a> for the current available buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ReadOnlySpan&lt;byte&gt; CurrentBuffer { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_Buffer_BinarySpanReader_Endianness_" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.Endianness*"></a>
+
+  <h3 id="Backdash_Serialization_Buffer_BinarySpanReader_Endianness" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.Endianness">
+  Endianness
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/Buffer/BinarySpanReader.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets or init the value to define which endianness should be used for serialization.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Endianness Endianness { get; init; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.Network.Endianness.html">Endianness</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_Buffer_BinarySpanReader_FreeCapacity_" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.FreeCapacity*"></a>
+
+  <h3 id="Backdash_Serialization_Buffer_BinarySpanReader_FreeCapacity" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.FreeCapacity">
+  FreeCapacity
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/Buffer/BinarySpanReader.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Available buffer space in bytes</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int FreeCapacity { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_Buffer_BinarySpanReader_ReadCount_" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadCount*"></a>
+
+  <h3 id="Backdash_Serialization_Buffer_BinarySpanReader_ReadCount" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadCount">
+  ReadCount
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/Buffer/BinarySpanReader.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Total read byte count.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int ReadCount { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="Backdash_Serialization_Buffer_BinarySpanReader_Advance_" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.Advance*"></a>
+
+  <h3 id="Backdash_Serialization_Buffer_BinarySpanReader_Advance_System_Int32_" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.Advance(System.Int32)">
+  Advance(int)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/Buffer/BinarySpanReader.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Advance read pointer by <code class="paramref">count</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Advance(int count)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>count</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_Buffer_BinarySpanReader_ReadBoolean_" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadBoolean*"></a>
+
+  <h3 id="Backdash_Serialization_Buffer_BinarySpanReader_ReadBoolean" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadBoolean">
+  ReadBoolean()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/Buffer/BinarySpanReader.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reads single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a> from buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool ReadBoolean()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_Buffer_BinarySpanReader_ReadBoolean_" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadBoolean*"></a>
+
+  <h3 id="Backdash_Serialization_Buffer_BinarySpanReader_ReadBoolean_System_Span_System_Boolean___" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadBoolean(System.Span{System.Boolean}@)">
+  ReadBoolean(in Span&lt;bool&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/Buffer/BinarySpanReader.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reads a span of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a> from buffer into <code class="paramref">values</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void ReadBoolean(in Span&lt;bool&gt; values)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>values</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.span-1">Span</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_Buffer_BinarySpanReader_ReadByte_" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadByte*"></a>
+
+  <h3 id="Backdash_Serialization_Buffer_BinarySpanReader_ReadByte" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadByte">
+  ReadByte()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/Buffer/BinarySpanReader.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reads single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a> from buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public byte ReadByte()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_Buffer_BinarySpanReader_ReadByte_" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadByte*"></a>
+
+  <h3 id="Backdash_Serialization_Buffer_BinarySpanReader_ReadByte_System_Span_System_Byte___" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadByte(System.Span{System.Byte}@)">
+  ReadByte(in Span&lt;byte&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/Buffer/BinarySpanReader.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reads a span of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a> from buffer into <code class="paramref">values</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void ReadByte(in Span&lt;byte&gt; values)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>values</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.span-1">Span</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_Buffer_BinarySpanReader_ReadChar_" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadChar*"></a>
+
+  <h3 id="Backdash_Serialization_Buffer_BinarySpanReader_ReadChar" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadChar">
+  ReadChar()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/Buffer/BinarySpanReader.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reads single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.char">char</a> from buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public char ReadChar()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.char">char</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_Buffer_BinarySpanReader_ReadChar_" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadChar*"></a>
+
+  <h3 id="Backdash_Serialization_Buffer_BinarySpanReader_ReadChar_System_Span_System_Char___" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadChar(System.Span{System.Char}@)">
+  ReadChar(in Span&lt;char&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/Buffer/BinarySpanReader.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reads a span of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.char">char</a> from buffer into <code class="paramref">values</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void ReadChar(in Span&lt;char&gt; values)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>values</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.span-1">Span</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.char">char</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_Buffer_BinarySpanReader_ReadDouble_" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadDouble*"></a>
+
+  <h3 id="Backdash_Serialization_Buffer_BinarySpanReader_ReadDouble" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadDouble">
+  ReadDouble()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/Buffer/BinarySpanReader.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reads single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.double">double</a> from buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public double ReadDouble()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.double">double</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_Buffer_BinarySpanReader_ReadEnum_" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadEnum*"></a>
+
+  <h3 id="Backdash_Serialization_Buffer_BinarySpanReader_ReadEnum__1" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadEnum``1">
+  ReadEnum&lt;T&gt;()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/Buffer/BinarySpanReader.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reads single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.enum">Enum</a> value from buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public T ReadEnum&lt;T&gt;() where T : unmanaged, Enum</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><span class="xref">T</span></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd><p>An enum type.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_Buffer_BinarySpanReader_ReadHalf_" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadHalf*"></a>
+
+  <h3 id="Backdash_Serialization_Buffer_BinarySpanReader_ReadHalf" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadHalf">
+  ReadHalf()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/Buffer/BinarySpanReader.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reads single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.half">Half</a> from buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Half ReadHalf()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.half">Half</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_Buffer_BinarySpanReader_ReadInt128_" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadInt128*"></a>
+
+  <h3 id="Backdash_Serialization_Buffer_BinarySpanReader_ReadInt128" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadInt128">
+  ReadInt128()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/Buffer/BinarySpanReader.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reads single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int128">Int128</a> from buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Int128 ReadInt128()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int128">Int128</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_Buffer_BinarySpanReader_ReadInt128_" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadInt128*"></a>
+
+  <h3 id="Backdash_Serialization_Buffer_BinarySpanReader_ReadInt128_System_Span_System_Int128___" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadInt128(System.Span{System.Int128}@)">
+  ReadInt128(in Span&lt;Int128&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/Buffer/BinarySpanReader.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reads a span of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int128">Int128</a> from buffer into <code class="paramref">values</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void ReadInt128(in Span&lt;Int128&gt; values)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>values</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.span-1">Span</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int128">Int128</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_Buffer_BinarySpanReader_ReadInt16_" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadInt16*"></a>
+
+  <h3 id="Backdash_Serialization_Buffer_BinarySpanReader_ReadInt16" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadInt16">
+  ReadInt16()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/Buffer/BinarySpanReader.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reads single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int16">short</a> from buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public short ReadInt16()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int16">short</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_Buffer_BinarySpanReader_ReadInt16_" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadInt16*"></a>
+
+  <h3 id="Backdash_Serialization_Buffer_BinarySpanReader_ReadInt16_System_Span_System_Int16___" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadInt16(System.Span{System.Int16}@)">
+  ReadInt16(in Span&lt;short&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/Buffer/BinarySpanReader.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reads a span of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int16">short</a> from buffer into <code class="paramref">values</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void ReadInt16(in Span&lt;short&gt; values)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>values</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.span-1">Span</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int16">short</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_Buffer_BinarySpanReader_ReadInt32_" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadInt32*"></a>
+
+  <h3 id="Backdash_Serialization_Buffer_BinarySpanReader_ReadInt32" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadInt32">
+  ReadInt32()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/Buffer/BinarySpanReader.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reads single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a> from buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int ReadInt32()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_Buffer_BinarySpanReader_ReadInt32_" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadInt32*"></a>
+
+  <h3 id="Backdash_Serialization_Buffer_BinarySpanReader_ReadInt32_System_Span_System_Int32___" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadInt32(System.Span{System.Int32}@)">
+  ReadInt32(in Span&lt;int&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/Buffer/BinarySpanReader.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reads a span of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a> from buffer into <code class="paramref">values</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void ReadInt32(in Span&lt;int&gt; values)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>values</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.span-1">Span</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_Buffer_BinarySpanReader_ReadInt64_" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadInt64*"></a>
+
+  <h3 id="Backdash_Serialization_Buffer_BinarySpanReader_ReadInt64" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadInt64">
+  ReadInt64()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/Buffer/BinarySpanReader.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reads single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int64">long</a> from buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public long ReadInt64()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int64">long</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_Buffer_BinarySpanReader_ReadInt64_" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadInt64*"></a>
+
+  <h3 id="Backdash_Serialization_Buffer_BinarySpanReader_ReadInt64_System_Span_System_Int64___" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadInt64(System.Span{System.Int64}@)">
+  ReadInt64(in Span&lt;long&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/Buffer/BinarySpanReader.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reads a span of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int64">long</a> from buffer into <code class="paramref">values</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void ReadInt64(in Span&lt;long&gt; values)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>values</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.span-1">Span</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int64">long</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_Buffer_BinarySpanReader_ReadNumber_" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadNumber*"></a>
+
+  <h3 id="Backdash_Serialization_Buffer_BinarySpanReader_ReadNumber__1" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadNumber``1">
+  ReadNumber&lt;T&gt;()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/Buffer/BinarySpanReader.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reads single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.numerics.ibinaryinteger-1">IBinaryInteger&lt;TSelf&gt;</a> from buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public T ReadNumber&lt;T&gt;() where T : unmanaged, IBinaryInteger&lt;T&gt;, IMinMaxValue&lt;T&gt;</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><span class="xref">T</span></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd><p>A numeric type that implements <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.numerics.ibinaryinteger-1">IBinaryInteger&lt;TSelf&gt;</a> and <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.numerics.iminmaxvalue-1">IMinMaxValue&lt;TSelf&gt;</a>.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_Buffer_BinarySpanReader_ReadNumber_" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadNumber*"></a>
+
+  <h3 id="Backdash_Serialization_Buffer_BinarySpanReader_ReadNumber__1_System_Boolean_" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadNumber``1(System.Boolean)">
+  ReadNumber&lt;T&gt;(bool)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/Buffer/BinarySpanReader.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reads single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.numerics.ibinaryinteger-1">IBinaryInteger&lt;TSelf&gt;</a> from buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public T ReadNumber&lt;T&gt;(bool isUnsigned) where T : unmanaged, IBinaryInteger&lt;T&gt;</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>isUnsigned</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p>true if source represents an unsigned two's complement number; otherwise, false to indicate it represents a signed two's complement number</p>
+</dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><span class="xref">T</span></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd><p>A numeric type that implements <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.numerics.ibinaryinteger-1">IBinaryInteger&lt;TSelf&gt;</a>.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_Buffer_BinarySpanReader_ReadQuaternion_" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadQuaternion*"></a>
+
+  <h3 id="Backdash_Serialization_Buffer_BinarySpanReader_ReadQuaternion" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadQuaternion">
+  ReadQuaternion()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/Buffer/BinarySpanReader.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reads single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.numerics.quaternion">Quaternion</a> from buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Quaternion ReadQuaternion()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.numerics.quaternion">Quaternion</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_Buffer_BinarySpanReader_ReadSByte_" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadSByte*"></a>
+
+  <h3 id="Backdash_Serialization_Buffer_BinarySpanReader_ReadSByte" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadSByte">
+  ReadSByte()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/Buffer/BinarySpanReader.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reads single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.sbyte">sbyte</a> from buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public sbyte ReadSByte()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.sbyte">sbyte</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_Buffer_BinarySpanReader_ReadSByte_" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadSByte*"></a>
+
+  <h3 id="Backdash_Serialization_Buffer_BinarySpanReader_ReadSByte_System_Span_System_SByte___" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadSByte(System.Span{System.SByte}@)">
+  ReadSByte(in Span&lt;sbyte&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/Buffer/BinarySpanReader.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reads a span of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.sbyte">sbyte</a> from buffer into <code class="paramref">values</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void ReadSByte(in Span&lt;sbyte&gt; values)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>values</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.span-1">Span</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.sbyte">sbyte</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_Buffer_BinarySpanReader_ReadSingle_" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadSingle*"></a>
+
+  <h3 id="Backdash_Serialization_Buffer_BinarySpanReader_ReadSingle" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadSingle">
+  ReadSingle()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/Buffer/BinarySpanReader.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reads single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.single">float</a> from buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public float ReadSingle()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.single">float</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_Buffer_BinarySpanReader_ReadUInt128_" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadUInt128*"></a>
+
+  <h3 id="Backdash_Serialization_Buffer_BinarySpanReader_ReadUInt128" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadUInt128">
+  ReadUInt128()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/Buffer/BinarySpanReader.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reads single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint128">UInt128</a> from buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public UInt128 ReadUInt128()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint128">UInt128</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_Buffer_BinarySpanReader_ReadUInt128_" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadUInt128*"></a>
+
+  <h3 id="Backdash_Serialization_Buffer_BinarySpanReader_ReadUInt128_System_Span_System_UInt128___" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadUInt128(System.Span{System.UInt128}@)">
+  ReadUInt128(in Span&lt;UInt128&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/Buffer/BinarySpanReader.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reads a span of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint128">UInt128</a> from buffer into <code class="paramref">values</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void ReadUInt128(in Span&lt;UInt128&gt; values)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>values</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.span-1">Span</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint128">UInt128</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_Buffer_BinarySpanReader_ReadUInt16_" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadUInt16*"></a>
+
+  <h3 id="Backdash_Serialization_Buffer_BinarySpanReader_ReadUInt16" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadUInt16">
+  ReadUInt16()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/Buffer/BinarySpanReader.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reads single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a> from buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ushort ReadUInt16()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_Buffer_BinarySpanReader_ReadUInt16_" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadUInt16*"></a>
+
+  <h3 id="Backdash_Serialization_Buffer_BinarySpanReader_ReadUInt16_System_Span_System_UInt16___" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadUInt16(System.Span{System.UInt16}@)">
+  ReadUInt16(in Span&lt;ushort&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/Buffer/BinarySpanReader.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reads a span of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a> from buffer into <code class="paramref">values</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void ReadUInt16(in Span&lt;ushort&gt; values)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>values</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.span-1">Span</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_Buffer_BinarySpanReader_ReadUInt32_" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadUInt32*"></a>
+
+  <h3 id="Backdash_Serialization_Buffer_BinarySpanReader_ReadUInt32" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadUInt32">
+  ReadUInt32()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/Buffer/BinarySpanReader.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reads single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a> from buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public uint ReadUInt32()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_Buffer_BinarySpanReader_ReadUInt32_" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadUInt32*"></a>
+
+  <h3 id="Backdash_Serialization_Buffer_BinarySpanReader_ReadUInt32_System_Span_System_UInt32___" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadUInt32(System.Span{System.UInt32}@)">
+  ReadUInt32(in Span&lt;uint&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/Buffer/BinarySpanReader.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reads a span of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a> from buffer into <code class="paramref">values</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void ReadUInt32(in Span&lt;uint&gt; values)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>values</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.span-1">Span</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_Buffer_BinarySpanReader_ReadUInt64_" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadUInt64*"></a>
+
+  <h3 id="Backdash_Serialization_Buffer_BinarySpanReader_ReadUInt64" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadUInt64">
+  ReadUInt64()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/Buffer/BinarySpanReader.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reads single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a> from buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ulong ReadUInt64()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_Buffer_BinarySpanReader_ReadUInt64_" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadUInt64*"></a>
+
+  <h3 id="Backdash_Serialization_Buffer_BinarySpanReader_ReadUInt64_System_Span_System_UInt64___" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadUInt64(System.Span{System.UInt64}@)">
+  ReadUInt64(in Span&lt;ulong&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/Buffer/BinarySpanReader.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reads a span of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a> from buffer into <code class="paramref">values</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void ReadUInt64(in Span&lt;ulong&gt; values)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>values</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.span-1">Span</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_Buffer_BinarySpanReader_ReadVector2_" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadVector2*"></a>
+
+  <h3 id="Backdash_Serialization_Buffer_BinarySpanReader_ReadVector2" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadVector2">
+  ReadVector2()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/Buffer/BinarySpanReader.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reads single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.numerics.vector2">Vector2</a> from buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Vector2 ReadVector2()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.numerics.vector2">Vector2</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_Buffer_BinarySpanReader_ReadVector3_" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadVector3*"></a>
+
+  <h3 id="Backdash_Serialization_Buffer_BinarySpanReader_ReadVector3" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadVector3">
+  ReadVector3()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/Buffer/BinarySpanReader.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reads single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.numerics.vector3">Vector3</a> from buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Vector3 ReadVector3()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.numerics.vector3">Vector3</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_Buffer_BinarySpanReader_ReadVector4_" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadVector4*"></a>
+
+  <h3 id="Backdash_Serialization_Buffer_BinarySpanReader_ReadVector4" data-uid="Backdash.Serialization.Buffer.BinarySpanReader.ReadVector4">
+  ReadVector4()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/Buffer/BinarySpanReader.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reads single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.numerics.vector4">Vector4</a> from buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Vector4 ReadVector4()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.numerics.vector4">Vector4</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/Buffer/BinarySpanReader.cs" class="edit-link">Edit this page</a>
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Developed by <a href="https://lucasteles.dev/">Lucas Teles</a>.</span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
