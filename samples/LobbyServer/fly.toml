@@ -1,6 +1,8 @@
 app = 'lobby-server'
 primary_region = 'gru'
 [build]
+[env]
+  UdpHost = "fly-global-services"
 [http_service]
   internal_port = 8080
   force_https = true

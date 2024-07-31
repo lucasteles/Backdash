@@ -16,6 +16,7 @@ public class UdpListenerService(
     {
         var port = settings.Value.UdpPort;
         var ackMsg = "ack"u8.ToArray();
+        logger.LogInformation("UDP BINDING HOST: {Host}", settings.Value.UdpHost);
 
         var hostAddresses =
             string.IsNullOrWhiteSpace(settings.Value.UdpHost)

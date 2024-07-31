@@ -10,8 +10,8 @@ RUN dotnet publish \
 
 # final stage/image
 FROM mcr.microsoft.com/dotnet/runtime-deps:8.0-alpine-amd64 as final
-EXPOSE 8080
 EXPOSE 8888
+EXPOSE 9999
 WORKDIR /app
 COPY --from=build /app .
 ENTRYPOINT ["./LobbyServer"]

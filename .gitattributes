@@ -3,6 +3,7 @@
 *.jpg binary
 *.pdf binary
 *.ico binary
+*.gif binary
 *.exe binary
 *.dll binary
 *.ttf binary

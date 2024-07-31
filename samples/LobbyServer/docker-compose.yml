@@ -1,0 +1,21 @@
+services:
+  api:
+    image: lucasteles/spacewar-lobby-server
+    build:
+      dockerfile: Dockerfile
+    environment:
+      UDPHOST: ''
+    networks:
+        - local-network
+    ports:
+      - '9999:8080/tcp'
+      - '8888:8888/udp'
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: '0.2GB'
+
+networks:
+    local-network:
+        driver: bridge
