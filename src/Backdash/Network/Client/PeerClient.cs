@@ -125,7 +125,9 @@ sealed class PeerClient<T> : IPeerJobClient<T> where T : struct
         }
 
         // ReSharper disable once RedundantAssignment
+#pragma warning disable S1854
         buffer = null;
+#pragma warning restore S1854
     }
 
     ValueTask<int> SendTo(

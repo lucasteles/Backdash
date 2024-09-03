@@ -7,7 +7,11 @@
     <NoWarn>CS1591;S125;S1199;CS016;S1144;S3903;CS159;S1104;MSB3277</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" Version="0.13.12"/>
+    <PackageReference Include="BenchmarkDotNet" Version="0.14.0" />
+    <PackageReference Update="SonarAnalyzer.CSharp" Version="9.32.0.97167">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Backdash\Backdash.csproj"/>

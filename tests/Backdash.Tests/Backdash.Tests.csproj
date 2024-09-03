@@ -9,20 +9,24 @@
     <NoWarn>CS1591</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Bogus" Version="35.5.1"/>
+    <PackageReference Include="Bogus" Version="35.6.1" />
     <PackageReference Include="FakeItEasy" Version="8.3.0"/>
     <PackageReference Include="FakeItEasy.AutoFakeIt" Version="2.0.0"/>
     <PackageReference Include="FluentAssertions" Version="6.12.0"/>
     <PackageReference Include="FsCheck.Xunit" Version="2.16.6"/>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.10.0"/>
-    <PackageReference Include="xunit" Version="2.8.1"/>
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.1">
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.0" />
+    <PackageReference Include="xunit" Version="2.9.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="coverlet.collector" Version="6.0.2">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Update="SonarAnalyzer.CSharp" Version="9.32.0.97167">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

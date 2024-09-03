@@ -271,7 +271,7 @@ public class BinarySpanReadWriteValueTests
         public bool TestSByteEnum(SByteEnum value, Endianness endianness) =>
             TestEnum(value, endianness);
 
-        bool TestEnum<T>(T value, Endianness endianness) where T : unmanaged, Enum
+        static bool TestEnum<T>(T value, Endianness endianness) where T : unmanaged, Enum
         {
             var size = Setup<T>(endianness, out var writer, out var reader);
             writer.WriteEnum(value);
@@ -307,7 +307,7 @@ public class BinarySpanReadWriteValueTests
         public bool TestSByte(sbyte value, Endianness endianness) =>
             TestInteger(value, endianness);
 
-        bool TestInteger<T>(T value, Endianness endianness) where T : unmanaged, IBinaryInteger<T>, IMinMaxValue<T>
+        static bool TestInteger<T>(T value, Endianness endianness) where T : unmanaged, IBinaryInteger<T>, IMinMaxValue<T>
         {
             var size = Setup<T>(endianness, out var writer, out var reader);
             writer.WriteNumber(value);

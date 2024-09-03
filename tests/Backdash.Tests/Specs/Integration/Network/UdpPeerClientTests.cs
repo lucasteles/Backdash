@@ -62,7 +62,7 @@ public class PeerClientTests
         DecrementCallback = 4,
     }
 
-    void HandleMessage(ref int totalResult, OpMessage message)
+    static void HandleMessage(ref int totalResult, OpMessage message)
     {
         switch (message)
         {
