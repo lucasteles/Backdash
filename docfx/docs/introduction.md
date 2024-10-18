@@ -18,7 +18,9 @@ and [extensibility](https://lucasteles.github.io/Backdash/api/Backdash.SessionSe
 
 > [!WARNING]
 > ⚠️ This library is not able to run on [Unity](https://unity.com/) until they
-> finish [the CoreCLR port](https://blog.unity.com/engine-platform/porting-unity-to-coreclr) check [🔗 Unity Future .NET Development Status](https://forum.unity.com/threads/unity-future-net-development-status.1092205).
+> finish [the CoreCLR port](https://blog.unity.com/engine-platform/porting-unity-to-coreclr), check:
+> - [🔗 CoreCLR and .NET Modernization - Unite 2024](https://discussions.unity.com/t/coreclr-and-net-modernization-unite-2024/1519272/277)
+> - [🔗 Unity Future .NET Development Status](https://forum.unity.com/threads/unity-future-net-development-status.1092205).
 
 ## How Does It Work?
 
