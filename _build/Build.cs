@@ -52,7 +52,7 @@ class MainBuild : NukeBuild
         .DependsOn(Restore)
         .Executes(() =>
             DotNetBuild(s => s
-                .SetProjectFile(RootDirectory / "Backdash.Samples.sln")
+                .SetProjectFile(RootDirectory / "Samples" / "Backdash.Samples.sln")
                 .SetConfiguration(Configuration)
                 .EnableNoLogo()
                 .EnableNoRestore()

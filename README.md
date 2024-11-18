@@ -76,7 +76,7 @@ You need to have installed [.NET 8 SDK](https://dotnet.microsoft.com/en-us/downl
     - SDK only: `dotnet nuke build --configuration Release`
         - Alternatively open the solution file `Backdash.sln` on your IDE.
     - SDK and samples `dotnet nuke build-samples --configuration Release`.
-        - Alternatively open the solution file `Backdash.Samples.sln` on your IDE.
+        - Alternatively open the solution file `Samples/Backdash.Samples.sln` on your IDE.
 
 ## Licensing
 
