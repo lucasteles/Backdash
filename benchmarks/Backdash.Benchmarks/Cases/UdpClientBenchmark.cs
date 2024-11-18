@@ -22,8 +22,8 @@ public class UdpClientBenchmark
     [GlobalSetup]
     public void Setup()
     {
-        pingerPinnedBuffer = Mem.CreatePinnedMemory(Max.UdpPacketSize);
-        pongerPinnedBuffer = Mem.CreatePinnedMemory(Max.UdpPacketSize);
+        pingerPinnedBuffer = Mem.AllocatePinnedMemory(Max.UdpPacketSize);
+        pongerPinnedBuffer = Mem.AllocatePinnedMemory(Max.UdpPacketSize);
     }
 
     [Benchmark]

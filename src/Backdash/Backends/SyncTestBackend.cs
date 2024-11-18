@@ -247,7 +247,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
                 if (throwError) throw new NetcodeException(message);
             }
 
-            logger.Write(LogLevel.Debug, $"Checksum {checksum} for frame {info.Frame} matches");
+            logger.Write(LogLevel.Trace, $"Checksum {checksum} for frame {info.Frame} matches");
         }
 
         lastVerified = frame;

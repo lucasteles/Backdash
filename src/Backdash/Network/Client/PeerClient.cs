@@ -77,7 +77,7 @@ sealed class PeerClient<T> : IPeerJobClient<T> where T : struct
 
     async Task ReceiveLoop(CancellationToken ct)
     {
-        var buffer = Mem.CreatePinnedMemory(maxPacketSize);
+        var buffer = Mem.AllocatePinnedArray(maxPacketSize);
         SocketAddress address = new(socket.AddressFamily);
         T msg = default;
         while (!ct.IsCancellationRequested)
@@ -115,7 +115,7 @@ sealed class PeerClient<T> : IPeerJobClient<T> where T : struct
 
             try
             {
-                serializer.Deserialize(buffer[..receivedSize].Span, ref msg);
+                serializer.Deserialize(buffer.AsSpan(..receivedSize), ref msg);
                 await observer.OnPeerMessage(msg, address, receivedSize, ct).ConfigureAwait(false);
             }
             catch (NetcodeDeserializationException ex)
@@ -130,13 +130,6 @@ sealed class PeerClient<T> : IPeerJobClient<T> where T : struct
 #pragma warning restore S1854
     }
 
-    ValueTask<int> SendTo(
-        SocketAddress peerAddress,
-        ReadOnlyMemory<byte> payload,
-        CancellationToken ct = default
-    ) =>
-        socket.SendToAsync(payload, peerAddress, ct);
-
     [AsyncMethodBuilder(typeof(PoolingAsyncValueTaskMethodBuilder<>))]
     public async ValueTask<int> SendTo(
         SocketAddress peerAddress,
@@ -146,7 +139,7 @@ sealed class PeerClient<T> : IPeerJobClient<T> where T : struct
     )
     {
         var bodySize = serializer.Serialize(in payload, buffer.Span);
-        var sentSize = await SendTo(peerAddress, buffer[..bodySize], ct).ConfigureAwait(false);
+        var sentSize = await socket.SendToAsync(buffer[..bodySize], peerAddress, ct).ConfigureAwait(false);
         Trace.Assert(sentSize == bodySize);
         return sentSize;
     }

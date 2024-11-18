@@ -61,10 +61,17 @@ static class Mem
         return buffer;
     }
 
-    public static Memory<byte> CreatePinnedMemory(int size)
+    public static Memory<byte> AllocatePinnedMemory(int size)
     {
         var buffer = AllocatePinnedArray(size);
         return MemoryMarshal.CreateFromPinnedArray(buffer, 0, buffer.Length);
+    }
+
+    public static int GetHashCode<T>(ReadOnlySpan<T> values) where T : unmanaged
+    {
+        HashCode hash = new();
+        hash.AddBytes(MemoryMarshal.AsBytes(values));
+        return hash.ToHashCode();
     }
 
     public static string GetBitString(

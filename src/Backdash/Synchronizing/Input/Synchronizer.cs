@@ -79,7 +79,7 @@ sealed class Synchronizer<TInput, TState>
         if (currentFrame == 0)
             SaveCurrentFrame();
 
-        logger.Write(LogLevel.Debug, $"Sending non-delayed local frame {currentFrame} to queue {queue}");
+        logger.Write(LogLevel.Trace, $"Sending non-delayed local frame {currentFrame} to queue {queue}");
 
         input.Frame = currentFrame;
         AddInput(in queue, ref input);
@@ -210,7 +210,7 @@ sealed class Synchronizer<TInput, TState>
 
         if (firstIncorrect.IsNull)
         {
-            logger.Write(LogLevel.Debug, "Prediction ok.  proceeding.");
+            logger.Write(LogLevel.Trace, "Prediction ok.  proceeding.");
             seekTo = default;
             RollbackFrames = FrameSpan.Zero;
             return true;

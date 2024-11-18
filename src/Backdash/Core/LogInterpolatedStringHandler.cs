@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net;
 using System.Runtime.CompilerServices;
 using Backdash.Network.Protocol;
@@ -58,8 +59,14 @@ ref struct LogInterpolatedStringHandler
     public void AppendFormatted(Exception t)
     {
         if (!Enabled) return;
+
+        StackTrace st = new(t, true);
+        var printableStack = st.ToString().ReplaceLineEndings(string.Empty).Replace("   at ", ">");
+
         Utf8StringWriter writer = new(Buffer, ref Length);
         writer.WriteChars(t.Message);
+        writer.Write("; "u8);
+        writer.WriteChars(printableStack);
     }
 
     public void AppendFormatted(IPAddress t)
@@ -110,6 +117,11 @@ ref struct LogInterpolatedStringHandler
 [InlineArray(Capacity)]
 struct LogStringBuffer
 {
-    public const int Capacity = 128;
+#if DEBUG
+    public const int Capacity = 1024;
+#else
+    public const int Capacity = 256;
+#endif
+
     byte elemenet0;
 }

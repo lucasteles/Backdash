@@ -18,7 +18,7 @@ public class Game1 : Game
         FrameDelay = 2,
         Log = new()
         {
-            EnabledLevel = LogLevel.Information,
+            EnabledLevel = LogLevel.Warning,
         },
         Protocol = new()
         {

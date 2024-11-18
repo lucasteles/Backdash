@@ -12,8 +12,8 @@ var logger = Logger.CreateConsoleLogger(LogLevel.None);
 using BackgroundJobManager jobs = new(logger);
 
 const int bufferSize = Max.CompressedBytes * Max.NumberOfPlayers;
-var sendBuffer1 = Mem.CreatePinnedMemory(bufferSize);
-var sendBuffer2 = Mem.CreatePinnedMemory(bufferSize);
+var sendBuffer1 = Mem.AllocatePinnedMemory(bufferSize);
+var sendBuffer2 = Mem.AllocatePinnedMemory(bufferSize);
 
 using var peer1 = CreateClient(9000, sendBuffer1);
 using var peer2 = CreateClient(9001, sendBuffer2);

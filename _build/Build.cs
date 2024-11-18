@@ -14,25 +14,26 @@ class MainBuild : NukeBuild
 
     [Solution] readonly Solution Solution;
     [Parameter] readonly string TestResultFile = "test_result.xml";
-    AbsolutePath CoverageFiles => RootDirectory / "**" / "coverage.cobertura.xml";
-    AbsolutePath TestReportDirectory => RootDirectory / "TestReport";
-    AbsolutePath DocsPath => RootDirectory / "docfx";
-    AbsolutePath DocsSitePath => DocsPath / "_site";
+
+    static AbsolutePath CoverageFiles => RootDirectory / "**" / "coverage.cobertura.xml";
+    static AbsolutePath TestReportDirectory => RootDirectory / "TestReport";
+    static AbsolutePath DocsPath => RootDirectory / "docfx";
+    static AbsolutePath DocsSitePath => DocsPath / "_site";
+
+    static readonly string[] cleanPaths = ["src", "tests", "samples"];
 
     Target Clean => _ => _
         .Description("Clean project directories")
-        .Executes(() => new[] { "src", "tests" }
-            .Select(path => RootDirectory / path)
+        .Executes(() => cleanPaths.Select(path => RootDirectory / path)
             .SelectMany(dir => dir
                 .GlobDirectories("**/bin", "**/obj", "**/TestResults"))
             .Append(TestReportDirectory)
-            .ForEach(x => x.CreateOrCleanDirectory()));
+            .ForEach(x => x.DeleteDirectory()));
 
     Target Restore => _ => _
         .Description("Run dotnet restore in every project")
         .DependsOn(Clean)
-        .Executes(() => DotNetRestore(s => s
-            .SetProjectFile(Solution)));
+        .Executes(() => DotNetRestore(s => s.SetProjectFile(Solution)));
 
     Target Build => _ => _
         .Description("Builds SDK")
@@ -49,16 +50,18 @@ class MainBuild : NukeBuild
 
     Target BuildSamples => _ => _
         .Description("Builds SDK and Samples")
-        .DependsOn(Restore)
         .Executes(() =>
             DotNetBuild(s => s
                 .SetProjectFile(RootDirectory / "Samples" / "Backdash.Samples.sln")
                 .SetConfiguration(Configuration)
                 .EnableNoLogo()
-                .EnableNoRestore()
                 .SetProperty("UseSharedCompilation", false)
                 .SetProcessArgumentConfigurator(args => args.Add("/nodeReuse:false")))
         );
+
+    Target BuildAll => _ => _
+        .Description("Build All Projects")
+        .Triggers(Build, BuildSamples);
 
     Target Lint => _ => _
         .Description("Check for codebase formatting and analyzers")
@@ -182,6 +185,7 @@ class MainBuild : NukeBuild
                 .AddProperty("DefineConstants", "AOT_ENABLED")
                 .SetProcessArgumentConfigurator(args => args.Add("--use-current-runtime"))
             ));
+
 
     public static int Main() => Execute<MainBuild>();
 

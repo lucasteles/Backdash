@@ -11,6 +11,8 @@ public enum GameInput
     Left = 1 << 2,
     Right = 1 << 3,
 }
+
+[Serializable]
 public record struct GameState
 {
     public Vector2 Position1;
@@ -19,6 +21,8 @@ public record struct GameState
     public int Score2;
     public Vector2 Target;
 }
+
+[Serializable]
 public class NonGameState
 {
     public required PlayerHandle? LocalPlayer;
@@ -32,6 +36,7 @@ public class NonGameState
     public DateTime LostConnectionTime;
     public TimeSpan DisconnectTimeout;
 }
+
 public enum PlayerStatus
 {
     Connecting = 0,

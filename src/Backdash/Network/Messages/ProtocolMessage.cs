@@ -5,7 +5,7 @@ using Backdash.Serialization.Buffer;
 
 namespace Backdash.Network.Messages;
 
-[StructLayout(LayoutKind.Explicit, Pack = 2)]
+[Serializable, StructLayout(LayoutKind.Explicit, Pack = 2)]
 struct ProtocolMessage(MessageType type) : IBinarySerializable, IEquatable<ProtocolMessage>, IUtf8SpanFormattable
 {
     [FieldOffset(0)]

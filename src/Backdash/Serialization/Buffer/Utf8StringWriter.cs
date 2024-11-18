@@ -68,9 +68,7 @@ readonly ref struct Utf8StringWriter
         Span<byte> dest = CurrentBuffer;
         if (dest.IsEmpty) return false;
         Span<char> charBuffer = stackalloc char[MaxLocalStringSize];
-        if (!Enum.TryFormat(value, charBuffer, out int written, format))
-            return false;
-        return WriteChars(charBuffer[..written]);
+        return Enum.TryFormat(value, charBuffer, out int written, format) && WriteChars(charBuffer[..written]);
     }
 }
 
@@ -95,10 +93,8 @@ readonly ref struct Utf8ObjectWriter
         string name = ""
     ) where T : IUtf8SpanFormattable
     {
-        if (firstOffset != offset && !writer.Write(", "u8))
-            return false;
-        if (!writer.WriteChars(name))
-            return false;
+        if (firstOffset != offset && !writer.Write(", "u8)) return false;
+        if (!writer.WriteChars(name)) return false;
         if (!writer.Write(": "u8)) return false;
         return writer.Write(value, format);
     }

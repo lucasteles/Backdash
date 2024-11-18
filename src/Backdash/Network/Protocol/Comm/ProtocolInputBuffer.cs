@@ -28,7 +28,7 @@ sealed class ProtocolInputBuffer<TInput> : IProtocolInputBuffer<TInput>
     where TInput : unmanaged
 {
     readonly Queue<GameInput<TInput>> pendingOutput;
-    readonly Memory<byte> workingBufferMemory;
+    readonly byte[] workingBufferMemory;
     int lastSentSize;
     int lastAckSize;
     GameInput<TInput> lastAckedInput = new();
@@ -60,7 +60,7 @@ sealed class ProtocolInputBuffer<TInput> : IProtocolInputBuffer<TInput>
         this.inbox = inbox;
         inputSize = inputSerializer.GetTypeSize();
         Trace.Assert(inputSize * ByteSize.ByteToBits < 1 << ByteSize.ByteToBits);
-        workingBufferMemory = Mem.CreatePinnedMemory(WorkingBufferFactor * inputSize);
+        workingBufferMemory = Mem.AllocatePinnedArray(WorkingBufferFactor * inputSize);
         pendingOutput = new(options.MaxPendingInputs);
     }
 
@@ -89,11 +89,11 @@ sealed class ProtocolInputBuffer<TInput> : IProtocolInputBuffer<TInput>
 
     SendInputResult CreateInputMessage(out ProtocolMessage protocolMessage)
     {
-        Span<byte> workingBuffer = workingBufferMemory.Span;
+        var workingBuffer = workingBufferMemory.AsSpan();
         Trace.Assert(workingBuffer.Length >= WorkingBufferFactor);
-        Span<byte> lastAckBytes = workingBuffer[..inputSize];
-        Span<byte> sendBuffer = workingBuffer.Slice(inputSize, inputSize);
-        Span<byte> currentBytes = workingBuffer.Slice(inputSize * 2, inputSize);
+        var lastAckBytes = workingBuffer[..inputSize];
+        var sendBuffer = workingBuffer.Slice(inputSize, inputSize);
+        var currentBytes = workingBuffer.Slice(inputSize * 2, inputSize);
 
         var messageBodyOverflow = false;
         var lastAckFrame = inbox.LastAckedFrame;
@@ -108,7 +108,7 @@ sealed class ProtocolInputBuffer<TInput> : IProtocolInputBuffer<TInput>
             while (pendingOutput.Peek().Frame < lastAckFrame)
             {
                 var acked = pendingOutput.Dequeue();
-                logger.Write(LogLevel.Debug, $"Skipping past frame:{acked.Frame} current is {lastAckFrame}");
+                logger.Write(LogLevel.Trace, $"Skipping past frame:{acked.Frame} current is {lastAckFrame}");
                 lastAckedInput = acked;
                 lastAckSize = inputSerializer.Serialize(in lastAckedInput.Data, lastAckBytes);
             }
