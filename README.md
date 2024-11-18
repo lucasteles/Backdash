@@ -38,13 +38,13 @@ $ dotnet add package Backdash
 
 ### Demos:
 
-| Title           | Link                                                                                                   |
-|-----------------|--------------------------------------------------------------------------------------------------------|
-| Terminal        | [![Terminal](https://img.youtube.com/vi/n-3G0AE5Ti0/default.jpg)](https://youtu.be/n-3G0AE5Ti0)         |
-| Monogame Local  | [![Monogame Local](https://img.youtube.com/vi/JYf2MemyJaY/default.jpg)](https://youtu.be/JYf2MemyJaY)  |
-| Monogame Lobby  | [![Monogame Online](https://img.youtube.com/vi/LGM_9XfzRUI/default.jpg)](https://youtu.be/LGM_9XfzRUI) |
-| Godot Lobby     | [![Godot Online](https://img.youtube.com/vi/8M8QnTiJZzA/default.jpg)](https://youtu.be/8M8QnTiJZzA) |
-| Save/Load Replay| [![Save and load Replay](https://img.youtube.com/vi/iSbOJpLCx5M/default.jpg)](https://youtu.be/iSbOJpLCx5M) |
+| Title            | Link                                                                                                        |
+|------------------|-------------------------------------------------------------------------------------------------------------|
+| Terminal         | [![Terminal](https://img.youtube.com/vi/n-3G0AE5Ti0/default.jpg)](https://youtu.be/n-3G0AE5Ti0)             |
+| Monogame Local   | [![Monogame Local](https://img.youtube.com/vi/JYf2MemyJaY/default.jpg)](https://youtu.be/JYf2MemyJaY)       |
+| Monogame Lobby   | [![Monogame Online](https://img.youtube.com/vi/LGM_9XfzRUI/default.jpg)](https://youtu.be/LGM_9XfzRUI)      |
+| Godot Lobby      | [![Godot Online](https://img.youtube.com/vi/8M8QnTiJZzA/default.jpg)](https://youtu.be/8M8QnTiJZzA)         |
+| Save/Load Replay | [![Save and load Replay](https://img.youtube.com/vi/iSbOJpLCx5M/default.jpg)](https://youtu.be/iSbOJpLCx5M) |
 
 ## Samples
 
