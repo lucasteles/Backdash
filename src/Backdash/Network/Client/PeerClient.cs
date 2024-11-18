@@ -131,13 +131,6 @@ sealed class PeerClient<T> : IPeerJobClient<T> where T : struct
     }
 
     [AsyncMethodBuilder(typeof(PoolingAsyncValueTaskMethodBuilder<>))]
-    async ValueTask<int> SendTo(
-        SocketAddress peerAddress,
-        ReadOnlyMemory<byte> payload,
-        CancellationToken ct = default
-    ) => await socket.SendToAsync(payload, peerAddress, ct);
-
-    [AsyncMethodBuilder(typeof(PoolingAsyncValueTaskMethodBuilder<>))]
     public async ValueTask<int> SendTo(
         SocketAddress peerAddress,
         T payload,
@@ -146,7 +139,7 @@ sealed class PeerClient<T> : IPeerJobClient<T> where T : struct
     )
     {
         var bodySize = serializer.Serialize(in payload, buffer.Span);
-        var sentSize = await SendTo(peerAddress, buffer[..bodySize], ct).ConfigureAwait(false);
+        var sentSize = await socket.SendToAsync(buffer[..bodySize], peerAddress, ct).ConfigureAwait(false);
         Trace.Assert(sentSize == bodySize);
         return sentSize;
     }
