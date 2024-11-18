@@ -24,7 +24,6 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
     readonly Logger logger;
     readonly IStateStore<TGameState> stateStore;
     readonly IProtocolClient udp;
-    readonly IDeterministicRandom deterministicRandom;
     readonly PeerObserverGroup<ProtocolMessage> peerObservers;
     readonly Synchronizer<TInput, TGameState> synchronizer;
     readonly ConnectionsState localConnections;
@@ -37,6 +36,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
     readonly HashSet<PlayerHandle> addedPlayers = [];
     readonly HashSet<PlayerHandle> addedSpectators = [];
     readonly IInputListener<TInput>? inputListener;
+    public IDeterministicRandom Random { get; }
 
     bool isSynchronizing = true;
     int nextRecommendedInterval;
@@ -69,7 +69,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         backgroundJobManager = services.JobManager;
         logger = services.Logger;
         inputListener = services.InputListener;
-        deterministicRandom = services.DeterministicRandom;
+        Random = services.DeterministicRandom;
         syncNumber = services.Random.MagicNumber();
 
         peerInputEventQueue = new();
@@ -143,7 +143,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
     public int NumberOfPlayers => addedPlayers.Count;
 
     public int NumberOfSpectators => addedSpectators.Count;
-    public IDeterministicRandom Random => deterministicRandom;
+
     public SessionMode Mode => SessionMode.Rollback;
 
     public IReadOnlyCollection<PlayerHandle> GetPlayers() => addedPlayers;
@@ -282,11 +282,12 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
     {
         if (addedPlayers.Count >= Max.NumberOfPlayers)
             return ResultCode.TooManyPlayers;
+
         PlayerHandle handle = new(player.Handle.Type, player.Handle.Number, addedPlayers.Count);
         if (!addedPlayers.Add(handle))
             return ResultCode.DuplicatedPlayer;
-        player.Handle = handle;
 
+        player.Handle = handle;
         var endpoint = player.EndPoint;
         var protocol = peerConnectionFactory.Create(
             new(player.Handle, endpoint, localConnections, syncNumber),
@@ -372,7 +373,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         synchronizer.SynchronizeInputs(syncInputBuffer, inputBuffer);
 
         var inputPopCount = options.UseInputSeedForRandom ? Mem.PopCount<TInput>(inputBuffer.AsSpan()) : 0;
-        deterministicRandom.UpdateSeed(CurrentFrame.Number, inputPopCount);
+        Random.UpdateSeed(CurrentFrame.Number, inputPopCount);
 
         return ResultCode.Ok;
     }
