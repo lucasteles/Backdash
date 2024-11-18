@@ -1,5 +1,4 @@
 using System.Drawing;
-using System.Runtime.InteropServices;
 
 // ReSharper disable UnusedMember.Global, NotAccessedField.Global, EnumUnderlyingTypeIsInt
 #pragma warning disable S2344, S1939
