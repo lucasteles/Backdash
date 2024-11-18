@@ -14,13 +14,14 @@ class MainBuild : NukeBuild
 
     [Solution] readonly Solution Solution;
     [Parameter] readonly string TestResultFile = "test_result.xml";
-    AbsolutePath CoverageFiles => RootDirectory / "**" / "coverage.cobertura.xml";
-    AbsolutePath TestReportDirectory => RootDirectory / "TestReport";
-    AbsolutePath DocsPath => RootDirectory / "docfx";
-    AbsolutePath DocsSitePath => DocsPath / "_site";
+
+    static AbsolutePath CoverageFiles => RootDirectory / "**" / "coverage.cobertura.xml";
+    static AbsolutePath TestReportDirectory => RootDirectory / "TestReport";
+    static AbsolutePath DocsPath => RootDirectory / "docfx";
+    static AbsolutePath DocsSitePath => DocsPath / "_site";
 
     static readonly string[] cleanPaths = ["src", "tests", "samples"];
-    
+
     Target Clean => _ => _
         .Description("Clean project directories")
         .Executes(() => cleanPaths.Select(path => RootDirectory / path)
