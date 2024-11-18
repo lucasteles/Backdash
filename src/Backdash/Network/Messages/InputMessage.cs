@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using Backdash.Core;
 using Backdash.Data;
@@ -7,7 +8,7 @@ using Backdash.Serialization.Buffer;
 
 namespace Backdash.Network.Messages;
 
-[Serializable]
+[Serializable, StructLayout(LayoutKind.Sequential)]
 record struct InputMessage : IBinarySerializable, IUtf8SpanFormattable
 {
     public PeerStatusBuffer PeerConnectStatus;
@@ -73,7 +74,7 @@ record struct InputMessage : IBinarySerializable, IUtf8SpanFormattable
 }
 
 [Serializable, InlineArray(Max.NumberOfPlayers)]
-struct PeerStatusBuffer
+struct PeerStatusBuffer : IEquatable<PeerStatusBuffer>
 {
     ConnectStatus element0;
     public PeerStatusBuffer(ReadOnlySpan<ConnectStatus> buffer) => buffer.CopyTo(this);
@@ -102,12 +103,20 @@ struct PeerStatusBuffer
         builder.Append(']');
         return builder.ToString();
     }
+
+    public override readonly int GetHashCode() => Mem.GetHashCode<ConnectStatus>(this);
+    public readonly bool Equals(PeerStatusBuffer other) => ((ReadOnlySpan<ConnectStatus>)this).SequenceEqual(other);
+    public override readonly bool Equals(object? obj) => obj is PeerStatusBuffer other && Equals(other);
 }
 
 [Serializable, InlineArray(Max.CompressedBytes)]
-struct InputMessageBuffer
+struct InputMessageBuffer : IEquatable<InputMessageBuffer>
 {
     byte element0;
     public InputMessageBuffer(ReadOnlySpan<byte> bits) => bits.CopyTo(this);
+
     public override readonly string ToString() => Mem.GetBitString(this);
+    public override readonly int GetHashCode() => Mem.GetHashCode<byte>(this);
+    public readonly bool Equals(InputMessageBuffer other) => Mem.EqualBytes(this, other);
+    public override readonly bool Equals(object? obj) => obj is InputMessageBuffer other && Equals(other);
 }

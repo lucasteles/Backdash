@@ -7,7 +7,7 @@ namespace Backdash.Data;
 /// <summary>
 /// Value representation of a Frame
 /// </summary>
-[DebuggerDisplay("{ToString()}")]
+[DebuggerDisplay("{ToString()}"), Serializable]
 public readonly record struct Frame :
     IComparable<Frame>,
     IComparable<int>,

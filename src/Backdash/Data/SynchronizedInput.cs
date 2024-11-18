@@ -6,6 +6,7 @@ namespace Backdash.Data;
 /// <param name="Input">The input value</param>
 /// <param name="Disconnected">Is <see langword="true"/> if input owner is disconnected</param>
 /// <typeparam name="T">Type of the Input</typeparam>
+[Serializable]
 public readonly record struct SynchronizedInput<T>(T Input, bool Disconnected) where T : struct
 {
     /// <summary>

@@ -1,9 +1,10 @@
+using System.Runtime.InteropServices;
 using Backdash.Serialization;
 using Backdash.Serialization.Buffer;
 
 namespace Backdash.Network.Messages;
 
-[Serializable]
+[Serializable, StructLayout(LayoutKind.Sequential)]
 record struct QualityReport : IBinarySerializable, IUtf8SpanFormattable
 {
     public int FrameAdvantage; /* what's the other guy's frame advantage? */

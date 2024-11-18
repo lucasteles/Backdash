@@ -1,9 +1,10 @@
+using System.Runtime.InteropServices;
 using Backdash.Serialization;
 using Backdash.Serialization.Buffer;
 
 namespace Backdash.Network.Messages;
 
-[Serializable]
+[Serializable, StructLayout(LayoutKind.Sequential)]
 record struct SyncRequest : IBinarySerializable, IUtf8SpanFormattable
 {
     public uint RandomRequest; /* please reply with this random data */

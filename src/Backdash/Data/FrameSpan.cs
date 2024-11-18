@@ -7,7 +7,7 @@ namespace Backdash.Data;
 /// <summary>
 /// Value representation of a span of frames
 /// </summary>
-[DebuggerDisplay("{ToString()}")]
+[DebuggerDisplay("{ToString()}"), Serializable]
 public readonly record struct FrameSpan :
     IComparable<FrameSpan>,
     IUtf8SpanFormattable,
