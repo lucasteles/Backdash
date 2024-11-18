@@ -7,8 +7,6 @@ sealed class PeerAddress(IPEndPoint endPoint) : IEquatable<PeerAddress>
     public IPEndPoint EndPoint { get; } = endPoint;
     public SocketAddress Address { get; } = endPoint.Serialize();
 
-    public PeerAddress Clone() => new(EndPoint);
-
     public override bool Equals(object? obj) =>
         ReferenceEquals(this, obj) || (obj is PeerAddress other && Equals(other));
 

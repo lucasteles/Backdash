@@ -31,7 +31,7 @@ RollbackOptions options = new()
     FrameDelay = 2,
     Log = new()
     {
-        EnabledLevel = LogLevel.Information,
+        EnabledLevel = LogLevel.Debug,
     },
     Protocol = new()
     {

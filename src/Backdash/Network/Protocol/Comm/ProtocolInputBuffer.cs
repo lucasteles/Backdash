@@ -108,7 +108,7 @@ sealed class ProtocolInputBuffer<TInput> : IProtocolInputBuffer<TInput>
             while (pendingOutput.Peek().Frame < lastAckFrame)
             {
                 var acked = pendingOutput.Dequeue();
-                logger.Write(LogLevel.Debug, $"Skipping past frame:{acked.Frame} current is {lastAckFrame}");
+                logger.Write(LogLevel.Trace, $"Skipping past frame:{acked.Frame} current is {lastAckFrame}");
                 lastAckedInput = acked;
                 lastAckSize = inputSerializer.Serialize(in lastAckedInput.Data, lastAckBytes);
             }

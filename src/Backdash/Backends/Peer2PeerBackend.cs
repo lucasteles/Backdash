@@ -360,7 +360,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
     public void BeginFrame()
     {
         if (!isSynchronizing)
-            logger.Write(LogLevel.Debug, $"[Begin Frame {synchronizer.CurrentFrame}]");
+            logger.Write(LogLevel.Trace, $"[Begin Frame {synchronizer.CurrentFrame}]");
 
         DoSync();
     }
@@ -400,7 +400,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
 
     public void AdvanceFrame()
     {
-        logger.Write(LogLevel.Debug, $"[End Frame {synchronizer.CurrentFrame}]");
+        logger.Write(LogLevel.Trace, $"[End Frame {synchronizer.CurrentFrame}]");
         synchronizer.IncrementFrame();
     }
 
@@ -424,7 +424,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
             Trace.Assert(currentRemoteFrame.IsNull || newRemoteFrame == currentRemoteFrame.Next());
             synchronizer.AddRemoteInput(in player, eventInput);
             // Notify the other endpoints which frame we received from a peer
-            logger.Write(LogLevel.Debug, $"setting remote connect status frame {player} to {eventInput.Frame}");
+            logger.Write(LogLevel.Trace, $"setting remote connect status frame {player} to {eventInput.Frame}");
             localConnections[player].LastFrame = eventInput.Frame;
         }
     }
@@ -466,7 +466,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
                     if (!synchronizer.GetConfirmedInputGroup(in nextSpectatorFrame, ref confirmed))
                         break;
 
-                    logger.Write(LogLevel.Debug, $"pushing frame {nextSpectatorFrame} to spectators");
+                    logger.Write(LogLevel.Trace, $"pushing frame {nextSpectatorFrame} to spectators");
                     for (var s = 0; s < spectators.Count; s++)
                         if (spectators[s].IsRunning)
                             spectators[s].SendInput(in confirmed);
@@ -483,14 +483,14 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
                     if (!synchronizer.GetConfirmedInputGroup(in nextListenerFrame, ref confirmed))
                         break;
 
-                    logger.Write(LogLevel.Debug, $"pushing frame {nextListenerFrame} to listener");
+                    logger.Write(LogLevel.Trace, $"pushing frame {nextListenerFrame} to listener");
                     inputListener.OnConfirmed(in confirmed.Frame, in confirmed.Data);
 
                     nextListenerFrame++;
                 }
             }
 
-            logger.Write(LogLevel.Debug, $"setting confirmed frame in sync to {minConfirmedFrame}");
+            logger.Write(LogLevel.Trace, $"setting confirmed frame in sync to {minConfirmedFrame}");
             synchronizer.SetLastConfirmedFrame(minConfirmedFrame);
         }
 
