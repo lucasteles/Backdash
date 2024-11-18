@@ -73,11 +73,11 @@ struct InputMessage : IEquatable<InputMessage>, IBinarySerializable, IUtf8SpanFo
     }
 
     public readonly bool Equals(InputMessage other) =>
-        PeerConnectStatus.Equals(other.PeerConnectStatus) &&
         StartFrame.Equals(other.StartFrame) &&
         DisconnectRequested == other.DisconnectRequested &&
         AckFrame.Equals(other.AckFrame) && NumBits == other.NumBits &&
         InputSize == other.InputSize &&
+        PeerConnectStatus.Equals(other.PeerConnectStatus) &&
         Bits.Equals(other.Bits);
 
     public override readonly bool Equals(object? obj) => obj is InputMessage other && Equals(other);
@@ -121,7 +121,7 @@ struct PeerStatusBuffer : IEquatable<PeerStatusBuffer>
     }
 
     public override readonly int GetHashCode() => Mem.GetHashCode<ConnectStatus>(this);
-    public readonly bool Equals(PeerStatusBuffer other) => ((ReadOnlySpan<ConnectStatus>)this).SequenceEqual(other);
+    public readonly bool Equals(PeerStatusBuffer other) => this[..].SequenceEqual(other);
     public override readonly bool Equals(object? obj) => obj is PeerStatusBuffer other && Equals(other);
 }
 
