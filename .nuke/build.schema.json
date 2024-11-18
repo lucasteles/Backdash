@@ -26,6 +26,7 @@
       "enum": [
         "BrowseReport",
         "Build",
+        "BuildAll",
         "BuildDocs",
         "BuildNative",
         "BuildSamples",

@@ -60,6 +60,10 @@ class MainBuild : NukeBuild
                 .SetProcessArgumentConfigurator(args => args.Add("/nodeReuse:false")))
         );
 
+    Target BuildAll => _ => _
+        .Description("Build All Projects")
+        .Triggers(Build, BuildSamples);
+    
     Target Lint => _ => _
         .Description("Check for codebase formatting and analyzers")
         .DependsOn(Build)
