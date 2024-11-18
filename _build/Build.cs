@@ -19,14 +19,15 @@ class MainBuild : NukeBuild
     AbsolutePath DocsPath => RootDirectory / "docfx";
     AbsolutePath DocsSitePath => DocsPath / "_site";
 
+    static readonly string[] cleanPaths = ["src", "tests", "samples"];
+    
     Target Clean => _ => _
         .Description("Clean project directories")
-        .Executes(() => new[] { "src", "tests" }
-            .Select(path => RootDirectory / path)
+        .Executes(() => cleanPaths.Select(path => RootDirectory / path)
             .SelectMany(dir => dir
                 .GlobDirectories("**/bin", "**/obj", "**/TestResults"))
             .Append(TestReportDirectory)
-            .ForEach(x => x.CreateOrCleanDirectory()));
+            .ForEach(x => x.DeleteDirectory()));
 
     Target Restore => _ => _
         .Description("Run dotnet restore in every project")
@@ -63,7 +64,7 @@ class MainBuild : NukeBuild
     Target BuildAll => _ => _
         .Description("Build All Projects")
         .Triggers(Build, BuildSamples);
-    
+
     Target Lint => _ => _
         .Description("Check for codebase formatting and analyzers")
         .DependsOn(Build)
@@ -186,6 +187,7 @@ class MainBuild : NukeBuild
                 .AddProperty("DefineConstants", "AOT_ENABLED")
                 .SetProcessArgumentConfigurator(args => args.Add("--use-current-runtime"))
             ));
+
 
     public static int Main() => Execute<MainBuild>();
 
