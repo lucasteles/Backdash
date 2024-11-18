@@ -18,6 +18,7 @@ public sealed class UdpSocket : IPeerSocket
 
     readonly Socket socket;
     readonly IPEndPoint anyEndPoint;
+    readonly object locker = new();
 
     /// <summary>
     /// Gets the main bind port of the Socket.
@@ -120,8 +121,11 @@ public sealed class UdpSocket : IPeerSocket
     /// <param name="cancellationToken">A cancellation token that can be used to cancel the asynchronous operation.</param>
     /// <returns>An asynchronous task that completes with the number of bytes sent.</returns>
     public ValueTask<int> SendToAsync(ReadOnlyMemory<byte> buffer, SocketAddress socketAddress,
-        CancellationToken cancellationToken) =>
-        socket.SendToAsync(buffer, SocketFlags.None, socketAddress, cancellationToken);
+        CancellationToken cancellationToken)
+    {
+        lock (locker)
+            return socket.SendToAsync(buffer, SocketFlags.None, socketAddress, cancellationToken);
+    }
 
     /// <summary>
     /// Sends data to the specified remote host.
@@ -131,8 +135,11 @@ public sealed class UdpSocket : IPeerSocket
     /// <param name="cancellationToken">A cancellation token that can be used to cancel the asynchronous operation.</param>
     /// <returns>An asynchronous task that completes with the number of bytes sent.</returns>
     public ValueTask<int> SendToAsync(ReadOnlyMemory<byte> buffer, EndPoint remoteEndPoint,
-        CancellationToken cancellationToken) =>
-        socket.SendToAsync(buffer, SocketFlags.None, remoteEndPoint, cancellationToken);
+        CancellationToken cancellationToken)
+    {
+        lock (locker)
+            return socket.SendToAsync(buffer, SocketFlags.None, remoteEndPoint, cancellationToken);
+    }
 
     /// <inheritdoc  />
     public void Dispose() => socket.Dispose();
