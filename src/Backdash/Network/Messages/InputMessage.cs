@@ -9,7 +9,7 @@ using Backdash.Serialization.Buffer;
 namespace Backdash.Network.Messages;
 
 [Serializable, StructLayout(LayoutKind.Sequential)]
-record struct InputMessage : IBinarySerializable, IUtf8SpanFormattable
+struct InputMessage : IEquatable<InputMessage>, IBinarySerializable, IUtf8SpanFormattable
 {
     public PeerStatusBuffer PeerConnectStatus;
     public Frame StartFrame;
@@ -71,7 +71,23 @@ record struct InputMessage : IBinarySerializable, IUtf8SpanFormattable
         if (!writer.Write(NumBits)) return false;
         return true;
     }
-}
+
+     public readonly bool Equals(InputMessage other) =>
+            PeerConnectStatus[..].SequenceEqual(other.PeerConnectStatus) &&
+            StartFrame.Equals(other.StartFrame) &&
+            DisconnectRequested == other.DisconnectRequested &&
+            AckFrame.Equals(other.AckFrame) && NumBits == other.NumBits &&
+            InputSize == other.InputSize &&
+            Mem.EqualBytes(Bits, other.Bits, truncate: true);
+
+        public override readonly bool Equals(object? obj) => obj is InputMessage other && Equals(other);
+
+        public override readonly int GetHashCode() => HashCode.Combine(
+            PeerConnectStatus, StartFrame, DisconnectRequested, AckFrame, NumBits, InputSize, Bits);
+
+        public static bool operator ==(InputMessage left, InputMessage right) => left.Equals(right);
+        public static bool operator !=(InputMessage left, InputMessage right) => !left.Equals(right);
+    }
 
 [Serializable, InlineArray(Max.NumberOfPlayers)]
 struct PeerStatusBuffer : IEquatable<PeerStatusBuffer>
