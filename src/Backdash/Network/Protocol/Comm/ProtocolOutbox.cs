@@ -38,13 +38,11 @@ sealed class ProtocolOutbox(
     int nextSendSeq;
     public string JobName { get; } = $"{nameof(ProtocolOutbox)} {state.Player}";
 
-    readonly PeerAddress peerAddress = state.PeerAddress;
-
     QueueEntry CreateNextEntry(in ProtocolMessage msg) =>
         new()
         {
             QueueTime = clock.GetTimeStamp(),
-            Recipient = peerAddress.Address,
+            Recipient = state.PeerAddress.Address,
             Body = msg,
         };
 

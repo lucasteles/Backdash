@@ -76,8 +76,8 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         peerCombinedInputsEventPublisher = new ProtocolCombinedInputsEventPublisher<TInput>(peerInputEventQueue);
         inputGroupSerializer = new ConfirmedInputsSerializer<TInput>(inputSerializer);
         localConnections = new(Max.NumberOfPlayers);
+        endpoints = new(Max.NumberOfPlayers);
         spectators = [];
-        endpoints = [];
         peerObservers = new();
         callbacks = new EmptySessionHandler<TGameState>(logger);
 
