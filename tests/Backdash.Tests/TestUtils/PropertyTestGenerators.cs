@@ -53,20 +53,6 @@ class PropertyTestGenerators
                 Field9 = f9,
             });
 
-    public static Arbitrary<MarshalStructData> MarshalStructDataGenerator() =>
-        Arb.From(
-            from f1 in Arb.Generate<int>()
-            from f2 in Arb.Generate<long>()
-            from f3 in Arb.Generate<byte>()
-            from fArray in Arb.Generate<byte[]>().Where(a => a.Length is 10)
-            select new MarshalStructData
-            {
-                Field1 = f1,
-                Field2 = f2,
-                Field3 = f3,
-                FieldArray = fArray,
-            });
-
     public static Arbitrary<Frame> FrameGenerator() => Arb.From(
         from frame in Arb.Generate<PositiveInt>()
         select new Frame(frame.Item)

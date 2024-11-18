@@ -80,19 +80,3 @@ public record struct SimpleStructData
     public Point Field9;
 }
 
-[StructLayout(LayoutKind.Sequential)]
-public struct MarshalStructData
-{
-    public int Field1;
-    public long Field2;
-    public byte Field3;
-
-    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 10)]
-    public byte[] FieldArray;
-
-    public readonly bool IsEquivalent(MarshalStructData other) =>
-        Field1 == other.Field1
-        && Field2 == other.Field2
-        && Field3 == other.Field3
-        && FieldArray.SequenceEqual(other.FieldArray);
-}

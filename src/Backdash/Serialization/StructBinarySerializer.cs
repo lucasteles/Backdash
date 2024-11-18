@@ -13,16 +13,3 @@ sealed class StructBinarySerializer<T> : IBinarySerializer<T> where T : struct
         return Unsafe.SizeOf<T>();
     }
 }
-
-#if !AOT_ENABLED
-sealed class StructMarshalBinarySerializer<T> : IBinarySerializer<T> where T : struct
-{
-    public int Serialize(in T data, Span<byte> buffer) => Mem.MarshallStruct(in data, in buffer);
-
-    public int Deserialize(ReadOnlySpan<byte> data, ref T value)
-    {
-        value = Mem.UnmarshallStruct<T>(in data);
-        return Unsafe.SizeOf<T>();
-    }
-}
-#endif

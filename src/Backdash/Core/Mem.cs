@@ -54,67 +54,6 @@ static class Mem
         return right[..minLength].SequenceEqual(left[..minLength]);
     }
 
-#if !AOT_ENABLED
-    public static unsafe int MarshallStruct<T>(in T message, in Span<byte> body)
-        where T : struct
-    {
-        var size = Marshal.SizeOf(message);
-        nint ptr;
-        bool fitStack = size <= MaxStackLimit;
-        if (!fitStack)
-            ptr = Marshal.AllocHGlobal(size);
-        else
-        {
-            var stackPointer = stackalloc byte[size];
-            ptr = (nint)stackPointer;
-        }
-
-        try
-        {
-            fixed (byte* bodyPtr = body)
-            {
-                Marshal.StructureToPtr(message, ptr, true);
-                Span<byte> source = new((void*)ptr, size);
-                Span<byte> dest = new(bodyPtr, size);
-                source.CopyTo(dest);
-            }
-        }
-        finally
-        {
-            if (!fitStack)
-                Marshal.FreeHGlobal(ptr);
-        }
-
-        return size;
-    }
-
-    public static unsafe T UnmarshallStruct<T>(in ReadOnlySpan<byte> body) where T : struct
-    {
-        var size = body.Length;
-        nint ptr;
-        bool fitStack = size <= MaxStackLimit;
-        if (!fitStack)
-            ptr = Marshal.AllocHGlobal(size);
-        else
-        {
-            var stackPointer = stackalloc byte[size];
-            ptr = (nint)stackPointer;
-        }
-
-        try
-        {
-            Span<byte> dest = new((void*)ptr, body.Length);
-            body.CopyTo(dest);
-            return Marshal.PtrToStructure<T>(ptr);
-        }
-        finally
-        {
-            if (!fitStack)
-                Marshal.FreeHGlobal(ptr);
-        }
-    }
-#endif
-
     public static byte[] AllocatePinnedArray(int size)
     {
         var buffer = GC.AllocateArray<byte>(length: size, pinned: true);

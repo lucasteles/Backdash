@@ -226,16 +226,6 @@ public class SerializersTests
         .BeOfType<EnumBinarySerializer<T, TInt>>();
 
 #if !AOT_ENABLED
-    [PropertyTest]
-    public bool ShouldSerializeMarshalStruct(MarshalStructData value)
-    {
-        var serializer = BinarySerializerFactory.ForStruct<MarshalStructData>(marshall: true);
-        Span<byte> buffer = stackalloc byte[System.Runtime.InteropServices.Marshal.SizeOf<MarshalStructData>()];
-        serializer.Serialize(in value, buffer);
-        var result = serializer.Deserialize(buffer);
-        return result.IsEquivalent(value);
-    }
-
     [Fact]
     public void ShouldReturnCorrectSerializerForStruct()
     {
