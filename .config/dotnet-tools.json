@@ -24,7 +24,7 @@
       "rollForward": false
     },
     "gitversion.tool": {
-      "version": "6.0.3",
+      "version": "6.0.5",
       "commands": [
         "dotnet-gitversion"
       ],
