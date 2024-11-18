@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Backdash.Core;
 
@@ -99,6 +100,7 @@ public sealed class UdpSocket : IPeerSocket
     /// <param name="address"> A <see cref="SocketAddress "/> instance that gets updated with the value of the remote peer when this method returns.</param>
     /// <param name="cancellationToken">A cancellation token that can be used to signal the asynchronous operation should be canceled.</param>
     /// <returns>An asynchronous task that completes with a <see cref="SocketReceiveFromResult"/> containing the number of bytes received and the endpoint of the sending host.</returns>
+    [AsyncMethodBuilder(typeof(PoolingAsyncValueTaskMethodBuilder))]
     public ValueTask<int> ReceiveFromAsync(Memory<byte> buffer, SocketAddress address,
         CancellationToken cancellationToken) =>
         socket.ReceiveFromAsync(buffer, SocketFlags.None, address, cancellationToken);
@@ -109,6 +111,7 @@ public sealed class UdpSocket : IPeerSocket
     /// <param name="buffer">The buffer for the received data.</param>
     /// <param name="cancellationToken">A cancellation token that can be used to signal the asynchronous operation should be canceled.</param>
     /// <returns>An asynchronous task that completes with a <see cref="SocketReceiveFromResult"/> containing the number of bytes received and the endpoint of the sending host.</returns>
+    [AsyncMethodBuilder(typeof(PoolingAsyncValueTaskMethodBuilder))]
     public ValueTask<SocketReceiveFromResult> ReceiveAsync(Memory<byte> buffer, CancellationToken cancellationToken) =>
         socket.ReceiveFromAsync(buffer, SocketFlags.None, anyEndPoint, cancellationToken);
 
@@ -119,6 +122,7 @@ public sealed class UdpSocket : IPeerSocket
     /// <param name="socketAddress">The remote host to which to send the data.</param>
     /// <param name="cancellationToken">A cancellation token that can be used to cancel the asynchronous operation.</param>
     /// <returns>An asynchronous task that completes with the number of bytes sent.</returns>
+    [AsyncMethodBuilder(typeof(PoolingAsyncValueTaskMethodBuilder))]
     public ValueTask<int> SendToAsync(ReadOnlyMemory<byte> buffer, SocketAddress socketAddress,
         CancellationToken cancellationToken) =>
         socket.SendToAsync(buffer, SocketFlags.None, socketAddress, cancellationToken);
@@ -130,6 +134,7 @@ public sealed class UdpSocket : IPeerSocket
     /// <param name="remoteEndPoint">The remote host to which to send the data.</param>
     /// <param name="cancellationToken">A cancellation token that can be used to cancel the asynchronous operation.</param>
     /// <returns>An asynchronous task that completes with the number of bytes sent.</returns>
+    [AsyncMethodBuilder(typeof(PoolingAsyncValueTaskMethodBuilder))]
     public ValueTask<int> SendToAsync(ReadOnlyMemory<byte> buffer, EndPoint remoteEndPoint,
         CancellationToken cancellationToken) =>
         socket.SendToAsync(buffer, SocketFlags.None, remoteEndPoint, cancellationToken);

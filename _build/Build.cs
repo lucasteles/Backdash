@@ -33,8 +33,7 @@ class MainBuild : NukeBuild
     Target Restore => _ => _
         .Description("Run dotnet restore in every project")
         .DependsOn(Clean)
-        .Executes(() => DotNetRestore(s => s
-            .SetProjectFile(Solution)));
+        .Executes(() => DotNetRestore(s => s.SetProjectFile(Solution)));
 
     Target Build => _ => _
         .Description("Builds SDK")
@@ -51,13 +50,11 @@ class MainBuild : NukeBuild
 
     Target BuildSamples => _ => _
         .Description("Builds SDK and Samples")
-        .DependsOn(Restore)
         .Executes(() =>
             DotNetBuild(s => s
                 .SetProjectFile(RootDirectory / "Samples" / "Backdash.Samples.sln")
                 .SetConfiguration(Configuration)
                 .EnableNoLogo()
-                .EnableNoRestore()
                 .SetProperty("UseSharedCompilation", false)
                 .SetProcessArgumentConfigurator(args => args.Add("/nodeReuse:false")))
         );

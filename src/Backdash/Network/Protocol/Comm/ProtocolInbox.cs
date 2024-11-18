@@ -31,6 +31,8 @@ sealed class ProtocolInbox<TInput>(
     ushort nextRecvSeq;
     GameInput<TInput> lastReceivedInput = new();
     readonly byte[] lastReceivedInputBuffer = Mem.AllocatePinnedArray(Max.CompressedBytes);
+    readonly PeerAddress peerAddress = state.PeerAddress.Clone();
+
     public GameInput<TInput> LastReceivedInput => lastReceivedInput;
     public Frame LastAckedFrame { get; private set; } = Frame.Null;
 
@@ -42,7 +44,7 @@ sealed class ProtocolInbox<TInput>(
         CancellationToken stoppingToken
     )
     {
-        if (!from.Equals(state.PeerAddress.Address))
+        if (!from.Equals(peerAddress.Address))
             return;
 
         if (message.Header.Type is MessageType.Unknown)

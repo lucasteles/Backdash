@@ -61,14 +61,11 @@ ref struct LogInterpolatedStringHandler
         if (!Enabled) return;
 
         StackTrace st = new(t, true);
-        var line = st.GetFrame(0)?.GetFileLineNumber() ?? -1;
         var printableStack = st.ToString().ReplaceLineEndings(string.Empty).Replace("   at ", ">");
 
         Utf8StringWriter writer = new(Buffer, ref Length);
         writer.WriteChars(t.Message);
-        writer.Write(":"u8);
-        writer.Write(line);
-        writer.Write(" "u8);
+        writer.Write("; "u8);
         writer.WriteChars(printableStack);
     }
 
@@ -120,6 +117,11 @@ ref struct LogInterpolatedStringHandler
 [InlineArray(Capacity)]
 struct LogStringBuffer
 {
+#if DEBUG
+    public const int Capacity = 1024;
+#else
     public const int Capacity = 256;
+#endif
+
     byte elemenet0;
 }
