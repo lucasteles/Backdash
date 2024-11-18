@@ -28,7 +28,7 @@ sealed class ProtocolInbox<TInput>(
     Logger logger
 ) : IProtocolInbox<TInput> where TInput : unmanaged
 {
-    ushort nextRecvSeq;
+    ushort nextReceivedSeq;
     GameInput<TInput> lastReceivedInput = new();
     readonly byte[] lastReceivedInputBuffer = Mem.AllocatePinnedArray(Max.CompressedBytes);
 
@@ -67,15 +67,15 @@ sealed class ProtocolInbox<TInput>(
                 return;
             }
 
-            var skipped = (ushort)(seqNum - nextRecvSeq);
+            var skipped = (ushort)(seqNum - nextReceivedSeq);
             if (skipped > options.MaxSequenceDistance)
             {
-                logger.Write(LogLevel.Debug, $"dropping out of order packet (seq: {seqNum}, last seq:{nextRecvSeq})");
+                logger.Write(LogLevel.Debug, $"dropping out of order packet (seq: {seqNum}, last seq:{nextReceivedSeq})");
                 return;
             }
         }
 
-        nextRecvSeq = seqNum;
+        nextReceivedSeq = seqNum;
         logger.Write(LogLevel.Trace, $"recv {message} from {state.Player}");
         if (HandleMessage(ref message, out var replyMsg))
         {
