@@ -61,7 +61,7 @@ static class Mem
         return buffer;
     }
 
-    public static Memory<byte> CreatePinnedMemory(int size)
+    public static Memory<byte> AllocatePinnedMemory(int size)
     {
         var buffer = AllocatePinnedArray(size);
         return MemoryMarshal.CreateFromPinnedArray(buffer, 0, buffer.Length);

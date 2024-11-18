@@ -30,7 +30,7 @@ sealed class ProtocolInbox<TInput>(
 {
     ushort nextRecvSeq;
     GameInput<TInput> lastReceivedInput = new();
-    readonly Memory<byte> lastReceivedInputBuffer = Mem.CreatePinnedMemory(Max.CompressedBytes);
+    readonly byte[] lastReceivedInputBuffer = Mem.AllocatePinnedArray(Max.CompressedBytes);
     public GameInput<TInput> LastReceivedInput => lastReceivedInput;
     public Frame LastAckedFrame { get; private set; } = Frame.Null;
 
@@ -94,36 +94,20 @@ sealed class ProtocolInbox<TInput>(
 
     bool HandleMessage(ref ProtocolMessage message, out ProtocolMessage replyMsg)
     {
-        var handled = false;
         replyMsg = new(MessageType.Unknown);
-        switch (message.Header.Type)
+        var handled = message.Header.Type switch
         {
-            case MessageType.SyncRequest:
-                handled = OnSyncRequest(in message, ref replyMsg);
-                break;
-            case MessageType.SyncReply:
-                handled = OnSyncReply(in message, ref replyMsg);
-                break;
-            case MessageType.Input:
-                handled = OnInput(ref message.Input);
-                break;
-            case MessageType.QualityReport:
-                handled = OnQualityReport(in message, out replyMsg);
-                break;
-            case MessageType.QualityReply:
-                handled = OnQualityReply(in message);
-                break;
-            case MessageType.InputAck:
-                handled = OnInputAck(in message);
-                break;
-            case MessageType.KeepAlive:
-                handled = true;
-                break;
-            case MessageType.Unknown:
-            default:
-                throw new NetcodeException($"Invalid UDP protocol message received: {message.Header.Type}");
-        }
-
+            MessageType.SyncRequest => OnSyncRequest(in message, ref replyMsg),
+            MessageType.SyncReply => OnSyncReply(in message, ref replyMsg),
+            MessageType.Input => OnInput(ref message.Input),
+            MessageType.QualityReport => OnQualityReport(in message, out replyMsg),
+            MessageType.QualityReply => OnQualityReply(in message),
+            MessageType.InputAck => OnInputAck(in message),
+            MessageType.KeepAlive => true,
+            MessageType.Unknown =>
+                throw new NetcodeException($"Unknown UDP protocol message received: {message.Header.Type}"),
+            _ => throw new NetcodeException($"Invalid UDP protocol message received: {message.Header.Type}"),
+        };
         return handled;
     }
 
@@ -187,7 +171,7 @@ sealed class ProtocolInbox<TInput>(
             }
 
             Trace.Assert(currentFrame == nextFrame);
-            var lastReceivedBuffer = lastReceivedInputBuffer.Span[..msg.InputSize];
+            var lastReceivedBuffer = lastReceivedInputBuffer.AsSpan(..msg.InputSize);
             while (decompressor.Read(lastReceivedBuffer))
             {
                 inputSerializer.Deserialize(lastReceivedBuffer, ref lastReceivedInput.Data);

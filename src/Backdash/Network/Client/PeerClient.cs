@@ -77,7 +77,7 @@ sealed class PeerClient<T> : IPeerJobClient<T> where T : struct
 
     async Task ReceiveLoop(CancellationToken ct)
     {
-        var buffer = Mem.CreatePinnedMemory(maxPacketSize);
+        var buffer = Mem.AllocatePinnedArray(maxPacketSize);
         SocketAddress address = new(socket.AddressFamily);
         T msg = default;
         while (!ct.IsCancellationRequested)
@@ -115,7 +115,7 @@ sealed class PeerClient<T> : IPeerJobClient<T> where T : struct
 
             try
             {
-                serializer.Deserialize(buffer[..receivedSize].Span, ref msg);
+                serializer.Deserialize(buffer.AsSpan(..receivedSize), ref msg);
                 await observer.OnPeerMessage(msg, address, receivedSize, ct).ConfigureAwait(false);
             }
             catch (NetcodeDeserializationException ex)

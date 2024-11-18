@@ -62,7 +62,7 @@ sealed class ProtocolOutbox(
     {
         var sendLatency = options.NetworkLatency;
         var reader = sendQueue.Reader;
-        var buffer = Mem.CreatePinnedMemory(options.UdpPacketBufferSize);
+        var buffer = Mem.AllocatePinnedMemory(options.UdpPacketBufferSize);
         while (!cancellationToken.IsCancellationRequested)
         {
             await reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false);

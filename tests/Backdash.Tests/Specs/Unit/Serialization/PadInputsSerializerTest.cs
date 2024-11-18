@@ -24,7 +24,7 @@ public class PadInputsSerializerTest
         var written = serializer.Serialize(in pad, buffer);
 
         PadInputs restored = new();
-        serializer.Deserialize(buffer.AsSpan()[..written], ref restored);
+        serializer.Deserialize(buffer.AsSpan(..written), ref restored);
 
         restored.Should().BeEquivalentTo(pad);
     }
