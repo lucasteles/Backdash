@@ -28,8 +28,7 @@ public sealed class LobbyUdpClient : IDisposable
     public async Task HandShake(User user, CancellationToken ct = default)
     {
         if (!user.Token.TryFormat(buffer, out var bytesWritten) || bytesWritten is 0) return;
-        await socket.SendToAsync(buffer.AsMemory()[..bytesWritten], serverEndpoint, ct)
-            .ConfigureAwait(false);
+        await socket.SendToAsync(buffer.AsMemory()[..bytesWritten], serverEndpoint, ct);
     }
 
     public async Task Ping(User user, Peer[] peers, CancellationToken ct = default)
