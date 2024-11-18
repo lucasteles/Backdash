@@ -72,22 +72,22 @@ struct InputMessage : IEquatable<InputMessage>, IBinarySerializable, IUtf8SpanFo
         return true;
     }
 
-     public readonly bool Equals(InputMessage other) =>
-            PeerConnectStatus[..].SequenceEqual(other.PeerConnectStatus) &&
-            StartFrame.Equals(other.StartFrame) &&
-            DisconnectRequested == other.DisconnectRequested &&
-            AckFrame.Equals(other.AckFrame) && NumBits == other.NumBits &&
-            InputSize == other.InputSize &&
-            Mem.EqualBytes(Bits, other.Bits, truncate: true);
+    public readonly bool Equals(InputMessage other) =>
+        PeerConnectStatus.Equals(other.PeerConnectStatus) &&
+        StartFrame.Equals(other.StartFrame) &&
+        DisconnectRequested == other.DisconnectRequested &&
+        AckFrame.Equals(other.AckFrame) && NumBits == other.NumBits &&
+        InputSize == other.InputSize &&
+        Bits.Equals(other.Bits);
 
-        public override readonly bool Equals(object? obj) => obj is InputMessage other && Equals(other);
+    public override readonly bool Equals(object? obj) => obj is InputMessage other && Equals(other);
 
-        public override readonly int GetHashCode() => HashCode.Combine(
-            PeerConnectStatus, StartFrame, DisconnectRequested, AckFrame, NumBits, InputSize, Bits);
+    public override readonly int GetHashCode() => HashCode.Combine(
+        PeerConnectStatus, StartFrame, DisconnectRequested, AckFrame, NumBits, InputSize, Bits);
 
-        public static bool operator ==(InputMessage left, InputMessage right) => left.Equals(right);
-        public static bool operator !=(InputMessage left, InputMessage right) => !left.Equals(right);
-    }
+    public static bool operator ==(InputMessage left, InputMessage right) => left.Equals(right);
+    public static bool operator !=(InputMessage left, InputMessage right) => !left.Equals(right);
+}
 
 [Serializable, InlineArray(Max.NumberOfPlayers)]
 struct PeerStatusBuffer : IEquatable<PeerStatusBuffer>
@@ -133,6 +133,6 @@ struct InputMessageBuffer : IEquatable<InputMessageBuffer>
 
     public override readonly string ToString() => Mem.GetBitString(this);
     public override readonly int GetHashCode() => Mem.GetHashCode<byte>(this);
-    public readonly bool Equals(InputMessageBuffer other) => Mem.EqualBytes(this, other);
+    public readonly bool Equals(InputMessageBuffer other) => Mem.EqualBytes(this, other, truncate: true);
     public override readonly bool Equals(object? obj) => obj is InputMessageBuffer other && Equals(other);
 }
