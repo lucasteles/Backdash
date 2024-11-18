@@ -329,7 +329,8 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         spectator.Handle = spectatorHandle;
         var protocol = peerConnectionFactory.Create(
             new(spectatorHandle, spectator.EndPoint, localConnections, syncNumber),
-            inputGroupSerializer, peerCombinedInputsEventPublisher
+            inputGroupSerializer,
+            peerCombinedInputsEventPublisher
         );
         peerObservers.Add(protocol.GetUdpObserver());
         spectators.Add(protocol);
@@ -434,17 +435,13 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
     {
         backgroundJobManager.ThrowIfError();
         if (synchronizer.InRollback) return;
-
         ConsumeProtocolInputEvents();
 
         int i;
-        for (i = 0; i < endpoints.Count; i++)
-            endpoints[i]?.Update();
-        for (i = 0; i < spectators.Count; i++)
-            spectators[i].Update();
+        for (i = 0; i < endpoints.Count; i++) endpoints[i]?.Update();
+        for (i = 0; i < spectators.Count; i++) spectators[i].Update();
 
-        if (isSynchronizing)
-            return;
+        if (isSynchronizing) return;
 
         synchronizer.CheckSimulation();
 

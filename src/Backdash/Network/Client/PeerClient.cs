@@ -130,13 +130,12 @@ sealed class PeerClient<T> : IPeerJobClient<T> where T : struct
 #pragma warning restore S1854
     }
 
-    [AsyncMethodBuilder(typeof(PoolingAsyncValueTaskMethodBuilder))]
-    ValueTask<int> SendTo(
+    [AsyncMethodBuilder(typeof(PoolingAsyncValueTaskMethodBuilder<>))]
+    async ValueTask<int> SendTo(
         SocketAddress peerAddress,
         ReadOnlyMemory<byte> payload,
         CancellationToken ct = default
-    ) =>
-        socket.SendToAsync(payload, peerAddress, ct);
+    ) => await socket.SendToAsync(payload, peerAddress, ct);
 
     [AsyncMethodBuilder(typeof(PoolingAsyncValueTaskMethodBuilder<>))]
     public async ValueTask<int> SendTo(

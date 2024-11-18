@@ -1,6 +1,5 @@
 using System.Net;
 using System.Net.Sockets;
-using System.Runtime.CompilerServices;
 
 namespace Backdash.Network.Client;
 
@@ -20,13 +19,11 @@ public interface IPeerSocket : IDisposable
     /// <summary>
     /// Receive bytes from specified remote host
     /// </summary>
-    [AsyncMethodBuilder(typeof(PoolingAsyncValueTaskMethodBuilder))]
     ValueTask<int> ReceiveFromAsync(Memory<byte> buffer, SocketAddress address, CancellationToken cancellationToken);
 
     /// <summary>
     /// Sends data to the specified remote host.
     /// </summary>
-    [AsyncMethodBuilder(typeof(PoolingAsyncValueTaskMethodBuilder))]
     ValueTask<int> SendToAsync(ReadOnlyMemory<byte> buffer, SocketAddress socketAddress,
         CancellationToken cancellationToken);
 }

@@ -17,16 +17,12 @@ sealed class ProtocolClientFactory(
     Logger logger
 ) : IProtocolClientFactory
 {
-    public IProtocolClient CreateProtocolClient(int port, IPeerObserver<ProtocolMessage> observer)
-    {
-        PeerClient<ProtocolMessage> peerClient = new(
+    public IProtocolClient CreateProtocolClient(int port, IPeerObserver<ProtocolMessage> observer) =>
+        new PeerClient<ProtocolMessage>(
             socketFactory.Create(port, options),
             new ProtocolMessageBinarySerializer(options.NetworkEndianness),
             observer,
             logger,
             options.Protocol.UdpPacketBufferSize
         );
-
-        return peerClient;
-    }
 }
