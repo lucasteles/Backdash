@@ -84,8 +84,6 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
         qualityReportTimer.Dispose();
         keepAliveTimer.Dispose();
         resendInputsTimer.Dispose();
-
-        outbox.Dispose();
     }
 
     void StopTimers()

@@ -71,8 +71,7 @@ sealed class SpectatorBackend<TInput, TGameState> :
         var magicNumber = services.Random.MagicNumber();
 
         PeerConnectionFactory peerConnectionFactory = new(
-            this, clock, services.Random, services.DelayStrategy, logger,
-            backgroundJobManager, udp, options.Protocol, options.TimeSync
+            this, clock, services.Random, logger, udp, options.Protocol, options.TimeSync
         );
 
         ProtocolState protocolState =

@@ -50,7 +50,7 @@ sealed class BackendServices<TInput, TGameState>
         JobManager = new BackgroundJobManager(Logger);
 
         var socketFactory = services?.PeerSocketFactory ?? new PeerSocketFactory();
-        ProtocolClientFactory = new ProtocolClientFactory(options, socketFactory, Logger);
+        ProtocolClientFactory = new ProtocolClientFactory(options, socketFactory, Clock, Logger, DelayStrategy);
     }
 }
 

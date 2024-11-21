@@ -1,4 +1,3 @@
-using System.Threading.Channels;
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network.Client;
@@ -6,94 +5,35 @@ using Backdash.Network.Messages;
 
 namespace Backdash.Network.Protocol.Comm;
 
-interface IProtocolOutbox : IMessageSender, IBackgroundJob, IDisposable;
+interface IProtocolOutbox : IMessageSender, IMessageHandler<ProtocolMessage>;
 
 sealed class ProtocolOutbox(
     ProtocolState state,
-    ProtocolOptions options,
     IPeerClient<ProtocolMessage> peer,
-    IDelayStrategy delayStrategy,
     IClock clock,
     Logger logger
 ) : IProtocolOutbox
 {
-    struct QueueEntry
-    {
-        public long QueueTime;
-        public ProtocolMessage Body;
-    }
-
-    readonly Channel<QueueEntry> sendQueue =
-        Channel.CreateBounded<QueueEntry>(
-            new BoundedChannelOptions(options.MaxPackageQueue)
-            {
-                SingleWriter = true,
-                SingleReader = true,
-                AllowSynchronousContinuations = true,
-                FullMode = BoundedChannelFullMode.DropOldest,
-            });
-
     int nextSendSeq;
-    public string JobName { get; } = $"{nameof(ProtocolOutbox)} {state.Player}";
 
-    QueueEntry CreateNextEntry(in ProtocolMessage msg) =>
-        new()
-        {
-            QueueTime = clock.GetTimeStamp(),
-            Body = msg,
-        };
+    public ValueTask SendMessageAsync(in ProtocolMessage msg, CancellationToken ct) =>
+        peer.SendTo(state.PeerAddress.Address, in msg, this, ct);
 
-    public ValueTask SendMessageAsync(in ProtocolMessage msg, CancellationToken ct)
+    public bool SendMessage(in ProtocolMessage msg) => peer.TrySendTo(state.PeerAddress.Address, in msg, this);
+
+    public void BeforeSendMessage(ref ProtocolMessage message)
     {
-        var nextEntry = CreateNextEntry(in msg);
-        return sendQueue.Writer.WriteAsync(nextEntry, ct);
+        message.Header.Magic = state.SyncNumber;
+        message.Header.SequenceNumber = (ushort)nextSendSeq;
+        nextSendSeq++;
+
+        logger.Write(LogLevel.Trace, $"send {message} on {state.Player}");
     }
 
-    public bool SendMessage(in ProtocolMessage msg)
+    public void AfterSendMessage(int bytesSent)
     {
-        var nextEntry = CreateNextEntry(in msg);
-        return sendQueue.Writer.TryWrite(nextEntry);
+        state.Stats.Send.LastTime = clock.GetTimeStamp();
+        state.Stats.Send.TotalBytes += (ByteSize)bytesSent;
+        state.Stats.Send.TotalPackets++;
     }
-
-    public async Task Start(CancellationToken cancellationToken)
-    {
-        var sendLatency = options.NetworkLatency;
-        var reader = sendQueue.Reader;
-        var buffer = Mem.AllocatePinnedMemory(options.UdpPacketBufferSize);
-        while (!cancellationToken.IsCancellationRequested)
-        {
-            await reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false);
-            while (reader.TryRead(out var entry))
-            {
-                var message = entry.Body;
-                message.Header.Magic = state.SyncNumber;
-                message.Header.SequenceNumber = (ushort)nextSendSeq;
-                nextSendSeq++;
-
-                logger.Write(LogLevel.Trace, $"send {message} on {state.Player}");
-
-                if (sendLatency > TimeSpan.Zero)
-                {
-                    var jitter = delayStrategy.Jitter(sendLatency);
-                    SpinWait sw = new();
-                    while (clock.GetElapsedTime(entry.QueueTime) <= jitter)
-                    {
-                        sw.SpinOnce();
-                        // LATER: allocations here with Task.Delay
-                        // await Task.Delay(delayDiff, ct).ConfigureAwait(false)
-                    }
-                }
-
-                var bytesSent = await peer
-                    .SendTo(state.PeerAddress.Address, message, buffer, cancellationToken)
-                    .ConfigureAwait(false);
-
-                state.Stats.Send.LastTime = clock.GetTimeStamp();
-                state.Stats.Send.TotalBytes += (ByteSize)bytesSent;
-                state.Stats.Send.TotalPackets++;
-            }
-        }
-    }
-
-    public void Dispose() => sendQueue.Writer.TryComplete();
 }

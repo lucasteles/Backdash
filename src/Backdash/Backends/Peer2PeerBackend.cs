@@ -99,13 +99,12 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
             this,
             services.Clock,
             services.Random,
-            services.DelayStrategy,
             logger,
-            backgroundJobManager,
             udp,
             this.options.Protocol,
             this.options.TimeSync
         );
+
         backgroundJobManager.Register(udp);
     }
 

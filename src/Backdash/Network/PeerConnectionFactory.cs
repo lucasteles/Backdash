@@ -12,9 +12,7 @@ sealed class PeerConnectionFactory(
     IProtocolNetworkEventHandler networkEventHandler,
     IClock clock,
     IRandomNumberGenerator random,
-    IDelayStrategy delayStrategy,
     Logger logger,
-    IBackgroundJobManager jobManager,
     IPeerClient<ProtocolMessage> peer,
     ProtocolOptions options,
     TimeSyncOptions timeSyncOptions
@@ -27,14 +25,12 @@ sealed class PeerConnectionFactory(
     ) where TInput : unmanaged
     {
         var timeSync = new TimeSync<TInput>(timeSyncOptions, logger);
-        var outbox = new ProtocolOutbox(state, options, peer, delayStrategy, clock, logger);
+        var outbox = new ProtocolOutbox(state, peer, clock, logger);
         var syncManager = new ProtocolSynchronizer(logger, clock, random, state, options, outbox, networkEventHandler);
         var inbox = new ProtocolInbox<TInput>(
             options, inputSerializer, state, clock, syncManager, outbox, networkEventHandler, inputEventQueue, logger);
-        var inputBuffer = new ProtocolInputBuffer<TInput>(
-            options, inputSerializer, state, logger, timeSync, outbox, inbox);
-
-        jobManager.Register(outbox, state.StoppingToken);
+        var inputBuffer =
+            new ProtocolInputBuffer<TInput>(options, inputSerializer, state, logger, timeSync, outbox, inbox);
 
         PeerConnection<TInput> connection = new(
             options, state, logger, clock, timeSync, networkEventHandler,

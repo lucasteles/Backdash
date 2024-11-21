@@ -3,10 +3,7 @@ using Backdash.Network.Client;
 
 namespace Backdash.Benchmarks.Ping;
 
-sealed class PingMessageHandler(
-    IPeerClient<PingMessage> sender,
-    Memory<byte>? buffer = null
-) : IPeerObserver<PingMessage>
+sealed class PingMessageHandler(IPeerClient<PingMessage> sender) : IPeerObserver<PingMessage>
 {
     public static long TotalProcessed => processedCount;
     static long processedCount;
@@ -29,10 +26,7 @@ sealed class PingMessageHandler(
         };
         try
         {
-            if (buffer is null)
-                await sender.SendTo(from, reply, stoppingToken);
-            else
-                await sender.SendTo(from, reply, buffer.Value, stoppingToken);
+            await sender.SendTo(from, reply, null, stoppingToken);
         }
         catch (OperationCanceledException)
         {

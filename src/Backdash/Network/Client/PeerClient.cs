@@ -1,8 +1,7 @@
-using System.Buffers;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
-using System.Runtime.CompilerServices;
+using System.Threading.Channels;
 using Backdash.Core;
 using Backdash.Serialization;
 
@@ -11,25 +10,43 @@ namespace Backdash.Network.Client;
 /// <summary>
 /// Client for peer communication
 /// </summary>
-public interface IPeerClient<in T> : IDisposable where T : struct
+public interface IPeerClient<T> : IDisposable where T : struct
 {
     /// <summary>
     /// Send Message to peer
     /// </summary>
-    ValueTask<int> SendTo(SocketAddress peerAddress, T payload, CancellationToken ct = default);
+    ValueTask SendTo(SocketAddress peerAddress, in T payload, IMessageHandler<T>? callback = null,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Send Message to peer
+    /// Try To Send Message to peer
     /// </summary>
-    ValueTask<int> SendTo(SocketAddress peerAddress, T payload, Memory<byte> buffer, CancellationToken ct = default);
+    bool TrySendTo(SocketAddress peerAddress, in T payload, IMessageHandler<T>? callback = null);
+
 
     /// <summary>
     /// Start receiving messages
     /// </summary>
-    Task StartReceiving(CancellationToken cancellationToken);
+    Task ProcessMessages(CancellationToken cancellationToken);
 }
 
-interface IPeerJobClient<in T> : IBackgroundJob, IPeerClient<T> where T : struct;
+/// <summary>
+/// Message sent handler
+/// </summary>
+public interface IMessageHandler<T> where T : struct
+{
+    /// <summary>
+    /// Handles sent message
+    /// </summary>
+    void AfterSendMessage(int bytesSent);
+
+    /// <summary>
+    /// Prepare message to be sent
+    /// </summary>
+    void BeforeSendMessage(ref T message);
+}
+
+interface IPeerJobClient<T> : IBackgroundJob, IPeerClient<T> where T : struct;
 
 sealed class PeerClient<T> : IPeerJobClient<T> where T : struct
 {
@@ -37,16 +54,32 @@ sealed class PeerClient<T> : IPeerJobClient<T> where T : struct
     readonly IPeerObserver<T> observer;
     readonly IBinarySerializer<T> serializer;
     readonly Logger logger;
+    readonly IClock clock;
+    readonly IDelayStrategy? delayStrategy;
     readonly int maxPacketSize;
+    readonly Channel<QueueEntry> sendQueue;
     CancellationTokenSource? cancellation;
     public string JobName { get; }
+
+    public TimeSpan NetworkLatency = TimeSpan.Zero;
+
+    struct QueueEntry(T body, SocketAddress recipient, long queuedAt, IMessageHandler<T>? callback)
+    {
+        public T Body = body;
+        public readonly SocketAddress Recipient = recipient;
+        public readonly long QueuedAt = queuedAt;
+        public readonly IMessageHandler<T>? Callback = callback;
+    }
 
     public PeerClient(
         IPeerSocket socket,
         IBinarySerializer<T> serializer,
         IPeerObserver<T> observer,
         Logger logger,
-        int maxPacketSize = Max.UdpPacketSize
+        IClock clock,
+        IDelayStrategy? delayStrategy = null,
+        int maxPacketSize = Max.UdpPacketSize,
+        int maxPackageQueue = Default.MaxPackageQueue
     )
     {
         ArgumentNullException.ThrowIfNull(socket);
@@ -58,35 +91,106 @@ sealed class PeerClient<T> : IPeerJobClient<T> where T : struct
         this.observer = observer;
         this.serializer = serializer;
         this.logger = logger;
+        this.clock = clock;
+        this.delayStrategy = delayStrategy;
         this.maxPacketSize = maxPacketSize;
+
+        sendQueue = Channel.CreateBounded<QueueEntry>(
+            new BoundedChannelOptions(maxPackageQueue)
+            {
+                SingleWriter = false,
+                SingleReader = true,
+                AllowSynchronousContinuations = true,
+                FullMode = BoundedChannelFullMode.DropOldest,
+            });
 
         JobName = $"{nameof(UdpClient)} ({socket.Port})";
     }
 
-    public Task Start(CancellationToken cancellationToken) =>
-        StartReceiving(cancellationToken);
+    public Task Start(CancellationToken cancellationToken) => ProcessMessages(cancellationToken);
 
-    public async Task StartReceiving(CancellationToken cancellationToken)
+    public async Task ProcessMessages(CancellationToken cancellationToken)
     {
-        if (cancellation is not null) return;
+        if (cancellation is not null)
+            return;
+
         cancellation = new();
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, cancellation.Token);
         var token = cts.Token;
-        await ReceiveLoop(token).ConfigureAwait(false);
+
+        await Task.WhenAll(StartReceiving(token), StartSending(token)).ConfigureAwait(false);
     }
 
-    async Task ReceiveLoop(CancellationToken ct)
+    public async Task StartSending(CancellationToken cancellationToken)
+    {
+        var buffer = Mem.AllocatePinnedMemory(maxPacketSize);
+        var reader = sendQueue.Reader;
+
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            try
+            {
+                await reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false);
+                while (reader.TryRead(out var entry))
+                {
+                    if (NetworkLatency > TimeSpan.Zero && delayStrategy is not null)
+                    {
+                        var jitter = delayStrategy.Jitter(NetworkLatency);
+                        SpinWait sw = new();
+                        while (clock.GetElapsedTime(entry.QueuedAt) <= jitter)
+                        {
+                            sw.SpinOnce();
+                            // LATER: allocations here with Task.Delay
+                            // await Task.Delay(delayDiff, ct).ConfigureAwait(false)
+                        }
+                    }
+
+                    entry.Callback?.BeforeSendMessage(ref entry.Body);
+
+                    var bodySize = serializer.Serialize(in entry.Body, buffer.Span);
+                    var sentSize = await socket.SendToAsync(buffer[..bodySize], entry.Recipient, cancellationToken)
+                        .ConfigureAwait(false);
+
+                    Trace.Assert(sentSize == bodySize);
+
+                    entry.Callback?.AfterSendMessage(sentSize);
+                }
+            }
+            catch (TaskCanceledException)
+            {
+                break;
+            }
+            catch (OperationCanceledException)
+            {
+                break;
+            }
+            catch (SocketException ex)
+            {
+                if (logger.EnabledLevel is not LogLevel.None)
+                    logger.Write(LogLevel.Error, $"Socket send error: {ex}");
+                break;
+            }
+            catch (Exception ex)
+            {
+                if (logger.EnabledLevel is not LogLevel.None)
+                    logger.Write(LogLevel.Error, $"Socket send error: {ex}");
+                break;
+            }
+        }
+    }
+
+    public async Task StartReceiving(CancellationToken cancellationToken)
     {
         var buffer = Mem.AllocatePinnedArray(maxPacketSize);
         SocketAddress address = new(socket.AddressFamily);
         T msg = default;
-        while (!ct.IsCancellationRequested)
+        while (!cancellationToken.IsCancellationRequested)
         {
             int receivedSize;
             try
             {
                 receivedSize = await socket
-                    .ReceiveFromAsync(buffer, address, ct)
+                    .ReceiveFromAsync(buffer, address, cancellationToken)
                     .ConfigureAwait(false);
             }
             catch (TaskCanceledException)
@@ -100,13 +204,13 @@ sealed class PeerClient<T> : IPeerJobClient<T> where T : struct
             catch (SocketException ex)
             {
                 if (logger.EnabledLevel is not LogLevel.None)
-                    logger.Write(LogLevel.Error, $"Socket error: {ex}");
+                    logger.Write(LogLevel.Error, $"Socket rcv error: {ex}");
                 break;
             }
             catch (Exception ex)
             {
                 if (logger.EnabledLevel is not LogLevel.None)
-                    logger.Write(LogLevel.Error, $"Socket error: {ex}");
+                    logger.Write(LogLevel.Error, $"Socket rcv error: {ex}");
                 break;
             }
 
@@ -116,7 +220,7 @@ sealed class PeerClient<T> : IPeerJobClient<T> where T : struct
             try
             {
                 serializer.Deserialize(buffer.AsSpan(..receivedSize), ref msg);
-                await observer.OnPeerMessage(msg, address, receivedSize, ct).ConfigureAwait(false);
+                await observer.OnPeerMessage(msg, address, receivedSize, cancellationToken).ConfigureAwait(false);
             }
             catch (NetcodeDeserializationException ex)
             {
@@ -130,82 +234,19 @@ sealed class PeerClient<T> : IPeerJobClient<T> where T : struct
 #pragma warning restore S1854
     }
 
-    [AsyncMethodBuilder(typeof(PoolingAsyncValueTaskMethodBuilder<>))]
-    public async ValueTask<int> SendTo(
-        SocketAddress peerAddress,
-        T payload,
-        Memory<byte> buffer,
-        CancellationToken ct = default
-    )
-    {
-        var bodySize = serializer.Serialize(in payload, buffer.Span);
-        var sentSize = await socket.SendToAsync(buffer[..bodySize], peerAddress, ct).ConfigureAwait(false);
-        Trace.Assert(sentSize == bodySize);
-        return sentSize;
-    }
+    public ValueTask SendTo(SocketAddress peerAddress, in T payload,
+        IMessageHandler<T>? callback = null, CancellationToken cancellationToken = default) =>
+        sendQueue.Writer.WriteAsync(new(payload, peerAddress, clock.GetTimeStamp(), callback), cancellationToken);
 
-    [AsyncMethodBuilder(typeof(PoolingAsyncValueTaskMethodBuilder<>))]
-    public async ValueTask<int> SendTo(
-        SocketAddress peerAddress,
-        T payload,
-        CancellationToken ct = default
-    )
-    {
-        var buffer = ArrayPool<byte>.Shared.Rent(maxPacketSize);
-        var sentBytes = await SendTo(peerAddress, payload, buffer, ct).ConfigureAwait(false);
-        ArrayPool<byte>.Shared.Return(buffer);
-        return sentBytes;
-    }
+    public bool TrySendTo(SocketAddress peerAddress, in T payload, IMessageHandler<T>? callback = null) =>
+        sendQueue.Writer.TryWrite(new(payload, peerAddress, clock.GetTimeStamp(), callback));
 
     public void Dispose()
     {
         cancellation?.Cancel();
         cancellation?.Dispose();
+        sendQueue.Writer.TryComplete();
         socket.Close();
         socket.Dispose();
     }
-}
-
-/// <summary>
-/// Create new instances of <see cref="IPeerClient{T}"/>
-/// </summary>
-public static class PeerClientFactory
-{
-    /// <summary>
-    ///  Creates new <see cref="IPeerClient{T}"/>
-    /// </summary>
-    public static IPeerClient<T> Create<T>(
-        IPeerSocket socket,
-        IBinarySerializer<T> serializer,
-        IPeerObserver<T> observer,
-        int maxPacketSize = Max.UdpPacketSize,
-        LogLevel logLevel = LogLevel.None,
-        ILogWriter? logWriter = null
-    ) where T : unmanaged => new PeerClient<T>(
-        socket,
-        serializer,
-        observer,
-        Logger.CreateConsoleLogger(logLevel, logWriter),
-        maxPacketSize
-    );
-
-#if !AOT_ENABLED
-    /// <summary>
-    ///  Creates new <see cref="IPeerClient{T}"/>
-    /// </summary>
-    public static IPeerClient<T> Create<T>(
-        IPeerSocket socket,
-        IPeerObserver<T> observer,
-        int maxPacketSize = Max.UdpPacketSize,
-        LogLevel logLevel = LogLevel.None,
-        ILogWriter? logWriter = null
-    ) where T : unmanaged => Create(
-        socket,
-        BinarySerializerFactory.FindOrThrow<T>(),
-        observer,
-        maxPacketSize,
-        logLevel,
-        logWriter
-    );
-#endif
 }

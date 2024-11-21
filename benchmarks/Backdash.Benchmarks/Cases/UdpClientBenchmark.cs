@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using System.Net;
 using Backdash.Benchmarks.Network;
-using Backdash.Core;
 
 #pragma warning disable CS0649, AsyncFixer01, AsyncFixer02
 // ReSharper disable AccessToDisposedClosure
@@ -16,35 +15,17 @@ public class UdpClientBenchmark
     [Params(1000, 50_000)]
     public int N;
 
-    Memory<byte> pingerPinnedBuffer = Memory<byte>.Empty;
-    Memory<byte> pongerPinnedBuffer = Memory<byte>.Empty;
-
-    [GlobalSetup]
-    public void Setup()
-    {
-        pingerPinnedBuffer = Mem.AllocatePinnedMemory(Max.UdpPacketSize);
-        pongerPinnedBuffer = Mem.AllocatePinnedMemory(Max.UdpPacketSize);
-    }
-
     [Benchmark]
-    public async Task ArrayPoolBuffer() => await Start(N, null, null);
+    public async Task SendTest() => await Start(N);
 
-    [Benchmark]
-    public async Task PinnedSendBuffer() => await Start(N, pingerPinnedBuffer, pongerPinnedBuffer);
-
-    public async Task Start(
-        int numberOfSpins,
-        Memory<byte> pingerSendBuffer,
-        Memory<byte> pongerSendBuffer,
-        TimeSpan? timeout = null
-    )
+    public async Task Start(int numberOfSpins, TimeSpan? timeout = null)
     {
         timeout ??= TimeSpan.FromSeconds(5);
         using var pinger = Factory.CreateUdpClient(9000, out var pingerObservers);
         using var ponger = Factory.CreateUdpClient(9001, out var pongerObservers);
 
-        PingMessageHandler pingerHandler = new("Pinger", pinger, pingerSendBuffer);
-        PingMessageHandler pongerHandler = new("Ponger", ponger, pongerSendBuffer);
+        PingMessageHandler pingerHandler = new("Pinger", pinger);
+        PingMessageHandler pongerHandler = new("Ponger", ponger);
 
         pingerObservers.Add(pingerHandler);
         pongerObservers.Add(pongerHandler);
@@ -63,19 +44,11 @@ public class UdpClientBenchmark
         IPEndPoint pongerEndpoint = new(IPAddress.Loopback, 9001);
         var pongerAddress = pongerEndpoint.Serialize();
 
-        async Task StartSending()
-        {
-            if (pingerSendBuffer.IsEmpty)
-                await pinger.SendTo(pongerAddress, PingMessage.Ping, ct);
-            else
-                await pinger.SendTo(pongerAddress, PingMessage.Ping, pingerSendBuffer, ct);
-        }
-
         Task[] tasks =
         [
             pinger.Start(ct),
             ponger.Start(ct),
-            StartSending(),
+            pinger.SendTo(pongerAddress, PingMessage.Ping, null, ct).AsTask(),
         ];
         await Task.WhenAll(tasks).ConfigureAwait(false);
         pingerHandler.OnProcessed -= OnProcessed;
