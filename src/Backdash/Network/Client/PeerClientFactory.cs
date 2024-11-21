@@ -1,4 +1,4 @@
-﻿using Backdash.Core;
+using Backdash.Core;
 using Backdash.Serialization;
 
 namespace Backdash.Network.Client;
