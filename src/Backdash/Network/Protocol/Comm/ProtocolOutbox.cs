@@ -1,4 +1,3 @@
-using System.Net;
 using System.Threading.Channels;
 using Backdash.Core;
 using Backdash.Data;
@@ -21,7 +20,6 @@ sealed class ProtocolOutbox(
     struct QueueEntry
     {
         public long QueueTime;
-        public SocketAddress Recipient;
         public ProtocolMessage Body;
     }
 
@@ -42,7 +40,6 @@ sealed class ProtocolOutbox(
         new()
         {
             QueueTime = clock.GetTimeStamp(),
-            Recipient = state.PeerAddress.Address,
             Body = msg,
         };
 
@@ -88,7 +85,7 @@ sealed class ProtocolOutbox(
                 }
 
                 var bytesSent = await peer
-                    .SendTo(entry.Recipient, message, buffer, cancellationToken)
+                    .SendTo(state.PeerAddress.Address, message, buffer, cancellationToken)
                     .ConfigureAwait(false);
 
                 state.Stats.Send.LastTime = clock.GetTimeStamp();
