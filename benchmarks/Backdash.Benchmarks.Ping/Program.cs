@@ -4,7 +4,7 @@ using Backdash.Core;
 using Backdash.Network.Client;
 using Backdash.Serialization;
 
-var totalDuration = TimeSpan.FromSeconds(10);
+var totalDuration = TimeSpan.FromSeconds(20);
 var snapshotInterval = TimeSpan.FromSeconds(0);
 var printSnapshots = false;
 
