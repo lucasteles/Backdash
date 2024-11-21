@@ -14,7 +14,9 @@ interface IProtocolClientFactory
 sealed class ProtocolClientFactory(
     RollbackOptions options,
     IPeerSocketFactory socketFactory,
-    Logger logger
+    IClock clock,
+    Logger logger,
+    IDelayStrategy delayStrategy
 ) : IProtocolClientFactory
 {
     public IProtocolClient CreateProtocolClient(int port, IPeerObserver<ProtocolMessage> observer) =>
@@ -23,6 +25,12 @@ sealed class ProtocolClientFactory(
             new ProtocolMessageBinarySerializer(options.NetworkEndianness),
             observer,
             logger,
-            options.Protocol.UdpPacketBufferSize
-        );
+            clock,
+            delayStrategy,
+            options.Protocol.UdpPacketBufferSize,
+            options.Protocol.MaxPackageQueue
+        )
+        {
+            NetworkLatency = options.Protocol.NetworkLatency,
+        };
 }

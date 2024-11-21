@@ -35,7 +35,7 @@ public class ProtocolOptions
     public int NumberOfSyncRoundtrips { get; init; } = Default.NumberOfSyncPackets;
 
     /// <summary>
-    /// Distance to check out of order packets.
+    /// Distance to check out-of-order packets.
     /// </summary>
     /// <inheritdoc cref="Default.MaxSeqDistance"/>
     public int MaxSequenceDistance { get; init; } = Default.MaxSeqDistance;
@@ -104,7 +104,7 @@ public class ProtocolOptions
     public TimeSpan SyncFirstRetryInterval { get; init; } = TimeSpan.FromMilliseconds(Default.SyncFirstRetryInterval);
 
     /// <summary>
-    /// When the time from the last send package until now is greater then this, sends a keep alive packets.
+    /// When the time from the last send package until now is greater than this, sends a keep alive packets.
     /// </summary>
     /// <inheritdoc cref="Default.KeepAliveInterval"/>
     public TimeSpan KeepAliveInterval { get; init; } = TimeSpan.FromMilliseconds(Default.KeepAliveInterval);
@@ -123,7 +123,7 @@ public class ProtocolOptions
     public TimeSpan NetworkStatsInterval { get; init; } = TimeSpan.FromMilliseconds(Default.NetworkStatsInterval);
 
     /// <summary>
-    /// When the time from the last send input until now is greater then this, resends pending inputs.
+    /// When the time from the last send input until now is greater than this, resends pending inputs.
     /// </summary>
     /// <inheritdoc cref="Default.ResendInputInterval"/>
     public TimeSpan ResendInputInterval { get; init; } = TimeSpan.FromMilliseconds(Default.ResendInputInterval);

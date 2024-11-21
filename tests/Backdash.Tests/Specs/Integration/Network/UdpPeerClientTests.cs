@@ -41,7 +41,7 @@ public class PeerClientTests
             message.Value.Should().Be("hello server");
             sender.Should().Be(client.Address);
             counter.Inc();
-            await server.Client.SendTo(sender, "hello client", token);
+            await server.Client.SendTo(sender, "hello client", null, token);
         };
         client.Observer.OnMessage += (message, sender, _, _) =>
         {
@@ -168,11 +168,11 @@ public class PeerClientTests
                     break;
                 case OpMessage.IncrementCallback:
                     Interlocked.Increment(ref totalResult);
-                    await udpClient.SendTo(sender, OpMessage.Decrement, ct);
+                    await udpClient.SendTo(sender, OpMessage.Decrement, null, ct);
                     break;
                 case OpMessage.DecrementCallback:
                     Interlocked.Decrement(ref totalResult);
-                    await udpClient.SendTo(sender, OpMessage.Increment, ct);
+                    await udpClient.SendTo(sender, OpMessage.Increment, null, ct);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(message), message, null);

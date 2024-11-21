@@ -1,5 +1,6 @@
 using System.Net;
 using Backdash.Network.Client;
+
 #pragma warning disable CS9113 // Parameter is unread.
 namespace Backdash.Benchmarks.Network;
 
@@ -8,17 +9,15 @@ public enum PingMessage : long
     Ping = 111111111,
     Pong = 999999999,
 }
-sealed class PingMessageHandler(
-    string name,
-    IPeerClient<PingMessage> sender,
-    Memory<byte> sendBuffer
-) : IPeerObserver<PingMessage>
+
+sealed class PingMessageHandler(string name, IPeerClient<PingMessage> sender) : IPeerObserver<PingMessage>
 {
     long processedCount;
     long badMessages;
     public long ProcessedCount => processedCount;
     public long BadMessages => badMessages;
     public event Action<long> OnProcessed = delegate { };
+
     public async ValueTask OnPeerMessage(
         PingMessage message,
         SocketAddress from,
@@ -41,15 +40,13 @@ sealed class PingMessageHandler(
         };
         try
         {
-            if (sendBuffer.IsEmpty)
-                await sender.SendTo(from, reply, stoppingToken);
-            else
-                await sender.SendTo(from, reply, sendBuffer, stoppingToken);
+            await sender.SendTo(from, reply, null, stoppingToken);
         }
         catch (OperationCanceledException)
         {
             // skip
         }
+
         OnProcessed(processedCount);
 #if DEBUG
         Console.WriteLine(
