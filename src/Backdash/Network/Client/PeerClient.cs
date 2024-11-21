@@ -161,6 +161,7 @@ sealed class PeerClient<T> : IPeerJobClient<T> where T : struct
     {
         cancellation?.Cancel();
         cancellation?.Dispose();
+        socket.Close();
         socket.Dispose();
     }
 }
@@ -170,13 +171,23 @@ sealed class PeerClient<T> : IPeerJobClient<T> where T : struct
 /// </summary>
 public static class PeerClientFactory
 {
-    internal static IPeerClient<T> Create<T>(
+    /// <summary>
+    ///  Creates new <see cref="IPeerClient{T}"/>
+    /// </summary>
+    public static IPeerClient<T> Create<T>(
         IPeerSocket socket,
         IBinarySerializer<T> serializer,
-        IPeerObserver<T> observer, Logger logger,
-        int maxPacketSize = Max.UdpPacketSize
-    ) where T : struct =>
-        new PeerClient<T>(socket, serializer, observer, logger, maxPacketSize);
+        IPeerObserver<T> observer,
+        int maxPacketSize = Max.UdpPacketSize,
+        LogLevel logLevel = LogLevel.None,
+        ILogWriter? logWriter = null
+    ) where T : unmanaged => new PeerClient<T>(
+        socket,
+        serializer,
+        observer,
+        Logger.CreateConsoleLogger(logLevel, logWriter),
+        maxPacketSize
+    );
 
 #if !AOT_ENABLED
     /// <summary>
@@ -185,14 +196,16 @@ public static class PeerClientFactory
     public static IPeerClient<T> Create<T>(
         IPeerSocket socket,
         IPeerObserver<T> observer,
-        IBinarySerializer<T>? serializer = null,
-        int maxPacketSize = Max.UdpPacketSize
-    ) where T : unmanaged =>
-        Create(socket,
-            serializer ?? BinarySerializerFactory.FindOrThrow<T>(),
-            observer,
-            Logger.CreateConsoleLogger(LogLevel.None),
-            maxPacketSize
-        );
+        int maxPacketSize = Max.UdpPacketSize,
+        LogLevel logLevel = LogLevel.None,
+        ILogWriter? logWriter = null
+    ) where T : unmanaged => Create(
+        socket,
+        BinarySerializerFactory.FindOrThrow<T>(),
+        observer,
+        maxPacketSize,
+        logLevel,
+        logWriter
+    );
 #endif
 }

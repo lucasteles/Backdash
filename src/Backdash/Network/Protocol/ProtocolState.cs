@@ -113,17 +113,11 @@ sealed class ProtocolState(
         {
             get
             {
-                lock (Locker)
-                {
-                    return remainingRoundtrips;
-                }
+                lock (Locker) return remainingRoundtrips;
             }
             set
             {
-                lock (Locker)
-                {
-                    remainingRoundtrips = value;
-                }
+                lock (Locker) remainingRoundtrips = value;
             }
         }
     }

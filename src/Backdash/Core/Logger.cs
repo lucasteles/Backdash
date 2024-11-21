@@ -80,12 +80,12 @@ sealed class Logger(
 
     public bool IsEnabledFor(in LogLevel level) => level >= EnabledLevel;
 
-    public static Logger CreateConsoleLogger(LogLevel level) => new(
+    public static Logger CreateConsoleLogger(LogLevel level, ILogWriter? writer = null) => new(
         new()
         {
             EnabledLevel = level,
         },
-        new ConsoleTextLogWriter()
+        writer ?? new ConsoleTextLogWriter()
     );
 
     public void AppendTimestamp(ref LogInterpolatedStringHandler builder)
