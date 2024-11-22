@@ -1,4 +1,4 @@
-next-version: 0.3.0
+next-version: 0.3.2
 mode: ContinuousDelivery
 continuous-delivery-fallback-tag: ""
 major-version-bump-message: "^(breaking|major):"
