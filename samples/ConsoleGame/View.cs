@@ -1,4 +1,5 @@
 using System.Numerics;
+
 namespace ConsoleGame;
 
 public class View
@@ -7,6 +8,7 @@ public class View
     readonly ConsoleColor targetColor = ConsoleColor.Yellow;
     readonly ConsoleColor[] playerColors = [ConsoleColor.Green, ConsoleColor.Red];
     public View() => Console.CursorVisible = false;
+
     public void Draw(in GameState currentState, NonGameState nonGameState)
     {
         Console.Clear();
@@ -17,6 +19,7 @@ public class View
         if (nonGameState.RemotePlayerStatus is PlayerStatus.Running)
             DrawStats(nonGameState);
     }
+
     void DrawHeader(NonGameState nonGameState)
     {
         if (nonGameState.LocalPlayer is { } localPlayer)
@@ -31,8 +34,10 @@ public class View
             Console.ForegroundColor = ConsoleColor.Magenta;
             Console.WriteLine("-- Spectator --\n");
         }
+
         Console.ForegroundColor = defaultColor;
     }
+
     void DrawScore(in GameState state)
     {
         Console.Write("Score: ");
@@ -45,6 +50,7 @@ public class View
         Console.ForegroundColor = defaultColor;
         Console.WriteLine();
     }
+
     void DrawField(in GameState currentState, NonGameState nonGameState)
     {
         var status1 = nonGameState.RemotePlayer.Number is 1
@@ -70,12 +76,16 @@ public class View
                     Console.ForegroundColor = defaultColor;
                     continue;
                 }
+
                 Console.Write(".");
             }
+
             Console.WriteLine();
         }
+
         Console.WriteLine();
     }
+
     bool DrawPlayer(Vector2 pos, int col, int row, ConsoleColor color, PlayerStatus status)
     {
         if ((int)pos.X == col && (int)pos.Y == row)
@@ -90,8 +100,10 @@ public class View
             Console.ForegroundColor = defaultColor;
             return true;
         }
+
         return false;
     }
+
     void DrawConnection(NonGameState nonGameState)
     {
         Console.Write(" ");
@@ -125,9 +137,11 @@ public class View
                 Console.WriteLine("Disconnected.");
                 break;
         }
+
         Console.ForegroundColor = defaultColor;
         Console.WriteLine();
     }
+
     static void DrawProgressBar(double percent)
     {
         const int loadingSize = 10;
@@ -139,9 +153,11 @@ public class View
             Console.ForegroundColor = i <= loaded ? ConsoleColor.DarkGreen : ConsoleColor.White;
             Console.Write('\u2588');
         }
+
         Console.ForegroundColor = lastColor;
     }
-    void DrawStats(NonGameState nonGameState)
+
+    static void DrawStats(NonGameState nonGameState)
     {
         var peer = nonGameState.PeerNetworkStats;
         var info = nonGameState.SessionInfo;

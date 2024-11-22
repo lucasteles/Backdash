@@ -14,7 +14,7 @@ public sealed class ArrayStateStore<TState> : IStateStore<TState> where TState :
     /// <inheritdoc />
     public void Initialize(int saveCount)
     {
-        savedStates = new SavedFrame<TState>[saveCount];
+        savedStates = GC.AllocateArray<SavedFrame<TState>>(saveCount, pinned: true);
         for (int i = 0; i < saveCount; i++)
             savedStates[i] = new(Frame.Null, new(), 0);
     }
@@ -25,7 +25,7 @@ public sealed class ArrayStateStore<TState> : IStateStore<TState> where TState :
         for (var i = 0; i < savedStates.Length; i++)
         {
             ref var current = ref savedStates[i];
-            if (current.Frame != frame) continue;
+            if (current.Frame.Number != frame.Number) continue;
             head = i;
             AdvanceHead();
             return ref current;
