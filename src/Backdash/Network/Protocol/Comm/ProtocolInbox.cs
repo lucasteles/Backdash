@@ -35,13 +35,7 @@ sealed class ProtocolInbox<TInput>(
     public GameInput<TInput> LastReceivedInput => lastReceivedInput;
     public Frame LastAckedFrame { get; private set; } = Frame.Null;
 
-    [AsyncMethodBuilder(typeof(PoolingAsyncValueTaskMethodBuilder))]
-    public async ValueTask OnPeerMessage(
-        ProtocolMessage message,
-        SocketAddress from,
-        int bytesReceived,
-        CancellationToken stoppingToken
-    )
+    public void OnPeerMessage(in ProtocolMessage message, SocketAddress from, int bytesReceived)
     {
         if (!from.Equals(state.PeerAddress.Address))
             return;
@@ -70,17 +64,18 @@ sealed class ProtocolInbox<TInput>(
             var skipped = (ushort)(seqNum - nextReceivedSeq);
             if (skipped > options.MaxSequenceDistance)
             {
-                logger.Write(LogLevel.Debug, $"dropping out of order packet (seq: {seqNum}, last seq:{nextReceivedSeq})");
+                logger.Write(LogLevel.Debug,
+                    $"dropping out of order packet (seq: {seqNum}, last seq:{nextReceivedSeq})");
                 return;
             }
         }
 
         nextReceivedSeq = seqNum;
         logger.Write(LogLevel.Trace, $"recv {message} from {state.Player}");
-        if (HandleMessage(ref message, out var replyMsg))
+        if (HandleMessage(in message, out var replyMsg))
         {
-            if (replyMsg.Header.Type is not MessageType.Unknown)
-                await messageSender.SendMessageAsync(in replyMsg, stoppingToken).ConfigureAwait(false);
+            if (replyMsg.Header.Type is not MessageType.Unknown && !messageSender.SendMessage(in replyMsg))
+                logger.Write(LogLevel.Warning, $"inbox response dropped (seq: {seqNum})");
 
             state.Stats.Received.LastTime = clock.GetTimeStamp();
             state.Stats.Received.TotalPackets++;
@@ -93,14 +88,14 @@ sealed class ProtocolInbox<TInput>(
         }
     }
 
-    bool HandleMessage(ref ProtocolMessage message, out ProtocolMessage replyMsg)
+    bool HandleMessage(in ProtocolMessage message, out ProtocolMessage replyMsg)
     {
         replyMsg = new(MessageType.Unknown);
         var handled = message.Header.Type switch
         {
             MessageType.SyncRequest => OnSyncRequest(in message, ref replyMsg),
             MessageType.SyncReply => OnSyncReply(in message, ref replyMsg),
-            MessageType.Input => OnInput(ref message.Input),
+            MessageType.Input => OnInput(in message.Input),
             MessageType.QualityReport => OnQualityReport(in message, out replyMsg),
             MessageType.QualityReply => OnQualityReply(in message),
             MessageType.InputAck => OnInputAck(in message),
@@ -112,7 +107,7 @@ sealed class ProtocolInbox<TInput>(
         return handled;
     }
 
-    bool OnInput(ref InputMessage msg)
+    bool OnInput(in InputMessage msg)
     {
         logger.Write(LogLevel.Trace, $"Acked Frame: {LastAckedFrame}");
         /*
@@ -158,7 +153,7 @@ sealed class ProtocolInbox<TInput>(
                 lastReceivedFrame = msg.StartFrame.Previous();
             var nextFrame = lastReceivedFrame.Next();
             var currentFrame = msg.StartFrame;
-            var decompressor = InputEncoder.GetDecompressor(ref msg);
+            var decompressor = InputEncoder.GetDecompressor(ref Unsafe.AsRef(in msg));
             if (currentFrame < nextFrame)
             {
                 var framesAhead = nextFrame.Number - currentFrame.Number;

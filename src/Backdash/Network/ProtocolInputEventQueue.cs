@@ -1,4 +1,6 @@
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading.Channels;
 using Backdash.Synchronizing.Input;
 using Backdash.Synchronizing.Input.Confirmed;
@@ -11,20 +13,25 @@ readonly record struct GameInputEvent<TInput>(PlayerHandle Player, GameInput<TIn
     public readonly PlayerHandle Player = Player;
     public readonly GameInput<TInput> Input = Input;
 }
+
 interface IProtocolInputEventPublisher<TInput> where TInput : unmanaged
 {
     void Publish(in GameInputEvent<TInput> evt);
 }
+
 interface IProtocolInputEventConsumer<TInput> where TInput : unmanaged
 {
     bool TryConsume(out GameInputEvent<TInput> nextEvent);
 }
+
 interface IProtocolInputEventQueue<TInput> :
     IDisposable, IProtocolInputEventPublisher<TInput>, IProtocolInputEventConsumer<TInput>
     where TInput : unmanaged;
+
 sealed class ProtocolInputEventQueue<TInput> : IProtocolInputEventQueue<TInput> where TInput : unmanaged
 {
     bool disposed;
+
     readonly Channel<GameInputEvent<TInput>> channel = Channel.CreateUnbounded<GameInputEvent<TInput>>(
         new()
         {
@@ -32,13 +39,16 @@ sealed class ProtocolInputEventQueue<TInput> : IProtocolInputEventQueue<TInput> 
             SingleReader = true,
             AllowSynchronousContinuations = true,
         });
+
     public bool TryConsume(out GameInputEvent<TInput> nextEvent) => channel.Reader.TryRead(out nextEvent);
+
     public void Publish(in GameInputEvent<TInput> evt)
     {
         if (disposed) return;
         var published = channel.Writer.TryWrite(evt);
         Trace.Assert(published);
     }
+
     public void Dispose()
     {
         if (disposed) return;
@@ -46,6 +56,7 @@ sealed class ProtocolInputEventQueue<TInput> : IProtocolInputEventQueue<TInput> 
         channel.Writer.Complete();
     }
 }
+
 sealed class ProtocolCombinedInputsEventPublisher<TInput>(IProtocolInputEventPublisher<TInput> peerInputEventPublisher)
     : IProtocolInputEventPublisher<ConfirmedInputs<TInput>>
     where TInput : unmanaged
@@ -54,14 +65,15 @@ sealed class ProtocolCombinedInputsEventPublisher<TInput>(IProtocolInputEventPub
     {
         var player = evt.Player;
         var frame = evt.Input.Frame;
-        for (var i = 0; i < evt.Input.Data.Count; i++)
+
+        var span = evt.Input.Data.Inputs[..evt.Input.Data.Count];
+        ref var pointer = ref MemoryMarshal.GetReference(span);
+        ref var end = ref Unsafe.Add(ref pointer, span.Length);
+
+        while (Unsafe.IsAddressLessThan(ref pointer, ref end))
         {
-            ref readonly var current = ref evt.Input.Data.Inputs[i];
-            peerInputEventPublisher.Publish(
-                new(
-                    player,
-                    new(current, frame))
-            );
+            peerInputEventPublisher.Publish(new(player, new(pointer, frame)));
+            pointer = ref Unsafe.Add(ref pointer, 1)!;
         }
     }
 }

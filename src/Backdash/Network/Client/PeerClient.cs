@@ -220,7 +220,7 @@ sealed class PeerClient<T> : IPeerJobClient<T> where T : struct
             try
             {
                 serializer.Deserialize(buffer.AsSpan(..receivedSize), ref msg);
-                await observer.OnPeerMessage(msg, address, receivedSize, cancellationToken).ConfigureAwait(false);
+                observer.OnPeerMessage(in msg, address, receivedSize);
             }
             catch (NetcodeDeserializationException ex)
             {

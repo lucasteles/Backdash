@@ -4,7 +4,7 @@ using Backdash.Core;
 using Backdash.Network.Client;
 using Backdash.Serialization;
 
-var totalDuration = TimeSpan.FromSeconds(20);
+var totalDuration = TimeSpan.FromSeconds(10);
 var snapshotInterval = TimeSpan.FromSeconds(0);
 var printSnapshots = false;
 
@@ -28,7 +28,7 @@ await using Measurer measurer = new(snapshotInterval);
 measurer.Start();
 
 IPEndPoint peer2Endpoint = new(IPAddress.Loopback, 9001);
-_ = peer1.SendTo(peer2Endpoint.Serialize(), PingMessage.Ping).AsTask();
+peer1.TrySendTo(peer2Endpoint.Serialize(), PingMessage.Ping);
 
 Console.WriteLine("Press enter to stop.");
 SpinWait.SpinUntil(() => Console.KeyAvailable || stopToken.IsCancellationRequested);
@@ -41,6 +41,7 @@ measurer.Stop();
 
 Console.Clear();
 Console.WriteLine(measurer.Summary(printSnapshots));
+
 
 IPeerClient<PingMessage> CreateClient(int port)
 {

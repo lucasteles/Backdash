@@ -1,5 +1,6 @@
 using System.Net;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace Backdash.Network.Client;
 
@@ -7,12 +8,12 @@ namespace Backdash.Network.Client;
 /// Observe a <see cref="IPeerClient{T}"/>
 /// </summary>
 /// <typeparam name="T"></typeparam>
-public interface IPeerObserver<in T> where T : struct
+public interface IPeerObserver<T> where T : struct
 {
     /// <summary>
     /// Handle new message from peer
     /// </summary>
-    ValueTask OnPeerMessage(T message, SocketAddress from, int bytesReceived, CancellationToken stoppingToken);
+    void OnPeerMessage(in T message, SocketAddress from, int bytesReceived);
 }
 
 sealed class PeerObserverGroup<T> : IPeerObserver<T>
@@ -22,12 +23,16 @@ sealed class PeerObserverGroup<T> : IPeerObserver<T>
     public void Add(IPeerObserver<T> observer) => observers.Add(observer);
     public void Remove(IPeerObserver<T> observer) => observers.Remove(observer);
 
-    [AsyncMethodBuilder(typeof(PoolingAsyncValueTaskMethodBuilder))]
-    public async ValueTask OnPeerMessage(
-        T message, SocketAddress from, int bytesReceived, CancellationToken stoppingToken
-    )
+    public void OnPeerMessage(in T message, SocketAddress from, int bytesReceived)
     {
-        for (var i = 0; i < observers.Count; i++)
-            await observers[i].OnPeerMessage(message, from, bytesReceived, stoppingToken).ConfigureAwait(false);
+        var span = CollectionsMarshal.AsSpan(observers);
+        ref var pointer = ref MemoryMarshal.GetReference(span);
+        ref var end = ref Unsafe.Add(ref pointer, span.Length);
+
+        while (Unsafe.IsAddressLessThan(ref pointer, ref end))
+        {
+            pointer.OnPeerMessage(in message, from, bytesReceived);
+            pointer = ref Unsafe.Add(ref pointer, 1)!;
+        }
     }
 }

@@ -28,7 +28,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
     readonly Synchronizer<TInput, TGameState> synchronizer;
     readonly ConnectionsState localConnections;
     readonly IBackgroundJobManager backgroundJobManager;
-    readonly ProtocolInputEventQueue<TInput> peerInputEventQueue;
+    readonly IProtocolInputEventQueue<TInput> peerInputEventQueue;
     readonly IProtocolInputEventPublisher<ConfirmedInputs<TInput>> peerCombinedInputsEventPublisher;
     readonly PeerConnectionFactory peerConnectionFactory;
     readonly List<PeerConnection<ConfirmedInputs<TInput>>> spectators;
@@ -72,7 +72,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         Random = services.DeterministicRandom;
         syncNumber = services.Random.MagicNumber();
 
-        peerInputEventQueue = new();
+        peerInputEventQueue = new ProtocolInputEventQueue<TInput>();
         peerCombinedInputsEventPublisher = new ProtocolCombinedInputsEventPublisher<TInput>(peerInputEventQueue);
         inputGroupSerializer = new ConfirmedInputsSerializer<TInput>(inputSerializer);
         localConnections = new(Max.NumberOfPlayers);

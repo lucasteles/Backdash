@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net;
 using Backdash.Network.Client;
 
@@ -18,35 +19,22 @@ sealed class PingMessageHandler(string name, IPeerClient<PingMessage> sender) : 
     public long BadMessages => badMessages;
     public event Action<long> OnProcessed = delegate { };
 
-    public async ValueTask OnPeerMessage(
-        PingMessage message,
-        SocketAddress from,
-        int bytesReceived,
-        CancellationToken stoppingToken
+    public void OnPeerMessage(in PingMessage message, SocketAddress from, int bytesReceived
     )
     {
-        if (stoppingToken.IsCancellationRequested)
-            return;
-        if (stoppingToken.IsCancellationRequested)
-            return;
         Interlocked.Increment(ref processedCount);
+
         if (!Enum.IsDefined(message))
             Interlocked.Increment(ref badMessages);
+
         var reply = message switch
         {
             PingMessage.Ping => PingMessage.Pong,
             PingMessage.Pong => PingMessage.Ping,
             _ => throw new ArgumentOutOfRangeException(nameof(message), message, null),
         };
-        try
-        {
-            await sender.SendTo(from, reply, null, stoppingToken);
-        }
-        catch (OperationCanceledException)
-        {
-            // skip
-        }
 
+        Trace.Assert(sender.TrySendTo(from, reply));
         OnProcessed(processedCount);
 #if DEBUG
         Console.WriteLine(

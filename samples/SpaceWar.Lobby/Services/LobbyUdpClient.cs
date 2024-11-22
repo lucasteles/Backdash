@@ -79,7 +79,7 @@ public sealed class LobbyUdpClient : IDisposable
     }
 
     // Use local IP when over same network
-    public IPEndPoint GetFallbackEndpoint(User user, Peer peer)
+    public static IPEndPoint GetFallbackEndpoint(User user, Peer peer)
     {
         if (Equals(peer.Endpoint.Address, user.IP) && peer.LocalEndpoint is not null)
             return peer.LocalEndpoint;

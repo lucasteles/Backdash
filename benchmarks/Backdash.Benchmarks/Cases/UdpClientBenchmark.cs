@@ -44,13 +44,13 @@ public class UdpClientBenchmark
         IPEndPoint pongerEndpoint = new(IPAddress.Loopback, 9001);
         var pongerAddress = pongerEndpoint.Serialize();
 
-        Task[] tasks =
-        [
+        Trace.Assert(pinger.TrySendTo(pongerAddress, PingMessage.Ping));
+
+        await Task.WhenAll(
             pinger.Start(ct),
-            ponger.Start(ct),
-            pinger.SendTo(pongerAddress, PingMessage.Ping, null, ct).AsTask(),
-        ];
-        await Task.WhenAll(tasks).ConfigureAwait(false);
+            ponger.Start(ct)
+        ).ConfigureAwait(false);
+
         pingerHandler.OnProcessed -= OnProcessed;
         Trace.Assert(pingerHandler.BadMessages is 0,
             $"** Pinger: {pingerHandler.BadMessages} bad messages");

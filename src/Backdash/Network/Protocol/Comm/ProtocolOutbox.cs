@@ -16,9 +16,6 @@ sealed class ProtocolOutbox(
 {
     int nextSendSeq;
 
-    public ValueTask SendMessageAsync(in ProtocolMessage msg, CancellationToken ct) =>
-        peer.SendTo(state.PeerAddress.Address, in msg, this, ct);
-
     public bool SendMessage(in ProtocolMessage msg) => peer.TrySendTo(state.PeerAddress.Address, in msg, this);
 
     public void BeforeSendMessage(ref ProtocolMessage message)

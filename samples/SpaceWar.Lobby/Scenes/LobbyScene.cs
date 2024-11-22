@@ -364,7 +364,7 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
             players.Add(player.PeerId == user.PeerId
                 ? new LocalPlayer(playerNumber)
                 : new RemotePlayer(playerNumber,
-                    lobbyUdpClient.GetFallbackEndpoint(user, player)));
+                    LobbyUdpClient.GetFallbackEndpoint(user, player)));
         }
 
         if (lobbyInfo.SpectatorMapping.SingleOrDefault(m => m.Host == user.PeerId)
@@ -373,7 +373,7 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
             var spectators = lobbyInfo.Spectators.Where(s => spectatorIds.Contains(s.PeerId));
             foreach (var spectator in spectators)
             {
-                var spectatorEndpoint = lobbyUdpClient.GetFallbackEndpoint(user, spectator);
+                var spectatorEndpoint = LobbyUdpClient.GetFallbackEndpoint(user, spectator);
                 players.Add(new Spectator(spectatorEndpoint));
             }
         }
@@ -388,7 +388,7 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
             ?.Host;
         var host = lobbyInfo.Players.Single(x => x.PeerId == hostId);
         var playerCount = lobbyInfo.Players.Length;
-        var hostEndpoint = lobbyUdpClient.GetFallbackEndpoint(user, host);
+        var hostEndpoint = LobbyUdpClient.GetFallbackEndpoint(user, host);
 
 
         Window.Title = $"Space War {Config.LocalPort} - {user.Username} watching {host.Username}";

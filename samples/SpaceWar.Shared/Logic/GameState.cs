@@ -44,7 +44,7 @@ public sealed record GameState
         Missile: false
     );
 
-    public GameInput ParseShipInputs(PlayerInputs inputs, in Ship ship)
+    public static GameInput ParseShipInputs(PlayerInputs inputs, in Ship ship)
     {
         if (!ship.Active)
             return new();

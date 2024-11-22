@@ -18,12 +18,11 @@ public class PeerClientTests
         var (client, server) = context;
         StringValue msg = "hello server";
         SemaphoreSlim sem = new(0, 1);
-        server.Observer.OnMessage += (message, sender, _, _) =>
+        server.Observer.OnMessage += (message, sender, _) =>
         {
             message.Value.Should().Be("hello server");
             sender.Should().Be(client.Address);
             sem.Release();
-            return ValueTask.CompletedTask;
         };
         await client.Client.SendTo(server.Address, msg);
         var pass = await sem.WaitAsync(TimeSpan.FromSeconds(1));
@@ -36,19 +35,18 @@ public class PeerClientTests
         using Peer2PeerFixture<StringValue> context = new(new StringBinarySerializer());
         var (client, server) = context;
         AsyncCounter counter = new();
-        server.Observer.OnMessage += async (message, sender, _, token) =>
+        server.Observer.OnMessage += (message, sender, _) =>
         {
             message.Value.Should().Be("hello server");
             sender.Should().Be(client.Address);
             counter.Inc();
-            await server.Client.SendTo(sender, "hello client", null, token);
+            server.Client.TrySendTo(sender, "hello client", null);
         };
-        client.Observer.OnMessage += (message, sender, _, _) =>
+        client.Observer.OnMessage += (message, sender, _) =>
         {
             message.Value.Should().Be("hello client");
             sender.Should().Be(server.Address);
             counter.Inc();
-            return ValueTask.CompletedTask;
         };
         await client.Client.SendTo(server.Address, "hello server");
         await WaitFor.BeTrue(() => counter.Value is 2);
@@ -84,19 +82,17 @@ public class PeerClientTests
         var (client, server) = context;
         var totalResult = 0;
         AsyncCounter counter = new();
-        server.Observer.OnMessage += (message, sender, _, _) =>
+        server.Observer.OnMessage += (message, sender, _) =>
         {
             sender.Should().Be(client.Address);
             HandleMessage(ref totalResult, message);
             counter.Inc();
-            return ValueTask.CompletedTask;
         };
-        client.Observer.OnMessage += (message, sender, _, _) =>
+        client.Observer.OnMessage += (message, sender, _) =>
         {
             sender.Should().Be(server.Address);
             HandleMessage(ref totalResult, message);
             counter.Inc();
-            return ValueTask.CompletedTask;
         };
         var messageCount = 100;
         Random rnd = new(42);
@@ -125,16 +121,16 @@ public class PeerClientTests
         var (client, server) = context;
         var totalResult = 0;
         AsyncCounter counter = new();
-        server.Observer.OnMessage += async (message, sender, _, token) =>
+        server.Observer.OnMessage += (message, sender, _) =>
         {
             sender.Should().Be(client.Address);
-            await HandleMessageAsync(message, server.Client, sender, token);
+            HandleMessageAsync(message, server.Client, sender);
             counter.Inc();
         };
-        client.Observer.OnMessage += async (message, sender, _, token) =>
+        client.Observer.OnMessage += (message, sender, _) =>
         {
             sender.Should().Be(server.Address);
-            await HandleMessageAsync(message, client.Client, sender, token);
+            HandleMessageAsync(message, client.Client, sender);
             counter.Inc();
         };
         var messageCount = 100;
@@ -154,11 +150,10 @@ public class PeerClientTests
         totalResult.Should().Be(0);
         return;
 
-        async ValueTask HandleMessageAsync(
+        void HandleMessageAsync(
             OpMessage message,
             IPeerClient<OpMessage> udpClient,
-            SocketAddress sender,
-            CancellationToken ct
+            SocketAddress sender
         )
         {
             switch (message)
@@ -168,11 +163,11 @@ public class PeerClientTests
                     break;
                 case OpMessage.IncrementCallback:
                     Interlocked.Increment(ref totalResult);
-                    await udpClient.SendTo(sender, OpMessage.Decrement, null, ct);
+                    Assert.True(udpClient.TrySendTo(sender, OpMessage.Decrement));
                     break;
                 case OpMessage.DecrementCallback:
                     Interlocked.Decrement(ref totalResult);
-                    await udpClient.SendTo(sender, OpMessage.Increment, null, ct);
+                    Assert.True(udpClient.TrySendTo(sender, OpMessage.Increment));
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(message), message, null);
