@@ -10,7 +10,7 @@
         <EnableUnsafeBinaryFormatterSerialization>true</EnableUnsafeBinaryFormatterSerialization>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="Nuke.Common" Version="8.1.4" />
-        <PackageReference Include="NukePlus" Version="1.1.2" />
+        <PackageReference Include="Nuke.Common" Version="9.0.1" />
+        <PackageReference Include="NukePlus" Version="2.0.0" />
     </ItemGroup>
 </Project>
