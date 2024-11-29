@@ -121,16 +121,20 @@ sealed class PeerClient<T> : IPeerJobClient<T> where T : struct
         await Task.WhenAll(StartReceiving(token), StartSending(token)).ConfigureAwait(false);
     }
 
-    public async Task StartSending(CancellationToken cancellationToken)
+    async Task StartSending(CancellationToken cancellationToken)
     {
         var buffer = Mem.AllocatePinnedMemory(maxPacketSize);
         var reader = sendQueue.Reader;
+        cancellationToken.Register(() => sendQueue.Writer.TryComplete());
 
         while (!cancellationToken.IsCancellationRequested)
         {
             try
             {
-                await reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false);
+                if (!await reader.WaitToReadAsync(default).ConfigureAwait(false)
+                    || cancellationToken.IsCancellationRequested)
+                    break;
+
                 while (reader.TryRead(out var entry))
                 {
                     if (NetworkLatency > TimeSpan.Zero && delayStrategy is not null)
@@ -156,11 +160,8 @@ sealed class PeerClient<T> : IPeerJobClient<T> where T : struct
                     entry.Callback?.AfterSendMessage(sentSize);
                 }
             }
-            catch (TaskCanceledException)
-            {
-                break;
-            }
-            catch (OperationCanceledException)
+            catch (Exception ex)
+                when (ex is TaskCanceledException or OperationCanceledException or ChannelClosedException)
             {
                 break;
             }
@@ -179,7 +180,7 @@ sealed class PeerClient<T> : IPeerJobClient<T> where T : struct
         }
     }
 
-    public async Task StartReceiving(CancellationToken cancellationToken)
+    async Task StartReceiving(CancellationToken cancellationToken)
     {
         var buffer = Mem.AllocatePinnedArray(maxPacketSize);
         SocketAddress address = new(socket.AddressFamily);
@@ -193,11 +194,7 @@ sealed class PeerClient<T> : IPeerJobClient<T> where T : struct
                     .ReceiveFromAsync(buffer, address, cancellationToken)
                     .ConfigureAwait(false);
             }
-            catch (TaskCanceledException)
-            {
-                break;
-            }
-            catch (OperationCanceledException)
+            catch (Exception ex) when (ex is TaskCanceledException or OperationCanceledException)
             {
                 break;
             }
@@ -243,9 +240,9 @@ sealed class PeerClient<T> : IPeerJobClient<T> where T : struct
 
     public void Dispose()
     {
+        sendQueue.Writer.TryComplete();
         cancellation?.Cancel();
         cancellation?.Dispose();
-        sendQueue.Writer.TryComplete();
         socket.Close();
         socket.Dispose();
     }
