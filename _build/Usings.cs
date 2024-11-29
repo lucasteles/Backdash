@@ -16,5 +16,5 @@ global using static Nuke.Common.IO.FileSystemTasks;
 global using static Nuke.Common.Tools.Docker.DockerTasks;
 global using static Nuke.Common.Tools.DotNet.DotNetTasks;
 global using NukePlus;
-global using static NukePlus.NukePlus;
+global using static NukePlus.NukePlusTasks;
 global using static NukePlus.DotnetLocalTools;

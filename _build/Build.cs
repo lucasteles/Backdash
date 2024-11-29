@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 class MainBuild : NukeBuild
 {
     [Parameter("Configuration to build - Default is 'Debug' (local) or 'Release' (server)")]
@@ -35,29 +37,28 @@ class MainBuild : NukeBuild
         .DependsOn(Clean)
         .Executes(() => DotNetRestore(s => s.SetProjectFile(Solution)));
 
+    IReadOnlyCollection<Output> BuildProj(AbsolutePath project, Configuration configuration) =>
+        DotNetBuild(s => s
+            .SetProjectFile(project)
+            .SetConfiguration(configuration)
+            .EnableNoLogo()
+            .EnableNoRestore()
+            .SetProperty("UseSharedCompilation", false)
+            .AddProcessAdditionalArguments("/nodeReuse:false"));
+
     Target Build => _ => _
         .Description("Builds SDK")
         .DependsOn(Restore)
-        .Executes(() =>
-            DotNetBuild(s => s
-                .SetProjectFile(Solution)
-                .SetConfiguration(Configuration)
-                .EnableNoLogo()
-                .EnableNoRestore()
-                .SetProperty("UseSharedCompilation", false)
-                .SetProcessArgumentConfigurator(args => args.Add("/nodeReuse:false")))
-        );
+        .Executes(() => BuildProj(Solution, Configuration));
 
     Target BuildSamples => _ => _
         .Description("Builds SDK and Samples")
         .Executes(() =>
-            DotNetBuild(s => s
-                .SetProjectFile(RootDirectory / "Samples" / "Backdash.Samples.sln")
-                .SetConfiguration(Configuration)
-                .EnableNoLogo()
-                .SetProperty("UseSharedCompilation", false)
-                .SetProcessArgumentConfigurator(args => args.Add("/nodeReuse:false")))
-        );
+        {
+            var sampleSln = RootDirectory / "Samples" / "Backdash.Samples.sln";
+            DotNetRestore(s => s.SetProjectFile(sampleSln));
+            BuildProj(sampleSln, Configuration);
+        });
 
     Target BuildAll => _ => _
         .Description("Build All Projects")
@@ -148,11 +149,12 @@ class MainBuild : NukeBuild
 
     Target BuildDocs => _ => _
         .Description("Build DocFX")
+        .DependsOn(Restore)
         .Executes(() =>
         {
             DocsSitePath.CreateOrCleanDirectory();
             (DocsPath / "api").CreateOrCleanDirectory();
-            DotNetBuild(s => s.SetProjectFile(Solution).SetConfiguration(Configuration.Release));
+            BuildProj(Solution, Configuration.Release);
             DocFX.Build(c => c
                 .SetProcessWorkingDirectory(DocsPath)
                 .SetProcessEnvironmentVariable(DocFX.DocFXSourceBranchName, MasterBranch)
@@ -161,9 +163,10 @@ class MainBuild : NukeBuild
 
     Target Docs => _ => _
         .Description("View DocFX")
+        .DependsOn(Restore)
         .Executes(() =>
         {
-            DotNetBuild(s => s.SetProjectFile(Solution).SetConfiguration(Configuration.Release));
+            BuildProj(Solution, Configuration.Release);
             DocFX.Serve(c => c
                 .SetProcessWorkingDirectory(DocsPath)
                 .SetProcessEnvironmentVariable(DocFX.DocFXSourceBranchName, MasterBranch));
@@ -179,18 +182,17 @@ class MainBuild : NukeBuild
         .Executes(() =>
             DotNetPublish(s => s
                 .EnableNoLogo()
-                .EnableNoRestore()
                 .SetProject(Solution.FindProject("Backdash"))
                 .SetConfiguration(Configuration.Release)
                 .AddProperty("DefineConstants", "AOT_ENABLED")
-                .SetProcessArgumentConfigurator(args => args.Add("--use-current-runtime"))
-            ));
+                .AddProcessAdditionalArguments("--use-current-runtime"))
+        );
 
 
     public static int Main() => Execute<MainBuild>();
 
     protected override void OnBuildInitialized() =>
-        DotNetToolRestore(c => c.DisableProcessLogOutput());
+        DotNetToolRestore(c => c.DisableProcessOutputLogging());
 
     protected override void OnBuildFinished()
     {

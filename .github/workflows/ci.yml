@@ -57,11 +57,11 @@ jobs:
                     output_text_description_file: TestReport/Summary.md
                     output: '{"summary":"Created by Report-Generator"}'
 
-            -   name: Build Docs
-                run: dotnet nuke build-docs
-
             -   name: Generate Coverage Badges
                 run: dotnet nuke generate-badges --no-logo
+
+            -   name: Build Docs
+                run: dotnet nuke build-docs --skip build --no-logo
 
             -   name: Lines of Code Badge
                 uses: DeathSy/GHA-LoC-Badge@1.0.3
