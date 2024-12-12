@@ -1,0 +1,2069 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Class EquatableArray&lt;T&gt; | Backdash Netcode </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Class EquatableArray&lt;T&gt; | Backdash Netcode ">
+      
+      <meta name="description" content="An  array with O(1) indexable lookup time">
+      <link rel="icon" href="../docs/images/favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../docs/images/logo.png" alt="Backdash">
+            Backdash
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="Backdash.Data.EquatableArray`1">
+
+
+
+  <h1 id="Backdash_Data_EquatableArray_1" data-uid="Backdash.Data.EquatableArray`1" class="text-break">
+Class EquatableArray&lt;T&gt;  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Backdash.html">Backdash</a>.<a class="xref" href="Backdash.Data.html">Data</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Backdash.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>An <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.iequatable-1">IEquatable&lt;T&gt;</a> array with O(1) indexable lookup time</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public sealed class EquatableArray&lt;T&gt; : IReadOnlyList&lt;T&gt;, IReadOnlyCollection&lt;T&gt;, IEnumerable&lt;T&gt;, IEnumerable, IEquatable&lt;EquatableArray&lt;T&gt;&gt;, IEqualityOperators&lt;EquatableArray&lt;T&gt;, EquatableArray&lt;T&gt;, bool&gt; where T : IEquatable&lt;T&gt;</code></pre>
+  </div>
+
+
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd><p>The type of element that implements <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.iequatable-1">IEquatable&lt;T&gt;</a> stored by the array.</p>
+</dd>
+  </dl>
+
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+      <div><span class="xref">EquatableArray&lt;T&gt;</span></div>
+    </dd>
+  </dl>
+
+  <dl class="typelist implements">
+    <dt>Implements</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1">IReadOnlyList</a>&lt;T&gt;</div>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlycollection-1">IReadOnlyCollection</a>&lt;T&gt;</div>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1">IEnumerable</a>&lt;T&gt;</div>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.ienumerable">IEnumerable</a></div>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.iequatable-1">IEquatable</a>&lt;<a class="xref" href="Backdash.Data.EquatableArray-1.html">EquatableArray</a>&lt;T&gt;&gt;</div>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.numerics.iequalityoperators-3">IEqualityOperators</a>&lt;<a class="xref" href="Backdash.Data.EquatableArray-1.html">EquatableArray</a>&lt;T&gt;, <a class="xref" href="Backdash.Data.EquatableArray-1.html">EquatableArray</a>&lt;T&gt;, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a>&gt;</div>
+    </dd>
+  </dl>
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+  </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="constructors">Constructors
+</h2>
+
+
+  <a id="Backdash_Data_EquatableArray_1__ctor_" data-uid="Backdash.Data.EquatableArray`1.#ctor*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1__ctor" data-uid="Backdash.Data.EquatableArray`1.#ctor">
+  EquatableArray()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Initializes an empty new instance of the <a class="xref" href="Backdash.Data.EquatableArray-1.html">EquatableArray&lt;T&gt;</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public EquatableArray()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Data_EquatableArray_1__ctor_" data-uid="Backdash.Data.EquatableArray`1.#ctor*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1__ctor_System_Int32_" data-uid="Backdash.Data.EquatableArray`1.#ctor(System.Int32)">
+  EquatableArray(int)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Initializes a new instance of the <a class="xref" href="Backdash.Data.EquatableArray-1.html">EquatableArray&lt;T&gt;</a> class of size <code class="paramref">size</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public EquatableArray(int size)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>size</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>Array capacity</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Data_EquatableArray_1__ctor_" data-uid="Backdash.Data.EquatableArray`1.#ctor*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1__ctor__0___" data-uid="Backdash.Data.EquatableArray`1.#ctor(`0[])">
+  EquatableArray(T[])
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>An <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.iequatable-1">IEquatable&lt;T&gt;</a> array with O(1) indexable lookup time</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public EquatableArray(T[] values)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>values</code> T[]</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="fields">Fields
+</h2>
+
+
+
+  <h3 id="Backdash_Data_EquatableArray_1_Empty" data-uid="Backdash.Data.EquatableArray`1.Empty">
+  Empty
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns an empty <a class="xref" href="Backdash.Data.EquatableArray-1.html">EquatableArray&lt;T&gt;</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static readonly EquatableArray&lt;T&gt; Empty</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.Data.EquatableArray-1.html">EquatableArray</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="properties">Properties
+</h2>
+
+
+  <a id="Backdash_Data_EquatableArray_1_IsEmpty_" data-uid="Backdash.Data.EquatableArray`1.IsEmpty*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1_IsEmpty" data-uid="Backdash.Data.EquatableArray`1.IsEmpty">
+  IsEmpty
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns a value that indicates whether the current <a class="xref" href="Backdash.Data.EquatableArray-1.html">EquatableArray&lt;T&gt;</a> is empty.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool IsEmpty { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Backdash_Data_EquatableArray_1_Item_" data-uid="Backdash.Data.EquatableArray`1.Item*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1_Item_System_Index_" data-uid="Backdash.Data.EquatableArray`1.Item(System.Index)">
+  this[Index]
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns a reference to specified element at <code class="paramref">index</code> of the <a class="xref" href="Backdash.Data.EquatableArray-1.html">EquatableArray&lt;T&gt;</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ref T this[Index index] { get; }</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>index</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.index">Index</a></dt>
+    <dd><p>array index</p>
+</dd>
+  </dl>
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">T</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Backdash_Data_EquatableArray_1_Item_" data-uid="Backdash.Data.EquatableArray`1.Item*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1_Item_System_Int32_" data-uid="Backdash.Data.EquatableArray`1.Item(System.Int32)">
+  this[int]
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns a reference to specified element of the <a class="xref" href="Backdash.Data.EquatableArray-1.html">EquatableArray&lt;T&gt;</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ref T this[int index] { get; }</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>index</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>array index</p>
+</dd>
+  </dl>
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><span class="xref">T</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Backdash_Data_EquatableArray_1_Item_" data-uid="Backdash.Data.EquatableArray`1.Item*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1_Item_System_Range_" data-uid="Backdash.Data.EquatableArray`1.Item(System.Range)">
+  this[Range]
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns a rage slice as a copy of the current <a class="xref" href="Backdash.Data.EquatableArray-1.html">EquatableArray&lt;T&gt;</a></p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public EquatableArray&lt;T&gt; this[Range range] { get; }</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>range</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.range">Range</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.Data.EquatableArray-1.html">EquatableArray</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Backdash_Data_EquatableArray_1_Length_" data-uid="Backdash.Data.EquatableArray`1.Length*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1_Length" data-uid="Backdash.Data.EquatableArray`1.Length">
+  Length
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets the total number of elements in all the dimensions of the <a class="xref" href="Backdash.Data.EquatableArray-1.html">EquatableArray&lt;T&gt;</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int Length { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="Backdash_Data_EquatableArray_1_AsArray_" data-uid="Backdash.Data.EquatableArray`1.AsArray*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1_AsArray" data-uid="Backdash.Data.EquatableArray`1.AsArray">
+  AsArray()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns the internal array of the current <a class="xref" href="Backdash.Data.EquatableArray-1.html">EquatableArray&lt;T&gt;</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public T[] AsArray()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt>T[]</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Data_EquatableArray_1_AsMemory_" data-uid="Backdash.Data.EquatableArray`1.AsMemory*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1_AsMemory" data-uid="Backdash.Data.EquatableArray`1.AsMemory">
+  AsMemory()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Memory&lt;T&gt; AsMemory()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.memory-1">Memory</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Data_EquatableArray_1_AsReadOnly_" data-uid="Backdash.Data.EquatableArray`1.AsReadOnly*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1_AsReadOnly" data-uid="Backdash.Data.EquatableArray`1.AsReadOnly">
+  AsReadOnly()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns a read-only <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1">IReadOnlyList&lt;T&gt;</a> wrapper for the current <a class="xref" href="Backdash.Data.EquatableArray-1.html">EquatableArray&lt;T&gt;</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public IReadOnlyList&lt;T&gt; AsReadOnly()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1">IReadOnlyList</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Data_EquatableArray_1_AsSpan_" data-uid="Backdash.Data.EquatableArray`1.AsSpan*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1_AsSpan" data-uid="Backdash.Data.EquatableArray`1.AsSpan">
+  AsSpan()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Span&lt;T&gt; AsSpan()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.span-1">Span</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Data_EquatableArray_1_Clear_" data-uid="Backdash.Data.EquatableArray`1.Clear*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1_Clear" data-uid="Backdash.Data.EquatableArray`1.Clear">
+  Clear()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Sets all elements in an array to the default value of each element type.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Clear()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Data_EquatableArray_1_Clear_" data-uid="Backdash.Data.EquatableArray`1.Clear*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1_Clear_System_Int32_System_Int32_" data-uid="Backdash.Data.EquatableArray`1.Clear(System.Int32,System.Int32)">
+  Clear(int, int)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Clear(int index, int length)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>index</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>length</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Data_EquatableArray_1_Clear_" data-uid="Backdash.Data.EquatableArray`1.Clear*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1_Clear_System_Range_" data-uid="Backdash.Data.EquatableArray`1.Clear(System.Range)">
+  Clear(Range)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Sets a range of elements in an array to the default value of each element type.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Clear(Range range)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>range</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.range">Range</a></dt>
+    <dd><p>Slice to be clean</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Data_EquatableArray_1_Clone_" data-uid="Backdash.Data.EquatableArray`1.Clone*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1_Clone" data-uid="Backdash.Data.EquatableArray`1.Clone">
+  Clone()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Create new array with same values</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public EquatableArray&lt;T&gt; Clone()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.Data.EquatableArray-1.html">EquatableArray</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Data_EquatableArray_1_CopyTo_" data-uid="Backdash.Data.EquatableArray`1.CopyTo*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1_CopyTo_Backdash_Data_EquatableArray__0__" data-uid="Backdash.Data.EquatableArray`1.CopyTo(Backdash.Data.EquatableArray{`0})">
+  CopyTo(EquatableArray&lt;T&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Copies the contents of the <a class="xref" href="Backdash.Data.EquatableArray-1.html">EquatableArray&lt;T&gt;</a> into another <a class="xref" href="Backdash.Data.EquatableArray-1.html">EquatableArray&lt;T&gt;</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void CopyTo(EquatableArray&lt;T&gt; destination)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>destination</code> <a class="xref" href="Backdash.Data.EquatableArray-1.html">EquatableArray</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Data_EquatableArray_1_CopyTo_" data-uid="Backdash.Data.EquatableArray`1.CopyTo*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1_CopyTo_System_Memory__0__" data-uid="Backdash.Data.EquatableArray`1.CopyTo(System.Memory{`0})">
+  CopyTo(Memory&lt;T&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void CopyTo(Memory&lt;T&gt; destination)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>destination</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.memory-1">Memory</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Data_EquatableArray_1_CopyTo_" data-uid="Backdash.Data.EquatableArray`1.CopyTo*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1_CopyTo_System_Span__0__" data-uid="Backdash.Data.EquatableArray`1.CopyTo(System.Span{`0})">
+  CopyTo(Span&lt;T&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void CopyTo(Span&lt;T&gt; destination)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>destination</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.span-1">Span</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Data_EquatableArray_1_Equals_" data-uid="Backdash.Data.EquatableArray`1.Equals*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1_Equals_Backdash_Data_EquatableArray__0__" data-uid="Backdash.Data.EquatableArray`1.Equals(Backdash.Data.EquatableArray{`0})">
+  Equals(EquatableArray&lt;T&gt;?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool Equals(EquatableArray&lt;T&gt;? other)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>other</code> <a class="xref" href="Backdash.Data.EquatableArray-1.html">EquatableArray</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Data_EquatableArray_1_Equals_" data-uid="Backdash.Data.EquatableArray`1.Equals*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1_Equals_System_Object_" data-uid="Backdash.Data.EquatableArray`1.Equals(System.Object)">
+  Equals(object?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override bool Equals(object? obj)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>obj</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Data_EquatableArray_1_Exist_" data-uid="Backdash.Data.EquatableArray`1.Exist*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1_Exist_System_Predicate__0__" data-uid="Backdash.Data.EquatableArray`1.Exist(System.Predicate{`0})">
+  Exist(Predicate&lt;T&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Determines whether the specified array contains elements that match the conditions defined by the specified predicate.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool Exist(Predicate&lt;T&gt; predicate)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>predicate</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.predicate-1">Predicate</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Data_EquatableArray_1_Fill_" data-uid="Backdash.Data.EquatableArray`1.Fill*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1_Fill_System_Func__0__" data-uid="Backdash.Data.EquatableArray`1.Fill(System.Func{`0})">
+  Fill(Func&lt;T&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Assigns the given return value from delegate of type T to each element of the specified array.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Fill(Func&lt;T&gt; value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.func-1">Func</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Data_EquatableArray_1_Fill_" data-uid="Backdash.Data.EquatableArray`1.Fill*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1_Fill__0_" data-uid="Backdash.Data.EquatableArray`1.Fill(`0)">
+  Fill(T)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Assigns the given value of type T to each element of the specified array.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Fill(T value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <span class="xref">T</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Data_EquatableArray_1_Find_" data-uid="Backdash.Data.EquatableArray`1.Find*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1_Find_System_Predicate__0__" data-uid="Backdash.Data.EquatableArray`1.Find(System.Predicate{`0})">
+  Find(Predicate&lt;T&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Searches for an element that matches the conditions defined by the specified predicate, and returns the first occurrence within the entire Array.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public T? Find(Predicate&lt;T&gt; predicate)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>predicate</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.predicate-1">Predicate</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><span class="xref">T</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Data_EquatableArray_1_FindAll_" data-uid="Backdash.Data.EquatableArray`1.FindAll*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1_FindAll_System_Predicate__0__" data-uid="Backdash.Data.EquatableArray`1.FindAll(System.Predicate{`0})">
+  FindAll(Predicate&lt;T&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Filters an array of values based on a predicate.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public EquatableArray&lt;T&gt; FindAll(Predicate&lt;T&gt; predicate)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>predicate</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.predicate-1">Predicate</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.Data.EquatableArray-1.html">EquatableArray</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Data_EquatableArray_1_FindIndex_" data-uid="Backdash.Data.EquatableArray`1.FindIndex*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1_FindIndex_System_Predicate__0__" data-uid="Backdash.Data.EquatableArray`1.FindIndex(System.Predicate{`0})">
+  FindIndex(Predicate&lt;T&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Searches for an element that matches the conditions defined by the specified predicate, and returns the zero-based index of the first occurrence within the entire Array.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int FindIndex(Predicate&lt;T&gt; predicate)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>predicate</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.predicate-1">Predicate</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Data_EquatableArray_1_FindLast_" data-uid="Backdash.Data.EquatableArray`1.FindLast*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1_FindLast_System_Predicate__0__" data-uid="Backdash.Data.EquatableArray`1.FindLast(System.Predicate{`0})">
+  FindLast(Predicate&lt;T&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Searches for an element that matches the conditions defined by the specified predicate, and returns the last occurrence within the entire Array.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public T? FindLast(Predicate&lt;T&gt; predicate)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>predicate</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.predicate-1">Predicate</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><span class="xref">T</span></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Data_EquatableArray_1_FindLastIndex_" data-uid="Backdash.Data.EquatableArray`1.FindLastIndex*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1_FindLastIndex_System_Predicate__0__" data-uid="Backdash.Data.EquatableArray`1.FindLastIndex(System.Predicate{`0})">
+  FindLastIndex(Predicate&lt;T&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Searches for an element that matches the conditions defined by the specified predicate, and returns the zero-based index of the last occurrence within the entire Array.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int FindLastIndex(Predicate&lt;T&gt; predicate)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>predicate</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.predicate-1">Predicate</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Data_EquatableArray_1_GetEnumerator_" data-uid="Backdash.Data.EquatableArray`1.GetEnumerator*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1_GetEnumerator" data-uid="Backdash.Data.EquatableArray`1.GetEnumerator">
+  GetEnumerator()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public EquatableArray&lt;T&gt;.Enumerator GetEnumerator()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.Data.EquatableArray-1.html">EquatableArray</a>&lt;T&gt;.<a class="xref" href="Backdash.Data.EquatableArray-1.Enumerator.html">Enumerator</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Data_EquatableArray_1_GetHashCode_" data-uid="Backdash.Data.EquatableArray`1.GetHashCode*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1_GetHashCode" data-uid="Backdash.Data.EquatableArray`1.GetHashCode">
+  GetHashCode()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override int GetHashCode()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Data_EquatableArray_1_Map_" data-uid="Backdash.Data.EquatableArray`1.Map*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1_Map__1_System_Func__0___0__" data-uid="Backdash.Data.EquatableArray`1.Map``1(System.Func{`0,``0})">
+  Map&lt;TOutput&gt;(Func&lt;T, TOutput&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Projects each element of the array on a new array</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public EquatableArray&lt;TOutput&gt; Map&lt;TOutput&gt;(Func&lt;T, TOutput&gt; projection) where TOutput : IEquatable&lt;TOutput&gt;</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>projection</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.func-2">Func</a>&lt;T, TOutput&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.Data.EquatableArray-1.html">EquatableArray</a>&lt;TOutput&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>TOutput</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Data_EquatableArray_1_Resize_" data-uid="Backdash.Data.EquatableArray`1.Resize*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1_Resize_System_Int32_" data-uid="Backdash.Data.EquatableArray`1.Resize(System.Int32)">
+  Resize(int)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Changes the number of elements of a one-dimensional array to the specified new size.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Resize(int newSize)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>newSize</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Data_EquatableArray_1_Reverse_" data-uid="Backdash.Data.EquatableArray`1.Reverse*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1_Reverse" data-uid="Backdash.Data.EquatableArray`1.Reverse">
+  Reverse()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reverses the sequence of the elements in the one-dimensional generic array.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Reverse()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Data_EquatableArray_1_Reverse_" data-uid="Backdash.Data.EquatableArray`1.Reverse*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1_Reverse_System_Int32_System_Int32_" data-uid="Backdash.Data.EquatableArray`1.Reverse(System.Int32,System.Int32)">
+  Reverse(int, int)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reverses the sequence of a subset of the elements in the one-dimensional generic array.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Reverse(int index, int length)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>index</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>length</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Data_EquatableArray_1_Reverse_" data-uid="Backdash.Data.EquatableArray`1.Reverse*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1_Reverse_System_Range_" data-uid="Backdash.Data.EquatableArray`1.Reverse(System.Range)">
+  Reverse(Range)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reverses the sequence of a subset of the elements in the one-dimensional generic array.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Reverse(Range range)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>range</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.range">Range</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Data_EquatableArray_1_Slice_" data-uid="Backdash.Data.EquatableArray`1.Slice*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1_Slice_System_Int32_System_Int32_" data-uid="Backdash.Data.EquatableArray`1.Slice(System.Int32,System.Int32)">
+  Slice(int, int)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Forms a new Array for the slice out of the current span starting at a specified index for a specified length.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public EquatableArray&lt;T&gt; Slice(int start, int length)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>start</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>length</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.Data.EquatableArray-1.html">EquatableArray</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Data_EquatableArray_1_Sort_" data-uid="Backdash.Data.EquatableArray`1.Sort*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1_Sort_System_Collections_Generic_IComparer__0__" data-uid="Backdash.Data.EquatableArray`1.Sort(System.Collections.Generic.IComparer{`0})">
+  Sort(IComparer&lt;T&gt;?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Sorts the elements of an array in ascending order.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Sort(IComparer&lt;T&gt;? comparer = null)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>comparer</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.icomparer-1">IComparer</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Data_EquatableArray_1_Sort_" data-uid="Backdash.Data.EquatableArray`1.Sort*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1_Sort_System_Int32_System_Int32_System_Collections_Generic_IComparer__0__" data-uid="Backdash.Data.EquatableArray`1.Sort(System.Int32,System.Int32,System.Collections.Generic.IComparer{`0})">
+  Sort(int, int, IComparer&lt;T&gt;?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Sorts the elements in a range of elements in an Array</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Sort(int index, int length, IComparer&lt;T&gt;? comparer = null)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>index</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>length</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>comparer</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.icomparer-1">IComparer</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Data_EquatableArray_1_Sort_" data-uid="Backdash.Data.EquatableArray`1.Sort*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1_Sort_System_Range_System_Collections_Generic_IComparer__0__" data-uid="Backdash.Data.EquatableArray`1.Sort(System.Range,System.Collections.Generic.IComparer{`0})">
+  Sort(Range, IComparer&lt;T&gt;?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Sorts the elements in a range of elements in an Array</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Sort(Range range, IComparer&lt;T&gt;? comparer = null)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>range</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.range">Range</a></dt>
+    <dd></dd>
+    <dt><code>comparer</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.icomparer-1">IComparer</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Data_EquatableArray_1_SortBy_" data-uid="Backdash.Data.EquatableArray`1.SortBy*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1_SortBy__1_System_Func__0___0__System_Collections_Generic_IComparer___0__" data-uid="Backdash.Data.EquatableArray`1.SortBy``1(System.Func{`0,``0},System.Collections.Generic.IComparer{``0})">
+  SortBy&lt;TKey&gt;(Func&lt;T, TKey&gt;, IComparer&lt;TKey&gt;?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Sorts the elements of an array in ascending order according to a key.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void SortBy&lt;TKey&gt;(Func&lt;T, TKey&gt; selector, IComparer&lt;TKey&gt;? comparer = null) where TKey : IComparable&lt;TKey&gt;</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>selector</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.func-2">Func</a>&lt;T, TKey&gt;</dt>
+    <dd></dd>
+    <dt><code>comparer</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.icomparer-1">IComparer</a>&lt;TKey&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>TKey</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Data_EquatableArray_1_ToResized_" data-uid="Backdash.Data.EquatableArray`1.ToResized*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1_ToResized_System_Int32_" data-uid="Backdash.Data.EquatableArray`1.ToResized(System.Int32)">
+  ToResized(int)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Crates new array with new size copying elements from source</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public EquatableArray&lt;T&gt; ToResized(int newSize)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>newSize</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.Data.EquatableArray-1.html">EquatableArray</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Data_EquatableArray_1_ToSorted_" data-uid="Backdash.Data.EquatableArray`1.ToSorted*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1_ToSorted_System_Collections_Generic_IComparer__0__" data-uid="Backdash.Data.EquatableArray`1.ToSorted(System.Collections.Generic.IComparer{`0})">
+  ToSorted(IComparer&lt;T&gt;?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Sorts the elements of an array in ascending order into a new array.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public EquatableArray&lt;T&gt; ToSorted(IComparer&lt;T&gt;? comparer = null)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>comparer</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.icomparer-1">IComparer</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.Data.EquatableArray-1.html">EquatableArray</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Data_EquatableArray_1_ToSorted_" data-uid="Backdash.Data.EquatableArray`1.ToSorted*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1_ToSorted_System_Int32_System_Int32_System_Collections_Generic_IComparer__0__" data-uid="Backdash.Data.EquatableArray`1.ToSorted(System.Int32,System.Int32,System.Collections.Generic.IComparer{`0})">
+  ToSorted(int, int, IComparer&lt;T&gt;?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Sorts the elements in a range of elements in an Array into a new array</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public EquatableArray&lt;T&gt; ToSorted(int index, int length, IComparer&lt;T&gt;? comparer = null)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>index</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>length</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>comparer</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.icomparer-1">IComparer</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.Data.EquatableArray-1.html">EquatableArray</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Data_EquatableArray_1_ToSorted_" data-uid="Backdash.Data.EquatableArray`1.ToSorted*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1_ToSorted_System_Range_System_Collections_Generic_IComparer__0__" data-uid="Backdash.Data.EquatableArray`1.ToSorted(System.Range,System.Collections.Generic.IComparer{`0})">
+  ToSorted(Range, IComparer&lt;T&gt;?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Sorts the elements in a range of elements in an Array into a new array</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public EquatableArray&lt;T&gt; ToSorted(Range range, IComparer&lt;T&gt;? comparer = null)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>range</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.range">Range</a></dt>
+    <dd></dd>
+    <dt><code>comparer</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.icomparer-1">IComparer</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.Data.EquatableArray-1.html">EquatableArray</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Data_EquatableArray_1_ToSortedBy_" data-uid="Backdash.Data.EquatableArray`1.ToSortedBy*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1_ToSortedBy__1_System_Func__0___0__System_Collections_Generic_IComparer___0__" data-uid="Backdash.Data.EquatableArray`1.ToSortedBy``1(System.Func{`0,``0},System.Collections.Generic.IComparer{``0})">
+  ToSortedBy&lt;TKey&gt;(Func&lt;T, TKey&gt;, IComparer&lt;TKey&gt;?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Sorts the elements of an array in ascending order according to a key.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public EquatableArray&lt;T&gt; ToSortedBy&lt;TKey&gt;(Func&lt;T, TKey&gt; selector, IComparer&lt;TKey&gt;? comparer = null) where TKey : IComparable&lt;TKey&gt;</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>selector</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.func-2">Func</a>&lt;T, TKey&gt;</dt>
+    <dd></dd>
+    <dt><code>comparer</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.icomparer-1">IComparer</a>&lt;TKey&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.Data.EquatableArray-1.html">EquatableArray</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>TKey</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Data_EquatableArray_1_ToString_" data-uid="Backdash.Data.EquatableArray`1.ToString*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1_ToString" data-uid="Backdash.Data.EquatableArray`1.ToString">
+  ToString()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override string ToString()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="operators">Operators
+</h2>
+
+
+  <a id="Backdash_Data_EquatableArray_1_op_Implicit_" data-uid="Backdash.Data.EquatableArray`1.op_Implicit*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1_op_Implicit_Backdash_Data_EquatableArray__0___System_Memory__0_" data-uid="Backdash.Data.EquatableArray`1.op_Implicit(Backdash.Data.EquatableArray{`0})~System.Memory{`0}">
+  implicit operator Memory&lt;T&gt;(EquatableArray&lt;T&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static implicit operator Memory&lt;T&gt;(EquatableArray&lt;T&gt; equatableArray)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>equatableArray</code> <a class="xref" href="Backdash.Data.EquatableArray-1.html">EquatableArray</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.memory-1">Memory</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Data_EquatableArray_1_op_Implicit_" data-uid="Backdash.Data.EquatableArray`1.op_Implicit*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1_op_Implicit_Backdash_Data_EquatableArray__0___System_ReadOnlySpan__0_" data-uid="Backdash.Data.EquatableArray`1.op_Implicit(Backdash.Data.EquatableArray{`0})~System.ReadOnlySpan{`0}">
+  implicit operator ReadOnlySpan&lt;T&gt;(EquatableArray&lt;T&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns a read-only <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1">IReadOnlyList&lt;T&gt;</a> wrapper for the current <a class="xref" href="Backdash.Data.EquatableArray-1.html">EquatableArray&lt;T&gt;</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static implicit operator ReadOnlySpan&lt;T&gt;(EquatableArray&lt;T&gt; equatableArray)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>equatableArray</code> <a class="xref" href="Backdash.Data.EquatableArray-1.html">EquatableArray</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Data_EquatableArray_1_op_Implicit_" data-uid="Backdash.Data.EquatableArray`1.op_Implicit*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1_op_Implicit_Backdash_Data_EquatableArray__0___System_Span__0_" data-uid="Backdash.Data.EquatableArray`1.op_Implicit(Backdash.Data.EquatableArray{`0})~System.Span{`0}">
+  implicit operator Span&lt;T&gt;(EquatableArray&lt;T&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static implicit operator Span&lt;T&gt;(EquatableArray&lt;T&gt; equatableArray)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>equatableArray</code> <a class="xref" href="Backdash.Data.EquatableArray-1.html">EquatableArray</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.span-1">Span</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Data_EquatableArray_1_op_Implicit_" data-uid="Backdash.Data.EquatableArray`1.op_Implicit*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1_op_Implicit_Backdash_Data_EquatableArray__0____0__" data-uid="Backdash.Data.EquatableArray`1.op_Implicit(Backdash.Data.EquatableArray{`0})~`0[]">
+  implicit operator T[](EquatableArray&lt;T&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns the internal array of the current <a class="xref" href="Backdash.Data.EquatableArray-1.html">EquatableArray&lt;T&gt;</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static implicit operator T[](EquatableArray&lt;T&gt; equatableArray)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>equatableArray</code> <a class="xref" href="Backdash.Data.EquatableArray-1.html">EquatableArray</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt>T[]</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="eii">Explicit Interface Implementations
+</h2>
+
+
+  <a id="Backdash_Data_EquatableArray_1_op_Equality_" data-uid="Backdash.Data.EquatableArray`1.op_Equality*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1_op_Equality_Backdash_Data_EquatableArray__0__Backdash_Data_EquatableArray__0__" data-uid="Backdash.Data.EquatableArray`1.op_Equality(Backdash.Data.EquatableArray{`0},Backdash.Data.EquatableArray{`0})">
+  operator ==(EquatableArray&lt;T&gt;?, EquatableArray&lt;T&gt;?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">static bool operator ==(EquatableArray&lt;T&gt;? left, EquatableArray&lt;T&gt;? right)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>left</code> <a class="xref" href="Backdash.Data.EquatableArray-1.html">EquatableArray</a>&lt;T&gt;</dt>
+    <dd></dd>
+    <dt><code>right</code> <a class="xref" href="Backdash.Data.EquatableArray-1.html">EquatableArray</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Data_EquatableArray_1_op_Inequality_" data-uid="Backdash.Data.EquatableArray`1.op_Inequality*"></a>
+
+  <h3 id="Backdash_Data_EquatableArray_1_op_Inequality_Backdash_Data_EquatableArray__0__Backdash_Data_EquatableArray__0__" data-uid="Backdash.Data.EquatableArray`1.op_Inequality(Backdash.Data.EquatableArray{`0},Backdash.Data.EquatableArray{`0})">
+  operator !=(EquatableArray&lt;T&gt;?, EquatableArray&lt;T&gt;?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">static bool operator !=(EquatableArray&lt;T&gt;? left, EquatableArray&lt;T&gt;? right)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>left</code> <a class="xref" href="Backdash.Data.EquatableArray-1.html">EquatableArray</a>&lt;T&gt;</dt>
+    <dd></dd>
+    <dt><code>right</code> <a class="xref" href="Backdash.Data.EquatableArray-1.html">EquatableArray</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Data/EquatableArray.cs" class="edit-link">Edit this page</a>
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Developed by <a href="https://lucasteles.dev/">Lucas Teles</a>.</span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
