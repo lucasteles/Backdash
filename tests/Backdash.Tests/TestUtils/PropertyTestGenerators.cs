@@ -137,7 +137,6 @@ class PropertyTestGenerators
 
     public static Arbitrary<SyncRequest> SyncRequestGenerator() => Arb.From(
         from randRequest in Arb.Generate<uint>()
-        from remoteEp in Arb.Generate<byte>()
         select new SyncRequest
         {
             RandomRequest = randRequest,

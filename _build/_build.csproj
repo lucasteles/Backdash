@@ -11,7 +11,7 @@
         <NukeScriptDirectory>..</NukeScriptDirectory>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="Nuke.Common" Version="9.0.1" />
-        <PackageReference Include="NukePlus" Version="2.0.2" />
+        <PackageReference Include="Nuke.Common" Version="9.0.3" />
+        <PackageReference Include="NukePlus" Version="2.0.4" />
     </ItemGroup>
 </Project>
