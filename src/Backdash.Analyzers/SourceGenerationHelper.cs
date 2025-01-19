@@ -189,7 +189,7 @@ static class SourceGenerationHelper
     {
         Debug.Assert(type != null);
 
-        if (!type.IsUnmanagedType || type is INamedTypeSymbol { EnumUnderlyingType: not null })
+        if (!(type?.IsUnmanagedType ?? false) || type is INamedTypeSymbol { EnumUnderlyingType: not null })
             return false;
 
         return type.SpecialType switch
