@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Backdash.Core;
 using Backdash.Serialization;
 
@@ -30,11 +31,11 @@ public static class PeerClientFactory
         maxPacketSize
     );
 
-#if !AOT_ENABLED
     /// <summary>
     ///  Creates new <see cref="IPeerClient{T}"/>
     /// </summary>
-    public static IPeerClient<T> Create<T>(
+    /// <remarks>Prefer using the <see cref="Create{T}(IPeerSocket, IBinarySerializer{T}, IPeerObserver{T}, int, LogLevel, ILogWriter?, DelayStrategy, Random?)"/> overload in NativeAoT/Trimmed applications</remarks>
+    public static IPeerClient<T> Create<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] T>(
         IPeerSocket socket,
         IPeerObserver<T> observer,
         int maxPacketSize = Max.UdpPacketSize,
@@ -52,5 +53,4 @@ public static class PeerClientFactory
         delayStrategy,
         random
     );
-#endif
 }

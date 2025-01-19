@@ -9,6 +9,7 @@
     <Description>Backdash network utilities</Description>
     <PackageTags>network, endpoint, multiplayer, json, input</PackageTags>
     <NoWarn>CS1591</NoWarn>
+    <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
   <ItemGroup>

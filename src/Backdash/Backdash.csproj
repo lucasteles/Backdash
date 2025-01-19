@@ -6,6 +6,7 @@
     <PackageId>Backdash</PackageId>
     <Description>Rollback netcode library</Description>
     <PackageTags>rollback, netcode, network, peer to peer, online, game, multiplayer</PackageTags>
+    <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
   <PropertyGroup Condition="$([System.Text.RegularExpressions.Regex]::IsMatch($(DefineConstants), '^(.*;)*AOT_ENABLED(;.*)*$'))">

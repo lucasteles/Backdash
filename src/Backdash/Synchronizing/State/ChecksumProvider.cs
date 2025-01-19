@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace Backdash.Synchronizing.State;
 
 /// <summary>
@@ -33,12 +35,10 @@ sealed class EmptyChecksumProvider<T> : IChecksumProvider<T> where T : notnull
 
 static class ChecksumProviderFactory
 {
-    public static IChecksumProvider<T> Create<T>() where T : notnull
+    public static IChecksumProvider<T> Create<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] T>() where T : notnull
     {
-#if !AOT_ENABLED
         if (Core.TypeHelpers.HasInvariantHashCode<T>())
             return new HashCodeChecksumProvider<T>();
-#endif
 
         return new EmptyChecksumProvider<T>();
     }
