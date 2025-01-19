@@ -226,7 +226,6 @@ public class SerializersTests
         .And
         .BeOfType<EnumBinarySerializer<T, TInt>>();
 
-#if !AOT_ENABLED
     [Fact]
     public void ShouldReturnCorrectSerializerForStruct()
     {
@@ -266,5 +265,4 @@ public class SerializersTests
     [Fact] public void AssertSerializerLongEnum() => AssertEnumSerializer<LongEnum>();
     [Fact] public void AssertSerializerULongEnum() => AssertEnumSerializer<ULongEnum>();
 
-#endif
 }
