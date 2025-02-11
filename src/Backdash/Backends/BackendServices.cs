@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Backdash.Core;
 using Backdash.Network;
 using Backdash.Network.Client;
@@ -11,7 +12,7 @@ using Backdash.Synchronizing.State.Stores;
 
 namespace Backdash.Backends;
 
-sealed class BackendServices<TInput, TGameState>
+sealed class BackendServices<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] TInput, TGameState>
     where TInput : unmanaged
     where TGameState : notnull, new()
 {
@@ -56,7 +57,7 @@ sealed class BackendServices<TInput, TGameState>
 
 static class BackendServices
 {
-    public static BackendServices<TInput, TGameState> Create<TInput, TGameState>(
+    public static BackendServices<TInput, TGameState> Create<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] TInput, TGameState>(
         RollbackOptions options,
         SessionServices<TInput, TGameState>? services
     )

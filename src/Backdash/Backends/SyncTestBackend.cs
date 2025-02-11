@@ -1,4 +1,6 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network;
@@ -39,6 +41,9 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         IncludeFields = true,
     };
 
+    readonly JsonTypeInfo<TGameState>? gameStateJsonTypeInfo;
+    readonly JsonTypeInfo<TInput>? inputJsonTypeInfo;
+
     IRollbackHandler<TGameState> callbacks;
     bool inRollback;
     bool running;
@@ -47,6 +52,8 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
     GameInput<TInput> lastInput;
     Frame lastVerified = Frame.Zero;
 
+    [RequiresUnreferencedCode("Use the constructor which provides JsonTypeInfo(s) instead")]
+    [RequiresDynamicCode("Use the constructor which provides JsonTypeInfo(s) instead")]
     public SyncTestBackend(
         RollbackOptions options,
         FrameSpan checkDistance,
@@ -78,6 +85,29 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         };
         currentInput = new();
         lastInput = new();
+        jsonOptions.TypeInfoResolver = new DefaultJsonTypeInfoResolver();
+    }
+
+    [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "gameStateJsonTypeInfo and inputJsonTypeInfo are set.")]
+    [UnconditionalSuppressMessage("AOT", "IL3050:Calling members annotated with 'RequiresDynamicCodeAttribute' may break functionality when AOT compiling.", Justification = "gameStateJsonTypeInfo and inputJsonTypeInfo are set.")]
+    public SyncTestBackend(
+        RollbackOptions options,
+        FrameSpan checkDistance,
+        bool throwError,
+        BackendServices<TInput, TGameState> services,
+        JsonTypeInfo<TGameState> gameStateJsonTypeInfo,
+        JsonTypeInfo<TInput> inputJsonTypeInfo
+    ) : this(
+        options,
+        checkDistance,
+        throwError,
+        services
+    )
+    {
+        ArgumentNullException.ThrowIfNull(gameStateJsonTypeInfo);
+        ArgumentNullException.ThrowIfNull(inputJsonTypeInfo);
+        this.gameStateJsonTypeInfo = gameStateJsonTypeInfo;
+        this.inputJsonTypeInfo = inputJsonTypeInfo;
     }
 
     public void Dispose() => tsc.SetResult();
@@ -210,11 +240,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         savedFrames.Enqueue(new(
             Frame: frame,
             Input: lastInput,
-#if AOT_ENABLED
-            State: lastSaved.GameState.ToString() ?? string.Empty,
-#else
-            State: JsonSerializer.Serialize(lastSaved.GameState, jsonOptions),
-#endif
+            State: JsonSerializer.Serialize(lastSaved.GameState, gameStateJsonTypeInfo ?? jsonOptions.TypeInfoResolver?.GetTypeInfo(typeof(TGameState), jsonOptions) ?? throw new InvalidOperationException("Could not get JsonTypeInfo<TGameState>")),
             Checksum: lastSaved.Checksum
         ));
         if (frame - lastVerified != checkDistance.FrameValue)
@@ -259,13 +285,9 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         const LogLevel level = LogLevel.Information;
         logger.Write(level, $"=== SAVED STATE [{description.ToUpper()}] ({info.Frame}) ===\n");
         logger.Write(level, $"INPUT FRAME {info.Input.Frame}:");
-#if AOT_ENABLED
-        logger.Write(level, info.Input.Data.ToString() ?? string.Empty);
-#else
-        logger.Write(level, JsonSerializer.Serialize(info.Input.Data, jsonOptions));
-#endif
+        logger.Write(level, JsonSerializer.Serialize(info.Input.Data, inputJsonTypeInfo ?? jsonOptions.TypeInfoResolver?.GetTypeInfo(typeof(TInput), jsonOptions) as JsonTypeInfo<TInput> ?? throw new InvalidOperationException("Could not get JsonTypeInfo<TInput>")));
         logger.Write(level, $"GAME STATE #{info.Checksum}:");
-        LogJson(level, info.State);
+        LogStringChunked(level, info.State);
         logger.Write(level, "====================================");
     }
 
@@ -274,18 +296,23 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         const LogLevel level = LogLevel.Information;
         logger.Write(level, $"=== SAVED STATE [{description.ToUpper()}] ({info.Frame}) ===\n");
         logger.Write(level, $"GAME STATE #{info.Checksum}:");
-        LogJson(level, info.GameState);
+        LogJson(level, info.GameState, gameStateJsonTypeInfo ?? jsonOptions.TypeInfoResolver?.GetTypeInfo(typeof(TGameState), jsonOptions) as JsonTypeInfo<TGameState> ?? throw new InvalidOperationException("Could not get JsonTypeInfo<TGameState>"));
         logger.Write(level, "====================================");
     }
 
-    void LogJson<TValue>(LogLevel level, TValue value)
+    void LogStringChunked(LogLevel level, string value)
+    {
+        var chunks = value
+            .Chunk(LogStringBuffer.Capacity / 2)
+            .Select(x => new string(x));
+        foreach (var chunk in chunks)
+            logger.Write(level, chunk);
+    }
+
+    void LogJson<TValue>(LogLevel level, TValue value, JsonTypeInfo<TValue> jsonTypeInfo)
     {
         var jsonChunks =
-#if AOT_ENABLED
-            (value?.ToString() ?? string.Empty)
-#else
-            JsonSerializer.Serialize(value, jsonOptions)
-#endif
+            JsonSerializer.Serialize(value, jsonTypeInfo)
                 .Chunk(LogStringBuffer.Capacity / 2)
                 .Select(x => new string(x));
         foreach (var chunk in jsonChunks)

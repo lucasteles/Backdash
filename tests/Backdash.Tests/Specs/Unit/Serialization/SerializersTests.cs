@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using Backdash.Serialization;
@@ -225,7 +226,6 @@ public class SerializersTests
         .And
         .BeOfType<EnumBinarySerializer<T, TInt>>();
 
-#if !AOT_ENABLED
     [Fact]
     public void ShouldReturnCorrectSerializerForStruct()
     {
@@ -233,13 +233,13 @@ public class SerializersTests
         serializer.Should().BeOfType<StructBinarySerializer<SimpleStructData>>();
     }
 
-    static void AssertIntegerSerializer<T>() where T : unmanaged, IBinaryInteger<T>, IMinMaxValue<T>
+    static void AssertIntegerSerializer<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] T>() where T : unmanaged, IBinaryInteger<T>, IMinMaxValue<T>
     {
         var serializer = BinarySerializerFactory.Get<T>();
         serializer.Should().BeOfType<IntegerBinarySerializer<T>>();
     }
 
-    static void AssertEnumSerializer<T>() where T : unmanaged, Enum
+    static void AssertEnumSerializer<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] T>() where T : unmanaged, Enum
     {
         var serializer = BinarySerializerFactory.Get<T>();
         serializer.Should().BeOfType<EnumBinarySerializer<T>>();
@@ -265,5 +265,4 @@ public class SerializersTests
     [Fact] public void AssertSerializerLongEnum() => AssertEnumSerializer<LongEnum>();
     [Fact] public void AssertSerializerULongEnum() => AssertEnumSerializer<ULongEnum>();
 
-#endif
 }

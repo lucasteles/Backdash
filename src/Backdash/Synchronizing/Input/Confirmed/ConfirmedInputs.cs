@@ -48,4 +48,17 @@ public struct InputArray<TInput> where TInput : unmanaged
     public const int Capacity = Max.NumberOfPlayers;
 
     TInput element0;
+
+    ///<inheritdoc/>
+    public override readonly int GetHashCode() => Mem.GetHashCode<TInput>(this);
+
+    /// <summary>
+    /// Determines whether the specified object is equal to the current object.
+    /// </summary>
+    /// <param name="other">The <see cref="InputArray{TInput}"/> to compare with the current object.</param>
+    /// <returns>true if the specified object is equal to the current object; otherwise, false.</returns>
+    public readonly bool Equals(InputArray<TInput> other) => this[..].SequenceEqual(other);
+
+    ///<inheritdoc/>
+    public override readonly bool Equals(object? obj) => obj is InputArray<TInput> other && Equals(other);
 }
