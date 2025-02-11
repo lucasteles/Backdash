@@ -6,7 +6,7 @@ using Backdash.Serialization.Buffer;
 namespace Backdash.Network.Messages;
 
 [Serializable, StructLayout(LayoutKind.Explicit, Pack = 2)]
-struct ProtocolMessage(MessageType type) : IBinarySerializable, IEquatable<ProtocolMessage>, IUtf8SpanFormattable
+struct ProtocolMessage(MessageType type) : ISpanSerializable, IEquatable<ProtocolMessage>, IUtf8SpanFormattable
 {
     [FieldOffset(0)]
     public Header Header = new(type);

@@ -4,7 +4,7 @@ using Backdash.Serialization.Buffer;
 namespace Backdash.Serialization;
 
 class SerializableTypeBinarySerializer<T> : IBinarySerializer<T>
-    where T : struct, IBinarySerializable
+    where T : struct, ISpanSerializable
 {
     public Endianness Endianness { get; init; }
     public int Serialize(in T data, Span<byte> buffer)

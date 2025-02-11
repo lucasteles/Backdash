@@ -5,7 +5,7 @@ using Backdash.Serialization.Buffer;
 namespace Backdash.Network.Messages;
 
 [Serializable, StructLayout(LayoutKind.Sequential)]
-record struct SyncReply : IBinarySerializable, IUtf8SpanFormattable
+record struct SyncReply : ISpanSerializable, IUtf8SpanFormattable
 {
     public uint RandomReply; /* please reply with this random data */
     public long Pong;

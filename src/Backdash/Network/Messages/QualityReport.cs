@@ -5,7 +5,7 @@ using Backdash.Serialization.Buffer;
 namespace Backdash.Network.Messages;
 
 [Serializable, StructLayout(LayoutKind.Sequential)]
-record struct QualityReport : IBinarySerializable, IUtf8SpanFormattable
+record struct QualityReport : ISpanSerializable, IUtf8SpanFormattable
 {
     public int FrameAdvantage; /* what's the other guy's frame advantage? */
     public long Ping;

@@ -6,7 +6,7 @@ using Backdash.Serialization.Buffer;
 namespace Backdash.Network.Messages;
 
 [Serializable, StructLayout(LayoutKind.Sequential)]
-record struct ConnectStatus : IBinarySerializable
+record struct ConnectStatus : ISpanSerializable
 {
     public bool Disconnected;
     public Frame LastFrame;

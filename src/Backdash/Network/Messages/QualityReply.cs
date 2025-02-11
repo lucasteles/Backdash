@@ -5,7 +5,7 @@ using Backdash.Serialization.Buffer;
 namespace Backdash.Network.Messages;
 
 [Serializable, StructLayout(LayoutKind.Sequential)]
-record struct QualityReply : IBinarySerializable, IUtf8SpanFormattable
+record struct QualityReply : ISpanSerializable, IUtf8SpanFormattable
 {
     public long Pong;
 

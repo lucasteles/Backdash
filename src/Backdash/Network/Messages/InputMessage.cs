@@ -9,7 +9,7 @@ using Backdash.Serialization.Buffer;
 namespace Backdash.Network.Messages;
 
 [Serializable, StructLayout(LayoutKind.Sequential)]
-struct InputMessage : IEquatable<InputMessage>, IBinarySerializable, IUtf8SpanFormattable
+struct InputMessage : IEquatable<InputMessage>, ISpanSerializable, IUtf8SpanFormattable
 {
     public PeerStatusBuffer PeerConnectStatus;
     public Frame StartFrame;

@@ -1,7 +1,8 @@
 using Backdash.Serialization.Buffer;
+
 namespace Backdash.Serialization;
 
-interface IBinarySerializable
+interface ISpanSerializable
 {
     void Serialize(BinarySpanWriter writer);
     void Deserialize(BinarySpanReader reader);
