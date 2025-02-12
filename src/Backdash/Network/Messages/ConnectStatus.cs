@@ -11,7 +11,7 @@ record struct ConnectStatus : ISpanSerializable
     public bool Disconnected;
     public Frame LastFrame;
 
-    public readonly void Serialize(BinarySpanWriter writer)
+    public readonly void Serialize(BinaryRawBufferWriter writer)
     {
         writer.Write(in Disconnected);
         writer.Write(in LastFrame.Number);

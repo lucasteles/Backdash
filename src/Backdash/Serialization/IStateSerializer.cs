@@ -9,7 +9,7 @@ namespace Backdash.Serialization;
 public interface IBinaryBufferWriter<T>
 {
     /// <summary>
-    /// Serialize <paramref name="data"/> using <see cref="BinarySpanWriter"/>
+    /// Serialize <paramref name="data"/> using <see cref="BinaryRawBufferWriter"/>
     /// </summary>
     /// <param name="binaryWriter">Buffer writer</param>
     /// <param name="data">Data to be written</param>

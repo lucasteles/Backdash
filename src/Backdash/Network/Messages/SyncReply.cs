@@ -10,7 +10,7 @@ record struct SyncReply : ISpanSerializable, IUtf8SpanFormattable
     public uint RandomReply; /* please reply with this random data */
     public long Pong;
 
-    public readonly void Serialize(BinarySpanWriter writer)
+    public readonly void Serialize(BinaryRawBufferWriter writer)
     {
         writer.Write(in RandomReply);
         writer.Write(in Pong);

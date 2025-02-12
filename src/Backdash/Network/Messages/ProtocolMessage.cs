@@ -32,7 +32,7 @@ struct ProtocolMessage(MessageType type) : ISpanSerializable, IEquatable<Protoco
     [FieldOffset(Header.Size)]
     public InputMessage Input;
 
-    public readonly void Serialize(BinarySpanWriter writer)
+    public readonly void Serialize(BinaryRawBufferWriter writer)
     {
         Header.Serialize(writer);
         switch (Header.Type)

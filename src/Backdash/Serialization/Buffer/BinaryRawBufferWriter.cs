@@ -10,14 +10,14 @@ namespace Backdash.Serialization.Buffer;
 /// <summary>
 /// Binary span writer.
 /// </summary>
-public readonly ref struct BinarySpanWriter
+public readonly ref struct BinaryRawBufferWriter
 {
     /// <summary>
-    /// Initialize a new <see cref="BinarySpanWriter"/> for <paramref name="buffer"/>
+    /// Initialize a new <see cref="BinaryRawBufferWriter"/> for <paramref name="buffer"/>
     /// </summary>
     /// <param name="buffer">Byte buffer to be written</param>
     /// <param name="offset">Write offset reference</param>
-    public BinarySpanWriter(scoped in Span<byte> buffer, ref int offset)
+    public BinaryRawBufferWriter(scoped in Span<byte> buffer, ref int offset)
     {
         this.buffer = buffer;
         this.offset = ref offset;

@@ -10,7 +10,7 @@ class SerializableTypeBinarySerializer<T> : IBinarySerializer<T>
     public int Serialize(in T data, Span<byte> buffer)
     {
         var offset = 0;
-        BinarySpanWriter writer = new(buffer, ref offset)
+        BinaryRawBufferWriter writer = new(buffer, ref offset)
         {
             Endianness = Endianness,
         };

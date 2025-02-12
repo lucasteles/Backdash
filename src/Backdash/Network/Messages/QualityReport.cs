@@ -10,7 +10,7 @@ record struct QualityReport : ISpanSerializable, IUtf8SpanFormattable
     public int FrameAdvantage; /* what's the other guy's frame advantage? */
     public long Ping;
 
-    public readonly void Serialize(BinarySpanWriter writer)
+    public readonly void Serialize(BinaryRawBufferWriter writer)
     {
         writer.Write(in FrameAdvantage);
         writer.Write(in Ping);

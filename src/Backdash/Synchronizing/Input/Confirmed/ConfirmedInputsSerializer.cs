@@ -6,7 +6,7 @@ namespace Backdash.Synchronizing.Input.Confirmed;
 sealed class ConfirmedInputsSerializer<T>(IBinarySerializer<T> inputSerializer)
     : BinarySerializer<ConfirmedInputs<T>> where T : unmanaged
 {
-    protected override void Serialize(in BinarySpanWriter binaryWriter, in ConfirmedInputs<T> data)
+    protected override void Serialize(in BinaryRawBufferWriter binaryWriter, in ConfirmedInputs<T> data)
     {
         binaryWriter.Write(data.Count);
         for (var i = 0; i < data.Count; i++)

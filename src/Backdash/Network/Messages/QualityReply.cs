@@ -9,7 +9,7 @@ record struct QualityReply : ISpanSerializable, IUtf8SpanFormattable
 {
     public long Pong;
 
-    public readonly void Serialize(BinarySpanWriter writer) =>
+    public readonly void Serialize(BinaryRawBufferWriter writer) =>
         writer.Write(in Pong);
 
     public void Deserialize(BinaryBufferReader reader) =>

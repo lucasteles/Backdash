@@ -4,6 +4,6 @@ namespace Backdash.Serialization;
 
 interface ISpanSerializable
 {
-    void Serialize(BinarySpanWriter writer);
+    void Serialize(BinaryRawBufferWriter writer);
     void Deserialize(BinaryBufferReader reader);
 }

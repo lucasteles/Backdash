@@ -12,7 +12,7 @@ namespace Backdash.Serialization.Buffer;
 /// Binary span writer.
 /// </summary>
 /// <remarks>
-/// Initialize a new <see cref="BinarySpanWriter"/> for <paramref name="buffer"/>
+/// Initialize a new <see cref="BinaryRawBufferWriter"/> for <paramref name="buffer"/>
 /// </remarks>
 /// <param name="buffer">Byte buffer to be written</param>
 public readonly struct BinaryBufferWriter(IBufferWriter<byte> buffer)

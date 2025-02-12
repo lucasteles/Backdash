@@ -5,7 +5,7 @@ namespace Backdash.Tests.TestUtils.Types;
 
 public class PadInputsBinarySerializer : BinarySerializer<PadInputs>
 {
-    protected override void Serialize(in BinarySpanWriter binaryWriter, in PadInputs data)
+    protected override void Serialize(in BinaryRawBufferWriter binaryWriter, in PadInputs data)
     {
         binaryWriter.Write((short)data.Buttons);
         binaryWriter.Write(data.LeftTrigger);

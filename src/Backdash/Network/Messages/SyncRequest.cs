@@ -10,7 +10,7 @@ record struct SyncRequest : ISpanSerializable, IUtf8SpanFormattable
     public uint RandomRequest; /* please reply with this random data */
     public long Ping;
 
-    public readonly void Serialize(BinarySpanWriter writer)
+    public readonly void Serialize(BinaryRawBufferWriter writer)
     {
         writer.Write(in RandomRequest);
         writer.Write(in Ping);

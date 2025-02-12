@@ -13,7 +13,7 @@ record struct Header(MessageType Type) : ISpanSerializable
     public ushort SequenceNumber = 0;
     public const int Size = 6;
 
-    public readonly void Serialize(BinarySpanWriter writer)
+    public readonly void Serialize(BinaryRawBufferWriter writer)
     {
         writer.Write((ushort)Type);
         writer.Write(in Magic);

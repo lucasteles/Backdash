@@ -9,7 +9,7 @@ namespace SpaceWar.Scenes;
 public sealed class BattleSessionScene : Scene
 {
     readonly IReadOnlyList<Peer> peersInfo;
-    readonly IRollbackSession<PlayerInputs, GameState> rollbackSession;
+    readonly IRollbackSession<PlayerInputs> rollbackSession;
     GameSession gameSession = null!;
 
     readonly RollbackOptions options = new()
@@ -36,7 +36,7 @@ public sealed class BattleSessionScene : Scene
         if (localPlayer is null)
             throw new InvalidOperationException("No local player defined");
 
-        rollbackSession = RollbackNetcode.CreateSession<PlayerInputs, GameState>(port, options);
+        rollbackSession = RollbackNetcode.CreateSession<PlayerInputs>(port, options);
         rollbackSession.AddPlayers(players);
     }
 
@@ -47,7 +47,7 @@ public sealed class BattleSessionScene : Scene
     )
     {
         this.peersInfo = peersInfo;
-        rollbackSession = RollbackNetcode.CreateSpectatorSession<PlayerInputs, GameState>(
+        rollbackSession = RollbackNetcode.CreateSpectatorSession<PlayerInputs>(
             port, host, playerCount, options
         );
     }
