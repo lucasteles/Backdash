@@ -59,7 +59,7 @@ jobs:
                     dotnet pack src/Backdash.Analyzers --configuration Release --include-symbols -p:Version='${{ steps.gitversion.outputs.SemVer }}' --output ./build_artifacts
 
             -   name: Upload lib NuGet package artifact to GitHub
-                uses: actions/upload-artifact@v3
+                uses: actions/upload-artifact@v4
                 with:
                     name: buildArtifacts
                     path: ./build_artifacts
@@ -71,7 +71,7 @@ jobs:
         needs: build
         steps:
             -   name: Download lib nuget package artifact
-                uses: actions/download-artifact@v3
+                uses: actions/download-artifact@v4
                 with:
                     name: buildArtifacts
                     path: ./build_artifacts
@@ -89,7 +89,7 @@ jobs:
         needs: build
         steps:
             -   name: Download lib nuget package artifact
-                uses: actions/download-artifact@v3
+                uses: actions/download-artifact@v4
                 with:
                     name: buildArtifacts
                     path: ./build_artifacts
