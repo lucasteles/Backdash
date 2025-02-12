@@ -32,30 +32,30 @@ struct ProtocolMessage(MessageType type) : ISpanSerializable, IEquatable<Protoco
     [FieldOffset(Header.Size)]
     public InputMessage Input;
 
-    public readonly void Serialize(BinaryRawBufferWriter writer)
+    public readonly void Serialize(in BinaryRawBufferWriter writer)
     {
-        Header.Serialize(writer);
+        Header.Serialize(in writer);
         switch (Header.Type)
         {
             case MessageType.SyncRequest:
-                SyncRequest.Serialize(writer);
+                SyncRequest.Serialize(in writer);
                 break;
             case MessageType.SyncReply:
-                SyncReply.Serialize(writer);
+                SyncReply.Serialize(in writer);
                 break;
             case MessageType.QualityReport:
-                QualityReport.Serialize(writer);
+                QualityReport.Serialize(in writer);
                 break;
             case MessageType.QualityReply:
-                QualityReply.Serialize(writer);
+                QualityReply.Serialize(in writer);
                 break;
             case MessageType.InputAck:
-                InputAck.Serialize(writer);
+                InputAck.Serialize(in writer);
                 break;
             case MessageType.KeepAlive:
                 break;
             case MessageType.Input:
-                Input.Serialize(writer);
+                Input.Serialize(in writer);
                 break;
             case MessageType.Unknown:
             default:
@@ -63,30 +63,30 @@ struct ProtocolMessage(MessageType type) : ISpanSerializable, IEquatable<Protoco
         }
     }
 
-    public void Deserialize(BinaryBufferReader reader)
+    public void Deserialize(in BinaryBufferReader reader)
     {
-        Header.Deserialize(reader);
+        Header.Deserialize(in reader);
         switch (Header.Type)
         {
             case MessageType.SyncRequest:
-                SyncRequest.Deserialize(reader);
+                SyncRequest.Deserialize(in reader);
                 break;
             case MessageType.SyncReply:
-                SyncReply.Deserialize(reader);
+                SyncReply.Deserialize(in reader);
                 break;
             case MessageType.QualityReport:
-                QualityReport.Deserialize(reader);
+                QualityReport.Deserialize(in reader);
                 break;
             case MessageType.QualityReply:
-                QualityReply.Deserialize(reader);
+                QualityReply.Deserialize(in reader);
                 break;
             case MessageType.InputAck:
-                InputAck.Deserialize(reader);
+                InputAck.Deserialize(in reader);
                 break;
             case MessageType.KeepAlive:
                 break;
             case MessageType.Input:
-                Input.Deserialize(reader);
+                Input.Deserialize(in reader);
                 break;
             case MessageType.Unknown:
             default:

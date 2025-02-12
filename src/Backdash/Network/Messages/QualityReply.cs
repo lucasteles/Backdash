@@ -9,10 +9,10 @@ record struct QualityReply : ISpanSerializable, IUtf8SpanFormattable
 {
     public long Pong;
 
-    public readonly void Serialize(BinaryRawBufferWriter writer) =>
+    public readonly void Serialize(in BinaryRawBufferWriter writer) =>
         writer.Write(in Pong);
 
-    public void Deserialize(BinaryBufferReader reader) =>
+    public void Deserialize(in BinaryBufferReader reader) =>
         Pong = reader.ReadInt64();
 
     public readonly bool TryFormat(Span<byte> utf8Destination, out int bytesWritten, ReadOnlySpan<char> format,

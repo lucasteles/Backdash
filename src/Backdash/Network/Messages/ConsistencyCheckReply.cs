@@ -1,25 +1,26 @@
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
+using Backdash.Data;
 using Backdash.Serialization;
 using Backdash.Serialization.Buffer;
 
 namespace Backdash.Network.Messages;
 
 [Serializable, StructLayout(LayoutKind.Sequential)]
-record struct SyncReply : ISpanSerializable, IUtf8SpanFormattable
+record struct ConsistencyCheckReply : ISpanSerializable, IUtf8SpanFormattable
 {
-    public uint RandomReply; /* please reply with this random data */
-    public long Pong;
+    public Frame Frame;
+    public int Checksum;
 
     public readonly void Serialize(in BinaryRawBufferWriter writer)
     {
-        writer.Write(in RandomReply);
-        writer.Write(in Pong);
+        writer.Write(Frame.Number);
+        writer.Write(Checksum);
     }
 
     public void Deserialize(in BinaryBufferReader reader)
     {
-        RandomReply = reader.ReadUInt32();
-        Pong = reader.ReadInt64();
+        Frame = new(reader.ReadInt32());
+        Checksum = reader.ReadInt32();
     }
 
     public readonly bool TryFormat(
@@ -30,6 +31,6 @@ record struct SyncReply : ISpanSerializable, IUtf8SpanFormattable
     {
         bytesWritten = 0;
         using Utf8ObjectWriter writer = new(in utf8Destination, ref bytesWritten);
-        return writer.Write(RandomReply) && writer.Write(Pong);
+        return writer.Write(Frame) && writer.Write(Checksum);
     }
 }

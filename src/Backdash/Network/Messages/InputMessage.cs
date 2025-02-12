@@ -30,7 +30,7 @@ struct InputMessage : IEquatable<InputMessage>, ISpanSerializable, IUtf8SpanForm
         InputSize = 0;
     }
 
-    public readonly void Serialize(BinaryRawBufferWriter writer)
+    public readonly void Serialize(in BinaryRawBufferWriter writer)
     {
         ReadOnlySpan<ConnectStatus> peerStatuses = PeerConnectStatus;
         var peerCount = (byte)peerStatuses.Length;
@@ -46,7 +46,7 @@ struct InputMessage : IEquatable<InputMessage>, ISpanSerializable, IUtf8SpanForm
         writer.Write(Bits[..bitCount]);
     }
 
-    public void Deserialize(BinaryBufferReader reader)
+    public void Deserialize(in BinaryBufferReader reader)
     {
         var peerCount = reader.ReadByte();
         for (var i = 0; i < peerCount; i++)
