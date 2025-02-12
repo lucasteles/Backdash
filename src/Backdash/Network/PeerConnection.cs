@@ -7,6 +7,7 @@ using Backdash.Network.Protocol;
 using Backdash.Network.Protocol.Comm;
 using Backdash.Synchronizing;
 using Backdash.Synchronizing.Input;
+using Backdash.Synchronizing.State;
 using Timer = System.Timers.Timer;
 
 namespace Backdash.Network;
@@ -23,14 +24,17 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
     readonly IProtocolInbox<TInput> inbox;
     readonly IProtocolOutbox outbox;
     readonly IProtocolInputBuffer<TInput> inputBuffer;
+    readonly IStateStore stateStore;
 
     readonly Timer qualityReportTimer;
     readonly Timer networkStatsTimer;
     readonly Timer keepAliveTimer;
     readonly Timer resendInputsTimer;
+    readonly Timer consistencyCheckTimer;
     long startedAt;
 
-    public PeerConnection(ProtocolOptions options,
+    public PeerConnection(
+        ProtocolOptions options,
         ProtocolState state,
         Logger logger,
         IClock clock,
@@ -39,7 +43,9 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
         IProtocolSynchronizer syncRequest,
         IProtocolInbox<TInput> inbox,
         IProtocolOutbox outbox,
-        IProtocolInputBuffer<TInput> inputBuffer)
+        IProtocolInputBuffer<TInput> inputBuffer,
+        IStateStore stateStore
+    )
     {
         this.options = options;
         this.state = state;
@@ -51,6 +57,7 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
         this.inbox = inbox;
         this.outbox = outbox;
         this.inputBuffer = inputBuffer;
+        this.stateStore = stateStore;
 
         keepAliveTimer = new(options.KeepAliveInterval);
         keepAliveTimer.Elapsed += OnKeepAliveTick;
@@ -63,6 +70,9 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
 
         networkStatsTimer = new(options.NetworkStatsInterval);
         networkStatsTimer.Elapsed += OnNetworkStatsTick;
+
+        consistencyCheckTimer = new(options.ConsistencyCheckInterval);
+        consistencyCheckTimer.Elapsed += OnConsistencyCheck;
 
         state.StoppingToken.Register(StopTimers);
     }
@@ -80,10 +90,12 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
         resendInputsTimer.Elapsed -= OnKeepAliveTick;
         qualityReportTimer.Elapsed -= OnQualityReportTick;
         networkStatsTimer.Elapsed -= OnNetworkStatsTick;
+        consistencyCheckTimer.Elapsed -= OnConsistencyCheck;
         networkStatsTimer.Dispose();
         qualityReportTimer.Dispose();
         keepAliveTimer.Dispose();
         resendInputsTimer.Dispose();
+        consistencyCheckTimer.Dispose();
     }
 
     void StopTimers()
@@ -92,6 +104,7 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
         resendInputsTimer.Stop();
         qualityReportTimer.Stop();
         networkStatsTimer.Stop();
+        consistencyCheckTimer.Stop();
     }
 
     void StartTimers()
@@ -100,6 +113,7 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
         resendInputsTimer.Start();
         qualityReportTimer.Start();
         networkStatsTimer.Start();
+        consistencyCheckTimer.Start();
     }
 
     public void Disconnect()
@@ -131,10 +145,10 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
                 syncRequest.Update();
                 break;
             case ProtocolStatus.Running:
-                {
-                    CheckDisconnection();
-                    break;
-                }
+            {
+                CheckDisconnection();
+                break;
+            }
             case ProtocolStatus.Disconnected:
                 break;
         }
@@ -345,5 +359,55 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
             stats.UdpOverhead =
                 (float)(100.0 * (totalHeaderSize * stats.TotalPackets) / stats.TotalBytes.ByteCount);
         }
+    }
+
+    void OnConsistencyCheck(object? sender, ElapsedEventArgs e)
+    {
+        if (state.CurrentStatus is not ProtocolStatus.Running || options.ConsistencyCheckInterval == TimeSpan.Zero)
+            return;
+
+        var lastReceivedFrame = inbox.LastReceivedInput.Frame;
+        var checkFrame = lastReceivedFrame.Number - options.ConsistencyCheckOffset;
+
+        if (checkFrame <= 1)
+            return;
+
+        if (state.Consistency.LastCheck is 0)
+        {
+            state.Consistency.LastCheck = clock.GetTimeStamp();
+            return;
+        }
+
+        state.Consistency.AskedFrame = new(checkFrame);
+        state.Consistency.AskedChecksum = stateStore.GetChecksum(state.Consistency.AskedFrame);
+
+        if (state.Consistency.AskedFrame.IsNull || state.Consistency.AskedChecksum is 0)
+            return;
+
+        logger.Write(LogLevel.Trace,
+            $"Start consistency check for frame {state.Consistency.AskedFrame} #{state.Consistency.AskedChecksum:x8}");
+
+        var elapsed = clock.GetElapsedTime(state.Consistency.LastCheck);
+        if (options.ConsistencyCheckTimeout > TimeSpan.Zero &&
+            elapsed > options.ConsistencyCheckTimeout &&
+            !state.Player.IsSpectator()
+           )
+        {
+            logger.Write(LogLevel.Error, $"Consistency check timeout on frame {lastReceivedFrame}. Disconnecting");
+            Disconnect();
+            return;
+        }
+
+        logger.Write(LogLevel.Debug,
+            $"Send consistency request for frame {state.Consistency.AskedFrame} #{state.Consistency.AskedChecksum:x8}");
+
+        outbox
+            .SendMessage(new(MessageType.ConsistencyCheckRequest)
+            {
+                ConsistencyCheckRequest = new()
+                {
+                    Frame = state.Consistency.AskedFrame,
+                },
+            });
     }
 }

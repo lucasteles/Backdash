@@ -98,7 +98,8 @@ sealed class Peer2PeerBackend<TInput> : IRollbackSession<TInput>, IProtocolNetwo
             logger,
             udp,
             this.options.Protocol,
-            this.options.TimeSync
+            this.options.TimeSync,
+            services.StateStore
         );
 
         backgroundJobManager.Register(udp);

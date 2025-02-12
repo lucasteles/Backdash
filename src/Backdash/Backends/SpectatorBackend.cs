@@ -70,7 +70,8 @@ sealed class SpectatorBackend<TInput> :
         var magicNumber = services.Random.MagicNumber();
 
         PeerConnectionFactory peerConnectionFactory = new(
-            this, clock, services.Random, logger, udp, options.Protocol, options.TimeSync
+            this, clock, services.Random, logger, udp,
+            options.Protocol, options.TimeSync, services.StateStore
         );
 
         ProtocolState protocolState =
