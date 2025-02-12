@@ -9,7 +9,7 @@ using Backdash.Serialization.Buffer;
 namespace Backdash.Network.Messages;
 
 [Serializable, StructLayout(LayoutKind.Sequential)]
-struct InputMessage : IEquatable<InputMessage>, IBinarySerializable, IUtf8SpanFormattable
+struct InputMessage : IEquatable<InputMessage>, ISpanSerializable, IUtf8SpanFormattable
 {
     public PeerStatusBuffer PeerConnectStatus;
     public Frame StartFrame;
@@ -30,7 +30,7 @@ struct InputMessage : IEquatable<InputMessage>, IBinarySerializable, IUtf8SpanFo
         InputSize = 0;
     }
 
-    public readonly void Serialize(BinarySpanWriter writer)
+    public readonly void Serialize(BinaryRawBufferWriter writer)
     {
         ReadOnlySpan<ConnectStatus> peerStatuses = PeerConnectStatus;
         var peerCount = (byte)peerStatuses.Length;
@@ -46,7 +46,7 @@ struct InputMessage : IEquatable<InputMessage>, IBinarySerializable, IUtf8SpanFo
         writer.Write(Bits[..bitCount]);
     }
 
-    public void Deserialize(BinarySpanReader reader)
+    public void Deserialize(BinaryBufferReader reader)
     {
         var peerCount = reader.ReadByte();
         for (var i = 0; i < peerCount; i++)

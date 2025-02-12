@@ -267,3 +267,13 @@ public class SerializersTests
 
 #endif
 }
+
+static file class Extensions
+{
+    public static T Deserialize<T>(this IBinaryReader<T> serializer, ReadOnlySpan<byte> data) where T : new()
+    {
+        var result = new T();
+        serializer.Deserialize(data, ref result);
+        return result;
+    }
+}

@@ -1,17 +1,18 @@
 using Backdash.Data;
+using Backdash.Serialization.Buffer;
 
 namespace SpaceWar.Logic;
 
 public sealed record GameState
 {
-    public EquatableArray<Ship> Ships = [];
+    public Ship[] Ships = [];
     public Rectangle Bounds;
     public int FrameNumber;
     public int NumberOfShips => Ships.Length;
 
     public void Init(int numberOfPlayers)
     {
-        Ships = new(numberOfPlayers);
+        Ships = new Ship[numberOfPlayers];
         for (var i = 0; i < numberOfPlayers; i++)
             Ships[i] = new();
         FrameNumber = 0;
@@ -35,6 +36,24 @@ public sealed record GameState
             Ships[i].Health = Config.StartingHealth;
             Ships[i].Radius = Config.ShipRadius;
         }
+    }
+
+    public void SaveState(ref readonly BinaryBufferWriter writer)
+    {
+        writer.Write(Bounds);
+        writer.Write(FrameNumber);
+
+        for (var i = 0; i < Ships.Length; i++)
+            Ships[i].SaveState(in writer);
+    }
+
+    public void LoadState(ref readonly BinaryBufferReader reader)
+    {
+        Bounds = reader.ReadRectangle();
+        FrameNumber = reader.ReadInt32();
+
+        for (var i = 0; i < Ships.Length; i++)
+            Ships[i].LoadState(in reader);
     }
 
     static GameInput GetShipAI(in Ship ship) => new(

@@ -23,10 +23,18 @@ static class Mem
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Span<byte> GetSpan<T>(scoped ref T data) where T : struct
+    public static Span<T> AsSpan<T>(scoped ref readonly T data) where T : unmanaged =>
+        new(ref Unsafe.AsRef(in data));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Span<byte> AsBytes<T>(scoped ref readonly T data) where T : unmanaged =>
+        MemoryMarshal.AsBytes(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in data), 1));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Span<byte> AsBytesUnsafe<T>(scoped ref readonly T data) where T : struct
     {
         ThrowHelpers.ThrowIfTypeIsReferenceOrContainsReferences<T>();
-        return MemoryMarshal.AsBytes(MemoryMarshal.CreateSpan(ref data, 1));
+        return MemoryMarshal.AsBytes(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in data), 1));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -121,6 +129,7 @@ static class Mem
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int SizeOf<TInput>() where TInput : unmanaged => Unsafe.SizeOf<TInput>();
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsReferenceOrContainsReferences<T>() => RuntimeHelpers.IsReferenceOrContainsReferences<T>();
 
     public static int PopCount<T>(in T[] values) where T : unmanaged => PopCount<T>(values.AsSpan());

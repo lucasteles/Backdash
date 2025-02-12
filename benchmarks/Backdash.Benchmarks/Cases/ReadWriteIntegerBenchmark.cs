@@ -3,6 +3,7 @@
 using System.Runtime.InteropServices;
 using Backdash.Network;
 using Backdash.Serialization.Buffer;
+
 namespace Backdash.Benchmarks.Cases;
 
 [RPlotExporter]
@@ -11,15 +12,18 @@ public class ReadWriteIntegerBenchmark
 {
     [Params(Endianness.LittleEndian, Endianness.BigEndian)]
     public Endianness Mode;
+
     [Params(1, int.MaxValue / 2, int.MaxValue)]
     public int Number;
+
     const int Count = 100_000;
+
     [Benchmark]
     public void WriteInt32Bytes()
     {
         Span<byte> span = stackalloc byte[sizeof(int)];
         var offset = 0;
-        BinarySpanWriter writer = new(span, ref offset)
+        BinaryRawBufferWriter writer = new(span, ref offset)
         {
             Endianness = Mode,
         };
@@ -29,12 +33,13 @@ public class ReadWriteIntegerBenchmark
             offset = 0;
         }
     }
+
     [Benchmark]
     public void ReadInt32Bytes()
     {
         Span<byte> span = stackalloc byte[sizeof(int)];
         var offset = 0;
-        BinarySpanReader reader = new(span, ref offset)
+        BinaryBufferReader reader = new(span, ref offset)
         {
             Endianness = Mode,
         };

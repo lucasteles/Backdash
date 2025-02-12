@@ -6,12 +6,12 @@ using Backdash.Serialization.Buffer;
 namespace Backdash.Network.Messages;
 
 [Serializable, StructLayout(LayoutKind.Sequential)]
-record struct InputAck : IBinarySerializable, IUtf8SpanFormattable
+record struct InputAck : ISpanSerializable, IUtf8SpanFormattable
 {
     public Frame AckFrame;
-    public readonly void Serialize(BinarySpanWriter writer) => writer.Write(in AckFrame.Number);
+    public readonly void Serialize(BinaryRawBufferWriter writer) => writer.Write(in AckFrame.Number);
 
-    public void Deserialize(BinarySpanReader reader) =>
+    public void Deserialize(BinaryBufferReader reader) =>
         AckFrame = new(reader.ReadInt32());
 
     public readonly bool TryFormat(

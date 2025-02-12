@@ -6,7 +6,7 @@ using Backdash.Serialization.Buffer;
 namespace Backdash.Network.Messages;
 
 [Serializable, StructLayout(LayoutKind.Explicit, Pack = 2)]
-struct ProtocolMessage(MessageType type) : IBinarySerializable, IEquatable<ProtocolMessage>, IUtf8SpanFormattable
+struct ProtocolMessage(MessageType type) : ISpanSerializable, IEquatable<ProtocolMessage>, IUtf8SpanFormattable
 {
     [FieldOffset(0)]
     public Header Header = new(type);
@@ -32,7 +32,7 @@ struct ProtocolMessage(MessageType type) : IBinarySerializable, IEquatable<Proto
     [FieldOffset(Header.Size)]
     public InputMessage Input;
 
-    public readonly void Serialize(BinarySpanWriter writer)
+    public readonly void Serialize(BinaryRawBufferWriter writer)
     {
         Header.Serialize(writer);
         switch (Header.Type)
@@ -63,7 +63,7 @@ struct ProtocolMessage(MessageType type) : IBinarySerializable, IEquatable<Proto
         }
     }
 
-    public void Deserialize(BinarySpanReader reader)
+    public void Deserialize(BinaryBufferReader reader)
     {
         Header.Deserialize(reader);
         switch (Header.Type)

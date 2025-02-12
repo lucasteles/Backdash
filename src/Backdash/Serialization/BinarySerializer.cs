@@ -44,23 +44,23 @@ public abstract class BinarySerializer<T> : IBinarySerializer<T>
     public bool Network { get; init; } = true;
 
     /// <summary>
-    /// Serialize <paramref name="data"/> using <see cref="BinarySpanWriter"/>
+    /// Serialize <paramref name="data"/> using <see cref="BinaryRawBufferWriter"/>
     /// </summary>
     /// <param name="binaryWriter">Binary writer</param>
     /// <param name="data">Data to be written</param>
-    protected abstract void Serialize(in BinarySpanWriter binaryWriter, in T data);
+    protected abstract void Serialize(in BinaryRawBufferWriter binaryWriter, in T data);
 
     /// <summary>
     /// Deserialize buffer data using <paramref name="binaryReader"/> into <paramref name="result"/>
     /// </summary>
     /// <param name="binaryReader">Binary reader</param>
     /// <param name="result">Reference to be set with the deserialized value.</param>
-    protected abstract void Deserialize(in BinarySpanReader binaryReader, ref T result);
+    protected abstract void Deserialize(in BinaryBufferReader binaryReader, ref T result);
 
     int IBinaryWriter<T>.Serialize(in T data, Span<byte> buffer)
     {
         var offset = 0;
-        BinarySpanWriter writer = new(buffer, ref offset)
+        BinaryRawBufferWriter writer = new(buffer, ref offset)
         {
             Endianness = Platform.GetEndianness(Network),
         };
@@ -71,7 +71,7 @@ public abstract class BinarySerializer<T> : IBinarySerializer<T>
     int IBinaryReader<T>.Deserialize(ReadOnlySpan<byte> data, ref T value)
     {
         var offset = 0;
-        BinarySpanReader reader = new(data, ref offset)
+        BinaryBufferReader reader = new(data, ref offset)
         {
             Endianness = Platform.GetEndianness(Network),
         };

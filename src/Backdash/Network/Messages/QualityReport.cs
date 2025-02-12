@@ -5,18 +5,18 @@ using Backdash.Serialization.Buffer;
 namespace Backdash.Network.Messages;
 
 [Serializable, StructLayout(LayoutKind.Sequential)]
-record struct QualityReport : IBinarySerializable, IUtf8SpanFormattable
+record struct QualityReport : ISpanSerializable, IUtf8SpanFormattable
 {
     public int FrameAdvantage; /* what's the other guy's frame advantage? */
     public long Ping;
 
-    public readonly void Serialize(BinarySpanWriter writer)
+    public readonly void Serialize(BinaryRawBufferWriter writer)
     {
         writer.Write(in FrameAdvantage);
         writer.Write(in Ping);
     }
 
-    public void Deserialize(BinarySpanReader reader)
+    public void Deserialize(BinaryBufferReader reader)
     {
         FrameAdvantage = reader.ReadInt32();
         Ping = reader.ReadInt64();

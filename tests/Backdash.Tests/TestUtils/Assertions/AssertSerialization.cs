@@ -4,7 +4,7 @@ using Backdash.Tests.TestUtils.Fixtures;
 namespace Backdash.Tests.TestUtils.Assertions;
 static class AssertSerialization
 {
-    public static bool Validate<T>(ref T value) where T : struct, IBinarySerializable, IEquatable<T>
+    public static bool Validate<T>(ref T value) where T : struct, ISpanSerializable, IEquatable<T>
     {
         using BinarySerializerFixture fixture = new();
         value.Serialize(fixture.Writer);
@@ -12,7 +12,7 @@ static class AssertSerialization
         result.Deserialize(fixture.Reader);
         return result.Equals(value);
     }
-    public static bool Offset<T>(ref T value) where T : struct, IBinarySerializable, IEquatable<T>
+    public static bool Offset<T>(ref T value) where T : struct, ISpanSerializable, IEquatable<T>
     {
         using BinarySerializerFixture fixture = new();
         value.Serialize(fixture.Writer);

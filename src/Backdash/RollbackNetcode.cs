@@ -5,6 +5,7 @@ using Backdash.Data;
 using Backdash.Network.Client;
 using Backdash.Synchronizing;
 using Backdash.Synchronizing.Input.Confirmed;
+using Backdash.Synchronizing.State;
 
 namespace Backdash;
 
@@ -12,7 +13,6 @@ namespace Backdash;
 /// The session factory used to create new netcode sessions.
 /// </summary>
 ///  <seealso cref="IRollbackSession{TInput}"/>
-///  <seealso cref="IRollbackSession{TInput,TGameState}"/>
 public static class RollbackNetcode
 {
     /// <summary>
@@ -22,17 +22,15 @@ public static class RollbackNetcode
     /// <param name="options">Session configuration</param>
     /// <param name="services">Session customizable dependencies</param>
     /// <typeparam name="TInput">Game input type</typeparam>
-    /// <typeparam name="TGameState">Game state type</typeparam>
-    public static IRollbackSession<TInput, TGameState> CreateSession<TInput, TGameState>(
+    public static IRollbackSession<TInput> CreateSession<TInput>(
         int port,
         RollbackOptions? options = null,
-        SessionServices<TInput, TGameState>? services = null
+        SessionServices<TInput>? services = null
     )
         where TInput : unmanaged
-        where TGameState : notnull, new()
     {
         options ??= new();
-        return new Peer2PeerBackend<TInput, TGameState>(port, options, BackendServices.Create(options, services));
+        return new Peer2PeerBackend<TInput>(port, options, BackendServices.Create(options, services));
     }
 
     /// <summary>
@@ -44,18 +42,15 @@ public static class RollbackNetcode
     /// <param name="options">Session configuration</param>
     /// <param name="services">Session customizable dependencies</param>
     /// <typeparam name="TInput">Game input type</typeparam>
-    /// <typeparam name="TGameState">Game state type</typeparam>
-    public static IRollbackSession<TInput, TGameState> CreateSpectatorSession<TInput, TGameState>(
+    public static IRollbackSession<TInput> CreateSpectatorSession<TInput>(
         int port,
         IPEndPoint host,
         int numberOfPlayers,
         RollbackOptions? options = null,
-        SessionServices<TInput, TGameState>? services = null)
-        where TInput : unmanaged
-        where TGameState : notnull, new()
+        SessionServices<TInput>? services = null) where TInput : unmanaged
     {
         options ??= new();
-        return new SpectatorBackend<TInput, TGameState>(
+        return new SpectatorBackend<TInput>(
             port, host, numberOfPlayers, options,
             BackendServices.Create(options, services));
     }
@@ -69,16 +64,14 @@ public static class RollbackNetcode
     /// <param name="controls">replay control</param>
     /// <param name="useInputSeedForRandom"><see cref="RollbackOptions.UseInputSeedForRandom"/></param>
     /// <typeparam name="TInput">Game input type</typeparam>
-    /// <typeparam name="TGameState">Game state type</typeparam>
-    public static IRollbackSession<TInput, TGameState> CreateReplaySession<TInput, TGameState>(
+    public static IRollbackSession<TInput> CreateReplaySession<TInput>(
         int numberOfPlayers,
         IReadOnlyList<ConfirmedInputs<TInput>> inputs,
-        SessionServices<TInput, TGameState>? services = null,
+        SessionServices<TInput>? services = null,
         SessionReplayControl? controls = null,
         bool useInputSeedForRandom = true)
-        where TInput : unmanaged
-        where TGameState : notnull, new() =>
-        new ReplayBackend<TInput, TGameState>(
+        where TInput : unmanaged =>
+        new ReplayBackend<TInput>(
             numberOfPlayers, useInputSeedForRandom, inputs,
             controls ?? new SessionReplayControl(),
             BackendServices.Create(new(), services));
@@ -89,17 +82,17 @@ public static class RollbackNetcode
     /// <param name="checkDistance">Total forced rollback frames.</param>
     /// <param name="options">Session configuration</param>
     /// <param name="services">Session customizable dependencies</param>
+    /// <param name="desyncHandler">State de-sync handler</param>
     /// <param name="throwException">If true, throws on state de-synchronization.</param>
     /// <typeparam name="TInput">Game input type</typeparam>
-    /// <typeparam name="TGameState">Game state type</typeparam>
-    public static IRollbackSession<TInput, TGameState> CreateSyncTestSession<TInput, TGameState>(
+    public static IRollbackSession<TInput> CreateSyncTestSession<TInput>(
         FrameSpan? checkDistance = null,
         RollbackOptions? options = null,
-        SessionServices<TInput, TGameState>? services = null,
+        SessionServices<TInput>? services = null,
+        IStateDesyncHandler? desyncHandler = null,
         bool throwException = true
     )
         where TInput : unmanaged
-        where TGameState : notnull, new()
     {
         options ??= new()
         {
@@ -107,8 +100,9 @@ public static class RollbackNetcode
             Log = new(LogLevel.Information),
         };
         checkDistance ??= FrameSpan.One;
-        return new SyncTestBackend<TInput, TGameState>(
+        return new SyncTestBackend<TInput>(
             options, checkDistance.Value, throwException,
+            desyncHandler,
             BackendServices.Create(options, services)
         );
     }

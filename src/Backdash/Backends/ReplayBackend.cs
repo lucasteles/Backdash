@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network;
+using Backdash.Serialization.Buffer;
 using Backdash.Synchronizing;
 using Backdash.Synchronizing.Input.Confirmed;
 using Backdash.Synchronizing.Random;
@@ -9,13 +10,12 @@ using Backdash.Synchronizing.State;
 
 namespace Backdash.Backends;
 
-sealed class ReplayBackend<TInput, TGameState> : IRollbackSession<TInput, TGameState>
+sealed class ReplayBackend<TInput> : IRollbackSession<TInput>
     where TInput : unmanaged
-    where TGameState : notnull, new()
 {
     readonly Logger logger;
     readonly PlayerHandle[] fakePlayers;
-    IRollbackHandler<TGameState> callbacks;
+    IRollbackHandler callbacks;
     readonly IDeterministicRandom deterministicRandom;
     bool isSynchronizing = true;
     SynchronizedInput<TInput>[] syncInputBuffer = [];
@@ -27,14 +27,14 @@ sealed class ReplayBackend<TInput, TGameState> : IRollbackSession<TInput, TGameS
     readonly IReadOnlyList<ConfirmedInputs<TInput>> inputList;
     readonly SessionReplayControl controls;
     readonly bool useInputSeedForRandom;
-    readonly IStateStore<TGameState> stateStore;
-    readonly IChecksumProvider<TGameState> checksumProvider;
+    readonly IStateStore stateStore;
+    readonly IChecksumProvider checksumProvider;
 
     public ReplayBackend(int numberOfPlayers,
         bool useInputSeedForRandom,
         IReadOnlyList<ConfirmedInputs<TInput>> inputList,
         SessionReplayControl controls,
-        BackendServices<TInput, TGameState> services)
+        BackendServices<TInput> services)
     {
         ArgumentNullException.ThrowIfNull(services);
 
@@ -49,7 +49,7 @@ sealed class ReplayBackend<TInput, TGameState> : IRollbackSession<TInput, TGameS
         fakePlayers = Enumerable.Range(0, numberOfPlayers)
             .Select(x => new PlayerHandle(PlayerType.Remote, x + 1, x)).ToArray();
 
-        callbacks = new EmptySessionHandler<TGameState>(logger);
+        callbacks = new EmptySessionHandler(logger);
 
         stateStore.Initialize(controls.MaxBackwardFrames);
     }
@@ -121,7 +121,7 @@ sealed class ReplayBackend<TInput, TGameState> : IRollbackSession<TInput, TGameS
 
     public Task WaitToStop(CancellationToken stoppingToken = default) => Task.CompletedTask;
 
-    public void SetHandler(IRollbackHandler<TGameState> handler)
+    public void SetHandler(IRollbackHandler handler)
     {
         ArgumentNullException.ThrowIfNull(handler);
         callbacks = handler;
@@ -165,11 +165,14 @@ sealed class ReplayBackend<TInput, TGameState> : IRollbackSession<TInput, TGameS
     {
         var currentFrame = CurrentFrame;
         ref var nextState = ref stateStore.GetCurrent();
-        callbacks.ClearState(ref nextState);
-        callbacks.SaveState(in currentFrame, ref nextState);
-        var checksum = checksumProvider.Compute(in nextState);
-        ref readonly var next = ref stateStore.SaveCurrent(in currentFrame, in checksum);
-        logger.Write(LogLevel.Trace, $"replay: saved frame {next.Frame} (checksum: {next.Checksum}).");
+
+        BinaryBufferWriter writer = new(nextState.GameState);
+        callbacks.SaveState(in currentFrame, in writer);
+        nextState.Frame = currentFrame;
+        nextState.Checksum = checksumProvider.Compute(nextState.GameState.WrittenSpan);
+
+        stateStore.Advance();
+        logger.Write(LogLevel.Trace, $"replay: saved frame {nextState.Frame} (checksum: {nextState.Checksum}).");
     }
 
     public void LoadFrame(in Frame frame)
@@ -182,10 +185,13 @@ sealed class ReplayBackend<TInput, TGameState> : IRollbackSession<TInput, TGameS
 
         try
         {
-            ref readonly var savedFrame = ref stateStore.Load(frame);
+            var savedFrame = stateStore.Load(frame);
             logger.Write(LogLevel.Trace,
                 $"Loading replay frame {savedFrame.Frame} (checksum: {savedFrame.Checksum})");
-            callbacks.LoadState(in frame, in savedFrame.GameState);
+            var offset = 0;
+            BinaryBufferReader reader = new(savedFrame.GameState.WrittenSpan, ref offset);
+            callbacks.LoadState(in frame, in reader);
+
             CurrentFrame = savedFrame.Frame;
         }
         catch (NetcodeException)

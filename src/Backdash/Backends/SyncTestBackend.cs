@@ -1,45 +1,40 @@
-using System.Text.Json;
+using System.Buffers;
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network;
+using Backdash.Serialization.Buffer;
 using Backdash.Synchronizing.Input;
 using Backdash.Synchronizing.Random;
 using Backdash.Synchronizing.State;
 
 namespace Backdash.Backends;
 
-sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGameState>
+sealed class SyncTestBackend<TInput> : IRollbackSession<TInput>
     where TInput : unmanaged
-    where TGameState : notnull, new()
 {
-    readonly record struct SavedFrame(
+    readonly record struct SavedFrameBytes(
         Frame Frame,
         int Checksum,
-        string State,
+        byte[] State,
         GameInput<TInput> Input
     );
 
-    readonly Synchronizer<TInput, TGameState> synchronizer;
+    readonly Synchronizer<TInput> synchronizer;
     readonly TaskCompletionSource tsc = new();
     readonly Logger logger;
     readonly IDeterministicRandom deterministicRandom;
     readonly HashSet<PlayerHandle> addedPlayers = [];
     readonly HashSet<PlayerHandle> addedSpectators = [];
-    readonly Queue<SavedFrame> savedFrames = [];
+    readonly Queue<SavedFrameBytes> savedFrames = [];
     readonly SynchronizedInput<TInput>[] syncInputBuffer = new SynchronizedInput<TInput>[Max.NumberOfPlayers];
     readonly TInput[] inputBuffer = new TInput[Max.NumberOfPlayers];
     readonly RollbackOptions options;
     readonly FrameSpan checkDistance;
     readonly bool throwError;
+    readonly IStateDesyncHandler? mismatchHandler;
     readonly IInputGenerator<TInput>? inputGenerator;
 
-    readonly JsonSerializerOptions jsonOptions = new()
-    {
-        WriteIndented = false,
-        IncludeFields = true,
-    };
-
-    IRollbackHandler<TGameState> callbacks;
+    IRollbackHandler callbacks;
     bool inRollback;
     bool running;
     Task backGroundJobTask = Task.CompletedTask;
@@ -47,12 +42,11 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
     GameInput<TInput> lastInput;
     Frame lastVerified = Frame.Zero;
 
-    public SyncTestBackend(
-        RollbackOptions options,
+    public SyncTestBackend(RollbackOptions options,
         FrameSpan checkDistance,
         bool throwError,
-        BackendServices<TInput, TGameState> services
-    )
+        IStateDesyncHandler? mismatchHandler,
+        BackendServices<TInput> services)
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(options);
@@ -62,10 +56,11 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         this.options = options;
         this.checkDistance = checkDistance;
         this.throwError = throwError;
+        this.mismatchHandler = mismatchHandler;
         deterministicRandom = services.DeterministicRandom;
         inputGenerator = services.InputGenerator;
         logger = services.Logger;
-        callbacks ??= new EmptySessionHandler<TGameState>(logger);
+        callbacks ??= new EmptySessionHandler(logger);
         synchronizer = new(
             options, logger,
             addedPlayers,
@@ -204,17 +199,15 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         // Hold onto the current frame in our queue of saved states.  We'll need
         // the checksum later to verify that our replay of the same frame got the
         // same results.
-        ref readonly var lastSaved = ref synchronizer.GetLastSavedFrame();
+        var lastSaved = synchronizer.GetLastSavedFrame();
+        var stateBytes = ArrayPool<byte>.Shared.Rent(lastSaved.GameState.WrittenCount);
+        lastSaved.GameState.WrittenSpan.CopyTo(stateBytes);
 
         var frame = synchronizer.CurrentFrame;
         savedFrames.Enqueue(new(
             Frame: frame,
             Input: lastInput,
-#if AOT_ENABLED
-            State: lastSaved.GameState.ToString() ?? string.Empty,
-#else
-            State: JsonSerializer.Serialize(lastSaved.GameState, jsonOptions),
-#endif
+            State: stateBytes,
             Checksum: lastSaved.Checksum
         ));
         if (frame - lastVerified != checkDistance.FrameValue)
@@ -226,68 +219,77 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         while (savedFrames.Count > 0)
         {
             callbacks.AdvanceFrame();
-            // Verify that the checksum of this frame is the same as the one in our
-            // list.
+            // Verify that the checksum of this frame is the same as the one in our list.
             var info = savedFrames.Dequeue();
+            ArrayPool<byte>.Shared.Return(info.State);
             if (info.Frame != synchronizer.CurrentFrame)
             {
-                var message = $"Frame number {info.Frame} does not match saved frame number {frame}";
+                var message = $"Frame number {info.Frame.Number} does not match saved frame number {frame}";
                 logger.Write(LogLevel.Error, message);
                 if (throwError) throw new NetcodeException(message);
             }
 
-            ref readonly var last = ref synchronizer.GetLastSavedFrame();
-            var checksum = last.Checksum;
-            if (info.Checksum != checksum)
-            {
-                LogSaveState(info, "current");
-                LogSaveState(last, "last");
-                var message = $"Checksum for frame {frame} does not match saved ({checksum} != {info.Checksum})";
-                logger.Write(LogLevel.Error, message);
-                if (throwError) throw new NetcodeException(message);
-            }
-
-            logger.Write(LogLevel.Trace, $"Checksum {checksum} for frame {info.Frame} matches");
+            var last = synchronizer.GetLastSavedFrame();
+            if (info.Checksum != last.Checksum)
+                HandleDesync(frame, info, last);
+            else
+                logger.Write(LogLevel.Trace, $"Checksum #{last.Checksum:x8} for frame {info.Frame.Number} matches");
         }
 
         lastVerified = frame;
         inRollback = false;
     }
 
-    void LogSaveState(SavedFrame info, string description)
+    void HandleDesync(Frame frame, SavedFrameBytes current, SavedFrame previous)
     {
-        const LogLevel level = LogLevel.Information;
-        logger.Write(level, $"=== SAVED STATE [{description.ToUpper()}] ({info.Frame}) ===\n");
-        logger.Write(level, $"INPUT FRAME {info.Input.Frame}:");
-#if AOT_ENABLED
-        logger.Write(level, info.Input.Data.ToString() ?? string.Empty);
-#else
-        logger.Write(level, JsonSerializer.Serialize(info.Input.Data, jsonOptions));
-#endif
-        logger.Write(level, $"GAME STATE #{info.Checksum}:");
-        LogJson(level, info.State);
-        logger.Write(level, "====================================");
+        const LogLevel level = LogLevel.Error;
+        var message = $"Checksum for frame {frame} does NOT match: (#{previous.Checksum:x8} != #{current.Checksum:x8})\n";
+        logger.Write(LogLevel.Error, message);
+
+        var (currentOffset, lastOffset) = (0, 0);
+
+        BinaryBufferReader currentReader = new(current.State, ref currentOffset);
+        var currentBody = callbacks.GetStateString(current.Frame, in currentReader);
+
+        BinaryBufferReader previousReader = new(previous.GameState.WrittenSpan, ref lastOffset);
+        var previousBody = callbacks.GetStateString(current.Frame, in previousReader);
+
+        LogSaveState(level, "CURRENT", currentBody, current.Checksum, current.Frame, current.Input.Frame.Number);
+        LogSaveState(level, "LAST", previousBody, previous.Checksum, previous.Frame);
+
+        if (mismatchHandler is not null)
+        {
+            (currentOffset, lastOffset) = (0, 0);
+            mismatchHandler.Handle(currentBody, current.Checksum, previousBody, previous.Checksum);
+            mismatchHandler.Handle(in currentReader, current.Checksum, in previousReader, previous.Checksum);
+        }
+
+        if (throwError) throw new NetcodeException(message);
     }
 
-    void LogSaveState(SavedFrame<TGameState> info, string description)
+    void LogSaveState(LogLevel level,
+        string description, string body,
+        int checksum, Frame frame,
+        object? extra = null
+    )
     {
-        const LogLevel level = LogLevel.Information;
-        logger.Write(level, $"=== SAVED STATE [{description.ToUpper()}] ({info.Frame}) ===\n");
-        logger.Write(level, $"GAME STATE #{info.Checksum}:");
-        LogJson(level, info.GameState);
-        logger.Write(level, "====================================");
+        logger.Write(level, $"=> SAVED [{description}] (Frame {frame}{(extra is not null ? $" / {extra}" : "")})");
+        logger.Write(level, $"== START STATE #{checksum:x8} ==");
+        LogText(level, body);
+        logger.Write(level, $"== END STATE #{checksum:x8} ==\n");
     }
 
-    void LogJson<TValue>(LogLevel level, TValue value)
+    void LogText(LogLevel level, string text)
     {
+        if (level is LogLevel.None || string.IsNullOrEmpty(text)) return;
+
         var jsonChunks =
-#if AOT_ENABLED
-            (value?.ToString() ?? string.Empty)
-#else
-            JsonSerializer.Serialize(value, jsonOptions)
-#endif
-                .Chunk(LogStringBuffer.Capacity / 2)
-                .Select(x => new string(x));
+            text
+                .Split(Environment.NewLine)
+                .SelectMany(p => p
+                    .Chunk(LogStringBuffer.Capacity / 2)
+                    .Select(x => new string(x)));
+
         foreach (var chunk in jsonChunks)
             logger.Write(level, chunk);
     }
@@ -299,7 +301,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         synchronizer.SetFrameDelay(player, delayInFrames);
     }
 
-    public void SetHandler(IRollbackHandler<TGameState> handler)
+    public void SetHandler(IRollbackHandler handler)
     {
         ArgumentNullException.ThrowIfNull(handler);
         callbacks = handler;

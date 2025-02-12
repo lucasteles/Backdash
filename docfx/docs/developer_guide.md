@@ -57,11 +57,11 @@ the [API Reference Docs](https://lucasteles.github.io/Backdash/api/Backdash.html
 
 [Backdash](https://github.com/lucasteles/Backdash) is designed to be easy to interface with new and existing game
 engines. It handles most of the implementation of handling rollbacks by calling out to your application via
-the [`IRollbackHandler<TState>`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackHandler-1.html) hooks.
+the [`IRollbackHandler`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackHandler-1.html) hooks.
 
 ### Creating the [`IRollbackSession`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackSession-2.html) Object
 
-The [`IRollbackSession<TInput, TState>`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackSession-2.html)
+The [`IRollbackSession<TInput>`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackSession-2.html)
 object is your interface to the [Backdash](https://github.com/lucasteles/Backdash) framework. Create
 one with
 the [`RollbackNetcode.CreateSession`](https://lucasteles.github.io/Backdash/api/Backdash.RollbackNetcode.html#Backdash_RollbackNetcode_CreateSession__2_System_Int32_Backdash_RollbackOptions_Backdash_SessionServices___0___1__)
@@ -71,7 +71,7 @@ an instance of [`RollbackOptions`](https://lucasteles.github.io/Backdash/api/Bac
 For example, giving the user pre-defined types for the **Game State** and **Game Input**
 
 ```csharp
-public class MyGameState : IEquatable<MyGameState> {
+public class MyGameState {
     public MyGameState() {
         /* initialize state */
     }
@@ -91,13 +91,12 @@ To start a new session bound to port 9001, you would do:
 using Backdash;
 using Backdash.Core;
 
-var session = RollbackNetcode.CreateSession<MyGameInput, MyGameState>(9001);
+var session = RollbackNetcode.CreateSession<MyGameInput>(9001);
 
 // ...
 ```
 
-You can also set many configurations passing an instance
-of [`RollbackOptions`](https://lucasteles.github.io/Backdash/api/Backdash.RollbackOptions.html)
+It is possible to set many configurations passing an instance of [`RollbackOptions`](https://lucasteles.github.io/Backdash/api/Backdash.RollbackOptions.html)
 
 ```csharp
 using Backdash;
@@ -114,21 +113,21 @@ RollbackOptions options = new()
     },
 };
 
-var session = RollbackNetcode.CreateSession<MyGameInput, MyGameState>(networkPort, options);
+var session = RollbackNetcode.CreateSession<MyGameInput>(networkPort, options);
 
 ```
 
 You should also define an implementation of
-the [`IRollbackHandler<TState>`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackHandler-1.html)
+the [`IRollbackHandler`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackHandler-1.html)
 filled in with your game's callback functions for managing game state.
 
 ```csharp
-public class MySessionHandler : IRollbackHandler<MyGameState>
+public class MySessionHandler : IRollbackHandler
 {
     public void OnSessionStart() { /* ... */ }
     public void OnSessionClose() { /* ... */ }
-    public void SaveState(in Frame frame, ref MyGameState state) { /* ... */ }
-    public void LoadState(in Frame frame, in MyGameState gameState) { /* ... */ }
+    public void SaveState(in Frame frame, ref readonly BinaryBufferWriter writer) { /* ... */ }
+    public void LoadState(in Frame frame, ref readonly BinaryBufferReader reader) { /* ... */ }
     public void AdvanceFrame() { /* ... */ }
     public void TimeSync(FrameSpan framesAhead) { /* ... */ }
     public void OnPeerEvent(PlayerHandle player, PeerEventInfo evt) { /* ... */ }
@@ -174,7 +173,7 @@ result = session.AddPlayer(player2);
 // ...
 ```
 
-Check the [samples](https://github.com/lucasteles/Backdash/tree/master/samples) for more complex cases.
+Check the [samples](https://github.com/lucasteles/Backdash/tree/master/samples) for more complete code.
 
 ### Starting session
 
@@ -255,23 +254,16 @@ won't actually be returned
 in [`GetInputs`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackSession-1.html#Backdash_IRollbackSession_1_GetInputs_System_Span_Backdash_Data_SynchronizedInput__0___)
 until after the frame delay.
 
-### Implementing your `save`, `load`, and `clear` handlers
+### Implementing your `save` and `load` state handlers
 
-[Backdash](https://github.com/lucasteles/Backdash) will use
-the [`LoadState`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackHandler-1.html#Backdash_IRollbackHandler_1_LoadState_Backdash_Data_Frame___0__)
-and [`SaveState`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackHandler-1.html#Backdash_IRollbackHandler_1_SaveState_Backdash_Data_Frame___0__)
-callbacks to periodically save and restore the state of your game.
-The [`SaveState`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackHandler-1.html#Backdash_IRollbackHandler_1_SaveState_Backdash_Data_Frame___0__)
-function is called using a pre-loaded state buffer. Because of this, the state type must have a public parameterless
-constructor. You must copy every value from the current state into the `ref` parameter of `SaveState`.
+[Backdash](https://github.com/lucasteles/Backdash) will call the [`LoadState`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackHandler-1.html#Backdash_IRollbackHandler_1_LoadState_Backdash_Data_Frame___0__) and [`SaveState`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackHandler-1.html#Backdash_IRollbackHandler_1_SaveState_Backdash_Data_Frame___0__) callbacks to periodically _save_ and _restore_ the state of your game.
 
-The [`LoadState`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackHandler-1.html#Backdash_IRollbackHandler_1_LoadState_Backdash_Data_Frame___0__)
-function should restore the game state from a previously saved buffer. copying values from the `in` parameter
-of `LoadState`.
+The [`SaveState`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackHandler-1.html#Backdash_IRollbackHandler_1_SaveState_Backdash_Data_Frame___0__) function is called with a plain binary buffer writer (`BinaryBufferReader`). You need to call `.Write` on each of the state members.
 
-You can optionally
-implement [`ClearState`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackHandler-1.html#Backdash_IRollbackHandler_1_ClearState__0__)
-to ensure the state is reset before saving.
+The [`LoadState`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackHandler-1.html#Backdash_IRollbackHandler_1_LoadState_Backdash_Data_Frame___0__) function should restore the game state from a previously saved binary buffer using the `BinaryBufferReader`, reading each member.
+
+> [!IMPORTANT]
+> **⚠️:** You must read and write member in the **SAME ORDER** and also ensure the same size (like arrays or lists).
 
 For example:
 
@@ -282,47 +274,43 @@ public record MyGameState
     public Vector2 Value2;
 }
 
-public class MySessionHandler : IRollbackHandler<MyGameState>
+public class MySessionHandler : IRollbackHandler
 {
     MyGameState currentGameState = new();
 
-    public void SaveState(in Frame frame, ref MyGameState state)
+    public void SaveState(in Frame frame, ref readonly BinaryBufferWriter writer)
     {
-        state.Value1 = currentGameState.Value1;
-        state.Value2 = currentGameState.Value2;
+        writer.Write(in currentGameState.Value1);
+        writer.Write(in currentGameState.Value2);
     }
 
-    public void LoadState(in Frame frame, in MyGameState gameState)
+    public void LoadState(in Frame frame, ref readonly BinaryBufferReader reader)
     {
-        currentGameState.Value1 = gameState.Value1;
-        currentGameState.Value2 = gameState.Value2;
+        currentGameState.Value1 = reader.ReadInt32();
+        currentGameState.Value2 = reader.ReadVector2();
     }
 
     /* ... */
 }
 ```
 
-The **Game State Type** must implement `IEquatable<>` and have a parameterless default constructor and also have a valid
-implementation of `.GetHashCode()`, the hashcode is used as the state [checksum](https://en.wikipedia.org/wiki/Checksum)
-for consistency validation. Because of that, we recommend the usage
-of a [`record type`](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/record) for the
-game state instead of a normal class. Also use
-the [`Backdash.Array<T>`](https://lucasteles.github.io/Backdash/api/Backdash.Data.Array-1.html) instead of the default
-BCL array (`T[]`). Our array is a superset of the default array but implements valid `IEquetable<>` and `GetHashCode()`.
+The saved **Game State** will have a [checksum](https://en.wikipedia.org/wiki/Checksum) based on its binary representation. The default implementation is [Fletcher 32](http://en.wikipedia.org/wiki/Fletcher%27s_checksum) algorithm by the class `Fletcher32ChecksumProvider`.
 
-You can also choose to not use the `HashCode` as the **Game State** checksum, for this you just need to implement a
-[`IChecksumProvider<T>`](https://lucasteles.github.io/Backdash/api/Backdash.Sync.State.IChecksumProvider-1.html) for
-your **Game State** type. You can pass it on
-the [services](https://lucasteles.github.io/Backdash/api/Backdash.SessionServices-2.html#Backdash_SessionServices_2_ChecksumProvider)
-parameter
-of [`RollbackNetcode.CreateSession`](https://lucasteles.github.io/Backdash/api/Backdash.RollbackNetcode.html#Backdash_RollbackNetcode_CreateSession__2_System_Int32_Backdash_RollbackOptions_Backdash_SessionServices___0___1__)
+We also provide a implementation of [CRC32](https://en.wikipedia.org/wiki/Cyclic_redundancy_check) algorithm with the class `Crc32ChecksumProvider`
+
+You can also choose to not use any of those and implement you own, for this you just need to implement
+[`IChecksumProvider<T>`](https://lucasteles.github.io/Backdash/api/Backdash.Sync.State.IChecksumProvider-1.html).
+
+Choose the implementation in the [services](https://lucasteles.github.io/Backdash/api/Backdash.SessionServices-2.html#Backdash_SessionServices_2_ChecksumProvider)
+parameter of [`RollbackNetcode.CreateSession`](https://lucasteles.github.io/Backdash/api/Backdash.RollbackNetcode.html#Backdash_RollbackNetcode_CreateSession__2_System_Int32_Backdash_RollbackOptions_Backdash_SessionServices___0___1__)
 
 ### Advance Frame Callback
 
 This callback is called when a rollback occurs, just after
 the [`SaveState`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackHandler-1.html#Backdash_IRollbackHandler_1_SaveState_Backdash_Data_Frame___0__)
-here you must synchronize inputs and advance the state. Usually something like:
+here you must synchronize inputs and advance the state.
 
+Usually something like:
 ```csharp
 // ...
 public void AdvanceFrame()
@@ -337,7 +325,7 @@ public void AdvanceFrame()
 ### Remaining Callbacks
 
 There are other callbacks in
-the [`IRollbackHandler<TState>`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackHandler-1.html) for
+the [`IRollbackHandler`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackHandler-1.html) for
 connection starting/closing the session, peer events, etc.
 
 Check the
@@ -419,12 +407,9 @@ The serialization of enums and mostly of primitive types is automatically handle
 by [Backdash](https://github.com/lucasteles/Backdash).
 
 
-
 > [!CAUTION]
 > We can also handle serialization of complex structs that **do not** contain any reference type member. for those
-> no
-> [`Endianess convertion`](https://lucasteles.github.io/Backdash/api/Backdash.RollbackOptions.html#Backdash_RollbackOptions_NetworkEndianness)
-> is applied.
+> no [`Endianess Convertion`](https://lucasteles.github.io/Backdash/api/Backdash.RollbackOptions.html#Backdash_RollbackOptions_NetworkEndianness) is applied.
 
 ### Custom Serializer
 
@@ -489,7 +474,7 @@ You can implement the serializer as:
 ```csharp
 public class MyPadInputsBinarySerializer : BinarySerializer<PadInputs>
 {
-    protected override void Serialize(in BinarySpanWriter binaryWriter, in PadInputs data)
+    protected override void Serialize(in BinaryRawBufferWriter binaryWriter, in PadInputs data)
     {
         binaryWriter.Write((short)data.Buttons);
         binaryWriter.Write(data.LeftTrigger);
@@ -502,7 +487,7 @@ public class MyPadInputsBinarySerializer : BinarySerializer<PadInputs>
         binaryWriter.Write(data.RightAxis.Y);
     }
 
-    protected override void Deserialize(in BinarySpanReader binaryReader, ref PadInputs result)
+    protected override void Deserialize(in BinaryBufferReader binaryReader, ref PadInputs result)
     {
         result.Buttons = (PadButtons)binaryReader.ReadShort();
         result.LeftTrigger = binaryReader.ReadByte();

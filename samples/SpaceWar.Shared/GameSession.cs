@@ -1,5 +1,7 @@
+using System.Text.Json;
 using Backdash;
 using Backdash.Data;
+using Backdash.Serialization.Buffer;
 using SpaceWar.Logic;
 
 namespace SpaceWar;
@@ -9,7 +11,7 @@ public sealed class GameSession(
     NonGameState nonGameState,
     Renderer renderer,
     IRollbackSession<PlayerInputs> session
-) : IRollbackHandler<GameState>
+) : IRollbackHandler
 {
     readonly SynchronizedInput<PlayerInputs>[] inputs =
         new SynchronizedInput<PlayerInputs>[nonGameState.NumberOfPlayers];
@@ -132,45 +134,13 @@ public sealed class GameSession(
         }
     }
 
-    public static void CopyState(GameState from, GameState to)
-    {
-        to.Bounds = from.Bounds;
-        to.FrameNumber = from.FrameNumber;
-        if (to.Ships.Length is 0)
-        {
-            to.Ships = new(from.Ships.Length);
-            for (var i = 0; i < from.Ships.Length; i++)
-                to.Ships[i] = new();
-        }
+    public void SaveState(in Frame frame, ref readonly BinaryBufferWriter writer) =>
+        gameState.SaveState(in writer);
 
-        for (var i = 0; i < from.Ships.Length; i++)
-        {
-            ref var toShip = ref to.Ships[i];
-            ref var fromShip = ref from.Ships[i];
-            toShip.Id = fromShip.Id;
-            toShip.Position = fromShip.Position;
-            toShip.Velocity = fromShip.Velocity;
-            toShip.Radius = fromShip.Radius;
-            toShip.Heading = fromShip.Heading;
-            toShip.Health = fromShip.Health;
-            toShip.Active = fromShip.Active;
-            toShip.FireCooldown = fromShip.FireCooldown;
-            toShip.MissileCooldown = fromShip.MissileCooldown;
-            toShip.Invincible = fromShip.Invincible;
-            toShip.Score = fromShip.Score;
-            toShip.Thrust = fromShip.Thrust;
-            // safe because Missile is a struct/value type
-            toShip.Missile = fromShip.Missile;
-            fromShip.Bullets.CopyTo(toShip.Bullets);
-        }
-    }
-
-    public void SaveState(in Frame frame, ref GameState state) => CopyState(gameState, state);
-
-    public void LoadState(in Frame frame, in GameState gs)
+    public void LoadState(in Frame frame, ref readonly BinaryBufferReader reader)
     {
         Console.WriteLine($"{DateTime.Now:o} => Loading state {frame}...");
-        CopyState(gs, gameState);
+        gameState.LoadState(in reader);
     }
 
     public void AdvanceFrame()
@@ -180,4 +150,17 @@ public sealed class GameSession(
         gameState.Update(inputs);
         session.AdvanceFrame();
     }
+
+    public string GetStateString(in Frame frame, ref readonly BinaryBufferReader reader)
+    {
+        GameState state = new();
+        state.LoadState(in reader);
+        return JsonSerializer.Serialize(state, jsonOptions);
+    }
+
+    static readonly JsonSerializerOptions jsonOptions = new()
+    {
+        WriteIndented = true,
+        IncludeFields = true,
+    };
 }

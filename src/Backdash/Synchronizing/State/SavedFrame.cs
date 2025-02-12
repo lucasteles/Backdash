@@ -1,4 +1,4 @@
-using System.Runtime.InteropServices;
+using System.Buffers;
 using Backdash.Data;
 
 namespace Backdash.Synchronizing.State;
@@ -9,11 +9,8 @@ namespace Backdash.Synchronizing.State;
 /// <param name="Frame">Saved frame number</param>
 /// <param name="GameState">Game state on <paramref name="Frame"/></param>
 /// <param name="Checksum">Checksum of state</param>
-/// <typeparam name="TState">Game state type</typeparam>
 [Serializable]
-[StructLayout(LayoutKind.Sequential)]
-public record struct SavedFrame<TState>(Frame Frame, TState GameState, int Checksum)
-    where TState : notnull
+public record SavedFrame(Frame Frame, ArrayBufferWriter<byte> GameState, int Checksum)
 {
     /// <summary>Saved frame number</summary>
     public Frame Frame = Frame;
@@ -22,5 +19,5 @@ public record struct SavedFrame<TState>(Frame Frame, TState GameState, int Check
     public int Checksum = Checksum;
 
     /// <summary>Saved game state</summary>
-    public TState GameState = GameState;
+    public ArrayBufferWriter<byte> GameState = GameState;
 }

@@ -5,8 +5,7 @@ namespace Backdash.Synchronizing.State;
 /// <summary>
 /// Repository for temporary save and restore game states.
 /// </summary>
-/// <typeparam name="TState">Game state type.</typeparam>
-public interface IStateStore<TState> : IDisposable where TState : notnull, new()
+public interface IStateStore
 {
     /// <summary>
     /// Initialize the state buffer with capacity of <paramref name="saveCount"/>
@@ -15,26 +14,23 @@ public interface IStateStore<TState> : IDisposable where TState : notnull, new()
     void Initialize(int saveCount);
 
     /// <summary>
-    /// Returns a <see cref="SavedFrame{TState}" /> for <paramref name="frame"/>.
+    /// Returns a <see cref="SavedFrame" /> for <paramref name="frame"/>.
     /// </summary>
     /// <param name="frame">Frame to load.</param>
-    ref readonly SavedFrame<TState> Load(Frame frame);
+    SavedFrame Load(Frame frame);
 
     /// <summary>
-    /// Returns last <see cref="SavedFrame{TState}" />.
+    /// Returns last <see cref="SavedFrame" />.
     /// </summary>
-    ref readonly SavedFrame<TState> Last();
+    SavedFrame Last();
 
     /// <summary>
-    /// Returns current <see cref="SavedFrame{TState}" />.
+    /// Returns current <see cref="SavedFrame" />.
     /// </summary>
-    ref TState GetCurrent();
+    ref SavedFrame GetCurrent();
 
     /// <summary>
-    /// Save current state for <paramref name="frame"/> with <paramref name="checksum"/> value.
+    /// Advance the store pointer
     /// </summary>
-    /// <param name="frame">frame to save</param>
-    /// <param name="checksum">checksum for current state</param>
-    /// <returns></returns>
-    ref readonly SavedFrame<TState> SaveCurrent(in Frame frame, in int checksum);
+    void Advance();
 }

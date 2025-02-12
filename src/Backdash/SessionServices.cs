@@ -5,7 +5,6 @@ using Backdash.Synchronizing.Input;
 using Backdash.Synchronizing.Input.Confirmed;
 using Backdash.Synchronizing.Random;
 using Backdash.Synchronizing.State;
-using Backdash.Synchronizing.State.Stores;
 
 namespace Backdash;
 
@@ -13,10 +12,7 @@ namespace Backdash;
 /// Session dependencies.
 /// </summary>
 /// <typeparam name="TInput">Input type</typeparam>
-/// <typeparam name="TGameState">Game state type</typeparam>
-public sealed class SessionServices<TInput, TGameState>
-    where TInput : unmanaged
-    where TGameState : notnull, new()
+public sealed class SessionServices<TInput> where TInput : unmanaged
 {
     /// <summary>
     /// Serializer for session input.
@@ -25,19 +21,14 @@ public sealed class SessionServices<TInput, TGameState>
 
     /// <summary>
     /// Checksum provider service for session state.
+    /// Defaults to: Fletcher32 <see cref="Fletcher32ChecksumProvider"/>
     /// </summary>
-    public IChecksumProvider<TGameState>? ChecksumProvider { get; set; }
+    public IChecksumProvider? ChecksumProvider { get; set; }
 
     /// <summary>
     /// Log writer service for session.
     /// </summary>
     public ILogWriter? LogWriter { get; set; }
-
-    /// <summary>
-    /// Binary state serializer for session.
-    /// When set the default <see cref="IStateStore{TState}"/> will be <see cref="BinaryStateStore{TState}"/>
-    /// </summary>
-    public IBinarySerializer<TGameState>? StateSerializer { get; set; }
 
     /// <summary>
     /// Input generator service for session.
@@ -47,7 +38,7 @@ public sealed class SessionServices<TInput, TGameState>
     /// <summary>
     /// State store service for session.
     /// </summary>
-    public IStateStore<TGameState>? StateStore { get; set; }
+    public IStateStore? StateStore { get; set; }
 
     /// <summary>
     /// State store service for session.

@@ -5,7 +5,7 @@ namespace Backdash.Tests.TestUtils.Types;
 
 public class PadInputsBinarySerializer : BinarySerializer<PadInputs>
 {
-    protected override void Serialize(in BinarySpanWriter binaryWriter, in PadInputs data)
+    protected override void Serialize(in BinaryRawBufferWriter binaryWriter, in PadInputs data)
     {
         binaryWriter.Write((short)data.Buttons);
         binaryWriter.Write(data.LeftTrigger);
@@ -18,7 +18,7 @@ public class PadInputsBinarySerializer : BinarySerializer<PadInputs>
         binaryWriter.Write(data.RightAxis.Y);
     }
 
-    protected override void Deserialize(in BinarySpanReader binaryReader, ref PadInputs result)
+    protected override void Deserialize(in BinaryBufferReader binaryReader, ref PadInputs result)
     {
         result.Buttons = (PadInputs.PadButtons)binaryReader.ReadInt16();
         result.LeftTrigger = binaryReader.ReadByte();

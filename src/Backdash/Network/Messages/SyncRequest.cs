@@ -5,18 +5,18 @@ using Backdash.Serialization.Buffer;
 namespace Backdash.Network.Messages;
 
 [Serializable, StructLayout(LayoutKind.Sequential)]
-record struct SyncRequest : IBinarySerializable, IUtf8SpanFormattable
+record struct SyncRequest : ISpanSerializable, IUtf8SpanFormattable
 {
     public uint RandomRequest; /* please reply with this random data */
     public long Ping;
 
-    public readonly void Serialize(BinarySpanWriter writer)
+    public readonly void Serialize(BinaryRawBufferWriter writer)
     {
         writer.Write(in RandomRequest);
         writer.Write(in Ping);
     }
 
-    public void Deserialize(BinarySpanReader reader)
+    public void Deserialize(BinaryBufferReader reader)
     {
         RandomRequest = reader.ReadUInt32();
         Ping = reader.ReadInt64();

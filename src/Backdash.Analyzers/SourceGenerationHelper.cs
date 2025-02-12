@@ -72,14 +72,12 @@ static class SourceGenerationHelper
 
                         writes.AppendLine(
                             $"""
-                             {tab}var byteCount{arrayIndex} = {serializerName}.Serialize(in data.{member.Name}[i], binaryWriter.CurrentBuffer);
-                             {tab}binaryWriter.Advance(byteCount{arrayIndex});
+                             {tab}{serializerName}.Serialize(in binaryWriter, in data.{member.Name}[i]);
                              """);
 
                         reads.AppendLine(
                             $"""
-                             {tab}var byteCount{arrayIndex} = {serializerName}.Deserialize(binaryReader.CurrentBuffer, ref result.{member.Name}[i]);
-                             {tab}binaryReader.Advance(byteCount{arrayIndex});
+                             {tab}{serializerName}.Deserialize(in binaryReader, ref result.{member.Name}[i]);
                              """);
                     }
                     else if (itemType.IsUnmanagedType)
@@ -113,14 +111,12 @@ static class SourceGenerationHelper
 
                     writes.AppendLine(
                         $"""
-                         {tab}var byteCount = {serializerName}.Serialize(in data.{member.Name}, binaryWriter.CurrentBuffer);
-                         {tab}binaryWriter.Advance(byteCount);
+                         {tab}{serializerName}.Serialize(in binaryWriter, in data.{member.Name});
                          """);
 
                     reads.AppendLine(
                         $"""
-                         {tab}var byteCount = {serializerName}.Deserialize(binaryReader.CurrentBuffer, ref result.{member.Name});
-                         {tab}binaryReader.Advance(byteCount);
+                         {tab}{serializerName}.Deserialize(in binaryReader, ref result.{member.Name});
                          """);
                 }
                 else if (member.Type.IsUnmanagedType)
@@ -155,13 +151,6 @@ static class SourceGenerationHelper
         if (memberType is IArrayTypeSymbol { ElementType: { } itemType })
         {
             elementType = itemType;
-            return true;
-        }
-
-        if (memberType is INamedTypeSymbol { TypeArguments.Length: 1 } named
-            && named.ToDisplayString().StartsWith("Backdash.Data.EquatableArray"))
-        {
-            elementType = named.TypeArguments.First();
             return true;
         }
 

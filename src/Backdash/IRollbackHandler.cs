@@ -1,5 +1,6 @@
 using Backdash.Core;
 using Backdash.Data;
+using Backdash.Serialization.Buffer;
 
 namespace Backdash;
 
@@ -8,8 +9,7 @@ namespace Backdash;
 /// your application must implement.  Backdash will periodically call these
 /// functions during the game. All callback functions must be implemented.
 /// </summary>
-/// <typeparam name="TState">Game state type</typeparam>
-public interface IRollbackHandler<TState> where TState : notnull
+public interface IRollbackHandler
 {
     /// <summary>
     /// Called at start of a game session, when all the clients have synchronized.
@@ -23,27 +23,19 @@ public interface IRollbackHandler<TState> where TState : notnull
     void OnSessionClose();
 
     /// <summary>
-    ///  The client should  copy the entire contents of the current game state into <paramref name="state"/>.
+    ///  The client should  copy the entire contents of the current game state using <paramref name="writer"/>.
     /// </summary>
     /// <param name="frame">The frame which the save occurs.</param>
-    /// <param name="state">The pre-buffered state reference to be filled.</param>
-    void SaveState(in Frame frame, ref TState state);
+    /// <param name="writer">Binary state writer.</param>
+    void SaveState(in Frame frame, ref readonly BinaryBufferWriter writer);
 
     /// <summary>
     /// Backdash will call this function at the beginning  of a rollback.
-    /// The client must copy the <paramref name="gameState"/> to the game current state.
+    /// Binary reader for the state.
     /// </summary>
     /// <param name="frame">The loading frame</param>
-    /// <param name="gameState">The game state that must be loaded</param>
-    void LoadState(in Frame frame, in TState gameState);
-
-    /// <summary>
-    /// Optionally clear the state in buffer before <see cref="SaveState"/>.
-    /// </summary>
-    void ClearState(ref TState gameState)
-    {
-        // NOP
-    }
+    /// <param name="reader">Binary state reader</param>
+    void LoadState(in Frame frame, ref readonly BinaryBufferReader reader);
 
     /// <summary>
     /// Called during a rollback after <see cref="LoadState"/>. You should advance your game
@@ -66,10 +58,20 @@ public interface IRollbackHandler<TState> where TState : notnull
     /// <param name="player">The player owner of the event</param>
     /// <param name="evt">Event data</param>
     void OnPeerEvent(PlayerHandle player, PeerEventInfo evt);
+
+    /// <summary>
+    /// Get string representation of the state
+    /// Used for Sync Test logging <see cref="RollbackNetcode.CreateSyncTestSession{TInput}"/>
+    /// </summary>
+    string GetStateString(in Frame frame, ref readonly BinaryBufferReader reader) =>
+        $""""
+         --- Begin Hex ---
+         {Convert.ToHexString(reader.CurrentBuffer)}
+         ---  End Hex  ---
+         """";
 }
 
-sealed class EmptySessionHandler<TState>(Logger logger)
-    : IRollbackHandler<TState> where TState : notnull, new()
+sealed class EmptySessionHandler(Logger logger) : IRollbackHandler
 {
     public void OnSessionStart() =>
         logger.Write(LogLevel.Information, $"{DateTime.UtcNow:o} [Session Handler] Running.");
@@ -77,11 +79,11 @@ sealed class EmptySessionHandler<TState>(Logger logger)
     public void OnSessionClose() =>
         logger.Write(LogLevel.Information, $"{DateTime.UtcNow:o} [Session Handler] Closing.");
 
-    public void SaveState(in Frame frame, ref TState state) =>
+    public void SaveState(in Frame frame, ref readonly BinaryBufferWriter writer) =>
         logger.Write(LogLevel.Information,
             $"{DateTime.UtcNow:o} [Session Handler] {nameof(SaveState)} called for frame {frame}");
 
-    public void LoadState(in Frame frame, in TState gameState) =>
+    public void LoadState(in Frame frame, ref readonly BinaryBufferReader reader) =>
         logger.Write(LogLevel.Information, $"{DateTime.UtcNow:o} [Session Handler] {nameof(LoadState)} called");
 
     public void AdvanceFrame() =>

@@ -6,6 +6,7 @@ using Backdash.Network.Messages;
 using Backdash.Synchronizing.Input;
 using Backdash.Synchronizing.Input.Confirmed;
 using Backdash.Tests.TestUtils.Types;
+using FsCheck.Fluent;
 
 namespace Backdash.Tests.TestUtils;
 
@@ -21,25 +22,57 @@ public sealed class PropertyTestAttribute : FsCheck.Xunit.PropertyAttribute
 }
 
 [Serializable]
-class PropertyTestGenerators
+abstract class PropertyTestGenerators
 {
+    static Arbitrary<float> FloatGenerator() =>
+        ArbMap.Default.GeneratorFor<float>()
+            .Where(float.IsNormal)
+            .ToArbitrary();
+
+    static Arbitrary<double> DoubleGenerator() =>
+        ArbMap.Default.GeneratorFor<double>()
+            .Where(double.IsNormal)
+            .ToArbitrary();
+
+    static Arbitrary<Half> HalfGenerator() =>
+        ArbMap.Default.GeneratorFor<float>()
+            .Where(x => x >= (float)Half.MinValue && x < (float)Half.MaxValue)
+            .Select(x => (Half)x)
+            .ToArbitrary();
+
+    static readonly IArbMap arb =
+        ArbMap.Default
+            .MergeArb(FloatGenerator())
+            .MergeArb(DoubleGenerator())
+            .MergeArb(HalfGenerator())
+            .MergeArb(FrameGenerator());
+
+    static Gen<T> Generate<T>() => arb.GeneratorFor<T>();
+
+    public static Arbitrary<Frame> FrameGenerator() =>
+        ArbMap.Default.GeneratorFor<PositiveInt>()
+            .Select(x => new Frame(x.Item))
+            .ToArbitrary();
+
     public static Arbitrary<Point> PointGenerator() => Arb.From(
-        from x in Arb.Generate<int>()
-        from y in Arb.Generate<int>()
+        from x in Generate<int>()
+        from y in Generate<int>()
         select new Point(x, y)
     );
 
-    public static Arbitrary<SimpleStructData> SimpleStructDataGenerator() =>
+    public static Arbitrary<SimpleStructData> SimpleStructDataGenerator(
+        Arbitrary<Point> pointGenerator
+    ) =>
         Arb.From(
-            from f1 in Arb.Generate<int>()
-            from f2 in Arb.Generate<uint>()
-            from f3 in Arb.Generate<ulong>()
-            from f4 in Arb.Generate<long>()
-            from f5 in Arb.Generate<short>()
-            from f6 in Arb.Generate<ushort>()
-            from f7 in Arb.Generate<byte>()
-            from f8 in Arb.Generate<sbyte>()
-            from f9 in Arb.Generate<Point>()
+            from f1 in Generate<int>()
+            from f2 in Generate<uint>()
+            from f3 in Generate<ulong>()
+            from f4 in Generate<long>()
+            from f5 in Generate<short>()
+            from f6 in Generate<ushort>()
+            from f7 in Generate<byte>()
+            from f8 in Generate<sbyte>()
+            from f9 in pointGenerator.Generator
             select new SimpleStructData
             {
                 Field1 = f1,
@@ -53,14 +86,9 @@ class PropertyTestGenerators
                 Field9 = f9,
             });
 
-    public static Arbitrary<Frame> FrameGenerator() => Arb.From(
-        from frame in Arb.Generate<PositiveInt>()
-        select new Frame(frame.Item)
-    );
-
     public static Arbitrary<ConnectStatus> ConnectStatusGenerator() => Arb.From(
-        from disconnected in Arb.Generate<bool>()
-        from lastFrame in Arb.Generate<Frame>()
+        from disconnected in Generate<bool>()
+        from lastFrame in Generate<Frame>()
         select new ConnectStatus
         {
             Disconnected = disconnected,
@@ -69,9 +97,9 @@ class PropertyTestGenerators
     );
 
     public static Arbitrary<Header> HeaderGenerator() => Arb.From(
-        from msgType in Arb.Generate<MessageType>()
-        from magic in Arb.Generate<ushort>()
-        from seqNum in Arb.Generate<ushort>()
+        from msgType in Generate<MessageType>()
+        from magic in Generate<ushort>()
+        from seqNum in Generate<ushort>()
         select new Header
         {
             Type = msgType,
@@ -80,24 +108,8 @@ class PropertyTestGenerators
         }
     );
 
-    public static Arbitrary<float> FloatGenerator() =>
-        Arb.Default.Float32().Generator
-            .Where(float.IsNormal)
-            .ToArbitrary();
-
-    public static Arbitrary<double> DoubleGenerator() =>
-        Arb.Default.Float().Generator
-            .Where(double.IsNormal)
-            .ToArbitrary();
-
-    public static Arbitrary<Half> HalfGenerator() =>
-        Arb.Generate<float>()
-            .Where(x => x >= (float)Half.MinValue && x < (float)Half.MaxValue)
-            .Select(x => (Half)x)
-            .ToArbitrary();
-
     public static Arbitrary<InputAck> InputAckGenerator() => Arb.From(
-        from frame in Arb.Generate<Frame>()
+        from frame in Generate<Frame>()
         select new InputAck
         {
             AckFrame = frame,
@@ -108,7 +120,7 @@ class PropertyTestGenerators
         Gen.Constant(new KeepAlive()).ToArbitrary();
 
     public static Arbitrary<QualityReply> QualityReplyGenerator() => Arb.From(
-        from pong in Arb.Generate<uint>()
+        from pong in Generate<uint>()
         select new QualityReply
         {
             Pong = pong,
@@ -116,8 +128,8 @@ class PropertyTestGenerators
     );
 
     public static Arbitrary<QualityReport> QualityReportGenerator() => Arb.From(
-        from frameAdv in Arb.Generate<byte>()
-        from ping in Arb.Generate<uint>()
+        from frameAdv in Generate<byte>()
+        from ping in Generate<uint>()
         select new QualityReport
         {
             FrameAdvantage = frameAdv,
@@ -126,8 +138,8 @@ class PropertyTestGenerators
     );
 
     public static Arbitrary<SyncReply> SyncReplyGenerator() => Arb.From(
-        from reply in Arb.Generate<uint>()
-        from pong in Arb.Generate<uint>()
+        from reply in Generate<uint>()
+        from pong in Generate<uint>()
         select new SyncReply
         {
             RandomReply = reply,
@@ -136,7 +148,7 @@ class PropertyTestGenerators
     );
 
     public static Arbitrary<SyncRequest> SyncRequestGenerator() => Arb.From(
-        from randRequest in Arb.Generate<uint>()
+        from randRequest in Generate<uint>()
         select new SyncRequest
         {
             RandomRequest = randRequest,
@@ -148,7 +160,7 @@ class PropertyTestGenerators
         Gen.Sized(testSize =>
             {
                 var size = Math.Min(testSize, Max.NumberOfPlayers);
-                return Gen.ArrayOf(size, Arb.Generate<ConnectStatus>());
+                return Generate<ConnectStatus>().ArrayOf(size);
             })
             .Select(arr =>
             {
@@ -158,76 +170,88 @@ class PropertyTestGenerators
             })
             .ToArbitrary();
 
-    public static Arbitrary<InputMessage> InputMsgGenerator() => Arb.From(
-        from startFrame in Arb.Generate<Frame>()
-        from disconnectReq in Arb.Generate<bool>()
-        from ackFrame in Arb.Generate<Frame>()
-        from inputSize in Arb.Generate<byte>()
-        from peerConnectStats in Gen.Sized(testSize =>
-        {
-            var size = Math.Min(testSize, Max.NumberOfPlayers);
-            return Gen.ArrayOf(size, Arb.Generate<ConnectStatus>());
-        })
-        from inputBuffer in Gen.Sized(testSize =>
-        {
-            var size = Math.Min(testSize, Max.CompressedBytes);
-            return Gen.ArrayOf(size, Arb.Generate<byte>());
-        })
-        select new InputMessage
-        {
-            PeerConnectStatus = new(peerConnectStats),
-            StartFrame = startFrame,
-            DisconnectRequested = disconnectReq,
-            AckFrame = ackFrame,
-            InputSize = inputSize,
-            NumBits = checked((ushort)(inputBuffer.Length * ByteSize.ByteToBits)),
-            Bits = new(inputBuffer),
-        }
-    );
+    public static Arbitrary<InputMessage> InputMsgGenerator(
+        Arbitrary<ConnectStatus> connectStatusGenerator
+    ) =>
+        Arb.From(
+            from startFrame in Generate<Frame>()
+            from disconnectReq in Generate<bool>()
+            from ackFrame in Generate<Frame>()
+            from inputSize in Generate<byte>()
+            from peerConnectStats in Gen.Sized(testSize =>
+            {
+                var size = Math.Min(testSize, Max.NumberOfPlayers);
+                return connectStatusGenerator.Generator.ArrayOf(size);
+            })
+            from inputBuffer in Gen.Sized(testSize =>
+            {
+                var size = Math.Min(testSize, Max.CompressedBytes);
+                return Generate<byte>().ArrayOf(size);
+            })
+            select new InputMessage
+            {
+                PeerConnectStatus = new(peerConnectStats),
+                StartFrame = startFrame,
+                DisconnectRequested = disconnectReq,
+                AckFrame = ackFrame,
+                InputSize = inputSize,
+                NumBits = checked((ushort)(inputBuffer.Length * ByteSize.ByteToBits)),
+                Bits = new(inputBuffer),
+            }
+        );
 
-    public static Arbitrary<ProtocolMessage> UpdMsgGenerator() =>
-        Arb.Generate<Header>()
+    public static Arbitrary<ProtocolMessage> UpdMsgGenerator(
+        Arbitrary<Header> headerArb,
+        Arbitrary<SyncRequest> syncRequestArb,
+        Arbitrary<SyncReply> syncReplyArb,
+        Arbitrary<InputMessage> inputMessageArb,
+        Arbitrary<QualityReport> qualityReportArb,
+        Arbitrary<QualityReply> qualityReplyArb,
+        Arbitrary<KeepAlive> keepAliveArb,
+        Arbitrary<InputAck> inputAckArb
+    ) =>
+        headerArb.Generator
             .Where(h => h.Type is not MessageType.Unknown)
             .SelectMany(header => header.Type switch
             {
                 MessageType.SyncRequest =>
-                    Arb.Generate<SyncRequest>().Select(x => new ProtocolMessage
+                    syncRequestArb.Generator.Select(x => new ProtocolMessage
                     {
                         Header = header,
                         SyncRequest = x,
                     }),
                 MessageType.SyncReply =>
-                    Arb.Generate<SyncReply>().Select(x => new ProtocolMessage
+                    syncReplyArb.Generator.Select(x => new ProtocolMessage
                     {
                         Header = header,
                         SyncReply = x,
                     }),
                 MessageType.Input =>
-                    Arb.Generate<InputMessage>().Select(x => new ProtocolMessage
+                    inputMessageArb.Generator.Select(x => new ProtocolMessage
                     {
                         Header = header,
                         Input = x,
                     }),
                 MessageType.QualityReport =>
-                    Arb.Generate<QualityReport>().Select(x => new ProtocolMessage
+                    qualityReportArb.Generator.Select(x => new ProtocolMessage
                     {
                         Header = header,
                         QualityReport = x,
                     }),
                 MessageType.QualityReply =>
-                    Arb.Generate<QualityReply>().Select(x => new ProtocolMessage
+                    qualityReplyArb.Generator.Select(x => new ProtocolMessage
                     {
                         Header = header,
                         QualityReply = x,
                     }),
                 MessageType.KeepAlive =>
-                    Arb.Generate<KeepAlive>().Select(x => new ProtocolMessage
+                    keepAliveArb.Generator.Select(x => new ProtocolMessage
                     {
                         Header = header,
                         KeepAlive = x,
                     }),
                 MessageType.InputAck =>
-                    Arb.Generate<InputAck>().Select(x => new ProtocolMessage
+                    inputAckArb.Generator.Select(x => new ProtocolMessage
                     {
                         Header = header,
                         InputAck = x,
@@ -237,12 +261,12 @@ class PropertyTestGenerators
             .ToArbitrary();
 
     public static Arbitrary<TestInput> TestInputGenerator() => Arb.From(
-        from bytes in Gen.ArrayOf(TestInput.Capacity, Arb.Generate<byte>())
+        from bytes in Generate<byte>().ArrayOf(TestInput.Capacity)
         select new TestInput(bytes)
     );
 
     public static Arbitrary<Version> VersionGenerator() =>
-        Arb.Generate<byte>()
+        Generate<byte>()
             .Select(x => (int)x)
             .Four()
             .Select(values =>
@@ -252,11 +276,12 @@ class PropertyTestGenerators
             })
             .ToArbitrary();
 
-    public static Arbitrary<GameInput<TInput>> GameInputBufferGenerator<TInput>()
-        where TInput : unmanaged
-        => Arb.From(
-            from frame in Arb.Generate<Frame>()
-            from data in Arb.Generate<TInput>()
+    public static Arbitrary<GameInput<TInput>> GameInputBufferGenerator<TInput>(
+        Arbitrary<TInput> inputGenerator
+    ) where TInput : unmanaged =>
+        Arb.From(
+            from frame in Generate<Frame>()
+            from data in inputGenerator.Generator
             select new GameInput<TInput>()
             {
                 Frame = frame,
@@ -264,48 +289,50 @@ class PropertyTestGenerators
             }
         );
 
-    public static Arbitrary<PendingGameInputs> PendingGameInputBufferGenerator() =>
+    public static Arbitrary<PendingGameInputs> PendingGameInputBufferGenerator(
+        Arbitrary<GameInput> inputGenerator
+    ) =>
         Gen.Sized(testSize =>
             {
                 var size = Math.Clamp(testSize, 1, sizeof(int) * 2);
                 var index = 1;
-                var indexed = Arb.Generate<GameInput>().Select(gi =>
+                var indexed = inputGenerator.Generator.Select(gi =>
                 {
                     gi.Frame = new(index);
                     Interlocked.Increment(ref index);
                     return gi;
                 });
-                return Gen.ArrayOf(size, indexed);
+                return indexed.ArrayOf(size);
             })
             .Select(gis => new PendingGameInputs(gis))
             .ToArbitrary();
 
     public static Arbitrary<Vector2> Vector2Generator() => Arb.From(
-        from x in Arb.Generate<float>()
-        from y in Arb.Generate<float>()
+        from x in Generate<float>()
+        from y in Generate<float>()
         select new Vector2(x, y)
     );
 
     public static Arbitrary<Vector3> Vector3Generator() => Arb.From(
-        from x in Arb.Generate<float>()
-        from y in Arb.Generate<float>()
-        from z in Arb.Generate<float>()
+        from x in Generate<float>()
+        from y in Generate<float>()
+        from z in Generate<float>()
         select new Vector3(x, y, z)
     );
 
     public static Arbitrary<Vector4> Vector4Generator() => Arb.From(
-        from x in Arb.Generate<float>()
-        from y in Arb.Generate<float>()
-        from z in Arb.Generate<float>()
-        from w in Arb.Generate<float>()
+        from x in Generate<float>()
+        from y in Generate<float>()
+        from z in Generate<float>()
+        from w in Generate<float>()
         select new Vector4(x, y, z, w)
     );
 
     public static Arbitrary<Quaternion> QuaternionGenerator() => Arb.From(
-        from x in Arb.Generate<float>()
-        from y in Arb.Generate<float>()
-        from z in Arb.Generate<float>()
-        from w in Arb.Generate<float>()
+        from x in Generate<float>()
+        from y in Generate<float>()
+        from z in Generate<float>()
+        from w in Generate<float>()
         select new Quaternion(x, y, z, w)
     );
 
@@ -313,14 +340,9 @@ class PropertyTestGenerators
         Gen.Sized(testSize =>
             {
                 var size = Math.Min(testSize, InputArray<T>.Capacity);
-                return Gen.ArrayOf(size, Arb.Generate<T>());
+                return Generate<T>().ArrayOf(size);
             })
             .Select(arr => new ConfirmedInputs<T>(arr))
-            .ToArbitrary();
-
-    public static Arbitrary<EquatableArray<T>> EquatableArrayGenerator<T>() where T : IEquatable<T> =>
-        Gen.Sized(size => Gen.ArrayOf(size, Arb.Generate<T>()))
-            .Select(arr => new EquatableArray<T>(arr))
             .ToArbitrary();
 }
 
