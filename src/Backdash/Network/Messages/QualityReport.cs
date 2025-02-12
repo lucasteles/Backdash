@@ -10,13 +10,13 @@ record struct QualityReport : ISpanSerializable, IUtf8SpanFormattable
     public int FrameAdvantage; /* what's the other guy's frame advantage? */
     public long Ping;
 
-    public readonly void Serialize(BinaryRawBufferWriter writer)
+    public readonly void Serialize(in BinaryRawBufferWriter writer)
     {
         writer.Write(in FrameAdvantage);
         writer.Write(in Ping);
     }
 
-    public void Deserialize(BinaryBufferReader reader)
+    public void Deserialize(in BinaryBufferReader reader)
     {
         FrameAdvantage = reader.ReadInt32();
         Ping = reader.ReadInt64();
@@ -27,8 +27,6 @@ record struct QualityReport : ISpanSerializable, IUtf8SpanFormattable
     {
         bytesWritten = 0;
         using Utf8ObjectWriter writer = new(in utf8Destination, ref bytesWritten);
-        if (!writer.Write(FrameAdvantage)) return false;
-        if (!writer.Write(Ping)) return false;
-        return true;
+        return writer.Write(FrameAdvantage) && writer.Write(Ping);
     }
 }

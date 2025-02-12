@@ -30,32 +30,44 @@ struct ProtocolMessage(MessageType type) : ISpanSerializable, IEquatable<Protoco
     public KeepAlive KeepAlive;
 
     [FieldOffset(Header.Size)]
+    public ConsistencyCheckRequest ConsistencyCheckRequest;
+
+    [FieldOffset(Header.Size)]
+    public ConsistencyCheckReply ConsistencyCheckReply;
+
+    [FieldOffset(Header.Size)]
     public InputMessage Input;
 
-    public readonly void Serialize(BinaryRawBufferWriter writer)
+    public readonly void Serialize(in BinaryRawBufferWriter writer)
     {
-        Header.Serialize(writer);
+        Header.Serialize(in writer);
         switch (Header.Type)
         {
             case MessageType.SyncRequest:
-                SyncRequest.Serialize(writer);
+                SyncRequest.Serialize(in writer);
                 break;
             case MessageType.SyncReply:
-                SyncReply.Serialize(writer);
+                SyncReply.Serialize(in writer);
                 break;
             case MessageType.QualityReport:
-                QualityReport.Serialize(writer);
+                QualityReport.Serialize(in writer);
                 break;
             case MessageType.QualityReply:
-                QualityReply.Serialize(writer);
+                QualityReply.Serialize(in writer);
                 break;
             case MessageType.InputAck:
-                InputAck.Serialize(writer);
+                InputAck.Serialize(in writer);
                 break;
             case MessageType.KeepAlive:
                 break;
+            case MessageType.ConsistencyCheckRequest:
+                ConsistencyCheckRequest.Serialize(in writer);
+                break;
+            case MessageType.ConsistencyCheckReply:
+                ConsistencyCheckReply.Serialize(in writer);
+                break;
             case MessageType.Input:
-                Input.Serialize(writer);
+                Input.Serialize(in writer);
                 break;
             case MessageType.Unknown:
             default:
@@ -63,30 +75,36 @@ struct ProtocolMessage(MessageType type) : ISpanSerializable, IEquatable<Protoco
         }
     }
 
-    public void Deserialize(BinaryBufferReader reader)
+    public void Deserialize(in BinaryBufferReader reader)
     {
-        Header.Deserialize(reader);
+        Header.Deserialize(in reader);
         switch (Header.Type)
         {
             case MessageType.SyncRequest:
-                SyncRequest.Deserialize(reader);
+                SyncRequest.Deserialize(in reader);
                 break;
             case MessageType.SyncReply:
-                SyncReply.Deserialize(reader);
+                SyncReply.Deserialize(in reader);
                 break;
             case MessageType.QualityReport:
-                QualityReport.Deserialize(reader);
+                QualityReport.Deserialize(in reader);
                 break;
             case MessageType.QualityReply:
-                QualityReply.Deserialize(reader);
+                QualityReply.Deserialize(in reader);
                 break;
             case MessageType.InputAck:
-                InputAck.Deserialize(reader);
+                InputAck.Deserialize(in reader);
                 break;
             case MessageType.KeepAlive:
                 break;
+            case MessageType.ConsistencyCheckRequest:
+                ConsistencyCheckRequest.Deserialize(in reader);
+                break;
+            case MessageType.ConsistencyCheckReply:
+                ConsistencyCheckReply.Deserialize(in reader);
+                break;
             case MessageType.Input:
-                Input.Deserialize(reader);
+                Input.Deserialize(in reader);
                 break;
             case MessageType.Unknown:
             default:
@@ -101,6 +119,8 @@ struct ProtocolMessage(MessageType type) : ISpanSerializable, IEquatable<Protoco
             {
                 MessageType.SyncRequest => SyncRequest.ToString(),
                 MessageType.SyncReply => SyncReply.ToString(),
+                MessageType.ConsistencyCheckRequest => ConsistencyCheckRequest.ToString(),
+                MessageType.ConsistencyCheckReply => ConsistencyCheckReply.ToString(),
                 MessageType.Input => Input.ToString(),
                 MessageType.QualityReport => QualityReport.ToString(),
                 MessageType.QualityReply => QualityReply.ToString(),
@@ -127,6 +147,8 @@ struct ProtocolMessage(MessageType type) : ISpanSerializable, IEquatable<Protoco
             MessageType.Input => writer.Write(Input),
             MessageType.SyncRequest => writer.Write(SyncRequest),
             MessageType.SyncReply => writer.Write(SyncReply),
+            MessageType.ConsistencyCheckRequest => writer.Write(ConsistencyCheckRequest),
+            MessageType.ConsistencyCheckReply => writer.Write(ConsistencyCheckReply),
             MessageType.QualityReply => writer.Write(QualityReply),
             MessageType.QualityReport => writer.Write(QualityReport),
             MessageType.InputAck => writer.Write(InputAck),
@@ -142,6 +164,8 @@ struct ProtocolMessage(MessageType type) : ISpanSerializable, IEquatable<Protoco
             MessageType.Unknown => other.Header.Type is MessageType.Unknown,
             MessageType.SyncRequest => SyncRequest.Equals(other.SyncRequest),
             MessageType.SyncReply => SyncReply.Equals(other.SyncReply),
+            MessageType.ConsistencyCheckRequest => ConsistencyCheckRequest.Equals(other.ConsistencyCheckRequest),
+            MessageType.ConsistencyCheckReply => ConsistencyCheckReply.Equals(other.ConsistencyCheckReply),
             MessageType.Input => Input.Equals(other.Input),
             MessageType.QualityReport => QualityReport.Equals(other.QualityReport),
             MessageType.QualityReply => QualityReply.Equals(other.QualityReply),

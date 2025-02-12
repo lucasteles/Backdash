@@ -17,6 +17,7 @@ sealed class ProtocolState(
     public readonly PeerAddress PeerAddress = peerAddress;
     public readonly SyncState Sync = new();
     public readonly ConnectionState Connection = new();
+    public readonly ConsistencyState Consistency = new();
     public readonly AdvantageState Fairness = new();
     public readonly Statistics Stats = new();
     public readonly ConnectionsState LocalConnectStatuses = localConnectStatuses;
@@ -32,13 +33,20 @@ sealed class ProtocolState(
         public bool IsConnected;
     }
 
+    public sealed class ConsistencyState
+    {
+        public long LastCheck;
+        public Frame AskedFrame;
+        public int AskedChecksum;
+    }
+
     public sealed class AdvantageState
     {
         public FrameSpan LocalFrameAdvantage;
         public FrameSpan RemoteFrameAdvantage;
     }
 
-    public class Statistics
+    public sealed class Statistics
     {
         public TimeSpan RoundTripTime = TimeSpan.Zero;
         public long LastReceivedInputTime = 0;

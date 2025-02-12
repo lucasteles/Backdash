@@ -11,13 +11,13 @@ record struct ConnectStatus : ISpanSerializable
     public bool Disconnected;
     public Frame LastFrame;
 
-    public readonly void Serialize(BinaryRawBufferWriter writer)
+    public readonly void Serialize(in BinaryRawBufferWriter writer)
     {
         writer.Write(in Disconnected);
         writer.Write(in LastFrame.Number);
     }
 
-    public void Deserialize(BinaryBufferReader reader)
+    public void Deserialize(in BinaryBufferReader reader)
     {
         Disconnected = reader.ReadBoolean();
         LastFrame = new(reader.ReadInt32());

@@ -54,4 +54,18 @@ public class MessageSerializationTests
 
     [PropertyTest]
     internal bool InputMsgOffset(InputMessage value) => AssertSerialization.Offset(ref value);
+
+    [PropertyTest]
+    internal bool ConsistencyCheckRequestSerialize(ConsistencyCheckRequest value) =>
+        AssertSerialization.Validate(ref value);
+
+    [PropertyTest]
+    internal bool ConsistencyCheckRequestOffset(ConsistencyCheckRequest value) => AssertSerialization.Offset(ref value);
+
+    [PropertyTest]
+    internal bool ConsistencyCheckReplySerialize(ConsistencyCheckReply value) =>
+        AssertSerialization.Validate(ref value);
+
+    [PropertyTest]
+    internal bool ConsistencyCheckReplyOffset(ConsistencyCheckReply value) => AssertSerialization.Offset(ref value);
 }
