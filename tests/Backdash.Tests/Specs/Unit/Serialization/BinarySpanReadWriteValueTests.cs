@@ -222,6 +222,29 @@ public class BinarySpanReadWriteValueTests
         return value == read;
     }
 
+    [PropertyTest]
+    public bool CharUtf8(char value, Endianness endianness)
+    {
+        var size = Setup<byte>(endianness, out var writer, out var reader);
+        writer.WriteUtf8Char(value);
+        writer.WrittenCount.Should().Be(size);
+        var read = reader.ReadUtf8Char();
+        reader.ReadCount.Should().Be(size);
+        return value == read;
+    }
+
+    [PropertyTest]
+    public bool UnmanagedStruct(SimpleStructData value, Endianness endianness)
+    {
+        var size = Setup<SimpleStructData>(endianness, out var writer, out var reader);
+        writer.WriteStruct(in value);
+        writer.WrittenCount.Should().Be(size);
+
+        var read = reader.ReadStruct<SimpleStructData>();
+        reader.ReadCount.Should().Be(size);
+        return value == read;
+    }
+
     static int writeOffset;
     static int readOffset;
 
@@ -307,7 +330,8 @@ public class BinarySpanReadWriteValueTests
         public bool TestSByte(sbyte value, Endianness endianness) =>
             TestInteger(value, endianness);
 
-        static bool TestInteger<T>(T value, Endianness endianness) where T : unmanaged, IBinaryInteger<T>, IMinMaxValue<T>
+        static bool TestInteger<T>(T value, Endianness endianness)
+            where T : unmanaged, IBinaryInteger<T>, IMinMaxValue<T>
         {
             var size = Setup<T>(endianness, out var writer, out var reader);
             writer.WriteNumber(value);

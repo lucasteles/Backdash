@@ -121,7 +121,7 @@ public readonly ref struct BinaryBufferReader
     public char ReadUtf8Char()
     {
         Span<char> result = stackalloc char[1];
-        System.Text.Encoding.UTF8.GetChars(CurrentBuffer[..1], result);
+        ReadUtf8String(in result);
         return result[0];
     }
 

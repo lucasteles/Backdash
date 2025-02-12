@@ -237,14 +237,6 @@ public readonly struct BinaryBufferWriter(IBufferWriter<byte> buffer)
     /// <summary>Writes an <see cref="string"/> <paramref name="value"/> into buffer.</summary>
     public void WriteString(in string value) => Write(value.AsSpan());
 
-    /// <summary>Writes an <see cref="char"/> <paramref name="value"/> into buffer as UTF8.</summary>
-    public void WriteUtf8Char(in char value)
-    {
-        var span = buffer.GetSpan(1);
-        var writtenCount = System.Text.Encoding.UTF8.GetBytes(Mem.AsSpan(in value), span);
-        Advance(writtenCount);
-    }
-
     /// <summary>Writes an <see cref="string"/> <paramref name="value"/> into buffer as UTF8.</summary>
     public void WriteUtf8String(in ReadOnlySpan<char> value)
     {
@@ -252,6 +244,9 @@ public readonly struct BinaryBufferWriter(IBufferWriter<byte> buffer)
         var writtenCount = System.Text.Encoding.UTF8.GetBytes(value, span);
         Advance(writtenCount);
     }
+
+    /// <summary>Writes an <see cref="char"/> <paramref name="value"/> into buffer as UTF8.</summary>
+    public void WriteUtf8Char(in char value) => WriteUtf8String(Mem.AsSpan(in value));
 
     /// <summary>Writes a <see cref="IBinaryInteger{T}"/> <paramref name="value"/> into buffer.</summary>
     /// <typeparam name="T">A numeric type that implements <see cref="IBinaryInteger{T}"/>.</typeparam>

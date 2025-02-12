@@ -2,6 +2,7 @@ using System.Runtime.CompilerServices;
 using Backdash.Network;
 using Backdash.Serialization.Buffer;
 using Backdash.Tests.TestUtils;
+using Backdash.Tests.TestUtils.Types;
 
 namespace Backdash.Tests.Specs.Unit.Serialization;
 
@@ -150,6 +151,55 @@ public class BinarySpanReadWriteSpanTests
         reader.ReadCount.Should().Be(size);
         return value.AsSpan().SequenceEqual(read);
     }
+
+    [PropertyTest]
+    public bool SpanOfUtf8(NonEmptyString input, Endianness endianness)
+    {
+        var value = input.Item;
+        var utf8Bytes = System.Text.Encoding.UTF8.GetBytes(value);
+
+        var size = Setup(utf8Bytes, endianness, out var writer, out var reader);
+        writer.WriteUtf8String(value);
+        writer.WrittenCount.Should().Be(size);
+
+        Span<char> read = stackalloc char[value.Length];
+        reader.ReadUtf8String(read);
+
+        reader.ReadCount.Should().Be(size);
+        return value.AsSpan().SequenceEqual(read);
+    }
+
+    [PropertyTest]
+    public bool SpanOfUtf8Bytes(NonEmptyString input, Endianness endianness)
+    {
+        var value = input.Item;
+        var utf8Size = System.Text.Encoding.UTF8.GetByteCount(value);
+        var utf8Bytes = System.Text.Encoding.UTF8.GetBytes(value);
+
+        var size = Setup(utf8Bytes, endianness, out var writer, out var reader);
+        writer.WriteUtf8String(value);
+        writer.WrittenCount.Should().Be(size);
+
+        Span<byte> read = stackalloc byte[utf8Size];
+        reader.ReadByte(read);
+        reader.ReadCount.Should().Be(utf8Size);
+        return utf8Bytes.AsSpan().SequenceEqual(read);
+    }
+
+    [PropertyTest]
+    public bool SpanOfUnmanagedStruct(SimpleStructData[] value, Endianness endianness)
+    {
+        var size = Setup(value, endianness, out var writer, out var reader);
+        writer.WriteStruct(in value);
+        writer.WrittenCount.Should().Be(size);
+
+        Span<SimpleStructData> read = stackalloc SimpleStructData[value.Length];
+        reader.ReadStruct(in read);
+
+        reader.ReadCount.Should().Be(size);
+        return value.AsSpan().SequenceEqual(read);
+    }
+
 
     static int writeOffset;
     static int readOffset;

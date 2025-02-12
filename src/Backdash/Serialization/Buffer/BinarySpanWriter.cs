@@ -238,6 +238,19 @@ public readonly ref struct BinarySpanWriter
     public void WriteUtf8String(in ReadOnlySpan<char> value) =>
         Advance(System.Text.Encoding.UTF8.GetBytes(value, CurrentBuffer));
 
+    /// <summary>Writes an <see cref="char"/> <paramref name="value"/> into buffer as UTF8.</summary>
+    public void WriteUtf8Char(in char value) => WriteUtf8String(Mem.AsSpan(in value));
+
+    /// <summary>Writes an unmanaged struct into buffer.</summary>
+    public void WriteStruct<T>(in T value) where T : unmanaged => Write(Mem.AsBytes(in value));
+
+    /// <summary>Writes an unmanaged struct span into buffer.</summary>
+    public void WriteStruct<T>(ReadOnlySpan<T> values) where T : unmanaged => Write(MemoryMarshal.AsBytes(values));
+
+    /// <summary>Writes an unmanaged struct span into buffer.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteStruct<T>(in T[] values) where T : unmanaged => WriteStruct<T>(values.AsSpan());
+
     /// <summary>Writes a <see cref="IBinaryInteger{T}"/> <paramref name="value"/> into buffer.</summary>
     /// <typeparam name="T">A numeric type that implements <see cref="IBinaryInteger{T}"/>.</typeparam>
     public void WriteNumber<T>(in T value) where T : unmanaged, IBinaryInteger<T>
