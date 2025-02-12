@@ -26,7 +26,7 @@ public sealed class BinaryStateStore(int hintSize = 128) : IStateStore
     {
         ref var result = ref savedStates[head];
         result.GameState.Clear();
-        return ref result;
+        return ref result!;
     }
 
     /// <inheritdoc />
