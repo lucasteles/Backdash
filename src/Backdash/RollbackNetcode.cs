@@ -5,6 +5,7 @@ using Backdash.Data;
 using Backdash.Network.Client;
 using Backdash.Synchronizing;
 using Backdash.Synchronizing.Input.Confirmed;
+using Backdash.Synchronizing.State;
 
 namespace Backdash;
 
@@ -81,12 +82,14 @@ public static class RollbackNetcode
     /// <param name="checkDistance">Total forced rollback frames.</param>
     /// <param name="options">Session configuration</param>
     /// <param name="services">Session customizable dependencies</param>
+    /// <param name="desyncHandler">State de-sync handler</param>
     /// <param name="throwException">If true, throws on state de-synchronization.</param>
     /// <typeparam name="TInput">Game input type</typeparam>
     public static IRollbackSession<TInput> CreateSyncTestSession<TInput>(
         FrameSpan? checkDistance = null,
         RollbackOptions? options = null,
         SessionServices<TInput>? services = null,
+        IStateDesyncHandler? desyncHandler = null,
         bool throwException = true
     )
         where TInput : unmanaged
@@ -99,6 +102,7 @@ public static class RollbackNetcode
         checkDistance ??= FrameSpan.One;
         return new SyncTestBackend<TInput>(
             options, checkDistance.Value, throwException,
+            desyncHandler,
             BackendServices.Create(options, services)
         );
     }

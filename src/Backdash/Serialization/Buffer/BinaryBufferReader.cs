@@ -40,6 +40,11 @@ public readonly ref struct BinaryBufferReader
     /// <summary>Available buffer space in bytes</summary>
     public int FreeCapacity => Capacity - ReadCount;
 
+    /// <summary>
+    /// Return full buffer
+    /// </summary>
+    public ReadOnlySpan<byte> Buffer => buffer;
+
     /// <summary>Returns a <see cref="Span{Byte}"/> for the current available buffer.</summary>
     public ReadOnlySpan<byte> CurrentBuffer => buffer[offset..];
 

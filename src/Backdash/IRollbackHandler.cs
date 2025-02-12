@@ -58,6 +58,12 @@ public interface IRollbackHandler
     /// <param name="player">The player owner of the event</param>
     /// <param name="evt">Event data</param>
     void OnPeerEvent(PlayerHandle player, PeerEventInfo evt);
+
+    /// <summary>
+    /// Get string representation of the state
+    /// Used for Sync Test logging <see cref="RollbackNetcode.CreateSyncTestSession{TInput}"/>
+    /// </summary>
+    string GetStateString(in Frame frame, ref readonly BinaryBufferReader reader);
 }
 
 sealed class EmptySessionHandler(Logger logger) : IRollbackHandler
@@ -85,4 +91,11 @@ sealed class EmptySessionHandler(Logger logger) : IRollbackHandler
     public void OnPeerEvent(PlayerHandle player, PeerEventInfo evt) =>
         logger.Write(LogLevel.Information,
             $"{DateTime.UtcNow:o} [Session Handler] {nameof(OnPeerEvent)} called with {evt} for {player}");
+
+    public string GetStateString(in Frame frame, ref readonly BinaryBufferReader reader) =>
+        $""""
+         --- Begin Hex ---
+         {Convert.ToHexString(reader.CurrentBuffer)}
+         ---  End Hex  ---
+         """";
 }
