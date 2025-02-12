@@ -55,7 +55,7 @@ public abstract class BinarySerializer<T> : IBinarySerializer<T>
     /// </summary>
     /// <param name="binaryReader">Binary reader</param>
     /// <param name="result">Reference to be set with the deserialized value.</param>
-    protected abstract void Deserialize(in BinarySpanReader binaryReader, ref T result);
+    protected abstract void Deserialize(in BinaryBufferReader binaryReader, ref T result);
 
     int IBinaryWriter<T>.Serialize(in T data, Span<byte> buffer)
     {
@@ -71,7 +71,7 @@ public abstract class BinarySerializer<T> : IBinarySerializer<T>
     int IBinaryReader<T>.Deserialize(ReadOnlySpan<byte> data, ref T value)
     {
         var offset = 0;
-        BinarySpanReader reader = new(data, ref offset)
+        BinaryBufferReader reader = new(data, ref offset)
         {
             Endianness = Platform.GetEndianness(Network),
         };

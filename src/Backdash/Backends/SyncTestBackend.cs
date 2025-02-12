@@ -8,24 +8,23 @@ using Backdash.Synchronizing.State;
 
 namespace Backdash.Backends;
 
-sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGameState>
+sealed class SyncTestBackend<TInput> : IRollbackSession<TInput>
     where TInput : unmanaged
-    where TGameState : notnull, new()
 {
-    readonly record struct SavedFrame(
+    readonly record struct SavedFrameJson(
         Frame Frame,
         int Checksum,
         string State,
         GameInput<TInput> Input
     );
 
-    readonly Synchronizer<TInput, TGameState> synchronizer;
+    readonly Synchronizer<TInput> synchronizer;
     readonly TaskCompletionSource tsc = new();
     readonly Logger logger;
     readonly IDeterministicRandom deterministicRandom;
     readonly HashSet<PlayerHandle> addedPlayers = [];
     readonly HashSet<PlayerHandle> addedSpectators = [];
-    readonly Queue<SavedFrame> savedFrames = [];
+    readonly Queue<SavedFrameJson> savedFrames = [];
     readonly SynchronizedInput<TInput>[] syncInputBuffer = new SynchronizedInput<TInput>[Max.NumberOfPlayers];
     readonly TInput[] inputBuffer = new TInput[Max.NumberOfPlayers];
     readonly RollbackOptions options;
@@ -39,7 +38,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         IncludeFields = true,
     };
 
-    IRollbackHandler<TGameState> callbacks;
+    IRollbackHandler callbacks;
     bool inRollback;
     bool running;
     Task backGroundJobTask = Task.CompletedTask;
@@ -51,7 +50,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         RollbackOptions options,
         FrameSpan checkDistance,
         bool throwError,
-        BackendServices<TInput, TGameState> services
+        BackendServices<TInput> services
     )
     {
         ArgumentNullException.ThrowIfNull(services);
@@ -65,7 +64,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         deterministicRandom = services.DeterministicRandom;
         inputGenerator = services.InputGenerator;
         logger = services.Logger;
-        callbacks ??= new EmptySessionHandler<TGameState>(logger);
+        callbacks ??= new EmptySessionHandler(logger);
         synchronizer = new(
             options, logger,
             addedPlayers,
@@ -204,7 +203,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         // Hold onto the current frame in our queue of saved states.  We'll need
         // the checksum later to verify that our replay of the same frame got the
         // same results.
-        ref readonly var lastSaved = ref synchronizer.GetLastSavedFrame();
+        var lastSaved = synchronizer.GetLastSavedFrame();
 
         var frame = synchronizer.CurrentFrame;
         savedFrames.Enqueue(new(
@@ -236,7 +235,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
                 if (throwError) throw new NetcodeException(message);
             }
 
-            ref readonly var last = ref synchronizer.GetLastSavedFrame();
+            var last = synchronizer.GetLastSavedFrame();
             var checksum = last.Checksum;
             if (info.Checksum != checksum)
             {
@@ -254,7 +253,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         inRollback = false;
     }
 
-    void LogSaveState(SavedFrame info, string description)
+    void LogSaveState(SavedFrameJson info, string description)
     {
         const LogLevel level = LogLevel.Information;
         logger.Write(level, $"=== SAVED STATE [{description.ToUpper()}] ({info.Frame}) ===\n");
@@ -265,31 +264,15 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         logger.Write(level, JsonSerializer.Serialize(info.Input.Data, jsonOptions));
 #endif
         logger.Write(level, $"GAME STATE #{info.Checksum}:");
-        LogJson(level, info.State);
         logger.Write(level, "====================================");
     }
 
-    void LogSaveState(SavedFrame<TGameState> info, string description)
+    void LogSaveState(SavedFrame info, string description)
     {
         const LogLevel level = LogLevel.Information;
         logger.Write(level, $"=== SAVED STATE [{description.ToUpper()}] ({info.Frame}) ===\n");
         logger.Write(level, $"GAME STATE #{info.Checksum}:");
-        LogJson(level, info.GameState);
         logger.Write(level, "====================================");
-    }
-
-    void LogJson<TValue>(LogLevel level, TValue value)
-    {
-        var jsonChunks =
-#if AOT_ENABLED
-            (value?.ToString() ?? string.Empty)
-#else
-            JsonSerializer.Serialize(value, jsonOptions)
-#endif
-                .Chunk(LogStringBuffer.Capacity / 2)
-                .Select(x => new string(x));
-        foreach (var chunk in jsonChunks)
-            logger.Write(level, chunk);
     }
 
     public void SetFrameDelay(PlayerHandle player, int delayInFrames)
@@ -299,7 +282,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         synchronizer.SetFrameDelay(player, delayInFrames);
     }
 
-    public void SetHandler(IRollbackHandler<TGameState> handler)
+    public void SetHandler(IRollbackHandler handler)
     {
         ArgumentNullException.ThrowIfNull(handler);
         callbacks = handler;

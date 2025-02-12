@@ -119,7 +119,7 @@ public interface IRollbackSession<TInput> : IRollbackSessionInfo, IDisposable wh
     void BeginFrame();
 
     /// <summary>
-    /// Should be called at the end of each frame of your application and also in <see cref="IRollbackHandler{TState}.AdvanceFrame"/>.
+    /// Should be called at the end of each frame of your application and also in <see cref="IRollbackHandler.AdvanceFrame"/>.
     /// </summary>
     void AdvanceFrame();
 
@@ -140,17 +140,7 @@ public interface IRollbackSession<TInput> : IRollbackSessionInfo, IDisposable wh
     /// <param name="player"></param>
     /// <param name="delayInFrames"></param>
     void SetFrameDelay(PlayerHandle player, int delayInFrames);
-}
 
-/// <summary>
-/// Context for a multiplayer game session.
-/// </summary>
-/// <typeparam name="TInput">Game input type</typeparam>
-/// <typeparam name="TState">Game state type</typeparam>
-public interface IRollbackSession<TInput, TState> : IRollbackSession<TInput>
-    where TInput : unmanaged
-    where TState : notnull
-{
     /// <summary>
     /// Add the <paramref name="player"/> into current session.
     /// Usually an instance of <see cref="LocalPlayer"/>, <see cref="RemotePlayer"/> or <see cref="Spectator"/>
@@ -168,7 +158,7 @@ public interface IRollbackSession<TInput, TState> : IRollbackSession<TInput>
 
     /// <summary>
     /// Starts the background work for the session
-    /// (Socket receiver, input queue, peer synchronization, etc).
+    /// (Socket receiver, input queue, peer synchronization, etc.)
     /// </summary>
     void Start(CancellationToken stoppingToken = default);
 
@@ -181,5 +171,5 @@ public interface IRollbackSession<TInput, TState> : IRollbackSession<TInput>
     /// Set the handler for the current session.
     /// The client must call this before <see cref="Start"/>.
     /// </summary>
-    void SetHandler(IRollbackHandler<TState> handler);
+    void SetHandler(IRollbackHandler handler);
 }

@@ -1,45 +1,109 @@
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
 namespace Backdash.Synchronizing.State;
 
 /// <summary>
-/// Provider of checksum values for <typeparamref name="T"/>.
+/// Provider of checksum values
 /// </summary>
-/// <typeparam name="T">Game state type</typeparam>
-public interface IChecksumProvider<T> where T : notnull
+public interface IChecksumProvider
 {
     /// <summary>
-    /// Returns the checksum value for <paramref name="value"/>.
+    /// Returns the checksum value for <paramref name="data"/>.
     /// </summary>
-    /// <param name="value"></param>
+    /// <param name="data"></param>
     /// <returns><see cref="int"/> checksum value</returns>
-    int Compute(in T value);
-}
-
-/// <summary>
-/// HashCode checksum provider for <typeparamref name="T"/>.
-/// </summary>
-/// <typeparam name="T">Game state type</typeparam>
-public sealed class HashCodeChecksumProvider<T> : IChecksumProvider<T> where T : notnull
-{
-    /// <inheritdoc />
-    public int Compute(in T value) => EqualityComparer<T>.Default.GetHashCode(value);
+    int Compute(ReadOnlySpan<byte> data);
 }
 
 /// <inheritdoc />
-sealed class EmptyChecksumProvider<T> : IChecksumProvider<T> where T : notnull
+sealed class EmptyChecksumProvider : IChecksumProvider
 {
     /// <inheritdoc />
-    public int Compute(in T value) => 0;
+    public int Compute(ReadOnlySpan<byte> data) => 0;
 }
 
-static class ChecksumProviderFactory
+/// <summary>
+/// Fletcher 32 checksum provider
+/// see: http://en.wikipedia.org/wiki/Fletcher%27s_checksum
+/// </summary>
+public sealed class Fletcher32ChecksumProvider : IChecksumProvider
 {
-    public static IChecksumProvider<T> Create<T>() where T : notnull
+    /// <inheritdoc />
+    public int Compute(ReadOnlySpan<byte> data)
     {
-#if !AOT_ENABLED
-        if (Core.TypeHelpers.HasInvariantHashCode<T>())
-            return new HashCodeChecksumProvider<T>();
-#endif
+        if (data.IsEmpty) return 0;
+        var buffer = MemoryMarshal.Cast<byte, short>(data);
+        int sum1 = 0xFFFF, sum2 = 0xFFFF;
+        var dataIndex = 0;
+        var len = buffer.Length;
 
-        return new EmptyChecksumProvider<T>();
+        while (len > 0)
+        {
+            var tLen = len > 360 ? 360 : len;
+            len -= tLen;
+
+            do
+            {
+                sum1 += buffer[dataIndex++];
+                sum2 += sum1;
+            } while (--tLen > 0);
+
+            sum1 = (sum1 & 0xFFFF) + (sum1 >> 16);
+            sum2 = (sum2 & 0xFFFF) + (sum2 >> 16);
+        }
+
+        sum1 = (sum1 & 0xFFFF) + (sum1 >> 16);
+        sum2 = (sum2 & 0xFFFF) + (sum2 >> 16);
+        return (sum2 << 16) | sum1;
+    }
+}
+
+/// <summary>
+/// CRC32 (Cyclic Redundancy Check) checksum provider
+/// see: https://en.wikipedia.org/wiki/Cyclic_redundancy_check
+/// </summary>
+public sealed class Crc32ChecksumProvider : IChecksumProvider
+{
+    static uint[] CreateTable()
+    {
+        const uint polynomial = 0xEDB88320;
+
+        var tableValues = new uint[256];
+        for (uint i = 0; i < tableValues.Length; i++)
+        {
+            var crc = i;
+            for (var j = 0; j < 8; j++)
+            {
+                if ((crc & 1) is not 0)
+                    crc = (crc >> 1) ^ polynomial;
+                else
+                    crc >>= 1;
+            }
+
+            tableValues[i] = crc;
+        }
+
+        return tableValues;
+    }
+
+    static readonly uint[] table = CreateTable();
+
+    /// <inheritdoc />
+    public int Compute(ReadOnlySpan<byte> data)
+    {
+        var crc = 0xFFFFFFFF;
+        ref var current = ref MemoryMarshal.GetReference(data);
+        ref readonly var limit = ref Unsafe.Add(ref current, data.Length);
+
+        while (Unsafe.IsAddressLessThan(in current, in limit))
+        {
+            var index = (byte)((crc & 0xFF) ^ current);
+            crc = (crc >> 8) ^ table[index];
+
+            current = ref Unsafe.Add(ref current, 1);
+        }
+
+        return (int)~crc;
     }
 }

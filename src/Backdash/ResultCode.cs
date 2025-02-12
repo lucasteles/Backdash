@@ -43,7 +43,7 @@ public enum ResultCode : short
     TooManyPlayers,
 
     /// <summary>The operations need to requested before synchronization starts.</summary>
-    /// <seealso cref="IRollbackSession{TInput, TGameState}.Start"/>
+    /// <seealso cref="IRollbackSession{TInput}.Start"/>
     AlreadySynchronized,
 
     /// <summary>The <see cref="PlayerHandle"/> is already added to the session.</summary>

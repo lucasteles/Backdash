@@ -46,7 +46,7 @@ struct InputMessage : IEquatable<InputMessage>, ISpanSerializable, IUtf8SpanForm
         writer.Write(Bits[..bitCount]);
     }
 
-    public void Deserialize(BinarySpanReader reader)
+    public void Deserialize(BinaryBufferReader reader)
     {
         var peerCount = reader.ReadByte();
         for (var i = 0; i < peerCount; i++)

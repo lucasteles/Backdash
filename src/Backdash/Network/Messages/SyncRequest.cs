@@ -16,7 +16,7 @@ record struct SyncRequest : ISpanSerializable, IUtf8SpanFormattable
         writer.Write(in Ping);
     }
 
-    public void Deserialize(BinarySpanReader reader)
+    public void Deserialize(BinaryBufferReader reader)
     {
         RandomRequest = reader.ReadUInt32();
         Ping = reader.ReadInt64();

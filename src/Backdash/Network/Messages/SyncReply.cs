@@ -16,7 +16,7 @@ record struct SyncReply : ISpanSerializable, IUtf8SpanFormattable
         writer.Write(in Pong);
     }
 
-    public void Deserialize(BinarySpanReader reader)
+    public void Deserialize(BinaryBufferReader reader)
     {
         RandomReply = reader.ReadUInt32();
         Pong = reader.ReadInt64();

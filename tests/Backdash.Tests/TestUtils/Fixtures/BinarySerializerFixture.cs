@@ -7,7 +7,7 @@ namespace Backdash.Tests.TestUtils.Fixtures;
 readonly ref struct BinarySerializerFixture
 {
     readonly byte[] buffer;
-    public readonly BinarySpanReader Reader;
+    public readonly BinaryBufferReader Reader;
     public readonly BinarySpanWriter Writer;
     public readonly ref int WriteOffset;
     public readonly ref int ReadOffset;

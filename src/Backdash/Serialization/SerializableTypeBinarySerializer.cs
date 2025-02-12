@@ -21,7 +21,7 @@ class SerializableTypeBinarySerializer<T> : IBinarySerializer<T>
     public int Deserialize(ReadOnlySpan<byte> data, ref T value)
     {
         var offset = 0;
-        BinarySpanReader reader = new(data, ref offset)
+        BinaryBufferReader reader = new(data, ref offset)
         {
             Endianness = Endianness,
         };

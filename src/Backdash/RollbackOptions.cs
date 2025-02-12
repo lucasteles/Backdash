@@ -13,14 +13,13 @@ namespace Backdash;
 /// </summary>
 ///  <seealso cref="RollbackNetcode"/>
 ///  <seealso cref="IRollbackSession{TInput}"/>
-///  <seealso cref="IRollbackSession{TInput,TGameState}"/>
 public sealed class RollbackOptions
 {
     /// <summary>
     /// Offset to be incremented to spectators <see cref="PlayerHandle.Number"/> when added to session.
     /// </summary>
     /// <seealso cref="PlayerType.Spectator"/>
-    /// <seealso cref="IRollbackSession{TInput,TState}.AddPlayer"/>
+    /// <seealso cref="IRollbackSession{TInput}.AddPlayer"/>
     /// <inheritdoc cref="Default.SpectatorOffset"/>
     public int SpectatorOffset { get; init; } = Default.SpectatorOffset;
 
@@ -59,10 +58,10 @@ public sealed class RollbackOptions
     public int PredictionFrames { get; init; } = Default.PredictionFrames;
 
     /// <summary>
-    /// Value to be incremented on <see cref="PredictionFrames"/> in state store <see cref="IStateStore{TState}.Initialize"/>
+    /// Value to be incremented on <see cref="PredictionFrames"/> in state store <see cref="IStateStore.Initialize"/>
     /// </summary>
     /// <inheritdoc cref="Default.PredictionFramesOffset"/>
-    /// <seealso cref="IStateStore{TState}"/>
+    /// <seealso cref="IStateStore"/>
     public int PredictionFramesOffset { get; init; } = Default.PredictionFramesOffset;
 
     /// <summary>

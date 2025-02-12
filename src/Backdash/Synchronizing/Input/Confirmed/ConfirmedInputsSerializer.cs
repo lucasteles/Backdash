@@ -16,7 +16,7 @@ sealed class ConfirmedInputsSerializer<T>(IBinarySerializer<T> inputSerializer)
         }
     }
 
-    protected override void Deserialize(in BinarySpanReader binaryReader, ref ConfirmedInputs<T> result)
+    protected override void Deserialize(in BinaryBufferReader binaryReader, ref ConfirmedInputs<T> result)
     {
         result.Count = binaryReader.ReadByte();
         for (var i = 0; i < result.Count; i++)

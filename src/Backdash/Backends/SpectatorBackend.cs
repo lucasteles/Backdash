@@ -13,12 +13,11 @@ using Backdash.Synchronizing.Random;
 
 namespace Backdash.Backends;
 
-sealed class SpectatorBackend<TInput, TGameState> :
-    IRollbackSession<TInput, TGameState>,
+sealed class SpectatorBackend<TInput> :
+    IRollbackSession<TInput>,
     IProtocolNetworkEventHandler,
     IProtocolInputEventPublisher<ConfirmedInputs<TInput>>
     where TInput : unmanaged
-    where TGameState : notnull, new()
 {
     readonly Logger logger;
     readonly IProtocolClient udp;
@@ -32,7 +31,7 @@ sealed class SpectatorBackend<TInput, TGameState> :
     readonly PeerConnection<ConfirmedInputs<TInput>> host;
     readonly PlayerHandle[] fakePlayers;
 
-    IRollbackHandler<TGameState> callbacks;
+    IRollbackHandler callbacks;
     bool isSynchronizing;
     Task backgroundJobTask = Task.CompletedTask;
     bool disposed;
@@ -45,7 +44,7 @@ sealed class SpectatorBackend<TInput, TGameState> :
         IPEndPoint hostEndpoint,
         int numberOfPlayers,
         RollbackOptions options,
-        BackendServices<TInput, TGameState> services)
+        BackendServices<TInput> services)
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(options);
@@ -63,7 +62,7 @@ sealed class SpectatorBackend<TInput, TGameState> :
         IBinarySerializer<ConfirmedInputs<TInput>> inputGroupSerializer =
             new ConfirmedInputsSerializer<TInput>(services.InputSerializer);
         PeerObserverGroup<ProtocolMessage> peerObservers = new();
-        callbacks = new EmptySessionHandler<TGameState>(logger);
+        callbacks = new EmptySessionHandler(logger);
         inputs = new GameInput<ConfirmedInputs<TInput>>[options.SpectatorInputBufferLength];
 
         udp = services.ProtocolClientFactory.CreateProtocolClient(port, peerObservers);
@@ -156,7 +155,7 @@ sealed class SpectatorBackend<TInput, TGameState> :
         await backgroundJobTask.WaitAsync(stoppingToken).ConfigureAwait(false);
     }
 
-    public void SetHandler(IRollbackHandler<TGameState> handler)
+    public void SetHandler(IRollbackHandler handler)
     {
         ArgumentNullException.ThrowIfNull(handler);
         callbacks = handler;

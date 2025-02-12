@@ -34,7 +34,7 @@ public class ReadWriteIntegerBenchmark
     {
         Span<byte> span = stackalloc byte[sizeof(int)];
         var offset = 0;
-        BinarySpanReader reader = new(span, ref offset)
+        BinaryBufferReader reader = new(span, ref offset)
         {
             Endianness = Mode,
         };

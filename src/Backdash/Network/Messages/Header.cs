@@ -20,7 +20,7 @@ record struct Header(MessageType Type) : ISpanSerializable
         writer.Write(in SequenceNumber);
     }
 
-    public void Deserialize(BinarySpanReader reader)
+    public void Deserialize(BinaryBufferReader reader)
     {
         try
         {

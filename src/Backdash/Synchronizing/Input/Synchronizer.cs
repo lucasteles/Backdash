@@ -2,33 +2,35 @@ using System.Diagnostics;
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network;
+using Backdash.Serialization;
+using Backdash.Serialization.Buffer;
 using Backdash.Synchronizing.Input.Confirmed;
 using Backdash.Synchronizing.State;
 
 namespace Backdash.Synchronizing.Input;
 
-sealed class Synchronizer<TInput, TState>
-    where TInput : unmanaged
-    where TState : notnull, new()
+sealed class Synchronizer<TInput> where TInput : unmanaged
 {
     readonly RollbackOptions options;
     readonly Logger logger;
     readonly IReadOnlyCollection<PlayerHandle> players;
-    readonly IStateStore<TState> stateStore;
-    readonly IChecksumProvider<TState> checksumProvider;
+    readonly IStateStore stateStore;
+    readonly IChecksumProvider checksumProvider;
     readonly ConnectionsState localConnections;
     readonly List<InputQueue<TInput>> inputQueues;
-    public required IRollbackHandler<TState> Callbacks { get; internal set; }
+    public required IRollbackHandler Callbacks { get; internal set; }
     Frame currentFrame = Frame.Zero;
     Frame lastConfirmedFrame = Frame.Zero;
     int NumberOfPlayers => players.Count;
+
+    Endianness endianness;
 
     public Synchronizer(
         RollbackOptions options,
         Logger logger,
         IReadOnlyCollection<PlayerHandle> players,
-        IStateStore<TState> stateStore,
-        IChecksumProvider<TState> checksumProvider,
+        IStateStore stateStore,
+        IChecksumProvider checksumProvider,
         ConnectionsState localConnections
     )
     {
@@ -39,6 +41,7 @@ sealed class Synchronizer<TInput, TState>
         this.checksumProvider = checksumProvider;
         this.localConnections = localConnections;
 
+        endianness = Platform.GetEndianness(options.NetworkEndianness);
         stateStore.Initialize(options.PredictionFrames + options.PredictionFramesOffset);
         inputQueues = new(2);
     }
@@ -174,25 +177,39 @@ sealed class Synchronizer<TInput, TState>
             return;
         }
 
-        ref readonly var savedFrame = ref stateStore.Load(frame);
+        var savedFrame = stateStore.Load(frame);
         logger.Write(LogLevel.Information,
             $"* Loading frame info {savedFrame.Frame} (checksum: {savedFrame.Checksum})");
-        Callbacks.LoadState(in frame, in savedFrame.GameState);
+
+        var offset = 0;
+        BinaryBufferReader reader = new(savedFrame.GameState.WrittenSpan, ref offset)
+        {
+            Endianness = endianness,
+        };
+
+        Callbacks.LoadState(in frame, in reader);
+
         // Reset frame count and the head of the state ring-buffer to point in
         // advance of the current frame (as if we had just finished executing it).
         currentFrame = savedFrame.Frame;
     }
 
-    public ref readonly SavedFrame<TState> GetLastSavedFrame() => ref stateStore.Last();
+    public SavedFrame GetLastSavedFrame() => stateStore.Last();
 
     public void SaveCurrentFrame()
     {
         ref var nextState = ref stateStore.GetCurrent();
-        Callbacks.ClearState(ref nextState);
-        Callbacks.SaveState(in currentFrame, ref nextState);
-        var checksum = checksumProvider.Compute(in nextState);
-        ref readonly var next = ref stateStore.SaveCurrent(in currentFrame, in checksum);
-        logger.Write(LogLevel.Trace, $"sync: saved frame {next.Frame} (checksum: {next.Checksum}).");
+
+        BinaryBufferWriter writer = new(nextState.GameState)
+        {
+            Endianness = endianness,
+        };
+        Callbacks.SaveState(in currentFrame, in writer);
+        nextState.Frame = currentFrame;
+        nextState.Checksum = checksumProvider.Compute(nextState.GameState.WrittenSpan);
+
+        stateStore.Advance();
+        logger.Write(LogLevel.Trace, $"sync: saved frame {nextState.Frame} (checksum: {nextState.Checksum}).");
     }
 
     bool CheckSimulationConsistency(out Frame seekTo)

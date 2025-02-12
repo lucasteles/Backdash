@@ -18,7 +18,7 @@ public class PadInputsBinarySerializer : BinarySerializer<PadInputs>
         binaryWriter.Write(data.RightAxis.Y);
     }
 
-    protected override void Deserialize(in BinarySpanReader binaryReader, ref PadInputs result)
+    protected override void Deserialize(in BinaryBufferReader binaryReader, ref PadInputs result)
     {
         result.Buttons = (PadInputs.PadButtons)binaryReader.ReadInt16();
         result.LeftTrigger = binaryReader.ReadByte();

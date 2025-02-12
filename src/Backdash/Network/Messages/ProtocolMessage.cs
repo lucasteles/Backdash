@@ -63,7 +63,7 @@ struct ProtocolMessage(MessageType type) : ISpanSerializable, IEquatable<Protoco
         }
     }
 
-    public void Deserialize(BinarySpanReader reader)
+    public void Deserialize(BinaryBufferReader reader)
     {
         Header.Deserialize(reader);
         switch (Header.Type)

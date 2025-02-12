@@ -1,7 +1,8 @@
 using System.Numerics;
 using Backdash.Data;
 using Backdash.Serialization;
-using Backdash.Synchronizing.State.Stores;
+using Backdash.Serialization.Buffer;
+using Backdash.Synchronizing.State;
 using Backdash.Tests.TestUtils;
 
 namespace Backdash.Tests.Specs.Unit.Sync.State;
@@ -11,33 +12,24 @@ public class BinaryStateStoreTests
     [Fact]
     public void ShouldInitializeCorrectly()
     {
-        BinaryStateStore<GameState> store = new(GameStateSerializer.Shared, 40);
+        BinaryStateStore store = new(40);
         store.Initialize(1);
 
-        var newState = GameState.CreateRandom();
         ref var currentState = ref store.GetCurrent();
-        currentState = newState;
+        currentState.Frame = Frame.One;
+        currentState.Checksum = 0;
 
-        store.SaveCurrent(Frame.One, 0);
+        var gameState = GameState.CreateRandom();
+        GameStateSerializer.Shared.Serialize(new(currentState.GameState), in gameState);
 
-        ref readonly var loaded = ref store.Load(Frame.One);
-        loaded.GameState.Should().BeEquivalentTo(newState);
-    }
+        var loaded = store.Load(Frame.One);
+        GameState newGameState = new();
 
-    [Fact]
-    public void ShouldInitializeResizingHintSizeBufferCorrectly()
-    {
-        BinaryStateStore<GameState> store = new(GameStateSerializer.Shared, 1);
-        store.Initialize(1);
+        var offset = 0;
+        BinaryBufferReader reader = new(loaded.GameState.WrittenSpan, ref offset);
+        GameStateSerializer.Shared.Deserialize(reader, ref newGameState);
 
-        var newState = GameState.CreateRandom();
-        ref var currentState = ref store.GetCurrent();
-        currentState = newState;
-
-        store.SaveCurrent(Frame.One, 0);
-
-        ref readonly var loaded = ref store.Load(Frame.One);
-        loaded.GameState.Should().BeEquivalentTo(newState);
+        newGameState.Should().BeEquivalentTo(gameState);
     }
 }
 

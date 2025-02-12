@@ -2,7 +2,7 @@ namespace Backdash.Synchronizing;
 
 /// <summary>
 /// Control flow of a replay session.
-/// <seealso cref="RollbackNetcode.CreateReplaySession{TInput,TGameState}"/>
+/// <seealso cref="RollbackNetcode.CreateReplaySession{TInput}"/>
 /// </summary>
 public sealed class SessionReplayControl
 {

@@ -17,7 +17,7 @@ record struct ConnectStatus : ISpanSerializable
         writer.Write(in LastFrame.Number);
     }
 
-    public void Deserialize(BinarySpanReader reader)
+    public void Deserialize(BinaryBufferReader reader)
     {
         Disconnected = reader.ReadBoolean();
         LastFrame = new(reader.ReadInt32());

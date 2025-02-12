@@ -158,7 +158,7 @@ public class BinarySpanReadWriteSpanTests
         IReadOnlyCollection<T> values,
         Endianness endianness,
         out BinarySpanWriter writer,
-        out BinarySpanReader reader) where T : struct
+        out BinaryBufferReader reader) where T : struct
     {
         var size = Unsafe.SizeOf<T>() * values.Count;
         Span<byte> buffer = new byte[size];

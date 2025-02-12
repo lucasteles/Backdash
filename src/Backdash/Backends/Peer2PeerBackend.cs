@@ -14,21 +14,20 @@ using Backdash.Synchronizing.State;
 
 namespace Backdash.Backends;
 
-sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGameState>, IProtocolNetworkEventHandler
+sealed class Peer2PeerBackend<TInput> : IRollbackSession<TInput>, IProtocolNetworkEventHandler
     where TInput : unmanaged
-    where TGameState : notnull, new()
 {
     readonly RollbackOptions options;
     readonly IBinarySerializer<TInput> inputSerializer;
     readonly IBinarySerializer<ConfirmedInputs<TInput>> inputGroupSerializer;
     readonly Logger logger;
-    readonly IStateStore<TGameState> stateStore;
+    readonly IStateStore stateStore;
     readonly IProtocolClient udp;
     readonly PeerObserverGroup<ProtocolMessage> peerObservers;
-    readonly Synchronizer<TInput, TGameState> synchronizer;
+    readonly Synchronizer<TInput> synchronizer;
     readonly ConnectionsState localConnections;
     readonly IBackgroundJobManager backgroundJobManager;
-    readonly IProtocolInputEventQueue<TInput> peerInputEventQueue;
+    readonly ProtocolInputEventQueue<TInput> peerInputEventQueue;
     readonly IProtocolInputEventPublisher<ConfirmedInputs<TInput>> peerCombinedInputsEventPublisher;
     readonly PeerConnectionFactory peerConnectionFactory;
     readonly List<PeerConnection<ConfirmedInputs<TInput>>> spectators;
@@ -42,7 +41,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
     int nextRecommendedInterval;
     Frame nextSpectatorFrame = Frame.Zero;
     Frame nextListenerFrame = Frame.Zero;
-    IRollbackHandler<TGameState> callbacks;
+    IRollbackHandler callbacks;
     SynchronizedInput<TInput>[] syncInputBuffer = [];
     TInput[] inputBuffer = [];
     Task backgroundJobTask = Task.CompletedTask;
@@ -53,7 +52,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
     public Peer2PeerBackend(
         int port,
         RollbackOptions options,
-        BackendServices<TInput, TGameState> services
+        BackendServices<TInput> services
     )
     {
         ArgumentNullException.ThrowIfNull(services);
@@ -79,7 +78,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         endpoints = new(Max.NumberOfPlayers);
         spectators = [];
         peerObservers = new();
-        callbacks = new EmptySessionHandler<TGameState>(logger);
+        callbacks = new EmptySessionHandler(logger);
 
         synchronizer = new(
             this.options,
@@ -239,7 +238,7 @@ sealed class Peer2PeerBackend<TInput, TGameState> : IRollbackSession<TInput, TGa
         return true;
     }
 
-    public void SetHandler(IRollbackHandler<TGameState> handler)
+    public void SetHandler(IRollbackHandler handler)
     {
         ArgumentNullException.ThrowIfNull(handler);
         callbacks = handler;

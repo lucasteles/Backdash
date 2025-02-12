@@ -228,7 +228,7 @@ public class BinarySpanReadWriteValueTests
     static int Setup<T>(
         Endianness endianness,
         out BinarySpanWriter writer,
-        out BinarySpanReader reader
+        out BinaryBufferReader reader
     ) where T : struct
     {
         var size = Unsafe.SizeOf<T>();

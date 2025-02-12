@@ -1,6 +1,8 @@
+using System.Buffers;
 using System.Numerics;
 using Backdash.Data;
 using Backdash.Serialization;
+using Backdash.Serialization.Buffer;
 
 namespace Backdash.Tests.Specs.Unit.Serialization;
 
@@ -55,8 +57,6 @@ public class GeneratorTests
     [Fact]
     public void ShouldSerializeDeserialize()
     {
-        Span<byte> buffer = new byte[1024];
-
         var serializer = GameStateSerializer.Shared;
 
         GameState data = new()
@@ -87,10 +87,13 @@ public class GeneratorTests
             Value10 = [EnumState.Foo, EnumState.Bar],
         };
 
-        var size = serializer.Serialize(in data, buffer);
+        ArrayBufferWriter<byte> buffer = new();
+        serializer.Serialize(new(buffer), in data);
 
         GameState result = new();
-        serializer.Deserialize(buffer[..size], ref result);
+        var offset = 0;
+        BinaryBufferReader reader = new(buffer.WrittenSpan, ref offset);
+        serializer.Deserialize(reader, ref result);
 
         result.Should().BeEquivalentTo(data);
     }

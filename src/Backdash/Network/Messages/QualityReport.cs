@@ -16,7 +16,7 @@ record struct QualityReport : ISpanSerializable, IUtf8SpanFormattable
         writer.Write(in Ping);
     }
 
-    public void Deserialize(BinarySpanReader reader)
+    public void Deserialize(BinaryBufferReader reader)
     {
         FrameAdvantage = reader.ReadInt32();
         Ping = reader.ReadInt64();
