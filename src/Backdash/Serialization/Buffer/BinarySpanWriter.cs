@@ -47,10 +47,10 @@ public readonly ref struct BinarySpanWriter
     public void Advance(int count) => offset += count;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    void WriteSpan<T>(in ReadOnlySpan<T> data) where T : struct => Write(MemoryMarshal.AsBytes(data));
+    void WriteSpan<T>(in ReadOnlySpan<T> data) where T : unmanaged => Write(MemoryMarshal.AsBytes(data));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    Span<T> AllocSpanFor<T>(in ReadOnlySpan<T> value) where T : struct
+    Span<T> AllocSpan<T>(in ReadOnlySpan<T> value) where T : unmanaged
     {
         var sizeBytes = Unsafe.SizeOf<T>() * value.Length;
         var result = MemoryMarshal.Cast<byte, T>(buffer.Slice(offset, sizeBytes));
@@ -160,7 +160,7 @@ public readonly ref struct BinarySpanWriter
     public void Write(in ReadOnlySpan<short> value)
     {
         if (Endianness != Platform.Endianness)
-            BinaryPrimitives.ReverseEndianness(value, AllocSpanFor(in value));
+            BinaryPrimitives.ReverseEndianness(value, AllocSpan(in value));
         else
             WriteSpan(in value);
     }
@@ -169,7 +169,7 @@ public readonly ref struct BinarySpanWriter
     public void Write(in ReadOnlySpan<ushort> value)
     {
         if (Endianness != Platform.Endianness)
-            BinaryPrimitives.ReverseEndianness(value, AllocSpanFor(in value));
+            BinaryPrimitives.ReverseEndianness(value, AllocSpan(in value));
         else
             WriteSpan(in value);
     }
@@ -181,7 +181,7 @@ public readonly ref struct BinarySpanWriter
     public void Write(in ReadOnlySpan<int> value)
     {
         if (Endianness != Platform.Endianness)
-            BinaryPrimitives.ReverseEndianness(value, AllocSpanFor(in value));
+            BinaryPrimitives.ReverseEndianness(value, AllocSpan(in value));
         else
             WriteSpan(in value);
     }
@@ -190,7 +190,7 @@ public readonly ref struct BinarySpanWriter
     public void Write(in ReadOnlySpan<uint> value)
     {
         if (Endianness != Platform.Endianness)
-            BinaryPrimitives.ReverseEndianness(value, AllocSpanFor(in value));
+            BinaryPrimitives.ReverseEndianness(value, AllocSpan(in value));
         else
             WriteSpan(in value);
     }
@@ -199,7 +199,7 @@ public readonly ref struct BinarySpanWriter
     public void Write(in ReadOnlySpan<long> value)
     {
         if (Endianness != Platform.Endianness)
-            BinaryPrimitives.ReverseEndianness(value, AllocSpanFor(in value));
+            BinaryPrimitives.ReverseEndianness(value, AllocSpan(in value));
         else
             WriteSpan(in value);
     }
@@ -208,7 +208,7 @@ public readonly ref struct BinarySpanWriter
     public void Write(in ReadOnlySpan<ulong> value)
     {
         if (Endianness != Platform.Endianness)
-            BinaryPrimitives.ReverseEndianness(value, AllocSpanFor(in value));
+            BinaryPrimitives.ReverseEndianness(value, AllocSpan(in value));
         else
             WriteSpan(in value);
     }
@@ -217,7 +217,7 @@ public readonly ref struct BinarySpanWriter
     public void Write(in ReadOnlySpan<Int128> value)
     {
         if (Endianness != Platform.Endianness)
-            BinaryPrimitives.ReverseEndianness(value, AllocSpanFor(in value));
+            BinaryPrimitives.ReverseEndianness(value, AllocSpan(in value));
         else
             WriteSpan(in value);
     }
@@ -226,13 +226,17 @@ public readonly ref struct BinarySpanWriter
     public void Write(in ReadOnlySpan<UInt128> value)
     {
         if (Endianness != Platform.Endianness)
-            BinaryPrimitives.ReverseEndianness(value, AllocSpanFor(in value));
+            BinaryPrimitives.ReverseEndianness(value, AllocSpan(in value));
         else
             WriteSpan(in value);
     }
 
+    /// <summary>Writes an <see cref="string"/> <paramref name="value"/> into buffer.</summary>
+    public void WriteString(in string value) => Write(value.AsSpan());
+
     /// <summary>Writes an <see cref="string"/> <paramref name="value"/> into buffer as UTF8.</summary>
-    public void Write(in string value) => Write(value.AsSpan());
+    public void WriteUtf8String(in ReadOnlySpan<char> value) =>
+        Advance(System.Text.Encoding.UTF8.GetBytes(value, CurrentBuffer));
 
     /// <summary>Writes a <see cref="IBinaryInteger{T}"/> <paramref name="value"/> into buffer.</summary>
     /// <typeparam name="T">A numeric type that implements <see cref="IBinaryInteger{T}"/>.</typeparam>
@@ -263,53 +267,53 @@ public readonly ref struct BinarySpanWriter
         switch (Type.GetTypeCode(typeof(T)))
         {
             case TypeCode.Int32:
-                {
-                    var tmp = Unsafe.As<T, int>(ref refValue);
-                    Write(in tmp);
-                    break;
-                }
+            {
+                var tmp = Unsafe.As<T, int>(ref refValue);
+                Write(in tmp);
+                break;
+            }
             case TypeCode.UInt32:
-                {
-                    var tmp = Unsafe.As<T, uint>(ref refValue);
-                    Write(in tmp);
-                    break;
-                }
+            {
+                var tmp = Unsafe.As<T, uint>(ref refValue);
+                Write(in tmp);
+                break;
+            }
             case TypeCode.Int64:
-                {
-                    var tmp = Unsafe.As<T, long>(ref refValue);
-                    Write(in tmp);
-                    break;
-                }
+            {
+                var tmp = Unsafe.As<T, long>(ref refValue);
+                Write(in tmp);
+                break;
+            }
             case TypeCode.UInt64:
-                {
-                    var tmp = Unsafe.As<T, ulong>(ref refValue);
-                    Write(in tmp);
-                    break;
-                }
+            {
+                var tmp = Unsafe.As<T, ulong>(ref refValue);
+                Write(in tmp);
+                break;
+            }
             case TypeCode.Int16:
-                {
-                    var tmp = Unsafe.As<T, short>(ref refValue);
-                    Write(in tmp);
-                    break;
-                }
+            {
+                var tmp = Unsafe.As<T, short>(ref refValue);
+                Write(in tmp);
+                break;
+            }
             case TypeCode.UInt16:
-                {
-                    var tmp = Unsafe.As<T, ushort>(ref refValue);
-                    Write(in tmp);
-                    break;
-                }
+            {
+                var tmp = Unsafe.As<T, ushort>(ref refValue);
+                Write(in tmp);
+                break;
+            }
             case TypeCode.Byte:
-                {
-                    var tmp = Unsafe.As<T, byte>(ref refValue);
-                    Write(in tmp);
-                    break;
-                }
+            {
+                var tmp = Unsafe.As<T, byte>(ref refValue);
+                Write(in tmp);
+                break;
+            }
             case TypeCode.SByte:
-                {
-                    var tmp = Unsafe.As<T, sbyte>(ref refValue);
-                    Write(in tmp);
-                    break;
-                }
+            {
+                var tmp = Unsafe.As<T, sbyte>(ref refValue);
+                Write(in tmp);
+                break;
+            }
             default: throw new InvalidOperationException("Unknown enum underlying type");
         }
     }

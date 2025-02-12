@@ -41,16 +41,11 @@ static class ThrowHelpers
     public static Exception StructMustNotHaveReferenceTypeMembers() =>
         new ArgumentException("Input struct must not have reference type members");
 
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void ThrowIfTypeIsReferenceOrContainsReferences<T>() where T : struct
     {
         if (Mem.IsReferenceOrContainsReferences<T>())
             throw StructMustNotHaveReferenceTypeMembers();
     }
-
-    public static void ThrowArgumentOutOfRangeException(string argName) =>
-        throw new ArgumentOutOfRangeException(argName);
-
-#pragma warning disable S112
-    public static void ThrowIndexOutOfRangeException() => throw new IndexOutOfRangeException();
-#pragma warning restore S112
 }

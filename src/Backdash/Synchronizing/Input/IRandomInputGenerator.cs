@@ -38,7 +38,7 @@ public sealed class RandomInputGenerator<TInput> : IInputGenerator<TInput> where
     public TInput Generate()
     {
         TInput newInput = new();
-        var buffer = Mem.GetSpan(ref newInput);
+        var buffer = Mem.AsBytes(ref newInput);
         Random.NextBytes(buffer);
         return newInput;
     }

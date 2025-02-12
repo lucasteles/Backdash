@@ -2,6 +2,7 @@ using System.Buffers.Binary;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Backdash.Core;
 using Backdash.Network;
 
 namespace Backdash.Serialization.Buffer;
@@ -116,6 +117,22 @@ public readonly ref struct BinaryBufferReader
         }
     }
 
+    /// <summary>Reads single <see cref="char"/> from buffer.</summary>
+    public char ReadUtf8Char()
+    {
+        Span<char> result = stackalloc char[1];
+        System.Text.Encoding.UTF8.GetChars(CurrentBuffer[..1], result);
+        return result[0];
+    }
+
+    /// <summary>Reads a span of <see cref="char"/> from buffer into <paramref name="values"/>.</summary>
+    public void ReadUtf8String(in Span<char> values)
+    {
+        var byteCount = System.Text.Encoding.UTF8.GetByteCount(values);
+        System.Text.Encoding.UTF8.GetChars(CurrentBuffer[..byteCount], values);
+        Advance(byteCount);
+    }
+
     /// <summary>Reads single <see cref="int"/> from buffer.</summary>
     public int ReadInt32() => ReadNumber<int>(false);
 
@@ -186,45 +203,95 @@ public readonly ref struct BinaryBufferReader
     public Half ReadHalf() => BitConverter.Int16BitsToHalf(ReadInt16());
 
     /// <summary>Reads single <see cref="float"/> from buffer.</summary>
-    public float ReadSingle() => BitConverter.Int32BitsToSingle(ReadInt32());
+    public float ReadFloat() => BitConverter.Int32BitsToSingle(ReadInt32());
 
     /// <summary>Reads single <see cref="double"/> from buffer.</summary>
     public double ReadDouble() => BitConverter.Int64BitsToDouble(ReadInt64());
 
+    /// <summary>Reads an unmanaged struct from buffer.</summary>
+    public T ReadStruct<T>() where T : unmanaged
+    {
+        var size = Unsafe.SizeOf<T>();
+        var result = Mem.ReadStruct<T>(CurrentBuffer[..size]);
+        Advance(size);
+        return result;
+    }
+
+    /// <summary>Reads an unmanaged struct from buffer.</summary>
+    public void ReadStruct<T>(in Span<T> values) where T : unmanaged
+    {
+        var valuesBytes = MemoryMarshal.AsBytes(values);
+        var size = valuesBytes.Length;
+        CurrentBuffer[..size].CopyTo(valuesBytes);
+        Advance(size);
+    }
+
+    /// <summary>Reads an unmanaged struct from buffer.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void ReadStruct<T>(in T[] values) where T : unmanaged =>
+        ReadStruct(values.AsSpan());
+
+    /// <summary>Reads an unmanaged struct from buffer.</summary>
+    public T ReadStructUnsafe<T>() where T : struct
+    {
+        var size = Unsafe.SizeOf<T>();
+        var result = Mem.ReadStruct<T>(CurrentBuffer[..size]);
+        Advance(size);
+        return result;
+    }
+
+    /// <summary>Reads an unmanaged struct from buffer.</summary>
+    public void ReadStructUnsafe<T>(in Span<T> values) where T : struct
+    {
+        ThrowHelpers.ThrowIfTypeIsReferenceOrContainsReferences<T>();
+        var valuesBytes = MemoryMarshal.AsBytes(values);
+        var size = valuesBytes.Length;
+        CurrentBuffer[..size].CopyTo(valuesBytes);
+        Advance(size);
+    }
+
+    /// <summary>Reads and allocates an <see cref="string"/> from buffer.</summary>
+    public string ReadString(int size)
+    {
+        Span<char> charBuffer = stackalloc char[size];
+        ReadChar(in charBuffer);
+        return new(charBuffer);
+    }
+
     /// <summary>Reads single <see cref="Vector2"/> from buffer.</summary>
     public Vector2 ReadVector2()
     {
-        var x = ReadSingle();
-        var y = ReadSingle();
+        var x = ReadFloat();
+        var y = ReadFloat();
         return new(x, y);
     }
 
     /// <summary>Reads single <see cref="Vector3"/> from buffer.</summary>
     public Vector3 ReadVector3()
     {
-        var x = ReadSingle();
-        var y = ReadSingle();
-        var z = ReadSingle();
+        var x = ReadFloat();
+        var y = ReadFloat();
+        var z = ReadFloat();
         return new(x, y, z);
     }
 
     /// <summary>Reads single <see cref="Vector4"/> from buffer.</summary>
     public Vector4 ReadVector4()
     {
-        var x = ReadSingle();
-        var y = ReadSingle();
-        var z = ReadSingle();
-        var w = ReadSingle();
+        var x = ReadFloat();
+        var y = ReadFloat();
+        var z = ReadFloat();
+        var w = ReadFloat();
         return new(x, y, z, w);
     }
 
     /// <summary>Reads single <see cref="Quaternion"/> from buffer.</summary>
     public Quaternion ReadQuaternion()
     {
-        var x = ReadSingle();
-        var y = ReadSingle();
-        var z = ReadSingle();
-        var w = ReadSingle();
+        var x = ReadFloat();
+        var y = ReadFloat();
+        var z = ReadFloat();
+        var w = ReadFloat();
         return new Quaternion(x, y, z, w);
     }
 
@@ -256,45 +323,45 @@ public readonly ref struct BinaryBufferReader
         switch (Type.GetTypeCode(typeof(T)))
         {
             case TypeCode.Int32:
-                {
-                    var value = ReadInt32();
-                    return Unsafe.As<int, T>(ref value);
-                }
+            {
+                var value = ReadInt32();
+                return Unsafe.As<int, T>(ref value);
+            }
             case TypeCode.UInt32:
-                {
-                    var value = ReadUInt32();
-                    return Unsafe.As<uint, T>(ref value);
-                }
+            {
+                var value = ReadUInt32();
+                return Unsafe.As<uint, T>(ref value);
+            }
             case TypeCode.Int64:
-                {
-                    var value = ReadInt64();
-                    return Unsafe.As<long, T>(ref value);
-                }
+            {
+                var value = ReadInt64();
+                return Unsafe.As<long, T>(ref value);
+            }
             case TypeCode.UInt64:
-                {
-                    var value = ReadUInt64();
-                    return Unsafe.As<ulong, T>(ref value);
-                }
+            {
+                var value = ReadUInt64();
+                return Unsafe.As<ulong, T>(ref value);
+            }
             case TypeCode.Int16:
-                {
-                    var value = ReadInt16();
-                    return Unsafe.As<short, T>(ref value);
-                }
+            {
+                var value = ReadInt16();
+                return Unsafe.As<short, T>(ref value);
+            }
             case TypeCode.UInt16:
-                {
-                    var value = ReadUInt16();
-                    return Unsafe.As<ushort, T>(ref value);
-                }
+            {
+                var value = ReadUInt16();
+                return Unsafe.As<ushort, T>(ref value);
+            }
             case TypeCode.Byte:
-                {
-                    var value = ReadByte();
-                    return Unsafe.As<byte, T>(ref value);
-                }
+            {
+                var value = ReadByte();
+                return Unsafe.As<byte, T>(ref value);
+            }
             case TypeCode.SByte:
-                {
-                    var value = ReadSByte();
-                    return Unsafe.As<sbyte, T>(ref value);
-                }
+            {
+                var value = ReadSByte();
+                return Unsafe.As<sbyte, T>(ref value);
+            }
             default: throw new InvalidOperationException("Unknown enum underlying type");
         }
     }
