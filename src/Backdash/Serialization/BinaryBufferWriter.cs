@@ -316,5 +316,5 @@ public interface IBinaryBufferReader<T>
     /// </summary>
     /// <param name="reader"></param>
     /// <param name="value"></param>
-    int Deserialize(in BinaryBufferReader reader, ref T value);
+    void Deserialize(in BinaryBufferReader reader, ref T value);
 }

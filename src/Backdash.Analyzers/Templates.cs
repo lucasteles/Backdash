@@ -17,10 +17,9 @@ class Templates
         [[WRITES]]
             }
 
-            public int Deserialize(in BinaryBufferReader binaryReader, ref [[TYPE]] result)
+            public void Deserialize(in BinaryBufferReader binaryReader, ref [[TYPE]] result)
             {
         [[READS]]
-                return binaryReader.ReadCount;
             }
         }
 

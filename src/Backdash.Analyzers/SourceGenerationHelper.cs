@@ -77,8 +77,7 @@ static class SourceGenerationHelper
 
                         reads.AppendLine(
                             $"""
-                             {tab}var byteCount{arrayIndex} = {serializerName}.Deserialize(in binaryReader, ref result.{member.Name}[i]);
-                             {tab}binaryReader.Advance(byteCount{arrayIndex});
+                             {tab}{serializerName}.Deserialize(in binaryReader, ref result.{member.Name}[i]);
                              """);
                     }
                     else if (itemType.IsUnmanagedType)
@@ -117,8 +116,7 @@ static class SourceGenerationHelper
 
                     reads.AppendLine(
                         $"""
-                         {tab}var byteCount = {serializerName}.Deserialize(in binaryReader, ref result.{member.Name});
-                         {tab}binaryReader.Advance(byteCount);
+                         {tab}{serializerName}.Deserialize(in binaryReader, ref result.{member.Name});
                          """);
                 }
                 else if (member.Type.IsUnmanagedType)
