@@ -202,8 +202,12 @@ public readonly ref struct BinaryBufferReader
     /// <summary>Reads single <see cref="Half"/> from buffer.</summary>
     public Half ReadHalf() => BitConverter.Int16BitsToHalf(ReadInt16());
 
-    /// <summary>Reads single <see cref="float"/> from buffer.</summary>
+    /// <summary>Reads float 32 <see cref="float"/> from buffer.</summary>
     public float ReadFloat() => BitConverter.Int32BitsToSingle(ReadInt32());
+
+    /// <summary>Same as <see cref="ReadFloat"/>.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public float ReadSingle() => ReadFloat();
 
     /// <summary>Reads single <see cref="double"/> from buffer.</summary>
     public double ReadDouble() => BitConverter.Int64BitsToDouble(ReadInt64());

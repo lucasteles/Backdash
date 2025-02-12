@@ -162,7 +162,7 @@ public class BinarySpanReadWriteValueTests
         var size = Setup<float>(endianness, out var writer, out var reader);
         writer.Write(value);
         writer.WrittenCount.Should().Be(size);
-        var read = reader.ReadSingle();
+        var read = reader.ReadFloat();
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
