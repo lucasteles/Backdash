@@ -253,6 +253,8 @@ sealed class SpectatorBackend<TInput> :
     public ref readonly SynchronizedInput<TInput> GetInput(in PlayerHandle player) =>
         ref syncInputBuffer[player.Number - 1];
 
+    public void GetInputs(Span<SynchronizedInput<TInput>> buffer) => syncInputBuffer.CopyTo(buffer);
+
     void IProtocolInputEventPublisher<ConfirmedInputs<TInput>>.Publish(in GameInputEvent<ConfirmedInputs<TInput>> evt)
     {
         lastReceivedInputTime = clock.GetTimeStamp();

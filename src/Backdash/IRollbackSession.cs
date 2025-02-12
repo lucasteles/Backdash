@@ -97,7 +97,7 @@ public interface IRollbackSession<TInput> : IRollbackSessionInfo, IDisposable wh
     /// Copy the value of all synchronized inputs into the <paramref name="buffer"/>.
     /// This must be called after <see cref="SynchronizeInputs"/>
     /// </summary>
-    public void GetInputs(Span<SynchronizedInput<TInput>> buffer)
+    void GetInputs(Span<SynchronizedInput<TInput>> buffer)
     {
         for (var i = 0; i < buffer.Length; i++)
             buffer[i] = GetInput(i);
@@ -107,7 +107,7 @@ public interface IRollbackSession<TInput> : IRollbackSessionInfo, IDisposable wh
     /// Copy the value of all synchronized inputs into the <paramref name="buffer"/>.
     /// This must be called after <see cref="SynchronizeInputs"/>
     /// </summary>
-    public void GetInputs(Span<TInput> buffer)
+    void GetInputs(Span<TInput> buffer)
     {
         for (var i = 0; i < buffer.Length; i++)
             buffer[i] = GetInput(i);

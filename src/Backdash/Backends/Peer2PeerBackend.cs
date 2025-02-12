@@ -353,6 +353,8 @@ sealed class Peer2PeerBackend<TInput> : IRollbackSession<TInput>, IProtocolNetwo
     public ref readonly SynchronizedInput<TInput> GetInput(in PlayerHandle player) =>
         ref syncInputBuffer[player.InternalQueue];
 
+    public void GetInputs(Span<SynchronizedInput<TInput>> buffer) => syncInputBuffer.CopyTo(buffer);
+
     public void BeginFrame()
     {
         if (!isSynchronizing)
