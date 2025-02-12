@@ -1,5 +1,4 @@
 #!/bin/bash
-dotnet build -c Release "$(dirname "$0")/../../.."
 pushd "$(dirname "$0")/../../../LobbyServer" || exit
-dotnet run --no-build
+dotnet run -c Release
 popd || exit
