@@ -170,6 +170,24 @@ abstract class PropertyTestGenerators
             })
             .ToArbitrary();
 
+    public static Arbitrary<ConsistencyCheckRequest> ConsistencyCheckRequestGenerator() => Arb.From(
+        from frame in Generate<Frame>()
+        select new ConsistencyCheckRequest
+        {
+            Frame = frame,
+        }
+    );
+
+    public static Arbitrary<ConsistencyCheckReply> ConsistencyCheckReplyGenerator() => Arb.From(
+        from frame in Generate<Frame>()
+        from checksum in Generate<int>()
+        select new ConsistencyCheckReply
+        {
+            Frame = frame,
+            Checksum = checksum,
+        }
+    );
+
     public static Arbitrary<InputMessage> InputMsgGenerator(
         Arbitrary<ConnectStatus> connectStatusGenerator
     ) =>
@@ -208,7 +226,9 @@ abstract class PropertyTestGenerators
         Arbitrary<QualityReport> qualityReportArb,
         Arbitrary<QualityReply> qualityReplyArb,
         Arbitrary<KeepAlive> keepAliveArb,
-        Arbitrary<InputAck> inputAckArb
+        Arbitrary<InputAck> inputAckArb,
+        Arbitrary<ConsistencyCheckRequest> consistencyCheckReqArb,
+        Arbitrary<ConsistencyCheckReply> consistencyCheckReplyArb
     ) =>
         headerArb.Generator
             .Where(h => h.Type is not MessageType.Unknown)
@@ -249,6 +269,18 @@ abstract class PropertyTestGenerators
                     {
                         Header = header,
                         KeepAlive = x,
+                    }),
+                MessageType.ConsistencyCheckRequest =>
+                    consistencyCheckReqArb.Generator.Select(x => new ProtocolMessage
+                    {
+                        Header = header,
+                        ConsistencyCheckRequest = x,
+                    }),
+                MessageType.ConsistencyCheckReply =>
+                    consistencyCheckReplyArb.Generator.Select(x => new ProtocolMessage
+                    {
+                        Header = header,
+                        ConsistencyCheckReply = x,
                     }),
                 MessageType.InputAck =>
                     inputAckArb.Generator.Select(x => new ProtocolMessage
