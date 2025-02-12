@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Backdash;
 using Backdash.Data;
 using Backdash.Serialization.Buffer;
@@ -149,4 +150,17 @@ public sealed class GameSession(
         gameState.Update(inputs);
         session.AdvanceFrame();
     }
+
+    public string GetStateString(in Frame frame, ref readonly BinaryBufferReader reader)
+    {
+        GameState state = new();
+        state.LoadState(in reader);
+        return JsonSerializer.Serialize(state, jsonOptions);
+    }
+
+    static readonly JsonSerializerOptions jsonOptions = new()
+    {
+        WriteIndented = false,
+        IncludeFields = true,
+    };
 }
