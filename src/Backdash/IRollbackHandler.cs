@@ -63,7 +63,12 @@ public interface IRollbackHandler
     /// Get string representation of the state
     /// Used for Sync Test logging <see cref="RollbackNetcode.CreateSyncTestSession{TInput}"/>
     /// </summary>
-    string GetStateString(in Frame frame, ref readonly BinaryBufferReader reader);
+    string GetStateString(in Frame frame, ref readonly BinaryBufferReader reader) =>
+        $""""
+         --- Begin Hex ---
+         {Convert.ToHexString(reader.CurrentBuffer)}
+         ---  End Hex  ---
+         """";
 }
 
 sealed class EmptySessionHandler(Logger logger) : IRollbackHandler
@@ -91,11 +96,4 @@ sealed class EmptySessionHandler(Logger logger) : IRollbackHandler
     public void OnPeerEvent(PlayerHandle player, PeerEventInfo evt) =>
         logger.Write(LogLevel.Information,
             $"{DateTime.UtcNow:o} [Session Handler] {nameof(OnPeerEvent)} called with {evt} for {player}");
-
-    public string GetStateString(in Frame frame, ref readonly BinaryBufferReader reader) =>
-        $""""
-         --- Begin Hex ---
-         {Convert.ToHexString(reader.CurrentBuffer)}
-         ---  End Hex  ---
-         """";
 }
