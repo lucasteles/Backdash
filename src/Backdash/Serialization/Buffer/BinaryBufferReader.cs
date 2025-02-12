@@ -256,45 +256,45 @@ public readonly ref struct BinaryBufferReader
         switch (Type.GetTypeCode(typeof(T)))
         {
             case TypeCode.Int32:
-            {
-                var value = ReadInt32();
-                return Unsafe.As<int, T>(ref value);
-            }
+                {
+                    var value = ReadInt32();
+                    return Unsafe.As<int, T>(ref value);
+                }
             case TypeCode.UInt32:
-            {
-                var value = ReadUInt32();
-                return Unsafe.As<uint, T>(ref value);
-            }
+                {
+                    var value = ReadUInt32();
+                    return Unsafe.As<uint, T>(ref value);
+                }
             case TypeCode.Int64:
-            {
-                var value = ReadInt64();
-                return Unsafe.As<long, T>(ref value);
-            }
+                {
+                    var value = ReadInt64();
+                    return Unsafe.As<long, T>(ref value);
+                }
             case TypeCode.UInt64:
-            {
-                var value = ReadUInt64();
-                return Unsafe.As<ulong, T>(ref value);
-            }
+                {
+                    var value = ReadUInt64();
+                    return Unsafe.As<ulong, T>(ref value);
+                }
             case TypeCode.Int16:
-            {
-                var value = ReadInt16();
-                return Unsafe.As<short, T>(ref value);
-            }
+                {
+                    var value = ReadInt16();
+                    return Unsafe.As<short, T>(ref value);
+                }
             case TypeCode.UInt16:
-            {
-                var value = ReadUInt16();
-                return Unsafe.As<ushort, T>(ref value);
-            }
+                {
+                    var value = ReadUInt16();
+                    return Unsafe.As<ushort, T>(ref value);
+                }
             case TypeCode.Byte:
-            {
-                var value = ReadByte();
-                return Unsafe.As<byte, T>(ref value);
-            }
+                {
+                    var value = ReadByte();
+                    return Unsafe.As<byte, T>(ref value);
+                }
             case TypeCode.SByte:
-            {
-                var value = ReadSByte();
-                return Unsafe.As<sbyte, T>(ref value);
-            }
+                {
+                    var value = ReadSByte();
+                    return Unsafe.As<sbyte, T>(ref value);
+                }
             default: throw new InvalidOperationException("Unknown enum underlying type");
         }
     }

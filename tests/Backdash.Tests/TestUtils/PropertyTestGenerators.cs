@@ -317,11 +317,6 @@ class PropertyTestGenerators
             })
             .Select(arr => new ConfirmedInputs<T>(arr))
             .ToArbitrary();
-
-    public static Arbitrary<EquatableArray<T>> EquatableArrayGenerator<T>() where T : IEquatable<T> =>
-        Gen.Sized(size => Gen.ArrayOf(size, Arb.Generate<T>()))
-            .Select(arr => new EquatableArray<T>(arr))
-            .ToArbitrary();
 }
 
 record PendingGameInputs(GameInput[] Values);

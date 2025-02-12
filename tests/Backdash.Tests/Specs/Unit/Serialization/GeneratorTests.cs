@@ -1,6 +1,5 @@
 using System.Buffers;
 using System.Numerics;
-using Backdash.Data;
 using Backdash.Serialization;
 using Backdash.Serialization.Buffer;
 
@@ -28,17 +27,14 @@ public class GameState
     public int[] Value6 = new int[5];
 
     public MyVector2[] Value7 = new MyVector2[3];
-    public EquatableArray<MyVector2> Value8;
     public EnumState Value9;
     public EnumState[] Value10 = new EnumState[2];
 
     public GameState()
     {
-        Value8 = new(Value7.Length);
         for (int i = 0; i < Value7.Length; i++)
         {
             Value7[i] = new();
-            Value8[i] = new();
         }
     }
 }
@@ -76,12 +72,6 @@ public class GeneratorTests
                 new(-2, 98),
                 new(-3, 97),
                 new(-4, 96),
-            ],
-            Value8 =
-            [
-                new(-12, 198),
-                new(-13, 197),
-                new(-14, 196),
             ],
             Value9 = EnumState.Foo,
             Value10 = [EnumState.Foo, EnumState.Bar],

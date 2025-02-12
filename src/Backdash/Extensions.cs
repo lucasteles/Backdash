@@ -1,5 +1,4 @@
 using Backdash.Core;
-using Backdash.Data;
 using Backdash.Network;
 using Backdash.Network.Protocol;
 using Backdash.Serialization;
@@ -33,9 +32,4 @@ static class InternalExtensions
         ProtocolStatus.Disconnected => PlayerConnectionStatus.Disconnected,
         _ => PlayerConnectionStatus.Unknown,
     };
-}
-static class Extensions
-{
-    public static EquatableArray<T> ToEquatableArray<T>(this IEnumerable<T> source) where T : IEquatable<T> =>
-        new(source as T[] ?? source.ToArray());
 }

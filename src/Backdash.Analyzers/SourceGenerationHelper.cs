@@ -154,13 +154,6 @@ static class SourceGenerationHelper
             return true;
         }
 
-        if (memberType is INamedTypeSymbol { TypeArguments.Length: 1 } named
-            && named.ToDisplayString().StartsWith("Backdash.Data.EquatableArray"))
-        {
-            elementType = named.TypeArguments.First();
-            return true;
-        }
-
         return false;
     }
 
