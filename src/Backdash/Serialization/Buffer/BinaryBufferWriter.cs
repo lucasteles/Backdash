@@ -5,9 +5,8 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Backdash.Core;
 using Backdash.Network;
-using Backdash.Serialization.Buffer;
 
-namespace Backdash.Serialization;
+namespace Backdash.Serialization.Buffer;
 
 /// <summary>
 /// Binary span writer.
@@ -22,6 +21,11 @@ public readonly struct BinaryBufferWriter(IBufferWriter<byte> buffer)
     /// Gets or init the value to define which endianness should be used for serialization.
     /// </summary>
     public Endianness Endianness { get; init; } = Endianness.BigEndian;
+
+    /// <summary>
+    /// Backing IBufferWriter <see cref="IBufferWriter{T}"/>
+    /// </summary>
+    public IBufferWriter<byte> Buffer => buffer;
 
     /// <summary>Advance write pointer by <paramref name="count"/>.</summary>
     public void Advance(int count) => buffer.Advance(count);
@@ -239,53 +243,53 @@ public readonly struct BinaryBufferWriter(IBufferWriter<byte> buffer)
         switch (Type.GetTypeCode(typeof(T)))
         {
             case TypeCode.Int32:
-                {
-                    var tmp = Unsafe.As<T, int>(ref refValue);
-                    Write(in tmp);
-                    break;
-                }
+            {
+                var tmp = Unsafe.As<T, int>(ref refValue);
+                Write(in tmp);
+                break;
+            }
             case TypeCode.UInt32:
-                {
-                    var tmp = Unsafe.As<T, uint>(ref refValue);
-                    Write(in tmp);
-                    break;
-                }
+            {
+                var tmp = Unsafe.As<T, uint>(ref refValue);
+                Write(in tmp);
+                break;
+            }
             case TypeCode.Int64:
-                {
-                    var tmp = Unsafe.As<T, long>(ref refValue);
-                    Write(in tmp);
-                    break;
-                }
+            {
+                var tmp = Unsafe.As<T, long>(ref refValue);
+                Write(in tmp);
+                break;
+            }
             case TypeCode.UInt64:
-                {
-                    var tmp = Unsafe.As<T, ulong>(ref refValue);
-                    Write(in tmp);
-                    break;
-                }
+            {
+                var tmp = Unsafe.As<T, ulong>(ref refValue);
+                Write(in tmp);
+                break;
+            }
             case TypeCode.Int16:
-                {
-                    var tmp = Unsafe.As<T, short>(ref refValue);
-                    Write(in tmp);
-                    break;
-                }
+            {
+                var tmp = Unsafe.As<T, short>(ref refValue);
+                Write(in tmp);
+                break;
+            }
             case TypeCode.UInt16:
-                {
-                    var tmp = Unsafe.As<T, ushort>(ref refValue);
-                    Write(in tmp);
-                    break;
-                }
+            {
+                var tmp = Unsafe.As<T, ushort>(ref refValue);
+                Write(in tmp);
+                break;
+            }
             case TypeCode.Byte:
-                {
-                    var tmp = Unsafe.As<T, byte>(ref refValue);
-                    Write(in tmp);
-                    break;
-                }
+            {
+                var tmp = Unsafe.As<T, byte>(ref refValue);
+                Write(in tmp);
+                break;
+            }
             case TypeCode.SByte:
-                {
-                    var tmp = Unsafe.As<T, sbyte>(ref refValue);
-                    Write(in tmp);
-                    break;
-                }
+            {
+                var tmp = Unsafe.As<T, sbyte>(ref refValue);
+                Write(in tmp);
+                break;
+            }
             default: throw new InvalidOperationException("Unknown enum underlying type");
         }
     }
