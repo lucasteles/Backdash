@@ -42,6 +42,7 @@ public sealed record GameState
     {
         writer.Write(Bounds);
         writer.Write(FrameNumber);
+
         for (var i = 0; i < Ships.Length; i++)
             Ships[i].SaveState(in writer);
     }

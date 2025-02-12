@@ -79,7 +79,7 @@ public readonly record struct Frame :
 
     /// <inheritdoc />
     public string ToString(string? format, IFormatProvider? formatProvider) =>
-        Number.ToString(format ?? "Frame(0);Frame(-#)", formatProvider);
+        Number.ToString(format ?? "(Frame 0);(Frame -#)", formatProvider);
 
     /// <inheritdoc />
     public override string ToString() => ToString(null, null);

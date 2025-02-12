@@ -62,8 +62,8 @@ public readonly ref struct BinaryBufferReader
     public void ReadByte(in Span<byte> values)
     {
         var length = values.Length;
-        if (length > FreeCapacity)
-            throw new InvalidOperationException("Not available buffer space");
+        if (length > FreeCapacity) length = FreeCapacity;
+
         var slice = buffer.Slice(offset, length);
         Advance(length);
         slice.CopyTo(values[..length]);
@@ -221,6 +221,7 @@ public readonly ref struct BinaryBufferReader
     public T ReadStruct<T>() where T : unmanaged
     {
         var size = Unsafe.SizeOf<T>();
+        if (size > FreeCapacity) size = FreeCapacity;
         var result = Mem.ReadStruct<T>(CurrentBuffer[..size]);
         Advance(size);
         return result;
@@ -230,9 +231,7 @@ public readonly ref struct BinaryBufferReader
     public void ReadStruct<T>(in Span<T> values) where T : unmanaged
     {
         var valuesBytes = MemoryMarshal.AsBytes(values);
-        var size = valuesBytes.Length;
-        CurrentBuffer[..size].CopyTo(valuesBytes);
-        Advance(size);
+        ReadByte(in valuesBytes);
     }
 
     /// <summary>Reads an unmanaged struct from buffer.</summary>
@@ -244,6 +243,7 @@ public readonly ref struct BinaryBufferReader
     public T ReadStructUnsafe<T>() where T : struct
     {
         var size = Unsafe.SizeOf<T>();
+        if (size > FreeCapacity) size = FreeCapacity;
         var result = Mem.ReadStruct<T>(CurrentBuffer[..size]);
         Advance(size);
         return result;
@@ -254,9 +254,7 @@ public readonly ref struct BinaryBufferReader
     {
         ThrowHelpers.ThrowIfTypeIsReferenceOrContainsReferences<T>();
         var valuesBytes = MemoryMarshal.AsBytes(values);
-        var size = valuesBytes.Length;
-        CurrentBuffer[..size].CopyTo(valuesBytes);
-        Advance(size);
+        ReadByte(in valuesBytes);
     }
 
     /// <summary>Reads and allocates an <see cref="string"/> from buffer.</summary>

@@ -160,7 +160,7 @@ public sealed class GameSession(
 
     static readonly JsonSerializerOptions jsonOptions = new()
     {
-        WriteIndented = false,
+        WriteIndented = true,
         IncludeFields = true,
     };
 }

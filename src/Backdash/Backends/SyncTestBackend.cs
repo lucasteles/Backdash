@@ -224,7 +224,7 @@ sealed class SyncTestBackend<TInput> : IRollbackSession<TInput>
             ArrayPool<byte>.Shared.Return(info.State);
             if (info.Frame != synchronizer.CurrentFrame)
             {
-                var message = $"Frame number {info.Frame} does not match saved frame number {frame}";
+                var message = $"Frame number {info.Frame.Number} does not match saved frame number {frame}";
                 logger.Write(LogLevel.Error, message);
                 if (throwError) throw new NetcodeException(message);
             }
@@ -233,7 +233,7 @@ sealed class SyncTestBackend<TInput> : IRollbackSession<TInput>
             if (info.Checksum != last.Checksum)
                 HandleDesync(frame, info, last);
             else
-                logger.Write(LogLevel.Trace, $"Checksum {last.Checksum} for frame {info.Frame} matches");
+                logger.Write(LogLevel.Trace, $"Checksum #{last.Checksum:x8} for frame {info.Frame.Number} matches");
         }
 
         lastVerified = frame;
@@ -242,7 +242,8 @@ sealed class SyncTestBackend<TInput> : IRollbackSession<TInput>
 
     void HandleDesync(Frame frame, SavedFrameBytes current, SavedFrame previous)
     {
-        var message = $"Checksum for frame {frame} does NOT match: ({previous.Checksum} != {current.Checksum})";
+        const LogLevel level = LogLevel.Error;
+        var message = $"Checksum for frame {frame} does NOT match: (#{previous.Checksum:x8} != #{current.Checksum:x8})\n";
         logger.Write(LogLevel.Error, message);
 
         var (currentOffset, lastOffset) = (0, 0);
@@ -253,8 +254,8 @@ sealed class SyncTestBackend<TInput> : IRollbackSession<TInput>
         BinaryBufferReader previousReader = new(previous.GameState.WrittenSpan, ref lastOffset);
         var previousBody = callbacks.GetStateString(current.Frame, in previousReader);
 
-        LogSaveState("CURRENT", currentBody, current.Checksum, current.Frame, current.Input.Frame);
-        LogSaveState("LAST", previousBody, previous.Checksum, previous.Frame);
+        LogSaveState(level, "CURRENT", currentBody, current.Checksum, current.Frame, current.Input.Frame.Number);
+        LogSaveState(level, "LAST", previousBody, previous.Checksum, previous.Frame);
 
         if (mismatchHandler is not null)
         {
@@ -266,13 +267,16 @@ sealed class SyncTestBackend<TInput> : IRollbackSession<TInput>
         if (throwError) throw new NetcodeException(message);
     }
 
-    void LogSaveState(string description, string body, int checksum, Frame frame, object? extra = null)
+    void LogSaveState(LogLevel level,
+        string description, string body,
+        int checksum, Frame frame,
+        object? extra = null
+    )
     {
-        const LogLevel level = LogLevel.Information;
-        logger.Write(level, $"=> SAVED [{description}] ({frame}{(extra is not null ? $" / {extra}" : "")})\n");
-        logger.Write(level, $"== START STATE #{checksum} ==\n");
+        logger.Write(level, $"=> SAVED [{description}] (Frame {frame}{(extra is not null ? $" / {extra}" : "")})");
+        logger.Write(level, $"== START STATE #{checksum:x8} ==");
         LogText(level, body);
-        logger.Write(level, $"== END STATE #{checksum} ==\n");
+        logger.Write(level, $"== END STATE #{checksum:x8} ==\n");
     }
 
     void LogText(LogLevel level, string text)
@@ -281,8 +285,10 @@ sealed class SyncTestBackend<TInput> : IRollbackSession<TInput>
 
         var jsonChunks =
             text
-                .Chunk(LogStringBuffer.Capacity / 2)
-                .Select(x => new string(x));
+                .Split(Environment.NewLine)
+                .SelectMany(p => p
+                    .Chunk(LogStringBuffer.Capacity / 2)
+                    .Select(x => new string(x)));
 
         foreach (var chunk in jsonChunks)
             logger.Write(level, chunk);
