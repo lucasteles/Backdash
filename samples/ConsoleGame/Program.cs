@@ -43,11 +43,11 @@ RollbackOptions options = new()
 };
 
 // Set up the rollback network session
-IRollbackSession<GameInput, GameState> session;
+IRollbackSession<GameInput> session;
 
 // parse console arguments checking if it is a spectator
 if (endpoints is ["spectate", { } hostArg] && IPEndPoint.TryParse(hostArg, out var host))
-    session = RollbackNetcode.CreateSpectatorSession<GameInput, GameState>(
+    session = RollbackNetcode.CreateSpectatorSession<GameInput>(
         port, host, playerCount, options, new()
         {
             LogWriter = new FileTextLogWriter($"log_spectator_{port}.log", append: false),
@@ -86,7 +86,7 @@ Console.Clear();
 // -------------------------------------------------------------- //
 //    Create and configure a game session                         //
 // -------------------------------------------------------------- //
-static IRollbackSession<GameInput, GameState> CreatePlayerSession(
+static IRollbackSession<GameInput> CreatePlayerSession(
     int port,
     RollbackOptions options,
     Player[] players
@@ -97,7 +97,7 @@ static IRollbackSession<GameInput, GameState> CreatePlayerSession(
         throw new InvalidOperationException("No local player defined");
     // Write logs in a file with player number
     var fileLogWriter = new FileTextLogWriter($"log_player_{localPlayer.Number}.log", append: false);
-    var session = RollbackNetcode.CreateSession<GameInput, GameState>(
+    var session = RollbackNetcode.CreateSession<GameInput>(
         port,
         options,
         new()
