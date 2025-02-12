@@ -10,7 +10,6 @@ using Backdash.Serialization;
 using Backdash.Synchronizing.Input;
 using Backdash.Synchronizing.Input.Confirmed;
 using Backdash.Synchronizing.Random;
-using Backdash.Synchronizing.State;
 
 namespace Backdash.Backends;
 
@@ -21,7 +20,6 @@ sealed class Peer2PeerBackend<TInput> : IRollbackSession<TInput>, IProtocolNetwo
     readonly IBinarySerializer<TInput> inputSerializer;
     readonly IBinarySerializer<ConfirmedInputs<TInput>> inputGroupSerializer;
     readonly Logger logger;
-    readonly IStateStore stateStore;
     readonly IProtocolClient udp;
     readonly PeerObserverGroup<ProtocolMessage> peerObservers;
     readonly Synchronizer<TInput> synchronizer;
@@ -64,14 +62,13 @@ sealed class Peer2PeerBackend<TInput> : IRollbackSession<TInput>, IProtocolNetwo
 
         this.options = options;
         inputSerializer = services.InputSerializer;
-        stateStore = services.StateStore;
         backgroundJobManager = services.JobManager;
         logger = services.Logger;
         inputListener = services.InputListener;
         Random = services.DeterministicRandom;
         syncNumber = services.Random.MagicNumber();
 
-        peerInputEventQueue = new ProtocolInputEventQueue<TInput>();
+        peerInputEventQueue = new();
         peerCombinedInputsEventPublisher = new ProtocolCombinedInputsEventPublisher<TInput>(peerInputEventQueue);
         inputGroupSerializer = new ConfirmedInputsSerializer<TInput>(inputSerializer);
         localConnections = new(Max.NumberOfPlayers);
@@ -84,7 +81,7 @@ sealed class Peer2PeerBackend<TInput> : IRollbackSession<TInput>, IProtocolNetwo
             this.options,
             logger,
             addedPlayers,
-            stateStore,
+            services.StateStore,
             services.ChecksumProvider,
             localConnections
         )
@@ -113,7 +110,6 @@ sealed class Peer2PeerBackend<TInput> : IRollbackSession<TInput>, IProtocolNetwo
         disposed = true;
         Close();
         udp.Dispose();
-        stateStore.Dispose();
         logger.Dispose();
         backgroundJobManager.Dispose();
         inputListener?.Dispose();

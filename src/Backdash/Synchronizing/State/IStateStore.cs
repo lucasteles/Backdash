@@ -5,7 +5,7 @@ namespace Backdash.Synchronizing.State;
 /// <summary>
 /// Repository for temporary save and restore game states.
 /// </summary>
-public interface IStateStore : IDisposable
+public interface IStateStore
 {
     /// <summary>
     /// Initialize the state buffer with capacity of <paramref name="saveCount"/>

@@ -11,7 +11,6 @@ namespace Backdash.Synchronizing.State;
 public sealed class BinaryStateStore(int hintSize = 128) : IStateStore
 {
     int head;
-    byte[]? memory;
     SavedFrame[] savedStates = [];
 
     /// <inheritdoc />
@@ -61,7 +60,4 @@ public sealed class BinaryStateStore(int hintSize = 128) : IStateStore
 
     /// <inheritdoc />
     public void Advance() => head = (head + 1) % savedStates.Length;
-
-    /// <inheritdoc />
-    public void Dispose() => memory = null!;
 }

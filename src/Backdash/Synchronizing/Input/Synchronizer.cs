@@ -23,7 +23,7 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
     Frame lastConfirmedFrame = Frame.Zero;
     int NumberOfPlayers => players.Count;
 
-    Endianness endianness;
+    readonly Endianness endianness;
 
     public Synchronizer(
         RollbackOptions options,
