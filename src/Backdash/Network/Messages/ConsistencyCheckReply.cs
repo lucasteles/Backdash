@@ -1,4 +1,4 @@
-﻿using System.Runtime.InteropServices;
+using System.Runtime.InteropServices;
 using Backdash.Data;
 using Backdash.Serialization;
 using Backdash.Serialization.Buffer;

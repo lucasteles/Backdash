@@ -149,10 +149,8 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
                 syncRequest.Update();
                 break;
             case ProtocolStatus.Running:
-            {
                 CheckDisconnection();
                 break;
-            }
             case ProtocolStatus.Disconnected:
                 break;
         }
