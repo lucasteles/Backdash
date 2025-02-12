@@ -19,12 +19,6 @@ static class InternalExtensions
         Span<byte> buffer = stackalloc byte[Mem.MaxStackLimit];
         return serializer.Serialize(in dummy, buffer);
     }
-    public static T Deserialize<T>(this IBinaryReader<T> serializer, ReadOnlySpan<byte> data) where T : new()
-    {
-        var result = new T();
-        serializer.Deserialize(data, ref result);
-        return result;
-    }
     public static PlayerConnectionStatus ToPlayerStatus(this ProtocolStatus status) => status switch
     {
         ProtocolStatus.Syncing => PlayerConnectionStatus.Syncing,
