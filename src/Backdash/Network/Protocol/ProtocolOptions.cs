@@ -138,6 +138,13 @@ public class ProtocolOptions
     public int ConsistencyCheckOffset { get; init; } = Default.ConsistencyCheckOffset;
 
     /// <summary>
+    /// Enable/Disable consistency check.
+    /// </summary>
+    /// <seealso cref="ConsistencyCheckOffset"/>
+    /// <seealso cref="ConsistencyCheckTimeout"/>
+    public bool ConsistencyCheckEnabled { get; init; } = true;
+
+    /// <summary>
     /// The time to wait before send next consistency check (0 to disable).
     /// On each interval one peer requests a frame to other peer which must respond
     /// with the state checksum of that frame.

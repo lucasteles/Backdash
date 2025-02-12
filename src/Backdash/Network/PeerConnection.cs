@@ -104,7 +104,9 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
         resendInputsTimer.Stop();
         qualityReportTimer.Stop();
         networkStatsTimer.Stop();
-        consistencyCheckTimer.Stop();
+
+        if (options.ConsistencyCheckEnabled)
+            consistencyCheckTimer.Stop();
     }
 
     void StartTimers()
@@ -113,7 +115,9 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
         resendInputsTimer.Start();
         qualityReportTimer.Start();
         networkStatsTimer.Start();
-        consistencyCheckTimer.Start();
+
+        if (options.ConsistencyCheckEnabled)
+            consistencyCheckTimer.Start();
     }
 
     public void Disconnect()
