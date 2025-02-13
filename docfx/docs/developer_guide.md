@@ -294,15 +294,14 @@ public class MySessionHandler : IRollbackHandler
 }
 ```
 
-The saved **Game State** will have a [checksum](https://en.wikipedia.org/wiki/Checksum) based on its binary representation. The default implementation is [Fletcher 32](http://en.wikipedia.org/wiki/Fletcher%27s_checksum) algorithm by the class `Fletcher32ChecksumProvider`.
+The saved **Game State** will have a calculated [checksum](https://en.wikipedia.org/wiki/Checksum) based on its binary representation. The default implementation is [Fletcher 32](http://en.wikipedia.org/wiki/Fletcher%27s_checksum) algorithm by the class `Fletcher32ChecksumProvider`.
 
-We also provide a implementation of [CRC32](https://en.wikipedia.org/wiki/Cyclic_redundancy_check) algorithm with the class `Crc32ChecksumProvider`
+You can also use you own checksum algorithm, for this just implement the interface
+[`IChecksumProvider`](https://lucasteles.github.io/Backdash/api/Backdash.Sync.State.IChecksumProvider-1.html).
 
-You can also choose to not use any of those and implement you own, for this you just need to implement
-[`IChecksumProvider<T>`](https://lucasteles.github.io/Backdash/api/Backdash.Sync.State.IChecksumProvider-1.html).
-
-Choose the implementation in the [services](https://lucasteles.github.io/Backdash/api/Backdash.SessionServices-2.html#Backdash_SessionServices_2_ChecksumProvider)
+Provide the `IChecksumProvider` implementation in the [services](https://lucasteles.github.io/Backdash/api/Backdash.SessionServices-2.html#Backdash_SessionServices_2_ChecksumProvider)
 parameter of [`RollbackNetcode.CreateSession`](https://lucasteles.github.io/Backdash/api/Backdash.RollbackNetcode.html#Backdash_RollbackNetcode_CreateSession__2_System_Int32_Backdash_RollbackOptions_Backdash_SessionServices___0___1__)
+
 
 ### Advance Frame Callback
 

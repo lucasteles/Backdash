@@ -176,6 +176,6 @@ struct ProtocolMessage(MessageType type) : ISpanSerializable, IEquatable<Protoco
 
     public override readonly bool Equals(object? obj) => obj is ProtocolMessage msg && Equals(msg);
     public override readonly int GetHashCode() => HashCode.Combine(typeof(ProtocolMessage));
-    public static bool operator ==(ProtocolMessage left, ProtocolMessage right) => left.Equals(right);
-    public static bool operator !=(ProtocolMessage left, ProtocolMessage right) => !left.Equals(right);
+    public static bool operator ==(in ProtocolMessage left, in ProtocolMessage right) => left.Equals(right);
+    public static bool operator !=(in ProtocolMessage left, in ProtocolMessage right) => !left.Equals(right);
 }

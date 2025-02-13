@@ -85,8 +85,8 @@ struct InputMessage : IEquatable<InputMessage>, ISpanSerializable, IUtf8SpanForm
     public override readonly int GetHashCode() => HashCode.Combine(
         PeerConnectStatus, StartFrame, DisconnectRequested, AckFrame, NumBits, InputSize, Bits);
 
-    public static bool operator ==(InputMessage left, InputMessage right) => left.Equals(right);
-    public static bool operator !=(InputMessage left, InputMessage right) => !left.Equals(right);
+    public static bool operator ==(in InputMessage left, in InputMessage right) => left.Equals(right);
+    public static bool operator !=(in InputMessage left, in InputMessage right) => !left.Equals(right);
 }
 
 [Serializable, InlineArray(Max.NumberOfPlayers)]
