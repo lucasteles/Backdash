@@ -9,6 +9,8 @@ namespace Backdash.Core;
 static class Mem
 {
     public const int MaxStackLimit = 1024;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void Clear(in Span<byte> bytes) => bytes.Clear();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

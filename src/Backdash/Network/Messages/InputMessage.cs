@@ -66,13 +66,10 @@ struct InputMessage : IEquatable<InputMessage>, ISpanSerializable, IUtf8SpanForm
     {
         bytesWritten = 0;
         using Utf8ObjectWriter writer = new(in utf8Destination, ref bytesWritten);
-        if (!writer.Write(StartFrame)) return false;
-        if (!writer.Write(AckFrame)) return false;
-        if (!writer.Write(NumBits)) return false;
-        return true;
+        return writer.Write(StartFrame) && writer.Write(AckFrame) && writer.Write(NumBits);
     }
 
-    public readonly bool Equals(InputMessage other) =>
+    public readonly bool Equals(in InputMessage other) =>
         StartFrame.Equals(other.StartFrame) &&
         DisconnectRequested == other.DisconnectRequested &&
         AckFrame.Equals(other.AckFrame) && NumBits == other.NumBits &&
@@ -80,13 +77,15 @@ struct InputMessage : IEquatable<InputMessage>, ISpanSerializable, IUtf8SpanForm
         PeerConnectStatus.Equals(other.PeerConnectStatus) &&
         Bits.Equals(other.Bits);
 
-    public override readonly bool Equals(object? obj) => obj is InputMessage other && Equals(other);
+    public override readonly bool Equals(object? obj) => obj is InputMessage other && Equals(in other);
+
+    readonly bool IEquatable<InputMessage>.Equals(InputMessage other) => Equals(in other);
 
     public override readonly int GetHashCode() => HashCode.Combine(
         PeerConnectStatus, StartFrame, DisconnectRequested, AckFrame, NumBits, InputSize, Bits);
 
-    public static bool operator ==(in InputMessage left, in InputMessage right) => left.Equals(right);
-    public static bool operator !=(in InputMessage left, in InputMessage right) => !left.Equals(right);
+    public static bool operator ==(in InputMessage left, in InputMessage right) => left.Equals(in right);
+    public static bool operator !=(in InputMessage left, in InputMessage right) => !left.Equals(in right);
 }
 
 [Serializable, InlineArray(Max.NumberOfPlayers)]
@@ -133,6 +132,10 @@ struct InputMessageBuffer : IEquatable<InputMessageBuffer>
 
     public override readonly string ToString() => Mem.GetBitString(this);
     public override readonly int GetHashCode() => Mem.GetHashCode<byte>(this);
-    public readonly bool Equals(InputMessageBuffer other) => Mem.EqualBytes(this, other, truncate: true);
+
+    public readonly bool Equals(in InputMessageBuffer other) => Mem.EqualBytes(this, other, truncate: true);
+
     public override readonly bool Equals(object? obj) => obj is InputMessageBuffer other && Equals(other);
+
+    readonly bool IEquatable<InputMessageBuffer>.Equals(InputMessageBuffer other) => Equals(in other);
 }

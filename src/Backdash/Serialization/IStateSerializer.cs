@@ -34,4 +34,4 @@ public interface IBinaryBufferReader<T>
 /// State Serialization  Deserialization
 /// </summary>
 /// <typeparam name="T"></typeparam>
-public interface IStateSerializer<T> : IBinaryBufferWriter<T>, IBinaryBufferReader<T>;
+public interface IBinaryBufferSerializer<T> : IBinaryBufferWriter<T>, IBinaryBufferReader<T>;

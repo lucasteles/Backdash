@@ -8,7 +8,7 @@ class Templates
         using Backdash.Serialization;
         using Backdash.Serialization.Buffer;
 
-        public partial class [[NAME]]: IBinaryBufferWriter<[[TYPE]]>, IBinaryBufferReader<[[TYPE]]>
+        public partial class [[NAME]]: IBinaryBufferSerializer<[[TYPE]]>
         {
             public static readonly [[NAME]] Shared = new [[NAME]]();
 

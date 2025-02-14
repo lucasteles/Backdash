@@ -32,7 +32,7 @@ static class SourceGenerationHelper
         const string tab = "\t\t";
         var arrays = 0;
 
-        foreach (var member in item.Members)
+        foreach (var member in item.Members.OrderBy(x => x.Name, StringComparer.InvariantCulture))
         {
             var paramModifier = member.IsProperty ? string.Empty : "in ";
             const string sizeProp = "Length";

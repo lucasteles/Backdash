@@ -158,7 +158,7 @@ struct ProtocolMessage(MessageType type) : ISpanSerializable, IEquatable<Protoco
         };
     }
 
-    public readonly bool Equals(ProtocolMessage other) =>
+    public readonly bool Equals(in ProtocolMessage other) =>
         Header.Type == other.Header.Type && Header.Type switch
         {
             MessageType.Unknown => other.Header.Type is MessageType.Unknown,
@@ -166,7 +166,7 @@ struct ProtocolMessage(MessageType type) : ISpanSerializable, IEquatable<Protoco
             MessageType.SyncReply => SyncReply.Equals(other.SyncReply),
             MessageType.ConsistencyCheckRequest => ConsistencyCheckRequest.Equals(other.ConsistencyCheckRequest),
             MessageType.ConsistencyCheckReply => ConsistencyCheckReply.Equals(other.ConsistencyCheckReply),
-            MessageType.Input => Input.Equals(other.Input),
+            MessageType.Input => Input.Equals(in other.Input),
             MessageType.QualityReport => QualityReport.Equals(other.QualityReport),
             MessageType.QualityReply => QualityReply.Equals(other.QualityReply),
             MessageType.KeepAlive => KeepAlive.Equals(other.KeepAlive),
@@ -175,6 +175,9 @@ struct ProtocolMessage(MessageType type) : ISpanSerializable, IEquatable<Protoco
         };
 
     public override readonly bool Equals(object? obj) => obj is ProtocolMessage msg && Equals(msg);
+
+    readonly bool IEquatable<ProtocolMessage>.Equals(ProtocolMessage other) => Equals(in other);
+
     public override readonly int GetHashCode() => HashCode.Combine(typeof(ProtocolMessage));
     public static bool operator ==(in ProtocolMessage left, in ProtocolMessage right) => left.Equals(right);
     public static bool operator !=(in ProtocolMessage left, in ProtocolMessage right) => !left.Equals(right);
