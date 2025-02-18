@@ -30,7 +30,7 @@ public static class RollbackNetcode
         where TInput : unmanaged
     {
         options ??= new();
-        return new Peer2PeerBackend<TInput>(port, options, BackendServices.Create(options, services));
+        return new RemoteBackend<TInput>(port, options, BackendServices.Create(options, services));
     }
 
     /// <summary>

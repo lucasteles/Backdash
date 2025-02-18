@@ -5,9 +5,8 @@ using Backdash.Serialization.Buffer;
 namespace Backdash;
 
 /// <summary>
-/// The SessionCallbacks contains the callback functions that
-/// your application must implement.  Backdash will periodically call these
-/// functions during the game. All callback functions must be implemented.
+/// Defines the callback functions that your application must implement.
+/// Backdash will periodically call these functions during the game.
 /// </summary>
 public interface IRollbackHandler
 {

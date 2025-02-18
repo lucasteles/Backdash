@@ -1,4 +1,6 @@
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network;
@@ -13,7 +15,7 @@ using Backdash.Synchronizing.Random;
 
 namespace Backdash.Backends;
 
-sealed class Peer2PeerBackend<TInput> : IRollbackSession<TInput>, IProtocolNetworkEventHandler
+sealed class RemoteBackend<TInput> : IRollbackSession<TInput>, IProtocolNetworkEventHandler
     where TInput : unmanaged
 {
     readonly RollbackOptions options;
@@ -47,7 +49,7 @@ sealed class Peer2PeerBackend<TInput> : IRollbackSession<TInput>, IProtocolNetwo
     bool disposed;
     bool closed;
 
-    public Peer2PeerBackend(
+    public RemoteBackend(
         int port,
         RollbackOptions options,
         BackendServices<TInput> services
@@ -382,16 +384,19 @@ sealed class Peer2PeerBackend<TInput> : IRollbackSession<TInput>, IProtocolNetwo
 
         // Check to see if everyone is now synchronized.  If so,
         // go ahead and tell the client that we're ok to accept input.
-        for (var i = 0; i < endpoints.Count; i++)
-            if (endpoints[i] is { IsRunning: false } ep && localConnections.IsConnected(ep.Player))
+        var endpointsSpan = CollectionsMarshal.AsSpan(endpoints);
+
+        for (var i = 0; i < endpointsSpan.Length; i++)
+            if (endpointsSpan[i] is { IsRunning: false } ep && localConnections.IsConnected(ep.Player))
                 return;
 
-        for (var i = 0; i < spectators.Count; i++)
-            if (!spectators[i].IsRunning && spectators[i].Status is not ProtocolStatus.Disconnected)
+        var spectatorsSpan = CollectionsMarshal.AsSpan(spectators);
+        for (var i = 0; i < spectatorsSpan.Length; i++)
+            if (spectatorsSpan[i] is { IsRunning: false, Status: not ProtocolStatus.Disconnected })
                 return;
 
-        for (var i = 0; i < endpoints.Count; i++) endpoints[i]?.Start();
-        for (var i = 0; i < spectators.Count; i++) spectators[i].Start();
+        for (var i = 0; i < endpointsSpan.Length; i++) endpointsSpan[i]?.Start();
+        for (var i = 0; i < spectatorsSpan.Length; i++) spectatorsSpan[i].Start();
 
         isSynchronizing = false;
         callbacks.OnSessionStart();
@@ -428,24 +433,54 @@ sealed class Peer2PeerBackend<TInput> : IRollbackSession<TInput>, IProtocolNetwo
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    Span<PeerConnection<TInput>?> UpdateEndpoints()
+    {
+        var span = CollectionsMarshal.AsSpan(endpoints);
+        ref var curr = ref MemoryMarshal.GetReference(span);
+        ref var limit = ref Unsafe.Add(ref curr, span.Length);
+        while (Unsafe.IsAddressLessThan(ref curr, ref limit))
+        {
+            curr?.Update();
+            curr = ref Unsafe.Add(ref curr, 1)!;
+        }
+
+        return span;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    Span<PeerConnection<ConfirmedInputs<TInput>>> UpdateSpectators()
+    {
+        var span = CollectionsMarshal.AsSpan(spectators);
+        ref var curr = ref MemoryMarshal.GetReference(span);
+        ref var limit = ref Unsafe.Add(ref curr, span.Length);
+        while (Unsafe.IsAddressLessThan(ref curr, ref limit))
+        {
+            curr.Update();
+            curr = ref Unsafe.Add(ref curr, 1)!;
+        }
+
+        return span;
+    }
+
     void DoSync()
     {
         backgroundJobManager.ThrowIfError();
         if (synchronizer.InRollback) return;
         ConsumeProtocolInputEvents();
 
-        int i;
-        for (i = 0; i < endpoints.Count; i++) endpoints[i]?.Update();
-        for (i = 0; i < spectators.Count; i++) spectators[i].Update();
+        var eps = UpdateEndpoints();
+        var specs = UpdateSpectators();
 
         if (isSynchronizing) return;
 
         synchronizer.CheckSimulation();
 
         // notify all of our endpoints of their local frame number for their next connection quality report
+        int i;
         var currentFrame = synchronizer.CurrentFrame;
-        for (i = 0; i < endpoints.Count; i++)
-            endpoints[i]?.SetLocalFrameNumber(currentFrame, options.FramesPerSecond);
+        for (i = 0; i < eps.Length; i++)
+            eps[i]?.SetLocalFrameNumber(currentFrame, options.FramesPerSecond);
 
         var minConfirmedFrame = NumberOfPlayers <= 2 ? MinimumFrame2Players() : MinimumFrameNPlayers();
         Trace.Assert(minConfirmedFrame != Frame.MaxValue);
@@ -462,9 +497,9 @@ sealed class Peer2PeerBackend<TInput> : IRollbackSession<TInput>, IProtocolNetwo
                         break;
 
                     logger.Write(LogLevel.Trace, $"pushing frame {nextSpectatorFrame} to spectators");
-                    for (var s = 0; s < spectators.Count; s++)
-                        if (spectators[s].IsRunning)
-                            spectators[s].SendInput(in confirmed);
+                    for (var s = 0; s < specs.Length; s++)
+                        if (specs[s].IsRunning)
+                            specs[s].SendInput(in confirmed);
 
                     nextSpectatorFrame++;
                 }
@@ -490,16 +525,17 @@ sealed class Peer2PeerBackend<TInput> : IRollbackSession<TInput>, IProtocolNetwo
         }
 
         // send time sync notifications if now is the proper time
-        if (currentFrame.Number > nextRecommendedInterval)
-        {
-            var interval = 0;
-            for (i = 0; i < endpoints.Count; i++)
-                if (endpoints[i] is { } endpoint)
-                    interval = Math.Max(interval, endpoint.GetRecommendFrameDelay());
-            if (interval <= 0) return;
-            callbacks.TimeSync(new(interval));
-            nextRecommendedInterval = currentFrame.Number + options.RecommendationInterval;
-        }
+        if (currentFrame.Number <= nextRecommendedInterval)
+            return;
+
+        var interval = 0;
+        for (i = 0; i < eps.Length; i++)
+            if (eps[i] is { } endpoint)
+                interval = Math.Max(interval, endpoint.GetRecommendFrameDelay());
+
+        if (interval <= 0) return;
+        callbacks.TimeSync(new(interval));
+        nextRecommendedInterval = currentFrame.Number + options.RecommendationInterval;
     }
 
     void IProtocolNetworkEventHandler.OnNetworkEvent(in ProtocolEventInfo evt)
@@ -564,10 +600,11 @@ sealed class Peer2PeerBackend<TInput> : IRollbackSession<TInput>, IProtocolNetwo
     {
         // discard confirmed frames as appropriate
         Frame totalMinConfirmed = Frame.MaxValue;
-        for (var i = 0; i < endpoints.Count; i++)
+        var eps = CollectionsMarshal.AsSpan(endpoints);
+        for (var i = 0; i < eps.Length; i++)
         {
             var queueConnected = true;
-            if (endpoints[i] is { IsRunning: true } endpoint)
+            if (eps[i] is { IsRunning: true } endpoint)
                 queueConnected = endpoint.GetPeerConnectStatus(i, out _);
 
             ref var localConn = ref localConnections[i];
@@ -578,7 +615,7 @@ sealed class Peer2PeerBackend<TInput> : IRollbackSession<TInput>, IProtocolNetwo
             logger.Write(LogLevel.Trace,
                 $"Queue {i} => connected: {!localConn.Disconnected}; last received: {localConn.LastFrame}; min confirmed: {totalMinConfirmed}");
 
-            if (!queueConnected && !localConn.Disconnected && endpoints[i] is { Player: var handler })
+            if (!queueConnected && !localConn.Disconnected && eps[i] is { Player: var handler })
             {
                 logger.Write(LogLevel.Information, $"disconnecting {i} by remote request");
                 DisconnectPlayerQueue(in handler, in totalMinConfirmed);
@@ -594,17 +631,18 @@ sealed class Peer2PeerBackend<TInput> : IRollbackSession<TInput>, IProtocolNetwo
     {
         // discard confirmed frames as appropriate
         var totalMinConfirmed = Frame.MaxValue;
+        var eps = CollectionsMarshal.AsSpan(endpoints);
         for (var queue = 0; queue < NumberOfPlayers; queue++)
         {
             var queueConnected = true;
             var queueMinConfirmed = Frame.MaxValue;
             logger.Write(LogLevel.Trace, $"considering queue {queue}");
-            for (var i = 0; i < endpoints.Count; i++)
+            for (var i = 0; i < eps.Length; i++)
             {
                 // we're going to do a lot of logic here in consideration of endpoint i.
                 // keep accumulating the minimum confirmed point for all n*n packets and
                 // throw away the rest.
-                if (endpoints[i] is { IsRunning: true } endpoint)
+                if (eps[i] is { IsRunning: true } endpoint)
                 {
                     var connected = endpoint.GetPeerConnectStatus(queue, out var lastReceived);
                     queueConnected = queueConnected && connected;
@@ -630,7 +668,7 @@ sealed class Peer2PeerBackend<TInput> : IRollbackSession<TInput>, IProtocolNetwo
                 // so, we need to re-adjust.  This can happen when we detect our own disconnect at frame n
                 // and later receive a disconnect notification for frame n-1.
                 if ((!localStatus.Disconnected || localStatus.LastFrame > queueMinConfirmed)
-                    && endpoints[queue] is { Player: var handle })
+                    && eps[queue] is { Player: var handle })
                 {
                     logger.Write(LogLevel.Information, $"disconnecting queue {queue} by remote request");
                     DisconnectPlayerQueue(in handle, in queueMinConfirmed);
