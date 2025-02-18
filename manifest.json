@@ -1,0 +1,1071 @@
+{
+  "sitemap": {
+    "baseUrl": "https://lucasteles.github.io/Backdash/"
+  },
+  "source_base_path": "/home/runner/work/Backdash/Backdash/docfx",
+  "xrefmap": "xrefmap.yml",
+  "files": [
+    {
+      "type": "Resource",
+      "output": {
+        "resource": {
+          "relative_path": "index.json"
+        }
+      }
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "../assets/images/banner.png",
+      "output": {
+        "resource": {
+          "relative_path": "assets/images/banner.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "../assets/images/logo.png",
+      "output": {
+        "resource": {
+          "relative_path": "assets/images/logo.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "../assets/images/logo256.png",
+      "output": {
+        "resource": {
+          "relative_path": "assets/images/logo256.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "../logo.png",
+      "output": {
+        "resource": {
+          "relative_path": "logo.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.ConnectionInterruptedEventInfo.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.ConnectionInterruptedEventInfo.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Core.ConsoleTextLogWriter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Core.ConsoleTextLogWriter.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Core.FileTextLogWriter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Core.FileTextLogWriter.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Core.ILogWriter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Core.ILogWriter.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Core.InvalidTypeArgumentException-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Core.InvalidTypeArgumentException-1.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Core.InvalidTypeArgumentException.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Core.InvalidTypeArgumentException.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Core.LogLevel.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Core.LogLevel.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Core.LogOptions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Core.LogOptions.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Core.NetcodeDeserializationException-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Core.NetcodeDeserializationException-1.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Core.NetcodeDeserializationException.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Core.NetcodeDeserializationException.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Core.NetcodeException.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Core.NetcodeException.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Core.NetcodeSerializationException-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Core.NetcodeSerializationException-1.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Core.NetcodeSerializationException.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Core.NetcodeSerializationException.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Core.TextLogWriter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Core.TextLogWriter.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Core.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Core.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Data.ByteSize.Measure.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Data.ByteSize.Measure.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Data.ByteSize.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Data.ByteSize.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Data.Frame.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Data.Frame.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Data.FrameSpan.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Data.FrameSpan.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Data.SynchronizedInput-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Data.SynchronizedInput-1.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Data.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Data.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.INetcodeSession-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.INetcodeSession-1.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.INetcodeSessionHandler.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.INetcodeSessionHandler.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.INetcodeSessionInfo.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.INetcodeSessionInfo.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.LocalPlayer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.LocalPlayer.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.NetcodeOptions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.NetcodeOptions.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Network.Client.IMessageHandler-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Network.Client.IMessageHandler-1.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Network.Client.IPeerClient-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Network.Client.IPeerClient-1.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Network.Client.IPeerObserver-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Network.Client.IPeerObserver-1.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Network.Client.IPeerSocket.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Network.Client.IPeerSocket.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Network.Client.IPeerSocketFactory.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Network.Client.IPeerSocketFactory.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Network.Client.PeerClientFactory.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Network.Client.PeerClientFactory.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Network.Client.UdpSocket.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Network.Client.UdpSocket.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Network.Client.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Network.Client.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Network.DelayStrategy.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Network.DelayStrategy.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Network.Endianness.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Network.Endianness.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Network.PlayerConnectionStatus.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Network.PlayerConnectionStatus.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Network.Protocol.ProtocolOptions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Network.Protocol.ProtocolOptions.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Network.Protocol.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Network.Protocol.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Network.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Network.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.PeerEvent.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.PeerEvent.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.PeerEventInfo.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.PeerEventInfo.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.PeerNetworkStats.PackagesInfo.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.PeerNetworkStats.PackagesInfo.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.PeerNetworkStats.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.PeerNetworkStats.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Player.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Player.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.PlayerHandle.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.PlayerHandle.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.PlayerType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.PlayerType.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.RemotePlayer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.RemotePlayer.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.ResultCode.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.ResultCode.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.RollbackNetcode.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.RollbackNetcode.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Serialization.BinarySerializer-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Serialization.BinarySerializer-1.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Serialization.BinarySerializerAttribute-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Serialization.BinarySerializerAttribute-1.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Serialization.Buffer.BinaryBufferReader.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Serialization.Buffer.BinaryBufferReader.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Serialization.Buffer.BinaryBufferWriter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Serialization.Buffer.BinaryBufferWriter.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Serialization.Buffer.BinaryRawBufferWriter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Serialization.Buffer.BinaryRawBufferWriter.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Serialization.Buffer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Serialization.Buffer.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Serialization.IBinaryBufferReader-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Serialization.IBinaryBufferReader-1.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Serialization.IBinaryBufferSerializer-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Serialization.IBinaryBufferSerializer-1.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Serialization.IBinaryBufferWriter-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Serialization.IBinaryBufferWriter-1.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Serialization.IBinaryReader-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Serialization.IBinaryReader-1.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Serialization.IBinarySerializer-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Serialization.IBinarySerializer-1.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Serialization.IBinaryWriter-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Serialization.IBinaryWriter-1.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Serialization.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Serialization.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.SessionMode.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.SessionMode.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.SessionServices-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.SessionServices-1.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Spectator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Spectator.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.SynchronizedEventInfo.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.SynchronizedEventInfo.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Synchronizing.Input.Confirmed.ConfirmedInputs-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Synchronizing.Input.Confirmed.ConfirmedInputs-1.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Synchronizing.Input.Confirmed.IInputListener-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Synchronizing.Input.Confirmed.IInputListener-1.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Synchronizing.Input.Confirmed.InputArray-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Synchronizing.Input.Confirmed.InputArray-1.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Synchronizing.Input.Confirmed.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Synchronizing.Input.Confirmed.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Synchronizing.Input.IInputGenerator-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Synchronizing.Input.IInputGenerator-1.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Synchronizing.Input.RandomInputGenerator-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Synchronizing.Input.RandomInputGenerator-1.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Synchronizing.Input.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Synchronizing.Input.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Synchronizing.Random.IDeterministicRandom.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Synchronizing.Random.IDeterministicRandom.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Synchronizing.Random.XorShiftRandom.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Synchronizing.Random.XorShiftRandom.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Synchronizing.Random.XorSimdRandom.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Synchronizing.Random.XorSimdRandom.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Synchronizing.Random.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Synchronizing.Random.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Synchronizing.SessionReplayControl.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Synchronizing.SessionReplayControl.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Synchronizing.State.DefaultStateStore.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Synchronizing.State.DefaultStateStore.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Synchronizing.State.EmptyChecksumProvider.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Synchronizing.State.EmptyChecksumProvider.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Synchronizing.State.Fletcher32ChecksumProvider.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Synchronizing.State.Fletcher32ChecksumProvider.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Synchronizing.State.IChecksumProvider.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Synchronizing.State.IChecksumProvider.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Synchronizing.State.IStateDesyncHandler.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Synchronizing.State.IStateDesyncHandler.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Synchronizing.State.IStateStore.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Synchronizing.State.IStateStore.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Synchronizing.State.SavedFrame.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Synchronizing.State.SavedFrame.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Synchronizing.State.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Synchronizing.State.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Synchronizing.TimeSyncOptions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Synchronizing.TimeSyncOptions.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Synchronizing.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Synchronizing.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.SynchronizingEventInfo.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.SynchronizingEventInfo.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "api/toc.yml",
+      "output": {
+        ".json": {
+          "relative_path": "api/toc.json"
+        },
+        ".html": {
+          "relative_path": "api/toc.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "docs/developer_guide.md",
+      "output": {
+        ".html": {
+          "relative_path": "docs/developer_guide.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "docs/images/favicon.ico",
+      "output": {
+        "resource": {
+          "relative_path": "docs/images/favicon.ico"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "docs/images/logo.png",
+      "output": {
+        "resource": {
+          "relative_path": "docs/images/logo.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "docs/introduction.md",
+      "output": {
+        ".html": {
+          "relative_path": "docs/introduction.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "docs/toc.yml",
+      "output": {
+        ".json": {
+          "relative_path": "docs/toc.json"
+        },
+        ".html": {
+          "relative_path": "docs/toc.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "docs/troubleshooting.md",
+      "output": {
+        ".html": {
+          "relative_path": "docs/troubleshooting.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "index.md",
+      "output": {
+        ".html": {
+          "relative_path": "index.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "toc.yml",
+      "output": {
+        ".json": {
+          "relative_path": "toc.json"
+        },
+        ".html": {
+          "relative_path": "toc.html"
+        }
+      },
+      "version": ""
+    }
+  ],
+  "groups": [
+    {
+      "xrefmap": "xrefmap.yml"
+    }
+  ]
+}
