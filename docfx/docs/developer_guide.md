@@ -64,9 +64,9 @@ the [`INetcodeSessionHandler`](https://lucasteles.github.io/Backdash/api/Backdas
 The [`INetcodeSession<TInput>`](https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSession-2.html)
 object is your interface to the [Backdash](https://github.com/lucasteles/Backdash) framework. Create
 one with
-the [`RollbackNetcode.CreateSession`](https://lucasteles.github.io/Backdash/api/Backdash.RollbackNetcode.html#Backdash_RollbackNetcode_CreateSession__2_System_Int32_Backdash_RollbackOptions_Backdash_SessionServices___0___1__)
+the [`RollbackNetcode.CreateSession`](https://lucasteles.github.io/Backdash/api/Backdash.RollbackNetcode.html#Backdash_RollbackNetcode_CreateSession__2_System_Int32_Backdash_NetcodeOptions_Backdash_SessionServices___0___1__)
 function passing the port to bind to locally and optionally other configurations with
-an instance of [`RollbackOptions`](https://lucasteles.github.io/Backdash/api/Backdash.RollbackOptions.html).
+an instance of [`NetcodeOptions`](https://lucasteles.github.io/Backdash/api/Backdash.NetcodeOptions.html).
 
 For example, giving the user pre-defined types for the **Game State** and **Game Input**
 
@@ -96,7 +96,7 @@ var session = RollbackNetcode.CreateSession<MyGameInput>(9001);
 // ...
 ```
 
-It is possible to set many configurations passing an instance of [`RollbackOptions`](https://lucasteles.github.io/Backdash/api/Backdash.RollbackOptions.html)
+It is possible to set many configurations passing an instance of [`NetcodeOptions`](https://lucasteles.github.io/Backdash/api/Backdash.NetcodeOptions.html)
 
 ```csharp
 using Backdash;
@@ -104,7 +104,7 @@ using Backdash.Core;
 
 const int networkPort = 9001;
 
-RollbackOptions options = new()
+NetcodeOptions options = new()
 {
     FrameDelay = 2,
     Log = new()
@@ -300,7 +300,7 @@ You can also use you own checksum algorithm, for this just implement the interfa
 [`IChecksumProvider`](https://lucasteles.github.io/Backdash/api/Backdash.Sync.State.IChecksumProvider-1.html).
 
 Provide the `IChecksumProvider` implementation in the [services](https://lucasteles.github.io/Backdash/api/Backdash.SessionServices-2.html#Backdash_SessionServices_2_ChecksumProvider)
-parameter of [`RollbackNetcode.CreateSession`](https://lucasteles.github.io/Backdash/api/Backdash.RollbackNetcode.html#Backdash_RollbackNetcode_CreateSession__2_System_Int32_Backdash_RollbackOptions_Backdash_SessionServices___0___1__)
+parameter of [`RollbackNetcode.CreateSession`](https://lucasteles.github.io/Backdash/api/Backdash.RollbackNetcode.html#Backdash_RollbackNetcode_CreateSession__2_System_Int32_Backdash_NetcodeOptions_Backdash_SessionServices___0___1__)
 
 
 ### Advance Frame Callback
@@ -408,18 +408,18 @@ by [Backdash](https://github.com/lucasteles/Backdash).
 
 > [!CAUTION]
 > We can also handle serialization of complex structs that **do not** contain any reference type member. for those
-> no [`Endianess Convertion`](https://lucasteles.github.io/Backdash/api/Backdash.RollbackOptions.html#Backdash_RollbackOptions_NetworkEndianness) is applied.
+> no [`Endianess Convertion`](https://lucasteles.github.io/Backdash/api/Backdash.NetcodeOptions.html#Backdash_NetcodeOptions_NetworkEndianness) is applied.
 
 ### Custom Serializer
 
 If you need a more complex input type and
-support [`Endianess convertion`](https://lucasteles.github.io/Backdash/api/Backdash.RollbackOptions.html#Backdash_RollbackOptions_NetworkEndianness)
+support [`Endianess convertion`](https://lucasteles.github.io/Backdash/api/Backdash.NetcodeOptions.html#Backdash_NetcodeOptions_NetworkEndianness)
 you must implement
 an [`IBinarySerializer<TInput>`](https://lucasteles.github.io/Backdash/api/Backdash.Serialization.IBinarySerializer-1.html)
 for your input type, and pass it to
 the [services](https://lucasteles.github.io/Backdash/api/Backdash.SessionServices-2.html#Backdash_SessionServices_2_ChecksumProvider)
 parameter
-of [`RollbackNetcode.CreateSession`](https://lucasteles.github.io/Backdash/api/Backdash.RollbackNetcode.html#Backdash_RollbackNetcode_CreateSession__2_System_Int32_Backdash_RollbackOptions_Backdash_SessionServices___0___1__)
+of [`RollbackNetcode.CreateSession`](https://lucasteles.github.io/Backdash/api/Backdash.RollbackNetcode.html#Backdash_RollbackNetcode_CreateSession__2_System_Int32_Backdash_NetcodeOptions_Backdash_SessionServices___0___1__)
 
 > [!TIP]
 > 💡 The easiest way to implement a binary serializer is by deriving

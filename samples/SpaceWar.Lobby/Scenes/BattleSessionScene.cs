@@ -12,7 +12,7 @@ public sealed class BattleSessionScene : Scene
     readonly INetcodeSession<PlayerInputs> rollbackSession;
     GameSession gameSession = null!;
 
-    readonly RollbackOptions options = new()
+    readonly NetcodeOptions options = new()
     {
         FrameDelay = 2,
         Log = new()

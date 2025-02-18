@@ -26,7 +26,7 @@ if (args is not [{ } portArg, { } playerCountArg, .. { } endpoints]
     throw new InvalidOperationException("Invalid port argument");
 
 // netcode configurations
-RollbackOptions options = new()
+NetcodeOptions options = new()
 {
     FrameDelay = 2,
     Log = new()
@@ -88,7 +88,7 @@ Console.Clear();
 // -------------------------------------------------------------- //
 static INetcodeSession<GameInput> CreatePlayerSession(
     int port,
-    RollbackOptions options,
+    NetcodeOptions options,
     Player[] players
 )
 {

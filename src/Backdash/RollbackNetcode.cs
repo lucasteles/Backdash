@@ -24,7 +24,7 @@ public static class RollbackNetcode
     /// <typeparam name="TInput">Game input type</typeparam>
     public static INetcodeSession<TInput> CreateSession<TInput>(
         int port,
-        RollbackOptions? options = null,
+        NetcodeOptions? options = null,
         SessionServices<TInput>? services = null
     )
         where TInput : unmanaged
@@ -46,7 +46,7 @@ public static class RollbackNetcode
         int port,
         IPEndPoint host,
         int numberOfPlayers,
-        RollbackOptions? options = null,
+        NetcodeOptions? options = null,
         SessionServices<TInput>? services = null) where TInput : unmanaged
     {
         options ??= new();
@@ -62,7 +62,7 @@ public static class RollbackNetcode
     /// <param name="services">Session customizable dependencies</param>
     /// <typeparam name="TInput">Game input type</typeparam>
     public static INetcodeSession<TInput> CreateLocalSession<TInput>(
-        RollbackOptions? options = null,
+        NetcodeOptions? options = null,
         SessionServices<TInput>? services = null
     )
         where TInput : unmanaged
@@ -78,7 +78,7 @@ public static class RollbackNetcode
     /// <param name="inputs">Inputs to be replayed</param>
     /// <param name="services">Session customizable dependencies</param>
     /// <param name="controls">replay control</param>
-    /// <param name="useInputSeedForRandom"><see cref="RollbackOptions.UseInputSeedForRandom"/></param>
+    /// <param name="useInputSeedForRandom"><see cref="NetcodeOptions.UseInputSeedForRandom"/></param>
     /// <typeparam name="TInput">Game input type</typeparam>
     public static INetcodeSession<TInput> CreateReplaySession<TInput>(
         int numberOfPlayers,
@@ -103,7 +103,7 @@ public static class RollbackNetcode
     /// <typeparam name="TInput">Game input type</typeparam>
     public static INetcodeSession<TInput> CreateSyncTestSession<TInput>(
         FrameSpan? checkDistance = null,
-        RollbackOptions? options = null,
+        NetcodeOptions? options = null,
         SessionServices<TInput>? services = null,
         IStateDesyncHandler? desyncHandler = null,
         bool throwException = true

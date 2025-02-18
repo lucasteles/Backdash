@@ -12,7 +12,7 @@ interface IProtocolClientFactory
 }
 
 sealed class ProtocolClientFactory(
-    RollbackOptions options,
+    NetcodeOptions options,
     IPeerSocketFactory socketFactory,
     IClock clock,
     Logger logger,

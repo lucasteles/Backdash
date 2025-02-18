@@ -28,7 +28,7 @@ sealed class SyncTestBackend<TInput> : INetcodeSession<TInput>
     readonly Queue<SavedFrameBytes> savedFrames = [];
     readonly SynchronizedInput<TInput>[] syncInputBuffer = new SynchronizedInput<TInput>[Max.NumberOfPlayers];
     readonly TInput[] inputBuffer = new TInput[Max.NumberOfPlayers];
-    readonly RollbackOptions options;
+    readonly NetcodeOptions options;
     readonly FrameSpan checkDistance;
     readonly bool throwError;
     readonly IStateDesyncHandler? mismatchHandler;
@@ -42,7 +42,7 @@ sealed class SyncTestBackend<TInput> : INetcodeSession<TInput>
     GameInput<TInput> lastInput;
     Frame lastVerified = Frame.Zero;
 
-    public SyncTestBackend(RollbackOptions options,
+    public SyncTestBackend(NetcodeOptions options,
         FrameSpan checkDistance,
         bool throwError,
         IStateDesyncHandler? mismatchHandler,

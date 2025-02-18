@@ -13,7 +13,7 @@ public class Game1 : Game
     readonly SessionReplayControl replayControls = new();
     readonly KeyboardController keyboard = new();
 
-    readonly RollbackOptions options = new()
+    readonly NetcodeOptions options = new()
     {
         FrameDelay = 2,
         Log = new()

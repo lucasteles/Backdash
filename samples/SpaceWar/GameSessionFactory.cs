@@ -11,7 +11,7 @@ public static class GameSessionFactory
 {
     public static INetcodeSession<PlayerInputs> ParseArgs(
         string[] args,
-        RollbackOptions options,
+        NetcodeOptions options,
         SessionReplayControl replayControls
     )
     {

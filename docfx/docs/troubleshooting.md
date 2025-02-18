@@ -132,7 +132,7 @@ public class MySessionHandler : INetcodeSessionHandler
 ## Use the [Backdash](https://github.com/lucasteles/Backdash) Sync Test Feature. A Lot.
 
 Once you've ported your application to [Backdash](https://github.com/lucasteles/Backdash), you can use
-the [`CreateSyncTestSession`](https://lucasteles.github.io/Backdash/api/Backdash.RollbackNetcode.html#Backdash_RollbackNetcode_CreateSyncTestSession__2_System_Nullable_Backdash_Data_FrameSpan__Backdash_RollbackOptions_Backdash_SessionServices___0___1__System_Boolean_)
+the [`CreateSyncTestSession`](https://lucasteles.github.io/Backdash/api/Backdash.RollbackNetcode.html#Backdash_RollbackNetcode_CreateSyncTestSession__2_System_Nullable_Backdash_Data_FrameSpan__Backdash_NetcodeOptions_Backdash_SessionServices___0___1__System_Boolean_)
 function to help track down synchronization issues which may be the result of a leaky game state.
 
 The sync test session is a special, single player session which is designed to find errors in your simulation's

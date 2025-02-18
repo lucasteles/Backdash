@@ -10,7 +10,7 @@ namespace Backdash.Synchronizing.Input;
 
 sealed class Synchronizer<TInput> where TInput : unmanaged
 {
-    readonly RollbackOptions options;
+    readonly NetcodeOptions options;
     readonly Logger logger;
     readonly IReadOnlyCollection<PlayerHandle> players;
     readonly IStateStore stateStore;
@@ -25,7 +25,7 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
     readonly Endianness endianness;
 
     public Synchronizer(
-        RollbackOptions options,
+        NetcodeOptions options,
         Logger logger,
         IReadOnlyCollection<PlayerHandle> players,
         IStateStore stateStore,

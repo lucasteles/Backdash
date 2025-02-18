@@ -13,7 +13,7 @@ namespace Backdash;
 /// </summary>
 ///  <seealso cref="RollbackNetcode"/>
 ///  <seealso cref="INetcodeSession{TInput}"/>
-public sealed class RollbackOptions
+public sealed class NetcodeOptions
 {
     /// <summary>
     /// Offset to be incremented to spectators <see cref="PlayerHandle.Number"/> when added to session.

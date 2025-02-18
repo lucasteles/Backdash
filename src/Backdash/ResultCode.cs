@@ -17,7 +17,7 @@ public enum ResultCode : short
     PlayerOutOfRange,
 
     /// <summary>When emulator reached prediction barrier.</summary>
-    /// <seealso cref="RollbackOptions.PredictionFrames"/>
+    /// <seealso cref="NetcodeOptions.PredictionFrames"/>
     /// <seealso cref="INetcodeSession{TInput}.AddLocalInput"/>
     PredictionThreshold,
 
@@ -31,13 +31,13 @@ public enum ResultCode : short
     InputDropped,
 
     /// <summary>Max number of spectators reached.</summary>
-    /// <seealso cref="RollbackOptions"/>
+    /// <seealso cref="NetcodeOptions"/>
     /// <inheritdoc cref="Max.NumberOfSpectators"/>
     TooManySpectators,
 
     /// <summary>
     /// Max number of players reached.
-    /// <seealso cref="RollbackOptions"/>
+    /// <seealso cref="NetcodeOptions"/>
     /// </summary>
     /// <inheritdoc cref="Max.NumberOfPlayers"/>
     TooManyPlayers,

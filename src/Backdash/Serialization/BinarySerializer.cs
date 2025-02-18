@@ -40,7 +40,7 @@ public interface IBinarySerializer<T> : IBinaryReader<T>, IBinaryWriter<T>;
 /// <inheritdoc />
 public abstract class BinarySerializer<T> : IBinarySerializer<T>
 {
-    /// <inheritdoc cref="RollbackOptions.NetworkEndianness"/>
+    /// <inheritdoc cref="NetcodeOptions.NetworkEndianness"/>
     public bool Network { get; init; } = true;
 
     /// <summary>

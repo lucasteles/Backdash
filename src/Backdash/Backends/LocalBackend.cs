@@ -16,14 +16,14 @@ sealed class LocalBackend<TInput> : INetcodeSession<TInput> where TInput : unman
     SynchronizedInput<TInput>[] syncInputBuffer = [];
     TInput[] inputBuffer = [];
 
-    readonly RollbackOptions options;
+    readonly NetcodeOptions options;
 
     bool running;
 
     INetcodeSessionHandler callbacks;
     Task backGroundJobTask = Task.CompletedTask;
 
-    public LocalBackend(RollbackOptions options, BackendServices<TInput> services)
+    public LocalBackend(NetcodeOptions options, BackendServices<TInput> services)
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(options);

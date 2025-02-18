@@ -18,7 +18,7 @@ namespace Backdash.Backends;
 sealed class RemoteBackend<TInput> : INetcodeSession<TInput>, IProtocolNetworkEventHandler
     where TInput : unmanaged
 {
-    readonly RollbackOptions options;
+    readonly NetcodeOptions options;
     readonly IBinarySerializer<TInput> inputSerializer;
     readonly IBinarySerializer<ConfirmedInputs<TInput>> inputGroupSerializer;
     readonly Logger logger;
@@ -51,7 +51,7 @@ sealed class RemoteBackend<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
 
     public RemoteBackend(
         int port,
-        RollbackOptions options,
+        NetcodeOptions options,
         BackendServices<TInput> services
     )
     {

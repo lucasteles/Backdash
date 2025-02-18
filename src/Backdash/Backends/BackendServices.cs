@@ -25,7 +25,7 @@ sealed class BackendServices<TInput> where TInput : unmanaged
     public IDelayStrategy DelayStrategy { get; }
     public IInputListener<TInput>? InputListener { get; }
 
-    public BackendServices(RollbackOptions options, SessionServices<TInput>? services)
+    public BackendServices(NetcodeOptions options, SessionServices<TInput>? services)
     {
         ChecksumProvider = services?.ChecksumProvider ?? new Fletcher32ChecksumProvider();
         StateStore = services?.StateStore ?? new DefaultStateStore(options.StateSizeHint);
@@ -53,7 +53,7 @@ sealed class BackendServices<TInput> where TInput : unmanaged
 
 static class BackendServices
 {
-    public static BackendServices<TInput> Create<TInput>(RollbackOptions options, SessionServices<TInput>? services)
+    public static BackendServices<TInput> Create<TInput>(NetcodeOptions options, SessionServices<TInput>? services)
         where TInput : unmanaged =>
         new(options, services);
 }

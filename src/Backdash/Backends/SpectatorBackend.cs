@@ -22,7 +22,7 @@ sealed class SpectatorBackend<TInput> :
     readonly Logger logger;
     readonly IProtocolClient udp;
     readonly IPEndPoint hostEndpoint;
-    readonly RollbackOptions options;
+    readonly NetcodeOptions options;
     readonly IBackgroundJobManager backgroundJobManager;
     readonly IClock clock;
     readonly IDeterministicRandom deterministicRandom;
@@ -43,7 +43,7 @@ sealed class SpectatorBackend<TInput> :
     public SpectatorBackend(int port,
         IPEndPoint hostEndpoint,
         int numberOfPlayers,
-        RollbackOptions options,
+        NetcodeOptions options,
         BackendServices<TInput> services)
     {
         ArgumentNullException.ThrowIfNull(services);
