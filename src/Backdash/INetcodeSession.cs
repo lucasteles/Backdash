@@ -123,6 +123,7 @@ public interface INetcodeSession<TInput> : INetcodeSessionInfo, IDisposable wher
     /// </summary>
     void AdvanceFrame();
 
+
     /// <summary>
     /// Returns connection status of a player.
     /// </summary>

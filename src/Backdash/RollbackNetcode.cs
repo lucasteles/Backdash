@@ -56,6 +56,22 @@ public static class RollbackNetcode
     }
 
     /// <summary>
+    /// Initializes new local players only session.
+    /// </summary>
+    /// <param name="options">Session configuration</param>
+    /// <param name="services">Session customizable dependencies</param>
+    /// <typeparam name="TInput">Game input type</typeparam>
+    public static INetcodeSession<TInput> CreateLocalSession<TInput>(
+        RollbackOptions? options = null,
+        SessionServices<TInput>? services = null
+    )
+        where TInput : unmanaged
+    {
+        options ??= new();
+        return new LocalBackend<TInput>(options, BackendServices.Create(options, services));
+    }
+
+    /// <summary>
     /// Initializes new replay session.
     /// </summary>
     /// <param name="numberOfPlayers">Session player count</param>

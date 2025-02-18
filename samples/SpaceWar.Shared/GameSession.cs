@@ -26,14 +26,16 @@ public sealed class GameSession(
 
         UpdateStats();
         session.BeginFrame();
-        if (nonGameState.LocalPlayerHandle is { } localPlayer)
-        {
-            var keyboard = Keyboard.GetState();
-            HandleNoGameInput(keyboard);
-            var localInput = Inputs.ReadInputs(keyboard);
-            if (session.AddLocalInput(localPlayer, localInput) is not ResultCode.Ok)
-                return;
-        }
+
+        var keyboard = Keyboard.GetState();
+        HandleNoGameInput(keyboard);
+        var localInput = Inputs.ReadInputs(keyboard);
+
+        if (nonGameState.LocalPlayerHandle is { } localPlayer
+            && session.AddLocalInput(localPlayer, localInput) is not ResultCode.Ok) return;
+
+        if (nonGameState.MirrorPlayerHandle is { } mirrorPlayer
+            && session.AddLocalInput(mirrorPlayer, localInput) is not ResultCode.Ok) return;
 
         var syncInputResult = session.SynchronizeInputs();
         if (syncInputResult is not ResultCode.Ok)

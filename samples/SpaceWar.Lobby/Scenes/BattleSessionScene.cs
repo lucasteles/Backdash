@@ -68,8 +68,15 @@ public sealed class BattleSessionScene : Scene
             if (player.IsLocal())
             {
                 playerInfo.ConnectProgress = 100;
-                ngs.LocalPlayerHandle = player;
                 ngs.SetConnectState(player, PlayerConnectState.Connecting);
+
+                if (ngs.LocalPlayerHandle is null)
+                    ngs.LocalPlayerHandle = player;
+                // used for local session, 2nd player that mirrors the player 1
+                else if (ngs.MirrorPlayerHandle is null)
+                    ngs.MirrorPlayerHandle = player;
+                else
+                    throw new InvalidOperationException("Too many local players");
             }
 
             ngs.StatusText.Clear();

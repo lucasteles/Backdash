@@ -3,7 +3,7 @@ namespace Backdash;
 /// <summary>
 /// Defines the mode of <see cref="INetcodeSession{TInput}"/>>
 /// </summary>
-public enum SessionMode
+public enum SessionMode : byte
 {
     /// <summary>Normal P2P match session</summary>
     Rollback,
@@ -16,4 +16,7 @@ public enum SessionMode
 
     /// <summary>Special sync test session</summary>
     SyncTest,
+
+    /// <summary>Local only session</summary>
+    Local,
 }
