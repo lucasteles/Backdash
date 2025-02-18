@@ -1,5 +1,3 @@
-using System.Runtime.InteropServices;
-
 namespace Backdash.Synchronizing.State;
 
 /// <summary>
@@ -12,7 +10,7 @@ public interface IChecksumProvider
     /// </summary>
     /// <param name="data"></param>
     /// <returns><see cref="int"/> checksum value</returns>
-    int Compute(ReadOnlySpan<byte> data);
+    uint Compute(ReadOnlySpan<byte> data);
 }
 
 /// <summary>
@@ -21,7 +19,7 @@ public interface IChecksumProvider
 public class EmptyChecksumProvider : IChecksumProvider
 {
     /// <inheritdoc />
-    public int Compute(ReadOnlySpan<byte> data) => 0;
+    public uint Compute(ReadOnlySpan<byte> data) => 0;
 }
 
 /// <summary>
@@ -30,34 +28,41 @@ public class EmptyChecksumProvider : IChecksumProvider
 /// </summary>
 public sealed class Fletcher32ChecksumProvider : IChecksumProvider
 {
+    const int BlockSize = 360;
+
     /// <inheritdoc />
-    public int Compute(ReadOnlySpan<byte> data)
+    public unsafe uint Compute(ReadOnlySpan<byte> data)
     {
         if (data.IsEmpty) return 0;
-        var buffer = MemoryMarshal.Cast<byte, short>(data);
-        int sum1 = 0xFFFF, sum2 = 0xFFFF;
+
+        uint sum1 = 0xFFFF, sum2 = 0xFFFF;
         var dataIndex = 0;
-        var len = buffer.Length;
+        var dataLen = data.Length;
+        var len = dataLen / sizeof(ushort);
 
-        while (len > 0)
+        fixed (byte* ptr = data)
         {
-            var tLen = len > 360 ? 360 : len;
-            len -= tLen;
-
-            do
+            while (len > 0)
             {
-                sum1 += buffer[dataIndex++];
+                var blockLen = len > BlockSize ? BlockSize : len;
+                len -= blockLen;
+
+                do
+                {
+                    sum1 += *(ushort*)(ptr + dataIndex);
+                    sum2 += sum1;
+                    dataIndex += sizeof(ushort);
+                } while (--blockLen > 0);
+
+                sum1 = (sum1 & 0xFFFF) + (sum1 >> 16);
+                sum2 = (sum2 & 0xFFFF) + (sum2 >> 16);
+            }
+
+            if (dataIndex < dataLen)
+            {
+                sum1 += *(ptr + dataLen - 1);
                 sum2 += sum1;
-            } while (--tLen > 0);
-
-            sum1 = (sum1 & 0xFFFF) + (sum1 >> 16);
-            sum2 = (sum2 & 0xFFFF) + (sum2 >> 16);
-        }
-
-        if ((data.Length & 1) is 1)
-        {
-            sum1 += data[^1];
-            sum2 += sum1;
+            }
         }
 
         sum1 = (sum1 & 0xFFFF) + (sum1 >> 16);

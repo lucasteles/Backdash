@@ -73,4 +73,7 @@ static class Default
 
     ///<value>Defaults to <c>64</c></value>
     public const int MaxSyncRetries = 64;
+
+    ///<value>Defaults to <c>128</c></value>
+    public const int StateSizeHint = 128;
 }

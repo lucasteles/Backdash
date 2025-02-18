@@ -7,12 +7,12 @@ using Backdash.Tests.TestUtils;
 
 namespace Backdash.Tests.Specs.Unit.Sync.State;
 
-public class BinaryStateStoreTests
+public class DefaultStateStoreTests
 {
     [Fact]
     public void ShouldInitializeCorrectly()
     {
-        BinaryStateStore store = new(40);
+        DefaultStateStore store = new(40);
         store.Initialize(1);
 
         ref var currentState = ref store.GetCurrent();

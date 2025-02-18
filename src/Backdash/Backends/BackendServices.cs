@@ -28,7 +28,7 @@ sealed class BackendServices<TInput> where TInput : unmanaged
     public BackendServices(RollbackOptions options, SessionServices<TInput>? services)
     {
         ChecksumProvider = services?.ChecksumProvider ?? new Fletcher32ChecksumProvider();
-        StateStore = services?.StateStore ?? new BinaryStateStore();
+        StateStore = services?.StateStore ?? new DefaultStateStore(options.StateSizeHint);
         DeterministicRandom = services?.DeterministicRandom ?? new XorSimdRandom();
         InputListener = services?.InputListener;
         Random = new DefaultRandomNumberGenerator(services?.Random ?? System.Random.Shared);

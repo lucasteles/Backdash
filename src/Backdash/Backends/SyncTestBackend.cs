@@ -14,7 +14,7 @@ sealed class SyncTestBackend<TInput> : IRollbackSession<TInput>
 {
     readonly record struct SavedFrameBytes(
         Frame Frame,
-        int Checksum,
+        uint Checksum,
         byte[] State,
         GameInput<TInput> Input
     );
@@ -269,7 +269,7 @@ sealed class SyncTestBackend<TInput> : IRollbackSession<TInput>
 
     void LogSaveState(LogLevel level,
         string description, string body,
-        int checksum, Frame frame,
+        uint checksum, Frame frame,
         object? extra = null
     )
     {

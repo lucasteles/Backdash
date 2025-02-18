@@ -10,7 +10,7 @@ namespace Backdash.Synchronizing.State;
 /// Binary store for temporary save and restore game states using <see cref="IBinarySerializer{T}"/>.
 /// </summary>
 /// <param name="hintSize">initial memory used for infer the state size</param>
-public sealed class BinaryStateStore(int hintSize = 128) : IStateStore
+public sealed class DefaultStateStore(int hintSize) : IStateStore
 {
     int head;
     SavedFrame[] savedStates = [];
@@ -64,7 +64,7 @@ public sealed class BinaryStateStore(int hintSize = 128) : IStateStore
     public void Advance() => head = (head + 1) % savedStates.Length;
 
     /// <inheritdoc />
-    public int GetChecksum(in Frame frame)
+    public uint GetChecksum(in Frame frame)
     {
         ref var current = ref MemoryMarshal.GetReference(savedStates.AsSpan());
         ref var limit = ref Unsafe.Add(ref current, savedStates.Length);

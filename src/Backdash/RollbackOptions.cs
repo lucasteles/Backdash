@@ -71,6 +71,12 @@ public sealed class RollbackOptions
     public int FrameDelay { get; init; } = Default.FrameDelay;
 
     /// <summary>
+    /// Size hint in bytes for state serialization pre-allocation
+    /// </summary>
+    /// <inheritdoc cref="Default.StateSizeHint"/>
+    public int StateSizeHint { get; init; } = Default.StateSizeHint;
+
+    /// <summary>
     /// Config <see cref="UdpSocket"/> to use IPv6.
     /// </summary>
     /// <value>Defaults to <see langword="false"/></value>

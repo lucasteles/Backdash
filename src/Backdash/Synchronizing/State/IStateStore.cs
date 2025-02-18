@@ -37,5 +37,5 @@ public interface IStateStore
     /// <summary>
     /// Finds checksum for <param name="frame"></param>
     /// </summary>
-    int GetChecksum(in Frame frame);
+    uint GetChecksum(in Frame frame);
 }

@@ -9,7 +9,7 @@ namespace Backdash.Network.Messages;
 record struct ConsistencyCheckReply : ISpanSerializable, IUtf8SpanFormattable
 {
     public Frame Frame;
-    public int Checksum;
+    public uint Checksum;
 
     public readonly void Serialize(in BinaryRawBufferWriter writer)
     {
@@ -20,7 +20,7 @@ record struct ConsistencyCheckReply : ISpanSerializable, IUtf8SpanFormattable
     public void Deserialize(in BinaryBufferReader reader)
     {
         Frame = new(reader.ReadInt32());
-        Checksum = reader.ReadInt32();
+        Checksum = reader.ReadUInt32();
     }
 
     public readonly bool TryFormat(

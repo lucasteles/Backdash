@@ -37,7 +37,7 @@ sealed class ProtocolState(
     {
         public long LastCheck;
         public Frame AskedFrame;
-        public int AskedChecksum;
+        public uint AskedChecksum;
     }
 
     public sealed class AdvantageState

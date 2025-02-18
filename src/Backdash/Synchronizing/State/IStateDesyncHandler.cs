@@ -11,13 +11,13 @@ public interface IStateDesyncHandler
     /// <summary>
     /// Handles the states string representations
     /// </summary>
-    void Handle(string current, int currentChecksum, string previous, int previousChecksum);
+    void Handle(string current, uint currentChecksum, string previous, uint previousChecksum);
 
     /// <summary>
     /// Handles the states binary representations
     /// </summary>
     void Handle(
-        in BinaryBufferReader current, int currentChecksum,
-        in BinaryBufferReader previous, int previousChecksum
+        in BinaryBufferReader current, uint currentChecksum,
+        in BinaryBufferReader previous, uint previousChecksum
     );
 }

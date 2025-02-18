@@ -10,13 +10,13 @@ namespace Backdash.Synchronizing.State;
 /// <param name="GameState">Game state on <paramref name="Frame"/></param>
 /// <param name="Checksum">Checksum of state</param>
 [Serializable]
-public record SavedFrame(Frame Frame, ArrayBufferWriter<byte> GameState, int Checksum)
+public record SavedFrame(Frame Frame, ArrayBufferWriter<byte> GameState, uint Checksum)
 {
     /// <summary>Saved frame number</summary>
     public Frame Frame = Frame;
 
     /// <summary>Saved checksum</summary>
-    public int Checksum = Checksum;
+    public uint Checksum = Checksum;
 
     /// <summary>Saved game state</summary>
     public ArrayBufferWriter<byte> GameState = GameState;

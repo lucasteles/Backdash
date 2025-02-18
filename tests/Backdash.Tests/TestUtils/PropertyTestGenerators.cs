@@ -180,7 +180,7 @@ abstract class PropertyTestGenerators
 
     public static Arbitrary<ConsistencyCheckReply> ConsistencyCheckReplyGenerator() => Arb.From(
         from frame in Generate<Frame>()
-        from checksum in Generate<int>()
+        from checksum in Generate<uint>()
         select new ConsistencyCheckReply
         {
             Frame = frame,
@@ -321,6 +321,13 @@ abstract class PropertyTestGenerators
             }
         );
 
+    public static Arbitrary<OddSizeArray<T>> OddSizeArrayGenerator<T>(
+        Arbitrary<T[]> itemGenerator
+    ) => itemGenerator.Generator
+        .Where(x => x.Length % 2 is not 0)
+        .Select(x => new OddSizeArray<T>(x))
+        .ToArbitrary();
+
     public static Arbitrary<PendingGameInputs> PendingGameInputBufferGenerator(
         Arbitrary<GameInput> inputGenerator
     ) =>
@@ -379,3 +386,5 @@ abstract class PropertyTestGenerators
 }
 
 record PendingGameInputs(GameInput[] Values);
+
+public record OddSizeArray<T>(T[] Values);
