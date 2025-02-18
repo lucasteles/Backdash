@@ -9,7 +9,7 @@ namespace SpaceWar;
 
 public static class GameSessionFactory
 {
-    public static IRollbackSession<PlayerInputs> ParseArgs(
+    public static INetcodeSession<PlayerInputs> ParseArgs(
         string[] args,
         RollbackOptions options,
         SessionReplayControl replayControls

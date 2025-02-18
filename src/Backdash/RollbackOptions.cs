@@ -12,14 +12,14 @@ namespace Backdash;
 /// Configurations for sessions.
 /// </summary>
 ///  <seealso cref="RollbackNetcode"/>
-///  <seealso cref="IRollbackSession{TInput}"/>
+///  <seealso cref="INetcodeSession{TInput}"/>
 public sealed class RollbackOptions
 {
     /// <summary>
     /// Offset to be incremented to spectators <see cref="PlayerHandle.Number"/> when added to session.
     /// </summary>
     /// <seealso cref="PlayerType.Spectator"/>
-    /// <seealso cref="IRollbackSession{TInput}.AddPlayer"/>
+    /// <seealso cref="INetcodeSession{TInput}.AddPlayer"/>
     /// <inheritdoc cref="Default.SpectatorOffset"/>
     public int SpectatorOffset { get; init; } = Default.SpectatorOffset;
 

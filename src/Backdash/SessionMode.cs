@@ -1,7 +1,7 @@
 namespace Backdash;
 
 /// <summary>
-/// Defines the mode of <see cref="IRollbackSession{TInput}"/>>
+/// Defines the mode of <see cref="INetcodeSession{TInput}"/>>
 /// </summary>
 public enum SessionMode
 {

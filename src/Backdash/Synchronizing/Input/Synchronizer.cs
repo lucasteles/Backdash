@@ -17,7 +17,7 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
     readonly IChecksumProvider checksumProvider;
     readonly ConnectionsState localConnections;
     readonly List<InputQueue<TInput>> inputQueues;
-    public required IRollbackHandler Callbacks { get; internal set; }
+    public required INetcodeSessionHandler Callbacks { get; internal set; }
     Frame currentFrame = Frame.Zero;
     Frame lastConfirmedFrame = Frame.Zero;
     int NumberOfPlayers => players.Count;

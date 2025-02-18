@@ -9,7 +9,7 @@ namespace SpaceWar;
 public class Game1 : Game
 {
     readonly GraphicsDeviceManager graphics;
-    readonly IRollbackSession<PlayerInputs> rollbackSession;
+    readonly INetcodeSession<PlayerInputs> rollbackSession;
     readonly SessionReplayControl replayControls = new();
     readonly KeyboardController keyboard = new();
 

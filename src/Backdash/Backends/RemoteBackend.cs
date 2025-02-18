@@ -15,7 +15,7 @@ using Backdash.Synchronizing.Random;
 
 namespace Backdash.Backends;
 
-sealed class RemoteBackend<TInput> : IRollbackSession<TInput>, IProtocolNetworkEventHandler
+sealed class RemoteBackend<TInput> : INetcodeSession<TInput>, IProtocolNetworkEventHandler
     where TInput : unmanaged
 {
     readonly RollbackOptions options;
@@ -41,7 +41,7 @@ sealed class RemoteBackend<TInput> : IRollbackSession<TInput>, IProtocolNetworkE
     int nextRecommendedInterval;
     Frame nextSpectatorFrame = Frame.Zero;
     Frame nextListenerFrame = Frame.Zero;
-    IRollbackHandler callbacks;
+    INetcodeSessionHandler callbacks;
     SynchronizedInput<TInput>[] syncInputBuffer = [];
     TInput[] inputBuffer = [];
     Task backgroundJobTask = Task.CompletedTask;
@@ -237,7 +237,7 @@ sealed class RemoteBackend<TInput> : IRollbackSession<TInput>, IProtocolNetworkE
         return true;
     }
 
-    public void SetHandler(IRollbackHandler handler)
+    public void SetHandler(INetcodeSessionHandler handler)
     {
         ArgumentNullException.ThrowIfNull(handler);
         callbacks = handler;

@@ -9,7 +9,7 @@ namespace SpaceWar.Scenes;
 public sealed class BattleSessionScene : Scene
 {
     readonly IReadOnlyList<Peer> peersInfo;
-    readonly IRollbackSession<PlayerInputs> rollbackSession;
+    readonly INetcodeSession<PlayerInputs> rollbackSession;
     GameSession gameSession = null!;
 
     readonly RollbackOptions options = new()

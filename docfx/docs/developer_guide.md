@@ -57,11 +57,11 @@ the [API Reference Docs](https://lucasteles.github.io/Backdash/api/Backdash.html
 
 [Backdash](https://github.com/lucasteles/Backdash) is designed to be easy to interface with new and existing game
 engines. It handles most of the implementation of handling rollbacks by calling out to your application via
-the [`IRollbackHandler`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackHandler-1.html) hooks.
+the [`INetcodeSessionHandler`](https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSessionHandler-1.html) hooks.
 
-### Creating the [`IRollbackSession`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackSession-2.html) Object
+### Creating the [`INetcodeSession`](https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSession-2.html) Object
 
-The [`IRollbackSession<TInput>`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackSession-2.html)
+The [`INetcodeSession<TInput>`](https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSession-2.html)
 object is your interface to the [Backdash](https://github.com/lucasteles/Backdash) framework. Create
 one with
 the [`RollbackNetcode.CreateSession`](https://lucasteles.github.io/Backdash/api/Backdash.RollbackNetcode.html#Backdash_RollbackNetcode_CreateSession__2_System_Int32_Backdash_RollbackOptions_Backdash_SessionServices___0___1__)
@@ -118,11 +118,11 @@ var session = RollbackNetcode.CreateSession<MyGameInput>(networkPort, options);
 ```
 
 You should also define an implementation of
-the [`IRollbackHandler`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackHandler-1.html)
+the [`INetcodeSessionHandler`](https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSessionHandler-1.html)
 filled in with your game's callback functions for managing game state.
 
 ```csharp
-public class MySessionHandler : IRollbackHandler
+public class MySessionHandler : INetcodeSessionHandler
 {
     public void OnSessionStart() { /* ... */ }
     public void OnSessionClose() { /* ... */ }
@@ -140,7 +140,7 @@ And then, set it into the session:
 session.SetHandler(new MySessionHandler());
 ```
 
-The [`IRollbackSession`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackSession-2.html) object should only
+The [`INetcodeSession`](https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSession-2.html) object should only
 be used for a single game session. If you need to connect to another opponent, dispose your existing object using
 the [`.Dispose`](https://learn.microsoft.com/pt-br/dotnet/api/system.idisposable.dispose?view=net-8.0)
 method and start a new one:
@@ -152,12 +152,12 @@ session.Dispose();
 
 ### Sending Player Locations
 
-When you created the [`IRollbackSession`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackSession-2.html)
+When you created the [`INetcodeSession`](https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSession-2.html)
 you don't specify any information about the players participating in the game. To do so, call
-the [`.AddPlayer()`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackSession-2.html#Backdash_IRollbackSession_2_AddPlayers_System_Collections_Generic_IReadOnlyList_Backdash_Player__)
+the [`.AddPlayer()`](https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSession-2.html#Backdash_INetcodeSession_2_AddPlayers_System_Collections_Generic_IReadOnlyList_Backdash_Player__)
 method function with an instance of [`Player`](https://lucasteles.github.io/Backdash/api/Backdash.Player.html) for each
 player. The following example shows how you might
-use [`.AddPlayer()`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackSession-2.html#Backdash_IRollbackSession_2_AddPlayers_System_Collections_Generic_IReadOnlyList_Backdash_Player__)
+use [`.AddPlayer()`](https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSession-2.html#Backdash_INetcodeSession_2_AddPlayers_System_Collections_Generic_IReadOnlyList_Backdash_Player__)
 in a 2-player game:
 
 ```csharp
@@ -178,7 +178,7 @@ Check the [samples](https://github.com/lucasteles/Backdash/tree/master/samples) 
 ### Starting session
 
 After setting up players you must call the
-session [.Start()](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackSession-2.html#Backdash_IRollbackSession_2_Start_System_Threading_CancellationToken_)
+session [.Start()](https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSession-2.html#Backdash_INetcodeSession_2_Start_System_Threading_CancellationToken_)
 method. This will start all the background work like socket receiver, input queue, peer synchronization, etc.
 
 ```csharp
@@ -188,20 +188,20 @@ session.Start();
 ### Synchronizing Local and Remote Inputs
 
 Input synchronization happens on
-the [session](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackSession-1.html) at the top of each game frame.
+the [session](https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSession-1.html) at the top of each game frame.
 This is done by
-calling [`AddLocalInput`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackSession-1.html#Backdash_IRollbackSession_1_AddLocalInput_Backdash_PlayerHandle__0_)
+calling [`AddLocalInput`](https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSession-1.html#Backdash_INetcodeSession_1_AddLocalInput_Backdash_PlayerHandle__0_)
 for each local player
-and [`SynchronizeInputs`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackSession-1.html#Backdash_IRollbackSession_1_SynchronizeInputs)
+and [`SynchronizeInputs`](https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSession-1.html#Backdash_INetcodeSession_1_SynchronizeInputs)
 to fetch the inputs for remote players. Be sure to check the return value of `SynchronizeInputs`. If it returns a value
 other than [ResultCode.Ok`](https://lucasteles.github.io/Backdash/api/Backdash.ResultCode.html), you should
 **not advance your game state**. This usually happens because [Backdash](https://github.com/lucasteles/Backdash) has not
 received packets from the remote player in a while and has reached its internal prediction limit.
 
 After synchronizing you can read the player's inputs using
-the [`GetInput`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackSession-1.html#Backdash_IRollbackSession_1_GetInput_System_Int32_)
+the [`GetInput`](https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSession-1.html#Backdash_INetcodeSession_1_GetInput_System_Int32_)
 method for a single-player
-or [`GetInputs`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackSession-1.html#Backdash_IRollbackSession_1_GetInputs_System_Span_Backdash_Data_SynchronizedInput__0___)
+or [`GetInputs`](https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSession-1.html#Backdash_INetcodeSession_1_GetInputs_System_Span_Backdash_Data_SynchronizedInput__0___)
 to load all player's inputs into a buffer.
 
 For example, if your code looks like this currently for a local game:
@@ -240,27 +240,27 @@ if (result is ResultCode.Ok)
 ```
 
 You should
-call [`SynchronizeInputs`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackSession-1.html#Backdash_IRollbackSession_1_SynchronizeInputs)
+call [`SynchronizeInputs`](https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSession-1.html#Backdash_INetcodeSession_1_SynchronizeInputs)
 every frame, even those that happen during a rollback. Make sure you always use the values returned
-from [`GetInputs`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackSession-1.html#Backdash_IRollbackSession_1_GetInputs_System_Span_Backdash_Data_SynchronizedInput__0___)
+from [`GetInputs`](https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSession-1.html#Backdash_INetcodeSession_1_GetInputs_System_Span_Backdash_Data_SynchronizedInput__0___)
 rather than the values you've read from the local controllers to advance your game state. During a
-rollback [`SynchronizeInputs`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackSession-1.html#Backdash_IRollbackSession_1_SynchronizeInputs)
+rollback [`SynchronizeInputs`](https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSession-1.html#Backdash_INetcodeSession_1_SynchronizeInputs)
 will replace the values passed
-into [`AddLocalInput`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackSession-1.html#Backdash_IRollbackSession_1_AddLocalInput_Backdash_PlayerHandle__0_)
+into [`AddLocalInput`](https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSession-1.html#Backdash_INetcodeSession_1_AddLocalInput_Backdash_PlayerHandle__0_)
 with the values used for previous frames. Also, if you've manually added input delay for the local player to smooth out
 the effect of rollbacks, the inputs you pass
-into [`AddLocalInput`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackSession-1.html#Backdash_IRollbackSession_1_AddLocalInput_Backdash_PlayerHandle__0_)
+into [`AddLocalInput`](https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSession-1.html#Backdash_INetcodeSession_1_AddLocalInput_Backdash_PlayerHandle__0_)
 won't actually be returned
-in [`GetInputs`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackSession-1.html#Backdash_IRollbackSession_1_GetInputs_System_Span_Backdash_Data_SynchronizedInput__0___)
+in [`GetInputs`](https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSession-1.html#Backdash_INetcodeSession_1_GetInputs_System_Span_Backdash_Data_SynchronizedInput__0___)
 until after the frame delay.
 
 ### Implementing your `save` and `load` state handlers
 
-[Backdash](https://github.com/lucasteles/Backdash) will call the [`LoadState`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackHandler-1.html#Backdash_IRollbackHandler_1_LoadState_Backdash_Data_Frame___0__) and [`SaveState`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackHandler-1.html#Backdash_IRollbackHandler_1_SaveState_Backdash_Data_Frame___0__) callbacks to periodically _save_ and _restore_ the state of your game.
+[Backdash](https://github.com/lucasteles/Backdash) will call the [`LoadState`](https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSessionHandler-1.html#Backdash_INetcodeSessionHandler_1_LoadState_Backdash_Data_Frame___0__) and [`SaveState`](https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSessionHandler-1.html#Backdash_INetcodeSessionHandler_1_SaveState_Backdash_Data_Frame___0__) callbacks to periodically _save_ and _restore_ the state of your game.
 
-The [`SaveState`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackHandler-1.html#Backdash_IRollbackHandler_1_SaveState_Backdash_Data_Frame___0__) function is called with a plain binary buffer writer (`BinaryBufferReader`). You need to call `.Write` on each of the state members.
+The [`SaveState`](https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSessionHandler-1.html#Backdash_INetcodeSessionHandler_1_SaveState_Backdash_Data_Frame___0__) function is called with a plain binary buffer writer (`BinaryBufferReader`). You need to call `.Write` on each of the state members.
 
-The [`LoadState`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackHandler-1.html#Backdash_IRollbackHandler_1_LoadState_Backdash_Data_Frame___0__) function should restore the game state from a previously saved binary buffer using the `BinaryBufferReader`, reading each member.
+The [`LoadState`](https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSessionHandler-1.html#Backdash_INetcodeSessionHandler_1_LoadState_Backdash_Data_Frame___0__) function should restore the game state from a previously saved binary buffer using the `BinaryBufferReader`, reading each member.
 
 > [!IMPORTANT]
 > **⚠️:** You must read and write member in the **SAME ORDER** and also ensure the same size (like arrays or lists).
@@ -274,7 +274,7 @@ public record MyGameState
     public Vector2 Value2;
 }
 
-public class MySessionHandler : IRollbackHandler
+public class MySessionHandler : INetcodeSessionHandler
 {
     MyGameState currentGameState = new();
 
@@ -306,7 +306,7 @@ parameter of [`RollbackNetcode.CreateSession`](https://lucasteles.github.io/Back
 ### Advance Frame Callback
 
 This callback is called when a rollback occurs, just after
-the [`SaveState`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackHandler-1.html#Backdash_IRollbackHandler_1_SaveState_Backdash_Data_Frame___0__)
+the [`SaveState`](https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSessionHandler-1.html#Backdash_INetcodeSessionHandler_1_SaveState_Backdash_Data_Frame___0__)
 here you must synchronize inputs and advance the state.
 
 Usually something like:
@@ -324,11 +324,11 @@ public void AdvanceFrame()
 ### Remaining Callbacks
 
 There are other callbacks in
-the [`IRollbackHandler`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackHandler-1.html) for
+the [`INetcodeSessionHandler`](https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSessionHandler-1.html) for
 connection starting/closing the session, peer events, etc.
 
 Check the
-**[API Docs for more information](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackHandler-1.html)**.
+**[API Docs for more information](https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSessionHandler-1.html)**.
 
 ### Frame Lifecycle
 
@@ -336,9 +336,9 @@ We're almost done. The last step is notify [Backdash](https://github.com/lucaste
 starts and every time the **game state** finishes advancing by one frame.
 
 Just
-call [`BeginFrame`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackSession-1.html#Backdash_IRollbackSession_1_BeginFrame)
+call [`BeginFrame`](https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSession-1.html#Backdash_INetcodeSession_1_BeginFrame)
 method on session at the beginning of each frame
-and [`AdvanceFrame`](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackSession-1.html#Backdash_IRollbackSession_1_AdvanceFrame)
+and [`AdvanceFrame`](https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSession-1.html#Backdash_INetcodeSession_1_AdvanceFrame)
 after you've finished one frame **but before you've started the next**.
 
 So, the code for each frame should be something close to:

@@ -15,7 +15,7 @@ public class ProtocolOptions
     public int UdpPacketBufferSize { get; init; } = Default.UdpPacketBufferSize;
 
     /// <summary>
-    /// Max allowed pending inputs in sending queue. When reached <see cref="IRollbackSession{TInput}.AddLocalInput"/>
+    /// Max allowed pending inputs in sending queue. When reached <see cref="INetcodeSession{TInput}.AddLocalInput"/>
     /// returns <see cref="ResultCode.InputDropped"/>.
     /// </summary>
     /// <inheritdoc cref="Default.MaxPendingInputs"/>

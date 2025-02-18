@@ -51,7 +51,7 @@ public enum PeerEvent : sbyte
 
 /// <summary>
 /// Data structure for <see cref="PeerEventInfo"/> notifications.
-/// <seealso cref="IRollbackHandler.OnPeerEvent"/>
+/// <seealso cref="INetcodeSessionHandler.OnPeerEvent"/>
 /// </summary>
 /// <param name="type">Event notification type</param>
 [StructLayout(LayoutKind.Explicit, Pack = 1)]

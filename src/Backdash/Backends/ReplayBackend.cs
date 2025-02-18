@@ -10,12 +10,12 @@ using Backdash.Synchronizing.State;
 
 namespace Backdash.Backends;
 
-sealed class ReplayBackend<TInput> : IRollbackSession<TInput>
+sealed class ReplayBackend<TInput> : INetcodeSession<TInput>
     where TInput : unmanaged
 {
     readonly Logger logger;
     readonly PlayerHandle[] fakePlayers;
-    IRollbackHandler callbacks;
+    INetcodeSessionHandler callbacks;
     readonly IDeterministicRandom deterministicRandom;
     bool isSynchronizing = true;
     SynchronizedInput<TInput>[] syncInputBuffer = [];
@@ -121,7 +121,7 @@ sealed class ReplayBackend<TInput> : IRollbackSession<TInput>
 
     public Task WaitToStop(CancellationToken stoppingToken = default) => Task.CompletedTask;
 
-    public void SetHandler(IRollbackHandler handler)
+    public void SetHandler(INetcodeSessionHandler handler)
     {
         ArgumentNullException.ThrowIfNull(handler);
         callbacks = handler;

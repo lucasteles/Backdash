@@ -5,10 +5,10 @@ using Backdash.Serialization.Buffer;
 
 namespace ConsoleGame;
 
-public sealed class Game : IRollbackHandler
+public sealed class Game : INetcodeSessionHandler
 {
-    // Rollback NetCode Session
-    readonly IRollbackSession<GameInput> session;
+    // Rollback Net-code session callbacks
+    readonly INetcodeSession<GameInput> session;
 
     readonly CancellationTokenSource cancellation;
 
@@ -21,7 +21,7 @@ public sealed class Game : IRollbackHandler
     // Actual game state
     GameState currentState = GameLogic.InitialState();
 
-    public Game(IRollbackSession<GameInput> session, CancellationTokenSource cancellation)
+    public Game(INetcodeSession<GameInput> session, CancellationTokenSource cancellation)
     {
         view = new();
         this.session = session;

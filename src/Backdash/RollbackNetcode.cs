@@ -12,7 +12,7 @@ namespace Backdash;
 /// <summary>
 /// The session factory used to create new netcode sessions.
 /// </summary>
-///  <seealso cref="IRollbackSession{TInput}"/>
+///  <seealso cref="INetcodeSession{TInput}"/>
 public static class RollbackNetcode
 {
     /// <summary>
@@ -22,7 +22,7 @@ public static class RollbackNetcode
     /// <param name="options">Session configuration</param>
     /// <param name="services">Session customizable dependencies</param>
     /// <typeparam name="TInput">Game input type</typeparam>
-    public static IRollbackSession<TInput> CreateSession<TInput>(
+    public static INetcodeSession<TInput> CreateSession<TInput>(
         int port,
         RollbackOptions? options = null,
         SessionServices<TInput>? services = null
@@ -42,7 +42,7 @@ public static class RollbackNetcode
     /// <param name="options">Session configuration</param>
     /// <param name="services">Session customizable dependencies</param>
     /// <typeparam name="TInput">Game input type</typeparam>
-    public static IRollbackSession<TInput> CreateSpectatorSession<TInput>(
+    public static INetcodeSession<TInput> CreateSpectatorSession<TInput>(
         int port,
         IPEndPoint host,
         int numberOfPlayers,
@@ -64,7 +64,7 @@ public static class RollbackNetcode
     /// <param name="controls">replay control</param>
     /// <param name="useInputSeedForRandom"><see cref="RollbackOptions.UseInputSeedForRandom"/></param>
     /// <typeparam name="TInput">Game input type</typeparam>
-    public static IRollbackSession<TInput> CreateReplaySession<TInput>(
+    public static INetcodeSession<TInput> CreateReplaySession<TInput>(
         int numberOfPlayers,
         IReadOnlyList<ConfirmedInputs<TInput>> inputs,
         SessionServices<TInput>? services = null,
@@ -85,7 +85,7 @@ public static class RollbackNetcode
     /// <param name="desyncHandler">State de-sync handler</param>
     /// <param name="throwException">If true, throws on state de-synchronization.</param>
     /// <typeparam name="TInput">Game input type</typeparam>
-    public static IRollbackSession<TInput> CreateSyncTestSession<TInput>(
+    public static INetcodeSession<TInput> CreateSyncTestSession<TInput>(
         FrameSpan? checkDistance = null,
         RollbackOptions? options = null,
         SessionServices<TInput>? services = null,

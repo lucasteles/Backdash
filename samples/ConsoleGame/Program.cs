@@ -43,7 +43,7 @@ RollbackOptions options = new()
 };
 
 // Set up the rollback network session
-IRollbackSession<GameInput> session;
+INetcodeSession<GameInput> session;
 
 // parse console arguments checking if it is a spectator
 if (endpoints is ["spectate", { } hostArg] && IPEndPoint.TryParse(hostArg, out var host))
@@ -86,7 +86,7 @@ Console.Clear();
 // -------------------------------------------------------------- //
 //    Create and configure a game session                         //
 // -------------------------------------------------------------- //
-static IRollbackSession<GameInput> CreatePlayerSession(
+static INetcodeSession<GameInput> CreatePlayerSession(
     int port,
     RollbackOptions options,
     Player[] players

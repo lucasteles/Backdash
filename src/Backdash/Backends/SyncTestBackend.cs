@@ -9,7 +9,7 @@ using Backdash.Synchronizing.State;
 
 namespace Backdash.Backends;
 
-sealed class SyncTestBackend<TInput> : IRollbackSession<TInput>
+sealed class SyncTestBackend<TInput> : INetcodeSession<TInput>
     where TInput : unmanaged
 {
     readonly record struct SavedFrameBytes(
@@ -34,7 +34,7 @@ sealed class SyncTestBackend<TInput> : IRollbackSession<TInput>
     readonly IStateDesyncHandler? mismatchHandler;
     readonly IInputGenerator<TInput>? inputGenerator;
 
-    IRollbackHandler callbacks;
+    INetcodeSessionHandler callbacks;
     bool inRollback;
     bool running;
     Task backGroundJobTask = Task.CompletedTask;
@@ -301,7 +301,7 @@ sealed class SyncTestBackend<TInput> : IRollbackSession<TInput>
         synchronizer.SetFrameDelay(player, delayInFrames);
     }
 
-    public void SetHandler(IRollbackHandler handler)
+    public void SetHandler(INetcodeSessionHandler handler)
     {
         ArgumentNullException.ThrowIfNull(handler);
         callbacks = handler;

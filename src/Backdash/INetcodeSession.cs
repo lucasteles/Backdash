@@ -7,7 +7,7 @@ namespace Backdash;
 /// <summary>
 /// Holds basic session information.
 /// </summary>
-public interface IRollbackSessionInfo
+public interface INetcodeSessionInfo
 {
     /// <summary>
     /// Returns the current session <see cref="Frame"/>
@@ -34,7 +34,7 @@ public interface IRollbackSessionInfo
 /// Context for a multiplayer game session.
 /// </summary>
 /// <typeparam name="TInput">Game input type</typeparam>
-public interface IRollbackSession<TInput> : IRollbackSessionInfo, IDisposable where TInput : unmanaged
+public interface INetcodeSession<TInput> : INetcodeSessionInfo, IDisposable where TInput : unmanaged
 {
     /// <summary>
     /// Returns the number of player in the current session
@@ -119,7 +119,7 @@ public interface IRollbackSession<TInput> : IRollbackSessionInfo, IDisposable wh
     void BeginFrame();
 
     /// <summary>
-    /// Should be called at the end of each frame of your application and also in <see cref="IRollbackHandler.AdvanceFrame"/>.
+    /// Should be called at the end of each frame of your application and also in <see cref="INetcodeSessionHandler.AdvanceFrame"/>.
     /// </summary>
     void AdvanceFrame();
 
@@ -171,5 +171,5 @@ public interface IRollbackSession<TInput> : IRollbackSessionInfo, IDisposable wh
     /// Set the handler for the current session.
     /// The client must call this before <see cref="Start"/>.
     /// </summary>
-    void SetHandler(IRollbackHandler handler);
+    void SetHandler(INetcodeSessionHandler handler);
 }

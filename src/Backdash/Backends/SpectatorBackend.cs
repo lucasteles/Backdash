@@ -14,7 +14,7 @@ using Backdash.Synchronizing.Random;
 namespace Backdash.Backends;
 
 sealed class SpectatorBackend<TInput> :
-    IRollbackSession<TInput>,
+    INetcodeSession<TInput>,
     IProtocolNetworkEventHandler,
     IProtocolInputEventPublisher<ConfirmedInputs<TInput>>
     where TInput : unmanaged
@@ -31,7 +31,7 @@ sealed class SpectatorBackend<TInput> :
     readonly PeerConnection<ConfirmedInputs<TInput>> host;
     readonly PlayerHandle[] fakePlayers;
 
-    IRollbackHandler callbacks;
+    INetcodeSessionHandler callbacks;
     bool isSynchronizing;
     Task backgroundJobTask = Task.CompletedTask;
     bool disposed;
@@ -156,7 +156,7 @@ sealed class SpectatorBackend<TInput> :
         await backgroundJobTask.WaitAsync(stoppingToken).ConfigureAwait(false);
     }
 
-    public void SetHandler(IRollbackHandler handler)
+    public void SetHandler(INetcodeSessionHandler handler)
     {
         ArgumentNullException.ThrowIfNull(handler);
         callbacks = handler;

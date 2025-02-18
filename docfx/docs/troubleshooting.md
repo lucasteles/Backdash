@@ -73,7 +73,7 @@ screen, or the attenuation of audio samples_).
 
 > [!INFORMATION]
 > We provide an implementation of a _[Deterministic Random](https://lucasteles.github.io/Backdash/api/Backdash.Synchronizing.Random.IDeterministicRandom.html)_  out of the box
-> which can be accessed directly from the _[Rollback Session](https://lucasteles.github.io/Backdash/api/Backdash.IRollbackSession-1.html#Backdash_IRollbackSession_1_Random)_
+> which can be accessed directly from the _[Rollback Session](https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSession-1.html#Backdash_INetcodeSession_1_Random)_
 
 ## Beware of Dangling References
 
@@ -115,7 +115,7 @@ public record MyGameState
     public int CurrentCounter; // keeps track of the counter value
 }
 
-public class MySessionHandler : IRollbackHandler
+public class MySessionHandler : INetcodeSessionHandler
 {
     MyGameState currentGameState = new();
 

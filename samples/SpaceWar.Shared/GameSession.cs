@@ -10,8 +10,8 @@ public sealed class GameSession(
     GameState gameState,
     NonGameState nonGameState,
     Renderer renderer,
-    IRollbackSession<PlayerInputs> session
-) : IRollbackHandler
+    INetcodeSession<PlayerInputs> session
+) : INetcodeSessionHandler
 {
     readonly SynchronizedInput<PlayerInputs>[] inputs =
         new SynchronizedInput<PlayerInputs>[nonGameState.NumberOfPlayers];
