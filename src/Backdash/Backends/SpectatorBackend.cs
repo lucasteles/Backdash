@@ -111,7 +111,7 @@ sealed class SpectatorBackend<TInput> :
     public IDeterministicRandom Random => deterministicRandom;
     public SessionMode Mode => SessionMode.Spectating;
     public void DisconnectPlayer(in PlayerHandle player) { }
-    public ResultCode AddLocalInput(PlayerHandle player, TInput localInput) => ResultCode.Ok;
+    public ResultCode AddLocalInput(PlayerHandle player, in TInput localInput) => ResultCode.Ok;
     public IReadOnlyCollection<PlayerHandle> GetPlayers() => fakePlayers;
     public IReadOnlyCollection<PlayerHandle> GetSpectators() => [];
 

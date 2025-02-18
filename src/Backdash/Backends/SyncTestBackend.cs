@@ -147,14 +147,18 @@ sealed class SyncTestBackend<TInput> : INetcodeSession<TInput>
 
     public bool GetNetworkStatus(in PlayerHandle player, ref PeerNetworkStats info) => false;
 
-    public ResultCode AddLocalInput(PlayerHandle player, TInput localInput)
+    public ResultCode AddLocalInput(PlayerHandle player, in TInput localInput)
     {
         if (!running)
             return ResultCode.NotSynchronized;
+
+        var testInput = localInput;
+
         if (inputGenerator is not null)
-            localInput = inputGenerator.Generate();
+            testInput = inputGenerator.Generate();
+
         currentInput.Frame = synchronizer.CurrentFrame;
-        currentInput.Data = localInput;
+        currentInput.Data = testInput;
         return ResultCode.Ok;
     }
 
@@ -243,7 +247,8 @@ sealed class SyncTestBackend<TInput> : INetcodeSession<TInput>
     void HandleDesync(Frame frame, SavedFrameBytes current, SavedFrame previous)
     {
         const LogLevel level = LogLevel.Error;
-        var message = $"Checksum for frame {frame} does NOT match: (#{previous.Checksum:x8} != #{current.Checksum:x8})\n";
+        var message =
+            $"Checksum for frame {frame} does NOT match: (#{previous.Checksum:x8} != #{current.Checksum:x8})\n";
         logger.Write(LogLevel.Error, message);
 
         var (currentOffset, lastOffset) = (0, 0);

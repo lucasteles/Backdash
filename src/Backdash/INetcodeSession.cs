@@ -73,7 +73,7 @@ public interface INetcodeSession<TInput> : INetcodeSessionInfo, IDisposable wher
     /// </summary>
     /// <param name="player">Player owner of the inputs</param>
     /// <param name="localInput">The input value</param>
-    ResultCode AddLocalInput(PlayerHandle player, TInput localInput);
+    ResultCode AddLocalInput(PlayerHandle player, in TInput localInput);
 
     /// <summary>
     /// Synchronizes the inputs of the local and remote players into a local buffer

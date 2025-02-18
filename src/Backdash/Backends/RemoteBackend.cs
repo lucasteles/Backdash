@@ -167,7 +167,7 @@ sealed class RemoteBackend<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
         };
     }
 
-    public ResultCode AddLocalInput(PlayerHandle player, TInput localInput)
+    public ResultCode AddLocalInput(PlayerHandle player, in TInput localInput)
     {
         GameInput<TInput> input = new()
         {
@@ -200,17 +200,25 @@ sealed class RemoteBackend<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
 
         // Send the input to all the remote players.
         var sent = true;
-        for (var i = 0; i < endpoints.Count; i++)
+        var eps = CollectionsMarshal.AsSpan(endpoints);
+        ref var currEp = ref MemoryMarshal.GetReference(eps);
+        ref var limitEp = ref Unsafe.Add(ref currEp, eps.Length);
+
+        while (Unsafe.IsAddressLessThan(ref currEp, ref limitEp))
         {
-            if (endpoints[i] is not { } endpoint)
-                continue;
+            if (currEp is not null)
+            {
+                var result = currEp.SendInput(in input);
 
-            var result = endpoint.SendInput(in input);
+                if (result is not SendInputResult.Ok)
+                {
+                    sent = false;
+                    logger.Write(LogLevel.Warning,
+                        $"Unable to send input to queue {currEp.Player.InternalQueue}, {result}");
+                }
+            }
 
-            if (result is SendInputResult.Ok) continue;
-
-            sent = false;
-            logger.Write(LogLevel.Warning, $"Unable to send input to queue {i}, {result}");
+            currEp = ref Unsafe.Add(ref currEp, 1)!;
         }
 
         if (!sent)

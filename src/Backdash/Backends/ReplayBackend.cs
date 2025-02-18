@@ -78,7 +78,7 @@ sealed class ReplayBackend<TInput> : INetcodeSession<TInput>
     public IDeterministicRandom Random => deterministicRandom;
     public SessionMode Mode => SessionMode.Replaying;
     public void DisconnectPlayer(in PlayerHandle player) { }
-    public ResultCode AddLocalInput(PlayerHandle player, TInput localInput) => ResultCode.Ok;
+    public ResultCode AddLocalInput(PlayerHandle player, in TInput localInput) => ResultCode.Ok;
     public IReadOnlyCollection<PlayerHandle> GetPlayers() => fakePlayers;
     public IReadOnlyCollection<PlayerHandle> GetSpectators() => [];
 
