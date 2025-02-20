@@ -2,7 +2,7 @@ using System.Diagnostics;
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network;
-using Backdash.Serialization.Buffer;
+using Backdash.Serialization;
 using Backdash.Synchronizing.Input.Confirmed;
 using Backdash.Synchronizing.State;
 
@@ -40,7 +40,7 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
         this.checksumProvider = checksumProvider;
         this.localConnections = localConnections;
 
-        endianness = Platform.GetEndianness(options.NetworkEndianness);
+        endianness = Platform.GetEndianness(options.UseNetworkEndianness);
         stateStore.Initialize(options.PredictionFrames + options.PredictionFramesOffset);
         inputQueues = new(2);
     }
@@ -181,10 +181,8 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
             $"* Loading frame info {savedFrame.Frame} (checksum: {savedFrame.Checksum})");
 
         var offset = 0;
-        BinaryBufferReader reader = new(savedFrame.GameState.WrittenSpan, ref offset)
-        {
-            Endianness = endianness,
-        };
+        BinaryBufferReader reader = new(savedFrame.GameState.WrittenSpan, ref offset, endianness);
+
 
         Callbacks.LoadState(in frame, in reader);
 
@@ -199,10 +197,7 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
     {
         ref var nextState = ref stateStore.GetCurrent();
 
-        BinaryBufferWriter writer = new(nextState.GameState)
-        {
-            Endianness = endianness,
-        };
+        BinaryBufferWriter writer = new(nextState.GameState, endianness);
         Callbacks.SaveState(in currentFrame, in writer);
         nextState.Frame = currentFrame;
         nextState.Checksum = checksumProvider.Compute(nextState.GameState.WrittenSpan);

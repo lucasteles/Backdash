@@ -1,12 +1,11 @@
 using System.Runtime.InteropServices;
 using Backdash.Data;
 using Backdash.Serialization;
-using Backdash.Serialization.Buffer;
 
 namespace Backdash.Network.Messages;
 
 [Serializable, StructLayout(LayoutKind.Sequential)]
-record struct ConnectStatus : ISpanSerializable
+record struct ConnectStatus
 {
     public bool Disconnected;
     public Frame LastFrame;

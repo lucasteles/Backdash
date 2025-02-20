@@ -1,6 +1,6 @@
 using Backdash.Core;
 using Backdash.Data;
-using Backdash.Serialization.Buffer;
+using Backdash.Serialization;
 
 namespace Backdash;
 

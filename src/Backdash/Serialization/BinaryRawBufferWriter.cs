@@ -1,34 +1,56 @@
-using System.Buffers;
 using System.Buffers.Binary;
+using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Backdash.Core;
 using Backdash.Network;
 
-namespace Backdash.Serialization.Buffer;
+namespace Backdash.Serialization;
 
 /// <summary>
 /// Binary span writer.
 /// </summary>
-/// <remarks>
-/// Initialize a new <see cref="BinaryRawBufferWriter"/> for <paramref name="buffer"/>
-/// </remarks>
-/// <param name="buffer">Byte buffer to be written</param>
-public readonly struct BinaryBufferWriter(IBufferWriter<byte> buffer)
+[DebuggerDisplay("Written: {WrittenCount}")]
+public readonly ref struct BinaryRawBufferWriter
 {
     /// <summary>
-    /// Gets or init the value to define which endianness should be used for serialization.
+    /// Initialize a new <see cref="BinaryRawBufferWriter"/> for <paramref name="buffer"/>
     /// </summary>
-    public Endianness Endianness { get; init; } = Endianness.BigEndian;
+    /// <param name="buffer">Byte buffer to be written</param>
+    /// <param name="offset">Write offset reference</param>
+    /// <param name="endianness">Serialization endianness</param>
+    public BinaryRawBufferWriter(
+        scoped in Span<byte> buffer,
+        ref int offset,
+        Endianness endianness = Endianness.BigEndian
+    )
+    {
+        this.buffer = buffer;
+        this.offset = ref offset;
+        Endianness = endianness;
+    }
 
-    /// <summary>
-    /// Backing IBufferWriter <see cref="IBufferWriter{T}"/>
-    /// </summary>
-    public IBufferWriter<byte> Buffer => buffer;
+    readonly ref int offset;
+    readonly Span<byte> buffer;
+
+    /// <summary>Gets or init the value to define which endianness should be used for serialization.</summary>
+    public readonly Endianness Endianness;
+
+    /// <summary>Total written byte count.</summary>
+    public int WrittenCount => offset;
+
+    /// <summary>Total buffer capacity in bytes.</summary>
+    public int Capacity => buffer.Length;
+
+    /// <summary>Available buffer space in bytes</summary>
+    public int FreeCapacity => Capacity - WrittenCount;
+
+    /// <summary>Returns a <see cref="Span{Byte}"/> for the current available buffer.</summary>
+    public Span<byte> CurrentBuffer => buffer[offset..];
 
     /// <summary>Advance write pointer by <paramref name="count"/>.</summary>
-    public void Advance(int count) => buffer.Advance(count);
+    public void Advance(int count) => offset += count;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     void WriteSpan<T>(in ReadOnlySpan<T> data) where T : unmanaged => Write(MemoryMarshal.AsBytes(data));
@@ -37,31 +59,23 @@ public readonly struct BinaryBufferWriter(IBufferWriter<byte> buffer)
     Span<T> AllocSpan<T>(in ReadOnlySpan<T> value) where T : unmanaged
     {
         var sizeBytes = Unsafe.SizeOf<T>() * value.Length;
-        var result = MemoryMarshal.Cast<byte, T>(buffer.GetSpan(sizeBytes));
+        var result = MemoryMarshal.Cast<byte, T>(buffer.Slice(offset, sizeBytes));
         Advance(sizeBytes);
         return result;
     }
 
-    /// <summary>Writes a span bytes of <see cref="byte"/> <paramref name="value"/> into buffer.</summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Write(in ReadOnlySpan<byte> value) => buffer.Write(value);
-
     /// <summary>Writes single <see cref="byte"/> <paramref name="value"/> into buffer.</summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Write(in byte value) => buffer.Write(Mem.AsSpan(in value));
+    public void Write(in byte value) => buffer[offset++] = value;
 
     /// <summary>Writes single <see cref="sbyte"/> <paramref name="value"/> into buffer.</summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Write(in sbyte value) => Write(unchecked((byte)value));
+    public void Write(in sbyte value) => buffer[offset++] = unchecked((byte)value);
 
     /// <summary>Writes single <see cref="bool"/> <paramref name="value"/> into buffer.</summary>
     public void Write(in bool value)
     {
-        const int size = sizeof(bool);
-        if (!BitConverter.TryWriteBytes(buffer.GetSpan(size), value))
+        if (!BitConverter.TryWriteBytes(CurrentBuffer, value))
             throw new NetcodeException("Destination too short");
-
-        Advance(size);
+        Advance(sizeof(bool));
     }
 
     /// <summary>Writes single <see cref="short"/> <paramref name="value"/> into buffer.</summary>
@@ -131,6 +145,15 @@ public readonly struct BinaryBufferWriter(IBufferWriter<byte> buffer)
         Write(value.Y);
         Write(value.Z);
         Write(value.W);
+    }
+
+    /// <summary>Writes a span of <see cref="byte"/> <paramref name="value"/> into buffer.</summary>
+    public void Write(in ReadOnlySpan<byte> value)
+    {
+        if (value.Length > FreeCapacity)
+            throw new InvalidOperationException("Not available buffer space");
+        value.CopyTo(CurrentBuffer);
+        Advance(value.Length);
     }
 
     /// <summary>Writes a span of <see cref="sbyte"/> <paramref name="value"/> into buffer.</summary>
@@ -214,6 +237,16 @@ public readonly struct BinaryBufferWriter(IBufferWriter<byte> buffer)
             WriteSpan(in value);
     }
 
+    /// <summary>Writes an <see cref="string"/> <paramref name="value"/> into buffer.</summary>
+    public void WriteString(in string value) => Write(value.AsSpan());
+
+    /// <summary>Writes an <see cref="string"/> <paramref name="value"/> into buffer as UTF8.</summary>
+    public void WriteUtf8String(in ReadOnlySpan<char> value) =>
+        Advance(System.Text.Encoding.UTF8.GetBytes(value, CurrentBuffer));
+
+    /// <summary>Writes an <see cref="char"/> <paramref name="value"/> into buffer as UTF8.</summary>
+    public void WriteUtf8Char(in char value) => WriteUtf8String(Mem.AsSpan(in value));
+
     /// <summary>Writes an unmanaged struct into buffer.</summary>
     public void WriteStruct<T>(in T value) where T : unmanaged => Write(Mem.AsBytes(in value));
 
@@ -224,30 +257,6 @@ public readonly struct BinaryBufferWriter(IBufferWriter<byte> buffer)
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteStruct<T>(in T[] values) where T : unmanaged => WriteStruct<T>(values.AsSpan());
 
-    /// <summary>Writes a struct into buffer.</summary>
-    public void WriteStructUnsafe<T>(in T value) where T : struct => Write(Mem.AsBytesUnsafe(in value));
-
-    /// <summary>Writes a struct span into buffer.</summary>
-    public void WriteStructUnsafe<T>(ReadOnlySpan<T> values) where T : struct
-    {
-        ThrowHelpers.ThrowIfTypeIsReferenceOrContainsReferences<T>();
-        Write(MemoryMarshal.AsBytes(values));
-    }
-
-    /// <summary>Writes an <see cref="string"/> <paramref name="value"/> into buffer.</summary>
-    public void WriteString(in string value) => Write(value.AsSpan());
-
-    /// <summary>Writes an <see cref="string"/> <paramref name="value"/> into buffer as UTF8.</summary>
-    public void WriteUtf8String(in ReadOnlySpan<char> value)
-    {
-        var span = buffer.GetSpan(System.Text.Encoding.UTF8.GetByteCount(value));
-        var writtenCount = System.Text.Encoding.UTF8.GetBytes(value, span);
-        Advance(writtenCount);
-    }
-
-    /// <summary>Writes an <see cref="char"/> <paramref name="value"/> into buffer as UTF8.</summary>
-    public void WriteUtf8Char(in char value) => WriteUtf8String(Mem.AsSpan(in value));
-
     /// <summary>Writes a <see cref="IBinaryInteger{T}"/> <paramref name="value"/> into buffer.</summary>
     /// <typeparam name="T">A numeric type that implements <see cref="IBinaryInteger{T}"/>.</typeparam>
     public void WriteNumber<T>(in T value) where T : unmanaged, IBinaryInteger<T>
@@ -257,74 +266,15 @@ public readonly struct BinaryBufferWriter(IBufferWriter<byte> buffer)
         switch (Endianness)
         {
             case Endianness.LittleEndian:
-                valueRef.WriteLittleEndian(buffer.GetSpan(size));
+                valueRef.WriteLittleEndian(CurrentBuffer[..size]);
                 break;
             case Endianness.BigEndian:
-                valueRef.WriteBigEndian(buffer.GetSpan(size));
+                valueRef.WriteBigEndian(CurrentBuffer[..size]);
                 break;
             default:
                 return;
         }
 
         Advance(size);
-    }
-
-    /// <summary>Writes the <see cref="Enum"/> <paramref name="enumValue"/> into buffer.</summary>
-    /// <typeparam name="T">An enum type.</typeparam>
-    public void WriteEnum<T>(in T enumValue) where T : unmanaged, Enum
-    {
-        var refValue = Unsafe.AsRef(in enumValue);
-        switch (Type.GetTypeCode(typeof(T)))
-        {
-            case TypeCode.Int32:
-                {
-                    var tmp = Unsafe.As<T, int>(ref refValue);
-                    Write(in tmp);
-                    break;
-                }
-            case TypeCode.UInt32:
-                {
-                    var tmp = Unsafe.As<T, uint>(ref refValue);
-                    Write(in tmp);
-                    break;
-                }
-            case TypeCode.Int64:
-                {
-                    var tmp = Unsafe.As<T, long>(ref refValue);
-                    Write(in tmp);
-                    break;
-                }
-            case TypeCode.UInt64:
-                {
-                    var tmp = Unsafe.As<T, ulong>(ref refValue);
-                    Write(in tmp);
-                    break;
-                }
-            case TypeCode.Int16:
-                {
-                    var tmp = Unsafe.As<T, short>(ref refValue);
-                    Write(in tmp);
-                    break;
-                }
-            case TypeCode.UInt16:
-                {
-                    var tmp = Unsafe.As<T, ushort>(ref refValue);
-                    Write(in tmp);
-                    break;
-                }
-            case TypeCode.Byte:
-                {
-                    var tmp = Unsafe.As<T, byte>(ref refValue);
-                    Write(in tmp);
-                    break;
-                }
-            case TypeCode.SByte:
-                {
-                    var tmp = Unsafe.As<T, sbyte>(ref refValue);
-                    Write(in tmp);
-                    break;
-                }
-            default: throw new InvalidOperationException("Unknown enum underlying type");
-        }
     }
 }

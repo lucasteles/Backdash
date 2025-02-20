@@ -1,12 +1,11 @@
 using System.Runtime.InteropServices;
 using Backdash.Serialization;
-using Backdash.Serialization.Buffer;
 
 namespace Backdash.Network.Messages;
 
 [Serializable]
 [StructLayout(LayoutKind.Sequential, Size = Size, Pack = 2)]
-record struct Header(MessageType Type) : ISpanSerializable
+record struct Header(MessageType Type)
 {
     public MessageType Type = Type;
     public ushort Magic = 0;

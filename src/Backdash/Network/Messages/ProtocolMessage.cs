@@ -1,12 +1,12 @@
 using System.Runtime.InteropServices;
 using Backdash.Core;
 using Backdash.Serialization;
-using Backdash.Serialization.Buffer;
+using Backdash.Serialization.Internal;
 
 namespace Backdash.Network.Messages;
 
 [Serializable, StructLayout(LayoutKind.Explicit, Pack = 2)]
-struct ProtocolMessage(MessageType type) : ISpanSerializable, IEquatable<ProtocolMessage>, IUtf8SpanFormattable
+struct ProtocolMessage(MessageType type) : IEquatable<ProtocolMessage>, IUtf8SpanFormattable
 {
     [FieldOffset(0)]
     public Header Header = new(type);

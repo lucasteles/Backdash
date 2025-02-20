@@ -35,7 +35,7 @@ sealed class ProtocolInputBuffer<TInput> : IProtocolInputBuffer<TInput>
     public GameInput<TInput> LastSent { get; private set; } = new();
     readonly int inputSize;
     readonly ProtocolOptions options;
-    readonly IBinaryWriter<TInput> inputSerializer;
+    readonly IBinarySerializer<TInput> inputSerializer;
     readonly ProtocolState state;
     readonly Logger logger;
     readonly ITimeSync<TInput> timeSync;
@@ -44,7 +44,7 @@ sealed class ProtocolInputBuffer<TInput> : IProtocolInputBuffer<TInput>
     public int PendingNumber => pendingOutput.Count;
 
     public ProtocolInputBuffer(ProtocolOptions options,
-        IBinaryWriter<TInput> inputSerializer,
+        IBinarySerializer<TInput> inputSerializer,
         ProtocolState state,
         Logger logger,
         ITimeSync<TInput> timeSync,

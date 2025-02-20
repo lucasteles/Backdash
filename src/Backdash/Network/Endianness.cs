@@ -12,10 +12,19 @@ public enum Endianness : byte
     BigEndian,
 }
 
-static class Platform
+/// <summary>
+/// Platform Info
+/// </summary>
+public static class Platform
 {
+    /// <summary>
+    /// Current Endianness
+    /// </summary>
     public static readonly Endianness Endianness =
         BitConverter.IsLittleEndian ? Endianness.LittleEndian : Endianness.BigEndian;
 
+    /// <summary>
+    /// Get Endianness for Network if <paramref name="network"/> is True <see cref="Network.Endianness.BigEndian"/>
+    /// </summary>
     public static Endianness GetEndianness(bool network) => network ? Endianness.BigEndian : Endianness;
 }

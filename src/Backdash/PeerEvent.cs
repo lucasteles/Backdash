@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 using Backdash.Network.Protocol;
-using Backdash.Serialization.Buffer;
+using Backdash.Serialization.Internal;
 
 namespace Backdash;
 

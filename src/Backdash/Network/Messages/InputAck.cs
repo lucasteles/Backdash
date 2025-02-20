@@ -1,12 +1,12 @@
 using System.Runtime.InteropServices;
 using Backdash.Data;
 using Backdash.Serialization;
-using Backdash.Serialization.Buffer;
+using Backdash.Serialization.Internal;
 
 namespace Backdash.Network.Messages;
 
 [Serializable, StructLayout(LayoutKind.Sequential)]
-record struct InputAck : ISpanSerializable, IUtf8SpanFormattable
+record struct InputAck : IUtf8SpanFormattable
 {
     public Frame AckFrame;
     public readonly void Serialize(in BinaryRawBufferWriter writer) => writer.Write(in AckFrame.Number);

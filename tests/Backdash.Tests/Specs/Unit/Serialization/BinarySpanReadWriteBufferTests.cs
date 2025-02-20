@@ -1,7 +1,7 @@
 using System.Buffers;
 using System.Runtime.CompilerServices;
 using Backdash.Network;
-using Backdash.Serialization.Buffer;
+using Backdash.Serialization;
 using Backdash.Tests.TestUtils;
 using Backdash.Tests.TestUtils.Types;
 
@@ -202,6 +202,35 @@ public class BinarySpanReadWriteBufferTests
         return value.AsSpan().SequenceEqual(read);
     }
 
+    [PropertyTest]
+    public bool SpanOfSerializableObjects(SimpleStructData[] value, Endianness endianness)
+    {
+        var size = Setup(value, endianness, out var writer);
+        writer.Write(in value);
+        writer.WrittenCount.Should().Be(size);
+
+        var reader = GetReader(writer);
+        var read = new SimpleStructData[value.Length];
+        reader.Read(in read);
+        reader.ReadCount.Should().Be(size);
+
+        return value.AsSpan().SequenceEqual(read);
+    }
+
+    [PropertyTest]
+    public bool ListOfSerializableObjects(List<SimpleStructData> value, Endianness endianness)
+    {
+        var size = Setup(value, endianness, out var writer) + sizeof(int);
+        writer.Write(in value);
+        writer.WrittenCount.Should().Be(size);
+
+        var reader = GetReader(writer);
+        List<SimpleStructData> read = [];
+        reader.Read(in read);
+        reader.ReadCount.Should().Be(size);
+
+        return value.SequenceEqual(read);
+    }
 
     static int readOffset;
 
@@ -213,25 +242,15 @@ public class BinarySpanReadWriteBufferTests
         where T : struct
     {
         var size = Unsafe.SizeOf<T>() * values.Count;
-
         readOffset = 0;
         ArrayBufferWriter<byte> buffer = new(size is 0 ? 1 : size);
-
-        writer = new(buffer)
-        {
-            Endianness = endianness,
-        };
-
+        writer = new(buffer, endianness);
         return size;
     }
 
     static BinaryBufferReader GetReader(in BinaryBufferWriter writer)
     {
         var buffer = (ArrayBufferWriter<byte>)writer.Buffer;
-
-        return new(buffer.WrittenSpan, ref readOffset)
-        {
-            Endianness = writer.Endianness,
-        };
+        return new(buffer.WrittenSpan, ref readOffset, writer.Endianness);
     }
 }

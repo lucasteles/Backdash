@@ -2,7 +2,7 @@ using System.Buffers;
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network;
-using Backdash.Serialization.Buffer;
+using Backdash.Serialization;
 using Backdash.Synchronizing.Input;
 using Backdash.Synchronizing.Random;
 using Backdash.Synchronizing.State;

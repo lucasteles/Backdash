@@ -1,12 +1,12 @@
 using System.Runtime.InteropServices;
 using Backdash.Data;
 using Backdash.Serialization;
-using Backdash.Serialization.Buffer;
+using Backdash.Serialization.Internal;
 
 namespace Backdash.Network.Messages;
 
 [Serializable, StructLayout(LayoutKind.Sequential)]
-record struct ConsistencyCheckReply : ISpanSerializable, IUtf8SpanFormattable
+record struct ConsistencyCheckReply : IUtf8SpanFormattable
 {
     public Frame Frame;
     public uint Checksum;

@@ -3,12 +3,14 @@ using System.Runtime.CompilerServices;
 using Backdash.Core;
 using Backdash.Network;
 
-namespace Backdash.Serialization;
+namespace Backdash.Serialization.Internal;
 
 sealed class IntegerBinarySerializer<T>(Endianness endianness)
     : IBinarySerializer<T> where T : unmanaged, IBinaryInteger<T>, IMinMaxValue<T>
 {
     readonly bool isUnsigned = T.IsZero(T.MinValue);
+
+    public Endianness Endianness => endianness;
 
     public int Serialize(in T data, Span<byte> buffer)
     {
@@ -39,6 +41,8 @@ sealed class EnumBinarySerializer<TEnum, TInt>(IBinarySerializer<TInt> serialize
     where TEnum : unmanaged, Enum
     where TInt : unmanaged, IBinaryInteger<TInt>
 {
+    public Endianness Endianness => serializer.Endianness;
+
     public int Serialize(in TEnum data, Span<byte> buffer)
     {
         ref var underValue = ref Mem.EnumAsInteger<TEnum, TInt>(ref Unsafe.AsRef(in data));
@@ -57,6 +61,8 @@ sealed class EnumBinarySerializer<TEnum, TInt>(IBinarySerializer<TInt> serialize
 sealed class EnumBinarySerializer<TEnum>(Endianness endianness) : IBinarySerializer<TEnum>
     where TEnum : unmanaged, Enum
 {
+    public Endianness Endianness => endianness;
+
     readonly IBinarySerializer<TEnum> serializer = Type.GetTypeCode(typeof(TEnum)) switch
     {
         TypeCode.Int32 => new EnumBinarySerializer<TEnum, int>(

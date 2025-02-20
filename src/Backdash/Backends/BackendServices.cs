@@ -3,6 +3,7 @@ using Backdash.Network;
 using Backdash.Network.Client;
 using Backdash.Network.Protocol;
 using Backdash.Serialization;
+using Backdash.Serialization.Internal;
 using Backdash.Synchronizing.Input;
 using Backdash.Synchronizing.Input.Confirmed;
 using Backdash.Synchronizing.Random;
@@ -36,7 +37,7 @@ sealed class BackendServices<TInput> where TInput : unmanaged
         InputGenerator = services?.InputGenerator;
 
         InputSerializer = services?.InputSerializer ?? BinarySerializerFactory
-            .FindOrThrow<TInput>(options.NetworkEndianness);
+            .FindOrThrow<TInput>(options.UseNetworkEndianness);
 
         var logWriter = services?.LogWriter is null || options.Log.EnabledLevel is LogLevel.None
             ? new ConsoleTextLogWriter()

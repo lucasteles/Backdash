@@ -62,6 +62,8 @@ public sealed class Fletcher32ChecksumProvider : IChecksumProvider
             {
                 sum1 += *(ptr + dataLen - 1);
                 sum2 += sum1;
+                sum1 = (sum1 & 0xFFFF) + (sum1 >> 16);
+                sum2 = (sum2 & 0xFFFF) + (sum2 >> 16);
             }
         }
 

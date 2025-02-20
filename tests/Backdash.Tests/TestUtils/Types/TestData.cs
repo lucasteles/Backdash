@@ -1,4 +1,6 @@
 using System.Drawing;
+using System.Runtime.InteropServices;
+using Backdash.Serialization;
 
 // ReSharper disable UnusedMember.Global, NotAccessedField.Global, EnumUnderlyingTypeIsInt
 #pragma warning disable S2344, S1939
@@ -66,7 +68,8 @@ public enum SByteEnum : sbyte
     OneHundredTwentySeven = sbyte.MaxValue,
 }
 
-public record struct SimpleStructData
+[StructLayout(LayoutKind.Sequential, Pack = 2)]
+public record struct SimpleStructData : IBinarySerializable
 {
     public int Field1;
     public uint Field2;
@@ -77,5 +80,30 @@ public record struct SimpleStructData
     public byte Field7;
     public sbyte Field8;
     public Point Field9;
-}
 
+    public readonly void Serialize(ref readonly BinaryBufferWriter writer)
+    {
+        writer.Write(in Field1);
+        writer.Write(in Field2);
+        writer.Write(in Field3);
+        writer.Write(in Field4);
+        writer.Write(in Field5);
+        writer.Write(in Field6);
+        writer.Write(in Field7);
+        writer.Write(in Field8);
+        writer.WriteStruct(in Field9);
+    }
+
+    public void Deserialize(ref readonly BinaryBufferReader reader)
+    {
+        Field1 = reader.ReadInt32();
+        Field2 = reader.ReadUInt32();
+        Field3 = reader.ReadUInt64();
+        Field4 = reader.ReadInt64();
+        Field5 = reader.ReadInt16();
+        Field6 = reader.ReadUInt16();
+        Field7 = reader.ReadByte();
+        Field8 = reader.ReadSByte();
+        Field9 = reader.ReadStruct<Point>();
+    }
+}

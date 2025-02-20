@@ -1,12 +1,9 @@
 using System.Numerics;
+using System.Reflection;
 using Backdash.Core;
 using Backdash.Network;
 
-#if !AOT_ENABLED
-using System.Reflection;
-#endif
-
-namespace Backdash.Serialization;
+namespace Backdash.Serialization.Internal;
 
 static class BinarySerializerFactory
 {

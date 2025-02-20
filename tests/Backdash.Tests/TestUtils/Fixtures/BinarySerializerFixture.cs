@@ -1,6 +1,6 @@
 using System.Buffers;
 using Backdash.Core;
-using Backdash.Serialization.Buffer;
+using Backdash.Serialization;
 
 namespace Backdash.Tests.TestUtils.Fixtures;
 

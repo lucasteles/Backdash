@@ -4,12 +4,12 @@ using System.Text;
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Serialization;
-using Backdash.Serialization.Buffer;
+using Backdash.Serialization.Internal;
 
 namespace Backdash.Network.Messages;
 
 [Serializable, StructLayout(LayoutKind.Sequential)]
-struct InputMessage : IEquatable<InputMessage>, ISpanSerializable, IUtf8SpanFormattable
+struct InputMessage : IEquatable<InputMessage>, IUtf8SpanFormattable
 {
     public PeerStatusBuffer PeerConnectStatus;
     public Frame StartFrame;

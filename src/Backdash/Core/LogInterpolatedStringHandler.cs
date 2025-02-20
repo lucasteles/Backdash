@@ -3,7 +3,7 @@ using System.Net;
 using System.Runtime.CompilerServices;
 using Backdash.Network.Protocol;
 using Backdash.Network.Protocol.Comm;
-using Backdash.Serialization.Buffer;
+using Backdash.Serialization.Internal;
 
 #pragma warning disable S4144
 namespace Backdash.Core;

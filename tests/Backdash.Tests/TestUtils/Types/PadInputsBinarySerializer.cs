@@ -1,9 +1,9 @@
 using Backdash.Serialization;
-using Backdash.Serialization.Buffer;
+using Backdash.Serialization.Internal;
 
 namespace Backdash.Tests.TestUtils.Types;
 
-public class PadInputsBinarySerializer : BinarySerializer<PadInputs>
+class PadInputsBinarySerializer : BaseBinarySerializer<PadInputs>
 {
     protected override void Serialize(in BinaryRawBufferWriter binaryWriter, in PadInputs data)
     {

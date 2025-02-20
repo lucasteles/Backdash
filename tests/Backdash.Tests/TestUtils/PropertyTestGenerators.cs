@@ -387,4 +387,7 @@ abstract class PropertyTestGenerators
 
 record PendingGameInputs(GameInput[] Values);
 
-public record OddSizeArray<T>(T[] Values);
+public record OddSizeArray<T>(T[] Values)
+{
+    public override string ToString() => $"OddSizeArray[{string.Join(", ", Values)}]";
+}

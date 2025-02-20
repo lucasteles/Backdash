@@ -1,6 +1,7 @@
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using Backdash.Serialization;
+using Backdash.Serialization.Internal;
 using Backdash.Tests.TestUtils;
 using Backdash.Tests.TestUtils.Types;
 
@@ -270,7 +271,7 @@ public class SerializersTests
 
 static file class Extensions
 {
-    public static T Deserialize<T>(this IBinaryReader<T> serializer, ReadOnlySpan<byte> data) where T : new()
+    public static T Deserialize<T>(this IBinarySerializer<T> serializer, ReadOnlySpan<byte> data) where T : new()
     {
         var result = new T();
         serializer.Deserialize(data, ref result);

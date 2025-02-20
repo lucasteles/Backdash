@@ -36,7 +36,7 @@ public sealed class NetcodeOptions
     /// </summary>
     /// <seealso cref="Endianness"/>
     /// <value>Defaults to <see langword="true"/></value>
-    public bool NetworkEndianness { get; init; } = true;
+    public bool UseNetworkEndianness { get; init; } = true;
 
     /// <summary>
     /// Max length for player input queues.

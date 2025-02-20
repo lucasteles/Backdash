@@ -1,7 +1,7 @@
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using Backdash.Network;
-using Backdash.Serialization.Buffer;
+using Backdash.Serialization;
 using Backdash.Tests.TestUtils;
 using Backdash.Tests.TestUtils.Types;
 
@@ -258,51 +258,9 @@ public class BinarySpanReadWriteValueTests
         Span<byte> buffer = new byte[size];
         writeOffset = 0;
         readOffset = 0;
-        writer = new(buffer, ref writeOffset)
-        {
-            Endianness = endianness,
-        };
-        reader = new(buffer, ref readOffset)
-        {
-            Endianness = endianness,
-        };
+        writer = new(buffer, ref writeOffset, endianness);
+        reader = new(buffer, ref readOffset, endianness);
         return size;
-    }
-
-    [Collection(SerialCollectionDefinition.Name)]
-    public class ReadWriteEnumTests
-    {
-        [PropertyTest] public bool TestIntEnum(IntEnum value, Endianness endianness) => TestEnum(value, endianness);
-        [PropertyTest] public bool TestUIntEnum(UIntEnum value, Endianness endianness) => TestEnum(value, endianness);
-        [PropertyTest] public bool TestLongEnum(LongEnum value, Endianness endianness) => TestEnum(value, endianness);
-
-        [PropertyTest]
-        public bool TestULongEnum(ULongEnum value, Endianness endianness) =>
-            TestEnum(value, endianness);
-
-        [PropertyTest]
-        public bool TestShortEnum(ShortEnum value, Endianness endianness) =>
-            TestEnum(value, endianness);
-
-        [PropertyTest]
-        public bool TestUShortEnum(UShortEnum value, Endianness endianness) =>
-            TestEnum(value, endianness);
-
-        [PropertyTest] public bool TestByteEnum(ByteEnum value, Endianness endianness) => TestEnum(value, endianness);
-
-        [PropertyTest]
-        public bool TestSByteEnum(SByteEnum value, Endianness endianness) =>
-            TestEnum(value, endianness);
-
-        static bool TestEnum<T>(T value, Endianness endianness) where T : unmanaged, Enum
-        {
-            var size = Setup<T>(endianness, out var writer, out var reader);
-            writer.WriteEnum(value);
-            writer.WrittenCount.Should().Be(size);
-            var read = reader.ReadEnum<T>();
-            reader.ReadCount.Should().Be(size);
-            return EqualityComparer<T>.Default.Equals(read, value);
-        }
     }
 
     [Collection(SerialCollectionDefinition.Name)]

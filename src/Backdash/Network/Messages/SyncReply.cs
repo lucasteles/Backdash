@@ -1,11 +1,11 @@
 using System.Runtime.InteropServices;
 using Backdash.Serialization;
-using Backdash.Serialization.Buffer;
+using Backdash.Serialization.Internal;
 
 namespace Backdash.Network.Messages;
 
 [Serializable, StructLayout(LayoutKind.Sequential)]
-record struct SyncReply : ISpanSerializable, IUtf8SpanFormattable
+record struct SyncReply : IUtf8SpanFormattable
 {
     public uint RandomReply; /* please reply with this random data */
     public long Pong;

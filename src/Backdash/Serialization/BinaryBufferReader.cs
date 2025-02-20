@@ -1,15 +1,17 @@
 using System.Buffers.Binary;
+using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Backdash.Core;
 using Backdash.Network;
 
-namespace Backdash.Serialization.Buffer;
+namespace Backdash.Serialization;
 
 /// <summary>
 /// Binary span reader.
 /// </summary>
+[DebuggerDisplay("Read: {ReadCount}")]
 public readonly ref struct BinaryBufferReader
 {
     /// <summary>
@@ -17,19 +19,19 @@ public readonly ref struct BinaryBufferReader
     /// </summary>
     /// <param name="buffer">Byte buffer to be read</param>
     /// <param name="offset">Read offset reference</param>
-    public BinaryBufferReader(ReadOnlySpan<byte> buffer, ref int offset)
+    /// <param name="endianness">Deserialization endianness</param>
+    public BinaryBufferReader(ReadOnlySpan<byte> buffer, ref int offset, Endianness endianness = Endianness.BigEndian)
     {
         this.offset = ref offset;
         this.buffer = buffer;
+        Endianness = endianness;
     }
 
     readonly ref int offset;
     readonly ReadOnlySpan<byte> buffer;
 
-    /// <summary>
-    /// Gets or init the value to define which endianness should be used for serialization.
-    /// </summary>
-    public Endianness Endianness { get; init; } = Endianness.BigEndian;
+    /// <summary>Gets or init the value to define which endianness should be used for serialization.</summary>
+    public readonly Endianness Endianness;
 
     /// <summary>Total read byte count.</summary>
     public int ReadCount => offset;
@@ -323,53 +325,39 @@ public readonly ref struct BinaryBufferReader
         return result;
     }
 
-    /// <summary>Reads single <see cref="Enum"/> value from buffer.</summary>
-    /// <typeparam name="T">An enum type.</typeparam>
-    public T ReadEnum<T>() where T : unmanaged, Enum
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    Span<T> GetListSpan<T>(List<T> values)
     {
-        switch (Type.GetTypeCode(typeof(T)))
+        var count = ReadInt32();
+        CollectionsMarshal.SetCount(values, count);
+        var span = CollectionsMarshal.AsSpan(values);
+        return span;
+    }
+
+    /// <summary>Reads a <see cref="IBinarySerializable"/> <paramref name="value"/> from buffer.</summary>
+    /// <typeparam name="T">A type that implements <see cref="IBinarySerializable"/>.</typeparam>
+    public void Read<T>(ref T value) where T : IBinarySerializable => value.Deserialize(in this);
+
+    /// <summary>Reads a span of <see cref="IBinarySerializable"/> <paramref name="values"/> into buffer.</summary>
+    /// <typeparam name="T">A type that implements <see cref="IBinarySerializable"/>.</typeparam>
+    public void Read<T>(in Span<T> values) where T : IBinarySerializable
+    {
+        ref var current = ref MemoryMarshal.GetReference(values);
+        ref var limit = ref Unsafe.Add(ref current, values.Length);
+
+        while (Unsafe.IsAddressLessThan(ref current, ref limit))
         {
-            case TypeCode.Int32:
-                {
-                    var value = ReadInt32();
-                    return Unsafe.As<int, T>(ref value);
-                }
-            case TypeCode.UInt32:
-                {
-                    var value = ReadUInt32();
-                    return Unsafe.As<uint, T>(ref value);
-                }
-            case TypeCode.Int64:
-                {
-                    var value = ReadInt64();
-                    return Unsafe.As<long, T>(ref value);
-                }
-            case TypeCode.UInt64:
-                {
-                    var value = ReadUInt64();
-                    return Unsafe.As<ulong, T>(ref value);
-                }
-            case TypeCode.Int16:
-                {
-                    var value = ReadInt16();
-                    return Unsafe.As<short, T>(ref value);
-                }
-            case TypeCode.UInt16:
-                {
-                    var value = ReadUInt16();
-                    return Unsafe.As<ushort, T>(ref value);
-                }
-            case TypeCode.Byte:
-                {
-                    var value = ReadByte();
-                    return Unsafe.As<byte, T>(ref value);
-                }
-            case TypeCode.SByte:
-                {
-                    var value = ReadSByte();
-                    return Unsafe.As<sbyte, T>(ref value);
-                }
-            default: throw new InvalidOperationException("Unknown enum underlying type");
+            current.Deserialize(in this);
+            current = ref Unsafe.Add(ref current, 1)!;
         }
     }
+
+    /// <summary>Reads an array of <see cref="IBinarySerializable"/> <paramref name="values"/> into buffer.</summary>
+    /// <typeparam name="T">A type that implements <see cref="IBinarySerializable"/>.</typeparam>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Read<T>(in T[] values) where T : IBinarySerializable => Read(values.AsSpan());
+
+    /// <summary>Writes an array of <see cref="IBinarySerializable"/> <paramref name="values"/> into buffer.</summary>
+    /// <typeparam name="T">A type that implements <see cref="IBinarySerializable"/>.</typeparam>
+    public void Read<T>(in List<T> values) where T : IBinarySerializable => Read(GetListSpan(values));
 }

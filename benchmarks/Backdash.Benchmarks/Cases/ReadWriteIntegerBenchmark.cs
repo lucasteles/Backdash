@@ -2,7 +2,7 @@
 // ReSharper disable UnassignedField.Global
 using System.Runtime.InteropServices;
 using Backdash.Network;
-using Backdash.Serialization.Buffer;
+using Backdash.Serialization;
 
 namespace Backdash.Benchmarks.Cases;
 
@@ -23,10 +23,8 @@ public class ReadWriteIntegerBenchmark
     {
         Span<byte> span = stackalloc byte[sizeof(int)];
         var offset = 0;
-        BinaryRawBufferWriter writer = new(span, ref offset)
-        {
-            Endianness = Mode,
-        };
+        BinaryRawBufferWriter writer = new(span, ref offset, Mode);
+
         for (var i = 0; i < Count; i++)
         {
             writer.Write(Number);
@@ -39,10 +37,8 @@ public class ReadWriteIntegerBenchmark
     {
         Span<byte> span = stackalloc byte[sizeof(int)];
         var offset = 0;
-        BinaryBufferReader reader = new(span, ref offset)
-        {
-            Endianness = Mode,
-        };
+        BinaryBufferReader reader = new(span, ref offset, Mode);
+
         for (var i = 0; i < Count; i++)
         {
             offset = 0;

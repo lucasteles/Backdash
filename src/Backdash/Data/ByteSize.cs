@@ -1,5 +1,5 @@
 using System.Numerics;
-using Backdash.Serialization.Buffer;
+using Backdash.Serialization.Internal;
 
 namespace Backdash.Data;
 

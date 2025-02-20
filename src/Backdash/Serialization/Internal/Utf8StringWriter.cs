@@ -1,8 +1,6 @@
 using System.Runtime.CompilerServices;
 
-namespace Backdash.Serialization.Buffer;
-
-using System.Text;
+namespace Backdash.Serialization.Internal;
 
 readonly ref struct Utf8StringWriter
 {
@@ -21,11 +19,11 @@ readonly ref struct Utf8StringWriter
     {
         Span<byte> dest = CurrentBuffer;
         if (dest.IsEmpty) return false;
-        var size = Encoding.UTF8.GetByteCount(value);
+        var size = System.Text.Encoding.UTF8.GetByteCount(value);
         var chars = size <= dest.Length
             ? value
             : value[..dest.Length];
-        offset += Encoding.UTF8.GetBytes(chars, dest);
+        offset += System.Text.Encoding.UTF8.GetBytes(chars, dest);
         return true;
     }
 

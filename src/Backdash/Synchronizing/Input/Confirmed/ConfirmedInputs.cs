@@ -47,5 +47,7 @@ public struct InputArray<TInput> where TInput : unmanaged
     /// <inheritdoc cref="Max.NumberOfPlayers"/>
     public const int Capacity = Max.NumberOfPlayers;
 
+#pragma warning disable S1144, IDE0051, IDE0044
     TInput element0;
+#pragma warning restore IDE0051, S1144, IDE0044
 }

@@ -2,22 +2,24 @@ using Backdash.Serialization;
 using Backdash.Tests.TestUtils.Fixtures;
 
 namespace Backdash.Tests.TestUtils.Assertions;
+
 static class AssertSerialization
 {
-    public static bool Validate<T>(ref T value) where T : struct, ISpanSerializable, IEquatable<T>
+    public delegate void SerializeFn<T>(ref T value, BinaryRawBufferWriter writer);
+
+    public delegate void DeserializeFn<T>(ref T value, BinaryBufferReader reader);
+
+    public static bool Validate<T>(ref T value, SerializeFn<T> serialize, DeserializeFn<T> deserialize)
+        where T : struct, IEquatable<T>
     {
         using BinarySerializerFixture fixture = new();
-        value.Serialize(fixture.Writer);
+
+        serialize(ref value, fixture.Writer);
         T result = new();
-        result.Deserialize(fixture.Reader);
+        deserialize(ref result, fixture.Reader);
+
+        Assert.True(fixture.ReadOffset == fixture.WriteOffset);
+
         return result.Equals(value);
-    }
-    public static bool Offset<T>(ref T value) where T : struct, ISpanSerializable, IEquatable<T>
-    {
-        using BinarySerializerFixture fixture = new();
-        value.Serialize(fixture.Writer);
-        T result = new();
-        result.Deserialize(fixture.Reader);
-        return fixture.ReadOffset == fixture.WriteOffset;
     }
 }

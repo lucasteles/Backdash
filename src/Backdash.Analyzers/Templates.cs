@@ -1,14 +1,13 @@
 namespace Backdash.Analyzers;
 
-class Templates
+static class Templates
 {
     public const string BaseSerializer =
         """
         #pragma warning disable CS1591
         using Backdash.Serialization;
-        using Backdash.Serialization.Buffer;
 
-        public partial class [[NAME]]: IBinaryBufferSerializer<[[TYPE]]>
+        public partial class [[NAME]]
         {
             public static readonly [[NAME]] Shared = new [[NAME]]();
 

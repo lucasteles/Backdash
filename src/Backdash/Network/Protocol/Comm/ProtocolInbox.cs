@@ -19,7 +19,7 @@ interface IProtocolInbox<TInput> : IPeerObserver<ProtocolMessage> where TInput :
 
 sealed class ProtocolInbox<TInput>(
     ProtocolOptions options,
-    IBinaryReader<TInput> inputSerializer,
+    IBinarySerializer<TInput> inputSerializer,
     ProtocolState state,
     IClock clock,
     IProtocolSynchronizer sync,

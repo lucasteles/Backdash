@@ -1,6 +1,6 @@
 using System.Runtime.CompilerServices;
 using Backdash.Network;
-using Backdash.Serialization.Buffer;
+using Backdash.Serialization;
 using Backdash.Tests.TestUtils;
 using Backdash.Tests.TestUtils.Types;
 
@@ -200,7 +200,6 @@ public class BinarySpanReadWriteSpanTests
         return value.AsSpan().SequenceEqual(read);
     }
 
-
     static int writeOffset;
     static int readOffset;
 
@@ -214,14 +213,8 @@ public class BinarySpanReadWriteSpanTests
         Span<byte> buffer = new byte[size];
         writeOffset = 0;
         readOffset = 0;
-        writer = new(buffer, ref writeOffset)
-        {
-            Endianness = endianness,
-        };
-        reader = new(buffer, ref readOffset)
-        {
-            Endianness = endianness,
-        };
+        writer = new(buffer, ref writeOffset, endianness);
+        reader = new(buffer, ref readOffset, endianness);
         return size;
     }
 }

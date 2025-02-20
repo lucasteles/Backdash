@@ -1,5 +1,4 @@
 using System.Runtime.InteropServices;
-using Backdash.GamePad;
 
 // ReSharper disable InconsistentNaming
 namespace Backdash.Tests.TestUtils.Types;

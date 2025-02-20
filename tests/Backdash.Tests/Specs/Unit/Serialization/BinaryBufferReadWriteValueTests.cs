@@ -2,7 +2,7 @@ using System.Buffers;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using Backdash.Network;
-using Backdash.Serialization.Buffer;
+using Backdash.Serialization;
 using Backdash.Tests.TestUtils;
 using Backdash.Tests.TestUtils.Types;
 
@@ -246,6 +246,22 @@ public class BinaryBufferReadWriteValueTests
         return value == read;
     }
 
+    [PropertyTest]
+    public bool SerializableObject(SimpleStructData value, Endianness endianness)
+    {
+        var size = Setup<SimpleStructData>(endianness, out var writer);
+
+        writer.Write(in value);
+        writer.WrittenCount.Should().Be(size);
+
+        var reader = GetReader(writer);
+        SimpleStructData result = default;
+        reader.Read(ref result);
+        reader.ReadCount.Should().Be(size);
+
+        return value == result;
+    }
+
     static int readOffset;
 
     static int Setup<T>(Endianness endianness, out BinaryBufferWriter writer) where T : struct
@@ -254,11 +270,7 @@ public class BinaryBufferReadWriteValueTests
         readOffset = 0;
 
         ArrayBufferWriter<byte> buffer = new(size);
-
-        writer = new(buffer)
-        {
-            Endianness = endianness,
-        };
+        writer = new(buffer, endianness);
 
         return size;
     }
@@ -266,47 +278,7 @@ public class BinaryBufferReadWriteValueTests
     static BinaryBufferReader GetReader(in BinaryBufferWriter writer)
     {
         var buffer = (ArrayBufferWriter<byte>)writer.Buffer;
-
-        return new(buffer.WrittenSpan, ref readOffset)
-        {
-            Endianness = writer.Endianness,
-        };
-    }
-
-    [Collection(SerialCollectionDefinition.Name)]
-    public class ReadWriteEnumTests
-    {
-        [PropertyTest] public bool TestIntEnum(IntEnum value, Endianness endianness) => TestEnum(value, endianness);
-        [PropertyTest] public bool TestUIntEnum(UIntEnum value, Endianness endianness) => TestEnum(value, endianness);
-        [PropertyTest] public bool TestLongEnum(LongEnum value, Endianness endianness) => TestEnum(value, endianness);
-
-        [PropertyTest]
-        public bool TestULongEnum(ULongEnum value, Endianness endianness) =>
-            TestEnum(value, endianness);
-
-        [PropertyTest]
-        public bool TestShortEnum(ShortEnum value, Endianness endianness) =>
-            TestEnum(value, endianness);
-
-        [PropertyTest]
-        public bool TestUShortEnum(UShortEnum value, Endianness endianness) =>
-            TestEnum(value, endianness);
-
-        [PropertyTest] public bool TestByteEnum(ByteEnum value, Endianness endianness) => TestEnum(value, endianness);
-
-        [PropertyTest]
-        public bool TestSByteEnum(SByteEnum value, Endianness endianness) =>
-            TestEnum(value, endianness);
-
-        static bool TestEnum<T>(T value, Endianness endianness) where T : unmanaged, Enum
-        {
-            var size = Setup<T>(endianness, out var writer);
-            writer.WriteEnum(value);
-            var reader = GetReader(writer);
-            var read = reader.ReadEnum<T>();
-            reader.ReadCount.Should().Be(size);
-            return EqualityComparer<T>.Default.Equals(read, value);
-        }
+        return new(buffer.WrittenSpan, ref readOffset, writer.Endianness);
     }
 
     [Collection(SerialCollectionDefinition.Name)]

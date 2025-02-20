@@ -1,5 +1,5 @@
 using Backdash.Data;
-using Backdash.Serialization.Buffer;
+using Backdash.Serialization.Internal;
 
 namespace Backdash.Synchronizing.Input;
 
