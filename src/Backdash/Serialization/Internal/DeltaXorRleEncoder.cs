@@ -1,7 +1,8 @@
 using System.Diagnostics;
 using Backdash.Core;
 using Backdash.Data;
-namespace Backdash.Serialization.Encoding;
+
+namespace Backdash.Serialization.Internal;
 
 static class DeltaXorRle
 {
@@ -11,6 +12,7 @@ static class DeltaXorRle
         BitOffsetWriter bitWriter;
         readonly Span<byte> last;
         public int Count { get; private set; }
+
         public Encoder(Span<byte> output, Span<byte> lastBuffer)
         {
             Count = 0;
@@ -18,7 +20,9 @@ static class DeltaXorRle
             Trace.Assert(output.Length > 0);
             bitWriter = new(output);
         }
+
         public readonly ushort BitOffset => bitWriter.Offset;
+
         public bool Write(ReadOnlySpan<byte> current)
         {
             Trace.Assert(current.Length <= last.Length);
@@ -47,24 +51,29 @@ static class DeltaXorRle
                     return false;
                 }
             }
+
             bitWriter.ClearNext();
             current.CopyTo(last);
             Count++;
             return true;
         }
+
         public override readonly string ToString() =>
             $"{{ Count: {Count}, Writer: {bitWriter.ToString()} }}";
     }
+
     [DebuggerDisplay("{ToString()}")]
     public ref struct Decoder
     {
         readonly ushort bitCount;
         BitOffsetWriter bitVector;
+
         public Decoder(Span<byte> buffer, ushort bitCount)
         {
             this.bitCount = bitCount;
             bitVector = new(buffer);
         }
+
         public bool Skip(int count)
         {
             if (count <= 0) return true;
@@ -81,8 +90,10 @@ static class DeltaXorRle
                             bitVector.Read();
                             bitVector.ReadNibble();
                         }
+
                         continue;
                     }
+
                     Trace.Assert(bitVector.Offset <= bitCount);
                     return true;
                 }
@@ -92,8 +103,10 @@ static class DeltaXorRle
                 bitVector.Offset = lastOffset;
                 return false;
             }
+
             return false;
         }
+
         public bool Read(in Span<byte> output)
         {
             var outputBits = BitVector.FromSpan(output);
@@ -117,9 +130,11 @@ static class DeltaXorRle
                 bitVector.Offset = lastOffset;
                 return false;
             }
+
             Trace.Assert(bitVector.Offset <= bitCount);
             return true;
         }
+
         public override readonly string ToString() =>
             $"{{ Offset: {bitVector.Offset}/{bitCount}, " +
             $"Read: {Mem.GetBitString(bitVector.Buffer[..bitVector.Offset])}," +

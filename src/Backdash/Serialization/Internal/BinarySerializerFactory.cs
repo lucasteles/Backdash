@@ -9,17 +9,13 @@ static class BinarySerializerFactory
 {
     public static IBinarySerializer<TInput> ForInteger<TInput>(bool networkEndianness = true)
         where TInput : unmanaged, IBinaryInteger<TInput>, IMinMaxValue<TInput>
-    {
-        var mode = Platform.GetEndianness(networkEndianness);
-        return new IntegerBinarySerializer<TInput>(mode);
-    }
+        =>
+            new IntegerBinarySerializer<TInput>(Platform.GetEndianness(networkEndianness));
 
     public static IBinarySerializer<TInput> ForEnum<TInput>(bool networkEndianness = true)
         where TInput : unmanaged, Enum
-    {
-        var mode = Platform.GetEndianness(networkEndianness);
-        return new EnumBinarySerializer<TInput>(mode);
-    }
+        =>
+            EnumBinarySerializer.Create<TInput>(Platform.GetEndianness(networkEndianness));
 
     public static IBinarySerializer<TInput> ForStruct<TInput>() where TInput : struct
     {

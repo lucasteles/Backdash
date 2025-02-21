@@ -14,14 +14,22 @@ sealed class IntegerBinarySerializer<T>(Endianness endianness)
 
     public int Serialize(in T data, Span<byte> buffer)
     {
-        int size;
         ref var valueRef = ref Unsafe.AsRef(in data);
-        return endianness switch
+        int size;
+
+        switch (endianness)
         {
-            Endianness.BigEndian => valueRef.TryWriteBigEndian(buffer, out size) ? size : 0,
-            Endianness.LittleEndian => valueRef.TryWriteLittleEndian(buffer, out size) ? size : 0,
-            _ => throw new NetcodeException("Invalid integer serialization mode")
-        };
+            case Endianness.BigEndian:
+                valueRef.TryWriteBigEndian(buffer, out size);
+                break;
+            case Endianness.LittleEndian:
+                valueRef.TryWriteLittleEndian(buffer, out size);
+                break;
+            default:
+                throw new NetcodeException("Invalid integer serialization endianness.");
+        }
+
+        return size;
     }
 
     public int Deserialize(ReadOnlySpan<byte> data, ref T value)
@@ -31,7 +39,7 @@ sealed class IntegerBinarySerializer<T>(Endianness endianness)
         {
             Endianness.BigEndian => T.ReadBigEndian(data[..size], isUnsigned),
             Endianness.LittleEndian => T.ReadLittleEndian(data[..size], isUnsigned),
-            _ => throw new NetcodeException("Invalid integer serialization mode"),
+            _ => throw new NetcodeException("Invalid integer serialization endianness."),
         };
         return size;
     }
@@ -42,6 +50,8 @@ sealed class EnumBinarySerializer<TEnum, TInt>(IBinarySerializer<TInt> serialize
     where TInt : unmanaged, IBinaryInteger<TInt>
 {
     public Endianness Endianness => serializer.Endianness;
+
+    public IBinarySerializer<TInt> GetBaseSerializer() => serializer;
 
     public int Serialize(in TEnum data, Span<byte> buffer)
     {
@@ -58,37 +68,27 @@ sealed class EnumBinarySerializer<TEnum, TInt>(IBinarySerializer<TInt> serialize
     }
 }
 
-sealed class EnumBinarySerializer<TEnum>(Endianness endianness) : IBinarySerializer<TEnum>
-    where TEnum : unmanaged, Enum
+static class EnumBinarySerializer
 {
-    public Endianness Endianness => endianness;
-
-    readonly IBinarySerializer<TEnum> serializer = Type.GetTypeCode(typeof(TEnum)) switch
-    {
-        TypeCode.Int32 => new EnumBinarySerializer<TEnum, int>(
-            new IntegerBinarySerializer<int>(endianness)),
-        TypeCode.UInt32 => new EnumBinarySerializer<TEnum, uint>(
-            new IntegerBinarySerializer<uint>(endianness)),
-        TypeCode.UInt64 => new EnumBinarySerializer<TEnum, ulong>(
-            new IntegerBinarySerializer<ulong>(endianness)),
-        TypeCode.Int64 => new EnumBinarySerializer<TEnum, long>(
-            new IntegerBinarySerializer<long>(endianness)),
-        TypeCode.Int16 => new EnumBinarySerializer<TEnum, short>(
-            new IntegerBinarySerializer<short>(endianness)),
-        TypeCode.UInt16 => new EnumBinarySerializer<TEnum, ushort>(
-            new IntegerBinarySerializer<ushort>(endianness)),
-        TypeCode.Byte => new EnumBinarySerializer<TEnum, byte>(
-            new IntegerBinarySerializer<byte>(endianness)),
-        TypeCode.SByte => new EnumBinarySerializer<TEnum, sbyte>(
-            new IntegerBinarySerializer<sbyte>(endianness)),
-        _ => throw new InvalidTypeArgumentException<TEnum>(),
-    };
-
-    public IBinarySerializer<TEnum> GetBaseSerializer() => serializer;
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int Deserialize(ReadOnlySpan<byte> data, ref TEnum value) => serializer.Deserialize(data, ref value);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int Serialize(in TEnum data, Span<byte> buffer) => serializer.Serialize(in data, buffer);
+    public static IBinarySerializer<TEnum> Create<TEnum>(Endianness endianness) where TEnum : unmanaged, Enum =>
+        Type.GetTypeCode(typeof(TEnum)) switch
+        {
+            TypeCode.Int32 => new EnumBinarySerializer<TEnum, int>(
+                new IntegerBinarySerializer<int>(endianness)),
+            TypeCode.UInt32 => new EnumBinarySerializer<TEnum, uint>(
+                new IntegerBinarySerializer<uint>(endianness)),
+            TypeCode.UInt64 => new EnumBinarySerializer<TEnum, ulong>(
+                new IntegerBinarySerializer<ulong>(endianness)),
+            TypeCode.Int64 => new EnumBinarySerializer<TEnum, long>(
+                new IntegerBinarySerializer<long>(endianness)),
+            TypeCode.Int16 => new EnumBinarySerializer<TEnum, short>(
+                new IntegerBinarySerializer<short>(endianness)),
+            TypeCode.UInt16 => new EnumBinarySerializer<TEnum, ushort>(
+                new IntegerBinarySerializer<ushort>(endianness)),
+            TypeCode.Byte => new EnumBinarySerializer<TEnum, byte>(
+                new IntegerBinarySerializer<byte>(endianness)),
+            TypeCode.SByte => new EnumBinarySerializer<TEnum, sbyte>(
+                new IntegerBinarySerializer<sbyte>(endianness)),
+            _ => throw new InvalidTypeArgumentException<TEnum>(),
+        };
 }

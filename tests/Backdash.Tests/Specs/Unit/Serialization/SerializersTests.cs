@@ -221,10 +221,11 @@ public class SerializersTests
     static void AssertBaseSerializer<T, TInt>(IBinarySerializer<T> serializer)
         where T : unmanaged, Enum
         where TInt : unmanaged, IBinaryInteger<TInt>, IMinMaxValue<TInt> =>
-        (serializer as EnumBinarySerializer<T>)?
-        .GetBaseSerializer().Should().NotBeNull()
+        (serializer as EnumBinarySerializer<T, TInt>)?
+        .GetBaseSerializer()
+        .Should().NotBeNull()
         .And
-        .BeOfType<EnumBinarySerializer<T, TInt>>();
+        .BeOfType<IntegerBinarySerializer<TInt>>();
 
 #if !AOT_ENABLED
     [Fact]
@@ -240,10 +241,12 @@ public class SerializersTests
         serializer.Should().BeOfType<IntegerBinarySerializer<T>>();
     }
 
-    static void AssertEnumSerializer<T>() where T : unmanaged, Enum
+    static void AssertEnumSerializer<T, TInt>()
+        where T : unmanaged, Enum
+        where TInt : unmanaged, IBinaryInteger<TInt>, IMinMaxValue<TInt>
     {
         var serializer = BinarySerializerFactory.Get<T>();
-        serializer.Should().BeOfType<EnumBinarySerializer<T>>();
+        serializer.Should().BeOfType<EnumBinarySerializer<T, TInt>>();
     }
 
     [Fact] public void AssertSerializerByte() => AssertIntegerSerializer<byte>();
@@ -257,15 +260,14 @@ public class SerializersTests
     [Fact] public void AssertSerializerInt128() => AssertIntegerSerializer<Int128>();
     [Fact] public void AssertSerializerUInt128() => AssertIntegerSerializer<UInt128>();
 
-    [Fact] public void AssertSerializerByteEnum() => AssertEnumSerializer<ByteEnum>();
-    [Fact] public void AssertSerializerSByteEnum() => AssertEnumSerializer<SByteEnum>();
-    [Fact] public void AssertSerializerShortEnum() => AssertEnumSerializer<ShortEnum>();
-    [Fact] public void AssertSerializerUShortEnum() => AssertEnumSerializer<UShortEnum>();
-    [Fact] public void AssertSerializerIntEnum() => AssertEnumSerializer<IntEnum>();
-    [Fact] public void AssertSerializerUIntEnum() => AssertEnumSerializer<UIntEnum>();
-    [Fact] public void AssertSerializerLongEnum() => AssertEnumSerializer<LongEnum>();
-    [Fact] public void AssertSerializerULongEnum() => AssertEnumSerializer<ULongEnum>();
-
+    [Fact] public void AssertSerializerByteEnum() => AssertEnumSerializer<ByteEnum, byte>();
+    [Fact] public void AssertSerializerSByteEnum() => AssertEnumSerializer<SByteEnum, sbyte>();
+    [Fact] public void AssertSerializerShortEnum() => AssertEnumSerializer<ShortEnum, short>();
+    [Fact] public void AssertSerializerUShortEnum() => AssertEnumSerializer<UShortEnum, ushort>();
+    [Fact] public void AssertSerializerIntEnum() => AssertEnumSerializer<IntEnum, int>();
+    [Fact] public void AssertSerializerUIntEnum() => AssertEnumSerializer<UIntEnum, uint>();
+    [Fact] public void AssertSerializerLongEnum() => AssertEnumSerializer<LongEnum, long>();
+    [Fact] public void AssertSerializerULongEnum() => AssertEnumSerializer<ULongEnum, ulong>();
 #endif
 }
 

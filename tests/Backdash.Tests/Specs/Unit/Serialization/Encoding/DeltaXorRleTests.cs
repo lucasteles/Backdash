@@ -1,5 +1,6 @@
 using Backdash.Data;
-using Backdash.Serialization.Encoding;
+using Backdash.Serialization.Internal;
+
 namespace Backdash.Tests.Specs.Unit.Serialization.Encoding;
 
 public class DeltaXorRleTests
