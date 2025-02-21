@@ -74,7 +74,7 @@ public readonly ref struct BinaryRawBufferWriter
     public void Write(in bool value)
     {
         if (!BitConverter.TryWriteBytes(CurrentBuffer, value))
-            throw new NetcodeException("Destination too short");
+            throw new NetcodeException("Destination is too short");
         Advance(sizeof(bool));
     }
 
@@ -114,44 +114,9 @@ public readonly ref struct BinaryRawBufferWriter
     /// <summary>Writes single <see cref="double"/> <paramref name="value"/> into buffer.</summary>
     public void Write(in double value) => Write(BitConverter.DoubleToInt64Bits(value));
 
-    /// <summary>Writes single <see cref="Vector2"/> <paramref name="value"/> into buffer.</summary>
-    public void Write(in Vector2 value)
-    {
-        Write(value.X);
-        Write(value.Y);
-    }
-
-    /// <summary>Writes single <see cref="Vector3"/> <paramref name="value"/> into buffer.</summary>
-    public void Write(in Vector3 value)
-    {
-        Write(value.X);
-        Write(value.Y);
-        Write(value.Z);
-    }
-
-    /// <summary>Writes single <see cref="Vector4"/> <paramref name="value"/> into buffer.</summary>
-    public void Write(in Vector4 value)
-    {
-        Write(value.X);
-        Write(value.Y);
-        Write(value.Z);
-        Write(value.W);
-    }
-
-    /// <summary>Writes single <see cref="Quaternion"/> <paramref name="value"/> into buffer.</summary>
-    public void Write(in Quaternion value)
-    {
-        Write(value.X);
-        Write(value.Y);
-        Write(value.Z);
-        Write(value.W);
-    }
-
     /// <summary>Writes a span of <see cref="byte"/> <paramref name="value"/> into buffer.</summary>
     public void Write(in ReadOnlySpan<byte> value)
     {
-        if (value.Length > FreeCapacity)
-            throw new InvalidOperationException("Not available buffer space");
         value.CopyTo(CurrentBuffer);
         Advance(value.Length);
     }
@@ -262,14 +227,14 @@ public readonly ref struct BinaryRawBufferWriter
     public void WriteNumber<T>(in T value) where T : unmanaged, IBinaryInteger<T>
     {
         ref var valueRef = ref Unsafe.AsRef(in value);
-        var size = Unsafe.SizeOf<T>();
+        int size;
         switch (Endianness)
         {
             case Endianness.LittleEndian:
-                valueRef.WriteLittleEndian(CurrentBuffer[..size]);
+                valueRef.TryWriteLittleEndian(CurrentBuffer, out size);
                 break;
             case Endianness.BigEndian:
-                valueRef.WriteBigEndian(CurrentBuffer[..size]);
+                valueRef.TryWriteBigEndian(CurrentBuffer, out size);
                 break;
             default:
                 return;

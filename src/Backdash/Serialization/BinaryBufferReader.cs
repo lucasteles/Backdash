@@ -267,43 +267,6 @@ public readonly ref struct BinaryBufferReader
         return new(charBuffer);
     }
 
-    /// <summary>Reads single <see cref="Vector2"/> from buffer.</summary>
-    public Vector2 ReadVector2()
-    {
-        var x = ReadFloat();
-        var y = ReadFloat();
-        return new(x, y);
-    }
-
-    /// <summary>Reads single <see cref="Vector3"/> from buffer.</summary>
-    public Vector3 ReadVector3()
-    {
-        var x = ReadFloat();
-        var y = ReadFloat();
-        var z = ReadFloat();
-        return new(x, y, z);
-    }
-
-    /// <summary>Reads single <see cref="Vector4"/> from buffer.</summary>
-    public Vector4 ReadVector4()
-    {
-        var x = ReadFloat();
-        var y = ReadFloat();
-        var z = ReadFloat();
-        var w = ReadFloat();
-        return new(x, y, z, w);
-    }
-
-    /// <summary>Reads single <see cref="Quaternion"/> from buffer.</summary>
-    public Quaternion ReadQuaternion()
-    {
-        var x = ReadFloat();
-        var y = ReadFloat();
-        var z = ReadFloat();
-        var w = ReadFloat();
-        return new Quaternion(x, y, z, w);
-    }
-
     /// <summary>Reads single <see cref="IBinaryInteger{T}"/> from buffer.</summary>
     /// <typeparam name="T">A numeric type that implements <see cref="IBinaryInteger{T}"/> and <see cref="IMinMaxValue{T}"/>.</typeparam>
     public T ReadNumber<T>() where T : unmanaged, IBinaryInteger<T>, IMinMaxValue<T> =>

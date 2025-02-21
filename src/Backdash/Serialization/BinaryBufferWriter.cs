@@ -68,7 +68,7 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
     {
         const int size = sizeof(bool);
         if (!BitConverter.TryWriteBytes(buffer.GetSpan(size), value))
-            throw new NetcodeException("Destination too short");
+            throw new NetcodeException("Destination is too short");
 
         Advance(size);
     }
@@ -108,39 +108,6 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
 
     /// <summary>Writes single <see cref="double"/> <paramref name="value"/> into buffer.</summary>
     public void Write(in double value) => Write(BitConverter.DoubleToInt64Bits(value));
-
-    /// <summary>Writes single <see cref="Vector2"/> <paramref name="value"/> into buffer.</summary>
-    public void Write(in Vector2 value)
-    {
-        Write(value.X);
-        Write(value.Y);
-    }
-
-    /// <summary>Writes single <see cref="Vector3"/> <paramref name="value"/> into buffer.</summary>
-    public void Write(in Vector3 value)
-    {
-        Write(value.X);
-        Write(value.Y);
-        Write(value.Z);
-    }
-
-    /// <summary>Writes single <see cref="Vector4"/> <paramref name="value"/> into buffer.</summary>
-    public void Write(in Vector4 value)
-    {
-        Write(value.X);
-        Write(value.Y);
-        Write(value.Z);
-        Write(value.W);
-    }
-
-    /// <summary>Writes single <see cref="Quaternion"/> <paramref name="value"/> into buffer.</summary>
-    public void Write(in Quaternion value)
-    {
-        Write(value.X);
-        Write(value.Y);
-        Write(value.Z);
-        Write(value.W);
-    }
 
     /// <summary>Writes a span of <see cref="sbyte"/> <paramref name="value"/> into buffer.</summary>
     public void Write(in ReadOnlySpan<sbyte> value) => WriteSpan(in value);
@@ -295,10 +262,10 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
         switch (Endianness)
         {
             case Endianness.LittleEndian:
-                valueRef.WriteLittleEndian(buffer.GetSpan(size));
+                valueRef.TryWriteLittleEndian(buffer.GetSpan(size), out size);
                 break;
             case Endianness.BigEndian:
-                valueRef.WriteBigEndian(buffer.GetSpan(size));
+                valueRef.TryWriteBigEndian(buffer.GetSpan(size), out size);
                 break;
             default:
                 return;

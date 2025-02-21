@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Backdash.Network;
 using Backdash.Serialization;
 
@@ -17,10 +18,15 @@ sealed class ConfirmedInputsSerializer<T>(IBinarySerializer<T> inputSerializer) 
     {
         ReadOnlySpan<T> inputs = data.Inputs;
         writer.Write(data.Count);
-        for (var i = 0; i < data.Count; i++)
+
+        ref var current = ref MemoryMarshal.GetReference(inputs);
+        ref var limit = ref Unsafe.Add(ref current, data.Count);
+        while (Unsafe.IsAddressLessThan(ref current, ref limit))
         {
-            var size = inputSerializer.Serialize(in inputs[i], writer.CurrentBuffer);
+            var size = inputSerializer.Serialize(in current, writer.CurrentBuffer);
             writer.Advance(size);
+
+            current = ref Unsafe.Add(ref current, 1)!;
         }
     }
 
@@ -29,10 +35,15 @@ sealed class ConfirmedInputsSerializer<T>(IBinarySerializer<T> inputSerializer) 
     {
         Span<T> inputs = result.Inputs;
         result.Count = reader.ReadByte();
-        for (var i = 0; i < result.Count; i++)
+
+        ref var current = ref MemoryMarshal.GetReference(inputs);
+        ref var limit = ref Unsafe.Add(ref current, result.Count);
+        while (Unsafe.IsAddressLessThan(ref current, ref limit))
         {
-            var size = inputSerializer.Deserialize(reader.CurrentBuffer, ref inputs[i]);
+            var size = inputSerializer.Deserialize(reader.CurrentBuffer, ref current);
             reader.Advance(size);
+
+            current = ref Unsafe.Add(ref current, 1)!;
         }
     }
 

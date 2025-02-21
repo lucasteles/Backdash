@@ -50,14 +50,11 @@ public class InputSerializerBenchmark
 
     static readonly ConfirmedInputsSerializer<InputType> baseSerializer = new(sub);
 
-    static readonly ConfirmedInputsSerializer<InputType> customSerializer =
-        new(new InputTypeCustomSerializer(sub.Endianness));
+    static readonly ConfirmedInputsSerializer<InputType> customSerializer = new(
+        new InputTypeCustomSerializer(sub.Endianness));
 
     static readonly ConfirmedInputsSerializer<InputType> longSerializer = new(
-        new EnumBinarySerializer<InputType, long>(
-            new InputTypeLongSerializer(sub.Endianness)
-        )
-    );
+        new EnumBinarySerializer<InputType, long>(new InputTypeLongSerializer(sub.Endianness)));
 
     [Benchmark]
     public void Integer() => TestSerialize(baseSerializer);

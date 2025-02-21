@@ -6,6 +6,7 @@ static class Templates
         """
         #pragma warning disable CS1591
         using Backdash.Serialization;
+        using Backdash.Serialization.Numerics;
 
         public partial class [[NAME]]
         {
