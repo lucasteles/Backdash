@@ -248,6 +248,20 @@ public class BinaryBufferReadWriteValueTests
     }
 
     [PropertyTest]
+    public bool UnmanagedStructRef(SimpleStructData value, Endianness endianness)
+    {
+        var size = Setup<SimpleStructData>(endianness, out var writer);
+        writer.WriteStruct(in value);
+
+        var reader = GetReader(writer);
+        SimpleStructData read = new();
+        reader.ReadStruct(ref read);
+
+        reader.ReadCount.Should().Be(size);
+        return value == read;
+    }
+
+    [PropertyTest]
     public bool SerializableObject(SimpleStructData value, Endianness endianness)
     {
         var size = Setup<SimpleStructData>(endianness, out var writer);

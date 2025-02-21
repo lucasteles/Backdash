@@ -1,4 +1,4 @@
-using Backdash.Serialization.Buffer;
+using Backdash.Serialization;
 
 namespace SpaceWar;
 

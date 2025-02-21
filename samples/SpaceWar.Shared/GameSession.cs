@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Backdash;
 using Backdash.Data;
-using Backdash.Serialization.Buffer;
+using Backdash.Serialization;
 using SpaceWar.Logic;
 
 namespace SpaceWar;

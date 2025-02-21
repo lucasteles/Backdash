@@ -1,7 +1,8 @@
 using System.Diagnostics;
 using Backdash;
 using Backdash.Data;
-using Backdash.Serialization.Buffer;
+using Backdash.Serialization;
+using Backdash.Serialization.Numerics;
 
 namespace ConsoleGame;
 

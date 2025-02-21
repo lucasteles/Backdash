@@ -220,6 +220,16 @@ public readonly ref struct BinaryBufferReader
     public double ReadDouble() => BitConverter.Int64BitsToDouble(ReadInt64());
 
     /// <summary>Reads an unmanaged struct from buffer.</summary>
+    public void ReadStruct<T>(ref T value) where T : unmanaged
+    {
+        var size = Unsafe.SizeOf<T>();
+        if (size > FreeCapacity) size = FreeCapacity;
+        var bytes = Mem.AsBytes(ref value);
+        CurrentBuffer[..size].CopyTo(bytes);
+        Advance(size);
+    }
+
+    /// <summary>Reads an unmanaged struct from buffer.</summary>
     public T ReadStruct<T>() where T : unmanaged
     {
         var size = Unsafe.SizeOf<T>();
@@ -229,12 +239,10 @@ public readonly ref struct BinaryBufferReader
         return result;
     }
 
+
     /// <summary>Reads an unmanaged struct from buffer.</summary>
-    public void ReadStruct<T>(in Span<T> values) where T : unmanaged
-    {
-        var valuesBytes = MemoryMarshal.AsBytes(values);
-        ReadByte(in valuesBytes);
-    }
+    public void ReadStruct<T>(in Span<T> values) where T : unmanaged =>
+        ReadByte(MemoryMarshal.AsBytes(values));
 
     /// <summary>Reads an unmanaged struct from buffer.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -1,5 +1,5 @@
 using Backdash.Data;
-using Backdash.Serialization.Buffer;
+using Backdash.Serialization;
 
 namespace SpaceWar.Logic;
 
@@ -40,20 +40,16 @@ public sealed record GameState
 
     public void SaveState(ref readonly BinaryBufferWriter writer)
     {
-        writer.Write(Bounds);
-        writer.Write(FrameNumber);
-
-        for (var i = 0; i < Ships.Length; i++)
-            Ships[i].SaveState(in writer);
+        writer.Write(in Bounds);
+        writer.Write(in FrameNumber);
+        writer.Write(in Ships);
     }
 
     public void LoadState(ref readonly BinaryBufferReader reader)
     {
         Bounds = reader.ReadRectangle();
         FrameNumber = reader.ReadInt32();
-
-        for (var i = 0; i < Ships.Length; i++)
-            Ships[i].LoadState(in reader);
+        reader.Read(Ships);
     }
 
     static GameInput GetShipAI(in Ship ship) => new(
