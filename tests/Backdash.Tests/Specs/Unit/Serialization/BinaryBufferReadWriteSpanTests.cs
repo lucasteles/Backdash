@@ -216,6 +216,67 @@ public class BinaryBufferReadWriteSpanTests
     }
 
     [PropertyTest]
+    public bool SpanOfTimeSpans(TimeSpan[] value, Endianness endianness)
+    {
+        var size = Setup(value, endianness, out var writer);
+        writer.Write(value);
+        var reader = GetReader(writer);
+        Span<TimeSpan> read = stackalloc TimeSpan[value.Length];
+        reader.ReadTimeSpan(in read);
+        reader.ReadCount.Should().Be(size);
+        return value.AsSpan().SequenceEqual(read);
+    }
+
+    [PropertyTest]
+    public bool SpanOfTimeOnly(TimeOnly[] value, Endianness endianness)
+    {
+        var size = Setup(value, endianness, out var writer);
+        writer.Write(value);
+        var reader = GetReader(writer);
+        Span<TimeOnly> read = stackalloc TimeOnly[value.Length];
+        reader.ReadTimeOnly(in read);
+        reader.ReadCount.Should().Be(size);
+        return value.AsSpan().SequenceEqual(read);
+    }
+
+    [PropertyTest]
+    public bool SpanOfDateOnly(DateOnly[] value, Endianness endianness)
+    {
+        var size = Setup(value, endianness, out var writer);
+        writer.Write(value);
+        var reader = GetReader(writer);
+        Span<DateOnly> read = stackalloc DateOnly[value.Length];
+        reader.ReadDateOnly(in read);
+        reader.ReadCount.Should().Be(size);
+        return value.AsSpan().SequenceEqual(read);
+    }
+
+    [PropertyTest]
+    public bool SpanOfDateTime(DateTime[] value, Endianness endianness)
+    {
+        var kindSize = 1 * value.Length;
+        var size = Setup(value, endianness, out var writer) + kindSize;
+        writer.Write(value);
+        var reader = GetReader(writer);
+        Span<DateTime> read = stackalloc DateTime[value.Length];
+        reader.ReadDateTime(in read);
+        reader.ReadCount.Should().Be(size);
+        return value.AsSpan().SequenceEqual(read);
+    }
+
+    [PropertyTest]
+    public bool SpanOfDateTimeOffset(DateTimeOffset[] value, Endianness endianness)
+    {
+        var size = Setup(value, endianness, out var writer);
+        writer.Write(value);
+        var reader = GetReader(writer);
+        Span<DateTimeOffset> read = stackalloc DateTimeOffset[value.Length];
+        reader.ReadDateTimeOffset(in read);
+        reader.ReadCount.Should().Be(size);
+        return value.AsSpan().SequenceEqual(read);
+    }
+
+    [PropertyTest]
     public bool SpanOfUnmanagedStruct(SimpleStructData[] value, Endianness endianness)
     {
         var size = Setup(value, endianness, out var writer);

@@ -183,6 +183,67 @@ public class BinaryBufferReadWriteListTests
     }
 
     [PropertyTest]
+    public bool ListOfTimeSpans(List<TimeSpan> value, Endianness endianness)
+    {
+        var size = Setup(value, endianness, out var writer);
+        writer.Write(value);
+        var reader = GetReader(writer);
+        List<TimeSpan> read = [];
+        reader.ReadTimeSpan(in read);
+        reader.ReadCount.Should().Be(size);
+        return value.SequenceEqual(read);
+    }
+
+    [PropertyTest]
+    public bool ListOfTimeOnly(List<TimeOnly> value, Endianness endianness)
+    {
+        var size = Setup(value, endianness, out var writer);
+        writer.Write(value);
+        var reader = GetReader(writer);
+        List<TimeOnly> read = [];
+        reader.ReadTimeOnly(in read);
+        reader.ReadCount.Should().Be(size);
+        return value.SequenceEqual(read);
+    }
+
+    [PropertyTest]
+    public bool ListOfDateOnly(List<DateOnly> value, Endianness endianness)
+    {
+        var size = Setup(value, endianness, out var writer);
+        writer.Write(value);
+        var reader = GetReader(writer);
+        List<DateOnly> read = [];
+        reader.ReadDateOnly(in read);
+        reader.ReadCount.Should().Be(size);
+        return value.SequenceEqual(read);
+    }
+
+    [PropertyTest]
+    public bool ListOfDateTime(List<DateTime> value, Endianness endianness)
+    {
+        var kindSize = 1 * value.Count;
+        var size = Setup(value, endianness, out var writer) + kindSize;
+        writer.Write(value);
+        var reader = GetReader(writer);
+        List<DateTime> read = [];
+        reader.ReadDateTime(in read);
+        reader.ReadCount.Should().Be(size);
+        return value.SequenceEqual(read);
+    }
+
+    [PropertyTest]
+    public bool ListOfDateTimeOffset(List<DateTimeOffset> value, Endianness endianness)
+    {
+        var size = Setup(value, endianness, out var writer);
+        writer.Write(value);
+        var reader = GetReader(writer);
+        List<DateTimeOffset> read = [];
+        reader.ReadDateTimeOffset(in read);
+        reader.ReadCount.Should().Be(size);
+        return value.SequenceEqual(read);
+    }
+
+    [PropertyTest]
     public bool ListOfUnmanagedStruct(List<SimpleStructData> value, Endianness endianness)
     {
         var size = Setup(value, endianness, out var writer);

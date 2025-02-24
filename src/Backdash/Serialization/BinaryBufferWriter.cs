@@ -51,6 +51,14 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
         return result;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    Span<T> GetListSpan<T>(in List<T> values)
+    {
+        var span = CollectionsMarshal.AsSpan(values);
+        Write(span.Length);
+        return span;
+    }
+
     /// <summary>Writes a span bytes of <see cref="byte"/> <paramref name="value"/> into buffer.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Write(in ReadOnlySpan<byte> value) => buffer.Write(value);
@@ -120,8 +128,32 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
         Advance(bytesWritten);
     }
 
+    /// <summary>Writes single <see cref="TimeSpan"/> <paramref name="value"/> into buffer.</summary>
+    public void Write(in TimeSpan value) => Write(value.Ticks);
+
+    /// <summary>Writes single <see cref="DateTime"/> <paramref name="value"/> into buffer.</summary>
+    public void Write(in DateTime value)
+    {
+        Write((byte)value.Kind);
+        Write(value.Ticks);
+    }
+
+    /// <summary>Writes single <see cref="DateTimeOffset"/> <paramref name="value"/> into buffer.</summary>
+    public void Write(in DateTimeOffset value)
+    {
+        Write(value.Offset);
+        Write(value.Ticks);
+    }
+
+    /// <summary>Writes single <see cref="TimeOnly"/> <paramref name="value"/> into buffer.</summary>
+    public void Write(in TimeOnly value) => Write(value.Ticks);
+
+    /// <summary>Writes single <see cref="DateOnly"/> <paramref name="value"/> into buffer.</summary>
+    public void Write(in DateOnly value) => Write(value.DayNumber);
+
     /// <summary>Writes a span of <see cref="sbyte"/> <paramref name="value"/> into buffer.</summary>
     public void Write(in ReadOnlySpan<sbyte> value) => WriteSpan(in value);
+
 
     /// <summary>Writes a list of bytes of <see cref="sbyte"/> <paramref name="values"/> into buffer.</summary>
     public void Write(in List<sbyte> values) => Write(GetListSpan(in values));
@@ -251,6 +283,73 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
     /// <summary>Writes a list of bytes of <see cref="Guid"/> <paramref name="values"/> into buffer.</summary>
     public void Write(in List<Guid> values) => Write(GetListSpan(in values));
 
+    /// <summary>Writes a span of <see cref="TimeSpan"/> <paramref name="values"/> into buffer.</summary>
+    public void Write(in ReadOnlySpan<TimeSpan> values)
+    {
+        if (values.IsEmpty) return;
+        Write(MemoryMarshal.Cast<TimeSpan, long>(values));
+    }
+
+    /// <summary>Writes a list of bytes of <see cref="TimeSpan"/> <paramref name="values"/> into buffer.</summary>
+    public void Write(in List<TimeSpan> values) => Write(GetListSpan(in values));
+
+    /// <summary>Writes a span of <see cref="TimeOnly"/> <paramref name="values"/> into buffer.</summary>
+    public void Write(in ReadOnlySpan<TimeOnly> values)
+    {
+        if (values.IsEmpty) return;
+        Write(MemoryMarshal.Cast<TimeOnly, long>(values));
+    }
+
+    /// <summary>Writes a list of bytes of <see cref="TimeOnly"/> <paramref name="values"/> into buffer.</summary>
+    public void Write(in List<TimeOnly> values) => Write(GetListSpan(in values));
+
+
+    /// <summary>Writes a span of <see cref="DateTime"/> <paramref name="values"/> into buffer.</summary>
+    public void Write(in ReadOnlySpan<DateTime> values)
+    {
+        if (values.IsEmpty) return;
+        ref var current = ref MemoryMarshal.GetReference(values);
+        ref var limit = ref Unsafe.Add(ref current, values.Length);
+
+        while (Unsafe.IsAddressLessThan(ref current, ref limit))
+        {
+            Write(in current);
+            current = ref Unsafe.Add(ref current, 1)!;
+        }
+    }
+
+    /// <summary>Writes a list of bytes of <see cref="DateTime"/> <paramref name="values"/> into buffer.</summary>
+    public void Write(in List<DateTime> values) => Write(GetListSpan(in values));
+
+
+    /// <summary>Writes a span of <see cref="DateTimeOffset"/> <paramref name="values"/> into buffer.</summary>
+    public void Write(in ReadOnlySpan<DateTimeOffset> values)
+    {
+        if (values.IsEmpty) return;
+        ref var current = ref MemoryMarshal.GetReference(values);
+        ref var limit = ref Unsafe.Add(ref current, values.Length);
+
+        while (Unsafe.IsAddressLessThan(ref current, ref limit))
+        {
+            Write(in current);
+            current = ref Unsafe.Add(ref current, 1)!;
+        }
+    }
+
+    /// <summary>Writes a list of bytes of <see cref="DateTimeOffset"/> <paramref name="values"/> into buffer.</summary>
+    public void Write(in List<DateTimeOffset> values) => Write(GetListSpan(in values));
+
+    /// <summary>Writes a span of <see cref="DateOnly"/> <paramref name="values"/> into buffer.</summary>
+    public void Write(in ReadOnlySpan<DateOnly> values)
+    {
+        if (values.IsEmpty) return;
+        Write(MemoryMarshal.Cast<DateOnly, int>(values));
+    }
+
+    /// <summary>Writes a list of bytes of <see cref="DateOnly"/> <paramref name="values"/> into buffer.</summary>
+    public void Write(in List<DateOnly> values) => Write(GetListSpan(in values));
+
+
     /// <summary>Writes a <see cref="IBinarySerializable"/> <paramref name="value"/> into buffer.</summary>
     /// <typeparam name="T">A type that implements <see cref="IBinarySerializable"/>.</typeparam>
     public void Write<T>(in T value) where T : IBinarySerializable => value.Serialize(in this);
@@ -259,6 +358,7 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
     /// <typeparam name="T">A type that implements <see cref="IBinarySerializable"/>.</typeparam>
     public void Write<T>(in ReadOnlySpan<T> values) where T : IBinarySerializable
     {
+        if (values.IsEmpty) return;
         ref var current = ref MemoryMarshal.GetReference(values);
         ref var limit = ref Unsafe.Add(ref current, values.Length);
 
@@ -343,13 +443,5 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
         }
 
         Advance(size);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    Span<T> GetListSpan<T>(in List<T> values)
-    {
-        var span = CollectionsMarshal.AsSpan(values);
-        Write(span.Length);
-        return span;
     }
 }

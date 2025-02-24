@@ -54,6 +54,17 @@ abstract class PropertyTestGenerators
             .Select(x => new Frame(x.Item))
             .ToArbitrary();
 
+    public static Arbitrary<TimeOnly> TimeOnlyGenerator() =>
+        ArbMap.Default.GeneratorFor<long>()
+            .Where(x => x >= TimeOnly.MinValue.Ticks && x <= TimeOnly.MaxValue.Ticks)
+            .Select(x => new TimeOnly(x))
+            .ToArbitrary();
+
+    public static Arbitrary<DateOnly> DateOnlyGenerator() =>
+        ArbMap.Default.GeneratorFor<DateTime>()
+            .Select(x => new DateOnly(x.Year, x.Month, x.Day))
+            .ToArbitrary();
+
     public static Arbitrary<Point> PointGenerator() => Arb.From(
         from x in Generate<int>()
         from y in Generate<int>()

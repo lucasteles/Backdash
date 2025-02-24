@@ -247,6 +247,62 @@ public class BinaryBufferReadWriteValueTests
     }
 
     [PropertyTest]
+    public bool SingleTimeSpan(TimeSpan value, Endianness endianness)
+    {
+        var size = Setup<TimeSpan>(endianness, out var writer);
+        writer.Write(value);
+        var reader = GetReader(writer);
+        var read = reader.ReadTimeSpan();
+        reader.ReadCount.Should().Be(size);
+        return value == read;
+    }
+
+    [PropertyTest]
+    public bool SingleTimeOnly(TimeOnly value, Endianness endianness)
+    {
+        var size = Setup<TimeOnly>(endianness, out var writer);
+        writer.Write(value);
+        var reader = GetReader(writer);
+        var read = reader.ReadTimeOnly();
+        reader.ReadCount.Should().Be(size);
+        return value == read;
+    }
+
+    [PropertyTest]
+    public bool SingleDateTime(DateTime value, Endianness endianness)
+    {
+        const int kindSize = 1;
+        var size = Setup<DateTime>(endianness, out var writer) + kindSize;
+        writer.Write(value);
+        var reader = GetReader(writer);
+        var read = reader.ReadDateTime();
+        reader.ReadCount.Should().Be(size);
+        return value == read;
+    }
+
+    [PropertyTest]
+    public bool SingleDateTimeOffset(DateTimeOffset value, Endianness endianness)
+    {
+        var size = Setup<DateTimeOffset>(endianness, out var writer);
+        writer.Write(value);
+        var reader = GetReader(writer);
+        var read = reader.ReadDateTimeOffset();
+        reader.ReadCount.Should().Be(size);
+        return value == read;
+    }
+
+    [PropertyTest]
+    public bool SingleDateOnly(DateOnly value, Endianness endianness)
+    {
+        var size = Setup<DateOnly>(endianness, out var writer);
+        writer.Write(value);
+        var reader = GetReader(writer);
+        var read = reader.ReadDateOnly();
+        reader.ReadCount.Should().Be(size);
+        return value == read;
+    }
+
+    [PropertyTest]
     public bool UnmanagedStruct(SimpleStructData value, Endianness endianness)
     {
         var size = Setup<SimpleStructData>(endianness, out var writer);

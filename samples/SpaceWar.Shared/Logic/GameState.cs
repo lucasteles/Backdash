@@ -27,8 +27,8 @@ public sealed record GameState
             var heading = (i + 1) * 360f / numberOfPlayers;
             var theta = MathHelper.ToRadians(heading);
             var (cosT, sinT) = (Math.Cos(theta), Math.Sin(theta));
-            var x = Math.Round(width / 2.0 + r * cosT, 2);
-            var y = Math.Round(height / 2.0 + r * sinT, 2);
+            var x = Math.Round((width / 2.0) + (r * cosT), 2);
+            var y = Math.Round((height / 2.0) + (r * sinT), 2);
             Ships[i].Id = (byte)(i + 1);
             Ships[i].Position = new((float)x, (float)y);
             Ships[i].Active = true;
@@ -98,8 +98,8 @@ public sealed record GameState
                 if (bullet.Active)
                     continue;
                 bullet.Active = true;
-                bullet.Position = (ship.Position + dir * ship.Radius).RoundTo();
-                bullet.Velocity = (ship.Velocity + dir * Config.BulletSpeed).RoundTo();
+                bullet.Position = (ship.Position + (dir * ship.Radius)).RoundTo();
+                bullet.Velocity = (ship.Velocity + (dir * Config.BulletSpeed)).RoundTo();
                 ship.FireCooldown = Config.BulletCooldown;
                 break;
             }
@@ -115,8 +115,8 @@ public sealed record GameState
             ship.Missile.HitBoxTime = Config.MissileHitBoxTimeout;
             ship.Missile.Velocity = dir * Config.MissileSpeed;
             ship.Missile.Position = (
-                ship.Position + ship.Velocity + dir *
-                (ship.Radius + ship.Missile.ProjectileRadius)
+                ship.Position + ship.Velocity + (dir *
+                                                 (ship.Radius + ship.Missile.ProjectileRadius))
             ).RoundTo();
 
             ship.Velocity += (ship.Missile.Velocity * -2).RoundTo();
