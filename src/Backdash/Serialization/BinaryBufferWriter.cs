@@ -55,6 +55,9 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Write(in ReadOnlySpan<byte> value) => buffer.Write(value);
 
+    /// <summary>Writes a list of bytes of <see cref="byte"/> <paramref name="values"/> into buffer.</summary>
+    public void Write(in List<byte> values) => Write(GetListSpan(in values));
+
     /// <summary>Writes single <see cref="byte"/> <paramref name="value"/> into buffer.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Write(in byte value) => buffer.Write(Mem.AsSpan(in value));
@@ -109,11 +112,25 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
     /// <summary>Writes single <see cref="double"/> <paramref name="value"/> into buffer.</summary>
     public void Write(in double value) => Write(BitConverter.DoubleToInt64Bits(value));
 
+    /// <summary>Writes single <see cref="Guid"/> <paramref name="value"/> into buffer.</summary>
+    public void Write(in Guid value)
+    {
+        var span = buffer.GetSpan(Unsafe.SizeOf<Guid>());
+        value.TryWriteBytes(span, Endianness is Endianness.BigEndian, out var bytesWritten);
+        Advance(bytesWritten);
+    }
+
     /// <summary>Writes a span of <see cref="sbyte"/> <paramref name="value"/> into buffer.</summary>
     public void Write(in ReadOnlySpan<sbyte> value) => WriteSpan(in value);
 
+    /// <summary>Writes a list of bytes of <see cref="sbyte"/> <paramref name="values"/> into buffer.</summary>
+    public void Write(in List<sbyte> values) => Write(GetListSpan(in values));
+
     /// <summary>Writes a span of <see cref="bool"/> <paramref name="value"/> into buffer.</summary>
     public void Write(in ReadOnlySpan<bool> value) => WriteSpan(in value);
+
+    /// <summary>Writes a list of bytes of <see cref="bool"/> <paramref name="values"/> into buffer.</summary>
+    public void Write(in List<bool> values) => Write(GetListSpan(in values));
 
     /// <summary>Writes a span of <see cref="short"/> <paramref name="value"/> into buffer.</summary>
     public void Write(in ReadOnlySpan<short> value)
@@ -124,6 +141,9 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
             WriteSpan(in value);
     }
 
+    /// <summary>Writes a list of bytes of <see cref="short"/> <paramref name="values"/> into buffer.</summary>
+    public void Write(in List<short> values) => Write(GetListSpan(in values));
+
     /// <summary>Writes a span of <see cref="ushort"/> <paramref name="value"/> into buffer.</summary>
     public void Write(in ReadOnlySpan<ushort> value)
     {
@@ -133,8 +153,14 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
             WriteSpan(in value);
     }
 
+    /// <summary>Writes a list of bytes of <see cref="ushort"/> <paramref name="values"/> into buffer.</summary>
+    public void Write(in List<ushort> values) => Write(GetListSpan(in values));
+
     /// <summary>Writes a span of <see cref="char"/> <paramref name="value"/> into buffer.</summary>
     public void Write(in ReadOnlySpan<char> value) => Write(MemoryMarshal.Cast<char, ushort>(value));
+
+    /// <summary>Writes a list of bytes of <see cref="char"/> <paramref name="values"/> into buffer.</summary>
+    public void Write(in List<char> values) => Write(GetListSpan(in values));
 
     /// <summary>Writes a span of <see cref="int"/> <paramref name="value"/> into buffer.</summary>
     public void Write(in ReadOnlySpan<int> value)
@@ -145,6 +171,9 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
             WriteSpan(in value);
     }
 
+    /// <summary>Writes a list of bytes of <see cref="int"/> <paramref name="values"/> into buffer.</summary>
+    public void Write(in List<int> values) => Write(GetListSpan(in values));
+
     /// <summary>Writes a span of <see cref="uint"/> <paramref name="value"/> into buffer.</summary>
     public void Write(in ReadOnlySpan<uint> value)
     {
@@ -153,6 +182,9 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
         else
             WriteSpan(in value);
     }
+
+    /// <summary>Writes a list of bytes of <see cref="uint"/> <paramref name="values"/> into buffer.</summary>
+    public void Write(in List<uint> values) => Write(GetListSpan(in values));
 
     /// <summary>Writes a span of <see cref="long"/> <paramref name="value"/> into buffer.</summary>
     public void Write(in ReadOnlySpan<long> value)
@@ -163,6 +195,9 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
             WriteSpan(in value);
     }
 
+    /// <summary>Writes a list of bytes of <see cref="long"/> <paramref name="values"/> into buffer.</summary>
+    public void Write(in List<long> values) => Write(GetListSpan(in values));
+
     /// <summary>Writes a span of <see cref="ulong"/> <paramref name="value"/> into buffer.</summary>
     public void Write(in ReadOnlySpan<ulong> value)
     {
@@ -171,6 +206,9 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
         else
             WriteSpan(in value);
     }
+
+    /// <summary>Writes a list of bytes of <see cref="ulong"/> <paramref name="values"/> into buffer.</summary>
+    public void Write(in List<ulong> values) => Write(GetListSpan(in values));
 
     /// <summary>Writes a span of <see cref="Int128"/> <paramref name="value"/> into buffer.</summary>
     public void Write(in ReadOnlySpan<Int128> value)
@@ -181,14 +219,37 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
             WriteSpan(in value);
     }
 
-    /// <summary>Writes a span of <see cref="UInt128"/> <paramref name="value"/> into buffer.</summary>
-    public void Write(in ReadOnlySpan<UInt128> value)
+    /// <summary>Writes a list of bytes of <see cref="Int128"/> <paramref name="values"/> into buffer.</summary>
+    public void Write(in List<Int128> values) => Write(GetListSpan(in values));
+
+    /// <summary>Writes a span of <see cref="UInt128"/> <paramref name="values"/> into buffer.</summary>
+    public void Write(in ReadOnlySpan<UInt128> values)
     {
         if (Endianness != Platform.Endianness)
-            BinaryPrimitives.ReverseEndianness(value, AllocSpan(in value));
+            BinaryPrimitives.ReverseEndianness(values, AllocSpan(in values));
         else
-            WriteSpan(in value);
+            WriteSpan(in values);
     }
+
+    /// <summary>Writes a list of bytes of <see cref="UInt128"/> <paramref name="values"/> into buffer.</summary>
+    public void Write(in List<UInt128> values) => Write(GetListSpan(in values));
+
+    /// <summary>Writes a span of <see cref="Guid"/> <paramref name="values"/> into buffer.</summary>
+    public void Write(in ReadOnlySpan<Guid> values)
+    {
+        if (values.IsEmpty) return;
+        ref var current = ref MemoryMarshal.GetReference(values);
+        ref var limit = ref Unsafe.Add(ref current, values.Length);
+
+        while (Unsafe.IsAddressLessThan(ref current, ref limit))
+        {
+            Write(in current);
+            current = ref Unsafe.Add(ref current, 1)!;
+        }
+    }
+
+    /// <summary>Writes a list of bytes of <see cref="Guid"/> <paramref name="values"/> into buffer.</summary>
+    public void Write(in List<Guid> values) => Write(GetListSpan(in values));
 
     /// <summary>Writes a <see cref="IBinarySerializable"/> <paramref name="value"/> into buffer.</summary>
     /// <typeparam name="T">A type that implements <see cref="IBinarySerializable"/>.</typeparam>
@@ -216,14 +277,16 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
 
     /// <summary>Writes list of <see cref="IBinarySerializable"/> <paramref name="values"/> into buffer.</summary>
     /// <typeparam name="T">A type that implements <see cref="IBinarySerializable"/>.</typeparam>
-    public void Write<T>(in List<T> values) where T : IBinarySerializable => Write<T>(GetListSpan(values));
-
+    public void Write<T>(in List<T> values) where T : IBinarySerializable => Write<T>(GetListSpan(in values));
 
     /// <summary>Writes an unmanaged struct into buffer.</summary>
     public void WriteStruct<T>(in T value) where T : unmanaged => Write(Mem.AsBytes(in value));
 
     /// <summary>Writes an unmanaged struct span into buffer.</summary>
     public void WriteStruct<T>(ReadOnlySpan<T> values) where T : unmanaged => Write(MemoryMarshal.AsBytes(values));
+
+    /// <summary>Writes an unmanaged struct list into buffer.</summary>
+    public void WriteStruct<T>(in List<T> values) where T : unmanaged => WriteStruct<T>(GetListSpan(in values));
 
     /// <summary>Writes an unmanaged struct span into buffer.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -239,6 +302,10 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
         Write(MemoryMarshal.AsBytes(values));
     }
 
+    /// <summary>Writes an unmanaged struct list into buffer.</summary>
+    public void WriteStructUnsafe<T>(in List<T> values) where T : unmanaged =>
+        WriteStructUnsafe<T>(GetListSpan(in values));
+
     /// <summary>Writes an <see cref="string"/> <paramref name="value"/> into buffer.</summary>
     public void WriteString(in string value) => Write(value.AsSpan());
 
@@ -250,8 +317,12 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
         Advance(writtenCount);
     }
 
+    /// <summary>Writes a list of bytes of UTF <see cref="char"/> <paramref name="values"/> into buffer.</summary>
+    public void WriteUtf8String(in List<char> values) => WriteUtf8String(GetListSpan(in values));
+
     /// <summary>Writes an <see cref="char"/> <paramref name="value"/> into buffer as UTF8.</summary>
     public void WriteUtf8Char(in char value) => WriteUtf8String(Mem.AsSpan(in value));
+
 
     /// <summary>Writes a <see cref="IBinaryInteger{T}"/> <paramref name="value"/> into buffer.</summary>
     /// <typeparam name="T">A numeric type that implements <see cref="IBinaryInteger{T}"/>.</typeparam>
@@ -275,7 +346,7 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    Span<T> GetListSpan<T>(List<T> values)
+    Span<T> GetListSpan<T>(in List<T> values)
     {
         var span = CollectionsMarshal.AsSpan(values);
         Write(span.Length);

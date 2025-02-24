@@ -7,220 +7,200 @@ using Backdash.Tests.TestUtils.Types;
 
 namespace Backdash.Tests.Specs.Unit.Serialization;
 
-public class BinarySpanReadWriteBufferTests
+public class BinaryBufferReadWriteListTests
 {
     [PropertyTest]
-    public bool SpanOfShort(short[] value, Endianness endianness)
+    public bool ListOfByte(List<byte> value, Endianness endianness)
     {
         var size = Setup(value, endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
-        Span<short> read = stackalloc short[value.Length];
-        reader.ReadInt16(read);
-        reader.ReadCount.Should().Be(size);
-        return value.AsSpan().SequenceEqual(read);
-    }
-
-    [PropertyTest]
-    public bool SpanOfUShort(ushort[] value, Endianness endianness)
-    {
-        var size = Setup(value, endianness, out var writer);
-        writer.Write(value);
-        var reader = GetReader(writer);
-        Span<ushort> read = stackalloc ushort[value.Length];
-        reader.ReadUInt16(read);
-        reader.ReadCount.Should().Be(size);
-        return value.AsSpan().SequenceEqual(read);
-    }
-
-    [PropertyTest]
-    public bool SpanOfInt(int[] value, Endianness endianness)
-    {
-        var size = Setup(value, endianness, out var writer);
-        writer.Write(value);
-        var reader = GetReader(writer);
-        Span<int> read = stackalloc int[value.Length];
-        reader.ReadInt32(read);
-        reader.ReadCount.Should().Be(size);
-        return value.AsSpan().SequenceEqual(read);
-    }
-
-    [PropertyTest]
-    public bool SpanOfUInt(uint[] value, Endianness endianness)
-    {
-        var size = Setup(value, endianness, out var writer);
-        writer.Write(value);
-        var reader = GetReader(writer);
-        Span<uint> read = stackalloc uint[value.Length];
-        reader.ReadUInt32(read);
-        reader.ReadCount.Should().Be(size);
-        return value.AsSpan().SequenceEqual(read);
-    }
-
-    [PropertyTest]
-    public bool SpanOfLong(long[] value, Endianness endianness)
-    {
-        var size = Setup(value, endianness, out var writer);
-        writer.Write(value);
-        var reader = GetReader(writer);
-        Span<long> read = stackalloc long[value.Length];
-        reader.ReadInt64(read);
-        reader.ReadCount.Should().Be(size);
-        return value.AsSpan().SequenceEqual(read);
-    }
-
-    [PropertyTest]
-    public bool SpanOfULong(ulong[] value, Endianness endianness)
-    {
-        var size = Setup(value, endianness, out var writer);
-        writer.Write(value);
-        var reader = GetReader(writer);
-        Span<ulong> read = stackalloc ulong[value.Length];
-        reader.ReadUInt64(read);
-        reader.ReadCount.Should().Be(size);
-        return value.AsSpan().SequenceEqual(read);
-    }
-
-    [PropertyTest]
-    public bool SpanOfInt128(Int128[] value, Endianness endianness)
-    {
-        var size = Setup(value, endianness, out var writer);
-        writer.Write(value);
-        var reader = GetReader(writer);
-        Span<Int128> read = stackalloc Int128[value.Length];
-        reader.ReadInt128(read);
-        reader.ReadCount.Should().Be(size);
-        return value.AsSpan().SequenceEqual(read);
-    }
-
-    [PropertyTest]
-    public bool SpanOfUInt128(UInt128[] value, Endianness endianness)
-    {
-        var size = Setup(value, endianness, out var writer);
-        writer.Write(value);
-        var reader = GetReader(writer);
-        Span<UInt128> read = stackalloc UInt128[value.Length];
-        reader.ReadUInt128(read);
-        reader.ReadCount.Should().Be(size);
-        return value.AsSpan().SequenceEqual(read);
-    }
-
-    [PropertyTest]
-    public bool SpanOfByte(byte[] value, Endianness endianness)
-    {
-        var size = Setup(value, endianness, out var writer);
-        writer.Write(value);
-        var reader = GetReader(writer);
-        Span<byte> read = stackalloc byte[value.Length];
+        List<byte> read = [];
         reader.ReadByte(read);
         reader.ReadCount.Should().Be(size);
-        return value.AsSpan().SequenceEqual(read);
+        return value.SequenceEqual(read);
     }
 
     [PropertyTest]
-    public bool SpanOfSByte(sbyte[] value, Endianness endianness)
+    public bool ListOfSByte(List<sbyte> value, Endianness endianness)
     {
         var size = Setup(value, endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
-        Span<sbyte> read = stackalloc sbyte[value.Length];
+        List<sbyte> read = [];
         reader.ReadSByte(read);
         reader.ReadCount.Should().Be(size);
-        return value.AsSpan().SequenceEqual(read);
+        return value.SequenceEqual(read);
     }
 
     [PropertyTest]
-    public bool SpanOfChars(char[] value, Endianness endianness)
+    public bool ListOfShort(List<short> value, Endianness endianness)
     {
         var size = Setup(value, endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
-        Span<char> read = stackalloc char[value.Length];
+        List<short> read = [];
+        reader.ReadInt16(read);
+        reader.ReadCount.Should().Be(size);
+        return value.SequenceEqual(read);
+    }
+
+    [PropertyTest]
+    public bool ListOfUShort(List<ushort> value, Endianness endianness)
+    {
+        var size = Setup(value, endianness, out var writer);
+        writer.Write(value);
+        var reader = GetReader(writer);
+        List<ushort> read = [];
+        reader.ReadUInt16(read);
+        reader.ReadCount.Should().Be(size);
+        return value.SequenceEqual(read);
+    }
+
+    [PropertyTest]
+    public bool ListOfInt(List<int> value, Endianness endianness)
+    {
+        var size = Setup(value, endianness, out var writer);
+        writer.Write(value);
+        var reader = GetReader(writer);
+        List<int> read = [];
+        reader.ReadInt32(read);
+        reader.ReadCount.Should().Be(size);
+        return value.SequenceEqual(read);
+    }
+
+    [PropertyTest]
+    public bool ListOfUInt(List<uint> value, Endianness endianness)
+    {
+        var size = Setup(value, endianness, out var writer);
+        writer.Write(value);
+        var reader = GetReader(writer);
+        List<uint> read = [];
+        reader.ReadUInt32(read);
+        reader.ReadCount.Should().Be(size);
+        return value.SequenceEqual(read);
+    }
+
+    [PropertyTest]
+    public bool ListOfLong(List<long> value, Endianness endianness)
+    {
+        var size = Setup(value, endianness, out var writer);
+        writer.Write(value);
+        var reader = GetReader(writer);
+        List<long> read = [];
+        reader.ReadInt64(read);
+        reader.ReadCount.Should().Be(size);
+        return value.SequenceEqual(read);
+    }
+
+    [PropertyTest]
+    public bool ListOfULong(List<ulong> value, Endianness endianness)
+    {
+        var size = Setup(value, endianness, out var writer);
+        writer.Write(value);
+        var reader = GetReader(writer);
+        List<ulong> read = [];
+        reader.ReadUInt64(read);
+        reader.ReadCount.Should().Be(size);
+        return value.SequenceEqual(read);
+    }
+
+    [PropertyTest]
+    public bool ListOfInt128(List<Int128> value, Endianness endianness)
+    {
+        var size = Setup(value, endianness, out var writer);
+        writer.Write(value);
+        var reader = GetReader(writer);
+        List<Int128> read = [];
+        reader.ReadInt128(read);
+        reader.ReadCount.Should().Be(size);
+        return value.SequenceEqual(read);
+    }
+
+    [PropertyTest]
+    public bool ListOfUInt128(List<UInt128> value, Endianness endianness)
+    {
+        var size = Setup(value, endianness, out var writer);
+        writer.Write(value);
+        var reader = GetReader(writer);
+        List<UInt128> read = [];
+        reader.ReadUInt128(read);
+        reader.ReadCount.Should().Be(size);
+        return value.SequenceEqual(read);
+    }
+
+    [PropertyTest]
+    public bool ListOfChars(List<char> value, Endianness endianness)
+    {
+        var size = Setup(value, endianness, out var writer);
+        writer.Write(value);
+        var reader = GetReader(writer);
+        List<char> read = [];
         reader.ReadChar(read);
         reader.ReadCount.Should().Be(size);
-        return value.AsSpan().SequenceEqual(read);
+        return value.SequenceEqual(read);
     }
 
     [PropertyTest]
-    public bool SpanOBooleans(bool[] value, Endianness endianness)
+    public bool ListOfBooleans(List<bool> value, Endianness endianness)
     {
         var size = Setup(value, endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
-        Span<bool> read = stackalloc bool[value.Length];
+        List<bool> read = [];
         reader.ReadBoolean(read);
         reader.ReadCount.Should().Be(size);
-        return value.AsSpan().SequenceEqual(read);
+        return value.SequenceEqual(read);
     }
 
     [PropertyTest]
-    public bool SpanOfUtf8(NonEmptyString input, Endianness endianness)
+    public bool ListOfUtf8Char(NonEmptyString input, Endianness endianness)
     {
-        var value = input.Item;
-        var utf8Bytes = System.Text.Encoding.UTF8.GetBytes(value);
+        var utf8Bytes = System.Text.Encoding.UTF8.GetBytes(input.Item);
+        var value = input.Item.ToList();
 
         var size = Setup(utf8Bytes, endianness, out var writer);
-        writer.WriteUtf8String(value);
+        writer.WriteUtf8String(in value);
         var reader = GetReader(writer);
 
-        Span<char> read = stackalloc char[value.Length];
-        reader.ReadUtf8String(read);
+        List<char> read = [];
+        reader.ReadUtf8String(in read);
 
         reader.ReadCount.Should().Be(size);
-        return value.AsSpan().SequenceEqual(read);
+        return value.SequenceEqual(read);
     }
 
     [PropertyTest]
-    public bool SpanOfUtf8Bytes(NonEmptyString input, Endianness endianness)
+    public bool ListOfGuids(List<Guid> value, Endianness endianness)
     {
-        var value = input.Item;
-        var utf8Size = System.Text.Encoding.UTF8.GetByteCount(value);
-        var utf8Bytes = System.Text.Encoding.UTF8.GetBytes(value);
-
-        var size = Setup(utf8Bytes, endianness, out var writer);
-        size.Should().Be(utf8Size);
-        writer.WriteUtf8String(value);
+        var size = Setup(value, endianness, out var writer);
+        writer.Write(value);
         var reader = GetReader(writer);
-
-        Span<byte> read = stackalloc byte[utf8Size];
-        reader.ReadByte(read);
-        reader.ReadCount.Should().Be(utf8Size);
-        return utf8Bytes.AsSpan().SequenceEqual(read);
+        List<Guid> read = [];
+        reader.ReadGuid(in read);
+        reader.ReadCount.Should().Be(size);
+        return value.SequenceEqual(read);
     }
 
     [PropertyTest]
-    public bool SpanOfUnmanagedStruct(SimpleStructData[] value, Endianness endianness)
+    public bool ListOfUnmanagedStruct(List<SimpleStructData> value, Endianness endianness)
     {
         var size = Setup(value, endianness, out var writer);
         writer.WriteStruct(in value);
         var reader = GetReader(writer);
 
-        Span<SimpleStructData> read = stackalloc SimpleStructData[value.Length];
+        List<SimpleStructData> read = [];
         reader.ReadStruct(in read);
 
         reader.ReadCount.Should().Be(size);
-        return value.AsSpan().SequenceEqual(read);
+        return value.SequenceEqual(read);
     }
 
-    [PropertyTest]
-    public bool SpanOfSerializableObjects(SimpleStructData[] value, Endianness endianness)
-    {
-        var size = Setup(value, endianness, out var writer);
-        writer.Write(in value);
-        writer.WrittenCount.Should().Be(size);
-
-        var reader = GetReader(writer);
-        var read = new SimpleStructData[value.Length];
-        reader.Read(in read);
-        reader.ReadCount.Should().Be(size);
-
-        return value.AsSpan().SequenceEqual(read);
-    }
 
     [PropertyTest]
     public bool ListOfSerializableObjects(List<SimpleStructData> value, Endianness endianness)
     {
-        var size = Setup(value, endianness, out var writer) + sizeof(int);
+        var size = Setup(value, endianness, out var writer);
         writer.Write(in value);
         writer.WrittenCount.Should().Be(size);
 
@@ -245,7 +225,7 @@ public class BinarySpanReadWriteBufferTests
         readOffset = 0;
         ArrayBufferWriter<byte> buffer = new(size is 0 ? 1 : size);
         writer = new(buffer, endianness);
-        return size;
+        return size + sizeof(int);
     }
 
     static BinaryBufferReader GetReader(in BinaryBufferWriter writer)

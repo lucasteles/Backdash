@@ -236,6 +236,17 @@ public class BinaryBufferReadWriteValueTests
     }
 
     [PropertyTest]
+    public bool SingleGuid(Guid value, Endianness endianness)
+    {
+        var size = Setup<Guid>(endianness, out var writer);
+        writer.Write(value);
+        var reader = GetReader(writer);
+        var read = reader.ReadGuid();
+        reader.ReadCount.Should().Be(size);
+        return value == read;
+    }
+
+    [PropertyTest]
     public bool UnmanagedStruct(SimpleStructData value, Endianness endianness)
     {
         var size = Setup<SimpleStructData>(endianness, out var writer);

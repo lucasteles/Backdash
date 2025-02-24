@@ -49,7 +49,7 @@ public sealed record GameState
     {
         Bounds = reader.ReadRectangle();
         FrameNumber = reader.ReadInt32();
-        reader.Read(Ships);
+        reader.Read(in Ships);
     }
 
     static GameInput GetShipAI(in Ship ship) => new(
