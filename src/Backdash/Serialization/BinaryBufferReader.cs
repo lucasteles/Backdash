@@ -253,18 +253,40 @@ public readonly ref struct BinaryBufferReader
     /// <summary>Reads a list of <see cref="UInt128"/> from buffer into <paramref name="values"/>.</summary>
     public void ReadUInt128(in List<UInt128> values) => ReadUInt128(GetListSpan(in values));
 
+
     /// <summary>Reads single <see cref="Half"/> from buffer.</summary>
     public Half ReadHalf() => BitConverter.Int16BitsToHalf(ReadInt16());
+
+    /// <summary>Reads span of Half 32 <see cref="Half"/> from buffer.</summary>
+    public void ReadHalf(in Span<Half> values) => ReadInt16(MemoryMarshal.Cast<Half, short>(values));
+
+    /// <summary>Reads a list of <see cref="Half"/> from buffer into <paramref name="values"/>.</summary>
+    public void ReadHalf(in List<Half> values) => ReadHalf(GetListSpan(in values));
+
+
+    /// <inheritdoc cref="ReadFloat()"/>
+    /// <seealso cref="ReadFloat()"/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public float ReadSingle() => ReadFloat();
 
     /// <summary>Reads float 32 <see cref="float"/> from buffer.</summary>
     public float ReadFloat() => BitConverter.Int32BitsToSingle(ReadInt32());
 
-    /// <summary>Same as <see cref="ReadFloat"/>.</summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public float ReadSingle() => ReadFloat();
+    /// <summary>Reads span of float 32 <see cref="float"/> from buffer.</summary>
+    public void ReadFloat(in Span<float> values) => ReadInt32(MemoryMarshal.Cast<float, int>(values));
+
+    /// <summary>Reads a list of <see cref="float"/> from buffer into <paramref name="values"/>.</summary>
+    public void ReadFloat(in List<float> values) => ReadFloat(GetListSpan(in values));
+
 
     /// <summary>Reads single <see cref="double"/> from buffer.</summary>
     public double ReadDouble() => BitConverter.Int64BitsToDouble(ReadInt64());
+
+    /// <summary>Reads span of double 32 <see cref="double"/> from buffer.</summary>
+    public void ReadDouble(in Span<double> values) => ReadInt64(MemoryMarshal.Cast<double, long>(values));
+
+    /// <summary>Reads a list of <see cref="double"/> from buffer into <paramref name="values"/>.</summary>
+    public void ReadDouble(in List<double> values) => ReadDouble(GetListSpan(in values));
 
     /// <summary>Reads single <see cref="Guid"/> from buffer.</summary>
     public Guid ReadGuid()

@@ -154,6 +154,42 @@ public class BinaryBufferReadWriteSpanTests
     }
 
     [PropertyTest]
+    public bool SpanOfFloat(float[] value, Endianness endianness)
+    {
+        var size = Setup(value, endianness, out var writer);
+        writer.Write(value);
+        var reader = GetReader(writer);
+        Span<float> read = stackalloc float[value.Length];
+        reader.ReadFloat(read);
+        reader.ReadCount.Should().Be(size);
+        return value.AsSpan().SequenceEqual(read);
+    }
+
+    [PropertyTest]
+    public bool SpanOfDouble(double[] value, Endianness endianness)
+    {
+        var size = Setup(value, endianness, out var writer);
+        writer.Write(value);
+        var reader = GetReader(writer);
+        Span<double> read = stackalloc double[value.Length];
+        reader.ReadDouble(read);
+        reader.ReadCount.Should().Be(size);
+        return value.AsSpan().SequenceEqual(read);
+    }
+
+    [PropertyTest]
+    public bool SpanOfHalf(Half[] value, Endianness endianness)
+    {
+        var size = Setup(value, endianness, out var writer);
+        writer.Write(value);
+        var reader = GetReader(writer);
+        Span<Half> read = stackalloc Half[value.Length];
+        reader.ReadHalf(read);
+        reader.ReadCount.Should().Be(size);
+        return value.AsSpan().SequenceEqual(read);
+    }
+
+    [PropertyTest]
     public bool SpanOfUtf8(NonEmptyString input, Endianness endianness)
     {
         var value = input.Item;
