@@ -13,7 +13,7 @@ public interface IInputGenerator<out TInput> where TInput : unmanaged
     /// <summary>
     /// Returns the next input
     /// </summary>
-    public TInput Generate();
+    TInput Generate();
 }
 
 /// <summary>

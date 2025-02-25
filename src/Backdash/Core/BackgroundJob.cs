@@ -31,10 +31,15 @@ sealed class BackgroundJobManager(Logger logger) : IBackgroundJobManager
     {
         if (isRunning) return;
         if (jobs.Count is 0) throw new NetcodeException("No jobs registered");
-        cancellationToken.Register(() => Stop(TimeSpan.Zero));
+
         logger.Write(LogLevel.Debug, "Starting background tasks");
-        foreach (var job in jobs) AddJobTask(new(job.Job, job.StoppingToken));
+        cancellationToken.Register(() => Stop(TimeSpan.Zero));
+
+        foreach (var job in jobs)
+            AddJobTask(new(job.Job, job.StoppingToken));
+
         isRunning = true;
+
         while (tasks.Keys.Any(x => !x.IsCompleted))
         {
             var completed = await Task.WhenAny(tasks.Keys).ConfigureAwait(false);
@@ -54,19 +59,18 @@ sealed class BackgroundJobManager(Logger logger) : IBackgroundJobManager
         logger.Write(LogLevel.Trace, $"job {job.JobName} start");
         var task = Task.Run(async () =>
         {
-            var jobCancellation = entry.StoppingToken;
-            using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(StoppingToken, jobCancellation);
+            using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(StoppingToken, entry.StoppingToken);
             try
             {
                 await job.Start(linkedCts.Token).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
-                logger.Write(LogLevel.Trace, $"job {job.JobName} stopped");
+                logger.Write(LogLevel.Debug, $"job {job.JobName} stopped");
             }
             catch (ChannelClosedException)
             {
-                logger.Write(LogLevel.Trace, $"job {job.JobName} channel closed");
+                logger.Write(LogLevel.Debug, $"job {job.JobName} channel closed");
             }
             catch (Exception ex)
             {
@@ -87,21 +91,21 @@ sealed class BackgroundJobManager(Logger logger) : IBackgroundJobManager
     public void Register(IBackgroundJob job, CancellationToken cancellationToken = default)
     {
         JobEntry entry = new(job, cancellationToken);
-        if (!jobs.Add(entry))
-            return;
-        if (!isRunning) return;
-        AddJobTask(entry);
+        if (!jobs.Add(entry)) return;
+        if (isRunning)
+            AddJobTask(entry);
     }
 
     public void Stop(TimeSpan timeout = default)
     {
         if (!isRunning) return;
         isRunning = false;
-        if (!cts.IsCancellationRequested)
-            if (timeout <= TimeSpan.Zero)
-                cts.Cancel();
-            else
-                cts.CancelAfter(timeout);
+        if (cts.IsCancellationRequested) return;
+
+        if (timeout <= TimeSpan.Zero)
+            cts.Cancel();
+        else
+            cts.CancelAfter(timeout);
     }
 
     public void Dispose()

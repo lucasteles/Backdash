@@ -698,7 +698,7 @@ sealed class RemoteBackend<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
             $"Changing player {player} local connect status for last frame from {connStatus.LastFrame} to {syncTo} on disconnect request (current: {frameCount})");
         connStatus.Disconnected = true;
         connStatus.LastFrame = syncTo;
-        if (syncTo < frameCount)
+        if (syncTo < frameCount && syncTo.IsNotNull)
         {
             logger.Write(LogLevel.Information,
                 $"adjusting simulation to account for the fact that {player} disconnected on frame {syncTo}");
