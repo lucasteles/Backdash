@@ -70,9 +70,26 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Write(in byte value) => buffer.Write(Mem.AsSpan(in value));
 
+    /// <inheritdoc cref="Write(in byte)"/>
+    public void Write(in byte? value)
+    {
+        Write(value.HasValue);
+        if (value.HasValue)
+            Write(in Nullable.GetValueRefOrDefaultRef(in value));
+    }
+
     /// <summary>Writes single <see cref="sbyte"/> <paramref name="value"/> into buffer.</summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Write(in sbyte value) => Write(unchecked((byte)value));
+
+
+    /// <inheritdoc cref="Write(in sbyte)"/>
+    public void Write(in sbyte? value)
+    {
+        Write(value.HasValue);
+        if (value.HasValue)
+            Write(in Nullable.GetValueRefOrDefaultRef(in value));
+    }
 
     /// <summary>Writes single <see cref="bool"/> <paramref name="value"/> into buffer.</summary>
     public void Write(in bool value)
@@ -84,41 +101,100 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
         Advance(size);
     }
 
+    /// <inheritdoc cref="Write(in bool)"/>
+    public void Write(in bool? value)
+    {
+        Write(value.HasValue);
+        if (value.HasValue)
+            Write(in Nullable.GetValueRefOrDefaultRef(in value));
+    }
+
     /// <summary>Writes single <see cref="short"/> <paramref name="value"/> into buffer.</summary>
     public void Write(in short value) => WriteNumber(in value);
+
+    /// <inheritdoc cref="Write(in short)"/>
+    public void Write(in short? value) => WriteNumber(in value);
 
     /// <summary>Writes single <see cref="ushort"/> <paramref name="value"/> into buffer.</summary>
     public void Write(in ushort value) => WriteNumber(in value);
 
+    /// <inheritdoc cref="Write(in ushort)"/>
+    public void Write(in ushort? value) => WriteNumber(in value);
+
     /// <summary>Writes single <see cref="int"/> <paramref name="value"/> into buffer.</summary>
     public void Write(in int value) => WriteNumber(in value);
+
+    /// <inheritdoc cref="Write(in int)"/>
+    public void Write(in int? value) => WriteNumber(in value);
 
     /// <summary>Writes single <see cref="uint"/> <paramref name="value"/> into buffer.</summary>
     public void Write(in uint value) => WriteNumber(in value);
 
+    /// <inheritdoc cref="Write(in uint)"/>
+    public void Write(in uint? value) => WriteNumber(in value);
+
     /// <summary>Writes single <see cref="char"/> <paramref name="value"/> into buffer.</summary>
-    public void Write(in char value) => Write((ushort)value);
+    public void Write(in char value) => WriteNumber((ushort)value);
+
+    /// <inheritdoc cref="Write(in char)"/>
+    public void Write(in char? value) => WriteNumber((ushort?)value);
 
     /// <summary>Writes single <see cref="long"/> <paramref name="value"/> into buffer.</summary>
     public void Write(in long value) => WriteNumber(in value);
 
+    /// <inheritdoc cref="Write(in long)"/>
+    public void Write(in long? value) => WriteNumber(in value);
+
     /// <summary>Writes single <see cref="ulong"/> <paramref name="value"/> into buffer.</summary>
     public void Write(in ulong value) => WriteNumber(in value);
+
+    /// <inheritdoc cref="Write(in ulong)"/>
+    public void Write(in ulong? value) => WriteNumber(in value);
 
     /// <summary>Writes single <see cref="Int128"/> <paramref name="value"/> into buffer.</summary>
     public void Write(in Int128 value) => WriteNumber(in value);
 
+    /// <inheritdoc cref="Write(in Int128)"/>
+    public void Write(in Int128? value) => WriteNumber(in value);
+
     /// <summary>Writes single <see cref="UInt128"/> <paramref name="value"/> into buffer.</summary>
     public void Write(in UInt128 value) => WriteNumber(in value);
+
+    /// <inheritdoc cref="Write(in UInt128)"/>
+    public void Write(in UInt128? value) => WriteNumber(in value);
 
     /// <summary>Writes single <see cref="Half"/> <paramref name="value"/> into buffer.</summary>
     public void Write(in Half value) => Write(BitConverter.HalfToInt16Bits(value));
 
+    /// <inheritdoc cref="Write(in Half)"/>
+    public void Write(in Half? value)
+    {
+        Write(value.HasValue);
+        if (value.HasValue)
+            Write(in Nullable.GetValueRefOrDefaultRef(in value));
+    }
+
     /// <summary>Writes single <see cref="float"/> <paramref name="value"/> into buffer.</summary>
     public void Write(in float value) => Write(BitConverter.SingleToInt32Bits(value));
 
+    /// <inheritdoc cref="Write(in float)"/>
+    public void Write(in float? value)
+    {
+        Write(value.HasValue);
+        if (value.HasValue)
+            Write(in Nullable.GetValueRefOrDefaultRef(in value));
+    }
+
     /// <summary>Writes single <see cref="double"/> <paramref name="value"/> into buffer.</summary>
     public void Write(in double value) => Write(BitConverter.DoubleToInt64Bits(value));
+
+    /// <inheritdoc cref="Write(in double)"/>
+    public void Write(in double? value)
+    {
+        Write(value.HasValue);
+        if (value.HasValue)
+            Write(in Nullable.GetValueRefOrDefaultRef(in value));
+    }
 
     /// <summary>Writes single <see cref="Guid"/> <paramref name="value"/> into buffer.</summary>
     public void Write(in Guid value)
@@ -128,14 +204,38 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
         Advance(bytesWritten);
     }
 
+    /// <inheritdoc cref="Write(in Guid)"/>
+    public void Write(in Guid? value)
+    {
+        Write(value.HasValue);
+        if (value.HasValue)
+            Write(in Nullable.GetValueRefOrDefaultRef(in value));
+    }
+
     /// <summary>Writes single <see cref="TimeSpan"/> <paramref name="value"/> into buffer.</summary>
     public void Write(in TimeSpan value) => Write(value.Ticks);
+
+    /// <inheritdoc cref="Write(in TimeSpan)"/>
+    public void Write(in TimeSpan? value)
+    {
+        Write(value.HasValue);
+        if (value.HasValue)
+            Write(in Nullable.GetValueRefOrDefaultRef(in value));
+    }
 
     /// <summary>Writes single <see cref="DateTime"/> <paramref name="value"/> into buffer.</summary>
     public void Write(in DateTime value)
     {
         Write((byte)value.Kind);
         Write(value.Ticks);
+    }
+
+    /// <inheritdoc cref="Write(in DateTime)"/>
+    public void Write(in DateTime? value)
+    {
+        Write(value.HasValue);
+        if (value.HasValue)
+            Write(in Nullable.GetValueRefOrDefaultRef(in value));
     }
 
     /// <summary>Writes single <see cref="DateTimeOffset"/> <paramref name="value"/> into buffer.</summary>
@@ -145,11 +245,35 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
         Write(value.Ticks);
     }
 
+    /// <inheritdoc cref="Write(in DateTimeOffset)"/>
+    public void Write(in DateTimeOffset? value)
+    {
+        Write(value.HasValue);
+        if (value.HasValue)
+            Write(in Nullable.GetValueRefOrDefaultRef(in value));
+    }
+
     /// <summary>Writes single <see cref="TimeOnly"/> <paramref name="value"/> into buffer.</summary>
     public void Write(in TimeOnly value) => Write(value.Ticks);
 
+    /// <inheritdoc cref="Write(in TimeOnly)"/>
+    public void Write(in TimeOnly? value)
+    {
+        Write(value.HasValue);
+        if (value.HasValue)
+            Write(in Nullable.GetValueRefOrDefaultRef(in value));
+    }
+
     /// <summary>Writes single <see cref="DateOnly"/> <paramref name="value"/> into buffer.</summary>
     public void Write(in DateOnly value) => Write(value.DayNumber);
+
+    /// <inheritdoc cref="Write(in DateOnly)"/>
+    public void Write(in DateOnly? value)
+    {
+        Write(value.HasValue);
+        if (value.HasValue)
+            Write(in Nullable.GetValueRefOrDefaultRef(in value));
+    }
 
     /// <summary>Writes a span of <see cref="sbyte"/> <paramref name="value"/> into buffer.</summary>
     public void Write(in ReadOnlySpan<sbyte> value) => WriteSpan(in value);
@@ -412,19 +536,13 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteStruct<T>(in T[] values) where T : unmanaged => WriteStruct<T>(values.AsSpan());
 
-    /// <summary>Writes a struct into buffer.</summary>
-    public void WriteStructUnsafe<T>(in T value) where T : struct => Write(Mem.AsBytesUnsafe(in value));
-
-    /// <summary>Writes a struct span into buffer.</summary>
-    public void WriteStructUnsafe<T>(ReadOnlySpan<T> values) where T : struct
+    /// <inheritdoc cref="WriteStruct{T}(in T)"/>
+    public void WriteStruct<T>(in T? value) where T : unmanaged
     {
-        ThrowHelpers.ThrowIfTypeIsReferenceOrContainsReferences<T>();
-        Write(MemoryMarshal.AsBytes(values));
+        Write(value.HasValue);
+        if (value.HasValue)
+            WriteStruct(in Nullable.GetValueRefOrDefaultRef(in value));
     }
-
-    /// <summary>Writes an unmanaged struct list into buffer.</summary>
-    public void WriteStructUnsafe<T>(in List<T> values) where T : unmanaged =>
-        WriteStructUnsafe<T>(GetListSpan(in values));
 
     /// <summary>Writes an <see cref="string"/> <paramref name="value"/> into buffer.</summary>
     public void WriteString(in string value) => Write(value.AsSpan());
@@ -443,6 +561,13 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
     /// <summary>Writes an <see cref="char"/> <paramref name="value"/> into buffer as UTF8.</summary>
     public void WriteUtf8Char(in char value) => WriteUtf8String(Mem.AsSpan(in value));
 
+    /// <inheritdoc cref="Write(in char)"/>
+    public void WriteUtf8Char(in char? value)
+    {
+        Write(value.HasValue);
+        if (value.HasValue)
+            WriteUtf8Char(in Nullable.GetValueRefOrDefaultRef(in value));
+    }
 
     /// <summary>Writes a <see cref="IBinaryInteger{T}"/> <paramref name="value"/> into buffer.</summary>
     /// <typeparam name="T">A numeric type that implements <see cref="IBinaryInteger{T}"/>.</typeparam>
@@ -463,5 +588,14 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
         }
 
         Advance(size);
+    }
+
+    /// <summary>Writes a <see cref="IBinaryInteger{T}"/> <paramref name="value"/> into buffer.</summary>
+    /// <typeparam name="T">A numeric type that implements <see cref="IBinaryInteger{T}"/>.</typeparam>
+    public void WriteNumber<T>(in T? value) where T : unmanaged, IBinaryInteger<T>
+    {
+        Write(value.HasValue);
+        if (value.HasValue)
+            WriteNumber(in Nullable.GetValueRefOrDefaultRef(in value));
     }
 }
