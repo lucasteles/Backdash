@@ -27,8 +27,6 @@ sealed class LocalBackend<TInput> : INetcodeSession<TInput> where TInput : unman
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(options);
-        ThrowHelpers.ThrowIfTypeTooBigForStack<TInput>();
-        ThrowHelpers.ThrowIfTypeTooBigForStack<GameInput<TInput>>();
 
         this.options = options;
         Random = services.DeterministicRandom;
@@ -180,7 +178,7 @@ sealed class LocalBackend<TInput> : INetcodeSession<TInput> where TInput : unman
     public void SetFrameDelay(PlayerHandle player, int delayInFrames)
     {
         ThrowHelpers.ThrowIfArgumentOutOfBounds(player.InternalQueue, 0, addedPlayers.Count);
-        ThrowHelpers.ThrowIfArgumentIsNegative(delayInFrames);
+        ArgumentOutOfRangeException.ThrowIfNegative(delayInFrames);
         synchronizer.SetFrameDelay(player, delayInFrames);
     }
 

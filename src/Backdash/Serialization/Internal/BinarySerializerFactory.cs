@@ -51,7 +51,7 @@ static class BinarySerializerFactory
                 )?
                 .MakeGenericMethod(inputType)
                 .Invoke(null, [networkEndianness]) as IBinarySerializer<TInput>,
-            { IsValueType: true, }
+            { IsValueType: true }
                 when !integerInterfaces.Except(inputType.GetInterfaces().Where(i => i.IsGenericType)
                     .Select(i => i.GetGenericTypeDefinition())).Any()
                 => typeof(BinarySerializerFactory)

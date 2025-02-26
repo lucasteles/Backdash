@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using System.Net;
-using Backdash.Core;
 
 namespace Backdash.Synchronizing.Random;
 
@@ -27,8 +26,8 @@ public sealed class XorShiftRandom : IDeterministicRandom
     /// <inheritdoc />
     public void UpdateSeed(int newState, int extraState = 0)
     {
-        ThrowHelpers.ThrowIfArgumentIsNegative(newState);
-        ThrowHelpers.ThrowIfArgumentIsNegative(extraState);
+        ArgumentOutOfRangeException.ThrowIfNegative(newState);
+        ArgumentOutOfRangeException.ThrowIfNegative(extraState);
         newState = unchecked(newState + extraState + 1);
         state = (uint)IPAddress.HostToNetworkOrder(newState);
     }

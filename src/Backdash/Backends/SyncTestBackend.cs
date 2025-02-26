@@ -50,9 +50,7 @@ sealed class SyncTestBackend<TInput> : INetcodeSession<TInput>
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(options);
-        ThrowHelpers.ThrowIfTypeTooBigForStack<TInput>();
-        ThrowHelpers.ThrowIfTypeTooBigForStack<GameInput<TInput>>();
-        ThrowHelpers.ThrowIfArgumentIsNegative(checkDistance.FrameCount);
+        ArgumentOutOfRangeException.ThrowIfNegative(checkDistance.FrameCount);
         this.options = options;
         this.checkDistance = checkDistance;
         this.throwError = throwError;
@@ -302,7 +300,7 @@ sealed class SyncTestBackend<TInput> : INetcodeSession<TInput>
     public void SetFrameDelay(PlayerHandle player, int delayInFrames)
     {
         ThrowHelpers.ThrowIfArgumentOutOfBounds(player.InternalQueue, 0, addedPlayers.Count);
-        ThrowHelpers.ThrowIfArgumentIsNegative(delayInFrames);
+        ArgumentOutOfRangeException.ThrowIfNegative(delayInFrames);
         synchronizer.SetFrameDelay(player, delayInFrames);
     }
 

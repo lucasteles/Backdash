@@ -49,7 +49,8 @@ sealed class SpectatorBackend<TInput> :
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(options);
         ArgumentNullException.ThrowIfNull(hostEndpoint);
-        ThrowHelpers.ThrowIfArgumentIsZeroOrLess(port);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(port);
+
         this.hostEndpoint = hostEndpoint;
         this.options = options;
         backgroundJobManager = services.JobManager;

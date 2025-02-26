@@ -57,10 +57,9 @@ sealed class RemoteBackend<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(options);
-        ThrowHelpers.ThrowIfArgumentIsZeroOrLess(port);
-        ThrowHelpers.ThrowIfArgumentIsZeroOrLess(options.FramesPerSecond);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(port);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(options.FramesPerSecond);
         ThrowHelpers.ThrowIfArgumentOutOfBounds(options.SpectatorOffset, min: Max.NumberOfPlayers);
-        ThrowHelpers.ThrowIfTypeTooBigForStack<GameInput<TInput>>();
 
         this.options = options;
         inputSerializer = services.InputSerializer;
@@ -163,7 +162,7 @@ sealed class RemoteBackend<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
             Spectator spectator => AddSpectator(spectator),
             RemotePlayer remote => AddRemotePlayer(remote),
             LocalPlayer local => AddLocalPlayer(local),
-            _ => throw new ArgumentOutOfRangeException(nameof(player))
+            _ => throw new ArgumentOutOfRangeException(nameof(player)),
         };
     }
 
@@ -255,7 +254,7 @@ sealed class RemoteBackend<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
     public void SetFrameDelay(PlayerHandle player, int delayInFrames)
     {
         ThrowHelpers.ThrowIfArgumentOutOfBounds(player.InternalQueue, 0, addedPlayers.Count);
-        ThrowHelpers.ThrowIfArgumentIsNegative(delayInFrames);
+        ArgumentOutOfRangeException.ThrowIfNegative(delayInFrames);
         synchronizer.SetFrameDelay(player, delayInFrames);
     }
 

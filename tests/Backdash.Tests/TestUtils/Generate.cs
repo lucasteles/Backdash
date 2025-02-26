@@ -33,7 +33,7 @@ static class Generate
 
     public static GameInput[] GameInputRange(int count, int firstFrame = 0)
     {
-        ThrowHelpers.ThrowIfArgumentIsNegative(count);
+        ArgumentOutOfRangeException.ThrowIfNegative(count);
         return Generator().ToArray();
 
         IEnumerable<GameInput> Generator()

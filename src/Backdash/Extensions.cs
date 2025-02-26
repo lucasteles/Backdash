@@ -1,4 +1,4 @@
-using Backdash.Core;
+using System.Runtime.CompilerServices;
 using Backdash.Network;
 using Backdash.Network.Protocol;
 using Backdash.Serialization;
@@ -17,8 +17,8 @@ static class InternalExtensions
 
     public static int GetTypeSize<T>(this IBinarySerializer<T> serializer) where T : struct
     {
-        var dummy = new T();
-        Span<byte> buffer = stackalloc byte[Mem.MaxStackLimit];
+        T dummy = new();
+        Span<byte> buffer = stackalloc byte[Unsafe.SizeOf<T>()];
         return serializer.Serialize(in dummy, buffer);
     }
 

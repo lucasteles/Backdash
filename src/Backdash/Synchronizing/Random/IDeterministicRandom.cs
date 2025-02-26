@@ -1,5 +1,3 @@
-using Backdash.Core;
-
 namespace Backdash.Synchronizing.Random;
 
 /// <summary>
@@ -47,7 +45,7 @@ public interface IDeterministicRandom
     /// </summary>
     int NextInt(int maxValue)
     {
-        ThrowHelpers.ThrowIfArgumentIsNegative(maxValue);
+        ArgumentOutOfRangeException.ThrowIfNegative(maxValue);
         return NextInt(0, maxValue);
     }
 

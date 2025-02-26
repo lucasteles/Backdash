@@ -29,7 +29,6 @@ public sealed class RandomInputGenerator<TInput> : IInputGenerator<TInput> where
     /// </summary>
     public RandomInputGenerator(Random? random = null)
     {
-        ThrowHelpers.ThrowIfTypeTooBigForStack<TInput>();
         ThrowHelpers.ThrowIfTypeIsReferenceOrContainsReferences<TInput>();
         Random = random ?? Random.Shared;
     }
