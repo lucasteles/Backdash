@@ -781,4 +781,322 @@ public class BinaryBufferReadWriteValueTests
             return value == read;
         }
     }
+    [Collection(SerialCollectionDefinition.Name)]
+    public class ReadRefWriteNullableTests
+    {
+        [PropertyTest]
+        public bool SingleByte(byte? value,byte? read, Endianness endianness)
+        {
+            var size = Setup<byte>(endianness, out var writer);
+            size = (value.HasValue ? size : 0) + 1;
+
+            writer.Write(in value);
+            var reader = GetReader(writer);
+            reader.Read(ref read);
+            reader.ReadCount.Should().Be(size);
+            return value == read;
+        }
+
+        [PropertyTest]
+        public bool SingleSByte(sbyte? value,sbyte? read, Endianness endianness)
+        {
+            var size = Setup<sbyte>(endianness, out var writer);
+            size = (value.HasValue ? size : 0) + 1;
+            writer.Write(value);
+            var reader = GetReader(writer);
+            reader.Read(ref read);
+            reader.ReadCount.Should().Be(size);
+            return value == read;
+        }
+
+        [PropertyTest]
+        public bool SingleBool(bool? value,bool? read, Endianness endianness)
+        {
+            var size = Setup<bool>(endianness, out var writer);
+            size = (value.HasValue ? size : 0) + 1;
+            writer.Write(value);
+            var reader = GetReader(writer);
+            reader.Read(ref read);
+            reader.ReadCount.Should().Be(size);
+            return value == read;
+        }
+
+        [PropertyTest]
+        public bool SingleChar(char? value,char? read, Endianness endianness)
+        {
+            var size = Setup<char>(endianness, out var writer);
+            size = (value.HasValue ? size : 0) + 1;
+            writer.Write(value);
+            var reader = GetReader(writer);
+            reader.Read(ref read);
+            reader.ReadCount.Should().Be(size);
+            return value == read;
+        }
+
+        [PropertyTest]
+        public bool SingleShort(short? value,short? read, Endianness endianness)
+        {
+            var size = Setup<short>(endianness, out var writer);
+            size = (value.HasValue ? size : 0) + 1;
+            writer.Write(value);
+            var reader = GetReader(writer);
+            reader.Read(ref read);
+            reader.ReadCount.Should().Be(size);
+            return value == read;
+        }
+
+        [PropertyTest]
+        public bool SingleUShort(ushort? value,ushort? read, Endianness endianness)
+        {
+            var size = Setup<ushort>(endianness, out var writer);
+            size = (value.HasValue ? size : 0) + 1;
+            writer.Write(value);
+            var reader = GetReader(writer);
+            reader.Read(ref read);
+            reader.ReadCount.Should().Be(size);
+            return value == read;
+        }
+
+        [PropertyTest]
+        public bool SingleInt(int? value,int? read, Endianness endianness)
+        {
+            var size = Setup<int>(endianness, out var writer);
+            size = (value.HasValue ? size : 0) + 1;
+            writer.Write(value);
+            var reader = GetReader(writer);
+            reader.Read(ref read);
+            reader.ReadCount.Should().Be(size);
+            return value == read;
+        }
+
+        [PropertyTest]
+        public bool SingleUInt(uint? value,uint? read, Endianness endianness)
+        {
+            var size = Setup<uint>(endianness, out var writer);
+            size = (value.HasValue ? size : 0) + 1;
+            writer.Write(value);
+            var reader = GetReader(writer);
+            reader.Read(ref read);
+            reader.ReadCount.Should().Be(size);
+            return value == read;
+        }
+
+        [PropertyTest]
+        public bool SingleLong(long? value,long? read, Endianness endianness)
+        {
+            var size = Setup<long>(endianness, out var writer);
+            size = (value.HasValue ? size : 0) + 1;
+            writer.Write(value);
+            var reader = GetReader(writer);
+            reader.Read(ref read);
+            reader.ReadCount.Should().Be(size);
+            return value == read;
+        }
+
+        [PropertyTest]
+        public bool SingleULong(ulong? value,ulong? read, Endianness endianness)
+        {
+            var size = Setup<ulong>(endianness, out var writer);
+            size = (value.HasValue ? size : 0) + 1;
+            writer.Write(value);
+            var reader = GetReader(writer);
+            reader.Read(ref read);
+            reader.ReadCount.Should().Be(size);
+            return value == read;
+        }
+
+        [PropertyTest]
+        public bool SingleInt128(Int128? value,Int128? read, Endianness endianness)
+        {
+            var size = Setup<Int128>(endianness, out var writer);
+            size = (value.HasValue ? size : 0) + 1;
+            writer.Write(value);
+            var reader = GetReader(writer);
+            reader.Read(ref read);
+            reader.ReadCount.Should().Be(size);
+            return value == read;
+        }
+
+        [PropertyTest]
+        public bool SingleIntU128(UInt128? value,UInt128? read, Endianness endianness)
+        {
+            var size = Setup<UInt128>(endianness, out var writer);
+            size = (value.HasValue ? size : 0) + 1;
+            writer.Write(value);
+            var reader = GetReader(writer);
+            reader.Read(ref read);
+            reader.ReadCount.Should().Be(size);
+            return value == read;
+        }
+
+        [PropertyTest]
+        public bool SingleHalf(Half? value,Half? read, Endianness endianness)
+        {
+            var size = Setup<Half>(endianness, out var writer);
+            size = (value.HasValue ? size : 0) + 1;
+            writer.Write(value);
+            var reader = GetReader(writer);
+            reader.Read(ref read);
+            reader.ReadCount.Should().Be(size);
+            return value == read;
+        }
+
+        [PropertyTest]
+        public bool SingleFloat(float? value,float? read, Endianness endianness)
+        {
+            var size = Setup<float>(endianness, out var writer);
+            size = (value.HasValue ? size : 0) + 1;
+            writer.Write(value);
+            var reader = GetReader(writer);
+            reader.Read(ref read);
+            reader.ReadCount.Should().Be(size);
+            return value == read;
+        }
+
+        [PropertyTest]
+        public bool SingleDouble(double? value,double? read, Endianness endianness)
+        {
+            var size = Setup<double>(endianness, out var writer);
+            size = (value.HasValue ? size : 0) + 1;
+            writer.Write(value);
+            var reader = GetReader(writer);
+            reader.Read(ref read);
+            reader.ReadCount.Should().Be(size);
+            return value == read;
+        }
+
+        [PropertyTest]
+        public bool SingleVector2(Vector2? value,Vector2? read, Endianness endianness)
+        {
+            var size = Setup<Vector2>(endianness, out var writer);
+            size = (value.HasValue ? size : 0) + 1;
+            writer.Write(value);
+            var reader = GetReader(writer);
+            reader.Read(ref read);
+            reader.ReadCount.Should().Be(size);
+            return value == read;
+        }
+
+        [PropertyTest]
+        public bool SingleVector3(Vector3? value,Vector3? read, Endianness endianness)
+        {
+            var size = Setup<Vector3>(endianness, out var writer);
+            size = (value.HasValue ? size : 0) + 1;
+            writer.Write(value);
+            var reader = GetReader(writer);
+            reader.Read(ref read);
+            reader.ReadCount.Should().Be(size);
+            return value == read;
+        }
+
+        [PropertyTest]
+        public bool SingleVector4(Vector4? value,Vector4? read, Endianness endianness)
+        {
+            var size = Setup<Vector4>(endianness, out var writer);
+            size = (value.HasValue ? size : 0) + 1;
+            writer.Write(value);
+            var reader = GetReader(writer);
+            reader.Read(ref read);
+            reader.ReadCount.Should().Be(size);
+            return value == read;
+        }
+
+        [PropertyTest]
+        public bool SingleQuaternion(Quaternion? value,Quaternion? read, Endianness endianness)
+        {
+            var size = Setup<Quaternion>(endianness, out var writer);
+            size = (value.HasValue ? size : 0) + 1;
+            writer.Write(value);
+            var reader = GetReader(writer);
+            reader.Read(ref read);
+            reader.ReadCount.Should().Be(size);
+            return value == read;
+        }
+
+        [PropertyTest]
+        public bool SingleGuid(Guid? value,Guid? read, Endianness endianness)
+        {
+            var size = Setup<Guid>(endianness, out var writer);
+            size = (value.HasValue ? size : 0) + 1;
+            writer.Write(value);
+            var reader = GetReader(writer);
+            reader.Read(ref read);
+            reader.ReadCount.Should().Be(size);
+            return value == read;
+        }
+
+        [PropertyTest]
+        public bool SingleTimeSpan(TimeSpan? value,TimeSpan? read, Endianness endianness)
+        {
+            var size = Setup<TimeSpan>(endianness, out var writer);
+            size = (value.HasValue ? size : 0) + 1;
+            writer.Write(value);
+            var reader = GetReader(writer);
+            reader.Read(ref read);
+            reader.ReadCount.Should().Be(size);
+            return value == read;
+        }
+
+        [PropertyTest]
+        public bool SingleTimeOnly(TimeOnly? value,TimeOnly? read, Endianness endianness)
+        {
+            var size = Setup<TimeOnly>(endianness, out var writer);
+            size = (value.HasValue ? size : 0) + 1;
+            writer.Write(value);
+            var reader = GetReader(writer);
+            reader.Read(ref read);
+            reader.ReadCount.Should().Be(size);
+            return value == read;
+        }
+
+        [PropertyTest]
+        public bool SingleDateTime(DateTime? value,DateTime? read, Endianness endianness)
+        {
+            const int kindSize = 1;
+            var size = Setup<DateTime>(endianness, out var writer) + kindSize;
+            size = (value.HasValue ? size : 0) + 1;
+            writer.Write(value);
+            var reader = GetReader(writer);
+            reader.Read(ref read);
+            reader.ReadCount.Should().Be(size);
+            return value == read;
+        }
+
+        [PropertyTest]
+        public bool SingleDateTimeOffset(DateTimeOffset? value,DateTimeOffset? read, Endianness endianness)
+        {
+            var size = Setup<DateTimeOffset>(endianness, out var writer);
+            size = (value.HasValue ? size : 0) + 1;
+            writer.Write(value);
+            var reader = GetReader(writer);
+            reader.Read(ref read);
+            reader.ReadCount.Should().Be(size);
+            return value == read;
+        }
+
+        [PropertyTest]
+        public bool SingleDateOnly(DateOnly? value,DateOnly? read, Endianness endianness)
+        {
+            var size = Setup<DateOnly>(endianness, out var writer);
+            size = (value.HasValue ? size : 0) + 1;
+            writer.Write(value);
+            var reader = GetReader(writer);
+            reader.Read(ref read);
+            reader.ReadCount.Should().Be(size);
+            return value == read;
+        }
+
+        [PropertyTest]
+        public bool UnmanagedStruct(SimpleStructData? value,SimpleStructData? read, Endianness endianness)
+        {
+            var size = Setup<SimpleStructData>(endianness, out var writer);
+            size = (value.HasValue ? size : 0) + 1;
+            writer.WriteStruct(in value);
+
+            var reader = GetReader(writer);
+            reader.ReadStruct(ref read);
+            reader.ReadCount.Should().Be(size);
+            return value == read;
+        }
+    }
 }

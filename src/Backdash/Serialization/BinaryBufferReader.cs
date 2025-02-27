@@ -231,6 +231,10 @@ public readonly ref struct BinaryBufferReader
     }
 
     /// <summary>Reads an unmanaged struct from buffer.</summary>
+    public void ReadStruct<T>(ref T? value) where T : unmanaged =>
+        value = ReadNullableStruct<T>();
+
+    /// <summary>Reads an unmanaged struct from buffer.</summary>
     public T ReadStruct<T>() where T : unmanaged
     {
         var size = Unsafe.SizeOf<T>();
