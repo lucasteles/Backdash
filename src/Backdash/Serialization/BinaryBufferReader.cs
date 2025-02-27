@@ -277,11 +277,6 @@ public readonly ref struct BinaryBufferReader
     public void ReadUtf8String(in List<char> values) => ReadUtf8String(GetListSpan(in values));
 
     /// <summary>Reads single <see cref="IBinaryInteger{T}"/> from buffer.</summary>
-    /// <typeparam name="T">A numeric type that implements <see cref="IBinaryInteger{T}"/> and <see cref="IMinMaxValue{T}"/>.</typeparam>
-    public T ReadNumber<T>() where T : unmanaged, IBinaryInteger<T>, IMinMaxValue<T> =>
-        ReadNumber<T>(T.IsZero(T.MinValue));
-
-    /// <summary>Reads single <see cref="IBinaryInteger{T}"/> from buffer.</summary>
     /// <typeparam name="T">A numeric type that implements <see cref="IBinaryInteger{T}"/>.</typeparam>
     /// <param name="isUnsigned">true if source represents an unsigned two's complement number; otherwise, false to indicate it represents a signed two's complement number</param>
     public T ReadNumber<T>(bool isUnsigned) where T : unmanaged, IBinaryInteger<T>
@@ -296,6 +291,11 @@ public readonly ref struct BinaryBufferReader
         Advance(size);
         return result;
     }
+
+    /// <summary>Reads single <see cref="IBinaryInteger{T}"/> from buffer.</summary>
+    /// <typeparam name="T">A numeric type that implements <see cref="IBinaryInteger{T}"/> and <see cref="IMinMaxValue{T}"/>.</typeparam>
+    public T ReadNumber<T>() where T : unmanaged, IBinaryInteger<T>, IMinMaxValue<T> =>
+        ReadNumber<T>(T.IsZero(T.MinValue));
 
     /// <inheritdoc cref="ReadNumber{T}()"/>
     public void ReadNumber<T>(ref T value) where T : unmanaged, IBinaryInteger<T>, IMinMaxValue<T> =>
@@ -355,7 +355,7 @@ public readonly ref struct BinaryBufferReader
         var value = ReadNullableNumber<TInt>();
         return Unsafe.As<TInt?, TEnum?>(ref value);
     }
-    
+
     /// <summary>Reads a <see cref="IBinarySerializable"/> <paramref name="value"/> from buffer.</summary>
     /// <typeparam name="T">A value type that implements <see cref="IBinarySerializable"/>.</typeparam>
     public void Read<T>(ref T value) where T : struct, IBinarySerializable => value.Deserialize(in this);
