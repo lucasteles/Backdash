@@ -321,6 +321,17 @@ public readonly ref struct BinaryBufferReader
     public T? ReadNullableNumber<T>(bool isUnsigned) where T : unmanaged, IBinaryInteger<T> =>
         ReadBoolean() ? ReadNumber<T>(isUnsigned) : null;
 
+    /// <summary>Reads an Enum from buffer.</summary>
+    /// <typeparam name="TEnum">The <see cref="Enum"/> type.</typeparam>
+    /// <typeparam name="TInt">Underlying enum type.</typeparam>
+    public void ReadEnum<TEnum, TInt>(ref TEnum value)
+        where TEnum : unmanaged, Enum
+        where TInt : unmanaged, IBinaryInteger<TInt>, IMinMaxValue<TInt>
+    {
+        ref var underValue = ref Mem.EnumAsInteger<TEnum, TInt>(ref value);
+        underValue = ReadNumber<TInt>();
+    }
+
     /// <summary>Reads a <see cref="IBinarySerializable"/> <paramref name="value"/> from buffer.</summary>
     /// <typeparam name="T">A value type that implements <see cref="IBinarySerializable"/>.</typeparam>
     public void Read<T>(ref T value) where T : struct, IBinarySerializable => value.Deserialize(in this);

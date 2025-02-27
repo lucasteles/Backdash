@@ -587,4 +587,22 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
         if (value.HasValue)
             WriteNumber(in Nullable.GetValueRefOrDefaultRef(in value));
     }
+
+    /// <summary>Writes an Enum <paramref name="value"/> into buffer.</summary>
+    /// <typeparam name="TEnum">The <see cref="Enum"/> type.</typeparam>
+    /// <typeparam name="TInt">Underlying enum type.</typeparam>
+    public void WriteEnum<TEnum, TInt>(in TEnum value)
+        where TEnum : unmanaged, Enum
+        where TInt : unmanaged, IBinaryInteger<TInt> =>
+        WriteNumber(in Mem.EnumAsInteger<TEnum, TInt>(in value));
+
+    /// <inheritdoc cref="WriteEnum{TEnum,TInt}(in TEnum)"/>
+    public void WriteEnum<TEnum, TInt>(in TEnum? value)
+        where TEnum : unmanaged, Enum
+        where TInt : unmanaged, IBinaryInteger<TInt>
+    {
+        Write(value.HasValue);
+        if (value.HasValue)
+            WriteEnum<TEnum, TInt>(in Nullable.GetValueRefOrDefaultRef(in value));
+    }
 }
