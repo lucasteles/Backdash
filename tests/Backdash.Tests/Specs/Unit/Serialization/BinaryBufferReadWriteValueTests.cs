@@ -198,7 +198,7 @@ public class BinaryBufferReadWriteValueTests
         writer.Write(value);
         var reader = GetReader(writer);
         Vector2 read = new();
-        reader.ReadVector2(ref read);
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
@@ -221,7 +221,7 @@ public class BinaryBufferReadWriteValueTests
         writer.Write(value);
         var reader = GetReader(writer);
         Vector3 read = new();
-        reader.ReadVector3(ref read);
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
@@ -244,7 +244,7 @@ public class BinaryBufferReadWriteValueTests
         writer.Write(value);
         var reader = GetReader(writer);
         Vector4 read = new();
-        reader.ReadVector4(ref read);
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
@@ -267,7 +267,7 @@ public class BinaryBufferReadWriteValueTests
         writer.Write(value);
         var reader = GetReader(writer);
         Quaternion read = new();
-        reader.ReadQuaternion(ref read);
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }

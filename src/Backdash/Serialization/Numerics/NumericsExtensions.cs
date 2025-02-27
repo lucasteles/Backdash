@@ -19,11 +19,8 @@ public static class NumericsExtensions
     }
 
     /// <inheritdoc cref="ReadVector2(in Backdash.Serialization.BinaryBufferReader)"/>
-    public static void ReadVector2(in this BinaryBufferReader reader, ref Vector2 value)
-    {
-        value.X = reader.ReadFloat();
-        value.Y = reader.ReadFloat();
-    }
+    public static Vector2? ReadNullableVector2(in this BinaryBufferReader reader) =>
+        reader.ReadBoolean() ? reader.ReadVector2() : null;
 
     /// <summary>Reads single <see cref="Vector3"/> from buffer.</summary>
     public static Vector3 ReadVector3(in this BinaryBufferReader reader)
@@ -35,12 +32,8 @@ public static class NumericsExtensions
     }
 
     /// <inheritdoc cref="ReadVector3(in Backdash.Serialization.BinaryBufferReader)"/>
-    public static void ReadVector3(in this BinaryBufferReader reader, ref Vector3 value)
-    {
-        value.X = reader.ReadFloat();
-        value.Y = reader.ReadFloat();
-        value.Z = reader.ReadFloat();
-    }
+    public static Vector3? ReadNullableVector3(in this BinaryBufferReader reader) =>
+        reader.ReadBoolean() ? reader.ReadVector3() : null;
 
     /// <summary>Reads single <see cref="Vector4"/> from buffer.</summary>
     public static Vector4 ReadVector4(in this BinaryBufferReader reader)
@@ -53,13 +46,8 @@ public static class NumericsExtensions
     }
 
     /// <inheritdoc cref="ReadVector4(in Backdash.Serialization.BinaryBufferReader)"/>
-    public static void ReadVector4(in this BinaryBufferReader reader, ref Vector4 value)
-    {
-        value.X = reader.ReadFloat();
-        value.Y = reader.ReadFloat();
-        value.Z = reader.ReadFloat();
-        value.W = reader.ReadFloat();
-    }
+    public static Vector4? ReadNullableVector4(in this BinaryBufferReader reader) =>
+        reader.ReadBoolean() ? reader.ReadVector4() : null;
 
     /// <summary>Reads single <see cref="Quaternion"/> from buffer.</summary>
     public static Quaternion ReadQuaternion(in this BinaryBufferReader reader)
@@ -72,7 +60,34 @@ public static class NumericsExtensions
     }
 
     /// <inheritdoc cref="ReadQuaternion(in Backdash.Serialization.BinaryBufferReader)"/>
-    public static void ReadQuaternion(in this BinaryBufferReader reader, ref Quaternion value)
+    public static Quaternion? ReadNullableQuaternion(in this BinaryBufferReader reader) =>
+        reader.ReadBoolean() ? reader.ReadQuaternion() : null;
+
+    /// <inheritdoc cref="ReadVector2(in Backdash.Serialization.BinaryBufferReader)"/>
+    public static void Read(in this BinaryBufferReader reader, ref Vector2 value)
+    {
+        value.X = reader.ReadFloat();
+        value.Y = reader.ReadFloat();
+    }
+
+    /// <inheritdoc cref="ReadVector2(in Backdash.Serialization.BinaryBufferReader)"/>
+    public static void Read(in this BinaryBufferReader reader, ref Vector2? value) =>
+        value = reader.ReadNullableVector2();
+
+    /// <inheritdoc cref="ReadVector3(in Backdash.Serialization.BinaryBufferReader)"/>
+    public static void Read(in this BinaryBufferReader reader, ref Vector3 value)
+    {
+        value.X = reader.ReadFloat();
+        value.Y = reader.ReadFloat();
+        value.Z = reader.ReadFloat();
+    }
+
+    /// <inheritdoc cref="ReadVector3(in Backdash.Serialization.BinaryBufferReader)"/>
+    public static void Read(in this BinaryBufferReader reader, ref Vector3? value) =>
+        value = reader.ReadNullableVector3();
+
+    /// <inheritdoc cref="ReadVector4(in Backdash.Serialization.BinaryBufferReader)"/>
+    public static void Read(in this BinaryBufferReader reader, ref Vector4 value)
     {
         value.X = reader.ReadFloat();
         value.Y = reader.ReadFloat();
@@ -80,21 +95,22 @@ public static class NumericsExtensions
         value.W = reader.ReadFloat();
     }
 
-    /// <inheritdoc cref="ReadVector2(in Backdash.Serialization.BinaryBufferReader)"/>
-    public static Vector2? ReadNullableVector2(in this BinaryBufferReader reader) =>
-        reader.ReadBoolean() ? reader.ReadVector2() : null;
-
-    /// <inheritdoc cref="ReadVector3(in Backdash.Serialization.BinaryBufferReader)"/>
-    public static Vector3? ReadNullableVector3(in this BinaryBufferReader reader) =>
-        reader.ReadBoolean() ? reader.ReadVector3() : null;
-
     /// <inheritdoc cref="ReadVector4(in Backdash.Serialization.BinaryBufferReader)"/>
-    public static Vector4? ReadNullableVector4(in this BinaryBufferReader reader) =>
-        reader.ReadBoolean() ? reader.ReadVector4() : null;
+    public static void Read(in this BinaryBufferReader reader, ref Vector4? value) =>
+        value = reader.ReadNullableVector4();
 
     /// <inheritdoc cref="ReadQuaternion(in Backdash.Serialization.BinaryBufferReader)"/>
-    public static Quaternion? ReadNullableQuaternion(in this BinaryBufferReader reader) =>
-        reader.ReadBoolean() ? reader.ReadQuaternion() : null;
+    public static void Read(in this BinaryBufferReader reader, ref Quaternion value)
+    {
+        value.X = reader.ReadFloat();
+        value.Y = reader.ReadFloat();
+        value.Z = reader.ReadFloat();
+        value.W = reader.ReadFloat();
+    }
+
+    /// <inheritdoc cref="ReadQuaternion(in Backdash.Serialization.BinaryBufferReader)"/>
+    public static void Read(in this BinaryBufferReader reader, ref Quaternion? value) =>
+        value = reader.ReadNullableQuaternion();
 
     #endregion
 
