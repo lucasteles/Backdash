@@ -324,6 +324,15 @@ public readonly ref struct BinaryBufferReader
     /// <summary>Reads an Enum from buffer.</summary>
     /// <typeparam name="TEnum">The <see cref="Enum"/> type.</typeparam>
     /// <typeparam name="TInt">Underlying enum type.</typeparam>
+    public TEnum ReadEnum<TEnum, TInt>()
+        where TEnum : unmanaged, Enum
+        where TInt : unmanaged, IBinaryInteger<TInt>, IMinMaxValue<TInt>
+    {
+        var value = ReadNumber<TInt>();
+        return Mem.IntegerAsEnum<TEnum, TInt>(ref value);
+    }
+
+    /// <inheritdoc cref="ReadEnum{TEnum,TInt}()"/>
     public void ReadEnum<TEnum, TInt>(ref TEnum value)
         where TEnum : unmanaged, Enum
         where TInt : unmanaged, IBinaryInteger<TInt>, IMinMaxValue<TInt>
@@ -332,6 +341,21 @@ public readonly ref struct BinaryBufferReader
         underValue = ReadNumber<TInt>();
     }
 
+    /// <inheritdoc cref="ReadEnum{TEnum,TInt}()"/>
+    public void ReadEnum<TEnum, TInt>(ref TEnum? value)
+        where TEnum : unmanaged, Enum
+        where TInt : unmanaged, IBinaryInteger<TInt>, IMinMaxValue<TInt> =>
+        value = ReadNullableEnum<TEnum, TInt>();
+
+    /// <inheritdoc cref="ReadEnum{TEnum,TInt}()"/>
+    public TEnum? ReadNullableEnum<TEnum, TInt>()
+        where TEnum : unmanaged, Enum
+        where TInt : unmanaged, IBinaryInteger<TInt>, IMinMaxValue<TInt>
+    {
+        var value = ReadNullableNumber<TInt>();
+        return Unsafe.As<TInt?, TEnum?>(ref value);
+    }
+    
     /// <summary>Reads a <see cref="IBinarySerializable"/> <paramref name="value"/> from buffer.</summary>
     /// <typeparam name="T">A value type that implements <see cref="IBinarySerializable"/>.</typeparam>
     public void Read<T>(ref T value) where T : struct, IBinarySerializable => value.Deserialize(in this);
