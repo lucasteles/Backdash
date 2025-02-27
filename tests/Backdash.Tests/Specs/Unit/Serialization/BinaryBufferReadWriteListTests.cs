@@ -28,7 +28,7 @@ public class BinaryBufferReadWriteListTests
         writer.Write(value);
         var reader = GetReader(writer);
         List<sbyte> read = [];
-        reader.ReadSByte(read);
+        reader.Read(read);
         reader.ReadCount.Should().Be(size);
         return value.SequenceEqual(read);
     }
@@ -40,7 +40,7 @@ public class BinaryBufferReadWriteListTests
         writer.Write(value);
         var reader = GetReader(writer);
         List<short> read = [];
-        reader.ReadInt16(read);
+        reader.Read(read);
         reader.ReadCount.Should().Be(size);
         return value.SequenceEqual(read);
     }
@@ -52,7 +52,7 @@ public class BinaryBufferReadWriteListTests
         writer.Write(value);
         var reader = GetReader(writer);
         List<ushort> read = [];
-        reader.ReadUInt16(read);
+        reader.Read(read);
         reader.ReadCount.Should().Be(size);
         return value.SequenceEqual(read);
     }
@@ -64,7 +64,7 @@ public class BinaryBufferReadWriteListTests
         writer.Write(value);
         var reader = GetReader(writer);
         List<int> read = [];
-        reader.ReadInt32(read);
+        reader.Read(read);
         reader.ReadCount.Should().Be(size);
         return value.SequenceEqual(read);
     }
@@ -76,7 +76,7 @@ public class BinaryBufferReadWriteListTests
         writer.Write(value);
         var reader = GetReader(writer);
         List<uint> read = [];
-        reader.ReadUInt32(read);
+        reader.Read(read);
         reader.ReadCount.Should().Be(size);
         return value.SequenceEqual(read);
     }
@@ -88,7 +88,7 @@ public class BinaryBufferReadWriteListTests
         writer.Write(value);
         var reader = GetReader(writer);
         List<long> read = [];
-        reader.ReadInt64(read);
+        reader.Read(read);
         reader.ReadCount.Should().Be(size);
         return value.SequenceEqual(read);
     }
@@ -100,7 +100,7 @@ public class BinaryBufferReadWriteListTests
         writer.Write(value);
         var reader = GetReader(writer);
         List<ulong> read = [];
-        reader.ReadUInt64(read);
+        reader.Read(read);
         reader.ReadCount.Should().Be(size);
         return value.SequenceEqual(read);
     }
@@ -112,7 +112,7 @@ public class BinaryBufferReadWriteListTests
         writer.Write(value);
         var reader = GetReader(writer);
         List<Int128> read = [];
-        reader.ReadInt128(read);
+        reader.Read(read);
         reader.ReadCount.Should().Be(size);
         return value.SequenceEqual(read);
     }
@@ -124,7 +124,7 @@ public class BinaryBufferReadWriteListTests
         writer.Write(value);
         var reader = GetReader(writer);
         List<UInt128> read = [];
-        reader.ReadUInt128(read);
+        reader.Read(read);
         reader.ReadCount.Should().Be(size);
         return value.SequenceEqual(read);
     }
@@ -136,7 +136,7 @@ public class BinaryBufferReadWriteListTests
         writer.Write(value);
         var reader = GetReader(writer);
         List<char> read = [];
-        reader.ReadChar(read);
+        reader.Read(read);
         reader.ReadCount.Should().Be(size);
         return value.SequenceEqual(read);
     }
@@ -148,7 +148,7 @@ public class BinaryBufferReadWriteListTests
         writer.Write(value);
         var reader = GetReader(writer);
         List<bool> read = [];
-        reader.ReadBoolean(read);
+        reader.Read(read);
         reader.ReadCount.Should().Be(size);
         return value.SequenceEqual(read);
     }
@@ -177,7 +177,7 @@ public class BinaryBufferReadWriteListTests
         writer.Write(value);
         var reader = GetReader(writer);
         List<Guid> read = [];
-        reader.ReadGuid(in read);
+        reader.Read(in read);
         reader.ReadCount.Should().Be(size);
         return value.SequenceEqual(read);
     }
@@ -189,7 +189,7 @@ public class BinaryBufferReadWriteListTests
         writer.Write(value);
         var reader = GetReader(writer);
         List<TimeSpan> read = [];
-        reader.ReadTimeSpan(in read);
+        reader.Read(in read);
         reader.ReadCount.Should().Be(size);
         return value.SequenceEqual(read);
     }
@@ -201,7 +201,7 @@ public class BinaryBufferReadWriteListTests
         writer.Write(value);
         var reader = GetReader(writer);
         List<TimeOnly> read = [];
-        reader.ReadTimeOnly(in read);
+        reader.Read(in read);
         reader.ReadCount.Should().Be(size);
         return value.SequenceEqual(read);
     }
@@ -213,7 +213,7 @@ public class BinaryBufferReadWriteListTests
         writer.Write(value);
         var reader = GetReader(writer);
         List<DateOnly> read = [];
-        reader.ReadDateOnly(in read);
+        reader.Read(in read);
         reader.ReadCount.Should().Be(size);
         return value.SequenceEqual(read);
     }
@@ -226,7 +226,7 @@ public class BinaryBufferReadWriteListTests
         writer.Write(value);
         var reader = GetReader(writer);
         List<DateTime> read = [];
-        reader.ReadDateTime(in read);
+        reader.Read(in read);
         reader.ReadCount.Should().Be(size);
         return value.SequenceEqual(read);
     }
@@ -238,7 +238,7 @@ public class BinaryBufferReadWriteListTests
         writer.Write(value);
         var reader = GetReader(writer);
         List<DateTimeOffset> read = [];
-        reader.ReadDateTimeOffset(in read);
+        reader.Read(in read);
         reader.ReadCount.Should().Be(size);
         return value.SequenceEqual(read);
     }

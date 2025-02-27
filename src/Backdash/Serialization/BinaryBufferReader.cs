@@ -261,7 +261,7 @@ public readonly ref struct BinaryBufferReader
     public string ReadString(int size)
     {
         Span<char> charBuffer = stackalloc char[size];
-        ReadChar(in charBuffer);
+        Read(in charBuffer);
         return new(charBuffer);
     }
 
@@ -275,6 +275,7 @@ public readonly ref struct BinaryBufferReader
 
     /// <summary>Reads a list of UTF8 <see cref="char"/> from buffer into <paramref name="values"/>.</summary>
     public void ReadUtf8String(in List<char> values) => ReadUtf8String(GetListSpan(in values));
+
     /// <summary>Reads single <see cref="IBinaryInteger{T}"/> from buffer.</summary>
     /// <typeparam name="T">A numeric type that implements <see cref="IBinaryInteger{T}"/> and <see cref="IMinMaxValue{T}"/>.</typeparam>
     public T ReadNumber<T>() where T : unmanaged, IBinaryInteger<T>, IMinMaxValue<T> =>
@@ -493,18 +494,19 @@ public readonly ref struct BinaryBufferReader
     public void Read(in List<byte> values) => Read(GetListSpan(in values));
 
     /// <summary>Reads a span of <see cref="sbyte"/> from buffer into <paramref name="values"/>.</summary>
-    public void ReadSByte(in Span<sbyte> values) => ReadSpan(values);
+    public void Read(in Span<sbyte> values) => ReadSpan(values);
 
     /// <summary>Reads a list of <see cref="sbyte"/> from buffer into <paramref name="values"/>.</summary>
-    public void ReadSByte(in List<sbyte> values) => ReadSByte(GetListSpan(in values));
+    public void Read(in List<sbyte> values) => Read(GetListSpan(in values));
 
     /// <summary>Reads a span of <see cref="bool"/> from buffer into <paramref name="values"/>.</summary>
-    public void ReadBoolean(in Span<bool> values) => ReadSpan(values);
+    public void Read(in Span<bool> values) => ReadSpan(values);
 
     /// <summary>Reads a list of <see cref="bool"/> from buffer into <paramref name="values"/>.</summary>
-    public void ReadBoolean(in List<bool> values) => ReadBoolean(GetListSpan(in values));
+    public void Read(in List<bool> values) => Read(GetListSpan(in values));
+
     /// <summary>Reads a span of <see cref="short"/> from buffer into <paramref name="values"/>.</summary>
-    public void ReadInt16(in Span<short> values)
+    public void Read(in Span<short> values)
     {
         ReadSpan(values);
         if (Endianness != Platform.Endianness)
@@ -512,10 +514,10 @@ public readonly ref struct BinaryBufferReader
     }
 
     /// <summary>Reads a list of <see cref="short"/> from buffer into <paramref name="values"/>.</summary>
-    public void ReadInt16(in List<short> values) => ReadInt16(GetListSpan(in values));
+    public void Read(in List<short> values) => Read(GetListSpan(in values));
 
     /// <summary>Reads a span of <see cref="ushort"/> from buffer into <paramref name="values"/>.</summary>
-    public void ReadUInt16(in Span<ushort> values)
+    public void Read(in Span<ushort> values)
     {
         ReadSpan(values);
         if (Endianness != Platform.Endianness)
@@ -523,9 +525,10 @@ public readonly ref struct BinaryBufferReader
     }
 
     /// <summary>Reads a list of <see cref="ushort"/> from buffer into <paramref name="values"/>.</summary>
-    public void ReadUInt16(in List<ushort> values) => ReadUInt16(GetListSpan(in values));
+    public void Read(in List<ushort> values) => Read(GetListSpan(in values));
+
     /// <summary>Reads a span of <see cref="char"/> from buffer into <paramref name="values"/>.</summary>
-    public void ReadChar(in Span<char> values)
+    public void Read(in Span<char> values)
     {
         ReadSpan(values);
         if (Endianness != Platform.Endianness)
@@ -536,10 +539,10 @@ public readonly ref struct BinaryBufferReader
     }
 
     /// <summary>Reads a list of <see cref="char"/> from buffer into <paramref name="values"/>.</summary>
-    public void ReadChar(in List<char> values) => ReadChar(GetListSpan(in values));
+    public void Read(in List<char> values) => Read(GetListSpan(in values));
 
     /// <summary>Reads a span of <see cref="int"/> from buffer into <paramref name="values"/>.</summary>
-    public void ReadInt32(in Span<int> values)
+    public void Read(in Span<int> values)
     {
         ReadSpan(values);
         if (Endianness != Platform.Endianness)
@@ -547,10 +550,10 @@ public readonly ref struct BinaryBufferReader
     }
 
     /// <summary>Reads a list of <see cref="int"/> from buffer into <paramref name="values"/>.</summary>
-    public void ReadInt32(in List<int> values) => ReadInt32(GetListSpan(in values));
+    public void Read(in List<int> values) => Read(GetListSpan(in values));
 
     /// <summary>Reads a span of <see cref="uint"/> from buffer into <paramref name="values"/>.</summary>
-    public void ReadUInt32(in Span<uint> values)
+    public void Read(in Span<uint> values)
     {
         ReadSpan(values);
         if (Endianness != Platform.Endianness)
@@ -558,9 +561,10 @@ public readonly ref struct BinaryBufferReader
     }
 
     /// <summary>Reads a list of <see cref="uint"/> from buffer into <paramref name="values"/>.</summary>
-    public void ReadUInt32(in List<uint> values) => ReadUInt32(GetListSpan(in values));
+    public void Read(in List<uint> values) => Read(GetListSpan(in values));
+
     /// <summary>Reads a span of <see cref="long"/> from buffer into <paramref name="values"/>.</summary>
-    public void ReadInt64(in Span<long> values)
+    public void Read(in Span<long> values)
     {
         ReadSpan(values);
         if (Endianness != Platform.Endianness)
@@ -568,10 +572,10 @@ public readonly ref struct BinaryBufferReader
     }
 
     /// <summary>Reads a list of <see cref="long"/> from buffer into <paramref name="values"/>.</summary>
-    public void ReadInt64(in List<long> values) => ReadInt64(GetListSpan(in values));
+    public void Read(in List<long> values) => Read(GetListSpan(in values));
 
     /// <summary>Reads a span of <see cref="ulong"/> from buffer into <paramref name="values"/>.</summary>
-    public void ReadUInt64(in Span<ulong> values)
+    public void Read(in Span<ulong> values)
     {
         ReadSpan(values);
         if (Endianness != Platform.Endianness)
@@ -579,10 +583,10 @@ public readonly ref struct BinaryBufferReader
     }
 
     /// <summary>Reads a list of <see cref="ulong"/> from buffer into <paramref name="values"/>.</summary>
-    public void ReadUInt64(in List<ulong> values) => ReadUInt64(GetListSpan(in values));
+    public void Read(in List<ulong> values) => Read(GetListSpan(in values));
 
     /// <summary>Reads a span of <see cref="Int128"/> from buffer into <paramref name="values"/>.</summary>
-    public void ReadInt128(in Span<Int128> values)
+    public void Read(in Span<Int128> values)
     {
         ReadSpan(values);
         if (Endianness != Platform.Endianness)
@@ -590,9 +594,10 @@ public readonly ref struct BinaryBufferReader
     }
 
     /// <summary>Reads a list of <see cref="Int128"/> from buffer into <paramref name="values"/>.</summary>
-    public void ReadInt128(in List<Int128> values) => ReadInt128(GetListSpan(in values));
+    public void Read(in List<Int128> values) => Read(GetListSpan(in values));
+
     /// <summary>Reads a span of <see cref="UInt128"/> from buffer into <paramref name="values"/>.</summary>
-    public void ReadUInt128(in Span<UInt128> values)
+    public void Read(in Span<UInt128> values)
     {
         ReadSpan(values);
         if (Endianness != Platform.Endianness)
@@ -600,28 +605,28 @@ public readonly ref struct BinaryBufferReader
     }
 
     /// <summary>Reads a list of <see cref="UInt128"/> from buffer into <paramref name="values"/>.</summary>
-    public void ReadUInt128(in List<UInt128> values) => ReadUInt128(GetListSpan(in values));
+    public void Read(in List<UInt128> values) => Read(GetListSpan(in values));
 
     /// <summary>Reads span of Half 32 <see cref="Half"/> from buffer.</summary>
-    public void ReadHalf(in Span<Half> values) => ReadInt16(MemoryMarshal.Cast<Half, short>(values));
+    public void Read(in Span<Half> values) => Read(MemoryMarshal.Cast<Half, short>(values));
 
     /// <summary>Reads a list of <see cref="Half"/> from buffer into <paramref name="values"/>.</summary>
-    public void ReadHalf(in List<Half> values) => ReadHalf(GetListSpan(in values));
+    public void Read(in List<Half> values) => Read(GetListSpan(in values));
 
     /// <summary>Reads span of float 32 <see cref="float"/> from buffer.</summary>
-    public void ReadFloat(in Span<float> values) => ReadInt32(MemoryMarshal.Cast<float, int>(values));
+    public void Read(in Span<float> values) => Read(MemoryMarshal.Cast<float, int>(values));
 
     /// <summary>Reads a list of <see cref="float"/> from buffer into <paramref name="values"/>.</summary>
-    public void ReadFloat(in List<float> values) => ReadFloat(GetListSpan(in values));
+    public void Read(in List<float> values) => Read(GetListSpan(in values));
 
     /// <summary>Reads span of double 32 <see cref="double"/> from buffer.</summary>
-    public void ReadDouble(in Span<double> values) => ReadInt64(MemoryMarshal.Cast<double, long>(values));
+    public void Read(in Span<double> values) => Read(MemoryMarshal.Cast<double, long>(values));
 
     /// <summary>Reads a list of <see cref="double"/> from buffer into <paramref name="values"/>.</summary>
-    public void ReadDouble(in List<double> values) => ReadDouble(GetListSpan(in values));
+    public void Read(in List<double> values) => Read(GetListSpan(in values));
 
     /// <summary>Reads a span of <see cref="Guid"/> from buffer into <paramref name="values"/>.</summary>
-    public void ReadGuid(in Span<Guid> values)
+    public void Read(in Span<Guid> values)
     {
         if (values.IsEmpty) return;
         ref var current = ref MemoryMarshal.GetReference(values);
@@ -635,30 +640,30 @@ public readonly ref struct BinaryBufferReader
     }
 
     /// <summary>Reads a list of <see cref="Guid"/> from buffer into <paramref name="values"/>.</summary>
-    public void ReadGuid(in List<Guid> values) => ReadGuid(GetListSpan(in values));
+    public void Read(in List<Guid> values) => Read(GetListSpan(in values));
 
     /// <summary>Reads a span of <see cref="TimeSpan"/> from buffer into <paramref name="values"/>.</summary>
-    public void ReadTimeSpan(in Span<TimeSpan> values)
+    public void Read(in Span<TimeSpan> values)
     {
         if (values.IsEmpty) return;
-        ReadInt64(MemoryMarshal.Cast<TimeSpan, long>(values));
+        Read(MemoryMarshal.Cast<TimeSpan, long>(values));
     }
 
     /// <summary>Reads a list of <see cref="TimeSpan"/> from buffer into <paramref name="values"/>.</summary>
-    public void ReadTimeSpan(in List<TimeSpan> values) => ReadTimeSpan(GetListSpan(in values));
+    public void Read(in List<TimeSpan> values) => Read(GetListSpan(in values));
 
     /// <summary>Reads a span of <see cref="TimeOnly"/> from buffer into <paramref name="values"/>.</summary>
-    public void ReadTimeOnly(in Span<TimeOnly> values)
+    public void Read(in Span<TimeOnly> values)
     {
         if (values.IsEmpty) return;
-        ReadInt64(MemoryMarshal.Cast<TimeOnly, long>(values));
+        Read(MemoryMarshal.Cast<TimeOnly, long>(values));
     }
 
     /// <summary>Reads a list of <see cref="TimeOnly"/> from buffer into <paramref name="values"/>.</summary>
-    public void ReadTimeOnly(in List<TimeOnly> values) => ReadTimeOnly(GetListSpan(in values));
+    public void Read(in List<TimeOnly> values) => Read(GetListSpan(in values));
 
     /// <summary>Reads a span of <see cref="DateTime"/> from buffer into <paramref name="values"/>.</summary>
-    public void ReadDateTime(in Span<DateTime> values)
+    public void Read(in Span<DateTime> values)
     {
         if (values.IsEmpty) return;
         ref var current = ref MemoryMarshal.GetReference(values);
@@ -672,10 +677,10 @@ public readonly ref struct BinaryBufferReader
     }
 
     /// <summary>Reads a list of <see cref="DateTime"/> from buffer into <paramref name="values"/>.</summary>
-    public void ReadDateTime(in List<DateTime> values) => ReadDateTime(GetListSpan(in values));
+    public void Read(in List<DateTime> values) => Read(GetListSpan(in values));
 
     /// <summary>Reads a span of <see cref="DateTimeOffset"/> from buffer into <paramref name="values"/>.</summary>
-    public void ReadDateTimeOffset(in Span<DateTimeOffset> values)
+    public void Read(in Span<DateTimeOffset> values)
     {
         if (values.IsEmpty) return;
         ref var current = ref MemoryMarshal.GetReference(values);
@@ -689,17 +694,15 @@ public readonly ref struct BinaryBufferReader
     }
 
     /// <summary>Reads a list of <see cref="DateTimeOffset"/> from buffer into <paramref name="values"/>.</summary>
-    public void ReadDateTimeOffset(in List<DateTimeOffset> values) => ReadDateTimeOffset(GetListSpan(in values));
+    public void Read(in List<DateTimeOffset> values) => Read(GetListSpan(in values));
 
     /// <summary>Reads a span of <see cref="DateOnly"/> from buffer into <paramref name="values"/>.</summary>
-    public void ReadDateOnly(in Span<DateOnly> values)
+    public void Read(in Span<DateOnly> values)
     {
         if (values.IsEmpty) return;
-        ReadInt32(MemoryMarshal.Cast<DateOnly, int>(values));
+        Read(MemoryMarshal.Cast<DateOnly, int>(values));
     }
 
     /// <summary>Reads a list of <see cref="DateOnly"/> from buffer into <paramref name="values"/>.</summary>
-    public void ReadDateOnly(in List<DateOnly> values) => ReadDateOnly(GetListSpan(in values));
-
+    public void Read(in List<DateOnly> values) => Read(GetListSpan(in values));
 }
-

@@ -15,7 +15,7 @@ public class BinarySpanReadWriteSpanTests
         writer.Write(value);
         writer.WrittenCount.Should().Be(size);
         Span<short> read = stackalloc short[value.Length];
-        reader.ReadInt16(read);
+        reader.Read(read);
         reader.ReadCount.Should().Be(size);
         return value.AsSpan().SequenceEqual(read);
     }
@@ -27,7 +27,7 @@ public class BinarySpanReadWriteSpanTests
         writer.Write(value);
         writer.WrittenCount.Should().Be(size);
         Span<ushort> read = stackalloc ushort[value.Length];
-        reader.ReadUInt16(read);
+        reader.Read(read);
         reader.ReadCount.Should().Be(size);
         return value.AsSpan().SequenceEqual(read);
     }
@@ -39,7 +39,7 @@ public class BinarySpanReadWriteSpanTests
         writer.Write(value);
         writer.WrittenCount.Should().Be(size);
         Span<int> read = stackalloc int[value.Length];
-        reader.ReadInt32(read);
+        reader.Read(read);
         reader.ReadCount.Should().Be(size);
         return value.AsSpan().SequenceEqual(read);
     }
@@ -51,7 +51,7 @@ public class BinarySpanReadWriteSpanTests
         writer.Write(value);
         writer.WrittenCount.Should().Be(size);
         Span<uint> read = stackalloc uint[value.Length];
-        reader.ReadUInt32(read);
+        reader.Read(read);
         reader.ReadCount.Should().Be(size);
         return value.AsSpan().SequenceEqual(read);
     }
@@ -63,7 +63,7 @@ public class BinarySpanReadWriteSpanTests
         writer.Write(value);
         writer.WrittenCount.Should().Be(size);
         Span<long> read = stackalloc long[value.Length];
-        reader.ReadInt64(read);
+        reader.Read(read);
         reader.ReadCount.Should().Be(size);
         return value.AsSpan().SequenceEqual(read);
     }
@@ -75,7 +75,7 @@ public class BinarySpanReadWriteSpanTests
         writer.Write(value);
         writer.WrittenCount.Should().Be(size);
         Span<ulong> read = stackalloc ulong[value.Length];
-        reader.ReadUInt64(read);
+        reader.Read(read);
         reader.ReadCount.Should().Be(size);
         return value.AsSpan().SequenceEqual(read);
     }
@@ -87,7 +87,7 @@ public class BinarySpanReadWriteSpanTests
         writer.Write(value);
         writer.WrittenCount.Should().Be(size);
         Span<Int128> read = stackalloc Int128[value.Length];
-        reader.ReadInt128(read);
+        reader.Read(read);
         reader.ReadCount.Should().Be(size);
         return value.AsSpan().SequenceEqual(read);
     }
@@ -99,7 +99,7 @@ public class BinarySpanReadWriteSpanTests
         writer.Write(value);
         writer.WrittenCount.Should().Be(size);
         Span<UInt128> read = stackalloc UInt128[value.Length];
-        reader.ReadUInt128(read);
+        reader.Read(read);
         reader.ReadCount.Should().Be(size);
         return value.AsSpan().SequenceEqual(read);
     }
@@ -123,7 +123,7 @@ public class BinarySpanReadWriteSpanTests
         writer.Write(value);
         writer.WrittenCount.Should().Be(size);
         Span<sbyte> read = stackalloc sbyte[value.Length];
-        reader.ReadSByte(read);
+        reader.Read(read);
         reader.ReadCount.Should().Be(size);
         return value.AsSpan().SequenceEqual(read);
     }
@@ -135,7 +135,7 @@ public class BinarySpanReadWriteSpanTests
         writer.Write(value);
         writer.WrittenCount.Should().Be(size);
         Span<char> read = stackalloc char[value.Length];
-        reader.ReadChar(read);
+        reader.Read(read);
         reader.ReadCount.Should().Be(size);
         return value.AsSpan().SequenceEqual(read);
     }
@@ -147,7 +147,7 @@ public class BinarySpanReadWriteSpanTests
         writer.Write(value);
         writer.WrittenCount.Should().Be(size);
         Span<bool> read = stackalloc bool[value.Length];
-        reader.ReadBoolean(read);
+        reader.Read(read);
         reader.ReadCount.Should().Be(size);
         return value.AsSpan().SequenceEqual(read);
     }
