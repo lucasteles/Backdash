@@ -558,17 +558,6 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
     /// <summary>Writes a list of bytes of UTF <see cref="char"/> <paramref name="values"/> into buffer.</summary>
     public void WriteUtf8String(in List<char> values) => WriteUtf8String(GetListSpan(in values));
 
-    /// <summary>Writes an <see cref="char"/> <paramref name="value"/> into buffer as UTF8.</summary>
-    public void WriteUtf8Char(in char value) => WriteUtf8String(Mem.AsSpan(in value));
-
-    /// <inheritdoc cref="Write(in char)"/>
-    public void WriteUtf8Char(in char? value)
-    {
-        Write(value.HasValue);
-        if (value.HasValue)
-            WriteUtf8Char(in Nullable.GetValueRefOrDefaultRef(in value));
-    }
-
     /// <summary>Writes a <see cref="IBinaryInteger{T}"/> <paramref name="value"/> into buffer.</summary>
     /// <typeparam name="T">A numeric type that implements <see cref="IBinaryInteger{T}"/>.</typeparam>
     public void WriteNumber<T>(in T value) where T : unmanaged, IBinaryInteger<T>

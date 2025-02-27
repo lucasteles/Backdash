@@ -16,7 +16,7 @@ public class BinaryBufferReadWriteListTests
         writer.Write(value);
         var reader = GetReader(writer);
         List<byte> read = [];
-        reader.ReadByte(read);
+        reader.Read(read);
         reader.ReadCount.Should().Be(size);
         return value.SequenceEqual(read);
     }

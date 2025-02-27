@@ -224,17 +224,6 @@ public class BinarySpanReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool CharUtf8(char value, Endianness endianness)
-    {
-        var size = Setup<byte>(endianness, out var writer, out var reader);
-        writer.WriteUtf8Char(value);
-        writer.WrittenCount.Should().Be(size);
-        var read = reader.ReadUtf8Char();
-        reader.ReadCount.Should().Be(size);
-        return value == read;
-    }
-
-    [PropertyTest]
     public bool UnmanagedStruct(SimpleStructData value, Endianness endianness)
     {
         var size = Setup<SimpleStructData>(endianness, out var writer, out var reader);

@@ -111,7 +111,7 @@ public class BinarySpanReadWriteSpanTests
         writer.Write(value);
         writer.WrittenCount.Should().Be(size);
         Span<byte> read = stackalloc byte[value.Length];
-        reader.ReadByte(read);
+        reader.Read(read);
         reader.ReadCount.Should().Be(size);
         return value.AsSpan().SequenceEqual(read);
     }
@@ -181,7 +181,7 @@ public class BinarySpanReadWriteSpanTests
         writer.WrittenCount.Should().Be(size);
 
         Span<byte> read = stackalloc byte[utf8Size];
-        reader.ReadByte(read);
+        reader.Read(read);
         reader.ReadCount.Should().Be(utf8Size);
         return utf8Bytes.AsSpan().SequenceEqual(read);
     }

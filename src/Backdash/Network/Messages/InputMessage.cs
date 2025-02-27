@@ -57,7 +57,7 @@ struct InputMessage : IEquatable<InputMessage>, IUtf8SpanFormattable
         InputSize = reader.ReadByte();
         NumBits = reader.ReadUInt16();
         var bitCount = (int)Math.Ceiling(NumBits / (float)ByteSize.ByteToBits);
-        reader.ReadByte(Bits[..bitCount]);
+        reader.Read(Bits[..bitCount]);
     }
 
     public readonly bool TryFormat(

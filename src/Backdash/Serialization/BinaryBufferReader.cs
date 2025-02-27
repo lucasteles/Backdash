@@ -63,13 +63,19 @@ public readonly ref struct BinaryBufferReader
         return span;
     }
 
-    void ReadSpan<T>(in Span<T> data) where T : struct => ReadByte(MemoryMarshal.AsBytes(data));
+    void ReadSpan<T>(in Span<T> data) where T : struct => Read(MemoryMarshal.AsBytes(data));
 
     /// <summary>Reads single <see cref="byte"/> from buffer.</summary>
     public byte ReadByte() => buffer[offset++];
 
+    /// <inheritdoc cref="ReadByte()"/>
+    public byte? ReadNullableByte() => ReadBoolean() ? ReadByte() : null;
+
+    /// <summary>Reads single <see cref="sbyte"/> from buffer.</summary>
+    public sbyte ReadSByte() => unchecked((sbyte)buffer[offset++]);
+
     /// <summary>Reads a span of <see cref="byte"/> from buffer into <paramref name="values"/>.</summary>
-    public void ReadByte(in Span<byte> values)
+    public void Read(in Span<byte> values)
     {
         var length = values.Length;
         if (length > FreeCapacity) length = FreeCapacity;
@@ -80,14 +86,8 @@ public readonly ref struct BinaryBufferReader
     }
 
     /// <summary>Reads a list of <see cref="byte"/> from buffer into <paramref name="values"/>.</summary>
-    public void ReadByte(in List<byte> values) => ReadByte(GetListSpan(in values));
-
-    /// <inheritdoc cref="ReadByte()"/>
-    public byte? ReadNullableByte() => ReadBoolean() ? ReadByte() : null;
-
-    /// <summary>Reads single <see cref="sbyte"/> from buffer.</summary>
-    public sbyte ReadSByte() => unchecked((sbyte)buffer[offset++]);
-
+    public void Read(in List<byte> values) => Read(GetListSpan(in values));
+    
     /// <summary>Reads a span of <see cref="sbyte"/> from buffer into <paramref name="values"/>.</summary>
     public void ReadSByte(in Span<sbyte> values) => ReadSpan(values);
 
@@ -168,17 +168,6 @@ public readonly ref struct BinaryBufferReader
 
     /// <inheritdoc cref="ReadChar()"/>
     public char? ReadNullableChar() => ReadBoolean() ? ReadChar() : null;
-
-    /// <summary>Reads single <see cref="char"/> from buffer.</summary>
-    public char ReadUtf8Char()
-    {
-        Span<char> result = stackalloc char[1];
-        ReadUtf8String(in result);
-        return result[0];
-    }
-
-    /// <inheritdoc cref="ReadUtf8Char()"/>
-    public char? ReadNullableUtf8Char() => ReadBoolean() ? ReadUtf8Char() : null;
 
     /// <summary>Reads a span of UTF8 <see cref="char"/> from buffer into <paramref name="values"/>.</summary>
     public void ReadUtf8String(in Span<char> values)
@@ -492,7 +481,7 @@ public readonly ref struct BinaryBufferReader
 
     /// <summary>Reads an unmanaged struct span from buffer.</summary>
     public void ReadStruct<T>(in Span<T> values) where T : unmanaged =>
-        ReadByte(MemoryMarshal.AsBytes(values));
+        Read(MemoryMarshal.AsBytes(values));
 
     /// <summary>Reads an unmanaged struct list from buffer.</summary>
     public void ReadStruct<T>(in List<T> values) where T : unmanaged =>
@@ -537,6 +526,22 @@ public readonly ref struct BinaryBufferReader
     }
 
     /// <inheritdoc cref="ReadNumber{T}()"/>
+    public void ReadNumber<T>(ref T value) where T : unmanaged, IBinaryInteger<T>, IMinMaxValue<T> =>
+        value = ReadNumber<T>();
+
+    /// <inheritdoc cref="ReadNullableNumber{T}()"/>
+    public void ReadNumber<T>(ref T? value) where T : unmanaged, IBinaryInteger<T>, IMinMaxValue<T> =>
+        value = ReadNullableNumber<T>();
+
+    /// <inheritdoc cref="ReadNumber{T}(bool)"/>
+    public void ReadNumber<T>(ref T value, bool isUnsigned) where T : unmanaged, IBinaryInteger<T> =>
+        value = ReadNumber<T>(isUnsigned);
+
+    /// <inheritdoc cref="ReadNullableNumber{T}(bool)"/>
+    public void ReadNumber<T>(ref T? value, bool isUnsigned) where T : unmanaged, IBinaryInteger<T> =>
+        value = ReadNullableNumber<T>(isUnsigned);
+
+    /// <inheritdoc cref="ReadNumber{T}()"/>
     public T? ReadNullableNumber<T>() where T : unmanaged, IBinaryInteger<T>, IMinMaxValue<T> =>
         ReadBoolean() ? ReadNumber<T>() : null;
 
@@ -545,8 +550,12 @@ public readonly ref struct BinaryBufferReader
         ReadBoolean() ? ReadNumber<T>(isUnsigned) : null;
 
     /// <summary>Reads a <see cref="IBinarySerializable"/> <paramref name="value"/> from buffer.</summary>
-    /// <typeparam name="T">A type that implements <see cref="IBinarySerializable"/>.</typeparam>
-    public void Read<T>(ref T value) where T : IBinarySerializable => value.Deserialize(in this);
+    /// <typeparam name="T">A value type that implements <see cref="IBinarySerializable"/>.</typeparam>
+    public void Read<T>(ref T value) where T : struct, IBinarySerializable => value.Deserialize(in this);
+
+    /// <summary>Reads a <see cref="IBinarySerializable"/> <paramref name="value"/> from buffer.</summary>
+    /// <typeparam name="T">A reference value type that implements <see cref="IBinarySerializable"/>.</typeparam>
+    public void Read<T>(T value) where T : class, IBinarySerializable => value.Deserialize(in this);
 
     /// <summary>Reads a span of <see cref="IBinarySerializable"/> <paramref name="values"/> into buffer.</summary>
     /// <typeparam name="T">A type that implements <see cref="IBinarySerializable"/>.</typeparam>
@@ -571,4 +580,131 @@ public readonly ref struct BinaryBufferReader
     /// <summary>Writes an array of <see cref="IBinarySerializable"/> <paramref name="values"/> into buffer.</summary>
     /// <typeparam name="T">A type that implements <see cref="IBinarySerializable"/>.</typeparam>
     public void Read<T>(in List<T> values) where T : IBinarySerializable => Read(GetListSpan(in values));
+
+    /// <inheritdoc cref="ReadByte()"/>
+    public void Read(ref byte value) => value = ReadByte();
+
+    /// <inheritdoc cref="ReadByte()"/>
+    public void Read(ref byte? value) => value = ReadNullableByte();
+
+    /// <inheritdoc cref="ReadSByte()"/>
+    public void Read(ref sbyte value) => value = ReadSByte();
+
+    /// <inheritdoc cref="ReadSByte()"/>
+    public void Read(ref sbyte? value) => value = ReadNullableSByte();
+
+    /// <inheritdoc cref="ReadBoolean()"/>
+    public void Read(ref bool value) => value = ReadBoolean();
+
+    /// <inheritdoc cref="ReadBoolean()"/>
+    public void Read(ref bool? value) => value = ReadNullableBoolean();
+
+    /// <inheritdoc cref="ReadInt16()"/>
+    public void Read(ref short value) => value = ReadInt16();
+
+    /// <inheritdoc cref="ReadInt16()"/>
+    public void Read(ref short? value) => value = ReadNullableInt16();
+
+    /// <inheritdoc cref="ReadInt16()"/>
+    public void Read(ref ushort value) => value = ReadUInt16();
+
+    /// <inheritdoc cref="ReadInt16()"/>
+    public void Read(ref ushort? value) => value = ReadNullableUInt16();
+
+    /// <inheritdoc cref="ReadChar()"/>
+    public void Read(ref char value) => value = ReadChar();
+
+    /// <inheritdoc cref="ReadChar()"/>
+    public void Read(ref char? value) => value = ReadNullableChar();
+
+    /// <inheritdoc cref="ReadInt32()"/>
+    public void Read(ref int value) => value = ReadInt32();
+
+    /// <inheritdoc cref="ReadInt32()"/>
+    public void Read(ref int? value) => value = ReadNullableInt32();
+
+    /// <inheritdoc cref="ReadUInt32()"/>
+    public void Read(ref uint value) => value = ReadUInt32();
+
+    /// <inheritdoc cref="ReadUInt32()"/>
+    public void Read(ref uint? value) => value = ReadNullableUInt32();
+
+    /// <inheritdoc cref="ReadInt64()"/>
+    public void Read(ref long value) => value = ReadInt64();
+
+    /// <inheritdoc cref="ReadInt64()"/>
+    public void Read(ref long? value) => value = ReadNullableInt64();
+
+    /// <inheritdoc cref="ReadUInt64()"/>
+    public void Read(ref ulong value) => value = ReadUInt64();
+
+    /// <inheritdoc cref="ReadUInt64()"/>
+    public void Read(ref ulong? value) => value = ReadNullableUInt64();
+
+    /// <inheritdoc cref="ReadInt128()"/>
+    public void Read(ref Int128 value) => value = ReadInt128();
+
+    /// <inheritdoc cref="ReadInt128()"/>
+    public void Read(ref Int128? value) => value = ReadNullableInt128();
+
+    /// <inheritdoc cref="ReadUInt128()"/>
+    public void Read(ref UInt128 value) => value = ReadUInt128();
+
+    /// <inheritdoc cref="ReadUInt128()"/>
+    public void Read(ref UInt128? value) => value = ReadNullableUInt128();
+
+    /// <inheritdoc cref="ReadHalf()"/>
+    public void Read(ref Half value) => value = ReadHalf();
+
+    /// <inheritdoc cref="ReadHalf()"/>
+    public void Read(ref Half? value) => value = ReadNullableHalf();
+
+    /// <inheritdoc cref="ReadFloat()"/>
+    public void Read(ref float value) => value = ReadFloat();
+
+    /// <inheritdoc cref="ReadFloat()"/>
+    public void Read(ref float? value) => value = ReadNullableFloat();
+
+    /// <inheritdoc cref="ReadDouble()"/>
+    public void Read(ref double value) => value = ReadDouble();
+
+    /// <inheritdoc cref="ReadDouble()"/>
+    public void Read(ref double? value) => value = ReadNullableDouble();
+
+    /// <inheritdoc cref="ReadGuid()"/>
+    public void Read(ref Guid value) => value = ReadGuid();
+
+    /// <inheritdoc cref="ReadDouble()"/>
+    public void Read(ref Guid? value) => value = ReadNullableGuid();
+
+    /// <inheritdoc cref="ReadTimeSpan()"/>
+    public void Read(ref TimeSpan value) => value = ReadTimeSpan();
+
+    /// <inheritdoc cref="ReadTimeSpan()"/>
+    public void Read(ref TimeSpan? value) => value = ReadNullableTimeSpan();
+
+    /// <inheritdoc cref="ReadDateTime()"/>
+    public void Read(ref DateTime value) => value = ReadDateTime();
+
+    /// <inheritdoc cref="ReadDateTime()"/>
+    public void Read(ref DateTime? value) => value = ReadNullableDateTime();
+
+    /// <inheritdoc cref="ReadDateTimeOffset()"/>
+    public void Read(ref DateTimeOffset value) => value = ReadDateTimeOffset();
+
+    /// <inheritdoc cref="ReadDateTimeOffset()"/>
+    public void Read(ref DateTimeOffset? value) => value = ReadNullableDateTimeOffset();
+
+    /// <inheritdoc cref="ReadTimeOnly()"/>
+    public void Read(ref TimeOnly value) => value = ReadTimeOnly();
+
+    /// <inheritdoc cref="ReadTimeOnly()"/>
+    public void Read(ref TimeOnly? value) => value = ReadNullableTimeOnly();
+
+    /// <inheritdoc cref="ReadDateOnly()"/>
+    public void Read(ref DateOnly value) => value = ReadDateOnly();
+
+    /// <inheritdoc cref="ReadTimeOnly()"/>
+    public void Read(ref DateOnly? value) => value = ReadNullableDateOnly();
 }
+

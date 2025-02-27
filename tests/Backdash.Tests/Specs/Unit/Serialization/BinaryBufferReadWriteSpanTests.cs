@@ -16,7 +16,7 @@ public class BinaryBufferReadWriteSpanTests
         writer.Write(value);
         var reader = GetReader(writer);
         Span<byte> read = stackalloc byte[value.Length];
-        reader.ReadByte(read);
+        reader.Read(read);
         reader.ReadCount.Should().Be(size);
         return value.AsSpan().SequenceEqual(read);
     }
@@ -219,7 +219,7 @@ public class BinaryBufferReadWriteSpanTests
         var reader = GetReader(writer);
 
         Span<byte> read = stackalloc byte[utf8Size];
-        reader.ReadByte(in read);
+        reader.Read(in read);
         reader.ReadCount.Should().Be(utf8Size);
         return utf8Bytes.AsSpan().SequenceEqual(read);
     }

@@ -273,17 +273,6 @@ public class BinaryBufferReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool CharUtf8(char value, Endianness endianness)
-    {
-        var size = Setup<byte>(endianness, out var writer);
-        writer.WriteUtf8Char(value);
-        var reader = GetReader(writer);
-        var read = reader.ReadUtf8Char();
-        reader.ReadCount.Should().Be(size);
-        return value == read;
-    }
-
-    [PropertyTest]
     public bool SingleGuid(Guid value, Endianness endianness)
     {
         var size = Setup<Guid>(endianness, out var writer);
@@ -676,18 +665,6 @@ public class BinaryBufferReadWriteValueTests
             writer.Write(value);
             var reader = GetReader(writer);
             var read = reader.ReadNullableQuaternion();
-            reader.ReadCount.Should().Be(size);
-            return value == read;
-        }
-
-        [PropertyTest]
-        public bool CharUtf8(char? value, Endianness endianness)
-        {
-            var size = Setup<byte>(endianness, out var writer);
-            size = (value.HasValue ? size : 0) + 1;
-            writer.WriteUtf8Char(value);
-            var reader = GetReader(writer);
-            var read = reader.ReadNullableUtf8Char();
             reader.ReadCount.Should().Be(size);
             return value == read;
         }
