@@ -21,7 +21,8 @@ public class BinaryBufferReadWriteValueTests
         var size = Setup<byte>(endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
-        var read = reader.ReadByte();
+        byte read = 0;
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
@@ -32,7 +33,8 @@ public class BinaryBufferReadWriteValueTests
         var size = Setup<sbyte>(endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
-        var read = reader.ReadSByte();
+        sbyte read = 0;
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
@@ -43,7 +45,8 @@ public class BinaryBufferReadWriteValueTests
         var size = Setup<bool>(endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
-        var read = reader.ReadBoolean();
+        bool read = false;
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
@@ -54,7 +57,8 @@ public class BinaryBufferReadWriteValueTests
         var size = Setup<char>(endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
-        var read = reader.ReadChar();
+        char read = '\0';
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
@@ -65,7 +69,8 @@ public class BinaryBufferReadWriteValueTests
         var size = Setup<short>(endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
-        var read = reader.ReadInt16();
+        short read = 0;
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
@@ -76,7 +81,8 @@ public class BinaryBufferReadWriteValueTests
         var size = Setup<ushort>(endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
-        var read = reader.ReadUInt16();
+        ushort read = 0;
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
@@ -87,7 +93,8 @@ public class BinaryBufferReadWriteValueTests
         var size = Setup<int>(endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
-        var read = reader.ReadInt32();
+        int read = 0;
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
@@ -98,7 +105,8 @@ public class BinaryBufferReadWriteValueTests
         var size = Setup<uint>(endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
-        var read = reader.ReadUInt32();
+        uint read = 0;
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
@@ -109,7 +117,8 @@ public class BinaryBufferReadWriteValueTests
         var size = Setup<long>(endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
-        var read = reader.ReadInt64();
+        long read = 0;
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
@@ -120,7 +129,8 @@ public class BinaryBufferReadWriteValueTests
         var size = Setup<ulong>(endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
-        var read = reader.ReadUInt64();
+        ulong read = 0;
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
@@ -131,7 +141,8 @@ public class BinaryBufferReadWriteValueTests
         var size = Setup<Int128>(endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
-        var read = reader.ReadInt128();
+        Int128 read = 0;
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
@@ -142,7 +153,8 @@ public class BinaryBufferReadWriteValueTests
         var size = Setup<UInt128>(endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
-        var read = reader.ReadUInt128();
+        UInt128 read = 0;
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
@@ -153,7 +165,8 @@ public class BinaryBufferReadWriteValueTests
         var size = Setup<Half>(endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
-        var read = reader.ReadHalf();
+        Half read = default;
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
@@ -164,7 +177,8 @@ public class BinaryBufferReadWriteValueTests
         var size = Setup<float>(endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
-        var read = reader.ReadFloat();
+        float read = 0f;
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
@@ -175,7 +189,8 @@ public class BinaryBufferReadWriteValueTests
         var size = Setup<double>(endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
-        var read = reader.ReadDouble();
+        double read = 0;
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
@@ -186,7 +201,8 @@ public class BinaryBufferReadWriteValueTests
         var size = Setup<Vector2>(endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
-        var read = reader.ReadVector2();
+        Vector2 read = default;
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
@@ -209,7 +225,8 @@ public class BinaryBufferReadWriteValueTests
         var size = Setup<Vector3>(endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
-        var read = reader.ReadVector3();
+        Vector3 read = default;
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
@@ -232,7 +249,8 @@ public class BinaryBufferReadWriteValueTests
         var size = Setup<Vector4>(endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
-        var read = reader.ReadVector4();
+        Vector4 read = default;
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
@@ -255,7 +273,8 @@ public class BinaryBufferReadWriteValueTests
         var size = Setup<Quaternion>(endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
-        var read = reader.ReadQuaternion();
+        Quaternion read = default;
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
@@ -278,7 +297,8 @@ public class BinaryBufferReadWriteValueTests
         var size = Setup<Guid>(endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
-        var read = reader.ReadGuid();
+        Guid read = Guid.Empty;
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
@@ -289,7 +309,8 @@ public class BinaryBufferReadWriteValueTests
         var size = Setup<TimeSpan>(endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
-        var read = reader.ReadTimeSpan();
+        TimeSpan read = TimeSpan.Zero;
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
@@ -300,7 +321,8 @@ public class BinaryBufferReadWriteValueTests
         var size = Setup<TimeOnly>(endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
-        var read = reader.ReadTimeOnly();
+        TimeOnly read = default;
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
@@ -312,7 +334,8 @@ public class BinaryBufferReadWriteValueTests
         var size = Setup<DateTime>(endianness, out var writer) + kindSize;
         writer.Write(value);
         var reader = GetReader(writer);
-        var read = reader.ReadDateTime();
+        DateTime read = default;
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
@@ -323,7 +346,8 @@ public class BinaryBufferReadWriteValueTests
         var size = Setup<DateTimeOffset>(endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
-        var read = reader.ReadDateTimeOffset();
+        DateTimeOffset read = default;
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
@@ -334,7 +358,8 @@ public class BinaryBufferReadWriteValueTests
         var size = Setup<DateOnly>(endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
-        var read = reader.ReadDateOnly();
+        DateOnly read = default;
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
@@ -431,7 +456,8 @@ public class BinaryBufferReadWriteValueTests
             var size = Setup<T>(endianness, out var writer);
             writer.WriteNumber(value);
             var reader = GetReader(writer);
-            var read = reader.ReadNumber<T>();
+            T read = default;
+            reader.ReadNumber(ref read);
             reader.ReadCount.Should().Be(size);
             return EqualityComparer<T>.Default.Equals(read, value);
         }
