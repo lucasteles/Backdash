@@ -62,9 +62,7 @@ sealed class EnumBinarySerializer<TEnum, TInt>(IBinarySerializer<TInt> serialize
     public int Deserialize(ReadOnlySpan<byte> data, ref TEnum value)
     {
         ref var underValue = ref Mem.EnumAsInteger<TEnum, TInt>(in value);
-        var size = serializer.Deserialize(data, ref underValue);
-        value = ref Mem.IntegerAsEnum<TEnum, TInt>(ref underValue);
-        return size;
+        return serializer.Deserialize(data, ref underValue);
     }
 }
 
