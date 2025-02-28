@@ -729,4 +729,187 @@ public readonly ref struct BinaryBufferReader
         var value = ReadNullableByte();
         return Unsafe.As<byte?, T?>(ref value);
     }
+
+    /// <summary>Reads a <see cref="sbyte"/> from buffer and reinterprets it as <typeparamref name="T"/>.</summary>
+    public T ReadAsSByte<T>() where T : unmanaged
+    {
+        var value = ReadSByte();
+        return Unsafe.As<sbyte, T>(ref value);
+    }
+
+    /// <inheritdoc cref="ReadAsSByte{T}()"/>
+    public void ReadAsSByte<T>(ref T value) where T : unmanaged => Read(ref Unsafe.As<T, sbyte>(ref value));
+
+    /// <inheritdoc cref="ReadAsSByte{T}()"/>
+    public void ReadAsSByte<T>(ref T? value) where T : unmanaged => Read(ref Unsafe.As<T?, sbyte?>(ref value));
+
+    /// <inheritdoc cref="ReadAsSByte{T}()"/>
+    public void ReadAsSByte<T>(in Span<T> values) where T : unmanaged => Read(MemoryMarshal.Cast<T, sbyte>(values));
+
+    /// <inheritdoc cref="ReadAsSByte{T}()"/>
+    public void ReadAsSByte<T>(in List<T> values) where T : unmanaged => ReadAsSByte(GetListSpan(in values));
+
+    /// <inheritdoc cref="ReadAsSByte{T}()"/>
+    public T? ReadAsNullableSByte<T>() where T : unmanaged, Enum
+    {
+        var value = ReadNullableSByte();
+        return Unsafe.As<sbyte?, T?>(ref value);
+    }
+
+
+    /// <summary>Reads a <see cref="short"/> from buffer and reinterprets it as <typeparamref name="T"/>.</summary>
+    public T ReadAsInt16<T>() where T : unmanaged
+    {
+        var value = ReadInt16();
+        return Unsafe.As<short, T>(ref value);
+    }
+
+    /// <inheritdoc cref="ReadAsInt16{T}()"/>
+    public void ReadAsInt16<T>(ref T value) where T : unmanaged => Read(ref Unsafe.As<T, short>(ref value));
+
+    /// <inheritdoc cref="ReadAsInt16{T}()"/>
+    public void ReadAsInt16<T>(ref T? value) where T : unmanaged => Read(ref Unsafe.As<T?, short?>(ref value));
+
+    /// <inheritdoc cref="ReadAsInt16{T}()"/>
+    public void ReadAsInt16<T>(in Span<T> values) where T : unmanaged => Read(MemoryMarshal.Cast<T, short>(values));
+
+    /// <inheritdoc cref="ReadAsInt16{T}()"/>
+    public void ReadAsInt16<T>(in List<T> values) where T : unmanaged => ReadAsInt16(GetListSpan(in values));
+
+    /// <inheritdoc cref="ReadAsInt16{T}()"/>
+    public T? ReadAsNullableInt16<T>() where T : unmanaged, Enum
+    {
+        var value = ReadNullableInt16();
+        return Unsafe.As<short?, T?>(ref value);
+    }
+
+    /// <summary>Reads a <see cref="ushort"/> from buffer and reinterprets it as <typeparamref name="T"/>.</summary>
+    public T ReadAsUInt16<T>() where T : unmanaged
+    {
+        var value = ReadUInt16();
+        return Unsafe.As<ushort, T>(ref value);
+    }
+
+    /// <inheritdoc cref="ReadAsUInt16{T}()"/>
+    public void ReadAsUInt16<T>(ref T value) where T : unmanaged => Read(ref Unsafe.As<T, ushort>(ref value));
+
+    /// <inheritdoc cref="ReadAsUInt16{T}()"/>
+    public void ReadAsUInt16<T>(ref T? value) where T : unmanaged => Read(ref Unsafe.As<T?, ushort?>(ref value));
+
+    /// <inheritdoc cref="ReadAsUInt16{T}()"/>
+    public void ReadAsUInt16<T>(in Span<T> values) where T : unmanaged => Read(MemoryMarshal.Cast<T, ushort>(values));
+
+    /// <inheritdoc cref="ReadAsUInt16{T}()"/>
+    public void ReadAsUInt16<T>(in List<T> values) where T : unmanaged => ReadAsUInt16(GetListSpan(in values));
+
+    /// <inheritdoc cref="ReadAsUInt16{T}()"/>
+    public T? ReadAsNullableUInt16<T>() where T : unmanaged, Enum
+    {
+        var value = ReadNullableUInt16();
+        return Unsafe.As<ushort?, T?>(ref value);
+    }
+
+    /// <summary>Reads a <see cref="int"/> from buffer and reinterprets it as <typeparamref name="T"/>.</summary>
+    public T ReadAsInt32<T>() where T : unmanaged
+    {
+        var value = ReadInt32();
+        return Unsafe.As<int, T>(ref value);
+    }
+
+    /// <inheritdoc cref="ReadAsInt32{T}()"/>
+    public void ReadAsInt32<T>(ref T value) where T : unmanaged => Read(ref Unsafe.As<T, int>(ref value));
+
+    /// <inheritdoc cref="ReadAsInt32{T}()"/>
+    public void ReadAsInt32<T>(ref T? value) where T : unmanaged => Read(ref Unsafe.As<T?, int?>(ref value));
+
+    /// <inheritdoc cref="ReadAsInt32{T}()"/>
+    public void ReadAsInt32<T>(in Span<T> values) where T : unmanaged => Read(MemoryMarshal.Cast<T, int>(values));
+
+    /// <inheritdoc cref="ReadAsInt32{T}()"/>
+    public void ReadAsInt32<T>(in List<T> values) where T : unmanaged => ReadAsInt32(GetListSpan(in values));
+
+    /// <inheritdoc cref="ReadAsInt32{T}()"/>
+    public T? ReadAsNullableInt32<T>() where T : unmanaged, Enum
+    {
+        var value = ReadNullableInt32();
+        return Unsafe.As<int?, T?>(ref value);
+    }
+
+    /// <summary>Reads a <see cref="uint"/> from buffer and reinterprets it as <typeparamref name="T"/>.</summary>
+    public T ReadAsUInt32<T>() where T : unmanaged
+    {
+        var value = ReadUInt32();
+        return Unsafe.As<uint, T>(ref value);
+    }
+
+    /// <inheritdoc cref="ReadAsUInt32{T}()"/>
+    public void ReadAsUInt32<T>(ref T value) where T : unmanaged => Read(ref Unsafe.As<T, uint>(ref value));
+
+    /// <inheritdoc cref="ReadAsUInt32{T}()"/>
+    public void ReadAsUInt32<T>(ref T? value) where T : unmanaged => Read(ref Unsafe.As<T?, uint?>(ref value));
+
+    /// <inheritdoc cref="ReadAsUInt32{T}()"/>
+    public void ReadAsUInt32<T>(in Span<T> values) where T : unmanaged => Read(MemoryMarshal.Cast<T, uint>(values));
+
+    /// <inheritdoc cref="ReadAsUInt32{T}()"/>
+    public void ReadAsUInt32<T>(in List<T> values) where T : unmanaged => ReadAsUInt32(GetListSpan(in values));
+
+    /// <inheritdoc cref="ReadAsUInt32{T}()"/>
+    public T? ReadAsNullableUInt32<T>() where T : unmanaged, Enum
+    {
+        var value = ReadNullableUInt32();
+        return Unsafe.As<uint?, T?>(ref value);
+    }
+
+    /// <summary>Reads a <see cref="long"/> from buffer and relongerprets it as <typeparamref name="T"/>.</summary>
+    public T ReadAsInt64<T>() where T : unmanaged
+    {
+        var value = ReadInt64();
+        return Unsafe.As<long, T>(ref value);
+    }
+
+    /// <inheritdoc cref="ReadAsInt64{T}()"/>
+    public void ReadAsInt64<T>(ref T value) where T : unmanaged => Read(ref Unsafe.As<T, long>(ref value));
+
+    /// <inheritdoc cref="ReadAsInt64{T}()"/>
+    public void ReadAsInt64<T>(ref T? value) where T : unmanaged => Read(ref Unsafe.As<T?, long?>(ref value));
+
+    /// <inheritdoc cref="ReadAsInt64{T}()"/>
+    public void ReadAsInt64<T>(in Span<T> values) where T : unmanaged => Read(MemoryMarshal.Cast<T, long>(values));
+
+    /// <inheritdoc cref="ReadAsInt64{T}()"/>
+    public void ReadAsInt64<T>(in List<T> values) where T : unmanaged => ReadAsInt64(GetListSpan(in values));
+
+    /// <inheritdoc cref="ReadAsInt64{T}()"/>
+    public T? ReadAsNullableInt64<T>() where T : unmanaged, Enum
+    {
+        var value = ReadNullableInt64();
+        return Unsafe.As<long?, T?>(ref value);
+    }
+
+    /// <summary>Reads a <see cref="ulong"/> from buffer and relongerprets it as <typeparamref name="T"/>.</summary>
+    public T ReadAsUInt64<T>() where T : unmanaged
+    {
+        var value = ReadUInt64();
+        return Unsafe.As<ulong, T>(ref value);
+    }
+
+    /// <inheritdoc cref="ReadAsUInt64{T}()"/>
+    public void ReadAsUInt64<T>(ref T value) where T : unmanaged => Read(ref Unsafe.As<T, ulong>(ref value));
+
+    /// <inheritdoc cref="ReadAsUInt64{T}()"/>
+    public void ReadAsUInt64<T>(ref T? value) where T : unmanaged => Read(ref Unsafe.As<T?, ulong?>(ref value));
+
+    /// <inheritdoc cref="ReadAsUInt64{T}()"/>
+    public void ReadAsUInt64<T>(in Span<T> values) where T : unmanaged => Read(MemoryMarshal.Cast<T, ulong>(values));
+
+    /// <inheritdoc cref="ReadAsUInt64{T}()"/>
+    public void ReadAsUInt64<T>(in List<T> values) where T : unmanaged => ReadAsUInt64(GetListSpan(in values));
+
+    /// <inheritdoc cref="ReadAsUInt64{T}()"/>
+    public T? ReadAsNullableUInt64<T>() where T : unmanaged, Enum
+    {
+        var value = ReadNullableUInt64();
+        return Unsafe.As<ulong?, T?>(ref value);
+    }
 }

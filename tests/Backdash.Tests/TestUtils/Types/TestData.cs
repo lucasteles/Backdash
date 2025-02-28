@@ -113,7 +113,7 @@ public enum SByteEnum : sbyte
 }
 
 [Flags]
-public enum UShortEnum : ushort
+public enum UInt16Enum : ushort
 {
     None = 0,
 
@@ -137,7 +137,7 @@ public enum UShortEnum : ushort
 }
 
 [Flags]
-public enum ShortEnum : short
+public enum Int16Enum : short
 {
     None = 0,
 
@@ -160,7 +160,7 @@ public enum ShortEnum : short
 }
 
 [Flags]
-public enum UIntEnum : uint
+public enum UInt32Enum : uint
 {
     None = 0,
     A1 = 1u << 0,
@@ -201,7 +201,7 @@ public enum UIntEnum : uint
 }
 
 [Flags]
-public enum IntEnum : int
+public enum Int32Enum : int
 {
     None = 0,
     A1 = 1 << 0,
@@ -242,7 +242,7 @@ public enum IntEnum : int
 }
 
 [Flags]
-public enum ULongEnum : ulong
+public enum UInt64Enum : ulong
 {
     None = 0,
     A1 = 1ul << 0,
@@ -319,7 +319,7 @@ public enum ULongEnum : ulong
 }
 
 [Flags]
-public enum LongEnum : long
+public enum Int64Enum : long
 {
     None = 0,
     A1 = 1L << 0,
