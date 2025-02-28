@@ -432,7 +432,7 @@ public class BinaryBufferReadWriteValueTests
             reader.ReadAsByte(ref read);
             reader.ReadCount.Should().Be(size);
 
-            readOffset = 0;
+            ResetRead();
             var otherRead = reader.ReadAsByte<ByteEnum>();
             reader.ReadCount.Should().Be(size);
             otherRead.Should().Be(read);
@@ -450,7 +450,7 @@ public class BinaryBufferReadWriteValueTests
             reader.ReadAsSByte(ref read);
             reader.ReadCount.Should().Be(size);
 
-            readOffset = 0;
+            ResetRead();
             var otherRead = reader.ReadAsSByte<SByteEnum>();
             reader.ReadCount.Should().Be(size);
             otherRead.Should().Be(read);
@@ -468,7 +468,7 @@ public class BinaryBufferReadWriteValueTests
             reader.ReadAsInt16(ref read);
             reader.ReadCount.Should().Be(size);
 
-            readOffset = 0;
+            ResetRead();
             var otherRead = reader.ReadAsInt16<Int16Enum>();
             reader.ReadCount.Should().Be(size);
             otherRead.Should().Be(read);
@@ -486,7 +486,7 @@ public class BinaryBufferReadWriteValueTests
             reader.ReadAsUInt16(ref read);
             reader.ReadCount.Should().Be(size);
 
-            readOffset = 0;
+            ResetRead();
             var otherRead = reader.ReadAsUInt16<UInt16Enum>();
             reader.ReadCount.Should().Be(size);
             otherRead.Should().Be(read);
@@ -504,7 +504,7 @@ public class BinaryBufferReadWriteValueTests
             reader.ReadAsInt32(ref read);
             reader.ReadCount.Should().Be(size);
 
-            readOffset = 0;
+            ResetRead();
             var otherRead = reader.ReadAsInt32<Int32Enum>();
             reader.ReadCount.Should().Be(size);
             otherRead.Should().Be(read);
@@ -522,7 +522,7 @@ public class BinaryBufferReadWriteValueTests
             reader.ReadAsUInt32(ref read);
             reader.ReadCount.Should().Be(size);
 
-            readOffset = 0;
+            ResetRead();
             var otherRead = reader.ReadAsUInt32<UInt32Enum>();
             reader.ReadCount.Should().Be(size);
             otherRead.Should().Be(read);
@@ -540,7 +540,7 @@ public class BinaryBufferReadWriteValueTests
             reader.ReadAsInt64(ref read);
             reader.ReadCount.Should().Be(size);
 
-            readOffset = 0;
+            ResetRead();
             var otherRead = reader.ReadAsInt64<Int64Enum>();
             reader.ReadCount.Should().Be(size);
             otherRead.Should().Be(read);
@@ -558,7 +558,7 @@ public class BinaryBufferReadWriteValueTests
             reader.ReadAsUInt64(ref read);
             reader.ReadCount.Should().Be(size);
 
-            readOffset = 0;
+            ResetRead();
             var otherRead = reader.ReadAsUInt64<UInt64Enum>();
             reader.ReadCount.Should().Be(size);
             otherRead.Should().Be(read);
@@ -568,6 +568,8 @@ public class BinaryBufferReadWriteValueTests
     }
 
     static int readOffset;
+
+    public static void ResetRead() => readOffset = 0;
 
     public static int Setup<T>(Endianness endianness, out BinaryBufferWriter writer) where T : unmanaged
     {
