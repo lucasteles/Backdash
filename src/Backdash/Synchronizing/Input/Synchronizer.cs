@@ -40,7 +40,7 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
         this.checksumProvider = checksumProvider;
         this.localConnections = localConnections;
 
-        endianness = Platform.GetEndianness(options.UseNetworkEndianness);
+        endianness = options.StateSerializationEndianness ?? Platform.GetEndianness(options.UseNetworkEndianness);
         stateStore.Initialize(options.PredictionFrames + options.PredictionFramesOffset);
         inputQueues = new(2);
     }
