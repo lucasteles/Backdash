@@ -1,4 +1,4 @@
-﻿namespace Backdash.Data;
+namespace Backdash.Data;
 
 /// <summary>
 /// Defines a object pooling contract

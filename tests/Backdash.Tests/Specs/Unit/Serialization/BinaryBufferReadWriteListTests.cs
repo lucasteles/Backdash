@@ -1,9 +1,11 @@
 using System.Buffers;
 using System.Runtime.CompilerServices;
+using Backdash.Data;
 using Backdash.Network;
 using Backdash.Serialization;
 using Backdash.Tests.TestUtils;
 using Backdash.Tests.TestUtils.Types;
+using FsCheck.Fluent;
 
 namespace Backdash.Tests.Specs.Unit.Serialization;
 
@@ -273,7 +275,6 @@ public class BinaryBufferReadWriteListTests
         return value.SequenceEqual(read);
     }
 
-
     [PropertyTest]
     public bool ListOfSerializableClass(List<SimpleRefData> value, Endianness endianness)
     {
@@ -387,6 +388,63 @@ public class BinaryBufferReadWriteListTests
         }
     }
 
+    [Fact]
+    public void ShouldRentClassFromPoolWhenExpandEmptyList()
+    {
+        TestObjectPool<SimpleRefData> pool = new();
+        var values = TestGenerators.For<SimpleRefData>().Sample(10).ToList();
+
+        Setup(Endianness.LittleEndian, out var writer);
+        writer.Write(in values);
+
+        var reader = GetReader(writer);
+        List<SimpleRefData> copy = [];
+        reader.Read(copy, pool);
+
+        pool.RentCount.Should().Be(10);
+        pool.ReturnCount.Should().Be(0);
+        copy.Should().Equal(values);
+    }
+
+    [Fact]
+    public void ShouldRentedClassFromPoolWhenExpandInitializedList()
+    {
+        TestObjectPool<SimpleRefData> pool = new();
+        var values = TestGenerators.For<SimpleRefData>().Sample(10).ToList();
+
+        Setup(Endianness.LittleEndian, out var writer);
+        writer.Write(in values);
+
+        var reader = GetReader(writer);
+        var copy = TestGenerators.For<SimpleRefData>().Sample(5).ToList();
+        reader.Read(copy, pool);
+
+        copy.Should().Equal(values);
+        pool.RentCount.Should().Be(5);
+        pool.ReturnCount.Should().Be(0);
+    }
+
+    [Fact]
+    public void ShouldReturnRentedClassFromPoolWhenExpandInitializedList()
+    {
+        TestObjectPool<SimpleRefData> pool = new();
+        var target = TestGenerators.For<SimpleRefData>().Sample(5).ToList();
+
+        Setup(Endianness.LittleEndian, out var writer);
+        writer.Write(in target);
+
+        var reader = GetReader(writer);
+        var source1 = TestGenerators.For<SimpleRefData>().Sample(5).ToList();
+        var source2 = TestGenerators.For<SimpleRefData>().Sample(5).ToList();
+        List<SimpleRefData> source = [.. source1, .. source2];
+
+        reader.Read(source, pool);
+
+        source1.Should().Equal(target);
+        pool.RentCount.Should().Be(0);
+        pool.ReturnCount.Should().Be(5);
+        pool.Returned.Should().Equal(source2);
+    }
 
     static int readOffset;
 
@@ -415,5 +473,22 @@ public class BinaryBufferReadWriteListTests
     {
         var buffer = (ArrayBufferWriter<byte>)writer.Buffer;
         return new(buffer.WrittenSpan, ref readOffset, writer.Endianness);
+    }
+
+    class TestObjectPool<T> : IObjectPool<T> where T : new()
+    {
+        readonly List<T> returned = [];
+
+        public int RentCount { get; private set; }
+        public int ReturnCount => returned.Count;
+        public IReadOnlyList<T> Returned => returned.AsReadOnly();
+
+        public T Rent()
+        {
+            RentCount++;
+            return new();
+        }
+
+        public void Return(T value) => returned.Add(value);
     }
 }

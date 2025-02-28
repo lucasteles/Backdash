@@ -17,13 +17,19 @@ public sealed class PropertyTestAttribute : FsCheck.Xunit.PropertyAttribute
     {
         QuietOnSuccess = true;
         MaxTest = 100;
-        Arbitrary = [typeof(PropertyTestGenerators)];
+        Arbitrary = [typeof(TestGenerators)];
     }
 }
 
 [Serializable]
-abstract class PropertyTestGenerators
+abstract class TestGenerators
 {
+    static readonly Config config = Config.Default.WithArbitrary([typeof(TestGenerators)]);
+
+    public static Gen<T> For<T>() => config.ArbMap.GeneratorFor<T>();
+
+    public static T One<T>() => For<T>().Sample(1).Single();
+
     static Arbitrary<float> FloatGenerator() =>
         ArbMap.Default.GeneratorFor<float>()
             .Where(float.IsNormal)
