@@ -337,10 +337,32 @@ public readonly ref struct BinaryBufferReader
     public T? ReadNullableNumber<T>(bool isUnsigned) where T : unmanaged, IBinaryInteger<T> =>
         ReadBoolean() ? ReadNumber<T>(isUnsigned) : null;
 
+    /// <summary>Reads a <see cref="IBinarySerializable"/> <typeparamref name="T"/> from buffer.</summary>
+    /// <typeparam name="T">A value type that implements <see cref="IBinarySerializable"/>.</typeparam>
+    public T? ReadNullable<T>() where T : struct, IBinarySerializable
+    {
+        T? value = new();
+        Read(ref value);
+        return value;
+    }
 
     /// <summary>Reads a <see cref="IBinarySerializable"/> <paramref name="value"/> from buffer.</summary>
     /// <typeparam name="T">A value type that implements <see cref="IBinarySerializable"/>.</typeparam>
     public void Read<T>(ref T value) where T : struct, IBinarySerializable => value.Deserialize(in this);
+
+    /// <summary>Reads a <see cref="IBinarySerializable"/> <typeparamref name="T"/> from buffer.</summary>
+    /// <typeparam name="T">A value type that implements <see cref="IBinarySerializable"/>.</typeparam>
+    public T Read<T>() where T : struct, IBinarySerializable
+    {
+        T value = new();
+        value.Deserialize(in this);
+        return value;
+    }
+
+    /// <summary>Reads a <see cref="IBinarySerializable"/> <paramref name="value"/> from buffer.</summary>
+    /// <typeparam name="T">A value type that implements <see cref="IBinarySerializable"/>.</typeparam>
+    public void Read<T>(ref T? value) where T : struct, IBinarySerializable =>
+        value = ReadBoolean() ? Read<T>() : null;
 
     /// <summary>Reads a span of <see cref="IBinarySerializable"/> <paramref name="values"/> into buffer.</summary>
     /// <typeparam name="T">A list of a value type that implements <see cref="IBinarySerializable"/>.</typeparam>

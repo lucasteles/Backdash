@@ -33,7 +33,7 @@ public sealed record Ship : IBinarySerializable
         writer.Write(in Invincible);
         writer.Write(in Score);
         writer.Write(in Thrust);
-        writer.Write(in Missile);
+        writer.Write(Missile);
 
         // Caution: WriteStruct not normalize endianness
         writer.WriteStruct(in Bullets);

@@ -306,6 +306,27 @@ public class BinaryBufferReadWriteNullableValues
         return value == read;
     }
 
+    [PropertyTest]
+    public bool SerializableValueType(SimpleStructData? value, SimpleStructData? result, Endianness endianness)
+    {
+        var size = Setup(value, endianness, out var writer);
+
+        writer.Write(in value);
+        writer.WrittenCount.Should().Be(size);
+
+        var reader = GetReader(writer);
+        reader.Read(ref result);
+        reader.ReadCount.Should().Be(size);
+
+        ResetRead();
+        var otherRead = reader.ReadNullable<SimpleStructData>();
+        reader.ReadCount.Should().Be(size);
+        otherRead.Should().Be(result);
+
+        return value == result;
+    }
+
+
     [Collection(SerialCollectionDefinition.Name)]
     public class BinaryIntegerTests
     {

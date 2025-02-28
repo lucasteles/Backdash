@@ -380,7 +380,7 @@ public class BinaryBufferReadWriteValueTests
     {
         var size = Setup<SimpleStructData>(endianness, out var writer);
 
-        writer.Write(in value);
+        writer.Write(value);
         writer.WrittenCount.Should().Be(size);
 
         var reader = GetReader(writer);

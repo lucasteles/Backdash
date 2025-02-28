@@ -481,10 +481,24 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
     /// <summary>Writes a list of bytes of <see cref="DateOnly"/> <paramref name="values"/> into buffer.</summary>
     public void Write(in List<DateOnly> values) => Write(GetListSpan(in values));
 
+    /// <summary>Writes a <see cref="IBinarySerializable"/> <paramref name="value"/> into buffer.</summary>
+    /// <typeparam name="T">A type that implements <see cref="IBinarySerializable"/>.</typeparam>
+    // ReSharper disable once PossiblyImpureMethodCallOnReadonlyVariable
+    public void Write<T>(ref readonly T value) where T : struct, IBinarySerializable => value.Serialize(in this);
 
     /// <summary>Writes a <see cref="IBinarySerializable"/> <paramref name="value"/> into buffer.</summary>
     /// <typeparam name="T">A type that implements <see cref="IBinarySerializable"/>.</typeparam>
-    public void Write<T>(in T value) where T : IBinarySerializable => value.Serialize(in this);
+    public void Write<T>(ref readonly T? value) where T : struct, IBinarySerializable
+    {
+        Write(value.HasValue);
+        // ReSharper disable once PossiblyImpureMethodCallOnReadonlyVariable
+        if (value.HasValue)
+            Nullable.GetValueRefOrDefaultRef(in value).Serialize(in this);
+    }
+
+    /// <summary>Writes a <see cref="IBinarySerializable"/> <paramref name="value"/> into buffer.</summary>
+    /// <typeparam name="T">A type that implements <see cref="IBinarySerializable"/>.</typeparam>
+    public void Write<T>(T value) where T : class, IBinarySerializable => value.Serialize(in this);
 
     /// <summary>Writes span of <see cref="IBinarySerializable"/> <paramref name="values"/> into buffer.</summary>
     /// <typeparam name="T">A type that implements <see cref="IBinarySerializable"/>.</typeparam>
