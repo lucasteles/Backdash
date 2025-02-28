@@ -428,21 +428,13 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
     public void Write(in List<Guid> values) => Write(GetListSpan(in values));
 
     /// <summary>Writes a span of <see cref="TimeSpan"/> <paramref name="values"/> into buffer.</summary>
-    public void Write(in ReadOnlySpan<TimeSpan> values)
-    {
-        if (values.IsEmpty) return;
-        Write(MemoryMarshal.Cast<TimeSpan, long>(values));
-    }
+    public void Write(in ReadOnlySpan<TimeSpan> values) => Write(MemoryMarshal.Cast<TimeSpan, long>(values));
 
     /// <summary>Writes a list of bytes of <see cref="TimeSpan"/> <paramref name="values"/> into buffer.</summary>
     public void Write(in List<TimeSpan> values) => Write(GetListSpan(in values));
 
     /// <summary>Writes a span of <see cref="TimeOnly"/> <paramref name="values"/> into buffer.</summary>
-    public void Write(in ReadOnlySpan<TimeOnly> values)
-    {
-        if (values.IsEmpty) return;
-        Write(MemoryMarshal.Cast<TimeOnly, long>(values));
-    }
+    public void Write(in ReadOnlySpan<TimeOnly> values) => Write(MemoryMarshal.Cast<TimeOnly, long>(values));
 
     /// <summary>Writes a list of bytes of <see cref="TimeOnly"/> <paramref name="values"/> into buffer.</summary>
     public void Write(in List<TimeOnly> values) => Write(GetListSpan(in values));
@@ -484,11 +476,7 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
     public void Write(in List<DateTimeOffset> values) => Write(GetListSpan(in values));
 
     /// <summary>Writes a span of <see cref="DateOnly"/> <paramref name="values"/> into buffer.</summary>
-    public void Write(in ReadOnlySpan<DateOnly> values)
-    {
-        if (values.IsEmpty) return;
-        Write(MemoryMarshal.Cast<DateOnly, int>(values));
-    }
+    public void Write(in ReadOnlySpan<DateOnly> values) => Write(MemoryMarshal.Cast<DateOnly, int>(values));
 
     /// <summary>Writes a list of bytes of <see cref="DateOnly"/> <paramref name="values"/> into buffer.</summary>
     public void Write(in List<DateOnly> values) => Write(GetListSpan(in values));
@@ -588,21 +576,158 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
             WriteNumber(in Nullable.GetValueRefOrDefaultRef(in value));
     }
 
-    /// <summary>Writes an Enum <paramref name="value"/> into buffer.</summary>
-    /// <typeparam name="TEnum">The <see cref="Enum"/> type.</typeparam>
-    /// <typeparam name="TInt">Underlying enum type.</typeparam>
-    public void WriteEnum<TEnum, TInt>(in TEnum value)
-        where TEnum : unmanaged, Enum
-        where TInt : unmanaged, IBinaryInteger<TInt> =>
-        WriteNumber(in Mem.EnumAsInteger<TEnum, TInt>(in value));
+    /// <summary>Reinterprets the <paramref name="value"/> as <see cref="byte"/> and writes it into buffer.</summary>
+    public void WriteAsByte<T>(in T value) where T : unmanaged =>
+        Write(in Unsafe.As<T, byte>(ref Unsafe.AsRef(in value)));
 
-    /// <inheritdoc cref="WriteEnum{TEnum,TInt}(in TEnum)"/>
-    public void WriteEnum<TEnum, TInt>(in TEnum? value)
-        where TEnum : unmanaged, Enum
-        where TInt : unmanaged, IBinaryInteger<TInt>
+    /// <inheritdoc cref="WriteAsByte{T}(in T)"/>
+    public void WriteAsByte<T>(in T? value) where T : unmanaged
     {
         Write(value.HasValue);
         if (value.HasValue)
-            WriteEnum<TEnum, TInt>(in Nullable.GetValueRefOrDefaultRef(in value));
+            WriteAsByte(in Nullable.GetValueRefOrDefaultRef(in value));
     }
+
+    /// <inheritdoc cref="WriteAsByte{T}(in T)"/>
+    public void WriteAsByte<T>(in ReadOnlySpan<T> value) where T : unmanaged =>
+        Write(MemoryMarshal.Cast<T, byte>(value));
+
+    /// <inheritdoc cref="WriteAsByte{T}(in T)"/>
+    public void WriteAsByte<T>(in List<T> value) where T : unmanaged => WriteAsByte<T>(GetListSpan(in value));
+
+    /// <summary>Reinterprets the <paramref name="value"/> as <see cref="sbyte"/> and writes it into buffer.</summary>
+    public void WriteAsSByte<T>(in T value) where T : unmanaged =>
+        Write(in Unsafe.As<T, sbyte>(ref Unsafe.AsRef(in value)));
+
+    /// <inheritdoc cref="WriteAsSByte{T}(in T)"/>
+    public void WriteAsSByte<T>(in T? value) where T : unmanaged
+    {
+        Write(value.HasValue);
+        if (value.HasValue)
+            WriteAsSByte(in Nullable.GetValueRefOrDefaultRef(in value));
+    }
+
+    /// <inheritdoc cref="WriteAsSByte{T}(in T)"/>
+    public void WriteAsSByte<T>(in ReadOnlySpan<T> value) where T : unmanaged =>
+        Write(MemoryMarshal.Cast<T, sbyte>(value));
+
+    /// <inheritdoc cref="WriteAsSByte{T}(in T)"/>
+    public void WriteAsSByte<T>(in List<T> value) where T : unmanaged => WriteAsSByte<T>(GetListSpan(in value));
+
+
+    /// <summary>Reinterprets the <paramref name="value"/> as <see cref="short"/> and writes it into buffer.</summary>
+    public void WriteAsInt16<T>(in T value) where T : unmanaged =>
+        Write(in Unsafe.As<T, short>(ref Unsafe.AsRef(in value)));
+
+    /// <inheritdoc cref="WriteAsInt16{T}(in T)"/>
+    public void WriteAsInt16<T>(in T? value) where T : unmanaged
+    {
+        Write(value.HasValue);
+        if (value.HasValue)
+            WriteAsInt16(in Nullable.GetValueRefOrDefaultRef(in value));
+    }
+
+    /// <inheritdoc cref="WriteAsInt16{T}(in T)"/>
+    public void WriteAsInt16<T>(in ReadOnlySpan<T> value) where T : unmanaged =>
+        Write(MemoryMarshal.Cast<T, short>(value));
+
+    /// <inheritdoc cref="WriteAsInt16{T}(in T)"/>
+    public void WriteAsInt16<T>(in List<T> value) where T : unmanaged => WriteAsInt16<T>(GetListSpan(in value));
+
+    /// <summary>Reinterprets the <paramref name="value"/> as <see cref="ushort"/> and writes it into buffer.</summary>
+    public void WriteAsUInt16<T>(in T value) where T : unmanaged =>
+        Write(in Unsafe.As<T, ushort>(ref Unsafe.AsRef(in value)));
+
+    /// <inheritdoc cref="WriteAsUInt16{T}(in T)"/>
+    public void WriteAsUInt16<T>(in T? value) where T : unmanaged
+    {
+        Write(value.HasValue);
+        if (value.HasValue)
+            WriteAsUInt16(in Nullable.GetValueRefOrDefaultRef(in value));
+    }
+
+    /// <inheritdoc cref="WriteAsUInt16{T}(in T)"/>
+    public void WriteAsUInt16<T>(in ReadOnlySpan<T> value) where T : unmanaged =>
+        Write(MemoryMarshal.Cast<T, ushort>(value));
+
+    /// <inheritdoc cref="WriteAsUInt16{T}(in T)"/>
+    public void WriteAsUInt16<T>(in List<T> value) where T : unmanaged => WriteAsUInt16<T>(GetListSpan(in value));
+
+
+    /// <summary>Reinterprets the <paramref name="value"/> as <see cref="int"/> and writes it into buffer.</summary>
+    public void WriteAsInt32<T>(in T value) where T : unmanaged =>
+        Write(in Unsafe.As<T, int>(ref Unsafe.AsRef(in value)));
+
+    /// <inheritdoc cref="WriteAsInt32{T}(in T)"/>
+    public void WriteAsInt32<T>(in T? value) where T : unmanaged
+    {
+        Write(value.HasValue);
+        if (value.HasValue)
+            WriteAsInt32(in Nullable.GetValueRefOrDefaultRef(in value));
+    }
+
+    /// <inheritdoc cref="WriteAsInt32{T}(in T)"/>
+    public void WriteAsInt32<T>(in ReadOnlySpan<T> value) where T : unmanaged =>
+        Write(MemoryMarshal.Cast<T, int>(value));
+
+    /// <inheritdoc cref="WriteAsInt32{T}(in T)"/>
+    public void WriteAsInt32<T>(in List<T> value) where T : unmanaged => WriteAsInt32<T>(GetListSpan(in value));
+
+    /// <summary>Reinterprets the <paramref name="value"/> as <see cref="uint"/> and writes it into buffer.</summary>
+    public void WriteAsUInt32<T>(in T value) where T : unmanaged =>
+        Write(in Unsafe.As<T, uint>(ref Unsafe.AsRef(in value)));
+
+    /// <inheritdoc cref="WriteAsUInt32{T}(in T)"/>
+    public void WriteAsUInt32<T>(in T? value) where T : unmanaged
+    {
+        Write(value.HasValue);
+        if (value.HasValue)
+            WriteAsUInt32(in Nullable.GetValueRefOrDefaultRef(in value));
+    }
+
+    /// <inheritdoc cref="WriteAsUInt32{T}(in T)"/>
+    public void WriteAsUInt32<T>(in ReadOnlySpan<T> value) where T : unmanaged =>
+        Write(MemoryMarshal.Cast<T, uint>(value));
+
+    /// <inheritdoc cref="WriteAsUInt32{T}(in T)"/>
+    public void WriteAsUInt32<T>(in List<T> value) where T : unmanaged => WriteAsUInt32<T>(GetListSpan(in value));
+
+
+    /// <summary>Reinterprets the <paramref name="value"/> as <see cref="long"/> and writes it into buffer.</summary>
+    public void WriteAsInt64<T>(in T value) where T : unmanaged =>
+        Write(in Unsafe.As<T, long>(ref Unsafe.AsRef(in value)));
+
+    /// <inheritdoc cref="WriteAsInt64{T}(in T)"/>
+    public void WriteAsInt64<T>(in T? value) where T : unmanaged
+    {
+        Write(value.HasValue);
+        if (value.HasValue)
+            WriteAsInt64(in Nullable.GetValueRefOrDefaultRef(in value));
+    }
+
+    /// <inheritdoc cref="WriteAsInt64{T}(in T)"/>
+    public void WriteAsInt64<T>(in ReadOnlySpan<T> value) where T : unmanaged =>
+        Write(MemoryMarshal.Cast<T, long>(value));
+
+    /// <inheritdoc cref="WriteAsInt64{T}(in T)"/>
+    public void WriteAsInt64<T>(in List<T> value) where T : unmanaged => WriteAsInt64<T>(GetListSpan(in value));
+
+    /// <summary>Reinterprets the <paramref name="value"/> as <see cref="uint"/> and writes it into buffer.</summary>
+    public void WriteAsUInt64<T>(in T value) where T : unmanaged =>
+        Write(in Unsafe.As<T, uint>(ref Unsafe.AsRef(in value)));
+
+    /// <inheritdoc cref="WriteAsUInt64{T}(in T)"/>
+    public void WriteAsUInt64<T>(in T? value) where T : unmanaged
+    {
+        Write(value.HasValue);
+        if (value.HasValue)
+            WriteAsUInt64(in Nullable.GetValueRefOrDefaultRef(in value));
+    }
+
+    /// <inheritdoc cref="WriteAsUInt64{T}(in T)"/>
+    public void WriteAsUInt64<T>(in ReadOnlySpan<T> value) where T : unmanaged =>
+        Write(MemoryMarshal.Cast<T, uint>(value));
+
+    /// <inheritdoc cref="WriteAsUInt64{T}(in T)"/>
+    public void WriteAsUInt64<T>(in List<T> value) where T : unmanaged => WriteAsUInt64<T>(GetListSpan(in value));
 }

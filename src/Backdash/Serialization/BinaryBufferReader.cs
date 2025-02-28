@@ -325,40 +325,6 @@ public readonly ref struct BinaryBufferReader
     public T? ReadNullableNumber<T>(bool isUnsigned) where T : unmanaged, IBinaryInteger<T> =>
         ReadBoolean() ? ReadNumber<T>(isUnsigned) : null;
 
-    /// <summary>Reads an Enum from buffer.</summary>
-    /// <typeparam name="TEnum">The <see cref="Enum"/> type.</typeparam>
-    /// <typeparam name="TInt">Underlying enum type.</typeparam>
-    public TEnum ReadEnum<TEnum, TInt>()
-        where TEnum : unmanaged, Enum
-        where TInt : unmanaged, IBinaryInteger<TInt>, IMinMaxValue<TInt>
-    {
-        var value = ReadNumber<TInt>();
-        return Mem.IntegerAsEnum<TEnum, TInt>(ref value);
-    }
-
-    /// <inheritdoc cref="ReadEnum{TEnum,TInt}()"/>
-    public void ReadEnum<TEnum, TInt>(ref TEnum value)
-        where TEnum : unmanaged, Enum
-        where TInt : unmanaged, IBinaryInteger<TInt>, IMinMaxValue<TInt>
-    {
-        ref var underValue = ref Mem.EnumAsInteger<TEnum, TInt>(ref value);
-        underValue = ReadNumber<TInt>();
-    }
-
-    /// <inheritdoc cref="ReadEnum{TEnum,TInt}()"/>
-    public void ReadEnum<TEnum, TInt>(ref TEnum? value)
-        where TEnum : unmanaged, Enum
-        where TInt : unmanaged, IBinaryInteger<TInt>, IMinMaxValue<TInt> =>
-        value = ReadNullableEnum<TEnum, TInt>();
-
-    /// <inheritdoc cref="ReadEnum{TEnum,TInt}()"/>
-    public TEnum? ReadNullableEnum<TEnum, TInt>()
-        where TEnum : unmanaged, Enum
-        where TInt : unmanaged, IBinaryInteger<TInt>, IMinMaxValue<TInt>
-    {
-        var value = ReadNullableNumber<TInt>();
-        return Unsafe.As<TInt?, TEnum?>(ref value);
-    }
 
     /// <summary>Reads a <see cref="IBinarySerializable"/> <paramref name="value"/> from buffer.</summary>
     /// <typeparam name="T">A value type that implements <see cref="IBinarySerializable"/>.</typeparam>
@@ -682,21 +648,13 @@ public readonly ref struct BinaryBufferReader
     public void Read(in List<Guid> values) => Read(GetListSpan(in values));
 
     /// <summary>Reads a span of <see cref="TimeSpan"/> from buffer into <paramref name="values"/>.</summary>
-    public void Read(in Span<TimeSpan> values)
-    {
-        if (values.IsEmpty) return;
-        Read(MemoryMarshal.Cast<TimeSpan, long>(values));
-    }
+    public void Read(in Span<TimeSpan> values) => Read(MemoryMarshal.Cast<TimeSpan, long>(values));
 
     /// <summary>Reads a list of <see cref="TimeSpan"/> from buffer into <paramref name="values"/>.</summary>
     public void Read(in List<TimeSpan> values) => Read(GetListSpan(in values));
 
     /// <summary>Reads a span of <see cref="TimeOnly"/> from buffer into <paramref name="values"/>.</summary>
-    public void Read(in Span<TimeOnly> values)
-    {
-        if (values.IsEmpty) return;
-        Read(MemoryMarshal.Cast<TimeOnly, long>(values));
-    }
+    public void Read(in Span<TimeOnly> values) => Read(MemoryMarshal.Cast<TimeOnly, long>(values));
 
     /// <summary>Reads a list of <see cref="TimeOnly"/> from buffer into <paramref name="values"/>.</summary>
     public void Read(in List<TimeOnly> values) => Read(GetListSpan(in values));
@@ -744,4 +702,31 @@ public readonly ref struct BinaryBufferReader
 
     /// <summary>Reads a list of <see cref="DateOnly"/> from buffer into <paramref name="values"/>.</summary>
     public void Read(in List<DateOnly> values) => Read(GetListSpan(in values));
+
+
+    /// <summary>Reads a <see cref="byte"/> from buffer and reinterprets it as <typeparamref name="T"/>.</summary>
+    public T ReadAsByte<T>() where T : unmanaged
+    {
+        var value = ReadByte();
+        return Unsafe.As<byte, T>(ref value);
+    }
+
+    /// <inheritdoc cref="ReadAsByte{T}()"/>
+    public void ReadAsByte<T>(ref T value) where T : unmanaged => Read(ref Unsafe.As<T, byte>(ref value));
+
+    /// <inheritdoc cref="ReadAsByte{T}()"/>
+    public void ReadAsByte<T>(ref T? value) where T : unmanaged => Read(ref Unsafe.As<T?, byte?>(ref value));
+
+    /// <inheritdoc cref="ReadAsByte{T}()"/>
+    public void ReadAsByte<T>(in Span<T> values) where T : unmanaged => Read(MemoryMarshal.Cast<T, byte>(values));
+
+    /// <inheritdoc cref="ReadAsByte{T}()"/>
+    public void ReadAsByte<T>(in List<T> values) where T : unmanaged => ReadAsByte(GetListSpan(in values));
+
+    /// <inheritdoc cref="ReadAsByte{T}()"/>
+    public T? ReadAsNullableByte<T>() where T : unmanaged, Enum
+    {
+        var value = ReadNullableByte();
+        return Unsafe.As<byte?, T?>(ref value);
+    }
 }
