@@ -593,6 +593,10 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
         Write(MemoryMarshal.Cast<T, byte>(value));
 
     /// <inheritdoc cref="WriteAsByte{T}(in T)"/>
+    public void WriteAsByte<T>(in T[] value) where T : unmanaged =>
+        WriteAsByte((ReadOnlySpan<T>)value);
+
+    /// <inheritdoc cref="WriteAsByte{T}(in T)"/>
     public void WriteAsByte<T>(in List<T> value) where T : unmanaged => WriteAsByte<T>(GetListSpan(in value));
 
     /// <summary>Reinterprets the <paramref name="value"/> as <see cref="sbyte"/> and writes it into buffer.</summary>
@@ -610,6 +614,10 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
     /// <inheritdoc cref="WriteAsSByte{T}(in T)"/>
     public void WriteAsSByte<T>(in ReadOnlySpan<T> value) where T : unmanaged =>
         Write(MemoryMarshal.Cast<T, sbyte>(value));
+
+    /// <inheritdoc cref="WriteAsSByte{T}(in T)"/>
+    public void WriteAsSByte<T>(in T[] value) where T : unmanaged =>
+        WriteAsSByte((ReadOnlySpan<T>)value);
 
     /// <inheritdoc cref="WriteAsSByte{T}(in T)"/>
     public void WriteAsSByte<T>(in List<T> value) where T : unmanaged => WriteAsSByte<T>(GetListSpan(in value));
@@ -632,6 +640,10 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
         Write(MemoryMarshal.Cast<T, short>(value));
 
     /// <inheritdoc cref="WriteAsInt16{T}(in T)"/>
+    public void WriteAsInt16<T>(in T[] value) where T : unmanaged =>
+        WriteAsInt16((ReadOnlySpan<T>)value);
+
+    /// <inheritdoc cref="WriteAsInt16{T}(in T)"/>
     public void WriteAsInt16<T>(in List<T> value) where T : unmanaged => WriteAsInt16<T>(GetListSpan(in value));
 
     /// <summary>Reinterprets the <paramref name="value"/> as <see cref="ushort"/> and writes it into buffer.</summary>
@@ -651,8 +663,11 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
         Write(MemoryMarshal.Cast<T, ushort>(value));
 
     /// <inheritdoc cref="WriteAsUInt16{T}(in T)"/>
-    public void WriteAsUInt16<T>(in List<T> value) where T : unmanaged => WriteAsUInt16<T>(GetListSpan(in value));
+    public void WriteAsUInt16<T>(in T[] value) where T : unmanaged =>
+        WriteAsUInt16((ReadOnlySpan<T>)value);
 
+    /// <inheritdoc cref="WriteAsUInt16{T}(in T)"/>
+    public void WriteAsUInt16<T>(in List<T> value) where T : unmanaged => WriteAsUInt16<T>(GetListSpan(in value));
 
     /// <summary>Reinterprets the <paramref name="value"/> as <see cref="int"/> and writes it into buffer.</summary>
     public void WriteAsInt32<T>(in T value) where T : unmanaged =>
@@ -669,6 +684,10 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
     /// <inheritdoc cref="WriteAsInt32{T}(in T)"/>
     public void WriteAsInt32<T>(in ReadOnlySpan<T> value) where T : unmanaged =>
         Write(MemoryMarshal.Cast<T, int>(value));
+
+    /// <inheritdoc cref="WriteAsInt32{T}(in T)"/>
+    public void WriteAsInt32<T>(in T[] value) where T : unmanaged =>
+        WriteAsInt32((ReadOnlySpan<T>)value);
 
     /// <inheritdoc cref="WriteAsInt32{T}(in T)"/>
     public void WriteAsInt32<T>(in List<T> value) where T : unmanaged => WriteAsInt32<T>(GetListSpan(in value));
@@ -688,6 +707,10 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
     /// <inheritdoc cref="WriteAsUInt32{T}(in T)"/>
     public void WriteAsUInt32<T>(in ReadOnlySpan<T> value) where T : unmanaged =>
         Write(MemoryMarshal.Cast<T, uint>(value));
+
+    /// <inheritdoc cref="WriteAsUInt32{T}(in T)"/>
+    public void WriteAsUInt32<T>(in T[] value) where T : unmanaged =>
+        WriteAsUInt32((ReadOnlySpan<T>)value);
 
     /// <inheritdoc cref="WriteAsUInt32{T}(in T)"/>
     public void WriteAsUInt32<T>(in List<T> value) where T : unmanaged => WriteAsUInt32<T>(GetListSpan(in value));
@@ -710,6 +733,10 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
         Write(MemoryMarshal.Cast<T, long>(value));
 
     /// <inheritdoc cref="WriteAsInt64{T}(in T)"/>
+    public void WriteAsInt64<T>(in T[] value) where T : unmanaged =>
+        WriteAsInt64((ReadOnlySpan<T>)value);
+
+    /// <inheritdoc cref="WriteAsInt64{T}(in T)"/>
     public void WriteAsInt64<T>(in List<T> value) where T : unmanaged => WriteAsInt64<T>(GetListSpan(in value));
 
     /// <summary>Reinterprets the <paramref name="value"/> as <see cref="ulong"/> and writes it into buffer.</summary>
@@ -727,6 +754,10 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
     /// <inheritdoc cref="WriteAsUInt64{T}(in T)"/>
     public void WriteAsUInt64<T>(in ReadOnlySpan<T> value) where T : unmanaged =>
         Write(MemoryMarshal.Cast<T, ulong>(value));
+
+    /// <inheritdoc cref="WriteAsUInt64{T}(in T)"/>
+    public void WriteAsUInt64<T>(in T[] value) where T : unmanaged =>
+        WriteAsUInt64((ReadOnlySpan<T>)value);
 
     /// <inheritdoc cref="WriteAsUInt64{T}(in T)"/>
     public void WriteAsUInt64<T>(in List<T> value) where T : unmanaged => WriteAsUInt64<T>(GetListSpan(in value));

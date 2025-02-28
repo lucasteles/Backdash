@@ -341,6 +341,106 @@ public class BinaryBufferReadWriteSpanTests
         return value.AsSpan().SequenceEqual(read);
     }
 
+    [Collection(SerialCollectionDefinition.Name)]
+    public class CastingAsTests
+    {
+        [PropertyTest]
+        public bool SpanOfByte(ByteEnum[] value, Endianness endianness)
+        {
+            var size = Setup(value, endianness, out var writer);
+            writer.WriteAsByte(value);
+            var reader = GetReader(writer);
+            Span<ByteEnum> read = stackalloc ByteEnum[value.Length];
+            reader.ReadAsByte(read);
+            reader.ReadCount.Should().Be(size);
+            return value.AsSpan().SequenceEqual(read);
+        }
+
+        [PropertyTest]
+        public bool SpanOfSByte(SByteEnum[] value, Endianness endianness)
+        {
+            var size = Setup(value, endianness, out var writer);
+            writer.WriteAsSByte(value);
+            var reader = GetReader(writer);
+            Span<SByteEnum> read = stackalloc SByteEnum[value.Length];
+            reader.ReadAsSByte(read);
+            reader.ReadCount.Should().Be(size);
+            return value.AsSpan().SequenceEqual(read);
+        }
+
+        [PropertyTest]
+        public bool SpanOfInt16(Int16Enum[] value, Endianness endianness)
+        {
+            var size = Setup(value, endianness, out var writer);
+            writer.WriteAsInt16(value);
+            var reader = GetReader(writer);
+            Span<Int16Enum> read = stackalloc Int16Enum[value.Length];
+            reader.ReadAsInt16(read);
+            reader.ReadCount.Should().Be(size);
+            return value.AsSpan().SequenceEqual(read);
+        }
+
+        [PropertyTest]
+        public bool SpanOfUInt16(UInt16Enum[] value, Endianness endianness)
+        {
+            var size = Setup(value, endianness, out var writer);
+            writer.WriteAsUInt16(value);
+            var reader = GetReader(writer);
+            Span<UInt16Enum> read = stackalloc UInt16Enum[value.Length];
+            reader.ReadAsUInt16(read);
+            reader.ReadCount.Should().Be(size);
+            return value.AsSpan().SequenceEqual(read);
+        }
+
+        [PropertyTest]
+        public bool SpanOfInt32(Int32Enum[] value, Endianness endianness)
+        {
+            var size = Setup(value, endianness, out var writer);
+            writer.WriteAsInt32(value);
+            var reader = GetReader(writer);
+            Span<Int32Enum> read = stackalloc Int32Enum[value.Length];
+            reader.ReadAsInt32(read);
+            reader.ReadCount.Should().Be(size);
+            return value.AsSpan().SequenceEqual(read);
+        }
+
+        [PropertyTest]
+        public bool SpanOfUInt32(UInt32Enum[] value, Endianness endianness)
+        {
+            var size = Setup(value, endianness, out var writer);
+            writer.WriteAsUInt32(value);
+            var reader = GetReader(writer);
+            Span<UInt32Enum> read = stackalloc UInt32Enum[value.Length];
+            reader.ReadAsUInt32(read);
+            reader.ReadCount.Should().Be(size);
+            return value.AsSpan().SequenceEqual(read);
+        }
+
+        [PropertyTest]
+        public bool SpanOfInt64(Int64Enum[] value, Endianness endianness)
+        {
+            var size = Setup(value, endianness, out var writer);
+            writer.WriteAsInt64(value);
+            var reader = GetReader(writer);
+            Span<Int64Enum> read = stackalloc Int64Enum[value.Length];
+            reader.ReadAsInt64(read);
+            reader.ReadCount.Should().Be(size);
+            return value.AsSpan().SequenceEqual(read);
+        }
+
+        [PropertyTest]
+        public bool SpanOfUInt64(UInt64Enum[] value, Endianness endianness)
+        {
+            var size = Setup(value, endianness, out var writer);
+            writer.WriteAsUInt64(value);
+            var reader = GetReader(writer);
+            Span<UInt64Enum> read = stackalloc UInt64Enum[value.Length];
+            reader.ReadAsUInt64(read);
+            reader.ReadCount.Should().Be(size);
+            return value.AsSpan().SequenceEqual(read);
+        }
+    }
+
     static int readOffset;
 
     static int Setup<T>(

@@ -273,6 +273,107 @@ public class BinaryBufferReadWriteListTests
         return value.SequenceEqual(read);
     }
 
+    [Collection(SerialCollectionDefinition.Name)]
+    public class CastingAsTests
+    {
+        [PropertyTest]
+        public bool ListOfByte(List<ByteEnum> value, Endianness endianness)
+        {
+            var size = Setup(value, endianness, out var writer);
+            writer.WriteAsByte(value);
+            var reader = GetReader(writer);
+            List<ByteEnum> read = [];
+            reader.ReadAsByte(read);
+            reader.ReadCount.Should().Be(size);
+            return value.SequenceEqual(read);
+        }
+
+        [PropertyTest]
+        public bool ListOfSByte(List<SByteEnum> value, Endianness endianness)
+        {
+            var size = Setup(value, endianness, out var writer);
+            writer.WriteAsSByte(value);
+            var reader = GetReader(writer);
+            List<SByteEnum> read = [];
+            reader.ReadAsSByte(read);
+            reader.ReadCount.Should().Be(size);
+            return value.SequenceEqual(read);
+        }
+
+        [PropertyTest]
+        public bool ListOfInt16(List<Int16Enum> value, Endianness endianness)
+        {
+            var size = Setup(value, endianness, out var writer);
+            writer.WriteAsInt16(value);
+            var reader = GetReader(writer);
+            List<Int16Enum> read = [];
+            reader.ReadAsInt16(read);
+            reader.ReadCount.Should().Be(size);
+            return value.SequenceEqual(read);
+        }
+
+        [PropertyTest]
+        public bool ListOfUInt16(List<UInt16Enum> value, Endianness endianness)
+        {
+            var size = Setup(value, endianness, out var writer);
+            writer.WriteAsUInt16(value);
+            var reader = GetReader(writer);
+            List<UInt16Enum> read = [];
+            reader.ReadAsUInt16(read);
+            reader.ReadCount.Should().Be(size);
+            return value.SequenceEqual(read);
+        }
+
+        [PropertyTest]
+        public bool ListOfInt32(List<Int32Enum> value, Endianness endianness)
+        {
+            var size = Setup(value, endianness, out var writer);
+            writer.WriteAsInt32(value);
+            var reader = GetReader(writer);
+            List<Int32Enum> read = [];
+            reader.ReadAsInt32(read);
+            reader.ReadCount.Should().Be(size);
+            return value.SequenceEqual(read);
+        }
+
+        [PropertyTest]
+        public bool ListOfUInt32(List<UInt32Enum> value, Endianness endianness)
+        {
+            var size = Setup(value, endianness, out var writer);
+            writer.WriteAsUInt32(value);
+            var reader = GetReader(writer);
+            List<UInt32Enum> read = [];
+            reader.ReadAsUInt32(read);
+            reader.ReadCount.Should().Be(size);
+            return value.SequenceEqual(read);
+        }
+
+        [PropertyTest]
+        public bool ListOfInt64(List<Int64Enum> value, Endianness endianness)
+        {
+            var size = Setup(value, endianness, out var writer);
+            writer.WriteAsInt64(value);
+            var reader = GetReader(writer);
+            List<Int64Enum> read = [];
+            reader.ReadAsInt64(read);
+            reader.ReadCount.Should().Be(size);
+            return value.SequenceEqual(read);
+        }
+
+        [PropertyTest]
+        public bool ListOfUInt64(List<UInt64Enum> value, Endianness endianness)
+        {
+            var size = Setup(value, endianness, out var writer);
+            writer.WriteAsUInt64(value);
+            var reader = GetReader(writer);
+            List<UInt64Enum> read = [];
+            reader.ReadAsUInt64(read);
+            reader.ReadCount.Should().Be(size);
+            return value.SequenceEqual(read);
+        }
+    }
+
+
     static int readOffset;
 
     static int Setup<T>(
