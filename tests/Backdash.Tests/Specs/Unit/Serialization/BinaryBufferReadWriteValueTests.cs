@@ -361,7 +361,7 @@ public class BinaryBufferReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool SerializableObject(SimpleStructData value, SimpleStructData result, Endianness endianness)
+    public bool SerializableValueType(SimpleStructData value, SimpleStructData result, Endianness endianness)
     {
         var size = Setup<SimpleStructData>(endianness, out var writer);
 
@@ -370,6 +370,21 @@ public class BinaryBufferReadWriteValueTests
 
         var reader = GetReader(writer);
         reader.Read(ref result);
+        reader.ReadCount.Should().Be(size);
+
+        return value == result;
+    }
+
+    [PropertyTest]
+    public bool SerializableObject(SimpleRefData value, SimpleRefData result, Endianness endianness)
+    {
+        var size = Setup<SimpleStructData>(endianness, out var writer);
+
+        writer.Write(in value);
+        writer.WrittenCount.Should().Be(size);
+
+        var reader = GetReader(writer);
+        reader.Read(result);
         reader.ReadCount.Should().Be(size);
 
         return value == result;
