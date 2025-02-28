@@ -4,19 +4,12 @@ sealed class DefaultObjectPool<T> : IObjectPool<T> where T : class, new()
 {
     public static readonly IObjectPool<T> Instance = new DefaultObjectPool<T>();
 
-    readonly int maxCapacity; // -1 to account for fastItem
+    const int MaxCapacity = 99; // -1 to account for fastItem
 
     int numItems;
-    readonly Queue<T> items;
-    readonly HashSet<T> set;
+    readonly Stack<T> items = new(MaxCapacity);
+    readonly HashSet<T> set = new(MaxCapacity, ReferenceEqualityComparer.Instance);
     T? fastItem;
-
-    public DefaultObjectPool(int capacity = 100)
-    {
-        maxCapacity = capacity - 1;
-        items = new(maxCapacity);
-        set = new(maxCapacity);
-    }
 
     public T Rent()
     {
@@ -28,7 +21,7 @@ sealed class DefaultObjectPool<T> : IObjectPool<T> where T : class, new()
             return item;
         }
 
-        if (!items.TryDequeue(out item))
+        if (!items.TryPop(out item))
             return new();
 
         numItems--;
@@ -49,11 +42,11 @@ sealed class DefaultObjectPool<T> : IObjectPool<T> where T : class, new()
             return;
         }
 
-        if (numItems >= maxCapacity)
+        if (numItems >= MaxCapacity)
             return;
 
         numItems++;
-        items.Enqueue(value);
+        items.Push(value);
         set.Add(value);
     }
 }
