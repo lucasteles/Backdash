@@ -21,12 +21,17 @@ public static class Extensions
         writer.Write(rect.Y);
     }
 
-    public static Rectangle ReadRectangle(this BinaryBufferReader reader) =>
-        new()
-        {
-            X = reader.ReadInt32(),
-            Y = reader.ReadInt32(),
-            Width = reader.ReadInt32(),
-            Height = reader.ReadInt32(),
-        };
+    public static void Read(this BinaryBufferReader reader, ref Vector2 vector)
+    {
+        reader.Read(ref vector.X);
+        reader.Read(ref vector.Y);
+    }
+
+    public static void Read(this BinaryBufferReader reader, ref Rectangle rect)
+    {
+        rect.X = reader.ReadInt32();
+        rect.Y = reader.ReadInt32();
+        rect.Width = reader.ReadInt32();
+        rect.Height = reader.ReadInt32();
+    }
 }

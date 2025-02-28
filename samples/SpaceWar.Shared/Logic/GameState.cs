@@ -47,9 +47,9 @@ public sealed record GameState
 
     public void LoadState(ref readonly BinaryBufferReader reader)
     {
-        Bounds = reader.ReadRectangle();
-        FrameNumber = reader.ReadInt32();
-        reader.Read(in Ships);
+        reader.Read(ref Bounds);
+        reader.Read(ref FrameNumber);
+        reader.Read(Ships);
     }
 
     static GameInput GetShipAI(in Ship ship) => new(
