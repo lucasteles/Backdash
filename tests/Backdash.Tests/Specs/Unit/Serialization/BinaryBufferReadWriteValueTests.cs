@@ -376,7 +376,7 @@ public class BinaryBufferReadWriteValueTests
     }
 
     [Collection(SerialCollectionDefinition.Name)]
-    public class ReadWriteBinaryIntegerTests
+    public class BinaryIntegerTests
     {
         [PropertyTest] public bool TestByte(byte value, Endianness endianness) => TestInteger(value, endianness);
 
@@ -416,6 +416,28 @@ public class BinaryBufferReadWriteValueTests
             reader.ReadNumber(ref read);
             reader.ReadCount.Should().Be(size);
             return EqualityComparer<T>.Default.Equals(read, value);
+        }
+    }
+
+    [Collection(SerialCollectionDefinition.Name)]
+    public class CastingAsTests
+    {
+        [PropertyTest]
+        public bool TestByte(ByteEnum value, ByteEnum read, Endianness endianness)
+        {
+            var size = Setup<ByteEnum>(endianness, out var writer);
+            writer.WriteAsByte(in value);
+
+            var reader = GetReader(writer);
+            reader.ReadAsByte(ref read);
+            reader.ReadCount.Should().Be(size);
+
+            readOffset = 0;
+            var otherRead = reader.ReadAsByte<ByteEnum>();
+            reader.ReadCount.Should().Be(size);
+            otherRead.Should().Be(read);
+
+            return value == read;
         }
     }
 

@@ -330,7 +330,7 @@ public class BinaryBufferReadWriteNullableValues
     }
 
     [Collection(SerialCollectionDefinition.Name)]
-    public class ReadWriteNullableBinaryIntegerTests
+    public class BinaryIntegerTests
     {
         [PropertyTest] public bool TestByte(byte? value, Endianness endianness) => TestInteger(value, endianness);
 
@@ -375,7 +375,7 @@ public class BinaryBufferReadWriteNullableValues
     }
 
     [Collection(SerialCollectionDefinition.Name)]
-    public class ReadRefWriteNullableTests
+    public class NullableRefTests
     {
         [PropertyTest]
         public bool TestByte(byte? value, byte? read, Endianness endianness)
