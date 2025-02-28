@@ -16,7 +16,7 @@ namespace Backdash.Tests.Specs.Unit.Serialization;
 public class BinaryBufferReadWriteValueTests
 {
     [PropertyTest]
-    public bool SingleByte(byte value, byte read, Endianness endianness)
+    public bool TestByte(byte value, byte read, Endianness endianness)
     {
         var size = Setup<byte>(endianness, out var writer);
         writer.Write(value);
@@ -27,7 +27,7 @@ public class BinaryBufferReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool SingleSByte(sbyte value, sbyte read, Endianness endianness)
+    public bool TestSByte(sbyte value, sbyte read, Endianness endianness)
     {
         var size = Setup<sbyte>(endianness, out var writer);
         writer.Write(value);
@@ -38,7 +38,7 @@ public class BinaryBufferReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool SingleBool(bool value, bool read, Endianness endianness)
+    public bool TestBool(bool value, bool read, Endianness endianness)
     {
         var size = Setup<bool>(endianness, out var writer);
         writer.Write(value);
@@ -49,7 +49,7 @@ public class BinaryBufferReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool SingleChar(char value, char read, Endianness endianness)
+    public bool TestChar(char value, char read, Endianness endianness)
     {
         var size = Setup<char>(endianness, out var writer);
         writer.Write(value);
@@ -60,7 +60,7 @@ public class BinaryBufferReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool SingleShort(short value, short read, Endianness endianness)
+    public bool TestShort(short value, short read, Endianness endianness)
     {
         var size = Setup<short>(endianness, out var writer);
         writer.Write(value);
@@ -71,7 +71,7 @@ public class BinaryBufferReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool SingleUShort(ushort value, ushort read, Endianness endianness)
+    public bool TestUShort(ushort value, ushort read, Endianness endianness)
     {
         var size = Setup<ushort>(endianness, out var writer);
         writer.Write(value);
@@ -82,7 +82,7 @@ public class BinaryBufferReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool SingleInt(int value, int read, Endianness endianness)
+    public bool TestInt(int value, int read, Endianness endianness)
     {
         var size = Setup<int>(endianness, out var writer);
         writer.Write(value);
@@ -93,7 +93,7 @@ public class BinaryBufferReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool SingleUInt(uint value, uint read, Endianness endianness)
+    public bool TestUInt(uint value, uint read, Endianness endianness)
     {
         var size = Setup<uint>(endianness, out var writer);
         writer.Write(value);
@@ -104,7 +104,7 @@ public class BinaryBufferReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool SingleLong(long value, long read, Endianness endianness)
+    public bool TestLong(long value, long read, Endianness endianness)
     {
         var size = Setup<long>(endianness, out var writer);
         writer.Write(value);
@@ -115,7 +115,7 @@ public class BinaryBufferReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool SingleULong(ulong value, ulong read, Endianness endianness)
+    public bool TestULong(ulong value, ulong read, Endianness endianness)
     {
         var size = Setup<ulong>(endianness, out var writer);
         writer.Write(value);
@@ -126,7 +126,7 @@ public class BinaryBufferReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool SingleInt128(Int128 value, Int128 read, Endianness endianness)
+    public bool TestInt128(Int128 value, Int128 read, Endianness endianness)
     {
         var size = Setup<Int128>(endianness, out var writer);
         writer.Write(value);
@@ -137,7 +137,7 @@ public class BinaryBufferReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool SingleIntU128(UInt128 value, UInt128 read, Endianness endianness)
+    public bool TestIntU128(UInt128 value, UInt128 read, Endianness endianness)
     {
         var size = Setup<UInt128>(endianness, out var writer);
         writer.Write(value);
@@ -148,7 +148,7 @@ public class BinaryBufferReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool SingleHalf(Half value, Half read, Endianness endianness)
+    public bool TestHalf(Half value, Half read, Endianness endianness)
     {
         var size = Setup<Half>(endianness, out var writer);
         writer.Write(value);
@@ -159,7 +159,7 @@ public class BinaryBufferReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool SingleFloat(float value, float read, Endianness endianness)
+    public bool TestFloat(float value, float read, Endianness endianness)
     {
         var size = Setup<float>(endianness, out var writer);
         writer.Write(value);
@@ -170,7 +170,7 @@ public class BinaryBufferReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool SingleDouble(double value, double read, Endianness endianness)
+    public bool TestDouble(double value, double read, Endianness endianness)
     {
         var size = Setup<double>(endianness, out var writer);
         writer.Write(value);
@@ -181,7 +181,7 @@ public class BinaryBufferReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool SingleVector2(Vector2 value, Endianness endianness)
+    public bool TestVector2(Vector2 value, Endianness endianness)
     {
         var size = Setup<Vector2>(endianness, out var writer);
         writer.Write(value);
@@ -192,7 +192,7 @@ public class BinaryBufferReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool SingleVector2Ref(Vector2 value, Vector2 read, Endianness endianness)
+    public bool TestVector2Ref(Vector2 value, Vector2 read, Endianness endianness)
     {
         var size = Setup<Vector2>(endianness, out var writer);
         writer.Write(value);
@@ -203,7 +203,7 @@ public class BinaryBufferReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool SingleVector3(Vector3 value, Endianness endianness)
+    public bool TestVector3(Vector3 value, Endianness endianness)
     {
         var size = Setup<Vector3>(endianness, out var writer);
         writer.Write(value);
@@ -214,7 +214,7 @@ public class BinaryBufferReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool SingleVector3Ref(Vector3 value, Vector3 read, Endianness endianness)
+    public bool TestVector3Ref(Vector3 value, Vector3 read, Endianness endianness)
     {
         var size = Setup<Vector3>(endianness, out var writer);
         writer.Write(value);
@@ -225,7 +225,7 @@ public class BinaryBufferReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool SingleVector4(Vector4 value, Endianness endianness)
+    public bool TestVector4(Vector4 value, Endianness endianness)
     {
         var size = Setup<Vector4>(endianness, out var writer);
         writer.Write(value);
@@ -236,7 +236,7 @@ public class BinaryBufferReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool SingleVector4Ref(Vector4 value, Vector4 read, Endianness endianness)
+    public bool TestVector4Ref(Vector4 value, Vector4 read, Endianness endianness)
     {
         var size = Setup<Vector4>(endianness, out var writer);
         writer.Write(value);
@@ -247,7 +247,7 @@ public class BinaryBufferReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool SingleQuaternion(Quaternion value, Endianness endianness)
+    public bool TestQuaternion(Quaternion value, Endianness endianness)
     {
         var size = Setup<Quaternion>(endianness, out var writer);
         writer.Write(value);
@@ -258,7 +258,7 @@ public class BinaryBufferReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool SingleQuaternionRef(Quaternion value, Quaternion read, Endianness endianness)
+    public bool TestQuaternionRef(Quaternion value, Quaternion read, Endianness endianness)
     {
         var size = Setup<Quaternion>(endianness, out var writer);
         writer.Write(value);
@@ -269,7 +269,7 @@ public class BinaryBufferReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool SingleGuid(Guid value, Guid read, Endianness endianness)
+    public bool TestGuid(Guid value, Guid read, Endianness endianness)
     {
         var size = Setup<Guid>(endianness, out var writer);
         writer.Write(value);
@@ -280,7 +280,7 @@ public class BinaryBufferReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool SingleTimeSpan(TimeSpan value, TimeSpan read, Endianness endianness)
+    public bool TestTimeSpan(TimeSpan value, TimeSpan read, Endianness endianness)
     {
         var size = Setup<TimeSpan>(endianness, out var writer);
         writer.Write(value);
@@ -291,7 +291,7 @@ public class BinaryBufferReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool SingleTimeOnly(TimeOnly value, TimeOnly read, Endianness endianness)
+    public bool TestTimeOnly(TimeOnly value, TimeOnly read, Endianness endianness)
     {
         var size = Setup<TimeOnly>(endianness, out var writer);
         writer.Write(value);
@@ -302,7 +302,7 @@ public class BinaryBufferReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool SingleDateTime(DateTime value, DateTime read, Endianness endianness)
+    public bool TestDateTime(DateTime value, DateTime read, Endianness endianness)
     {
         const int kindSize = 1;
         var size = Setup<DateTime>(endianness, out var writer) + kindSize;
@@ -314,7 +314,7 @@ public class BinaryBufferReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool SingleDateTimeOffset(DateTimeOffset value, DateTimeOffset read, Endianness endianness)
+    public bool TestDateTimeOffset(DateTimeOffset value, DateTimeOffset read, Endianness endianness)
     {
         var size = Setup<DateTimeOffset>(endianness, out var writer);
         writer.Write(value);
@@ -325,7 +325,7 @@ public class BinaryBufferReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool SingleDateOnly(DateOnly value, DateOnly read, Endianness endianness)
+    public bool TestDateOnly(DateOnly value, DateOnly read, Endianness endianness)
     {
         var size = Setup<DateOnly>(endianness, out var writer);
         writer.Write(value);
