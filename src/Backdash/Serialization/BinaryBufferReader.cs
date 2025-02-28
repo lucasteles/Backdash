@@ -4,6 +4,7 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Backdash.Core;
+using Backdash.Data;
 using Backdash.Network;
 
 namespace Backdash.Serialization;
@@ -404,16 +405,14 @@ public readonly ref struct BinaryBufferReader
 
     /// <summary>
     /// Reads a span of <see cref="IBinarySerializable"/> <paramref name="values"/> from buffer.
-    /// Warning: This overload can allocate new instances using new T()
     /// </summary>
     /// <seealso cref="Read{T}(in Span{T},in IObjectPool{T})"/>
     /// <typeparam name="T">A reference that implements <see cref="IBinarySerializable"/>.</typeparam>
     public void Read<T>(Span<T> values) where T : class, IBinarySerializable, new() =>
-        Read(values, in NewFakePool<T>.Instance);
+        Read(values, in DefaultObjectPool<T>.Instance);
 
     /// <summary>
     /// Reads an array of <see cref="IBinarySerializable"/> <paramref name="values"/> from buffer.
-    /// Warning: This overload can allocate new instances using new T()
     /// </summary>
     /// <seealso cref="Read{T}(in T[],in IObjectPool{T})"/>
     /// <typeparam name="T">A reference that implements <see cref="IBinarySerializable"/>.</typeparam>
@@ -423,12 +422,11 @@ public readonly ref struct BinaryBufferReader
 
     /// <summary>
     /// Reads a list of <see cref="IBinarySerializable"/> <paramref name="values"/> from buffer.
-    /// Warning: This overload can allocate new instances using new T()
     /// </summary>
     /// <seealso cref="Read{T}(in List{T}, IObjectPool{T})"/>
     /// <typeparam name="T">A reference that implements <see cref="IBinarySerializable"/>.</typeparam>
     public void Read<T>(List<T> values) where T : class, IBinarySerializable, new() =>
-        Read(GetListSpan(in values, in NewFakePool<T>.Instance));
+        Read(GetListSpan(in values, in DefaultObjectPool<T>.Instance));
 
     /// <inheritdoc cref="ReadByte()"/>
     public void Read(ref byte value) => value = ReadByte();
