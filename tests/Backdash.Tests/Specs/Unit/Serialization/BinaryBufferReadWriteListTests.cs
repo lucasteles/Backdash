@@ -259,7 +259,7 @@ public class BinaryBufferReadWriteListTests
 
 
     [PropertyTest]
-    public bool ListOfSerializableObjects(List<SimpleStructData> value, Endianness endianness)
+    public bool ListOfSerializableStruct(List<SimpleStructData> value, Endianness endianness)
     {
         var size = Setup(value, endianness, out var writer);
         writer.Write(in value);
@@ -269,6 +269,20 @@ public class BinaryBufferReadWriteListTests
         List<SimpleStructData> read = [];
         reader.Read(in read);
         reader.ReadCount.Should().Be(size);
+
+        return value.SequenceEqual(read);
+    }
+
+
+    [PropertyTest]
+    public bool ListOfSerializableClass(List<SimpleRefData> value, Endianness endianness)
+    {
+        Setup(endianness, out var writer);
+        writer.Write(in value);
+
+        var reader = GetReader(writer);
+        List<SimpleRefData> read = [];
+        reader.Read(in read);
 
         return value.SequenceEqual(read);
     }
@@ -388,6 +402,13 @@ public class BinaryBufferReadWriteListTests
         ArrayBufferWriter<byte> buffer = new(size is 0 ? 1 : size);
         writer = new(buffer, endianness);
         return size + sizeof(int);
+    }
+
+    static void Setup(Endianness endianness, out BinaryBufferWriter writer)
+    {
+        readOffset = 0;
+        ArrayBufferWriter<byte> buffer = new();
+        writer = new(buffer, endianness);
     }
 
     static BinaryBufferReader GetReader(in BinaryBufferWriter writer)
