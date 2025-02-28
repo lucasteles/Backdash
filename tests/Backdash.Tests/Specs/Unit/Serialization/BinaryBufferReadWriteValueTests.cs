@@ -375,25 +375,6 @@ public class BinaryBufferReadWriteValueTests
         return value == result;
     }
 
-    static int readOffset;
-
-    public static int Setup<T>(Endianness endianness, out BinaryBufferWriter writer) where T : unmanaged
-    {
-        var size = Unsafe.SizeOf<T>();
-        readOffset = 0;
-
-        ArrayBufferWriter<byte> buffer = new(size);
-        writer = new(buffer, endianness);
-
-        return size;
-    }
-
-    public static BinaryBufferReader GetReader(in BinaryBufferWriter writer)
-    {
-        var buffer = (ArrayBufferWriter<byte>)writer.Buffer;
-        return new(buffer.WrittenSpan, ref readOffset, writer.Endianness);
-    }
-
     [Collection(SerialCollectionDefinition.Name)]
     public class ReadWriteBinaryIntegerTests
     {
@@ -436,5 +417,24 @@ public class BinaryBufferReadWriteValueTests
             reader.ReadCount.Should().Be(size);
             return EqualityComparer<T>.Default.Equals(read, value);
         }
+    }
+
+    static int readOffset;
+
+    public static int Setup<T>(Endianness endianness, out BinaryBufferWriter writer) where T : unmanaged
+    {
+        var size = Unsafe.SizeOf<T>();
+        readOffset = 0;
+
+        ArrayBufferWriter<byte> buffer = new(size);
+        writer = new(buffer, endianness);
+
+        return size;
+    }
+
+    public static BinaryBufferReader GetReader(in BinaryBufferWriter writer)
+    {
+        var buffer = (ArrayBufferWriter<byte>)writer.Buffer;
+        return new(buffer.WrittenSpan, ref readOffset, writer.Endianness);
     }
 }
