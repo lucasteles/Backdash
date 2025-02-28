@@ -55,12 +55,23 @@ public readonly ref struct BinaryBufferReader
     public void Advance(int count) => offset += count;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    Span<T> GetListSpan<T>(in List<T> values)
+    Span<T> GetListSpan<T>(in List<T> values) where T : unmanaged
     {
         var count = ReadInt32();
         CollectionsMarshal.SetCount(values, count);
-        var span = CollectionsMarshal.AsSpan(values);
-        return span;
+        return CollectionsMarshal.AsSpan(values);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    Span<T> GetListSpan<T>(in List<T> values, in IObjectPool<T> pool) where T : class
+    {
+        var count = ReadInt32();
+
+        for (var i = count; i < values.Count; i++)
+            pool.Return(values[i]);
+
+        CollectionsMarshal.SetCount(values, count);
+        return CollectionsMarshal.AsSpan(values);
     }
 
     void ReadSpan<T>(in Span<T> data) where T : struct => Read(MemoryMarshal.AsBytes(data));
@@ -330,13 +341,9 @@ public readonly ref struct BinaryBufferReader
     /// <typeparam name="T">A value type that implements <see cref="IBinarySerializable"/>.</typeparam>
     public void Read<T>(ref T value) where T : struct, IBinarySerializable => value.Deserialize(in this);
 
-    /// <summary>Reads a <see cref="IBinarySerializable"/> <paramref name="value"/> from buffer.</summary>
-    /// <typeparam name="T">A reference value type that implements <see cref="IBinarySerializable"/>.</typeparam>
-    public void Read<T>(T value) where T : class, IBinarySerializable => value.Deserialize(in this);
-
     /// <summary>Reads a span of <see cref="IBinarySerializable"/> <paramref name="values"/> into buffer.</summary>
-    /// <typeparam name="T">A type that implements <see cref="IBinarySerializable"/>.</typeparam>
-    public void Read<T>(in Span<T> values) where T : IBinarySerializable
+    /// <typeparam name="T">A list of a value type that implements <see cref="IBinarySerializable"/>.</typeparam>
+    public void Read<T>(in Span<T> values) where T : unmanaged, IBinarySerializable
     {
         if (values.IsEmpty) return;
         ref var current = ref MemoryMarshal.GetReference(values);
@@ -349,14 +356,79 @@ public readonly ref struct BinaryBufferReader
         }
     }
 
-    /// <summary>Reads an array of <see cref="IBinarySerializable"/> <paramref name="values"/> into buffer.</summary>
+    /// <summary>Reads an array of <see cref="IBinarySerializable"/> <paramref name="values"/> from buffer.</summary>
     /// <typeparam name="T">A type that implements <see cref="IBinarySerializable"/>.</typeparam>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Read<T>(in T[] values) where T : IBinarySerializable => Read(values.AsSpan());
+    public void Read<T>(in T[] values) where T : unmanaged, IBinarySerializable => Read(values.AsSpan());
 
-    /// <summary>Writes an array of <see cref="IBinarySerializable"/> <paramref name="values"/> into buffer.</summary>
-    /// <typeparam name="T">A type that implements <see cref="IBinarySerializable"/>.</typeparam>
-    public void Read<T>(in List<T> values) where T : IBinarySerializable => Read(GetListSpan(in values));
+    /// <summary>Reads an array of unmanaged <see cref="IBinarySerializable"/> <paramref name="values"/> from buffer.</summary>
+    /// <typeparam name="T">A value type that implements <see cref="IBinarySerializable"/>.</typeparam>
+    public void Read<T>(in List<T> values) where T : unmanaged, IBinarySerializable => Read(GetListSpan(in values));
+
+
+    /// <summary>Reads a <see cref="IBinarySerializable"/> <paramref name="value"/> from buffer.</summary>
+    /// <typeparam name="T">A reference value type that implements <see cref="IBinarySerializable"/>.</typeparam>
+    public void Read<T>(T value) where T : class, IBinarySerializable => value.Deserialize(in this);
+
+    /// <summary>Reads a span of <see cref="IBinarySerializable"/> <paramref name="values"/> into buffer.</summary>
+    /// <typeparam name="T">A list of a reference type that implements <see cref="IBinarySerializable"/>.</typeparam>
+    public void Read<T>(in Span<T> values, in IObjectPool<T> pool) where T : class, IBinarySerializable
+    {
+        if (values.IsEmpty) return;
+        ref var current = ref MemoryMarshal.GetReference(values);
+        ref var limit = ref Unsafe.Add(ref current, values.Length);
+
+        while (Unsafe.IsAddressLessThan(ref current, ref limit))
+        {
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+            // ReSharper disable once ConvertIfStatementToNullCoalescingAssignment
+#pragma warning disable IDE0074
+            if (current is null)
+#pragma warning restore IDE0074
+                current = pool.Rent();
+            current.Deserialize(in this);
+            current = ref Unsafe.Add(ref current, 1)!;
+        }
+    }
+
+    /// <summary>Reads an array of <see cref="IBinarySerializable"/> <paramref name="values"/> into buffer.</summary>
+    /// <typeparam name="T">A reference type that implements <see cref="IBinarySerializable"/>.</typeparam>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Read<T>(in T[] values, in IObjectPool<T> pool) where T : class, IBinarySerializable =>
+        Read(values.AsSpan(), in pool);
+
+    /// <summary>Reads an array of <see cref="IBinarySerializable"/> <paramref name="values"/> into buffer.</summary>
+    /// <typeparam name="T">A reference that implements <see cref="IBinarySerializable"/>.</typeparam>
+    public void Read<T>(in List<T> values, IObjectPool<T> pool) where T : class, IBinarySerializable =>
+        Read(GetListSpan(in values, pool), in pool);
+
+    /// <summary>
+    /// Reads a span of <see cref="IBinarySerializable"/> <paramref name="values"/> from buffer.
+    /// Warning: This overload can allocate new instances using new T()
+    /// </summary>
+    /// <seealso cref="Read{T}(in Span{T},in IObjectPool{T})"/>
+    /// <typeparam name="T">A reference that implements <see cref="IBinarySerializable"/>.</typeparam>
+    public void Read<T>(Span<T> values) where T : class, IBinarySerializable, new() =>
+        Read(values, in NewFakePool<T>.Instance);
+
+    /// <summary>
+    /// Reads an array of <see cref="IBinarySerializable"/> <paramref name="values"/> from buffer.
+    /// Warning: This overload can allocate new instances using new T()
+    /// </summary>
+    /// <seealso cref="Read{T}(in T[],in IObjectPool{T})"/>
+    /// <typeparam name="T">A reference that implements <see cref="IBinarySerializable"/>.</typeparam>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Read<T>(T[] values) where T : class, IBinarySerializable, new() =>
+        Read(values.AsSpan());
+
+    /// <summary>
+    /// Reads a list of <see cref="IBinarySerializable"/> <paramref name="values"/> from buffer.
+    /// Warning: This overload can allocate new instances using new T()
+    /// </summary>
+    /// <seealso cref="Read{T}(in List{T}, IObjectPool{T})"/>
+    /// <typeparam name="T">A reference that implements <see cref="IBinarySerializable"/>.</typeparam>
+    public void Read<T>(List<T> values) where T : class, IBinarySerializable, new() =>
+        Read(GetListSpan(in values, in NewFakePool<T>.Instance));
 
     /// <inheritdoc cref="ReadByte()"/>
     public void Read(ref byte value) => value = ReadByte();
@@ -887,7 +959,7 @@ public readonly ref struct BinaryBufferReader
         return Unsafe.As<long?, T?>(ref value);
     }
 
-    /// <summary>Reads a <see cref="ulong"/> from buffer and relongerprets it as <typeparamref name="T"/>.</summary>
+    /// <summary>Reads a <see cref="ulong"/> from buffer and reinterprets it as <typeparamref name="T"/>.</summary>
     public T ReadAsUInt64<T>() where T : unmanaged
     {
         var value = ReadUInt64();

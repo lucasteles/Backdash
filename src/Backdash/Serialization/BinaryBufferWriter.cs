@@ -515,7 +515,7 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
     public void WriteStruct<T>(in T value) where T : unmanaged => Write(Mem.AsBytes(in value));
 
     /// <summary>Writes an unmanaged struct span into buffer.</summary>
-    public void WriteStruct<T>(ReadOnlySpan<T> values) where T : unmanaged => Write(MemoryMarshal.AsBytes(values));
+    public void WriteStruct<T>(in ReadOnlySpan<T> values) where T : unmanaged => Write(MemoryMarshal.AsBytes(values));
 
     /// <summary>Writes an unmanaged struct list into buffer.</summary>
     public void WriteStruct<T>(in List<T> values) where T : unmanaged => WriteStruct<T>(GetListSpan(in values));

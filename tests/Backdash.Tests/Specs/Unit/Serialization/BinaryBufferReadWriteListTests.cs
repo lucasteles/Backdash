@@ -267,7 +267,7 @@ public class BinaryBufferReadWriteListTests
 
         var reader = GetReader(writer);
         List<SimpleStructData> read = [];
-        reader.Read(in read);
+        reader.Read(read);
         reader.ReadCount.Should().Be(size);
 
         return value.SequenceEqual(read);
@@ -282,7 +282,7 @@ public class BinaryBufferReadWriteListTests
 
         var reader = GetReader(writer);
         List<SimpleRefData> read = [];
-        reader.Read(in read);
+        reader.Read(read);
 
         return value.SequenceEqual(read);
     }
