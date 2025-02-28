@@ -1,4 +1,6 @@
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network;
@@ -40,7 +42,7 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
         this.checksumProvider = checksumProvider;
         this.localConnections = localConnections;
 
-        endianness = Platform.GetEndianness(options.UseNetworkEndianness);
+        endianness = options.StateSerializationEndianness ?? Platform.GetEndianness(options.UseNetworkEndianness);
         stateStore.Initialize(options.PredictionFrames + options.PredictionFramesOffset);
         inputQueues = new(2);
     }
@@ -236,7 +238,13 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
 
     void ResetPrediction(in Frame frameNumber)
     {
-        for (var i = 0; i < inputQueues.Count; i++)
-            inputQueues[i].ResetPrediction(in frameNumber);
+        var span = CollectionsMarshal.AsSpan(inputQueues);
+        ref var current = ref MemoryMarshal.GetReference(span);
+        ref var limit = ref Unsafe.Add(ref current, span.Length);
+        while (Unsafe.IsAddressLessThan(ref current, ref limit))
+        {
+            current.ResetPrediction(in frameNumber);
+            current = ref Unsafe.Add(ref current, 1)!;
+        }
     }
 }

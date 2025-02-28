@@ -32,11 +32,20 @@ public sealed class NetcodeOptions
     public int RecommendationInterval { get; init; } = Default.RecommendationInterval;
 
     /// <summary>
-    /// Forces serialization byte order to network order <see cref="Endianness.BigEndian"/>.
+    /// Forces input serialization byte order to network order <see cref="Endianness.BigEndian"/>.
     /// </summary>
     /// <seealso cref="Endianness"/>
     /// <value>Defaults to <see langword="true"/></value>
     public bool UseNetworkEndianness { get; init; } = true;
+
+    /// <summary>
+    /// Sets the endianness used for state serialization.
+    /// If null, the same endianness as the input serializer will be used.
+    /// </summary>
+    /// <seealso cref="Endianness"/>
+    /// <seealso cref="UseNetworkEndianness"/>
+    /// <value>Defaults to <see cref="Endianness.LittleEndian"/></value>
+    public Endianness? StateSerializationEndianness { get; init; } = Endianness.LittleEndian;
 
     /// <summary>
     /// Max length for player input queues.

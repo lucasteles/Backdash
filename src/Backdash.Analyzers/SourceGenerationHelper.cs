@@ -99,7 +99,7 @@ static class SourceGenerationHelper
                 writes.AppendLine($"binaryWriter.Write(data.{member.Name});");
 
                 reads.Append(tab2);
-                reads.AppendLine($"binaryReader.Read{itemType.Name}(result.{member.Name});");
+                reads.AppendLine($"binaryReader.Read(result.{member.Name});");
             }
             else
             {

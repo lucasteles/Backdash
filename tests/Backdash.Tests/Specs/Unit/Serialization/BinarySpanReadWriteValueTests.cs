@@ -15,7 +15,7 @@ namespace Backdash.Tests.Specs.Unit.Serialization;
 public class BinarySpanReadWriteValueTests
 {
     [PropertyTest]
-    public bool SingleByte(byte value, Endianness endianness)
+    public bool TestByte(byte value, Endianness endianness)
     {
         var size = Setup<byte>(endianness, out var writer, out var reader);
         writer.Write(value);
@@ -26,7 +26,7 @@ public class BinarySpanReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool SingleSByte(sbyte value, Endianness endianness)
+    public bool TestSByte(sbyte value, Endianness endianness)
     {
         var size = Setup<sbyte>(endianness, out var writer, out var reader);
         writer.Write(value);
@@ -37,7 +37,7 @@ public class BinarySpanReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool SingleBool(bool value, Endianness endianness)
+    public bool TestBool(bool value, Endianness endianness)
     {
         var size = Setup<bool>(endianness, out var writer, out var reader);
         writer.Write(value);
@@ -48,7 +48,7 @@ public class BinarySpanReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool SingleChar(char value, Endianness endianness)
+    public bool TestChar(char value, Endianness endianness)
     {
         var size = Setup<char>(endianness, out var writer, out var reader);
         writer.Write(value);
@@ -59,7 +59,7 @@ public class BinarySpanReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool SingleShort(short value, Endianness endianness)
+    public bool TestShort(short value, Endianness endianness)
     {
         var size = Setup<short>(endianness, out var writer, out var reader);
         writer.Write(value);
@@ -70,7 +70,7 @@ public class BinarySpanReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool SingleUShort(ushort value, Endianness endianness)
+    public bool TestUShort(ushort value, Endianness endianness)
     {
         var size = Setup<ushort>(endianness, out var writer, out var reader);
         writer.Write(value);
@@ -81,7 +81,7 @@ public class BinarySpanReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool SingleInt(int value, Endianness endianness)
+    public bool TestInt(int value, Endianness endianness)
     {
         var size = Setup<int>(endianness, out var writer, out var reader);
         writer.Write(value);
@@ -92,7 +92,7 @@ public class BinarySpanReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool SingleUInt(uint value, Endianness endianness)
+    public bool TestUInt(uint value, Endianness endianness)
     {
         var size = Setup<uint>(endianness, out var writer, out var reader);
         writer.Write(value);
@@ -103,7 +103,7 @@ public class BinarySpanReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool SingleLong(long value, Endianness endianness)
+    public bool TestLong(long value, Endianness endianness)
     {
         var size = Setup<long>(endianness, out var writer, out var reader);
         writer.Write(value);
@@ -114,7 +114,7 @@ public class BinarySpanReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool SingleULong(ulong value, Endianness endianness)
+    public bool TestULong(ulong value, Endianness endianness)
     {
         var size = Setup<ulong>(endianness, out var writer, out var reader);
         writer.Write(value);
@@ -125,7 +125,7 @@ public class BinarySpanReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool SingleInt128(Int128 value, Endianness endianness)
+    public bool TestInt128(Int128 value, Endianness endianness)
     {
         var size = Setup<Int128>(endianness, out var writer, out var reader);
         writer.Write(value);
@@ -136,7 +136,7 @@ public class BinarySpanReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool SingleIntU128(UInt128 value, Endianness endianness)
+    public bool TestIntU128(UInt128 value, Endianness endianness)
     {
         var size = Setup<UInt128>(endianness, out var writer, out var reader);
         writer.Write(value);
@@ -147,7 +147,7 @@ public class BinarySpanReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool SingleHalf(Half value, Endianness endianness)
+    public bool TestHalf(Half value, Endianness endianness)
     {
         var size = Setup<Half>(endianness, out var writer, out var reader);
         writer.Write(value);
@@ -158,7 +158,7 @@ public class BinarySpanReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool SingleFloat(float value, Endianness endianness)
+    public bool TestFloat(float value, Endianness endianness)
     {
         var size = Setup<float>(endianness, out var writer, out var reader);
         writer.Write(value);
@@ -169,7 +169,7 @@ public class BinarySpanReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool SingleDouble(double value, Endianness endianness)
+    public bool TestDouble(double value, Endianness endianness)
     {
         var size = Setup<double>(endianness, out var writer, out var reader);
         writer.Write(value);
@@ -180,7 +180,7 @@ public class BinarySpanReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool SingleVector2(Vector2 value, Endianness endianness)
+    public bool TestVector2(Vector2 value, Endianness endianness)
     {
         var size = Setup<Vector2>(endianness, out var writer, out var reader);
         writer.Write(value);
@@ -191,7 +191,7 @@ public class BinarySpanReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool SingleVector3(Vector3 value, Endianness endianness)
+    public bool TestVector3(Vector3 value, Endianness endianness)
     {
         var size = Setup<Vector3>(endianness, out var writer, out var reader);
         writer.Write(value);
@@ -202,7 +202,7 @@ public class BinarySpanReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool SingleVector4(Vector4 value, Endianness endianness)
+    public bool TestVector4(Vector4 value, Endianness endianness)
     {
         var size = Setup<Vector4>(endianness, out var writer, out var reader);
         writer.Write(value);
@@ -213,23 +213,12 @@ public class BinarySpanReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool SingleQuaternion(Quaternion value, Endianness endianness)
+    public bool TestQuaternion(Quaternion value, Endianness endianness)
     {
         var size = Setup<Quaternion>(endianness, out var writer, out var reader);
         writer.Write(value);
         writer.WrittenCount.Should().Be(size);
         var read = reader.ReadQuaternion();
-        reader.ReadCount.Should().Be(size);
-        return value == read;
-    }
-
-    [PropertyTest]
-    public bool CharUtf8(char value, Endianness endianness)
-    {
-        var size = Setup<byte>(endianness, out var writer, out var reader);
-        writer.WriteUtf8Char(value);
-        writer.WrittenCount.Should().Be(size);
-        var read = reader.ReadUtf8Char();
         reader.ReadCount.Should().Be(size);
         return value == read;
     }

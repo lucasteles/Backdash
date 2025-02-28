@@ -38,22 +38,16 @@ static class Mem
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ref TInt EnumAsInteger<TEnum, TInt>(ref TEnum enumValue)
+    public static ref TInt EnumAsInteger<TEnum, TInt>(ref readonly TEnum enumValue)
         where TEnum : unmanaged, Enum
-        where TInt : unmanaged, IBinaryInteger<TInt>
-    {
-        if (Unsafe.SizeOf<TEnum>() != Unsafe.SizeOf<TInt>()) throw new NetcodeException("type mismatch");
-        return ref Unsafe.As<TEnum, TInt>(ref enumValue);
-    }
+        where TInt : unmanaged, IBinaryInteger<TInt> =>
+        ref Unsafe.As<TEnum, TInt>(ref Unsafe.AsRef(in enumValue));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ref TEnum IntegerAsEnum<TEnum, TInt>(ref TInt intValue)
         where TEnum : unmanaged, Enum
-        where TInt : unmanaged, IBinaryInteger<TInt>
-    {
-        if (Unsafe.SizeOf<TEnum>() != Unsafe.SizeOf<TInt>()) throw new NetcodeException("type mismatch");
-        return ref Unsafe.As<TInt, TEnum>(ref intValue);
-    }
+        where TInt : unmanaged, IBinaryInteger<TInt> =>
+        ref Unsafe.As<TInt, TEnum>(ref intValue);
 
     public static bool EqualBytes(ReadOnlySpan<byte> left, ReadOnlySpan<byte> right, bool truncate = false)
     {

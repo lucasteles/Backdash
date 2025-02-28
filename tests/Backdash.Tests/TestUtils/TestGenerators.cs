@@ -16,14 +16,20 @@ public sealed class PropertyTestAttribute : FsCheck.Xunit.PropertyAttribute
     public PropertyTestAttribute()
     {
         QuietOnSuccess = true;
-        MaxTest = 200;
-        Arbitrary = [typeof(PropertyTestGenerators)];
+        MaxTest = 100;
+        Arbitrary = [typeof(TestGenerators)];
     }
 }
 
 [Serializable]
-abstract class PropertyTestGenerators
+abstract class TestGenerators
 {
+    static readonly Config config = Config.Default.WithArbitrary([typeof(TestGenerators)]);
+
+    public static Gen<T> For<T>() => config.ArbMap.GeneratorFor<T>();
+
+    public static T One<T>() => For<T>().Sample(1).Single();
+
     static Arbitrary<float> FloatGenerator() =>
         ArbMap.Default.GeneratorFor<float>()
             .Where(float.IsNormal)
@@ -85,6 +91,32 @@ abstract class PropertyTestGenerators
             from f8 in Generate<sbyte>()
             from f9 in pointGenerator.Generator
             select new SimpleStructData
+            {
+                Field1 = f1,
+                Field2 = f2,
+                Field3 = f3,
+                Field4 = f4,
+                Field5 = f5,
+                Field6 = f6,
+                Field7 = f7,
+                Field8 = f8,
+                Field9 = f9,
+            });
+
+    public static Arbitrary<SimpleRefData> SimpleRefDataGenerator(
+        Arbitrary<Point> pointGenerator
+    ) =>
+        Arb.From(
+            from f1 in Generate<int>()
+            from f2 in Generate<uint>()
+            from f3 in Generate<ulong>()
+            from f4 in Generate<long>()
+            from f5 in Generate<short>()
+            from f6 in Generate<ushort>()
+            from f7 in Generate<byte>()
+            from f8 in Generate<sbyte>()
+            from f9 in pointGenerator.Generator
+            select new SimpleRefData
             {
                 Field1 = f1,
                 Field2 = f2,

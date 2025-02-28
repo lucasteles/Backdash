@@ -1,9 +1,11 @@
 using System.Buffers;
 using System.Runtime.CompilerServices;
+using Backdash.Data;
 using Backdash.Network;
 using Backdash.Serialization;
 using Backdash.Tests.TestUtils;
 using Backdash.Tests.TestUtils.Types;
+using FsCheck.Fluent;
 
 namespace Backdash.Tests.Specs.Unit.Serialization;
 
@@ -16,7 +18,7 @@ public class BinaryBufferReadWriteListTests
         writer.Write(value);
         var reader = GetReader(writer);
         List<byte> read = [];
-        reader.ReadByte(read);
+        reader.Read(read);
         reader.ReadCount.Should().Be(size);
         return value.SequenceEqual(read);
     }
@@ -28,7 +30,7 @@ public class BinaryBufferReadWriteListTests
         writer.Write(value);
         var reader = GetReader(writer);
         List<sbyte> read = [];
-        reader.ReadSByte(read);
+        reader.Read(read);
         reader.ReadCount.Should().Be(size);
         return value.SequenceEqual(read);
     }
@@ -40,7 +42,7 @@ public class BinaryBufferReadWriteListTests
         writer.Write(value);
         var reader = GetReader(writer);
         List<short> read = [];
-        reader.ReadInt16(read);
+        reader.Read(read);
         reader.ReadCount.Should().Be(size);
         return value.SequenceEqual(read);
     }
@@ -52,7 +54,7 @@ public class BinaryBufferReadWriteListTests
         writer.Write(value);
         var reader = GetReader(writer);
         List<ushort> read = [];
-        reader.ReadUInt16(read);
+        reader.Read(read);
         reader.ReadCount.Should().Be(size);
         return value.SequenceEqual(read);
     }
@@ -64,7 +66,7 @@ public class BinaryBufferReadWriteListTests
         writer.Write(value);
         var reader = GetReader(writer);
         List<int> read = [];
-        reader.ReadInt32(read);
+        reader.Read(read);
         reader.ReadCount.Should().Be(size);
         return value.SequenceEqual(read);
     }
@@ -76,7 +78,7 @@ public class BinaryBufferReadWriteListTests
         writer.Write(value);
         var reader = GetReader(writer);
         List<uint> read = [];
-        reader.ReadUInt32(read);
+        reader.Read(read);
         reader.ReadCount.Should().Be(size);
         return value.SequenceEqual(read);
     }
@@ -88,7 +90,7 @@ public class BinaryBufferReadWriteListTests
         writer.Write(value);
         var reader = GetReader(writer);
         List<long> read = [];
-        reader.ReadInt64(read);
+        reader.Read(read);
         reader.ReadCount.Should().Be(size);
         return value.SequenceEqual(read);
     }
@@ -100,7 +102,7 @@ public class BinaryBufferReadWriteListTests
         writer.Write(value);
         var reader = GetReader(writer);
         List<ulong> read = [];
-        reader.ReadUInt64(read);
+        reader.Read(read);
         reader.ReadCount.Should().Be(size);
         return value.SequenceEqual(read);
     }
@@ -112,7 +114,7 @@ public class BinaryBufferReadWriteListTests
         writer.Write(value);
         var reader = GetReader(writer);
         List<Int128> read = [];
-        reader.ReadInt128(read);
+        reader.Read(read);
         reader.ReadCount.Should().Be(size);
         return value.SequenceEqual(read);
     }
@@ -124,7 +126,7 @@ public class BinaryBufferReadWriteListTests
         writer.Write(value);
         var reader = GetReader(writer);
         List<UInt128> read = [];
-        reader.ReadUInt128(read);
+        reader.Read(read);
         reader.ReadCount.Should().Be(size);
         return value.SequenceEqual(read);
     }
@@ -136,7 +138,7 @@ public class BinaryBufferReadWriteListTests
         writer.Write(value);
         var reader = GetReader(writer);
         List<char> read = [];
-        reader.ReadChar(read);
+        reader.Read(read);
         reader.ReadCount.Should().Be(size);
         return value.SequenceEqual(read);
     }
@@ -148,7 +150,7 @@ public class BinaryBufferReadWriteListTests
         writer.Write(value);
         var reader = GetReader(writer);
         List<bool> read = [];
-        reader.ReadBoolean(read);
+        reader.Read(read);
         reader.ReadCount.Should().Be(size);
         return value.SequenceEqual(read);
     }
@@ -177,7 +179,7 @@ public class BinaryBufferReadWriteListTests
         writer.Write(value);
         var reader = GetReader(writer);
         List<Guid> read = [];
-        reader.ReadGuid(in read);
+        reader.Read(in read);
         reader.ReadCount.Should().Be(size);
         return value.SequenceEqual(read);
     }
@@ -189,7 +191,7 @@ public class BinaryBufferReadWriteListTests
         writer.Write(value);
         var reader = GetReader(writer);
         List<TimeSpan> read = [];
-        reader.ReadTimeSpan(in read);
+        reader.Read(in read);
         reader.ReadCount.Should().Be(size);
         return value.SequenceEqual(read);
     }
@@ -201,7 +203,7 @@ public class BinaryBufferReadWriteListTests
         writer.Write(value);
         var reader = GetReader(writer);
         List<TimeOnly> read = [];
-        reader.ReadTimeOnly(in read);
+        reader.Read(in read);
         reader.ReadCount.Should().Be(size);
         return value.SequenceEqual(read);
     }
@@ -213,7 +215,7 @@ public class BinaryBufferReadWriteListTests
         writer.Write(value);
         var reader = GetReader(writer);
         List<DateOnly> read = [];
-        reader.ReadDateOnly(in read);
+        reader.Read(in read);
         reader.ReadCount.Should().Be(size);
         return value.SequenceEqual(read);
     }
@@ -226,7 +228,7 @@ public class BinaryBufferReadWriteListTests
         writer.Write(value);
         var reader = GetReader(writer);
         List<DateTime> read = [];
-        reader.ReadDateTime(in read);
+        reader.Read(in read);
         reader.ReadCount.Should().Be(size);
         return value.SequenceEqual(read);
     }
@@ -238,7 +240,7 @@ public class BinaryBufferReadWriteListTests
         writer.Write(value);
         var reader = GetReader(writer);
         List<DateTimeOffset> read = [];
-        reader.ReadDateTimeOffset(in read);
+        reader.Read(in read);
         reader.ReadCount.Should().Be(size);
         return value.SequenceEqual(read);
     }
@@ -259,7 +261,7 @@ public class BinaryBufferReadWriteListTests
 
 
     [PropertyTest]
-    public bool ListOfSerializableObjects(List<SimpleStructData> value, Endianness endianness)
+    public bool ListOfSerializableStruct(List<SimpleStructData> value, Endianness endianness)
     {
         var size = Setup(value, endianness, out var writer);
         writer.Write(in value);
@@ -267,10 +269,181 @@ public class BinaryBufferReadWriteListTests
 
         var reader = GetReader(writer);
         List<SimpleStructData> read = [];
-        reader.Read(in read);
+        reader.Read(read);
         reader.ReadCount.Should().Be(size);
 
         return value.SequenceEqual(read);
+    }
+
+    [PropertyTest]
+    public bool ListOfSerializableClass(List<SimpleRefData> value, Endianness endianness)
+    {
+        Setup(endianness, out var writer);
+        writer.Write(in value);
+
+        var reader = GetReader(writer);
+        List<SimpleRefData> read = [];
+        reader.Read(read);
+
+        return value.SequenceEqual(read);
+    }
+
+    [Collection(SerialCollectionDefinition.Name)]
+    public class CastingAsTests
+    {
+        [PropertyTest]
+        public bool ListOfByte(List<ByteEnum> value, Endianness endianness)
+        {
+            var size = Setup(value, endianness, out var writer);
+            writer.WriteAsByte(value);
+            var reader = GetReader(writer);
+            List<ByteEnum> read = [];
+            reader.ReadAsByte(read);
+            reader.ReadCount.Should().Be(size);
+            return value.SequenceEqual(read);
+        }
+
+        [PropertyTest]
+        public bool ListOfSByte(List<SByteEnum> value, Endianness endianness)
+        {
+            var size = Setup(value, endianness, out var writer);
+            writer.WriteAsSByte(value);
+            var reader = GetReader(writer);
+            List<SByteEnum> read = [];
+            reader.ReadAsSByte(read);
+            reader.ReadCount.Should().Be(size);
+            return value.SequenceEqual(read);
+        }
+
+        [PropertyTest]
+        public bool ListOfInt16(List<Int16Enum> value, Endianness endianness)
+        {
+            var size = Setup(value, endianness, out var writer);
+            writer.WriteAsInt16(value);
+            var reader = GetReader(writer);
+            List<Int16Enum> read = [];
+            reader.ReadAsInt16(read);
+            reader.ReadCount.Should().Be(size);
+            return value.SequenceEqual(read);
+        }
+
+        [PropertyTest]
+        public bool ListOfUInt16(List<UInt16Enum> value, Endianness endianness)
+        {
+            var size = Setup(value, endianness, out var writer);
+            writer.WriteAsUInt16(value);
+            var reader = GetReader(writer);
+            List<UInt16Enum> read = [];
+            reader.ReadAsUInt16(read);
+            reader.ReadCount.Should().Be(size);
+            return value.SequenceEqual(read);
+        }
+
+        [PropertyTest]
+        public bool ListOfInt32(List<Int32Enum> value, Endianness endianness)
+        {
+            var size = Setup(value, endianness, out var writer);
+            writer.WriteAsInt32(value);
+            var reader = GetReader(writer);
+            List<Int32Enum> read = [];
+            reader.ReadAsInt32(read);
+            reader.ReadCount.Should().Be(size);
+            return value.SequenceEqual(read);
+        }
+
+        [PropertyTest]
+        public bool ListOfUInt32(List<UInt32Enum> value, Endianness endianness)
+        {
+            var size = Setup(value, endianness, out var writer);
+            writer.WriteAsUInt32(value);
+            var reader = GetReader(writer);
+            List<UInt32Enum> read = [];
+            reader.ReadAsUInt32(read);
+            reader.ReadCount.Should().Be(size);
+            return value.SequenceEqual(read);
+        }
+
+        [PropertyTest]
+        public bool ListOfInt64(List<Int64Enum> value, Endianness endianness)
+        {
+            var size = Setup(value, endianness, out var writer);
+            writer.WriteAsInt64(value);
+            var reader = GetReader(writer);
+            List<Int64Enum> read = [];
+            reader.ReadAsInt64(read);
+            reader.ReadCount.Should().Be(size);
+            return value.SequenceEqual(read);
+        }
+
+        [PropertyTest]
+        public bool ListOfUInt64(List<UInt64Enum> value, Endianness endianness)
+        {
+            var size = Setup(value, endianness, out var writer);
+            writer.WriteAsUInt64(value);
+            var reader = GetReader(writer);
+            List<UInt64Enum> read = [];
+            reader.ReadAsUInt64(read);
+            reader.ReadCount.Should().Be(size);
+            return value.SequenceEqual(read);
+        }
+    }
+
+    [Fact]
+    public void ShouldRentClassFromPoolWhenExpandEmptyList()
+    {
+        TestObjectPool<SimpleRefData> pool = new();
+        var values = TestGenerators.For<SimpleRefData>().Sample(10).ToList();
+
+        Setup(Endianness.LittleEndian, out var writer);
+        writer.Write(in values);
+
+        var reader = GetReader(writer);
+        List<SimpleRefData> copy = [];
+        reader.Read(copy, pool);
+
+        pool.RentCount.Should().Be(10);
+        pool.ReturnCount.Should().Be(0);
+        copy.Should().Equal(values);
+    }
+
+    [Fact]
+    public void ShouldRentedClassFromPoolWhenExpandInitializedList()
+    {
+        TestObjectPool<SimpleRefData> pool = new();
+        var values = TestGenerators.For<SimpleRefData>().Sample(10).ToList();
+
+        Setup(Endianness.LittleEndian, out var writer);
+        writer.Write(in values);
+
+        var reader = GetReader(writer);
+        var copy = TestGenerators.For<SimpleRefData>().Sample(5).ToList();
+        reader.Read(copy, pool);
+
+        copy.Should().Equal(values);
+        pool.RentCount.Should().Be(5);
+        pool.ReturnCount.Should().Be(0);
+    }
+
+    [Fact]
+    public void ShouldReturnRentedClassFromPoolWhenExpandInitializedList()
+    {
+        TestObjectPool<SimpleRefData> pool = new();
+        var target = TestGenerators.For<SimpleRefData>().Sample(5).ToList();
+
+        Setup(Endianness.LittleEndian, out var writer);
+        writer.Write(in target);
+
+        var reader = GetReader(writer);
+        var source1 = TestGenerators.For<SimpleRefData>().Sample(5).ToList();
+        var source2 = TestGenerators.For<SimpleRefData>().Sample(5).ToList();
+        List<SimpleRefData> source = [.. source1, .. source2];
+
+        reader.Read(source, pool);
+
+        source1.Should().Equal(target);
+        pool.RentCount.Should().Be(0);
+        pool.ReturnCount.Should().Be(5);
+        pool.Returned.Should().Equal(source2);
     }
 
     static int readOffset;
@@ -289,9 +462,33 @@ public class BinaryBufferReadWriteListTests
         return size + sizeof(int);
     }
 
+    static void Setup(Endianness endianness, out BinaryBufferWriter writer)
+    {
+        readOffset = 0;
+        ArrayBufferWriter<byte> buffer = new();
+        writer = new(buffer, endianness);
+    }
+
     static BinaryBufferReader GetReader(in BinaryBufferWriter writer)
     {
         var buffer = (ArrayBufferWriter<byte>)writer.Buffer;
         return new(buffer.WrittenSpan, ref readOffset, writer.Endianness);
+    }
+
+    class TestObjectPool<T> : IObjectPool<T> where T : new()
+    {
+        readonly List<T> returned = [];
+
+        public int RentCount { get; private set; }
+        public int ReturnCount => returned.Count;
+        public IReadOnlyList<T> Returned => returned.AsReadOnly();
+
+        public T Rent()
+        {
+            RentCount++;
+            return new();
+        }
+
+        public void Return(T value) => returned.Add(value);
     }
 }

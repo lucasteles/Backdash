@@ -16,172 +16,172 @@ namespace Backdash.Tests.Specs.Unit.Serialization;
 public class BinaryBufferReadWriteValueTests
 {
     [PropertyTest]
-    public bool SingleByte(byte value, Endianness endianness)
+    public bool TestByte(byte value, byte read, Endianness endianness)
     {
         var size = Setup<byte>(endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
-        var read = reader.ReadByte();
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
 
     [PropertyTest]
-    public bool SingleSByte(sbyte value, Endianness endianness)
+    public bool TestSByte(sbyte value, sbyte read, Endianness endianness)
     {
         var size = Setup<sbyte>(endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
-        var read = reader.ReadSByte();
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
 
     [PropertyTest]
-    public bool SingleBool(bool value, Endianness endianness)
+    public bool TestBool(bool value, bool read, Endianness endianness)
     {
         var size = Setup<bool>(endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
-        var read = reader.ReadBoolean();
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
 
     [PropertyTest]
-    public bool SingleChar(char value, Endianness endianness)
+    public bool TestChar(char value, char read, Endianness endianness)
     {
         var size = Setup<char>(endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
-        var read = reader.ReadChar();
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
 
     [PropertyTest]
-    public bool SingleShort(short value, Endianness endianness)
+    public bool TestShort(short value, short read, Endianness endianness)
     {
         var size = Setup<short>(endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
-        var read = reader.ReadInt16();
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
 
     [PropertyTest]
-    public bool SingleUShort(ushort value, Endianness endianness)
+    public bool TestUShort(ushort value, ushort read, Endianness endianness)
     {
         var size = Setup<ushort>(endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
-        var read = reader.ReadUInt16();
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
 
     [PropertyTest]
-    public bool SingleInt(int value, Endianness endianness)
+    public bool TestInt(int value, int read, Endianness endianness)
     {
         var size = Setup<int>(endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
-        var read = reader.ReadInt32();
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
 
     [PropertyTest]
-    public bool SingleUInt(uint value, Endianness endianness)
+    public bool TestUInt(uint value, uint read, Endianness endianness)
     {
         var size = Setup<uint>(endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
-        var read = reader.ReadUInt32();
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
 
     [PropertyTest]
-    public bool SingleLong(long value, Endianness endianness)
+    public bool TestLong(long value, long read, Endianness endianness)
     {
         var size = Setup<long>(endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
-        var read = reader.ReadInt64();
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
 
     [PropertyTest]
-    public bool SingleULong(ulong value, Endianness endianness)
+    public bool TestULong(ulong value, ulong read, Endianness endianness)
     {
         var size = Setup<ulong>(endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
-        var read = reader.ReadUInt64();
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
 
     [PropertyTest]
-    public bool SingleInt128(Int128 value, Endianness endianness)
+    public bool TestInt128(Int128 value, Int128 read, Endianness endianness)
     {
         var size = Setup<Int128>(endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
-        var read = reader.ReadInt128();
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
 
     [PropertyTest]
-    public bool SingleIntU128(UInt128 value, Endianness endianness)
+    public bool TestIntU128(UInt128 value, UInt128 read, Endianness endianness)
     {
         var size = Setup<UInt128>(endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
-        var read = reader.ReadUInt128();
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
 
     [PropertyTest]
-    public bool SingleHalf(Half value, Endianness endianness)
+    public bool TestHalf(Half value, Half read, Endianness endianness)
     {
         var size = Setup<Half>(endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
-        var read = reader.ReadHalf();
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
 
     [PropertyTest]
-    public bool SingleFloat(float value, Endianness endianness)
+    public bool TestFloat(float value, float read, Endianness endianness)
     {
         var size = Setup<float>(endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
-        var read = reader.ReadFloat();
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
 
     [PropertyTest]
-    public bool SingleDouble(double value, Endianness endianness)
+    public bool TestDouble(double value, double read, Endianness endianness)
     {
         var size = Setup<double>(endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
-        var read = reader.ReadDouble();
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
 
     [PropertyTest]
-    public bool SingleVector2(Vector2 value, Endianness endianness)
+    public bool TestVector2(Vector2 value, Endianness endianness)
     {
         var size = Setup<Vector2>(endianness, out var writer);
         writer.Write(value);
@@ -192,19 +192,18 @@ public class BinaryBufferReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool SingleVector2Ref(Vector2 value, Endianness endianness)
+    public bool TestVector2Ref(Vector2 value, Vector2 read, Endianness endianness)
     {
         var size = Setup<Vector2>(endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
-        Vector2 read = new();
-        reader.ReadVector2(ref read);
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
 
     [PropertyTest]
-    public bool SingleVector3(Vector3 value, Endianness endianness)
+    public bool TestVector3(Vector3 value, Endianness endianness)
     {
         var size = Setup<Vector3>(endianness, out var writer);
         writer.Write(value);
@@ -215,19 +214,18 @@ public class BinaryBufferReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool SingleVector3Ref(Vector3 value, Endianness endianness)
+    public bool TestVector3Ref(Vector3 value, Vector3 read, Endianness endianness)
     {
         var size = Setup<Vector3>(endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
-        Vector3 read = new();
-        reader.ReadVector3(ref read);
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
 
     [PropertyTest]
-    public bool SingleVector4(Vector4 value, Endianness endianness)
+    public bool TestVector4(Vector4 value, Endianness endianness)
     {
         var size = Setup<Vector4>(endianness, out var writer);
         writer.Write(value);
@@ -238,19 +236,18 @@ public class BinaryBufferReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool SingleVector4Ref(Vector4 value, Endianness endianness)
+    public bool TestVector4Ref(Vector4 value, Vector4 read, Endianness endianness)
     {
         var size = Setup<Vector4>(endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
-        Vector4 read = new();
-        reader.ReadVector4(ref read);
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
 
     [PropertyTest]
-    public bool SingleQuaternion(Quaternion value, Endianness endianness)
+    public bool TestQuaternion(Quaternion value, Endianness endianness)
     {
         var size = Setup<Quaternion>(endianness, out var writer);
         writer.Write(value);
@@ -261,91 +258,79 @@ public class BinaryBufferReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool SingleQuaternionRef(Quaternion value, Endianness endianness)
+    public bool TestQuaternionRef(Quaternion value, Quaternion read, Endianness endianness)
     {
         var size = Setup<Quaternion>(endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
-        Quaternion read = new();
-        reader.ReadQuaternion(ref read);
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
 
     [PropertyTest]
-    public bool CharUtf8(char value, Endianness endianness)
-    {
-        var size = Setup<byte>(endianness, out var writer);
-        writer.WriteUtf8Char(value);
-        var reader = GetReader(writer);
-        var read = reader.ReadUtf8Char();
-        reader.ReadCount.Should().Be(size);
-        return value == read;
-    }
-
-    [PropertyTest]
-    public bool SingleGuid(Guid value, Endianness endianness)
+    public bool TestGuid(Guid value, Guid read, Endianness endianness)
     {
         var size = Setup<Guid>(endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
-        var read = reader.ReadGuid();
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
 
     [PropertyTest]
-    public bool SingleTimeSpan(TimeSpan value, Endianness endianness)
+    public bool TestTimeSpan(TimeSpan value, TimeSpan read, Endianness endianness)
     {
         var size = Setup<TimeSpan>(endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
-        var read = reader.ReadTimeSpan();
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
 
     [PropertyTest]
-    public bool SingleTimeOnly(TimeOnly value, Endianness endianness)
+    public bool TestTimeOnly(TimeOnly value, TimeOnly read, Endianness endianness)
     {
         var size = Setup<TimeOnly>(endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
-        var read = reader.ReadTimeOnly();
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
 
     [PropertyTest]
-    public bool SingleDateTime(DateTime value, Endianness endianness)
+    public bool TestDateTime(DateTime value, DateTime read, Endianness endianness)
     {
         const int kindSize = 1;
         var size = Setup<DateTime>(endianness, out var writer) + kindSize;
         writer.Write(value);
         var reader = GetReader(writer);
-        var read = reader.ReadDateTime();
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
 
     [PropertyTest]
-    public bool SingleDateTimeOffset(DateTimeOffset value, Endianness endianness)
+    public bool TestDateTimeOffset(DateTimeOffset value, DateTimeOffset read, Endianness endianness)
     {
         var size = Setup<DateTimeOffset>(endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
-        var read = reader.ReadDateTimeOffset();
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
 
     [PropertyTest]
-    public bool SingleDateOnly(DateOnly value, Endianness endianness)
+    public bool TestDateOnly(DateOnly value, DateOnly read, Endianness endianness)
     {
         var size = Setup<DateOnly>(endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
-        var read = reader.ReadDateOnly();
+        reader.Read(ref read);
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
@@ -363,13 +348,12 @@ public class BinaryBufferReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool UnmanagedStructRef(SimpleStructData value, Endianness endianness)
+    public bool UnmanagedStructRef(SimpleStructData value, SimpleStructData read, Endianness endianness)
     {
         var size = Setup<SimpleStructData>(endianness, out var writer);
         writer.WriteStruct(in value);
 
         var reader = GetReader(writer);
-        SimpleStructData read = new();
         reader.ReadStruct(ref read);
 
         reader.ReadCount.Should().Be(size);
@@ -377,7 +361,7 @@ public class BinaryBufferReadWriteValueTests
     }
 
     [PropertyTest]
-    public bool SerializableObject(SimpleStructData value, Endianness endianness)
+    public bool SerializableValueType(SimpleStructData value, SimpleStructData result, Endianness endianness)
     {
         var size = Setup<SimpleStructData>(endianness, out var writer);
 
@@ -385,41 +369,34 @@ public class BinaryBufferReadWriteValueTests
         writer.WrittenCount.Should().Be(size);
 
         var reader = GetReader(writer);
-        SimpleStructData result = default;
         reader.Read(ref result);
         reader.ReadCount.Should().Be(size);
 
         return value == result;
     }
 
-    static int readOffset;
-
-    static int Setup<T>(Endianness endianness, out BinaryBufferWriter writer) where T : unmanaged
+    [PropertyTest]
+    public bool SerializableObject(SimpleRefData value, SimpleRefData result, Endianness endianness)
     {
-        var size = Unsafe.SizeOf<T>();
-        readOffset = 0;
+        var size = Setup<SimpleStructData>(endianness, out var writer);
 
-        ArrayBufferWriter<byte> buffer = new(size);
-        writer = new(buffer, endianness);
+        writer.Write(in value);
+        writer.WrittenCount.Should().Be(size);
 
-        return size;
-    }
+        var reader = GetReader(writer);
+        reader.Read(result);
+        reader.ReadCount.Should().Be(size);
 
-    static BinaryBufferReader GetReader(in BinaryBufferWriter writer)
-    {
-        var buffer = (ArrayBufferWriter<byte>)writer.Buffer;
-        return new(buffer.WrittenSpan, ref readOffset, writer.Endianness);
+        return value == result;
     }
 
     [Collection(SerialCollectionDefinition.Name)]
-    public class ReadWriteBinaryIntegerTests
+    public class BinaryIntegerTests
     {
-        [PropertyTest] public bool TestInt(int value, Endianness endianness) => TestInteger(value, endianness);
-        [PropertyTest] public bool TestUInt(uint value, Endianness endianness) => TestInteger(value, endianness);
-        [PropertyTest] public bool TestLong(long value, Endianness endianness) => TestInteger(value, endianness);
+        [PropertyTest] public bool TestByte(byte value, Endianness endianness) => TestInteger(value, endianness);
 
         [PropertyTest]
-        public bool TestULong(ulong value, Endianness endianness) =>
+        public bool TestSByte(sbyte value, Endianness endianness) =>
             TestInteger(value, endianness);
 
         [PropertyTest]
@@ -430,11 +407,19 @@ public class BinaryBufferReadWriteValueTests
         public bool TestUShort(ushort value, Endianness endianness) =>
             TestInteger(value, endianness);
 
-        [PropertyTest] public bool TestByte(byte value, Endianness endianness) => TestInteger(value, endianness);
+        [PropertyTest] public bool TestInt(int value, Endianness endianness) => TestInteger(value, endianness);
+        [PropertyTest] public bool TestUInt(uint value, Endianness endianness) => TestInteger(value, endianness);
+
+        [PropertyTest] public bool TestLong(long value, Endianness endianness) => TestInteger(value, endianness);
 
         [PropertyTest]
-        public bool TestSByte(sbyte value, Endianness endianness) =>
+        public bool TestULong(ulong value, Endianness endianness) =>
             TestInteger(value, endianness);
+
+        [PropertyTest] public bool TestInt128(Int128 value, Endianness endianness) => TestInteger(value, endianness);
+
+        [PropertyTest]
+        public bool TestUInt128(UInt128 value, Endianness endianness) => TestInteger(value, endianness);
 
         static bool TestInteger<T>(T value, Endianness endianness)
             where T : unmanaged, IBinaryInteger<T>, IMinMaxValue<T>
@@ -442,340 +427,179 @@ public class BinaryBufferReadWriteValueTests
             var size = Setup<T>(endianness, out var writer);
             writer.WriteNumber(value);
             var reader = GetReader(writer);
-            var read = reader.ReadNumber<T>();
+            T read = default;
+            reader.ReadNumber(ref read);
             reader.ReadCount.Should().Be(size);
             return EqualityComparer<T>.Default.Equals(read, value);
         }
     }
 
     [Collection(SerialCollectionDefinition.Name)]
-    public class ReadWriteNullableTests
+    public class CastingAsTests
     {
         [PropertyTest]
-        public bool SingleByte(byte? value, Endianness endianness)
+        public bool TestByte(ByteEnum value, ByteEnum read, Endianness endianness)
         {
-            var size = Setup<byte>(endianness, out var writer);
-            size = (value.HasValue ? size : 0) + 1;
+            var size = Setup<ByteEnum>(endianness, out var writer);
+            writer.WriteAsByte(in value);
 
-            writer.Write(in value);
             var reader = GetReader(writer);
-            var read = reader.ReadNullableByte();
+            reader.ReadAsByte(ref read);
             reader.ReadCount.Should().Be(size);
+
+            ResetRead();
+            var otherRead = reader.ReadAsByte<ByteEnum>();
+            reader.ReadCount.Should().Be(size);
+            otherRead.Should().Be(read);
+
             return value == read;
         }
 
         [PropertyTest]
-        public bool SingleSByte(sbyte? value, Endianness endianness)
+        public bool TestSByte(SByteEnum value, SByteEnum read, Endianness endianness)
         {
-            var size = Setup<sbyte>(endianness, out var writer);
-            size = (value.HasValue ? size : 0) + 1;
-            writer.Write(value);
+            var size = Setup<SByteEnum>(endianness, out var writer);
+            writer.WriteAsSByte(in value);
+
             var reader = GetReader(writer);
-            var read = reader.ReadNullableSByte();
+            reader.ReadAsSByte(ref read);
             reader.ReadCount.Should().Be(size);
+
+            ResetRead();
+            var otherRead = reader.ReadAsSByte<SByteEnum>();
+            reader.ReadCount.Should().Be(size);
+            otherRead.Should().Be(read);
+
             return value == read;
         }
 
         [PropertyTest]
-        public bool SingleBool(bool? value, Endianness endianness)
+        public bool TestInt16(Int16Enum value, Int16Enum read, Endianness endianness)
         {
-            var size = Setup<bool>(endianness, out var writer);
-            size = (value.HasValue ? size : 0) + 1;
-            writer.Write(value);
+            var size = Setup<Int16Enum>(endianness, out var writer);
+            writer.WriteAsInt16(in value);
+
             var reader = GetReader(writer);
-            var read = reader.ReadNullableBoolean();
+            reader.ReadAsInt16(ref read);
             reader.ReadCount.Should().Be(size);
+
+            ResetRead();
+            var otherRead = reader.ReadAsInt16<Int16Enum>();
+            reader.ReadCount.Should().Be(size);
+            otherRead.Should().Be(read);
+
             return value == read;
         }
 
         [PropertyTest]
-        public bool SingleChar(char? value, Endianness endianness)
+        public bool TestUInt16(UInt16Enum value, UInt16Enum read, Endianness endianness)
         {
-            var size = Setup<char>(endianness, out var writer);
-            size = (value.HasValue ? size : 0) + 1;
-            writer.Write(value);
+            var size = Setup<UInt16Enum>(endianness, out var writer);
+            writer.WriteAsUInt16(in value);
+
             var reader = GetReader(writer);
-            var read = reader.ReadNullableChar();
+            reader.ReadAsUInt16(ref read);
             reader.ReadCount.Should().Be(size);
+
+            ResetRead();
+            var otherRead = reader.ReadAsUInt16<UInt16Enum>();
+            reader.ReadCount.Should().Be(size);
+            otherRead.Should().Be(read);
+
             return value == read;
         }
 
         [PropertyTest]
-        public bool SingleShort(short? value, Endianness endianness)
+        public bool TestInt32(Int32Enum value, Int32Enum read, Endianness endianness)
         {
-            var size = Setup<short>(endianness, out var writer);
-            size = (value.HasValue ? size : 0) + 1;
-            writer.Write(value);
+            var size = Setup<Int32Enum>(endianness, out var writer);
+            writer.WriteAsInt32(in value);
+
             var reader = GetReader(writer);
-            var read = reader.ReadNullableInt16();
+            reader.ReadAsInt32(ref read);
             reader.ReadCount.Should().Be(size);
+
+            ResetRead();
+            var otherRead = reader.ReadAsInt32<Int32Enum>();
+            reader.ReadCount.Should().Be(size);
+            otherRead.Should().Be(read);
+
             return value == read;
         }
 
         [PropertyTest]
-        public bool SingleUShort(ushort? value, Endianness endianness)
+        public bool TestUInt32(UInt32Enum value, UInt32Enum read, Endianness endianness)
         {
-            var size = Setup<ushort>(endianness, out var writer);
-            size = (value.HasValue ? size : 0) + 1;
-            writer.Write(value);
+            var size = Setup<UInt32Enum>(endianness, out var writer);
+            writer.WriteAsUInt32(in value);
+
             var reader = GetReader(writer);
-            var read = reader.ReadNullableUInt16();
+            reader.ReadAsUInt32(ref read);
             reader.ReadCount.Should().Be(size);
+
+            ResetRead();
+            var otherRead = reader.ReadAsUInt32<UInt32Enum>();
+            reader.ReadCount.Should().Be(size);
+            otherRead.Should().Be(read);
+
             return value == read;
         }
 
         [PropertyTest]
-        public bool SingleInt(int? value, Endianness endianness)
+        public bool TestInt64(Int64Enum value, Int64Enum read, Endianness endianness)
         {
-            var size = Setup<int>(endianness, out var writer);
-            size = (value.HasValue ? size : 0) + 1;
-            writer.Write(value);
+            var size = Setup<Int64Enum>(endianness, out var writer);
+            writer.WriteAsInt64(in value);
+
             var reader = GetReader(writer);
-            var read = reader.ReadNullableInt32();
+            reader.ReadAsInt64(ref read);
             reader.ReadCount.Should().Be(size);
+
+            ResetRead();
+            var otherRead = reader.ReadAsInt64<Int64Enum>();
+            reader.ReadCount.Should().Be(size);
+            otherRead.Should().Be(read);
+
             return value == read;
         }
 
         [PropertyTest]
-        public bool SingleUInt(uint? value, Endianness endianness)
+        public bool TestUInt64(UInt64Enum value, UInt64Enum read, Endianness endianness)
         {
-            var size = Setup<uint>(endianness, out var writer);
-            size = (value.HasValue ? size : 0) + 1;
-            writer.Write(value);
-            var reader = GetReader(writer);
-            var read = reader.ReadNullableUInt32();
-            reader.ReadCount.Should().Be(size);
-            return value == read;
-        }
-
-        [PropertyTest]
-        public bool SingleLong(long? value, Endianness endianness)
-        {
-            var size = Setup<long>(endianness, out var writer);
-            size = (value.HasValue ? size : 0) + 1;
-            writer.Write(value);
-            var reader = GetReader(writer);
-            var read = reader.ReadNullableInt64();
-            reader.ReadCount.Should().Be(size);
-            return value == read;
-        }
-
-        [PropertyTest]
-        public bool SingleULong(ulong? value, Endianness endianness)
-        {
-            var size = Setup<ulong>(endianness, out var writer);
-            size = (value.HasValue ? size : 0) + 1;
-            writer.Write(value);
-            var reader = GetReader(writer);
-            var read = reader.ReadNullableUInt64();
-            reader.ReadCount.Should().Be(size);
-            return value == read;
-        }
-
-        [PropertyTest]
-        public bool SingleInt128(Int128? value, Endianness endianness)
-        {
-            var size = Setup<Int128>(endianness, out var writer);
-            size = (value.HasValue ? size : 0) + 1;
-            writer.Write(value);
-            var reader = GetReader(writer);
-            var read = reader.ReadNullableInt128();
-            reader.ReadCount.Should().Be(size);
-            return value == read;
-        }
-
-        [PropertyTest]
-        public bool SingleIntU128(UInt128? value, Endianness endianness)
-        {
-            var size = Setup<UInt128>(endianness, out var writer);
-            size = (value.HasValue ? size : 0) + 1;
-            writer.Write(value);
-            var reader = GetReader(writer);
-            var read = reader.ReadNullableUInt128();
-            reader.ReadCount.Should().Be(size);
-            return value == read;
-        }
-
-        [PropertyTest]
-        public bool SingleHalf(Half? value, Endianness endianness)
-        {
-            var size = Setup<Half>(endianness, out var writer);
-            size = (value.HasValue ? size : 0) + 1;
-            writer.Write(value);
-            var reader = GetReader(writer);
-            var read = reader.ReadNullableHalf();
-            reader.ReadCount.Should().Be(size);
-            return value == read;
-        }
-
-        [PropertyTest]
-        public bool SingleFloat(float? value, Endianness endianness)
-        {
-            var size = Setup<float>(endianness, out var writer);
-            size = (value.HasValue ? size : 0) + 1;
-            writer.Write(value);
-            var reader = GetReader(writer);
-            var read = reader.ReadNullableFloat();
-            reader.ReadCount.Should().Be(size);
-            return value == read;
-        }
-
-        [PropertyTest]
-        public bool SingleDouble(double? value, Endianness endianness)
-        {
-            var size = Setup<double>(endianness, out var writer);
-            size = (value.HasValue ? size : 0) + 1;
-            writer.Write(value);
-            var reader = GetReader(writer);
-            var read = reader.ReadNullableDouble();
-            reader.ReadCount.Should().Be(size);
-            return value == read;
-        }
-
-        [PropertyTest]
-        public bool SingleVector2(Vector2? value, Endianness endianness)
-        {
-            var size = Setup<Vector2>(endianness, out var writer);
-            size = (value.HasValue ? size : 0) + 1;
-            writer.Write(value);
-            var reader = GetReader(writer);
-            var read = reader.ReadNullableVector2();
-            reader.ReadCount.Should().Be(size);
-            return value == read;
-        }
-
-        [PropertyTest]
-        public bool SingleVector3(Vector3? value, Endianness endianness)
-        {
-            var size = Setup<Vector3>(endianness, out var writer);
-            size = (value.HasValue ? size : 0) + 1;
-            writer.Write(value);
-            var reader = GetReader(writer);
-            var read = reader.ReadNullableVector3();
-            reader.ReadCount.Should().Be(size);
-            return value == read;
-        }
-
-        [PropertyTest]
-        public bool SingleVector4(Vector4? value, Endianness endianness)
-        {
-            var size = Setup<Vector4>(endianness, out var writer);
-            size = (value.HasValue ? size : 0) + 1;
-            writer.Write(value);
-            var reader = GetReader(writer);
-            var read = reader.ReadNullableVector4();
-            reader.ReadCount.Should().Be(size);
-            return value == read;
-        }
-
-        [PropertyTest]
-        public bool SingleQuaternion(Quaternion? value, Endianness endianness)
-        {
-            var size = Setup<Quaternion>(endianness, out var writer);
-            size = (value.HasValue ? size : 0) + 1;
-            writer.Write(value);
-            var reader = GetReader(writer);
-            var read = reader.ReadNullableQuaternion();
-            reader.ReadCount.Should().Be(size);
-            return value == read;
-        }
-
-        [PropertyTest]
-        public bool CharUtf8(char? value, Endianness endianness)
-        {
-            var size = Setup<byte>(endianness, out var writer);
-            size = (value.HasValue ? size : 0) + 1;
-            writer.WriteUtf8Char(value);
-            var reader = GetReader(writer);
-            var read = reader.ReadNullableUtf8Char();
-            reader.ReadCount.Should().Be(size);
-            return value == read;
-        }
-
-        [PropertyTest]
-        public bool SingleGuid(Guid? value, Endianness endianness)
-        {
-            var size = Setup<Guid>(endianness, out var writer);
-            size = (value.HasValue ? size : 0) + 1;
-            writer.Write(value);
-            var reader = GetReader(writer);
-            var read = reader.ReadNullableGuid();
-            reader.ReadCount.Should().Be(size);
-            return value == read;
-        }
-
-        [PropertyTest]
-        public bool SingleTimeSpan(TimeSpan? value, Endianness endianness)
-        {
-            var size = Setup<TimeSpan>(endianness, out var writer);
-            size = (value.HasValue ? size : 0) + 1;
-            writer.Write(value);
-            var reader = GetReader(writer);
-            var read = reader.ReadNullableTimeSpan();
-            reader.ReadCount.Should().Be(size);
-            return value == read;
-        }
-
-        [PropertyTest]
-        public bool SingleTimeOnly(TimeOnly? value, Endianness endianness)
-        {
-            var size = Setup<TimeOnly>(endianness, out var writer);
-            size = (value.HasValue ? size : 0) + 1;
-            writer.Write(value);
-            var reader = GetReader(writer);
-            var read = reader.ReadNullableTimeOnly();
-            reader.ReadCount.Should().Be(size);
-            return value == read;
-        }
-
-        [PropertyTest]
-        public bool SingleDateTime(DateTime? value, Endianness endianness)
-        {
-            const int kindSize = 1;
-            var size = Setup<DateTime>(endianness, out var writer) + kindSize;
-            size = (value.HasValue ? size : 0) + 1;
-            writer.Write(value);
-            var reader = GetReader(writer);
-            var read = reader.ReadNullableDateTime();
-            reader.ReadCount.Should().Be(size);
-            return value == read;
-        }
-
-        [PropertyTest]
-        public bool SingleDateTimeOffset(DateTimeOffset? value, Endianness endianness)
-        {
-            var size = Setup<DateTimeOffset>(endianness, out var writer);
-            size = (value.HasValue ? size : 0) + 1;
-            writer.Write(value);
-            var reader = GetReader(writer);
-            var read = reader.ReadNullableDateTimeOffset();
-            reader.ReadCount.Should().Be(size);
-            return value == read;
-        }
-
-        [PropertyTest]
-        public bool SingleDateOnly(DateOnly? value, Endianness endianness)
-        {
-            var size = Setup<DateOnly>(endianness, out var writer);
-            size = (value.HasValue ? size : 0) + 1;
-            writer.Write(value);
-            var reader = GetReader(writer);
-            var read = reader.ReadNullableDateOnly();
-            reader.ReadCount.Should().Be(size);
-            return value == read;
-        }
-
-        [PropertyTest]
-        public bool UnmanagedStruct(SimpleStructData? value, Endianness endianness)
-        {
-            var size = Setup<SimpleStructData>(endianness, out var writer);
-            size = (value.HasValue ? size : 0) + 1;
-            writer.WriteStruct(in value);
+            var size = Setup<UInt64Enum>(endianness, out var writer);
+            writer.WriteAsUInt64(in value);
 
             var reader = GetReader(writer);
-            var read = reader.ReadNullableStruct<SimpleStructData>();
+            reader.ReadAsUInt64(ref read);
             reader.ReadCount.Should().Be(size);
+
+            ResetRead();
+            var otherRead = reader.ReadAsUInt64<UInt64Enum>();
+            reader.ReadCount.Should().Be(size);
+            otherRead.Should().Be(read);
+
             return value == read;
         }
+    }
+
+    static int readOffset;
+
+    public static void ResetRead() => readOffset = 0;
+
+    public static int Setup<T>(Endianness endianness, out BinaryBufferWriter writer) where T : unmanaged
+    {
+        var size = Unsafe.SizeOf<T>();
+        readOffset = 0;
+
+        ArrayBufferWriter<byte> buffer = new(size);
+        writer = new(buffer, endianness);
+
+        return size;
+    }
+
+    public static BinaryBufferReader GetReader(in BinaryBufferWriter writer)
+    {
+        var buffer = (ArrayBufferWriter<byte>)writer.Buffer;
+        return new(buffer.WrittenSpan, ref readOffset, writer.Endianness);
     }
 }
