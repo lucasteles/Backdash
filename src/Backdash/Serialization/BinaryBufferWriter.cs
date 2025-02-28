@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 using Backdash.Core;
 using Backdash.Network;
 
@@ -46,6 +47,15 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
     Span<T> AllocSpan<T>(in ReadOnlySpan<T> value) where T : unmanaged
     {
         var sizeBytes = Unsafe.SizeOf<T>() * value.Length;
+        var result = MemoryMarshal.Cast<byte, T>(buffer.GetSpan(sizeBytes));
+        Advance(sizeBytes);
+        return result;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    Span<T> AllocSpan<T>(int size) where T : unmanaged
+    {
+        var sizeBytes = Unsafe.SizeOf<T>() * size;
         var result = MemoryMarshal.Cast<byte, T>(buffer.GetSpan(sizeBytes));
         Advance(sizeBytes);
         return result;
@@ -525,6 +535,14 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
     /// <typeparam name="T">A type that implements <see cref="IBinarySerializable"/>.</typeparam>
     public void Write<T>(in List<T> values) where T : IBinarySerializable => Write<T>(GetListSpan(in values));
 
+    /// <summary>Writes an <see cref="StringBuilder"/> <paramref name="value"/> into buffer.</summary>
+    public void Write(in StringBuilder value)
+    {
+        var len = value.Length;
+        Write(len);
+        value.CopyTo(0, AllocSpan<char>(len), len);
+    }
+
     /// <summary>Writes an unmanaged struct into buffer.</summary>
     public void WriteStruct<T>(in T value) where T : unmanaged => Write(Mem.AsBytes(in value));
 
@@ -547,7 +565,21 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
     }
 
     /// <summary>Writes an <see cref="string"/> <paramref name="value"/> into buffer.</summary>
-    public void WriteString(in string value) => Write(value.AsSpan());
+    public void WriteString(in string value, int size)
+    {
+        var chars = value.AsSpan();
+        if (chars.Length >= size)
+        {
+            Write(chars[..size]);
+        }
+        else
+        {
+            Write(chars);
+            Span<char> nullChars = stackalloc char[size - chars.Length];
+            nullChars.Fill(' ');
+            Write(nullChars);
+        }
+    }
 
     /// <summary>Writes an <see cref="string"/> <paramref name="value"/> into buffer as UTF8.</summary>
     public void WriteUtf8String(in ReadOnlySpan<char> value)

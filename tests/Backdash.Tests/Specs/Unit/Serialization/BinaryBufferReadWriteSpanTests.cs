@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Runtime.CompilerServices;
+using System.Text;
 using Backdash.Network;
 using Backdash.Serialization;
 using Backdash.Tests.TestUtils;
@@ -225,18 +226,33 @@ public class BinaryBufferReadWriteSpanTests
     }
 
     [PropertyTest]
-    public bool String(NonEmptyString input, Endianness endianness)
+    public bool String(NonEmptyString input, PositiveInt stringSize)
     {
         var value = input.Item;
+        var size = stringSize.Item;
 
-        var size = Setup(value.ToCharArray(), endianness, out var writer);
-        writer.WriteString(value);
+        Setup(Endianness.LittleEndian, out var writer);
+        writer.WriteString(value, size);
         var reader = GetReader(writer);
 
-        var result = reader.ReadString(value.Length);
+        var result = reader.ReadString(size);
 
-        reader.ReadCount.Should().Be(size);
-        return string.Equals(value, result);
+        if (value.Length > size)
+            value = value[..size];
+
+        return string.Equals(value.Trim(), result.Trim());
+    }
+
+    [PropertyTest]
+    public bool StringBuilder(StringBuilder value, StringBuilder read)
+    {
+        Setup(Endianness.LittleEndian, out var writer);
+        writer.Write(in value);
+
+        var reader = GetReader(writer);
+        reader.Read(in read);
+
+        return string.Equals(value.ToString(), read.ToString());
     }
 
     [PropertyTest]
@@ -455,6 +471,16 @@ public class BinaryBufferReadWriteSpanTests
         ArrayBufferWriter<byte> buffer = new(size is 0 ? 1 : size);
         writer = new(buffer, endianness);
         return size;
+    }
+
+    static void Setup(
+        Endianness endianness,
+        out BinaryBufferWriter writer
+    )
+    {
+        readOffset = 0;
+        ArrayBufferWriter<byte> buffer = new();
+        writer = new(buffer, endianness);
     }
 
     static BinaryBufferReader GetReader(in BinaryBufferWriter writer)

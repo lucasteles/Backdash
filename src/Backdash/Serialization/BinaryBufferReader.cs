@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network;
@@ -75,6 +76,15 @@ public readonly ref struct BinaryBufferReader
         return CollectionsMarshal.AsSpan(values);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    ReadOnlySpan<T> AllocSpan<T>(int size) where T : struct
+    {
+        var span = CurrentBuffer[..(size * Unsafe.SizeOf<T>())];
+        Advance(size);
+        return MemoryMarshal.Cast<byte, T>(span);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     void ReadSpan<T>(in Span<T> data) where T : struct => Read(MemoryMarshal.AsBytes(data));
 
     /// <summary>Reads single <see cref="byte"/> from buffer.</summary>
@@ -449,6 +459,17 @@ public readonly ref struct BinaryBufferReader
     /// <typeparam name="T">A reference that implements <see cref="IBinarySerializable"/>.</typeparam>
     public void Read<T>(List<T> values) where T : class, IBinarySerializable, new() =>
         Read(GetListSpan(in values, in DefaultObjectPool<T>.Instance));
+
+    /// <summary>
+    /// Reads a StringBuilder into <paramref name="values"/> from buffer.
+    /// </summary>
+    public void Read(in StringBuilder values)
+    {
+        var size = ReadInt32();
+        var chars = AllocSpan<char>(size);
+        values.Clear();
+        values.Append(chars);
+    }
 
     /// <inheritdoc cref="ReadByte()"/>
     public void Read(ref byte value) => value = ReadByte();

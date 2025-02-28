@@ -1,5 +1,6 @@
 using System.Drawing;
 using System.Numerics;
+using System.Text;
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network.Messages;
@@ -75,6 +76,11 @@ abstract class TestGenerators
         from x in Generate<int>()
         from y in Generate<int>()
         select new Point(x, y)
+    );
+
+    public static Arbitrary<StringBuilder> StringBuilderGenerator() => Arb.From(
+        from s in Generate<string>()
+        select new StringBuilder(s)
     );
 
     public static Arbitrary<SimpleStructData> SimpleStructDataGenerator(
