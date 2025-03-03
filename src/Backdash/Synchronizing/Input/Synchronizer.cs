@@ -112,8 +112,7 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
         if (localConnections[playerNumber].Disconnected && frame > localConnections[playerNumber].LastFrame)
             return false;
         confirmed.Frame = frame;
-        inputQueues[playerNumber].GetConfirmedInput(in frame, ref confirmed);
-        return true;
+        return inputQueues[playerNumber].GetConfirmedInput(in frame, ref confirmed);
     }
 
     public void SynchronizeInputs(Span<SynchronizedInput<TInput>> syncOutput, Span<TInput> output)
@@ -214,7 +213,7 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
         for (var i = 0; i < NumberOfPlayers; i++)
         {
             var incorrect = inputQueues[i].FirstIncorrectFrame;
-            if (incorrect.IsNull || (firstIncorrect.IsNotNull && incorrect >= firstIncorrect))
+            if (incorrect.IsNull || (!firstIncorrect.IsNull && incorrect >= firstIncorrect))
                 continue;
             logger.Write(LogLevel.Information, $"Incorrect frame {incorrect} reported by queue {i}");
             RollbackFrames = new(Math.Max(RollbackFrames.FrameCount, incorrect.Number));

@@ -63,11 +63,6 @@ public readonly record struct Frame :
     /// </summary>
     public bool IsNull => Number is NullValue;
 
-    /// <summary>
-    /// Returns <see langword="true"/> if the current frame is not a null frame
-    /// </summary>
-    public bool IsNotNull => !IsNull;
-
     /// <inheritdoc />
     public int CompareTo(Frame other) => Number.CompareTo(other.Number);
 
