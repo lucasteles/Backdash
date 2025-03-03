@@ -19,8 +19,8 @@ public sealed class CircularBuffer<T>(int capacity) : IReadOnlyList<T>, IEquatab
     int size;
 
     public int Size => size;
-    public int Head => head;
-    public int Tail => tail;
+    public int HeadIndex => head;
+    public int TailIndex => tail;
 
     public int CurrentIndex
     {
@@ -35,7 +35,10 @@ public sealed class CircularBuffer<T>(int capacity) : IReadOnlyList<T>, IEquatab
         if (IsFull)
             DropFirst();
         else
+        {
             size++;
+            Trace.Assert(size <= array.Length);
+        }
 
         head = (head + 1) % array.Length;
     }
@@ -50,7 +53,8 @@ public sealed class CircularBuffer<T>(int capacity) : IReadOnlyList<T>, IEquatab
         return value;
     }
 
-    public ref T UnsafePeek() => ref array[CurrentIndex];
+    public ref T Current() => ref array[CurrentIndex];
+    public ref T Last() => ref array[tail];
 
     public T Peek()
     {
@@ -97,21 +101,21 @@ public sealed class CircularBuffer<T>(int capacity) : IReadOnlyList<T>, IEquatab
 
     public int Capacity => array.Length;
     public bool IsEmpty => size is 0;
-    public bool IsFull => size >= Capacity;
+    public bool IsFull => size >= array.Length;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ref readonly T At(int index) => ref array[(tail + index) % Capacity];
+    public ref T At(int index) => ref array[(tail + index) % array.Length];
 
-    public ref readonly T this[int index] => ref At(index);
+    public ref T this[int index] => ref At(index);
 
-    public ref readonly T this[Index index] => ref At(index.GetOffset(Size));
+    public ref T this[Index index] => ref At(index.GetOffset(Size));
 
-    public void Clear(bool clearReferences = false)
+    public void Clear(bool clearArray = false)
     {
         head = tail;
         size = 0;
 
-        if (clearReferences)
+        if (clearArray)
             Array.Clear(array, 0, array.Length);
     }
 
@@ -177,7 +181,7 @@ public sealed class CircularBuffer<T>(int capacity) : IReadOnlyList<T>, IEquatab
 
     public Span<T> GetSpanAndReset(int spanSize, bool clearArray = false)
     {
-        ArgumentOutOfRangeException.ThrowIfGreaterThan(spanSize, Capacity);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(spanSize, array.Length);
 
         tail = 0;
         size = head = spanSize;
@@ -189,6 +193,20 @@ public sealed class CircularBuffer<T>(int capacity) : IReadOnlyList<T>, IEquatab
     }
 
     public void Fill(T value) => Array.Fill(array, value);
+
+    public void FillWith(Func<T> valueFn)
+    {
+        for (var i = 0; i < array.Length; i++)
+            array[i] = valueFn();
+    }
+
+    public void Discard(int offset)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(offset);
+        tail = (tail + offset) % array.Length;
+        size -= offset;
+        if (size < 0) size = 0;
+    }
 
     public Enumerator GetEnumerator() => new(this);
 

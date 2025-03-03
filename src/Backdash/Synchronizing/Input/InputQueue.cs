@@ -14,54 +14,34 @@ sealed class InputQueue<TInput> where TInput : unmanaged
     readonly int queueId;
     public int LocalFrameDelay { get; set; }
 
-    readonly GameInput<TInput>[] inputs;
-    int length;
-    int head, tail;
-
     readonly CircularBuffer<GameInput<TInput>> buffer;
 
     public InputQueue(int queueId, int queueSize, Logger logger)
     {
         this.queueId = queueId;
         this.logger = logger;
-        length = LocalFrameDelay = 0;
-        head = tail = 0;
+        LocalFrameDelay = 0;
         firstFrame = true;
         lastUserAddedFrame = Frame.Null;
         firstIncorrectFrame = Frame.Null;
         lastFrameRequested = Frame.Null;
         lastAddedFrame = Frame.Null;
         prediction = new();
-        inputs = new GameInput<TInput>[queueSize];
         buffer = new(queueSize);
+        buffer.Clear();
         buffer.Fill(new(Frame.Zero));
-        Array.Fill(inputs, new(Frame.Zero));
     }
 
-    int BackIndex => head == 0 ? inputs.Length - 1 : head - 1;
-    ref GameInput<TInput> Back => ref inputs[BackIndex];
-    ref GameInput<TInput> Front => ref inputs[tail];
-    ref GameInput<TInput> AtFrame(Frame frame) => ref inputs[frame.Number % inputs.Length];
-    ref GameInput<TInput> NextAfter(int offset) => ref inputs[(offset + tail) % inputs.Length];
+    ref GameInput<TInput> Back => ref buffer.Current();
+    ref GameInput<TInput> Front => ref buffer.Last();
+    ref GameInput<TInput> AtFrame(Frame frame) => ref buffer[frame.Number];
+    ref GameInput<TInput> NextAfter(int offset) => ref buffer[offset + buffer.TailIndex];
 
-    void Push(GameInput<TInput> input)
-    {
-        // Add the frame to the back of the queue
-        inputs[head] = input;
-        head = (head + 1) % inputs.Length;
-        length++;
-        Trace.Assert(length <= inputs.Length);
-    }
+    void Push(in GameInput<TInput> input) => buffer.Add(in input);
 
-    void Skip(int offset)
-    {
-        Trace.Assert(offset >= 0);
-        tail = (tail + offset) % inputs.Length;
-        length -= offset;
-        Trace.Assert(length >= 0);
-    }
+    void Skip(int offset) => buffer.Discard(offset);
 
-    void Reset() => tail = head;
+    void Reset() => buffer.Clear();
     public Frame FirstIncorrectFrame => firstIncorrectFrame;
 
     public void DiscardConfirmedFrames(Frame frame)
@@ -70,7 +50,7 @@ sealed class InputQueue<TInput> where TInput : unmanaged
         if (lastFrameRequested.IsNotNull)
             frame = Frame.Min(in frame, in lastFrameRequested);
         logger.Write(LogLevel.Trace,
-            $"Queue {queueId} => discarding confirmed frames up to {frame} (last add:{lastAddedFrame} len:{length} front:{Front.Frame} back:{Back.Frame})");
+            $"Queue {queueId} => discarding confirmed frames up to {frame} (last add:{lastAddedFrame} len:{buffer.Size} front:{Front.Frame} back:{Back.Frame})");
         if (frame >= lastAddedFrame)
             Reset();
         else
@@ -122,7 +102,7 @@ sealed class InputQueue<TInput> where TInput : unmanaged
             // If the frame requested is in our range, fetch it out of the queue and
             // return it.
             var offset = requestedFrame.Number - Front.Frame.Number;
-            if (offset < length)
+            if (offset < buffer.Size)
             {
                 ref var next = ref NextAfter(offset);
                 Trace.Assert(next.Frame == requestedFrame);
@@ -149,7 +129,7 @@ sealed class InputQueue<TInput> where TInput : unmanaged
             else
             {
                 logger.Write(LogLevel.Trace,
-                    $"Queue {queueId} => basing new prediction frame from previously added frame (queue entry:{BackIndex}, frame:{Back.Frame})"
+                    $"Queue {queueId} => basing new prediction frame from previously added frame (queue entry:{buffer.CurrentIndex}, frame:{Back.Frame})"
                 );
                 prediction = Back;
             }
