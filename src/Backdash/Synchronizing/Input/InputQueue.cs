@@ -16,6 +16,7 @@ sealed class InputQueue<TInput> where TInput : unmanaged
     GameInput<TInput> prediction;
     readonly int id;
     public int LocalFrameDelay { get; set; }
+
     public InputQueue(int id, int queueSize, Logger logger)
     {
         this.id = id;
@@ -31,11 +32,13 @@ sealed class InputQueue<TInput> where TInput : unmanaged
         inputs = new GameInput<TInput>[queueSize];
         Array.Fill(inputs, new(Frame.Zero));
     }
+
     int BackIndex => head == 0 ? inputs.Length - 1 : head - 1;
     ref GameInput<TInput> Back => ref inputs[BackIndex];
     ref GameInput<TInput> Front => ref inputs[tail];
     ref GameInput<TInput> AtFrame(Frame frame) => ref inputs[frame.Number % inputs.Length];
     ref GameInput<TInput> NextAfter(int offset) => ref inputs[(offset + tail) % inputs.Length];
+
     void Push(GameInput<TInput> input)
     {
         // Add the frame to the back of the queue
@@ -44,6 +47,7 @@ sealed class InputQueue<TInput> where TInput : unmanaged
         length++;
         Trace.Assert(length <= inputs.Length);
     }
+
     void Skip(int offset)
     {
         Trace.Assert(offset >= 0);
@@ -51,8 +55,10 @@ sealed class InputQueue<TInput> where TInput : unmanaged
         length -= offset;
         Trace.Assert(length >= 0);
     }
+
     void Reset() => tail = head;
     public Frame FirstIncorrectFrame => firstIncorrectFrame;
+
     public void DiscardConfirmedFrames(Frame frame)
     {
         Trace.Assert(frame >= Frame.Zero);
@@ -68,10 +74,12 @@ sealed class InputQueue<TInput> where TInput : unmanaged
             logger.Write(LogLevel.Trace, $"Queue {id} => difference of {offset} frames.");
             Skip(offset);
         }
+
         logger.Write(LogLevel.Trace,
             $"Queue {id} => after discarding, new back is {Back.Frame} (front:{Front.Frame})."
         );
     }
+
     public void ResetPrediction(in Frame frame)
     {
         Trace.Assert(firstIncorrectFrame.IsNull || frame <= firstIncorrectFrame);
@@ -82,6 +90,7 @@ sealed class InputQueue<TInput> where TInput : unmanaged
         firstIncorrectFrame = Frame.Null;
         lastFrameRequested = Frame.Null;
     }
+
     public bool GetConfirmedInput(in Frame requestedFrame, ref GameInput<TInput> input)
     {
         Trace.Assert(firstIncorrectFrame.IsNull || requestedFrame < firstIncorrectFrame);
@@ -91,6 +100,7 @@ sealed class InputQueue<TInput> where TInput : unmanaged
         input = requested;
         return true;
     }
+
     public bool GetInput(Frame requestedFrame, out GameInput<TInput> input)
     {
         logger.Write(LogLevel.Trace, $"Queue {id} => requesting input frame {requestedFrame}.");
@@ -115,6 +125,7 @@ sealed class InputQueue<TInput> where TInput : unmanaged
                 logger.Write(LogLevel.Trace, $"Queue {id} => returning confirmed frame number {input.Frame}.");
                 return true;
             }
+
             // The requested frame isn't in the queue.  Bummer.  This means we need
             // to return a prediction frame.  Predict that the user will do the
             // same thing they did last time.
@@ -137,8 +148,10 @@ sealed class InputQueue<TInput> where TInput : unmanaged
                 );
                 prediction = Back;
             }
+
             prediction.IncrementFrame();
         }
+
         Trace.Assert(prediction.Frame >= 0);
         // If we've made it this far, we must be predicting.  Go ahead and
         // forward the prediction frame contents.  Be sure to return the
@@ -149,6 +162,7 @@ sealed class InputQueue<TInput> where TInput : unmanaged
             $"Queue {id} => returning prediction frame number {input.Frame} ({prediction.Frame}).");
         return false;
     }
+
     public void AddInput(ref GameInput<TInput> input)
     {
         logger.Write(LogLevel.Trace, $"Queue {id} => adding input frame number {input.Frame} to queue.");
@@ -166,6 +180,7 @@ sealed class InputQueue<TInput> where TInput : unmanaged
         // design).
         input.Frame = newFrame;
     }
+
     void AddDelayedInputToQueue(GameInput<TInput> input, in Frame frameNumber)
     {
         logger.Write(LogLevel.Trace, $"Queue {id} => adding delayed input frame number {frameNumber} to queue.");
@@ -188,9 +203,10 @@ sealed class InputQueue<TInput> where TInput : unmanaged
                     $"Queue {id} => frame {frameNumber} does not match prediction.  marking error.");
                 firstIncorrectFrame = frameNumber;
             }
+
             // If this input is the same frame as the last one requested, and we
             // still haven't found any mis-predicted inputs, we can dump out
-            // of predition mode entirely!  Otherwise, advance the prediction frame
+            // of prediction mode entirely!  Otherwise, advance the prediction frame
             // count up.
             if (prediction.Frame == lastFrameRequested &&
                 firstIncorrectFrame.IsNull)
@@ -203,6 +219,7 @@ sealed class InputQueue<TInput> where TInput : unmanaged
                 prediction.IncrementFrame();
         }
     }
+
     Frame AdvanceQueueHead(Frame frame)
     {
         logger.Write(LogLevel.Trace, $"advancing queue head to frame {frame}.");
@@ -217,6 +234,7 @@ sealed class InputQueue<TInput> where TInput : unmanaged
                 $"Queue {id} => Dropping input frame {frame} (expected next frame to be {expectedFrame})");
             return Frame.Null;
         }
+
         while (expectedFrame < frame)
         {
             // This can occur when the frame delay has been increased since the last
@@ -229,6 +247,7 @@ sealed class InputQueue<TInput> where TInput : unmanaged
             AddDelayedInputToQueue(lastFrame, in expectedFrame);
             expectedFrame++;
         }
+
         Trace.Assert(frame == 0 || frame == Back.Frame.Next());
         return frame;
     }
