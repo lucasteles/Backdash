@@ -32,7 +32,7 @@ public sealed class CircularBuffer<T>(int capacity) : IReadOnlyList<T>, IEquatab
         array[head] = item;
 
         if (IsFull)
-            DropFirst();
+            DropLast();
         else
         {
             count++;
@@ -47,7 +47,7 @@ public sealed class CircularBuffer<T>(int capacity) : IReadOnlyList<T>, IEquatab
         if (count is 0)
             throw new InvalidOperationException("Can't pop from an empty buffer");
 
-        var value = DropFirst();
+        var value = DropLast();
         count--;
         return value;
     }
@@ -90,10 +90,9 @@ public sealed class CircularBuffer<T>(int capacity) : IReadOnlyList<T>, IEquatab
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    T DropFirst()
+    T DropLast()
     {
-        var firstIndex = head is 0 ? 0 : head - 1;
-        var value = array[firstIndex];
+        var value = Last();
         tail = (tail + 1) % array.Length;
         return value;
     }
@@ -104,6 +103,8 @@ public sealed class CircularBuffer<T>(int capacity) : IReadOnlyList<T>, IEquatab
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ref T At(int index) => ref array[(tail + index) % array.Length];
+
+    public ref T Raw(int index) => ref array[index % array.Length];
 
     public ref T this[int index] => ref At(index);
 
@@ -157,7 +158,7 @@ public sealed class CircularBuffer<T>(int capacity) : IReadOnlyList<T>, IEquatab
             array[i] = valueFn();
     }
 
-    public void Discard(int offset)
+    public void Discard(int offset = 1)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(offset);
         tail = (tail + offset) % array.Length;

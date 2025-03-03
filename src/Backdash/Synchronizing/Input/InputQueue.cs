@@ -16,10 +16,13 @@ sealed class InputQueue<TInput> where TInput : unmanaged
 
     readonly CircularBuffer<GameInput<TInput>> buffer;
 
-    public InputQueue(int queueId, int queueSize, Logger logger)
+    readonly EqualityComparer<TInput> inputComparer;
+
+    public InputQueue(int queueId, int queueSize, Logger logger, EqualityComparer<TInput>? inputComparer = null)
     {
         this.queueId = queueId;
         this.logger = logger;
+        this.inputComparer = inputComparer ?? EqualityComparer<TInput>.Default;
         LocalFrameDelay = 0;
         firstFrame = true;
         lastUserAddedFrame = Frame.Null;
@@ -34,10 +37,6 @@ sealed class InputQueue<TInput> where TInput : unmanaged
 
     ref GameInput<TInput> Back => ref buffer.Current();
     ref GameInput<TInput> Front => ref buffer.Last();
-    ref GameInput<TInput> AtFrame(Frame frame) => ref buffer[frame.Number];
-    ref GameInput<TInput> NextAfter(int offset) => ref buffer[offset + buffer.LastIndex];
-
-    void Push(in GameInput<TInput> input) => buffer.Add(in input);
 
     void Skip(int offset) => buffer.Discard(offset);
 
@@ -67,7 +66,7 @@ sealed class InputQueue<TInput> where TInput : unmanaged
 
     public void ResetPrediction(in Frame frame)
     {
-        Trace.Assert(firstIncorrectFrame.IsNull || frame <= firstIncorrectFrame);
+        Trace.Assert(firstIncorrectFrame.IsNull || frame.Number <= firstIncorrectFrame.Number);
         logger.Write(LogLevel.Trace, $"Queue {queueId} => resetting all prediction errors back to frame {frame}.");
         // There's nothing really to do other than reset our prediction
         // state and the incorrect frame counter...
@@ -78,9 +77,11 @@ sealed class InputQueue<TInput> where TInput : unmanaged
 
     public bool GetConfirmedInput(in Frame requestedFrame, ref GameInput<TInput> input)
     {
-        Trace.Assert(firstIncorrectFrame.IsNull || requestedFrame < firstIncorrectFrame);
-        ref var requested = ref AtFrame(requestedFrame);
-        if (requested.Frame != requestedFrame)
+        Trace.Assert(firstIncorrectFrame.IsNull || requestedFrame.Number < firstIncorrectFrame.Number);
+
+        ref var requested = ref buffer.Raw(requestedFrame.Number);
+
+        if (requested.Frame.Number != requestedFrame.Number)
             return false;
         input = requested;
         return true;
@@ -104,7 +105,7 @@ sealed class InputQueue<TInput> where TInput : unmanaged
             var offset = requestedFrame.Number - Front.Frame.Number;
             if (offset < buffer.Size)
             {
-                ref var next = ref NextAfter(offset);
+                ref var next = ref buffer.At(offset);
                 Trace.Assert(next.Frame == requestedFrame);
                 input = next;
                 logger.Write(LogLevel.Trace, $"Queue {queueId} => returning confirmed frame number {input.Frame}.");
@@ -170,39 +171,39 @@ sealed class InputQueue<TInput> where TInput : unmanaged
     {
         logger.Write(LogLevel.Trace, $"Queue {queueId} => adding delayed input frame number {frameNumber} to queue.");
         Trace.Assert(lastAddedFrame.IsNull || frameNumber == lastAddedFrame.Next());
-        Trace.Assert(frameNumber == 0 || Back.Frame == frameNumber.Previous());
+        Trace.Assert(frameNumber.Number == 0 || Back.Frame.Number == frameNumber.Previous().Number);
+
         input.Frame = frameNumber;
-        Push(input);
+        buffer.Add(in input);
         firstFrame = false;
         lastAddedFrame = frameNumber;
-        if (prediction.Frame.IsNotNull)
-        {
-            Trace.Assert(frameNumber == prediction.Frame);
-            // We've been predicting...  See if the inputs we've gotten match
-            // what we've been predicting.  If so, don't worry about it.  If not,
-            // remember the first input which was incorrect so we can report it
-            // in GetFirstIncorrectFrame()
-            if (firstIncorrectFrame.IsNull && !EqualityComparer<TInput>.Default.Equals(prediction.Data, input.Data))
-            {
-                logger.Write(LogLevel.Debug,
-                    $"Queue {queueId} => frame {frameNumber} does not match prediction.  marking error.");
-                firstIncorrectFrame = frameNumber;
-            }
 
-            // If this input is the same frame as the last one requested, and we
-            // still haven't found any mis-predicted inputs, we can dump out
-            // of prediction mode entirely!  Otherwise, advance the prediction frame
-            // count up.
-            if (prediction.Frame == lastFrameRequested &&
-                firstIncorrectFrame.IsNull)
-            {
-                logger.Write(LogLevel.Debug,
-                    $"Queue {queueId} => prediction is correct!  dumping out of prediction mode.");
-                prediction.ResetFrame();
-            }
-            else
-                prediction.IncrementFrame();
+        if (prediction.Frame.IsNull) return;
+
+        Trace.Assert(frameNumber == prediction.Frame);
+        // We've been predicting...  See if the inputs we've gotten match
+        // what we've been predicting.  If so, don't worry about it.  If not,
+        // remember the first input which was incorrect so we can report it
+        // in GetFirstIncorrectFrame()
+        if (firstIncorrectFrame.IsNull && !inputComparer.Equals(prediction.Data, input.Data))
+        {
+            logger.Write(LogLevel.Debug,
+                $"Queue {queueId} => frame {frameNumber} does not match prediction.  marking error.");
+            firstIncorrectFrame = frameNumber;
         }
+
+        // If this input is the same frame as the last one requested, and we
+        // still haven't found any mis-predicted inputs, we can dump out
+        // of prediction mode entirely!  Otherwise, advance the prediction frame
+        // count up.
+        if (prediction.Frame.Number == lastFrameRequested.Number && firstIncorrectFrame.IsNull)
+        {
+            logger.Write(LogLevel.Debug,
+                $"Queue {queueId} => prediction is correct!  dumping out of prediction mode.");
+            prediction.ResetFrame();
+        }
+        else
+            prediction.IncrementFrame();
     }
 
     Frame AdvanceQueueHead(Frame frame)
