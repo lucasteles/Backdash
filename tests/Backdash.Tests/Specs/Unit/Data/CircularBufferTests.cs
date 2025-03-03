@@ -188,7 +188,7 @@ public class CircularBufferTests
         sut.Add(10);
         sut.Add(20);
 
-        sut.Peek().Should().Be(20);
+        sut.Front().Should().Be(20);
     }
 
     [Fact]
@@ -198,7 +198,7 @@ public class CircularBufferTests
         sut.Add(10);
         sut.Add(20);
 
-        ref var last = ref sut.Current();
+        ref var last = ref sut.Front();
         last.Should().Be(20);
 
         last = 99;
@@ -212,7 +212,7 @@ public class CircularBufferTests
         sut.Add(10);
         sut.Add(20);
 
-        var count = sut.GetReadSpan(out var begin, out var end);
+        var count = sut.GetSpan(out var begin, out var end);
         int[] values = [.. begin, .. end];
 
         values.Should().Equal(10, 20);
@@ -227,7 +227,7 @@ public class CircularBufferTests
         sut.Add(20);
         sut.Add(30);
 
-        var count = sut.GetReadSpan(out var begin, out var end);
+        var count = sut.GetSpan(out var begin, out var end);
         int[] values = [.. begin, .. end];
 
         values.Should().Equal(10, 20, 30);
@@ -282,7 +282,7 @@ public class CircularBufferTests
         sut.Add(30);
         sut.Add(40);
 
-        var count = sut.GetReadSpan(out var begin, out var end);
+        var count = sut.GetSpan(out var begin, out var end);
         int[] values = [.. begin, .. end];
 
         values.Should().Equal(20, 30, 40);
@@ -298,7 +298,7 @@ public class CircularBufferTests
         sut.Add(10);
         _ = sut.Drop();
 
-        var count = sut.GetReadSpan(out var begin, out var end);
+        var count = sut.GetSpan(out var begin, out var end);
         int[] values = [.. begin, .. end];
 
         values.Should().Equal(20, 10);
@@ -317,7 +317,7 @@ public class CircularBufferTests
         sut.Add(200);
         sut.Add(300);
 
-        var count = sut.GetReadSpan(out var begin, out var end);
+        var count = sut.GetSpan(out var begin, out var end);
         int[] values = [.. begin, .. end];
 
         values.Should().Equal(100, 200, 300);
@@ -337,7 +337,7 @@ public class CircularBufferTests
         sut.Add(300);
         sut.Add(999);
 
-        var count = sut.GetReadSpan(out var begin, out var end);
+        var count = sut.GetSpan(out var begin, out var end);
         int[] values = [.. begin, .. end];
 
         values.Should().Equal(200, 300, 999);
@@ -352,7 +352,7 @@ public class CircularBufferTests
         sut.Add(20);
         sut.Add(30);
 
-        var span = sut.GetSpanAndReset(0);
+        var span = sut.GetResetSpan(0);
         span.ToArray().Should().BeEmpty();
         AssertBuffer(sut, []);
     }
@@ -365,7 +365,7 @@ public class CircularBufferTests
         sut.Add(20);
         sut.Add(30);
 
-        var span = sut.GetSpanAndReset(2);
+        var span = sut.GetResetSpan(2);
         span.Length.Should().Be(2);
 
         span[0] = 100;
@@ -405,6 +405,17 @@ public class CircularBufferTests
         sut.Add(100);
         sut.Add(200);
         AssertBuffer(sut, [100, 200]);
+    }
+
+    [Fact]
+    public void ShouldAdvance()
+    {
+        CircularBuffer<int> sut = new(3);
+        sut.Add(10);
+        sut.Add(20);
+        sut.Next() = 30;
+        sut.Advance();
+        AssertBuffer(sut, [10, 20, 30]);
     }
 
     static void AssertBuffer<T>(CircularBuffer<T> buffer, T[] expected)

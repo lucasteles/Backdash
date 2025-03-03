@@ -446,6 +446,21 @@ public class BinaryBufferReadWriteListTests
         pool.Returned.Should().Equal(source2);
     }
 
+    [PropertyTest]
+    public bool CircularBufferOfSerializableObjects(CircularBuffer<SimpleStructData> value, Endianness endianness)
+    {
+        var size = Setup(value, endianness, out var writer);
+        writer.Write(in value);
+        writer.WrittenCount.Should().Be(size);
+
+        var reader = GetReader(writer);
+        CircularBuffer<SimpleStructData> read = new(value.Size);
+        reader.Read(in read);
+        reader.ReadCount.Should().Be(size);
+
+        return value == read;
+    }
+
     static int readOffset;
 
     static int Setup<T>(

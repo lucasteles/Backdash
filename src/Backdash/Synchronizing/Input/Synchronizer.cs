@@ -64,7 +64,7 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
     public void SetLastConfirmedFrame(in Frame frame)
     {
         lastConfirmedFrame = frame;
-        if (lastConfirmedFrame <= Frame.Zero)
+        if (lastConfirmedFrame.Number <= 0)
             return;
         var discardUntil = frame.Previous();
         for (var i = 0; i < NumberOfPlayers; i++)

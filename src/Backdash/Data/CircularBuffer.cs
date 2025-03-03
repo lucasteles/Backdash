@@ -52,16 +52,9 @@ public sealed class CircularBuffer<T>(int capacity) : IReadOnlyList<T>, IEquatab
         return value;
     }
 
-    public ref T Current() => ref array[CurrentIndex];
-    public ref T Last() => ref array[tail];
-
-    public T Peek()
-    {
-        if (count is 0)
-            throw new InvalidOperationException("Can't peek from an empty buffer");
-
-        return array[CurrentIndex];
-    }
+    public ref T Next() => ref array[head];
+    public ref T Front() => ref array[CurrentIndex];
+    public ref T Back() => ref array[tail];
 
     public void AddRange(in ReadOnlySpan<T> values)
     {
@@ -92,7 +85,7 @@ public sealed class CircularBuffer<T>(int capacity) : IReadOnlyList<T>, IEquatab
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     T DropLast()
     {
-        var value = Last();
+        var value = Back();
         tail = (tail + 1) % array.Length;
         return value;
     }
@@ -124,23 +117,29 @@ public sealed class CircularBuffer<T>(int capacity) : IReadOnlyList<T>, IEquatab
 
     public override string ToString() => $"[{string.Join(", ", array)}]";
 
-    public bool Equals(CircularBuffer<T>? other, EqualityComparer<T> comparer)
+    static bool Equals(in CircularBuffer<T>? a, in CircularBuffer<T>? b, EqualityComparer<T>? comparer = null)
     {
-        if (other is null) return false;
-        if (ReferenceEquals(this, other)) return true;
+        if (ReferenceEquals(a, b)) return true;
+        if (a is null || b is null) return false;
 
-        for (var i = 0; i < count; i++)
-            if (!comparer.Equals(At(i), other.At(i)))
+        comparer ??= EqualityComparer<T>.Default;
+        for (var i = 0; i < a.count; i++)
+            if (!comparer.Equals(a.At(i), b.At(i)))
                 return false;
 
         return true;
     }
 
-    public bool Equals(CircularBuffer<T>? other) => Equals(other, EqualityComparer<T>.Default);
+    public bool Equals(CircularBuffer<T>? other, EqualityComparer<T> comparer) => Equals(this, in other, comparer);
 
     /// <inheritdoc/>
-    public override bool Equals(object? obj) =>
-        ReferenceEquals(this, obj) || (obj is CircularBuffer<T> other && Equals(other));
+    public bool Equals(CircularBuffer<T>? other) => Equals(this, in other);
+
+    /// <inheritdoc/>
+    public override bool Equals(object? obj) => obj is CircularBuffer<T> other && Equals(other);
+
+    public static bool operator ==(in CircularBuffer<T> a, in CircularBuffer<T> b) => Equals(in a, in b);
+    public static bool operator !=(CircularBuffer<T> a, CircularBuffer<T> b) => !Equals(in a, in b);
 
     /// <inheritdoc/>
     public override int GetHashCode()
@@ -158,6 +157,18 @@ public sealed class CircularBuffer<T>(int capacity) : IReadOnlyList<T>, IEquatab
             array[i] = valueFn();
     }
 
+    public void Advance(int offset = 1)
+    {
+        head = (head + offset) % array.Length;
+        count += offset;
+
+        if (count < 0 || count > array.Length)
+        {
+            count = 0;
+            head = tail;
+        }
+    }
+
     public void Discard(int offset = 1)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(offset);
@@ -171,7 +182,7 @@ public sealed class CircularBuffer<T>(int capacity) : IReadOnlyList<T>, IEquatab
         }
     }
 
-    public int GetReadSpan(out ReadOnlySpan<T> begin, out ReadOnlySpan<T> end)
+    public int GetSpan(out ReadOnlySpan<T> begin, out ReadOnlySpan<T> end)
     {
         var items = array.AsSpan();
         var headItem = head is 0 && count > 0 ? items.Length : head;
@@ -192,16 +203,16 @@ public sealed class CircularBuffer<T>(int capacity) : IReadOnlyList<T>, IEquatab
 
     public void CopyTo(Span<T> destination)
     {
-        if (destination.Length < GetReadSpan(out var begin, out var end))
+        if (destination.Length < GetSpan(out var begin, out var end))
             throw new ArgumentException("Destination is too short", nameof(destination));
 
         begin.CopyTo(destination);
         end.CopyTo(destination[begin.Length..]);
     }
 
-    public void CopyFrom(ReadOnlySpan<T> values) => values.CopyTo(GetSpanAndReset(values.Length));
+    public void CopyFrom(ReadOnlySpan<T> values) => values.CopyTo(GetResetSpan(values.Length));
 
-    public Span<T> GetSpanAndReset(int size, bool clearArray = false)
+    public Span<T> GetResetSpan(int size, bool clearArray = false)
     {
         ArgumentOutOfRangeException.ThrowIfGreaterThan(size, array.Length);
 

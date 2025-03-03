@@ -6,16 +6,17 @@ namespace Backdash.Synchronizing.Input;
 
 sealed class InputQueue<TInput> where TInput : unmanaged
 {
+    readonly int queueId;
+    readonly EqualityComparer<TInput> inputComparer;
     readonly Logger logger;
+
     bool firstFrame;
     Frame firstIncorrectFrame;
     Frame lastUserAddedFrame, lastAddedFrame, lastFrameRequested;
     GameInput<TInput> prediction;
-    readonly int queueId;
-    public int LocalFrameDelay { get; set; }
+    public int LocalFrameDelay { get; internal set; }
 
-    readonly CircularBuffer<GameInput<TInput>> buffer;
-    readonly EqualityComparer<TInput> inputComparer;
+    readonly CircularBuffer<GameInput<TInput>> inputs;
 
     public InputQueue(int queueId, int queueSize, Logger logger, EqualityComparer<TInput>? inputComparer = null)
     {
@@ -29,13 +30,13 @@ sealed class InputQueue<TInput> where TInput : unmanaged
         lastFrameRequested = Frame.Null;
         lastAddedFrame = Frame.Null;
         prediction = new();
-        buffer = new(queueSize);
-        buffer.Clear();
-        buffer.Fill(new(Frame.Zero));
+        inputs = new(queueSize);
+        inputs.Clear();
+        inputs.Fill(new(Frame.Zero));
     }
 
-    ref GameInput<TInput> LastInput => ref buffer.Current();
-    ref GameInput<TInput> FirstInput => ref buffer.Last();
+    ref GameInput<TInput> LastInput => ref inputs.Front();
+    ref GameInput<TInput> FirstInput => ref inputs.Back();
 
     public Frame FirstIncorrectFrame => firstIncorrectFrame;
 
@@ -45,14 +46,14 @@ sealed class InputQueue<TInput> where TInput : unmanaged
         if (!lastFrameRequested.IsNull)
             frame = Frame.Min(in frame, in lastFrameRequested);
         logger.Write(LogLevel.Trace,
-            $"Queue {queueId} => discarding confirmed frames up to {frame} (last add:{lastAddedFrame.Number} len:{buffer.Size} front:{FirstInput.Frame.Number} back:{LastInput.Frame.Number})");
+            $"Queue {queueId} => discarding confirmed frames up to {frame} (last add:{lastAddedFrame.Number} len:{inputs.Size} front:{FirstInput.Frame.Number} back:{LastInput.Frame.Number})");
         if (frame >= lastAddedFrame)
-            buffer.Clear();
+            inputs.Clear();
         else
         {
             var offset = frame.Number - FirstInput.Frame.Number + 1;
             logger.Write(LogLevel.Trace, $"Queue {queueId} => difference of {offset} frames.");
-            buffer.Discard(offset);
+            inputs.Discard(offset);
         }
 
         logger.Write(LogLevel.Trace,
@@ -75,7 +76,7 @@ sealed class InputQueue<TInput> where TInput : unmanaged
     {
         Trace.Assert(firstIncorrectFrame.IsNull || requestedFrame.Number < firstIncorrectFrame.Number);
 
-        ref var requested = ref buffer.AtRaw(requestedFrame.Number);
+        ref var requested = ref inputs.AtRaw(requestedFrame.Number);
 
         if (requested.Frame.Number != requestedFrame.Number)
             return false;
@@ -97,9 +98,9 @@ sealed class InputQueue<TInput> where TInput : unmanaged
         {
             // If the frame requested is in our range, fetch it out of the queue and  return it.
             var offset = requestedFrame.Number - FirstInput.Frame.Number;
-            if (offset < buffer.Size)
+            if (offset < inputs.Size)
             {
-                ref var next = ref buffer.At(offset);
+                ref var next = ref inputs.At(offset);
                 Trace.Assert(next.Frame == requestedFrame);
                 input = next;
                 logger.Write(LogLevel.Trace,
@@ -124,7 +125,7 @@ sealed class InputQueue<TInput> where TInput : unmanaged
             else
             {
                 logger.Write(LogLevel.Trace,
-                    $"Queue {queueId} => basing new prediction frame from previously added frame (queue entry:{buffer.CurrentIndex}, frame:{LastInput.Frame.Number})"
+                    $"Queue {queueId} => basing new prediction frame from previously added frame (queue entry:{inputs.CurrentIndex}, frame:{LastInput.Frame.Number})"
                 );
                 prediction = LastInput;
             }
@@ -164,7 +165,7 @@ sealed class InputQueue<TInput> where TInput : unmanaged
         Trace.Assert(inputFrame.Number is 0 || LastInput.Frame.Number == inputFrame.Previous().Number);
 
         input.Frame = inputFrame;
-        buffer.Add(in input);
+        inputs.Add(in input);
         firstFrame = false;
         lastAddedFrame = inputFrame;
 
