@@ -12,15 +12,21 @@ namespace Backdash.Data;
 /// A collection data structure that uses a single fixed-size buffer as if it were connected end-to-end.
 /// </summary>
 [DebuggerDisplay("Size = {size}")]
-public sealed class CircularBuffer<T>(int capacity) :
-    IReadOnlyList<T>,
-    IEquatable<CircularBuffer<T>>
+public sealed class CircularBuffer<T>(int capacity) : IReadOnlyList<T>, IEquatable<CircularBuffer<T>>
 {
     readonly T[] array = new T[capacity];
     int head, tail;
     int size;
 
     public int Size => size;
+    public int Head => head;
+    public int Tail => tail;
+
+    public int CurrentIndex
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => head is 0 ? array.Length - 1 : head - 1;
+    }
 
     public void Add(in T item)
     {
@@ -44,14 +50,14 @@ public sealed class CircularBuffer<T>(int capacity) :
         return value;
     }
 
-    public ref T UnsafePeek() => ref array[head is 0 ? array.Length - 1 : head - 1];
+    public ref T UnsafePeek() => ref array[CurrentIndex];
 
     public T Peek()
     {
         if (size is 0)
             throw new InvalidOperationException("Can't peek from an empty buffer");
 
-        return array[head is 0 ? array.Length - 1 : head - 1];
+        return array[CurrentIndex];
     }
 
     public void AddRange(in ReadOnlySpan<T> values)
@@ -181,6 +187,8 @@ public sealed class CircularBuffer<T>(int capacity) :
 
         return array.AsSpan(0, spanSize);
     }
+
+    public void Fill(T value) => Array.Fill(array, value);
 
     public Enumerator GetEnumerator() => new(this);
 

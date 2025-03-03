@@ -7,7 +7,6 @@ namespace Backdash.Synchronizing.Input;
 sealed class InputQueue<TInput> where TInput : unmanaged
 {
     readonly Logger logger;
-    readonly GameInput<TInput>[] inputs;
     bool firstFrame;
     Frame firstIncorrectFrame;
     Frame lastUserAddedFrame, lastAddedFrame, lastFrameRequested;
@@ -15,8 +14,11 @@ sealed class InputQueue<TInput> where TInput : unmanaged
     readonly int queueId;
     public int LocalFrameDelay { get; set; }
 
+    readonly GameInput<TInput>[] inputs;
     int length;
     int head, tail;
+
+    readonly CircularBuffer<GameInput<TInput>> buffer;
 
     public InputQueue(int queueId, int queueSize, Logger logger)
     {
@@ -31,6 +33,8 @@ sealed class InputQueue<TInput> where TInput : unmanaged
         lastAddedFrame = Frame.Null;
         prediction = new();
         inputs = new GameInput<TInput>[queueSize];
+        buffer = new(queueSize);
+        buffer.Fill(new(Frame.Zero));
         Array.Fill(inputs, new(Frame.Zero));
     }
 
