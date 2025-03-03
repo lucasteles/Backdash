@@ -19,7 +19,7 @@ public sealed class DefaultStateStore(int hintSize) : IStateStore
     public void Initialize(int saveCount)
     {
         savedStates = new SavedFrame[saveCount];
-        for (int i = 0; i < saveCount; i++)
+        for (var i = 0; i < saveCount; i++)
             savedStates[i] = new(Frame.Null, new(hintSize), 0);
     }
 
@@ -32,32 +32,25 @@ public sealed class DefaultStateStore(int hintSize) : IStateStore
     }
 
     /// <inheritdoc />
-    public SavedFrame Load(Frame frame)
+    public SavedFrame Load(in Frame frame)
     {
         for (var i = 0; i < savedStates.Length; i++)
         {
-            if (savedStates[i].Frame != frame) continue;
+            if (savedStates[i].Frame.Number != frame.Number) continue;
             head = i;
             Advance();
             return savedStates[i];
         }
 
-        throw new NetcodeException($"Save state not found for frame {frame}");
+        throw new NetcodeException($"Save state not found for frame {frame.Number}");
     }
 
     /// <inheritdoc />
     public SavedFrame Last()
     {
-        var index = LastIndex();
+        var i = head - 1;
+        var index = i < 0 ? savedStates.Length - 1 : i;
         return savedStates[index];
-
-        int LastIndex()
-        {
-            var i = head - 1;
-            if (i < 0)
-                return savedStates.Length - 1;
-            return i;
-        }
     }
 
     /// <inheritdoc />
@@ -66,8 +59,9 @@ public sealed class DefaultStateStore(int hintSize) : IStateStore
     /// <inheritdoc />
     public uint GetChecksum(in Frame frame)
     {
-        ref var current = ref MemoryMarshal.GetReference(savedStates.AsSpan());
-        ref var limit = ref Unsafe.Add(ref current, savedStates.Length);
+        var span = savedStates.AsSpan();
+        ref var current = ref MemoryMarshal.GetReference(span);
+        ref var limit = ref Unsafe.Add(ref current, span.Length);
 
         while (Unsafe.IsAddressLessThan(in current, in limit))
         {

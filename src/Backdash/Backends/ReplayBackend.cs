@@ -185,7 +185,7 @@ sealed class ReplayBackend<TInput> : INetcodeSession<TInput>
 
         try
         {
-            var savedFrame = stateStore.Load(frame);
+            var savedFrame = stateStore.Load(in frame);
             logger.Write(LogLevel.Trace,
                 $"Loading replay frame {savedFrame.Frame} (checksum: {savedFrame.Checksum})");
             var offset = 0;

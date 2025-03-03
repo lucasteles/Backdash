@@ -17,7 +17,7 @@ public interface IStateStore
     /// Returns a <see cref="SavedFrame" /> for <paramref name="frame"/>.
     /// </summary>
     /// <param name="frame">Frame to load.</param>
-    SavedFrame Load(Frame frame);
+    SavedFrame Load(in Frame frame);
 
     /// <summary>
     /// Returns last <see cref="SavedFrame" />.

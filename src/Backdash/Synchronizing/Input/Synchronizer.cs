@@ -180,7 +180,7 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
             return;
         }
 
-        var savedFrame = stateStore.Load(frame);
+        var savedFrame = stateStore.Load(in frame);
         logger.Write(LogLevel.Information,
             $"* Loading frame info {savedFrame.Frame} (checksum: {savedFrame.Checksum})");
 
