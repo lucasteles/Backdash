@@ -37,7 +37,8 @@ sealed class LocalBackend<TInput> : INetcodeSession<TInput> where TInput : unman
             addedPlayers,
             services.StateStore,
             services.ChecksumProvider,
-            new(Max.NumberOfPlayers)
+            new(Max.NumberOfPlayers),
+            services.InputComparer
         )
         {
             Callbacks = callbacks,

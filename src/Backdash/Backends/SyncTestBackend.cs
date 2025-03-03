@@ -64,7 +64,8 @@ sealed class SyncTestBackend<TInput> : INetcodeSession<TInput>
             addedPlayers,
             services.StateStore,
             services.ChecksumProvider,
-            new(Max.NumberOfPlayers)
+            new(Max.NumberOfPlayers),
+            services.InputComparer
         )
         {
             Callbacks = callbacks,

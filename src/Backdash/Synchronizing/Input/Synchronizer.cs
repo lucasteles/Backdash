@@ -18,6 +18,7 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
     readonly IStateStore stateStore;
     readonly IChecksumProvider checksumProvider;
     readonly ConnectionsState localConnections;
+    readonly EqualityComparer<TInput> inputComparer;
     readonly List<InputQueue<TInput>> inputQueues;
     public required INetcodeSessionHandler Callbacks { get; internal set; }
     Frame currentFrame = Frame.Zero;
@@ -32,7 +33,8 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
         IReadOnlyCollection<PlayerHandle> players,
         IStateStore stateStore,
         IChecksumProvider checksumProvider,
-        ConnectionsState localConnections
+        ConnectionsState localConnections,
+        EqualityComparer<TInput>? inputComparer = null
     )
     {
         this.options = options;
@@ -41,6 +43,7 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
         this.stateStore = stateStore;
         this.checksumProvider = checksumProvider;
         this.localConnections = localConnections;
+        this.inputComparer = inputComparer ?? EqualityComparer<TInput>.Default;
 
         endianness = options.StateSerializationEndianness ?? Platform.GetEndianness(options.UseNetworkEndianness);
         stateStore.Initialize(options.PredictionFrames + options.PredictionFramesOffset);
@@ -53,7 +56,7 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
     public FrameSpan RollbackFrames { get; private set; } = FrameSpan.Zero;
 
     public void AddQueue(PlayerHandle player) =>
-        inputQueues.Add(new(player.InternalQueue, options.InputQueueLength, logger)
+        inputQueues.Add(new(player.InternalQueue, options.InputQueueLength, logger, inputComparer)
         {
             LocalFrameDelay = player.IsLocal() ? Math.Max(options.FrameDelay, 0) : 0,
         });

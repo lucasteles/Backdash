@@ -88,7 +88,8 @@ sealed class RemoteBackend<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
             addedPlayers,
             services.StateStore,
             services.ChecksumProvider,
-            localConnections
+            localConnections,
+            inputComparer
         )
         {
             Callbacks = callbacks,
