@@ -104,7 +104,7 @@ public sealed class CircularBuffer<T>(int capacity) : IReadOnlyList<T>, IEquatab
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ref T At(int index) => ref array[(tail + index) % array.Length];
 
-    public ref T Raw(int index) => ref array[index % array.Length];
+    public ref T AtRaw(int index) => ref array[index % array.Length];
 
     public ref T this[int index] => ref At(index);
 
