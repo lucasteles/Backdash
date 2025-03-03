@@ -26,6 +26,8 @@ sealed class BackendServices<TInput> where TInput : unmanaged
     public IDelayStrategy DelayStrategy { get; }
     public IInputListener<TInput>? InputListener { get; }
 
+    public EqualityComparer<TInput> InputComparer { get; }
+
     public BackendServices(NetcodeOptions options, SessionServices<TInput>? services)
     {
         ChecksumProvider = services?.ChecksumProvider ?? new Fletcher32ChecksumProvider();
@@ -35,6 +37,7 @@ sealed class BackendServices<TInput> where TInput : unmanaged
         Random = new DefaultRandomNumberGenerator(services?.Random ?? System.Random.Shared);
         DelayStrategy = DelayStrategyFactory.Create(Random, options.Protocol.DelayStrategy);
         InputGenerator = services?.InputGenerator;
+        InputComparer = services?.InputComparer ?? EqualityComparer<TInput>.Default;
 
         InputSerializer = services?.InputSerializer ?? BinarySerializerFactory
             .FindOrThrow<TInput>(options.UseNetworkEndianness);

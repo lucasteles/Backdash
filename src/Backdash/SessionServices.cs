@@ -61,4 +61,9 @@ public sealed class SessionServices<TInput> where TInput : unmanaged
     /// <seealso cref="XorShiftRandom"/>
     /// </summary>
     public IDeterministicRandom? DeterministicRandom { get; set; }
+
+    /// <summary>
+    /// Comparer to be used with <typeparamref name="TInput"/>
+    /// </summary>
+    public EqualityComparer<TInput>? InputComparer { get; set; }
 }

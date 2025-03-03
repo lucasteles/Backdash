@@ -36,6 +36,8 @@ sealed class RemoteBackend<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
     readonly HashSet<PlayerHandle> addedSpectators = [];
     readonly IInputListener<TInput>? inputListener;
     public IDeterministicRandom Random { get; }
+    readonly EqualityComparer<TInput> inputComparer;
+    readonly EqualityComparer<ConfirmedInputs<TInput>> inputGroupComparer;
 
     bool isSynchronizing = true;
     int nextRecommendedInterval;
@@ -68,6 +70,8 @@ sealed class RemoteBackend<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
         inputListener = services.InputListener;
         Random = services.DeterministicRandom;
         syncNumber = services.Random.MagicNumber();
+        inputComparer = services.InputComparer;
+        inputGroupComparer = ConfirmedInputComparer<TInput>.Create(services.InputComparer);
 
         peerInputEventQueue = new();
         peerCombinedInputsEventPublisher = new ProtocolCombinedInputsEventPublisher<TInput>(peerInputEventQueue);
@@ -295,7 +299,7 @@ sealed class RemoteBackend<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
         var endpoint = player.EndPoint;
         var protocol = peerConnectionFactory.Create(
             new(player.Handle, endpoint, localConnections, syncNumber),
-            inputSerializer, peerInputEventQueue
+            inputSerializer, peerInputEventQueue, inputComparer
         );
 
         peerObservers.Add(protocol.GetUdpObserver());
@@ -334,7 +338,8 @@ sealed class RemoteBackend<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
         var protocol = peerConnectionFactory.Create(
             new(spectatorHandle, spectator.EndPoint, localConnections, syncNumber),
             inputGroupSerializer,
-            peerCombinedInputsEventPublisher
+            peerCombinedInputsEventPublisher,
+            inputGroupComparer
         );
         peerObservers.Add(protocol.GetUdpObserver());
         spectators.Add(protocol);

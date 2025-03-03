@@ -78,7 +78,8 @@ sealed class SpectatorBackend<TInput> :
         ProtocolState protocolState =
             new(new(PlayerType.Remote, 0), hostEndpoint, localConnections, magicNumber);
 
-        host = peerConnectionFactory.Create(protocolState, inputGroupSerializer, this);
+        var inputGroupComparer = ConfirmedInputComparer<TInput>.Create(services.InputComparer);
+        host = peerConnectionFactory.Create(protocolState, inputGroupSerializer, this, inputGroupComparer);
         peerObservers.Add(host.GetUdpObserver());
         host.Synchronize();
         isSynchronizing = true;
