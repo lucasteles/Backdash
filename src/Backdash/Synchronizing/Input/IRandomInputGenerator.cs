@@ -29,7 +29,7 @@ public sealed class RandomInputGenerator<TInput> : IInputGenerator<TInput> where
     /// </summary>
     public RandomInputGenerator(Random? random = null)
     {
-        ThrowHelpers.ThrowIfTypeIsReferenceOrContainsReferences<TInput>();
+        ThrowIf.TypeIsReferenceOrContainsReferences<TInput>();
         Random = random ?? Random.Shared;
     }
 

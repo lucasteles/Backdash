@@ -61,7 +61,7 @@ sealed class RemoteBackend<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
         ArgumentNullException.ThrowIfNull(options);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(port);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(options.FramesPerSecond);
-        ThrowHelpers.ThrowIfArgumentOutOfBounds(options.SpectatorOffset, min: Max.NumberOfPlayers);
+        ThrowIf.ArgumentOutOfBounds(options.SpectatorOffset, min: Max.NumberOfPlayers);
 
         this.options = options;
         inputSerializer = services.InputSerializer;
@@ -258,7 +258,7 @@ sealed class RemoteBackend<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
 
     public void SetFrameDelay(PlayerHandle player, int delayInFrames)
     {
-        ThrowHelpers.ThrowIfArgumentOutOfBounds(player.InternalQueue, 0, addedPlayers.Count);
+        ThrowIf.ArgumentOutOfBounds(player.InternalQueue, 0, addedPlayers.Count);
         ArgumentOutOfRangeException.ThrowIfNegative(delayInFrames);
         synchronizer.SetFrameDelay(player, delayInFrames);
     }

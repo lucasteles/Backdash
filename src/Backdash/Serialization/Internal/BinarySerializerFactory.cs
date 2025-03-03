@@ -27,7 +27,7 @@ static class BinarySerializerFactory
         if (inputType is { IsLayoutSequential: false, IsExplicitLayout: false })
             throw new ArgumentException("Input struct should have explicit or sequential layout ");
 
-        ThrowHelpers.ThrowIfTypeIsReferenceOrContainsReferences<TInput>();
+        ThrowIf.TypeIsReferenceOrContainsReferences<TInput>();
 
         return new StructBinarySerializer<TInput>();
     }

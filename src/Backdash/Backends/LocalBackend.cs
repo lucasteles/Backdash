@@ -178,7 +178,7 @@ sealed class LocalBackend<TInput> : INetcodeSession<TInput> where TInput : unman
 
     public void SetFrameDelay(PlayerHandle player, int delayInFrames)
     {
-        ThrowHelpers.ThrowIfArgumentOutOfBounds(player.InternalQueue, 0, addedPlayers.Count);
+        ThrowIf.ArgumentOutOfBounds(player.InternalQueue, 0, addedPlayers.Count);
         ArgumentOutOfRangeException.ThrowIfNegative(delayInFrames);
         synchronizer.SetFrameDelay(player, delayInFrames);
     }
