@@ -76,8 +76,11 @@ public readonly ref struct BinaryBufferReader
         return CollectionsMarshal.AsSpan(values);
     }
 
+    /// <summary>
+    /// Advance and allocates a Span of size <paramref name="size"/> for type <typeparamref name="T"/>> in the buffer.
+    /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    ReadOnlySpan<T> AllocSpan<T>(int size) where T : struct
+    public ReadOnlySpan<T> AllocSpan<T>(int size) where T : struct
     {
         var span = CurrentBuffer[..(size * Unsafe.SizeOf<T>())];
         Advance(size);
@@ -294,8 +297,8 @@ public readonly ref struct BinaryBufferReader
     /// <summary>Reads a span of UTF8 <see cref="char"/> from buffer into <paramref name="values"/>.</summary>
     public void ReadUtf8String(in Span<char> values)
     {
-        var byteCount = System.Text.Encoding.UTF8.GetByteCount(values);
-        System.Text.Encoding.UTF8.GetChars(CurrentBuffer[..byteCount], values);
+        var byteCount = Encoding.UTF8.GetByteCount(values);
+        Encoding.UTF8.GetChars(CurrentBuffer[..byteCount], values);
         Advance(byteCount);
     }
 
@@ -376,7 +379,7 @@ public readonly ref struct BinaryBufferReader
 
     /// <summary>Reads a span of <see cref="IBinarySerializable"/> <paramref name="values"/> into buffer.</summary>
     /// <typeparam name="T">A list of a value type that implements <see cref="IBinarySerializable"/>.</typeparam>
-    public void Read<T>(in Span<T> values) where T : unmanaged, IBinarySerializable
+    public void Read<T>(in Span<T> values) where T : IBinarySerializable
     {
         if (values.IsEmpty) return;
         ref var current = ref MemoryMarshal.GetReference(values);
@@ -398,6 +401,14 @@ public readonly ref struct BinaryBufferReader
     /// <typeparam name="T">A value type that implements <see cref="IBinarySerializable"/>.</typeparam>
     public void Read<T>(in List<T> values) where T : unmanaged, IBinarySerializable => Read(GetListSpan(in values));
 
+    /// <summary>Reads a circular buffer of unmanaged <see cref="IBinarySerializable"/> <paramref name="values"/> from buffer.</summary>
+    /// <typeparam name="T">A value type that implements <see cref="IBinarySerializable"/>.</typeparam>
+    public void Read<T>(in CircularBuffer<T> values) where T : IBinarySerializable
+    {
+        var size = ReadInt32();
+        var span = values.GetResetSpan(size);
+        Read(in span);
+    }
 
     /// <summary>Reads a <see cref="IBinarySerializable"/> <paramref name="value"/> from buffer.</summary>
     /// <typeparam name="T">A reference value type that implements <see cref="IBinarySerializable"/>.</typeparam>
@@ -974,7 +985,7 @@ public readonly ref struct BinaryBufferReader
         return Unsafe.As<uint?, T?>(ref value);
     }
 
-    /// <summary>Reads a <see cref="long"/> from buffer and relongerprets it as <typeparamref name="T"/>.</summary>
+    /// <summary>Reads a <see cref="long"/> from buffer and reinterpret it as <typeparamref name="T"/>.</summary>
     public T ReadAsInt64<T>() where T : unmanaged
     {
         var value = ReadInt64();

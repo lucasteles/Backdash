@@ -130,7 +130,7 @@ public class ProtocolOptions
 
     /// <summary>
     /// Offset to be applied to frame on checksum consistency check.
-    /// The sent frame is (<c>LastReceivedFrame - ConsistencyCheckOffset</c>).
+    /// The frame sent is (<c>LastReceivedFrame - ConsistencyCheckOffset</c>).
     /// </summary>
     /// <inheritdoc cref="Default.ConsistencyCheckOffset"/>
     /// <seealso cref="ConsistencyCheckTimeout"/>

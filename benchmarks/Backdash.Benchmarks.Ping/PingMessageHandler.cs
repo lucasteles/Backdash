@@ -1,5 +1,5 @@
-using System.Diagnostics;
 using System.Net;
+using Backdash.Core;
 using Backdash.Network.Client;
 
 namespace Backdash.Benchmarks.Ping;
@@ -24,6 +24,6 @@ sealed class PingMessageHandler(IPeerClient<PingMessage> sender) : IPeerObserver
             _ => throw new ArgumentOutOfRangeException(nameof(message), message, null),
         };
 
-        Trace.Assert(sender.TrySendTo(from, reply));
+        ThrowIf.Assert(sender.TrySendTo(from, reply));
     }
 }

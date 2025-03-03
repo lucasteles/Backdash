@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Net;
 using Backdash.Core;
 using Backdash.Data;
@@ -78,7 +77,8 @@ sealed class SpectatorBackend<TInput> :
         ProtocolState protocolState =
             new(new(PlayerType.Remote, 0), hostEndpoint, localConnections, magicNumber);
 
-        host = peerConnectionFactory.Create(protocolState, inputGroupSerializer, this);
+        var inputGroupComparer = ConfirmedInputComparer<TInput>.Create(services.InputComparer);
+        host = peerConnectionFactory.Create(protocolState, inputGroupSerializer, this, inputGroupComparer);
         peerObservers.Add(host.GetUdpObserver());
         host.Synchronize();
         isSynchronizing = true;
@@ -227,7 +227,7 @@ sealed class SpectatorBackend<TInput> :
             return ResultCode.InputDropped;
         }
 
-        Trace.Assert(input.Data.Count > 0);
+        ThrowIf.Assert(input.Data.Count > 0);
         NumberOfPlayers = input.Data.Count;
 
         if (syncInputBuffer.Length != NumberOfPlayers)

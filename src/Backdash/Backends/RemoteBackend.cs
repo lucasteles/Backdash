@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Backdash.Core;
@@ -36,6 +35,8 @@ sealed class RemoteBackend<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
     readonly HashSet<PlayerHandle> addedSpectators = [];
     readonly IInputListener<TInput>? inputListener;
     public IDeterministicRandom Random { get; }
+    readonly EqualityComparer<TInput> inputComparer;
+    readonly EqualityComparer<ConfirmedInputs<TInput>> inputGroupComparer;
 
     bool isSynchronizing = true;
     int nextRecommendedInterval;
@@ -59,7 +60,7 @@ sealed class RemoteBackend<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
         ArgumentNullException.ThrowIfNull(options);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(port);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(options.FramesPerSecond);
-        ThrowHelpers.ThrowIfArgumentOutOfBounds(options.SpectatorOffset, min: Max.NumberOfPlayers);
+        ThrowIf.ArgumentOutOfBounds(options.SpectatorOffset, min: Max.NumberOfPlayers);
 
         this.options = options;
         inputSerializer = services.InputSerializer;
@@ -68,6 +69,8 @@ sealed class RemoteBackend<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
         inputListener = services.InputListener;
         Random = services.DeterministicRandom;
         syncNumber = services.Random.MagicNumber();
+        inputComparer = services.InputComparer;
+        inputGroupComparer = ConfirmedInputComparer<TInput>.Create(services.InputComparer);
 
         peerInputEventQueue = new();
         peerCombinedInputsEventPublisher = new ProtocolCombinedInputsEventPublisher<TInput>(peerInputEventQueue);
@@ -84,7 +87,8 @@ sealed class RemoteBackend<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
             addedPlayers,
             services.StateStore,
             services.ChecksumProvider,
-            localConnections
+            localConnections,
+            inputComparer
         )
         {
             Callbacks = callbacks,
@@ -253,7 +257,7 @@ sealed class RemoteBackend<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
 
     public void SetFrameDelay(PlayerHandle player, int delayInFrames)
     {
-        ThrowHelpers.ThrowIfArgumentOutOfBounds(player.InternalQueue, 0, addedPlayers.Count);
+        ThrowIf.ArgumentOutOfBounds(player.InternalQueue, 0, addedPlayers.Count);
         ArgumentOutOfRangeException.ThrowIfNegative(delayInFrames);
         synchronizer.SetFrameDelay(player, delayInFrames);
     }
@@ -295,7 +299,7 @@ sealed class RemoteBackend<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
         var endpoint = player.EndPoint;
         var protocol = peerConnectionFactory.Create(
             new(player.Handle, endpoint, localConnections, syncNumber),
-            inputSerializer, peerInputEventQueue
+            inputSerializer, peerInputEventQueue, inputComparer
         );
 
         peerObservers.Add(protocol.GetUdpObserver());
@@ -334,7 +338,8 @@ sealed class RemoteBackend<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
         var protocol = peerConnectionFactory.Create(
             new(spectatorHandle, spectator.EndPoint, localConnections, syncNumber),
             inputGroupSerializer,
-            peerCombinedInputsEventPublisher
+            peerCombinedInputsEventPublisher,
+            inputGroupComparer
         );
         peerObservers.Add(protocol.GetUdpObserver());
         spectators.Add(protocol);
@@ -432,7 +437,7 @@ sealed class RemoteBackend<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
             var currentRemoteFrame = localConnections[player].LastFrame;
             var newRemoteFrame = eventInput.Frame;
 
-            Trace.Assert(currentRemoteFrame.IsNull || newRemoteFrame == currentRemoteFrame.Next());
+            ThrowIf.Assert(currentRemoteFrame.IsNull || newRemoteFrame == currentRemoteFrame.Next());
             synchronizer.AddRemoteInput(in player, eventInput);
             // Notify the other endpoints which frame we received from a peer
             logger.Write(LogLevel.Trace, $"setting remote connect status frame {player} to {eventInput.Frame}");
@@ -490,7 +495,7 @@ sealed class RemoteBackend<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
             eps[i]?.SetLocalFrameNumber(currentFrame, options.FramesPerSecond);
 
         var minConfirmedFrame = NumberOfPlayers <= 2 ? MinimumFrame2Players() : MinimumFrameNPlayers();
-        Trace.Assert(minConfirmedFrame != Frame.MaxValue);
+        ThrowIf.Assert(minConfirmedFrame != Frame.MaxValue);
         logger.Write(LogLevel.Trace, $"last confirmed frame in p2p backend is {minConfirmedFrame}");
 
         if (minConfirmedFrame >= Frame.Zero)
@@ -697,7 +702,7 @@ sealed class RemoteBackend<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
             $"Changing player {player} local connect status for last frame from {connStatus.LastFrame} to {syncTo} on disconnect request (current: {frameCount})");
         connStatus.Disconnected = true;
         connStatus.LastFrame = syncTo;
-        if (syncTo < frameCount && syncTo.IsNotNull)
+        if (syncTo < frameCount && !syncTo.IsNull)
         {
             logger.Write(LogLevel.Information,
                 $"adjusting simulation to account for the fact that {player} disconnected on frame {syncTo}");

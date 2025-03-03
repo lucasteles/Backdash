@@ -33,7 +33,7 @@ static class Mem
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Span<byte> AsBytesUnsafe<T>(scoped ref readonly T data) where T : struct
     {
-        ThrowHelpers.ThrowIfTypeIsReferenceOrContainsReferences<T>();
+        ThrowIf.TypeIsReferenceOrContainsReferences<T>();
         return MemoryMarshal.AsBytes(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in data), 1));
     }
 

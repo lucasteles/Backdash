@@ -83,6 +83,20 @@ abstract class TestGenerators
         select new StringBuilder(s)
     );
 
+    public static Arbitrary<CircularBuffer<T>> CircularBufferGenerator<T>(Arbitrary<T[]> valueArb) =>
+        (
+            from values in valueArb.Generator
+            from size in Gen.Choose(values.Length, values.Length * 10)
+            select (size, values)
+        )
+        .Select(v =>
+        {
+            var buffer = new CircularBuffer<T>(v.size);
+            buffer.CopyFrom(v.values);
+            return buffer;
+        })
+        .ToArbitrary();
+
     public static Arbitrary<SimpleStructData> SimpleStructDataGenerator(
         Arbitrary<Point> pointGenerator
     ) =>

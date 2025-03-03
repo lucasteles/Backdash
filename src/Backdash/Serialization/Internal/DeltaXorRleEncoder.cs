@@ -17,7 +17,7 @@ static class DeltaXorRle
         {
             Count = 0;
             last = lastBuffer;
-            Trace.Assert(output.Length > 0);
+            ThrowIf.Assert(output.Length > 0);
             bitWriter = new(output);
         }
 
@@ -25,7 +25,7 @@ static class DeltaXorRle
 
         public bool Write(ReadOnlySpan<byte> current)
         {
-            Trace.Assert(current.Length <= last.Length);
+            ThrowIf.Assert(current.Length <= last.Length);
             if (!Mem.EqualBytes(current, last, truncate: true))
             {
                 var currentBits = ReadOnlyBitVector.FromSpan(current);
@@ -94,7 +94,7 @@ static class DeltaXorRle
                         continue;
                     }
 
-                    Trace.Assert(bitVector.Offset <= bitCount);
+                    ThrowIf.Assert(bitVector.Offset <= bitCount);
                     return true;
                 }
             }
@@ -131,7 +131,7 @@ static class DeltaXorRle
                 return false;
             }
 
-            Trace.Assert(bitVector.Offset <= bitCount);
+            ThrowIf.Assert(bitVector.Offset <= bitCount);
             return true;
         }
 

@@ -35,15 +35,15 @@ struct ProtocolEventInfo(ProtocolEvent type, PlayerHandle player) : IUtf8SpanFor
         switch (Type)
         {
             case ProtocolEvent.NetworkInterrupted:
-                if (!writer.Write("Timeout: "u8)) return false;
-                if (!writer.Write(NetworkInterrupted.DisconnectTimeout)) return false;
-                return true;
+                return writer.Write("Timeout: "u8)
+                       && writer.Write(NetworkInterrupted.DisconnectTimeout);
+            case ProtocolEvent.Synchronizing when !writer.Write(' '):
+                return false;
             case ProtocolEvent.Synchronizing:
-                if (!writer.Write(' ')) return false;
-                if (!writer.Write(Synchronizing.CurrentStep)) return false;
-                if (!writer.Write('/')) return false;
-                if (!writer.Write(Synchronizing.TotalSteps)) return false;
-                return true;
+                return writer.Write(Synchronizing.CurrentStep)
+                       && writer.Write('/')
+                       &&
+                       writer.Write(Synchronizing.TotalSteps);
             default:
                 return writer.Write("{}"u8);
         }

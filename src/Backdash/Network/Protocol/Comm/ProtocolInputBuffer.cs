@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network.Messages;
@@ -59,7 +58,7 @@ sealed class ProtocolInputBuffer<TInput> : IProtocolInputBuffer<TInput>
         this.sender = sender;
         this.inbox = inbox;
         inputSize = inputSerializer.GetTypeSize();
-        Trace.Assert(inputSize * ByteSize.ByteToBits < 1 << ByteSize.ByteToBits);
+        ThrowIf.Assert(inputSize * ByteSize.ByteToBits < 1 << ByteSize.ByteToBits);
         workingBufferMemory = Mem.AllocatePinnedArray(WorkingBufferFactor * inputSize);
         pendingOutput = new(options.MaxPendingInputs);
     }
@@ -90,7 +89,7 @@ sealed class ProtocolInputBuffer<TInput> : IProtocolInputBuffer<TInput>
     SendInputResult CreateInputMessage(out ProtocolMessage protocolMessage)
     {
         var workingBuffer = workingBufferMemory.AsSpan();
-        Trace.Assert(workingBuffer.Length >= WorkingBufferFactor);
+        ThrowIf.Assert(workingBuffer.Length >= WorkingBufferFactor);
         var lastAckBytes = workingBuffer[..inputSize];
         var sendBuffer = workingBuffer.Slice(inputSize, inputSize);
         var currentBytes = workingBuffer.Slice(inputSize * 2, inputSize);
@@ -113,12 +112,12 @@ sealed class ProtocolInputBuffer<TInput> : IProtocolInputBuffer<TInput>
                 lastAckSize = inputSerializer.Serialize(in lastAckedInput.Data, lastAckBytes);
             }
 
-            Trace.Assert(lastAckedInput.Frame.IsNull || lastAckedInput.Frame.Next() == lastAckFrame);
+            ThrowIf.Assert(lastAckedInput.Frame.IsNull || lastAckedInput.Frame.Next() == lastAckFrame);
             var current = pendingOutput.Peek();
             var currentSize = inputSerializer.Serialize(in current.Data, currentBytes);
             inputMessage.InputSize = (byte)currentSize;
             inputMessage.StartFrame = current.Frame;
-            Trace.Assert(lastAckedInput.Frame.IsNull || lastAckedInput.Frame.Next() == inputMessage.StartFrame);
+            ThrowIf.Assert(lastAckedInput.Frame.IsNull || lastAckedInput.Frame.Next() == inputMessage.StartFrame);
             if (lastAckedInput.Frame.IsNull && lastSentSize < currentSize)
                 lastSentSize = currentSize;
             if (lastAckSize is 0)
@@ -156,8 +155,8 @@ sealed class ProtocolInputBuffer<TInput> : IProtocolInputBuffer<TInput>
 
         inputMessage.AckFrame = inbox.LastReceivedInput.Frame;
         state.LocalConnectStatuses.CopyTo(inputMessage.PeerConnectStatus);
-        Trace.Assert(inputMessage.NumBits <= Max.CompressedBytes * ByteSize.ByteToBits);
-        Trace.Assert(lastAckFrame.IsNull || inputMessage.StartFrame == lastAckFrame);
+        ThrowIf.Assert(inputMessage.NumBits <= Max.CompressedBytes * ByteSize.ByteToBits);
+        ThrowIf.Assert(lastAckFrame.IsNull || inputMessage.StartFrame == lastAckFrame);
 
         protocolMessage = new(MessageType.Input)
         {

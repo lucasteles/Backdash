@@ -1,6 +1,6 @@
-using System.Diagnostics;
 using System.Net;
 using Backdash.Benchmarks.Network;
+using Backdash.Core;
 
 #pragma warning disable CS0649, AsyncFixer01, AsyncFixer02
 // ReSharper disable AccessToDisposedClosure
@@ -44,7 +44,7 @@ public class UdpClientBenchmark
         IPEndPoint pongerEndpoint = new(IPAddress.Loopback, 9001);
         var pongerAddress = pongerEndpoint.Serialize();
 
-        Trace.Assert(pinger.TrySendTo(pongerAddress, PingMessage.Ping));
+        ThrowIf.Assert(pinger.TrySendTo(pongerAddress, PingMessage.Ping));
 
         await Task.WhenAll(
             pinger.Start(ct),
@@ -52,9 +52,9 @@ public class UdpClientBenchmark
         ).ConfigureAwait(false);
 
         pingerHandler.OnProcessed -= OnProcessed;
-        Trace.Assert(pingerHandler.BadMessages is 0,
+        ThrowIf.Assert(pingerHandler.BadMessages is 0,
             $"** Pinger: {pingerHandler.BadMessages} bad messages");
-        Trace.Assert(pingerHandler.ProcessedCount >= numberOfSpins,
+        ThrowIf.Assert(pingerHandler.ProcessedCount >= numberOfSpins,
             $"** Pinger incomplete (Expected: >= {numberOfSpins}, Received: {pingerHandler.ProcessedCount})");
     }
 }

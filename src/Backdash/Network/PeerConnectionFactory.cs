@@ -23,10 +23,11 @@ sealed class PeerConnectionFactory(
     public PeerConnection<TInput> Create<TInput>(
         ProtocolState state,
         IBinarySerializer<TInput> inputSerializer,
-        IProtocolInputEventPublisher<TInput> inputEventQueue
+        IProtocolInputEventPublisher<TInput> inputEventQueue,
+        EqualityComparer<TInput>? inputComparer
     ) where TInput : unmanaged
     {
-        var timeSync = new TimeSync<TInput>(timeSyncOptions, logger);
+        var timeSync = new TimeSync<TInput>(timeSyncOptions, logger, inputComparer);
         var outbox = new ProtocolOutbox(state, peer, clock, logger);
         var syncManager = new ProtocolSynchronizer(logger, clock, random, state, options, outbox, networkEventHandler);
         var inbox = new ProtocolInbox<TInput>(options, inputSerializer, state, clock, syncManager, outbox,

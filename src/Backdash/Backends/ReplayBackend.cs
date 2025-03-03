@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network;
@@ -140,7 +139,7 @@ sealed class ReplayBackend<TInput> : INetcodeSession<TInput>
         if (confirmed.Count is 0 && CurrentFrame == Frame.Zero)
             return ResultCode.NotSynchronized;
 
-        Trace.Assert(confirmed.Count > 0);
+        ThrowIf.Assert(confirmed.Count > 0);
         NumberOfPlayers = confirmed.Count;
 
         if (syncInputBuffer.Length != NumberOfPlayers)
@@ -185,7 +184,7 @@ sealed class ReplayBackend<TInput> : INetcodeSession<TInput>
 
         try
         {
-            var savedFrame = stateStore.Load(frame);
+            var savedFrame = stateStore.Load(in frame);
             logger.Write(LogLevel.Trace,
                 $"Loading replay frame {savedFrame.Frame} (checksum: {savedFrame.Checksum})");
             var offset = 0;

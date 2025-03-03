@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Net;
 using System.Runtime.CompilerServices;
 using Backdash.Core;
@@ -137,7 +136,7 @@ sealed class ProtocolInbox<TInput>(
             var peerConnectStatus = state.PeerConnectStatuses;
             for (var i = 0; i < peerConnectStatus.Length; i++)
             {
-                Trace.Assert(remoteStatus[i].LastFrame >= peerConnectStatus[i].LastFrame);
+                ThrowIf.Assert(remoteStatus[i].LastFrame >= peerConnectStatus[i].LastFrame);
                 peerConnectStatus[i].Disconnected = peerConnectStatus[i].Disconnected || remoteStatus[i].Disconnected;
                 peerConnectStatus[i].LastFrame = Frame.Max(
                     in peerConnectStatus[i].LastFrame,
@@ -170,12 +169,12 @@ sealed class ProtocolInbox<TInput>(
                     return true;
             }
 
-            Trace.Assert(currentFrame == nextFrame);
+            ThrowIf.Assert(currentFrame == nextFrame);
             var lastReceivedBuffer = lastReceivedInputBuffer.AsSpan(..msg.InputSize);
             while (decompressor.Read(lastReceivedBuffer))
             {
                 inputSerializer.Deserialize(lastReceivedBuffer, ref lastReceivedInput.Data);
-                Trace.Assert(currentFrame == lastReceivedFrame.Next());
+                ThrowIf.Assert(currentFrame == lastReceivedFrame.Next());
                 lastReceivedFrame = currentFrame;
                 lastReceivedInput.Frame = currentFrame;
                 state.Stats.LastReceivedInputTime = clock.GetTimeStamp();
@@ -188,7 +187,7 @@ sealed class ProtocolInbox<TInput>(
             LastAckedFrame = msg.AckFrame;
         }
 
-        Trace.Assert(lastReceivedInput.Frame >= startLastReceivedFrame);
+        ThrowIf.Assert(lastReceivedInput.Frame >= startLastReceivedFrame);
         return true;
     }
 
@@ -240,13 +239,13 @@ sealed class ProtocolInbox<TInput>(
         }
 
         logger.Write(LogLevel.Debug,
-            $"Checking sync state ({state.Sync.RemainingRoundtrips} round trips remaining)");
-        if (options.NumberOfSyncRoundtrips >= state.Sync.RemainingRoundtrips)
-            state.Sync.TotalRoundtripsPing = TimeSpan.Zero;
-        state.Sync.TotalRoundtripsPing += elapsed;
-        if (--state.Sync.RemainingRoundtrips == 0)
+            $"Checking sync state ({state.Sync.RemainingRoundTrips} round trips remaining)");
+        if (options.NumberOfSyncRoundtrips >= state.Sync.RemainingRoundTrips)
+            state.Sync.TotalRoundTripsPing = TimeSpan.Zero;
+        state.Sync.TotalRoundTripsPing += elapsed;
+        if (--state.Sync.RemainingRoundTrips == 0)
         {
-            var ping = state.Sync.TotalRoundtripsPing / options.NumberOfSyncRoundtrips;
+            var ping = state.Sync.TotalRoundTripsPing / options.NumberOfSyncRoundtrips;
             logger.Write(LogLevel.Information,
                 $"Player {state.Player.Number} Synchronized! (Ping: {ping.TotalMilliseconds:f4})");
             state.CurrentStatus = ProtocolStatus.Running;
@@ -265,7 +264,7 @@ sealed class ProtocolInbox<TInput>(
                 {
                     Synchronizing = new(
                         TotalSteps: options.NumberOfSyncRoundtrips,
-                        CurrentStep: options.NumberOfSyncRoundtrips - state.Sync.RemainingRoundtrips
+                        CurrentStep: options.NumberOfSyncRoundtrips - state.Sync.RemainingRoundTrips
                     ),
                 }
             );

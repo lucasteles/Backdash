@@ -66,13 +66,13 @@ sealed class ProtocolSynchronizer(
 
     public void Synchronize()
     {
-        state.Sync.RemainingRoundtrips = options.NumberOfSyncRoundtrips;
+        state.Sync.RemainingRoundTrips = options.NumberOfSyncRoundtrips;
         state.CurrentStatus = ProtocolStatus.Syncing;
         retryCounter = 0;
         active = true;
         RequestSync();
         logger.Write(LogLevel.Information,
-            $"Synchronize {state.Player} with {state.Sync.RemainingRoundtrips} roundtrips");
+            $"Synchronize {state.Player} with {state.Sync.RemainingRoundTrips} roundtrips");
     }
 
     public void Update()
@@ -88,7 +88,7 @@ sealed class ProtocolSynchronizer(
             return;
         }
 
-        var firstIteration = state.Sync.RemainingRoundtrips == options.NumberOfSyncRoundtrips;
+        var firstIteration = state.Sync.RemainingRoundTrips == options.NumberOfSyncRoundtrips;
         var interval = firstIteration ? options.SyncFirstRetryInterval : options.SyncRetryInterval;
         var elapsed = clock.GetElapsedTime(lastRequest);
         if (elapsed < interval)

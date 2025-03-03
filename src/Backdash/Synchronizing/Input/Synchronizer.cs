@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Backdash.Core;
@@ -18,6 +17,7 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
     readonly IStateStore stateStore;
     readonly IChecksumProvider checksumProvider;
     readonly ConnectionsState localConnections;
+    readonly EqualityComparer<TInput> inputComparer;
     readonly List<InputQueue<TInput>> inputQueues;
     public required INetcodeSessionHandler Callbacks { get; internal set; }
     Frame currentFrame = Frame.Zero;
@@ -32,7 +32,8 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
         IReadOnlyCollection<PlayerHandle> players,
         IStateStore stateStore,
         IChecksumProvider checksumProvider,
-        ConnectionsState localConnections
+        ConnectionsState localConnections,
+        EqualityComparer<TInput>? inputComparer = null
     )
     {
         this.options = options;
@@ -41,6 +42,7 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
         this.stateStore = stateStore;
         this.checksumProvider = checksumProvider;
         this.localConnections = localConnections;
+        this.inputComparer = inputComparer ?? EqualityComparer<TInput>.Default;
 
         endianness = options.StateSerializationEndianness ?? Platform.GetEndianness(options.UseNetworkEndianness);
         stateStore.Initialize(options.PredictionFrames + options.PredictionFramesOffset);
@@ -53,7 +55,7 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
     public FrameSpan RollbackFrames { get; private set; } = FrameSpan.Zero;
 
     public void AddQueue(PlayerHandle player) =>
-        inputQueues.Add(new(player.InternalQueue, options.InputQueueLength, logger)
+        inputQueues.Add(new(player.InternalQueue, options.InputQueueLength, logger, inputComparer)
         {
             LocalFrameDelay = player.IsLocal() ? Math.Max(options.FrameDelay, 0) : 0,
         });
@@ -61,7 +63,7 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
     public void SetLastConfirmedFrame(in Frame frame)
     {
         lastConfirmedFrame = frame;
-        if (lastConfirmedFrame <= Frame.Zero)
+        if (lastConfirmedFrame.Number <= 0)
             return;
         var discardUntil = frame.Previous();
         for (var i = 0; i < NumberOfPlayers; i++)
@@ -112,13 +114,12 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
         if (localConnections[playerNumber].Disconnected && frame > localConnections[playerNumber].LastFrame)
             return false;
         confirmed.Frame = frame;
-        inputQueues[playerNumber].GetConfirmedInput(in frame, ref confirmed);
-        return true;
+        return inputQueues[playerNumber].GetConfirmedInput(in frame, ref confirmed);
     }
 
     public void SynchronizeInputs(Span<SynchronizedInput<TInput>> syncOutput, Span<TInput> output)
     {
-        Trace.Assert(syncOutput.Length >= NumberOfPlayers);
+        ThrowIf.Assert(syncOutput.Length >= NumberOfPlayers);
         syncOutput.Clear();
         for (var i = 0; i < NumberOfPlayers; i++)
         {
@@ -156,7 +157,7 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
         InRollback = true;
         // Flush our input queue and load the last frame.
         LoadFrame(in seekTo);
-        Trace.Assert(currentFrame == seekTo);
+        ThrowIf.Assert(currentFrame == seekTo);
         // Advance frame by frame (stuffing notifications back to the master).
         ResetPrediction(in currentFrame);
         for (var i = 0; i < rollbackCount; i++)
@@ -165,7 +166,7 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
             Callbacks.AdvanceFrame();
         }
 
-        Trace.Assert(currentFrame == localCurrentFrame);
+        ThrowIf.Assert(currentFrame == localCurrentFrame);
         InRollback = false;
     }
 
@@ -178,7 +179,7 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
             return;
         }
 
-        var savedFrame = stateStore.Load(frame);
+        var savedFrame = stateStore.Load(in frame);
         logger.Write(LogLevel.Information,
             $"* Loading frame info {savedFrame.Frame} (checksum: {savedFrame.Checksum})");
 
@@ -214,7 +215,7 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
         for (var i = 0; i < NumberOfPlayers; i++)
         {
             var incorrect = inputQueues[i].FirstIncorrectFrame;
-            if (incorrect.IsNull || (firstIncorrect.IsNotNull && incorrect >= firstIncorrect))
+            if (incorrect.IsNull || (!firstIncorrect.IsNull && incorrect >= firstIncorrect))
                 continue;
             logger.Write(LogLevel.Information, $"Incorrect frame {incorrect} reported by queue {i}");
             RollbackFrames = new(Math.Max(RollbackFrames.FrameCount, incorrect.Number));

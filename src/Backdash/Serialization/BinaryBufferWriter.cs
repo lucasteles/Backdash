@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using Backdash.Core;
+using Backdash.Data;
 using Backdash.Network;
 
 namespace Backdash.Serialization;
@@ -52,8 +53,11 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
         return result;
     }
 
+    /// <summary>
+    /// Advance and allocates a Span of size <paramref name="size"/> for type <typeparamref name="T"/>> in the buffer.
+    /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    Span<T> AllocSpan<T>(int size) where T : unmanaged
+    public Span<T> AllocSpan<T>(int size) where T : unmanaged
     {
         var sizeBytes = Unsafe.SizeOf<T>() * size;
         var result = MemoryMarshal.Cast<byte, T>(buffer.GetSpan(sizeBytes));
@@ -73,7 +77,7 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Write(in ReadOnlySpan<byte> value) => buffer.Write(value);
 
-    /// <summary>Writes a list of bytes of <see cref="byte"/> <paramref name="values"/> into buffer.</summary>
+    /// <summary>Writes a list of <see cref="byte"/> <paramref name="values"/> into buffer.</summary>
     public void Write(in List<byte> values) => Write(GetListSpan(in values));
 
     /// <summary>Writes single <see cref="byte"/> <paramref name="value"/> into buffer.</summary>
@@ -288,14 +292,13 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
     /// <summary>Writes a span of <see cref="sbyte"/> <paramref name="value"/> into buffer.</summary>
     public void Write(in ReadOnlySpan<sbyte> value) => WriteSpan(in value);
 
-
-    /// <summary>Writes a list of bytes of <see cref="sbyte"/> <paramref name="values"/> into buffer.</summary>
+    /// <summary>Writes a list of <see cref="sbyte"/> <paramref name="values"/> into buffer.</summary>
     public void Write(in List<sbyte> values) => Write(GetListSpan(in values));
 
     /// <summary>Writes a span of <see cref="bool"/> <paramref name="value"/> into buffer.</summary>
     public void Write(in ReadOnlySpan<bool> value) => WriteSpan(in value);
 
-    /// <summary>Writes a list of bytes of <see cref="bool"/> <paramref name="values"/> into buffer.</summary>
+    /// <summary>Writes a list of <see cref="bool"/> <paramref name="values"/> into buffer.</summary>
     public void Write(in List<bool> values) => Write(GetListSpan(in values));
 
     /// <summary>Writes a span of <see cref="short"/> <paramref name="value"/> into buffer.</summary>
@@ -307,7 +310,7 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
             WriteSpan(in value);
     }
 
-    /// <summary>Writes a list of bytes of <see cref="short"/> <paramref name="values"/> into buffer.</summary>
+    /// <summary>Writes a list of <see cref="short"/> <paramref name="values"/> into buffer.</summary>
     public void Write(in List<short> values) => Write(GetListSpan(in values));
 
     /// <summary>Writes a span of <see cref="ushort"/> <paramref name="value"/> into buffer.</summary>
@@ -319,13 +322,13 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
             WriteSpan(in value);
     }
 
-    /// <summary>Writes a list of bytes of <see cref="ushort"/> <paramref name="values"/> into buffer.</summary>
+    /// <summary>Writes a list of <see cref="ushort"/> <paramref name="values"/> into buffer.</summary>
     public void Write(in List<ushort> values) => Write(GetListSpan(in values));
 
     /// <summary>Writes a span of <see cref="char"/> <paramref name="value"/> into buffer.</summary>
     public void Write(in ReadOnlySpan<char> value) => Write(MemoryMarshal.Cast<char, ushort>(value));
 
-    /// <summary>Writes a list of bytes of <see cref="char"/> <paramref name="values"/> into buffer.</summary>
+    /// <summary>Writes a list of <see cref="char"/> <paramref name="values"/> into buffer.</summary>
     public void Write(in List<char> values) => Write(GetListSpan(in values));
 
     /// <summary>Writes a span of <see cref="int"/> <paramref name="value"/> into buffer.</summary>
@@ -337,7 +340,7 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
             WriteSpan(in value);
     }
 
-    /// <summary>Writes a list of bytes of <see cref="int"/> <paramref name="values"/> into buffer.</summary>
+    /// <summary>Writes a list of <see cref="int"/> <paramref name="values"/> into buffer.</summary>
     public void Write(in List<int> values) => Write(GetListSpan(in values));
 
     /// <summary>Writes a span of <see cref="uint"/> <paramref name="value"/> into buffer.</summary>
@@ -349,7 +352,7 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
             WriteSpan(in value);
     }
 
-    /// <summary>Writes a list of bytes of <see cref="uint"/> <paramref name="values"/> into buffer.</summary>
+    /// <summary>Writes a list of <see cref="uint"/> <paramref name="values"/> into buffer.</summary>
     public void Write(in List<uint> values) => Write(GetListSpan(in values));
 
     /// <summary>Writes a span of <see cref="long"/> <paramref name="value"/> into buffer.</summary>
@@ -361,7 +364,7 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
             WriteSpan(in value);
     }
 
-    /// <summary>Writes a list of bytes of <see cref="long"/> <paramref name="values"/> into buffer.</summary>
+    /// <summary>Writes a list of <see cref="long"/> <paramref name="values"/> into buffer.</summary>
     public void Write(in List<long> values) => Write(GetListSpan(in values));
 
     /// <summary>Writes a span of <see cref="ulong"/> <paramref name="value"/> into buffer.</summary>
@@ -373,7 +376,7 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
             WriteSpan(in value);
     }
 
-    /// <summary>Writes a list of bytes of <see cref="ulong"/> <paramref name="values"/> into buffer.</summary>
+    /// <summary>Writes a list of <see cref="ulong"/> <paramref name="values"/> into buffer.</summary>
     public void Write(in List<ulong> values) => Write(GetListSpan(in values));
 
     /// <summary>Writes a span of <see cref="Int128"/> <paramref name="value"/> into buffer.</summary>
@@ -385,7 +388,7 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
             WriteSpan(in value);
     }
 
-    /// <summary>Writes a list of bytes of <see cref="Int128"/> <paramref name="values"/> into buffer.</summary>
+    /// <summary>Writes a list of <see cref="Int128"/> <paramref name="values"/> into buffer.</summary>
     public void Write(in List<Int128> values) => Write(GetListSpan(in values));
 
     /// <summary>Writes a span of <see cref="UInt128"/> <paramref name="values"/> into buffer.</summary>
@@ -397,27 +400,27 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
             WriteSpan(in values);
     }
 
-    /// <summary>Writes a list of bytes of <see cref="UInt128"/> <paramref name="values"/> into buffer.</summary>
+    /// <summary>Writes a list of <see cref="UInt128"/> <paramref name="values"/> into buffer.</summary>
     public void Write(in List<UInt128> values) => Write(GetListSpan(in values));
 
 
     /// <summary>Writes a span of <see cref="float"/> <paramref name="values"/> into buffer.</summary>
     public void Write(in ReadOnlySpan<float> values) => Write(MemoryMarshal.Cast<float, int>(values));
 
-    /// <summary>Writes a list of bytes of <see cref="float"/> <paramref name="values"/> into buffer.</summary>
+    /// <summary>Writes a list of <see cref="float"/> <paramref name="values"/> into buffer.</summary>
     public void Write(in List<float> values) => Write(GetListSpan(in values));
 
 
     /// <summary>Writes a span of <see cref="double"/> <paramref name="values"/> into buffer.</summary>
     public void Write(in ReadOnlySpan<double> values) => Write(MemoryMarshal.Cast<double, long>(values));
 
-    /// <summary>Writes a list of bytes of <see cref="double"/> <paramref name="values"/> into buffer.</summary>
+    /// <summary>Writes a list of <see cref="double"/> <paramref name="values"/> into buffer.</summary>
     public void Write(in List<double> values) => Write(GetListSpan(in values));
 
     /// <summary>Writes a span of <see cref="Half"/> <paramref name="values"/> into buffer.</summary>
     public void Write(in ReadOnlySpan<Half> values) => Write(MemoryMarshal.Cast<Half, short>(values));
 
-    /// <summary>Writes a list of bytes of <see cref="Half"/> <paramref name="values"/> into buffer.</summary>
+    /// <summary>Writes a list of <see cref="Half"/> <paramref name="values"/> into buffer.</summary>
     public void Write(in List<Half> values) => Write(GetListSpan(in values));
 
     /// <summary>Writes a span of <see cref="Guid"/> <paramref name="values"/> into buffer.</summary>
@@ -434,19 +437,19 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
         }
     }
 
-    /// <summary>Writes a list of bytes of <see cref="Guid"/> <paramref name="values"/> into buffer.</summary>
+    /// <summary>Writes a list of <see cref="Guid"/> <paramref name="values"/> into buffer.</summary>
     public void Write(in List<Guid> values) => Write(GetListSpan(in values));
 
     /// <summary>Writes a span of <see cref="TimeSpan"/> <paramref name="values"/> into buffer.</summary>
     public void Write(in ReadOnlySpan<TimeSpan> values) => Write(MemoryMarshal.Cast<TimeSpan, long>(values));
 
-    /// <summary>Writes a list of bytes of <see cref="TimeSpan"/> <paramref name="values"/> into buffer.</summary>
+    /// <summary>Writes a list of <see cref="TimeSpan"/> <paramref name="values"/> into buffer.</summary>
     public void Write(in List<TimeSpan> values) => Write(GetListSpan(in values));
 
     /// <summary>Writes a span of <see cref="TimeOnly"/> <paramref name="values"/> into buffer.</summary>
     public void Write(in ReadOnlySpan<TimeOnly> values) => Write(MemoryMarshal.Cast<TimeOnly, long>(values));
 
-    /// <summary>Writes a list of bytes of <see cref="TimeOnly"/> <paramref name="values"/> into buffer.</summary>
+    /// <summary>Writes a list of <see cref="TimeOnly"/> <paramref name="values"/> into buffer.</summary>
     public void Write(in List<TimeOnly> values) => Write(GetListSpan(in values));
 
 
@@ -464,7 +467,7 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
         }
     }
 
-    /// <summary>Writes a list of bytes of <see cref="DateTime"/> <paramref name="values"/> into buffer.</summary>
+    /// <summary>Writes a list of <see cref="DateTime"/> <paramref name="values"/> into buffer.</summary>
     public void Write(in List<DateTime> values) => Write(GetListSpan(in values));
 
 
@@ -482,13 +485,13 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
         }
     }
 
-    /// <summary>Writes a list of bytes of <see cref="DateTimeOffset"/> <paramref name="values"/> into buffer.</summary>
+    /// <summary>Writes a list of <see cref="DateTimeOffset"/> <paramref name="values"/> into buffer.</summary>
     public void Write(in List<DateTimeOffset> values) => Write(GetListSpan(in values));
 
     /// <summary>Writes a span of <see cref="DateOnly"/> <paramref name="values"/> into buffer.</summary>
     public void Write(in ReadOnlySpan<DateOnly> values) => Write(MemoryMarshal.Cast<DateOnly, int>(values));
 
-    /// <summary>Writes a list of bytes of <see cref="DateOnly"/> <paramref name="values"/> into buffer.</summary>
+    /// <summary>Writes a list <see cref="DateOnly"/> <paramref name="values"/> into buffer.</summary>
     public void Write(in List<DateOnly> values) => Write(GetListSpan(in values));
 
     /// <summary>Writes a <see cref="IBinarySerializable"/> <paramref name="value"/> into buffer.</summary>
@@ -534,6 +537,16 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
     /// <summary>Writes list of <see cref="IBinarySerializable"/> <paramref name="values"/> into buffer.</summary>
     /// <typeparam name="T">A type that implements <see cref="IBinarySerializable"/>.</typeparam>
     public void Write<T>(in List<T> values) where T : IBinarySerializable => Write<T>(GetListSpan(in values));
+
+    /// <summary>Writes the buffer of <see cref="IBinarySerializable"/> <paramref name="values"/> into buffer.</summary>
+    /// <typeparam name="T">A type that implements <see cref="IBinarySerializable"/>.</typeparam>
+    public void Write<T>(in CircularBuffer<T> values) where T : IBinarySerializable
+    {
+        var size = values.GetSpan(out var begin, out var end);
+        Write(in size);
+        Write(in begin);
+        Write(in end);
+    }
 
     /// <summary>Writes an <see cref="StringBuilder"/> <paramref name="value"/> into buffer.</summary>
     public void Write(in StringBuilder value)

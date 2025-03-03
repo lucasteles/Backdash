@@ -63,11 +63,6 @@ public readonly record struct Frame :
     /// </summary>
     public bool IsNull => Number is NullValue;
 
-    /// <summary>
-    /// Returns <see langword="true"/> if the current frame is not a null frame
-    /// </summary>
-    public bool IsNotNull => !IsNull;
-
     /// <inheritdoc />
     public int CompareTo(Frame other) => Number.CompareTo(other.Number);
 
@@ -103,10 +98,10 @@ public readonly record struct Frame :
     public static explicit operator Frame(int frame) => new(frame);
 
     /// <summary>Returns the smaller of two <see cref="Frame"/>.</summary>
-    public static Frame Min(in Frame left, in Frame right) => left <= right ? left : right;
+    public static Frame Min(in Frame left, in Frame right) => left.Number <= right.Number ? left : right;
 
     /// <summary>Returns the larger of two <see cref="Frame"/>.</summary>
-    public static Frame Max(in Frame left, in Frame right) => left >= right ? left : right;
+    public static Frame Max(in Frame left, in Frame right) => left.Number >= right.Number ? left : right;
 
     /// <inheritdoc />
     public static bool operator >(Frame left, Frame right) => left.Number > right.Number;
