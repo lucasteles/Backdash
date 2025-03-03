@@ -145,16 +145,8 @@ public sealed class CircularBuffer<T>(int capacity) : IReadOnlyList<T>, IEquatab
     /// <inheritdoc/>
     public override int GetHashCode()
     {
-        var span = array.AsSpan(0, Size);
-        ref var curr = ref MemoryMarshal.GetReference(span);
-        ref var end = ref Unsafe.Add(ref curr, span.Length);
         HashCode hash = new();
-        while (Unsafe.IsAddressLessThan(ref curr, ref end))
-        {
-            hash.Add(curr);
-            curr = ref Unsafe.Add(ref curr, 1)!;
-        }
-
+        for (var i = 0; i < Size; i++) hash.Add(At(i));
         return hash.ToHashCode();
     }
 
