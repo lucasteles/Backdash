@@ -538,6 +538,16 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
     /// <typeparam name="T">A type that implements <see cref="IBinarySerializable"/>.</typeparam>
     public void Write<T>(in List<T> values) where T : IBinarySerializable => Write<T>(GetListSpan(in values));
 
+    /// <summary>Writes the buffer of <see cref="IBinarySerializable"/> <paramref name="values"/> into buffer.</summary>
+    /// <typeparam name="T">A type that implements <see cref="IBinarySerializable"/>.</typeparam>
+    public void Write<T>(in CircularBuffer<T> values) where T : IBinarySerializable
+    {
+        var size = values.GetReadSpan(out var begin, out var end);
+        Write(in size);
+        Write(in begin);
+        Write(in end);
+    }
+
     /// <summary>Writes an <see cref="StringBuilder"/> <paramref name="value"/> into buffer.</summary>
     public void Write(in StringBuilder value)
     {

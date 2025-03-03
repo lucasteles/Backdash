@@ -297,8 +297,8 @@ public readonly ref struct BinaryBufferReader
     /// <summary>Reads a span of UTF8 <see cref="char"/> from buffer into <paramref name="values"/>.</summary>
     public void ReadUtf8String(in Span<char> values)
     {
-        var byteCount = System.Text.Encoding.UTF8.GetByteCount(values);
-        System.Text.Encoding.UTF8.GetChars(CurrentBuffer[..byteCount], values);
+        var byteCount = Encoding.UTF8.GetByteCount(values);
+        Encoding.UTF8.GetChars(CurrentBuffer[..byteCount], values);
         Advance(byteCount);
     }
 
