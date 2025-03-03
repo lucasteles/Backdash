@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Channels;
@@ -155,7 +154,7 @@ sealed class PeerClient<T> : IPeerJobClient<T> where T : struct
                     var sentSize = await socket.SendToAsync(buffer[..bodySize], entry.Recipient, cancellationToken)
                         .ConfigureAwait(false);
 
-                    Trace.Assert(sentSize == bodySize);
+                    ThrowIf.Assert(sentSize == bodySize);
 
                     entry.Callback?.AfterSendMessage(sentSize);
                 }

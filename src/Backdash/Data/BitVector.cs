@@ -83,7 +83,7 @@ ref struct BitOffsetWriter(Span<byte> buffer, ushort offset = 0, int nibbleSize 
 
     public void WriteNibble(int nibble)
     {
-        Trace.Assert(nibble < 1 << nibbleSize);
+        ThrowIf.Assert(nibble < 1 << nibbleSize);
         for (var i = 0; i < nibbleSize; i++)
             if ((nibble & (1 << i)) != 0)
                 SetNext();

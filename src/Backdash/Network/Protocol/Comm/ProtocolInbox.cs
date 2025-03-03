@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Net;
 using System.Runtime.CompilerServices;
 using Backdash.Core;
@@ -137,7 +136,7 @@ sealed class ProtocolInbox<TInput>(
             var peerConnectStatus = state.PeerConnectStatuses;
             for (var i = 0; i < peerConnectStatus.Length; i++)
             {
-                Trace.Assert(remoteStatus[i].LastFrame >= peerConnectStatus[i].LastFrame);
+                ThrowIf.Assert(remoteStatus[i].LastFrame >= peerConnectStatus[i].LastFrame);
                 peerConnectStatus[i].Disconnected = peerConnectStatus[i].Disconnected || remoteStatus[i].Disconnected;
                 peerConnectStatus[i].LastFrame = Frame.Max(
                     in peerConnectStatus[i].LastFrame,
@@ -170,12 +169,12 @@ sealed class ProtocolInbox<TInput>(
                     return true;
             }
 
-            Trace.Assert(currentFrame == nextFrame);
+            ThrowIf.Assert(currentFrame == nextFrame);
             var lastReceivedBuffer = lastReceivedInputBuffer.AsSpan(..msg.InputSize);
             while (decompressor.Read(lastReceivedBuffer))
             {
                 inputSerializer.Deserialize(lastReceivedBuffer, ref lastReceivedInput.Data);
-                Trace.Assert(currentFrame == lastReceivedFrame.Next());
+                ThrowIf.Assert(currentFrame == lastReceivedFrame.Next());
                 lastReceivedFrame = currentFrame;
                 lastReceivedInput.Frame = currentFrame;
                 state.Stats.LastReceivedInputTime = clock.GetTimeStamp();
@@ -188,7 +187,7 @@ sealed class ProtocolInbox<TInput>(
             LastAckedFrame = msg.AckFrame;
         }
 
-        Trace.Assert(lastReceivedInput.Frame >= startLastReceivedFrame);
+        ThrowIf.Assert(lastReceivedInput.Frame >= startLastReceivedFrame);
         return true;
     }
 

@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Backdash.Core;
 using Backdash.Data;
 
@@ -42,7 +41,7 @@ sealed class InputQueue<TInput> where TInput : unmanaged
 
     public void DiscardConfirmedFrames(Frame frame)
     {
-        Trace.Assert(frame >= Frame.Zero);
+        ThrowIf.Assert(frame >= Frame.Zero);
         if (!lastFrameRequested.IsNull)
             frame = Frame.Min(in frame, in lastFrameRequested);
         logger.Write(LogLevel.Trace,
@@ -63,7 +62,7 @@ sealed class InputQueue<TInput> where TInput : unmanaged
 
     public void ResetPrediction(in Frame frame)
     {
-        Trace.Assert(firstIncorrectFrame.IsNull || frame.Number <= firstIncorrectFrame.Number);
+        ThrowIf.Assert(firstIncorrectFrame.IsNull || frame.Number <= firstIncorrectFrame.Number);
         logger.Write(LogLevel.Trace,
             $"Queue {queueId} => resetting all prediction errors back to frame {frame.Number}.");
         // There's nothing really to do other than reset our prediction state and the incorrect frame counter...
@@ -74,7 +73,7 @@ sealed class InputQueue<TInput> where TInput : unmanaged
 
     public bool GetConfirmedInput(in Frame requestedFrame, ref GameInput<TInput> input)
     {
-        Trace.Assert(firstIncorrectFrame.IsNull || requestedFrame.Number < firstIncorrectFrame.Number);
+        ThrowIf.Assert(firstIncorrectFrame.IsNull || requestedFrame.Number < firstIncorrectFrame.Number);
 
         ref var requested = ref inputs.AtRaw(requestedFrame.Number);
 
@@ -90,10 +89,10 @@ sealed class InputQueue<TInput> where TInput : unmanaged
         logger.Write(LogLevel.Trace, $"Queue {queueId} => requesting input frame {requestedFrame.Number}.");
         // No one should ever try to grab any input when we have a prediction error.
         // Doing so means that we're just going further down the wrong path.
-        Trace.Assert(firstIncorrectFrame.IsNull);
+        ThrowIf.Assert(firstIncorrectFrame.IsNull);
         // Remember the last requested frame number for later. We'll need this in AddInput() to drop out of prediction mode.
         lastFrameRequested = requestedFrame;
-        Trace.Assert(requestedFrame.Number >= FirstInput.Frame.Number);
+        ThrowIf.Assert(requestedFrame.Number >= FirstInput.Frame.Number);
         if (prediction.Frame.IsNull)
         {
             // If the frame requested is in our range, fetch it out of the queue and  return it.
@@ -101,7 +100,7 @@ sealed class InputQueue<TInput> where TInput : unmanaged
             if (offset < inputs.Size)
             {
                 ref var next = ref inputs.At(offset);
-                Trace.Assert(next.Frame == requestedFrame);
+                ThrowIf.Assert(next.Frame == requestedFrame);
                 input = next;
                 logger.Write(LogLevel.Trace,
                     $"Queue {queueId} => returning confirmed frame number {input.Frame.Number}.");
@@ -133,7 +132,7 @@ sealed class InputQueue<TInput> where TInput : unmanaged
             prediction.IncrementFrame();
         }
 
-        Trace.Assert(prediction.Frame.Number >= 0);
+        ThrowIf.Assert(prediction.Frame.Number >= 0);
         // If we've made it this far, we must be predicting. Go ahead and forward the prediction frame contents.
         // Be sure to return the frame number requested by the client, though.
         input = prediction;
@@ -147,7 +146,7 @@ sealed class InputQueue<TInput> where TInput : unmanaged
     {
         logger.Write(LogLevel.Trace, $"Queue {queueId} => adding input frame number {input.Frame.Number} to queue.");
         // These next two lines simply verify that inputs are passed in sequentially by the user, regardless of frame delay.
-        Trace.Assert(lastUserAddedFrame.IsNull || input.Frame.Number == lastUserAddedFrame.Next().Number);
+        ThrowIf.Assert(lastUserAddedFrame.IsNull || input.Frame.Number == lastUserAddedFrame.Next().Number);
         lastUserAddedFrame = input.Frame;
         // Move the queue head to the correct point in preparation to input the frame into the queue.
         var newFrame = AdvanceQueueHead(input.Frame);
@@ -161,8 +160,8 @@ sealed class InputQueue<TInput> where TInput : unmanaged
     {
         logger.Write(LogLevel.Trace,
             $"Queue {queueId} => adding delayed input frame number {inputFrame.Number} to queue.");
-        Trace.Assert(lastAddedFrame.IsNull || inputFrame == lastAddedFrame.Next());
-        Trace.Assert(inputFrame.Number is 0 || LastInput.Frame.Number == inputFrame.Previous().Number);
+        ThrowIf.Assert(lastAddedFrame.IsNull || inputFrame == lastAddedFrame.Next());
+        ThrowIf.Assert(inputFrame.Number is 0 || LastInput.Frame.Number == inputFrame.Previous().Number);
 
         input.Frame = inputFrame;
         inputs.Add(in input);
@@ -171,7 +170,7 @@ sealed class InputQueue<TInput> where TInput : unmanaged
 
         if (prediction.Frame.IsNull) return;
 
-        Trace.Assert(inputFrame == prediction.Frame);
+        ThrowIf.Assert(inputFrame == prediction.Frame);
         // We've been predicting...  See if the inputs we've gotten match what we've been predicting.  If so, don't worry about it.
         // If not, remember the first input which was incorrect so we can report it in GetFirstIncorrectFrame()
         if (firstIncorrectFrame.IsNull && !inputComparer.Equals(prediction.Data, input.Data))
@@ -218,7 +217,7 @@ sealed class InputQueue<TInput> where TInput : unmanaged
             expectedFrame++;
         }
 
-        Trace.Assert(frame == 0 || frame == LastInput.Frame.Next());
+        ThrowIf.Assert(frame == 0 || frame == LastInput.Frame.Next());
         return frame;
     }
 }

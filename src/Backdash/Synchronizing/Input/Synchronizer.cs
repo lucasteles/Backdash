@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Backdash.Core;
@@ -120,7 +119,7 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
 
     public void SynchronizeInputs(Span<SynchronizedInput<TInput>> syncOutput, Span<TInput> output)
     {
-        Trace.Assert(syncOutput.Length >= NumberOfPlayers);
+        ThrowIf.Assert(syncOutput.Length >= NumberOfPlayers);
         syncOutput.Clear();
         for (var i = 0; i < NumberOfPlayers; i++)
         {
@@ -158,7 +157,7 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
         InRollback = true;
         // Flush our input queue and load the last frame.
         LoadFrame(in seekTo);
-        Trace.Assert(currentFrame == seekTo);
+        ThrowIf.Assert(currentFrame == seekTo);
         // Advance frame by frame (stuffing notifications back to the master).
         ResetPrediction(in currentFrame);
         for (var i = 0; i < rollbackCount; i++)
@@ -167,7 +166,7 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
             Callbacks.AdvanceFrame();
         }
 
-        Trace.Assert(currentFrame == localCurrentFrame);
+        ThrowIf.Assert(currentFrame == localCurrentFrame);
         InRollback = false;
     }
 

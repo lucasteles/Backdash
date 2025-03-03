@@ -1,7 +1,7 @@
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading.Channels;
+using Backdash.Core;
 using Backdash.Synchronizing.Input;
 using Backdash.Synchronizing.Input.Confirmed;
 
@@ -45,8 +45,7 @@ sealed class ProtocolInputEventQueue<TInput> : IProtocolInputEventQueue<TInput> 
     public void Publish(in GameInputEvent<TInput> evt)
     {
         if (disposed) return;
-        var published = channel.Writer.TryWrite(evt);
-        Trace.Assert(published);
+        ThrowIf.Assert(channel.Writer.TryWrite(evt));
     }
 
     public void Dispose()

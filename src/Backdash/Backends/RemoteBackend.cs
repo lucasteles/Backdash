@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Backdash.Core;
@@ -438,7 +437,7 @@ sealed class RemoteBackend<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
             var currentRemoteFrame = localConnections[player].LastFrame;
             var newRemoteFrame = eventInput.Frame;
 
-            Trace.Assert(currentRemoteFrame.IsNull || newRemoteFrame == currentRemoteFrame.Next());
+            ThrowIf.Assert(currentRemoteFrame.IsNull || newRemoteFrame == currentRemoteFrame.Next());
             synchronizer.AddRemoteInput(in player, eventInput);
             // Notify the other endpoints which frame we received from a peer
             logger.Write(LogLevel.Trace, $"setting remote connect status frame {player} to {eventInput.Frame}");
@@ -496,7 +495,7 @@ sealed class RemoteBackend<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
             eps[i]?.SetLocalFrameNumber(currentFrame, options.FramesPerSecond);
 
         var minConfirmedFrame = NumberOfPlayers <= 2 ? MinimumFrame2Players() : MinimumFrameNPlayers();
-        Trace.Assert(minConfirmedFrame != Frame.MaxValue);
+        ThrowIf.Assert(minConfirmedFrame != Frame.MaxValue);
         logger.Write(LogLevel.Trace, $"last confirmed frame in p2p backend is {minConfirmedFrame}");
 
         if (minConfirmedFrame >= Frame.Zero)

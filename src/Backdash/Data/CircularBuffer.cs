@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Backdash.Core;
 
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
@@ -36,7 +37,7 @@ public sealed class CircularBuffer<T>(int capacity) : IReadOnlyList<T>, IEquatab
         else
         {
             count++;
-            Trace.Assert(count <= array.Length);
+            ThrowIf.Assert(count <= array.Length);
         }
 
         head = (head + 1) % array.Length;

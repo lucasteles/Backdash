@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Net;
 using Backdash.Core;
 using Backdash.Data;
@@ -228,7 +227,7 @@ sealed class SpectatorBackend<TInput> :
             return ResultCode.InputDropped;
         }
 
-        Trace.Assert(input.Data.Count > 0);
+        ThrowIf.Assert(input.Data.Count > 0);
         NumberOfPlayers = input.Data.Count;
 
         if (syncInputBuffer.Length != NumberOfPlayers)
