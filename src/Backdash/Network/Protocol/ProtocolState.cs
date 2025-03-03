@@ -89,9 +89,9 @@ sealed class ProtocolState(
     public sealed class SyncState
     {
         public readonly object Locker = new();
-        int remainingRoundtrips;
+        int remainingRoundTrips;
         uint currentRandom;
-        TimeSpan totalRoundtripsPing;
+        TimeSpan totalRoundTripsPing;
 
         public uint CurrentRandom
         {
@@ -105,27 +105,27 @@ sealed class ProtocolState(
             }
         }
 
-        public TimeSpan TotalRoundtripsPing
+        public TimeSpan TotalRoundTripsPing
         {
             get
             {
-                lock (Locker) return totalRoundtripsPing;
+                lock (Locker) return totalRoundTripsPing;
             }
             set
             {
-                lock (Locker) totalRoundtripsPing = value;
+                lock (Locker) totalRoundTripsPing = value;
             }
         }
 
-        public int RemainingRoundtrips
+        public int RemainingRoundTrips
         {
             get
             {
-                lock (Locker) return remainingRoundtrips;
+                lock (Locker) return remainingRoundTrips;
             }
             set
             {
-                lock (Locker) remainingRoundtrips = value;
+                lock (Locker) remainingRoundTrips = value;
             }
         }
     }

@@ -13,6 +13,7 @@ record struct GameInput<T>(T Data, Frame Frame) : IUtf8SpanFormattable where T :
     public void IncrementFrame() => Frame = Frame.Next();
     public void ResetFrame() => Frame = Frame.Null;
     public void Erase() => Data = default;
+
     public readonly bool TryFormat(
         Span<byte> utf8Destination,
         out int bytesWritten, ReadOnlySpan<char> format,
@@ -21,9 +22,8 @@ record struct GameInput<T>(T Data, Frame Frame) : IUtf8SpanFormattable where T :
     {
         bytesWritten = 0;
         Utf8StringWriter writer = new(in utf8Destination, ref bytesWritten);
-        if (!writer.Write("Input{Frame: "u8)) return false;
-        if (!writer.Write(Frame.Number)) return false;
-        if (!writer.Write("}"u8)) return false;
-        return true;
+        return writer.Write("Input{Frame: "u8)
+               && writer.Write(Frame.Number)
+               && writer.Write("}"u8);
     }
 }
