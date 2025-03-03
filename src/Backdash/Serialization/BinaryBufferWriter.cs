@@ -52,8 +52,11 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
         return result;
     }
 
+    /// <summary>
+    /// Advance and allocates a Span of size <paramref name="size"/> for type <typeparamref name="T"/>> in the buffer.
+    /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    Span<T> AllocSpan<T>(int size) where T : unmanaged
+    public Span<T> AllocSpan<T>(int size) where T : unmanaged
     {
         var sizeBytes = Unsafe.SizeOf<T>() * size;
         var result = MemoryMarshal.Cast<byte, T>(buffer.GetSpan(sizeBytes));

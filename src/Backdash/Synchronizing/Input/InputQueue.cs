@@ -35,7 +35,7 @@ sealed class InputQueue<TInput> where TInput : unmanaged
     ref GameInput<TInput> Back => ref buffer.Current();
     ref GameInput<TInput> Front => ref buffer.Last();
     ref GameInput<TInput> AtFrame(Frame frame) => ref buffer[frame.Number];
-    ref GameInput<TInput> NextAfter(int offset) => ref buffer[offset + buffer.TailIndex];
+    ref GameInput<TInput> NextAfter(int offset) => ref buffer[offset + buffer.LastIndex];
 
     void Push(in GameInput<TInput> input) => buffer.Add(in input);
 

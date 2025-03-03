@@ -11,16 +11,15 @@ namespace Backdash.Data;
 /// <summary>
 /// A collection data structure that uses a single fixed-size buffer as if it were connected end-to-end.
 /// </summary>
-[DebuggerDisplay("Size = {size}")]
+[DebuggerDisplay("Size = {count}")]
 public sealed class CircularBuffer<T>(int capacity) : IReadOnlyList<T>, IEquatable<CircularBuffer<T>>
 {
     readonly T[] array = new T[capacity];
     int head, tail;
-    int size;
+    int count;
 
-    public int Size => size;
-    public int HeadIndex => head;
-    public int TailIndex => tail;
+    public int Size => count;
+    public int LastIndex => tail;
 
     public int CurrentIndex
     {
@@ -36,8 +35,8 @@ public sealed class CircularBuffer<T>(int capacity) : IReadOnlyList<T>, IEquatab
             DropFirst();
         else
         {
-            size++;
-            Trace.Assert(size <= array.Length);
+            count++;
+            Trace.Assert(count <= array.Length);
         }
 
         head = (head + 1) % array.Length;
@@ -45,11 +44,11 @@ public sealed class CircularBuffer<T>(int capacity) : IReadOnlyList<T>, IEquatab
 
     public T Drop()
     {
-        if (size is 0)
+        if (count is 0)
             throw new InvalidOperationException("Can't pop from an empty buffer");
 
         var value = DropFirst();
-        size--;
+        count--;
         return value;
     }
 
@@ -58,7 +57,7 @@ public sealed class CircularBuffer<T>(int capacity) : IReadOnlyList<T>, IEquatab
 
     public T Peek()
     {
-        if (size is 0)
+        if (count is 0)
             throw new InvalidOperationException("Can't peek from an empty buffer");
 
         return array[CurrentIndex];
@@ -80,7 +79,7 @@ public sealed class CircularBuffer<T>(int capacity) : IReadOnlyList<T>, IEquatab
 
     public bool TryPop([NotNullWhen(true)] out T? item)
     {
-        if (size is 0)
+        if (count is 0)
         {
             item = default;
             return false;
@@ -100,8 +99,8 @@ public sealed class CircularBuffer<T>(int capacity) : IReadOnlyList<T>, IEquatab
     }
 
     public int Capacity => array.Length;
-    public bool IsEmpty => size is 0;
-    public bool IsFull => size >= array.Length;
+    public bool IsEmpty => count is 0;
+    public bool IsFull => count >= array.Length;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ref T At(int index) => ref array[(tail + index) % array.Length];
@@ -113,14 +112,14 @@ public sealed class CircularBuffer<T>(int capacity) : IReadOnlyList<T>, IEquatab
     public void Clear(bool clearArray = false)
     {
         head = tail;
-        size = 0;
+        count = 0;
 
         if (clearArray)
             Array.Clear(array, 0, array.Length);
     }
 
     T IReadOnlyList<T>.this[int index] => At(index);
-    int IReadOnlyCollection<T>.Count => size;
+    int IReadOnlyCollection<T>.Count => count;
 
     public override string ToString() => $"[{string.Join(", ", array)}]";
 
@@ -129,7 +128,7 @@ public sealed class CircularBuffer<T>(int capacity) : IReadOnlyList<T>, IEquatab
         if (other is null) return false;
         if (ReferenceEquals(this, other)) return true;
 
-        for (var i = 0; i < size; i++)
+        for (var i = 0; i < count; i++)
             if (!comparer.Equals(At(i), other.At(i)))
                 return false;
 
@@ -150,40 +149,6 @@ public sealed class CircularBuffer<T>(int capacity) : IReadOnlyList<T>, IEquatab
         return hash.ToHashCode();
     }
 
-    public int GetSpan(out ReadOnlySpan<T> begin, out ReadOnlySpan<T> end)
-    {
-        var items = array.AsSpan();
-        var headItem = head is 0 && size > 0 ? items.Length : head;
-
-        if (tail < headItem)
-        {
-            begin = items[tail..headItem];
-            end = [];
-        }
-        else
-        {
-            begin = items[tail..];
-            end = items[..head];
-        }
-
-        return size;
-    }
-
-    public void CopyFrom(ReadOnlySpan<T> values) => values.CopyTo(GetSpanAndReset(values.Length));
-
-    public Span<T> GetSpanAndReset(int spanSize, bool clearArray = false)
-    {
-        ArgumentOutOfRangeException.ThrowIfGreaterThan(spanSize, array.Length);
-
-        tail = 0;
-        size = head = spanSize;
-
-        if (clearArray)
-            Array.Clear(array, 0, array.Length);
-
-        return array.AsSpan(0, spanSize);
-    }
-
     public void Fill(T value) => Array.Fill(array, value);
 
     public void FillWith(Func<T> valueFn)
@@ -196,8 +161,56 @@ public sealed class CircularBuffer<T>(int capacity) : IReadOnlyList<T>, IEquatab
     {
         ArgumentOutOfRangeException.ThrowIfNegative(offset);
         tail = (tail + offset) % array.Length;
-        size -= offset;
-        if (size < 0) size = 0;
+        count -= offset;
+
+        if (count < 0)
+        {
+            count = 0;
+            head = tail;
+        }
+    }
+
+    public int GetReadSpan(out ReadOnlySpan<T> begin, out ReadOnlySpan<T> end)
+    {
+        var items = array.AsSpan();
+        var headItem = head is 0 && count > 0 ? items.Length : head;
+
+        if (tail < headItem)
+        {
+            begin = items[tail..headItem];
+            end = [];
+        }
+        else
+        {
+            begin = items[tail..];
+            end = items[..head];
+        }
+
+        return count;
+    }
+
+    public void CopyTo(Span<T> destination)
+    {
+        if (destination.Length < GetReadSpan(out var begin, out var end))
+            throw new ArgumentException("Destination is too short", nameof(destination));
+
+        begin.CopyTo(destination);
+        end.CopyTo(destination[begin.Length..]);
+    }
+
+    public void CopyFrom(ReadOnlySpan<T> values) => values.CopyTo(GetSpanAndReset(values.Length));
+
+    public Span<T> GetSpanAndReset(int size, bool clearArray = false)
+    {
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(size, array.Length);
+
+        tail = 0;
+        count = head = size;
+
+        if (clearArray)
+            Array.Clear(array, 0, array.Length);
+
+        return array.AsSpan(0, size);
     }
 
     public Enumerator GetEnumerator() => new(this);
@@ -210,9 +223,9 @@ public sealed class CircularBuffer<T>(int capacity) : IReadOnlyList<T>, IEquatab
 
     public T[] ToArray()
     {
-        var result = new T[size];
+        var result = new T[count];
 
-        for (int i = 0; i < size; i++)
+        for (int i = 0; i < count; i++)
             result[i] = At(i);
 
         return result;
@@ -233,7 +246,7 @@ public sealed class CircularBuffer<T>(int capacity) : IReadOnlyList<T>, IEquatab
         /// <inheritdoc />
         public bool MoveNext()
         {
-            if (index < buffer.size)
+            if (index < buffer.count)
             {
                 current = buffer[index];
                 index++;
@@ -251,7 +264,7 @@ public sealed class CircularBuffer<T>(int capacity) : IReadOnlyList<T>, IEquatab
         {
             get
             {
-                if (index > buffer.size)
+                if (index > buffer.count)
                     throw new InvalidOperationException("Index out of range");
 
                 return Current;

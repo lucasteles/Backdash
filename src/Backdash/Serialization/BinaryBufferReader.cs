@@ -76,8 +76,11 @@ public readonly ref struct BinaryBufferReader
         return CollectionsMarshal.AsSpan(values);
     }
 
+    /// <summary>
+    /// Advance and allocates a Span of size <paramref name="size"/> for type <typeparamref name="T"/>> in the buffer.
+    /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    ReadOnlySpan<T> AllocSpan<T>(int size) where T : struct
+    public ReadOnlySpan<T> AllocSpan<T>(int size) where T : struct
     {
         var span = CurrentBuffer[..(size * Unsafe.SizeOf<T>())];
         Advance(size);
