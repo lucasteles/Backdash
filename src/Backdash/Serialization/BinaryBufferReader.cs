@@ -848,7 +848,7 @@ public readonly ref struct BinaryBufferReader
     public void ReadAsByte<T>(in List<T> values) where T : unmanaged => ReadAsByte(GetListSpan(in values));
 
     /// <inheritdoc cref="ReadAsByte{T}()"/>
-    public T? ReadAsNullableByte<T>() where T : unmanaged, Enum
+    public T? ReadAsNullableByte<T>() where T : unmanaged
     {
         var value = ReadNullableByte();
         return Unsafe.As<byte?, T?>(ref value);
@@ -874,7 +874,7 @@ public readonly ref struct BinaryBufferReader
     public void ReadAsSByte<T>(in List<T> values) where T : unmanaged => ReadAsSByte(GetListSpan(in values));
 
     /// <inheritdoc cref="ReadAsSByte{T}()"/>
-    public T? ReadAsNullableSByte<T>() where T : unmanaged, Enum
+    public T? ReadAsNullableSByte<T>() where T : unmanaged
     {
         var value = ReadNullableSByte();
         return Unsafe.As<sbyte?, T?>(ref value);
@@ -901,7 +901,7 @@ public readonly ref struct BinaryBufferReader
     public void ReadAsInt16<T>(in List<T> values) where T : unmanaged => ReadAsInt16(GetListSpan(in values));
 
     /// <inheritdoc cref="ReadAsInt16{T}()"/>
-    public T? ReadAsNullableInt16<T>() where T : unmanaged, Enum
+    public T? ReadAsNullableInt16<T>() where T : unmanaged
     {
         var value = ReadNullableInt16();
         return Unsafe.As<short?, T?>(ref value);
@@ -927,7 +927,7 @@ public readonly ref struct BinaryBufferReader
     public void ReadAsUInt16<T>(in List<T> values) where T : unmanaged => ReadAsUInt16(GetListSpan(in values));
 
     /// <inheritdoc cref="ReadAsUInt16{T}()"/>
-    public T? ReadAsNullableUInt16<T>() where T : unmanaged, Enum
+    public T? ReadAsNullableUInt16<T>() where T : unmanaged
     {
         var value = ReadNullableUInt16();
         return Unsafe.As<ushort?, T?>(ref value);
@@ -953,7 +953,7 @@ public readonly ref struct BinaryBufferReader
     public void ReadAsInt32<T>(in List<T> values) where T : unmanaged => ReadAsInt32(GetListSpan(in values));
 
     /// <inheritdoc cref="ReadAsInt32{T}()"/>
-    public T? ReadAsNullableInt32<T>() where T : unmanaged, Enum
+    public T? ReadAsNullableInt32<T>() where T : unmanaged
     {
         var value = ReadNullableInt32();
         return Unsafe.As<int?, T?>(ref value);
@@ -979,7 +979,7 @@ public readonly ref struct BinaryBufferReader
     public void ReadAsUInt32<T>(in List<T> values) where T : unmanaged => ReadAsUInt32(GetListSpan(in values));
 
     /// <inheritdoc cref="ReadAsUInt32{T}()"/>
-    public T? ReadAsNullableUInt32<T>() where T : unmanaged, Enum
+    public T? ReadAsNullableUInt32<T>() where T : unmanaged
     {
         var value = ReadNullableUInt32();
         return Unsafe.As<uint?, T?>(ref value);
@@ -1005,7 +1005,7 @@ public readonly ref struct BinaryBufferReader
     public void ReadAsInt64<T>(in List<T> values) where T : unmanaged => ReadAsInt64(GetListSpan(in values));
 
     /// <inheritdoc cref="ReadAsInt64{T}()"/>
-    public T? ReadAsNullableInt64<T>() where T : unmanaged, Enum
+    public T? ReadAsNullableInt64<T>() where T : unmanaged
     {
         var value = ReadNullableInt64();
         return Unsafe.As<long?, T?>(ref value);
@@ -1031,7 +1031,7 @@ public readonly ref struct BinaryBufferReader
     public void ReadAsUInt64<T>(in List<T> values) where T : unmanaged => ReadAsUInt64(GetListSpan(in values));
 
     /// <inheritdoc cref="ReadAsUInt64{T}()"/>
-    public T? ReadAsNullableUInt64<T>() where T : unmanaged, Enum
+    public T? ReadAsNullableUInt64<T>() where T : unmanaged
     {
         var value = ReadNullableUInt64();
         return Unsafe.As<ulong?, T?>(ref value);
