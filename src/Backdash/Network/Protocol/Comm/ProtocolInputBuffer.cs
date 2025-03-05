@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network.Messages;
@@ -57,7 +58,7 @@ sealed class ProtocolInputBuffer<TInput> : IProtocolInputBuffer<TInput>
         this.timeSync = timeSync;
         this.sender = sender;
         this.inbox = inbox;
-        inputSize = inputSerializer.GetTypeSize();
+        inputSize = Unsafe.SizeOf<TInput>();
         ThrowIf.Assert(inputSize * ByteSize.ByteToBits < 1 << ByteSize.ByteToBits);
         workingBufferMemory = Mem.AllocatePinnedArray(WorkingBufferFactor * inputSize);
         pendingOutput = new(options.MaxPendingInputs);
