@@ -82,7 +82,7 @@ sealed class SyncTestBackend<TInput> : INetcodeSession<TInput>
     public SessionMode Mode => SessionMode.SyncTest;
     public FrameSpan FramesBehind => synchronizer.FramesBehind;
     public FrameSpan RollbackFrames => synchronizer.RollbackFrames;
-    public SavedFrame CurrentSavedFrame => synchronizer.GetLastSavedFrame();
+    public SavedFrame GetCurrentSavedFrame() => synchronizer.GetLastSavedFrame();
 
     public IReadOnlyCollection<PlayerHandle> GetPlayers() =>
         addedPlayers.Count is 0 ? [new(PlayerType.Local, 1, 0)] : addedPlayers;
@@ -192,6 +192,25 @@ sealed class SyncTestBackend<TInput> : INetcodeSession<TInput>
     public ref readonly SynchronizedInput<TInput> GetInput(int index) =>
         ref syncInputBuffer[index];
 
+    public bool LoadFrame(in Frame frame)
+    {
+        if (frame.IsNull || frame == CurrentFrame)
+        {
+            logger.Write(LogLevel.Trace, "Skipping NOP.");
+            return true;
+        }
+
+        try
+        {
+            synchronizer.LoadFrame(in frame);
+            return true;
+        }
+        catch (NetcodeException)
+        {
+            return false;
+        }
+    }
+
     public void AdvanceFrame()
     {
         logger.Write(LogLevel.Trace, $"End of frame({synchronizer.CurrentFrame})...");
@@ -200,9 +219,8 @@ sealed class SyncTestBackend<TInput> : INetcodeSession<TInput>
 
         if (inRollback) return;
 
-        // Hold onto the current frame in our queue of saved states.  We'll need
-        // the checksum later to verify that our replay of the same frame got the
-        // same results.
+        // Hold onto the current frame in our queue of saved states.
+        // We'll need the checksum later to verify that our replay of the same frame got the same results.
         var lastSaved = synchronizer.GetLastSavedFrame();
         var stateBytes = ArrayPool<byte>.Shared.Rent(lastSaved.GameState.WrittenCount);
         lastSaved.GameState.WrittenSpan.CopyTo(stateBytes);

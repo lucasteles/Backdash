@@ -1,7 +1,7 @@
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network;
-using Backdash.Synchronizing.Input;
+using Backdash.Serialization;
 using Backdash.Synchronizing.Random;
 using Backdash.Synchronizing.State;
 
@@ -9,7 +9,6 @@ namespace Backdash.Backends;
 
 sealed class LocalBackend<TInput> : INetcodeSession<TInput> where TInput : unmanaged
 {
-    readonly Synchronizer<TInput> synchronizer;
     readonly TaskCompletionSource tsc = new();
     readonly Logger logger;
     readonly HashSet<PlayerHandle> addedPlayers = new(Max.NumberOfPlayers);
@@ -18,32 +17,31 @@ sealed class LocalBackend<TInput> : INetcodeSession<TInput> where TInput : unman
     TInput[] inputBuffer = [];
 
     readonly NetcodeOptions options;
+    readonly IStateStore stateStore;
+    readonly IChecksumProvider checksumProvider;
+    readonly Endianness endianness;
 
     bool running;
 
     INetcodeSessionHandler callbacks;
     Task backGroundJobTask = Task.CompletedTask;
 
-    public LocalBackend(NetcodeOptions options, BackendServices<TInput> services)
+    public LocalBackend(
+        NetcodeOptions options,
+        BackendServices<TInput> services
+    )
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(options);
 
         this.options = options;
+        stateStore = services.StateStore;
+        checksumProvider = services.ChecksumProvider;
         Random = services.DeterministicRandom;
         logger = services.Logger;
         callbacks ??= new EmptySessionHandler(logger);
-        synchronizer = new(
-            options, logger,
-            addedPlayers,
-            services.StateStore,
-            services.ChecksumProvider,
-            new(Max.NumberOfPlayers),
-            services.InputComparer
-        )
-        {
-            Callbacks = callbacks,
-        };
+        endianness = options.StateSerializationEndianness ?? Platform.GetEndianness(options.UseNetworkEndianness);
+        stateStore.Initialize(this.options.TotalPredictionFrames);
     }
 
     public void Dispose() => tsc.SetResult();
@@ -52,11 +50,11 @@ sealed class LocalBackend<TInput> : INetcodeSession<TInput> where TInput : unman
 
     public IDeterministicRandom Random { get; }
 
-    public Frame CurrentFrame => synchronizer.CurrentFrame;
+    public Frame CurrentFrame { get; private set; } = Frame.Zero;
     public SessionMode Mode => SessionMode.Local;
-    public FrameSpan FramesBehind => synchronizer.FramesBehind;
-    public FrameSpan RollbackFrames => synchronizer.RollbackFrames;
-    public SavedFrame CurrentSavedFrame => synchronizer.GetLastSavedFrame();
+    public FrameSpan FramesBehind => FrameSpan.Zero;
+    public FrameSpan RollbackFrames => FrameSpan.Zero;
+    public SavedFrame GetCurrentSavedFrame() => stateStore.Last();
 
     public IReadOnlyCollection<PlayerHandle> GetPlayers() => addedPlayers;
 
@@ -96,7 +94,6 @@ sealed class LocalBackend<TInput> : INetcodeSession<TInput> where TInput : unman
 
         player.Handle = handle;
         IncrementInputBufferSize();
-        synchronizer.AddQueue(player.Handle);
 
         return ResultCode.Ok;
     }
@@ -125,22 +122,14 @@ sealed class LocalBackend<TInput> : INetcodeSession<TInput> where TInput : unman
         if (!running)
             return ResultCode.NotSynchronized;
 
-        GameInput<TInput> input = new()
-        {
-            Data = localInput,
-        };
-
         if (player.Type is not PlayerType.Local)
             return ResultCode.InvalidPlayerHandle;
 
         if (!IsPlayerKnown(in player))
             return ResultCode.PlayerOutOfRange;
 
-        if (synchronizer.InRollback)
-            return ResultCode.InRollback;
-
-        if (!synchronizer.AddLocalInput(in player, ref input))
-            return ResultCode.PredictionThreshold;
+        inputBuffer[player.Index] = localInput;
+        syncInputBuffer[player.Index] = localInput;
 
         return ResultCode.Ok;
     }
@@ -148,20 +137,12 @@ sealed class LocalBackend<TInput> : INetcodeSession<TInput> where TInput : unman
     bool IsPlayerKnown(in PlayerHandle player) =>
         player.InternalQueue >= 0 && addedPlayers.Contains(player);
 
-    public void BeginFrame()
-    {
-        var currentFrame = synchronizer.CurrentFrame;
-        logger.Write(LogLevel.Trace, $"Beginning of frame({currentFrame})...");
-        synchronizer.SetLastConfirmedFrame(currentFrame);
-    }
+    public void BeginFrame() => logger.Write(LogLevel.Trace, $"Beginning of frame({CurrentFrame.Number})");
 
     public ResultCode SynchronizeInputs()
     {
-        synchronizer.SynchronizeInputs(syncInputBuffer, inputBuffer);
-
         var inputPopCount = options.UseInputSeedForRandom ? Mem.PopCount<TInput>(inputBuffer.AsSpan()) : 0;
         Random.UpdateSeed(CurrentFrame.Number, inputPopCount);
-
         return ResultCode.Ok;
     }
 
@@ -173,22 +154,63 @@ sealed class LocalBackend<TInput> : INetcodeSession<TInput> where TInput : unman
 
     public void AdvanceFrame()
     {
-        logger.Write(LogLevel.Trace, $"End of frame({synchronizer.CurrentFrame})...");
-        synchronizer.IncrementFrame();
+        CurrentFrame++;
+        SaveCurrentFrame();
+        Array.Clear(inputBuffer);
+        Array.Clear(syncInputBuffer);
+        logger.Write(LogLevel.Trace, $"End of frame({CurrentFrame.Number})");
     }
 
+    public bool LoadFrame(in Frame frame)
+    {
+        if (frame.IsNull || frame == CurrentFrame)
+        {
+            logger.Write(LogLevel.Trace, "Skipping NOP.");
+            return true;
+        }
+
+        try
+        {
+            var savedFrame =
+                frame.Number < 0
+                    ? stateStore.Load(Frame.Zero)
+                    : stateStore.Load(in frame);
+
+            var offset = 0;
+            BinaryBufferReader reader = new(savedFrame.GameState.WrittenSpan, ref offset, endianness);
+            callbacks.LoadState(in frame, in reader);
+            CurrentFrame = frame;
+            return true;
+        }
+        catch (NetcodeException)
+        {
+            return false;
+        }
+    }
+
+    public void SaveCurrentFrame()
+    {
+        var currentFrame = CurrentFrame;
+        ref var nextState = ref stateStore.Next();
+
+        BinaryBufferWriter writer = new(nextState.GameState, endianness);
+        callbacks.SaveState(in currentFrame, in writer);
+        nextState.Frame = currentFrame;
+        nextState.Checksum = checksumProvider.Compute(nextState.GameState.WrittenSpan);
+
+        stateStore.Advance();
+        logger.Write(LogLevel.Trace, $"replay: saved frame {nextState.Frame} (checksum: {nextState.Checksum:x8})");
+    }
 
     public void SetFrameDelay(PlayerHandle player, int delayInFrames)
     {
         ThrowIf.ArgumentOutOfBounds(player.InternalQueue, 0, addedPlayers.Count);
         ArgumentOutOfRangeException.ThrowIfNegative(delayInFrames);
-        synchronizer.SetFrameDelay(player, delayInFrames);
     }
 
     public void SetHandler(INetcodeSessionHandler handler)
     {
         ArgumentNullException.ThrowIfNull(handler);
         callbacks = handler;
-        synchronizer.Callbacks = handler;
     }
 }

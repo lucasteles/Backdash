@@ -14,7 +14,7 @@ public class DefaultStateStoreTests
         DefaultStateStore store = new(40);
         store.Initialize(1);
 
-        ref var currentState = ref store.GetCurrent();
+        ref var currentState = ref store.Next();
         currentState.Frame = Frame.One;
         currentState.Checksum = 0;
 
@@ -39,7 +39,7 @@ public record GameState
     public bool Value3;
     public Vector2 Value4;
     public Vector3 Value5;
-    public byte[] MoreValues = new byte[3];
+    public readonly byte[] MoreValues = new byte[3];
 
     public static GameState CreateRandom()
     {

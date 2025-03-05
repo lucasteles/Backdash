@@ -91,6 +91,11 @@ public sealed class GameSession(
     void UpdateStats()
     {
         nonGameState.RollbackFrames = session.RollbackFrames;
+
+        var saved = session.GetCurrentSavedFrame();
+        nonGameState.StateChecksum = saved.Checksum;
+        nonGameState.StateSize = saved.Size;
+
         for (var i = 0; i < nonGameState.Players.Length; i++)
         {
             ref var player = ref nonGameState.Players[i];
@@ -103,8 +108,8 @@ public sealed class GameSession(
     public void OnPeerEvent(PlayerHandle player, PeerEventInfo evt)
     {
         Console.WriteLine($"{DateTime.Now:o} => PEER EVENT: {evt} from {player}");
-        if (player.IsSpectator())
-            return;
+        if (player.IsSpectator()) return;
+
         switch (evt.Type)
         {
             case PeerEvent.Connected:

@@ -48,7 +48,7 @@ static class Default
     public const int ConsistencyCheckTimeout = 10_000;
 
     ///<value>Defaults to <c>8</c></value>
-    public const int ConsistencyCheckOffset = 8;
+    public const int ConsistencyCheckDistance = 8;
 
     ///<value>Defaults to <c>1000</c> milliseconds</value>
     public const int SyncRetryInterval = 1000;
@@ -74,6 +74,6 @@ static class Default
     ///<value>Defaults to <c>64</c></value>
     public const int MaxSyncRetries = 64;
 
-    ///<value>Defaults to <c>128</c></value>
-    public const int StateSizeHint = 128;
+    ///<value>Defaults to <c>512</c></value>
+    public const int StateSizeHint = 512;
 }

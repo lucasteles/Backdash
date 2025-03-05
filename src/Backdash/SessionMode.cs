@@ -6,7 +6,7 @@ namespace Backdash;
 public enum SessionMode : byte
 {
     /// <summary>Normal P2P match session</summary>
-    Rollback,
+    Remote,
 
     /// <summary>Spectator session</summary>
     Spectating,

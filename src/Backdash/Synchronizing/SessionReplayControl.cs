@@ -7,7 +7,7 @@ namespace Backdash.Synchronizing;
 public class SessionReplayControl
 {
     /// <summary>
-    /// Maximum number of frames for backward play
+    /// Maximum number of frames for backward play on Replays
     /// Defaults to 300 (5 seconds in 60 fps)
     /// </summary>
     public int MaxBackwardFrames { get; init; } = 60 * 5;
@@ -38,11 +38,11 @@ public class SessionReplayControl
     public void ToggleBackwards() => IsBackward = !IsBackward;
 
     /// <summary>
-    /// Unpause replay. <seealso cref="IsPaused"/>
+    /// Unpause state <seealso cref="IsPaused"/>
     /// </summary>
-    public void Play(bool backwards = false)
+    public void Play(bool isBackwards = false)
     {
         IsPaused = false;
-        IsBackward = backwards;
+        IsBackward = isBackwards;
     }
 }

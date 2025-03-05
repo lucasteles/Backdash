@@ -24,7 +24,7 @@ public sealed class DefaultStateStore(int hintSize) : IStateStore
     }
 
     /// <inheritdoc />
-    public ref SavedFrame GetCurrent()
+    public ref SavedFrame Next()
     {
         ref var result = ref savedStates[head];
         result.GameState.ResetWrittenCount();

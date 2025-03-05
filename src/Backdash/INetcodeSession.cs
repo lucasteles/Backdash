@@ -11,6 +11,16 @@ namespace Backdash;
 public interface INetcodeSessionInfo
 {
     /// <summary>
+    /// Returns the number of player in the current session
+    /// </summary>
+    int NumberOfPlayers { get; }
+
+    /// <summary>
+    /// Returns the number of spectators in the current session
+    /// </summary>
+    int NumberOfSpectators { get; }
+
+    /// <summary>
     /// Returns the current session <see cref="Frame"/>
     /// </summary>
     Frame CurrentFrame { get; }
@@ -29,11 +39,6 @@ public interface INetcodeSessionInfo
     /// Returns the number of frames the client is behind. <seealso cref="FrameSpan"/>
     /// </summary>
     FrameSpan FramesBehind { get; }
-
-    /// <summary>
-    /// Returns the checksum of the last saved state
-    /// </summary>
-    SavedFrame CurrentSavedFrame { get; }
 }
 
 /// <summary>
@@ -42,16 +47,6 @@ public interface INetcodeSessionInfo
 /// <typeparam name="TInput">Game input type</typeparam>
 public interface INetcodeSession<TInput> : INetcodeSessionInfo, IDisposable where TInput : unmanaged
 {
-    /// <summary>
-    /// Returns the number of player in the current session
-    /// </summary>
-    int NumberOfPlayers { get; }
-
-    /// <summary>
-    /// Returns the number of spectators in the current session
-    /// </summary>
-    int NumberOfSpectators { get; }
-
     /// <summary>
     /// Deterministic random value generator.
     /// This must be called after <see cref="SynchronizeInputs"/>
@@ -67,6 +62,11 @@ public interface INetcodeSession<TInput> : INetcodeSessionInfo, IDisposable wher
     /// Returns a list of all spectators in the session.
     /// </summary>
     IReadOnlyCollection<PlayerHandle> GetSpectators();
+
+    /// <summary>
+    /// Returns the checksum of the last saved state
+    /// </summary>
+    SavedFrame GetCurrentSavedFrame();
 
     /// <summary>
     /// Disconnects a remote player from a game.
@@ -156,10 +156,15 @@ public interface INetcodeSession<TInput> : INetcodeSessionInfo, IDisposable wher
     ResultCode AddPlayer(Player player);
 
     /// <summary>
+    /// Load state for saved <paramref name="frame"/>
+    /// </summary>
+    bool LoadFrame(in Frame frame);
+
+    /// <summary>
     /// Add a list of <see name="Player"/> into current session.
     /// Usually instances of <see cref="LocalPlayer"/>, <see cref="RemotePlayer"/> or <see cref="Spectator"/>
     /// </summary>
-    /// <returns>A equivalent <see cref="ResultCode"/> list.</returns>
+    /// <returns>An equivalent <see cref="ResultCode"/> list.</returns>
     IReadOnlyList<ResultCode> AddPlayers(IReadOnlyList<Player> players);
 
     /// <summary>

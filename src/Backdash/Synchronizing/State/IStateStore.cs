@@ -25,9 +25,9 @@ public interface IStateStore
     SavedFrame Last();
 
     /// <summary>
-    /// Returns current <see cref="SavedFrame" />.
+    /// Returns next writable <see cref="SavedFrame" />.
     /// </summary>
-    ref SavedFrame GetCurrent();
+    ref SavedFrame Next();
 
     /// <summary>
     /// Advance the store pointer

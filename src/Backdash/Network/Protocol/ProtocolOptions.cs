@@ -132,15 +132,15 @@ public class ProtocolOptions
     /// Offset to be applied to frame on checksum consistency check.
     /// The frame sent is (<c>LastReceivedFrame - ConsistencyCheckOffset</c>).
     /// </summary>
-    /// <inheritdoc cref="Default.ConsistencyCheckOffset"/>
+    /// <inheritdoc cref="Default.ConsistencyCheckDistance"/>
     /// <seealso cref="ConsistencyCheckTimeout"/>
     /// <seealso cref="ConsistencyCheckInterval"/>
-    public int ConsistencyCheckOffset { get; init; } = Default.ConsistencyCheckOffset;
+    public int ConsistencyCheckDistance { get; init; } = Default.ConsistencyCheckDistance;
 
     /// <summary>
     /// Enable/Disable consistency check.
     /// </summary>
-    /// <seealso cref="ConsistencyCheckOffset"/>
+    /// <seealso cref="ConsistencyCheckDistance"/>
     /// <seealso cref="ConsistencyCheckTimeout"/>
     public bool ConsistencyCheckEnabled { get; init; } = true;
 
@@ -150,7 +150,7 @@ public class ProtocolOptions
     /// with the state checksum of that frame.
     /// </summary>
     /// <inheritdoc cref="Default.ConsistencyCheckInterval"/>
-    /// <seealso cref="ConsistencyCheckOffset"/>
+    /// <seealso cref="ConsistencyCheckDistance"/>
     /// <seealso cref="ConsistencyCheckTimeout"/>
     public TimeSpan ConsistencyCheckInterval { get; init; } =
         TimeSpan.FromMilliseconds(Default.ConsistencyCheckInterval);
@@ -159,7 +159,7 @@ public class ProtocolOptions
     /// Max wait time for non-success consistency checks (0 to disable)
     /// </summary>
     /// <inheritdoc cref="Default.ConsistencyCheckTimeout"/>
-    /// <seealso cref="ConsistencyCheckOffset"/>
+    /// <seealso cref="ConsistencyCheckDistance"/>
     /// <seealso cref="ConsistencyCheckInterval"/>
     public TimeSpan ConsistencyCheckTimeout { get; init; } =
         TimeSpan.FromMilliseconds(Default.ConsistencyCheckTimeout);

@@ -165,17 +165,26 @@ public class Game1 : Game
 
     void HandleReplayKeys()
     {
-        if (rollbackSession.Mode is not SessionMode.Replaying)
+        if (rollbackSession.Mode is SessionMode.Remote or SessionMode.Spectating)
             return;
 
-        if (keyboard.IsKeyPressed(Keys.Space))
-            replayControls.TogglePause();
+        if (rollbackSession.Mode is SessionMode.Replaying)
+        {
+            if (keyboard.IsKeyPressed(Keys.Space))
+                replayControls.TogglePause();
 
-        if (keyboard.IsKeyPressed(Keys.Right))
-            replayControls.Play();
+            if (keyboard.IsKeyPressed(Keys.Right))
+                replayControls.Play();
 
-        if (keyboard.IsKeyPressed(Keys.Left))
-            replayControls.Play(backwards: true);
+            if (keyboard.IsKeyPressed(Keys.Left))
+                replayControls.Play(isBackwards: true);
+        }
+
+        if (keyboard.IsKeyPressed(Keys.Back))
+        {
+            rollbackSession.LoadFrame(rollbackSession.CurrentFrame - 10);
+            replayControls.Pause();
+        }
     }
 
     protected override void Draw(GameTime gameTime)

@@ -98,26 +98,28 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
         consistencyCheckTimer.Dispose();
     }
 
-    void StopTimers()
-    {
-        keepAliveTimer.Stop();
-        resendInputsTimer.Stop();
-        qualityReportTimer.Stop();
-        networkStatsTimer.Stop();
-
-        if (options.ConsistencyCheckEnabled)
-            consistencyCheckTimer.Stop();
-    }
-
     void StartTimers()
     {
         keepAliveTimer.Start();
-        resendInputsTimer.Start();
         qualityReportTimer.Start();
         networkStatsTimer.Start();
+        resendInputsTimer.Start();
 
+        if (state.Player.IsSpectator()) return;
         if (options.ConsistencyCheckEnabled)
             consistencyCheckTimer.Start();
+    }
+
+    void StopTimers()
+    {
+        keepAliveTimer.Stop();
+        qualityReportTimer.Stop();
+        networkStatsTimer.Stop();
+        resendInputsTimer.Stop();
+
+        if (state.Player.IsSpectator()) return;
+        if (options.ConsistencyCheckEnabled)
+            consistencyCheckTimer.Stop();
     }
 
     public void Disconnect()
@@ -161,7 +163,6 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
     public bool IsRunning => state.CurrentStatus is ProtocolStatus.Running;
 
     public PlayerHandle Player => state.Player;
-    public int RemoteMagicNumber => state.RemoteMagicNumber;
 
     // require idle input should be a configuration parameter
     public int GetRecommendFrameDelay() => timeSync.RecommendFrameWaitDuration();
@@ -281,7 +282,6 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
                 return false;
 
             state.Connection.DisconnectEventSent = true;
-
             networkEventHandler.OnNetworkEvent(ProtocolEvent.Disconnected, state.Player);
 
             return true;
@@ -372,16 +372,10 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
             return;
 
         var lastReceivedFrame = inbox.LastReceivedInput.Frame;
-        var checkFrame = lastReceivedFrame.Number - options.ConsistencyCheckOffset;
+        var checkFrame = lastReceivedFrame.Number - options.ConsistencyCheckDistance;
 
         if (checkFrame <= 1)
             return;
-
-        if (state.Consistency.LastCheck is 0)
-        {
-            state.Consistency.LastCheck = clock.GetTimeStamp();
-            return;
-        }
 
         state.Consistency.AskedFrame = new(checkFrame);
         state.Consistency.AskedChecksum = stateStore.GetChecksum(state.Consistency.AskedFrame);
@@ -389,22 +383,23 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
         if (state.Consistency.AskedFrame.IsNull || state.Consistency.AskedChecksum is 0)
             return;
 
+        if (state.Consistency.LastCheck is 0)
+            state.Consistency.LastCheck = clock.GetTimeStamp();
+
         logger.Write(LogLevel.Trace,
             $"Start consistency check for frame {state.Consistency.AskedFrame} #{state.Consistency.AskedChecksum:x8}");
 
         var elapsed = clock.GetElapsedTime(state.Consistency.LastCheck);
-        if (options.ConsistencyCheckTimeout > TimeSpan.Zero &&
-            elapsed > options.ConsistencyCheckTimeout &&
-            !state.Player.IsSpectator()
-           )
+        if (options.ConsistencyCheckTimeout > TimeSpan.Zero && elapsed > options.ConsistencyCheckTimeout)
         {
-            logger.Write(LogLevel.Error, $"Consistency check timeout on frame {lastReceivedFrame}. Disconnecting");
+            logger.Write(LogLevel.Error,
+                $"Consistency check timeout on frame {lastReceivedFrame.Number}. Disconnecting");
             Disconnect();
             return;
         }
 
         logger.Write(LogLevel.Debug,
-            $"Send consistency request for frame {state.Consistency.AskedFrame} #{state.Consistency.AskedChecksum:x8}");
+            $"Send consistency request for frame {state.Consistency.AskedFrame.Number} #{state.Consistency.AskedChecksum:x8}");
 
         outbox
             .SendMessage(new(MessageType.ConsistencyCheckRequest)

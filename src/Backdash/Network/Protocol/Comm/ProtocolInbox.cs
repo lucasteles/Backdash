@@ -310,7 +310,7 @@ sealed class ProtocolInbox<TInput>(
         if (localChecksum != checksum)
         {
             logger.Write(LogLevel.Error,
-                $"Invalid remote checksum on {checkFrame}, {localChecksum:x8} != {checksum:x8}");
+                $"Invalid remote checksum on frame {checkFrame}, {localChecksum:x8} != {checksum:x8}");
             state.StoppingTokenSource.Cancel();
             return false;
         }

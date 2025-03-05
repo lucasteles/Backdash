@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network;
+using Backdash.Network.Messages;
 using Backdash.Serialization;
 using Backdash.Synchronizing.Input.Confirmed;
 using Backdash.Synchronizing.State;
@@ -65,9 +66,16 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
         lastConfirmedFrame = frame;
         if (lastConfirmedFrame.Number <= 0)
             return;
+
         var discardUntil = frame.Previous();
-        for (var i = 0; i < NumberOfPlayers; i++)
-            inputQueues[i].DiscardConfirmedFrames(discardUntil);
+        var span = CollectionsMarshal.AsSpan(inputQueues);
+        ref var current = ref MemoryMarshal.GetReference(span);
+        ref var limit = ref Unsafe.Add(ref current, span.Length);
+        while (Unsafe.IsAddressLessThan(ref current, ref limit))
+        {
+            current.DiscardConfirmedFrames(discardUntil);
+            current = ref Unsafe.Add(ref current, 1)!;
+        }
     }
 
     void AddInput(in PlayerHandle queue, ref GameInput<TInput> input) =>
@@ -75,17 +83,17 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
 
     public bool AddLocalInput(in PlayerHandle queue, ref GameInput<TInput> input)
     {
-        if (currentFrame >= options.PredictionFrames && FramesBehind.FrameCount >= options.PredictionFrames)
+        if (currentFrame.Number >= options.PredictionFrames && FramesBehind.FrameCount >= options.PredictionFrames)
         {
             logger.Write(LogLevel.Warning,
                 $"Rejecting input for frame {currentFrame.Number} from emulator: reached prediction barrier");
             return false;
         }
 
-        if (currentFrame == 0)
+        if (currentFrame.Number == 0)
             SaveCurrentFrame();
 
-        logger.Write(LogLevel.Trace, $"Sending non-delayed local frame {currentFrame} to queue {queue}");
+        logger.Write(LogLevel.Trace, $"Sending non-delayed local frame {currentFrame.Number} to queue {queue}");
 
         input.Frame = currentFrame;
         AddInput(in queue, ref input);
@@ -99,10 +107,12 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
         confirmed.Data.Count = (byte)NumberOfPlayers;
         confirmed.Frame = frame;
         GameInput<TInput> current = new();
+
         for (var playerNumber = 0; playerNumber < NumberOfPlayers; playerNumber++)
         {
             if (!GetConfirmedInput(in frame, playerNumber, ref current))
                 return false;
+
             confirmed.Data.Inputs[playerNumber] = current.Data;
         }
 
@@ -121,16 +131,20 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
     {
         ThrowIf.Assert(syncOutput.Length >= NumberOfPlayers);
         syncOutput.Clear();
+
+        ReadOnlySpan<ConnectStatus> connections = localConnections.Statuses;
+        var queues = CollectionsMarshal.AsSpan(inputQueues);
+
         for (var i = 0; i < NumberOfPlayers; i++)
         {
-            if (localConnections[i].Disconnected && currentFrame > localConnections[i].LastFrame)
+            if (connections[i].Disconnected && currentFrame > connections[i].LastFrame)
             {
                 syncOutput[i] = new(default, true);
                 output[i] = default;
             }
             else
             {
-                inputQueues[i].GetInput(currentFrame, out var input);
+                queues[i].GetInput(currentFrame, out var input);
                 syncOutput[i] = new(input.Data, false);
                 output[i] = input.Data;
             }
@@ -173,19 +187,18 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
     public void LoadFrame(in Frame frame)
     {
         // find the frame in question
-        if (frame == currentFrame)
+        if (frame.Number == currentFrame.Number)
         {
-            logger.Write(LogLevel.Trace, "Skipping NOP.");
+            logger.Write(LogLevel.Trace, "Skipping NOP");
             return;
         }
 
         var savedFrame = stateStore.Load(in frame);
         logger.Write(LogLevel.Information,
-            $"* Loading frame info {savedFrame.Frame} (checksum: {savedFrame.Checksum})");
+            $"* Loading frame info {savedFrame.Frame} (checksum: {savedFrame.Checksum:x8})");
 
         var offset = 0;
         BinaryBufferReader reader = new(savedFrame.GameState.WrittenSpan, ref offset, endianness);
-
 
         Callbacks.LoadState(in frame, in reader);
 
@@ -198,7 +211,7 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
 
     public void SaveCurrentFrame()
     {
-        ref var nextState = ref stateStore.GetCurrent();
+        ref var nextState = ref stateStore.Next();
 
         BinaryBufferWriter writer = new(nextState.GameState, endianness);
         Callbacks.SaveState(in currentFrame, in writer);
@@ -206,7 +219,7 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
         nextState.Checksum = checksumProvider.Compute(nextState.GameState.WrittenSpan);
 
         stateStore.Advance();
-        logger.Write(LogLevel.Trace, $"sync: saved frame {nextState.Frame} (checksum: {nextState.Checksum}).");
+        logger.Write(LogLevel.Trace, $"sync: saved frame {nextState.Frame} (checksum: {nextState.Checksum:x8})");
     }
 
     bool CheckSimulationConsistency(out Frame seekTo)
@@ -215,16 +228,16 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
         for (var i = 0; i < NumberOfPlayers; i++)
         {
             var incorrect = inputQueues[i].FirstIncorrectFrame;
-            if (incorrect.IsNull || (!firstIncorrect.IsNull && incorrect >= firstIncorrect))
+            if (incorrect.IsNull || (!firstIncorrect.IsNull && incorrect.Number >= firstIncorrect.Number))
                 continue;
-            logger.Write(LogLevel.Information, $"Incorrect frame {incorrect} reported by queue {i}");
+            logger.Write(LogLevel.Information, $"Incorrect frame {incorrect.Number} reported by queue {i}");
             RollbackFrames = new(Math.Max(RollbackFrames.FrameCount, incorrect.Number));
             firstIncorrect = incorrect;
         }
 
         if (firstIncorrect.IsNull)
         {
-            logger.Write(LogLevel.Trace, "Prediction ok.  proceeding.");
+            logger.Write(LogLevel.Trace, "Prediction OK, proceeding");
             seekTo = default;
             RollbackFrames = FrameSpan.Zero;
             return true;

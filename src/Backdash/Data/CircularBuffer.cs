@@ -172,7 +172,6 @@ public sealed class CircularBuffer<T>(int capacity) : IReadOnlyList<T>, IEquatab
 
     public void Discard(int offset = 1)
     {
-        ArgumentOutOfRangeException.ThrowIfNegative(offset);
         tail = (tail + offset) % array.Length;
         count -= offset;
 

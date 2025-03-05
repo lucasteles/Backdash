@@ -39,15 +39,15 @@ public sealed record GameState
 
     public void SaveState(ref readonly BinaryBufferWriter writer)
     {
-        writer.Write(in Bounds);
         writer.Write(in FrameNumber);
-        writer.Write(in Ships);
+        writer.Write(in Bounds);
+        writer.Write(Ships);
     }
 
     public void LoadState(ref readonly BinaryBufferReader reader)
     {
-        reader.Read(ref Bounds);
         reader.Read(ref FrameNumber);
+        reader.Read(ref Bounds);
         reader.Read(Ships);
     }
 

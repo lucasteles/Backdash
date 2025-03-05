@@ -40,6 +40,7 @@ sealed class SpectatorBackend<TInput> :
     bool closed;
     readonly IStateStore stateStore;
     readonly IChecksumProvider checksumProvider;
+    readonly Endianness endianness;
 
     public SpectatorBackend(int port,
         IPEndPoint hostEndpoint,
@@ -69,6 +70,7 @@ sealed class SpectatorBackend<TInput> :
         callbacks = new EmptySessionHandler(logger);
         inputs = new GameInput<ConfirmedInputs<TInput>>[options.SpectatorInputBufferLength];
 
+        endianness = options.StateSerializationEndianness ?? Platform.GetEndianness(options.UseNetworkEndianness);
         udp = services.ProtocolClientFactory.CreateProtocolClient(port, peerObservers);
         backgroundJobManager.Register(udp);
         var magicNumber = services.Random.MagicNumber();
@@ -83,11 +85,10 @@ sealed class SpectatorBackend<TInput> :
 
         var inputGroupComparer = ConfirmedInputComparer<TInput>.Create(services.InputComparer);
         host = peerConnectionFactory.Create(protocolState, inputGroupSerializer, this, inputGroupComparer);
-
-        peerObservers.Add(host.GetUdpObserver());
-        host.Synchronize();
-        isSynchronizing = true;
         stateStore.Initialize(options.TotalPredictionFrames);
+        peerObservers.Add(host.GetUdpObserver());
+        isSynchronizing = true;
+        host.Synchronize();
     }
 
     public void Dispose()
@@ -112,7 +113,7 @@ sealed class SpectatorBackend<TInput> :
     public Frame CurrentFrame { get; private set; } = Frame.Zero;
     public FrameSpan RollbackFrames => FrameSpan.Zero;
     public FrameSpan FramesBehind => FrameSpan.Zero;
-    public SavedFrame CurrentSavedFrame => stateStore.GetCurrent();
+    public SavedFrame GetCurrentSavedFrame() => stateStore.Last();
 
     public int NumberOfPlayers { get; private set; }
     public int NumberOfSpectators => 0;
@@ -136,9 +137,18 @@ sealed class SpectatorBackend<TInput> :
         if (lastReceivedInputTime > 0 &&
             clock.GetElapsedTime(lastReceivedInputTime) > options.Protocol.DisconnectTimeout)
             Close();
+
+        if (CurrentFrame.Number == 0)
+            SaveCurrentFrame();
     }
 
-    public void AdvanceFrame() => logger.Write(LogLevel.Debug, $"[End Frame {CurrentFrame}]");
+    public void AdvanceFrame()
+    {
+        logger.Write(LogLevel.Debug, $"[End Frame {CurrentFrame}]");
+
+        CurrentFrame++;
+        SaveCurrentFrame();
+    }
 
     public PlayerConnectionStatus GetPlayerStatus(in PlayerHandle player) => host.Status.ToPlayerStatus();
     public ResultCode AddPlayer(Player player) => ResultCode.NotSupported;
@@ -193,6 +203,7 @@ sealed class SpectatorBackend<TInput> :
                 });
                 callbacks.OnSessionStart();
                 isSynchronizing = false;
+                host.Start();
                 break;
             case ProtocolEvent.SyncFailure:
                 callbacks.OnPeerEvent(player, new(PeerEvent.SynchronizationFailure));
@@ -254,23 +265,45 @@ sealed class SpectatorBackend<TInput> :
         var inputPopCount = options.UseInputSeedForRandom ? Mem.PopCount<TInput>(inputBuffer.AsSpan()) : 0;
         Random.UpdateSeed(CurrentFrame.Number, inputPopCount);
 
-        CurrentFrame++;
-        SaveCurrentFrame();
         return ResultCode.Ok;
     }
 
     void SaveCurrentFrame()
     {
-        var currentFrame = CurrentFrame;
-        ref var nextState = ref stateStore.GetCurrent();
+        ref var nextState = ref stateStore.Next();
 
-        BinaryBufferWriter writer = new(nextState.GameState);
-        callbacks.SaveState(in currentFrame, in writer);
-        nextState.Frame = currentFrame;
+        BinaryBufferWriter writer = new(nextState.GameState, endianness);
+        callbacks.SaveState(CurrentFrame, in writer);
+        nextState.Frame = CurrentFrame;
         nextState.Checksum = checksumProvider.Compute(nextState.GameState.WrittenSpan);
 
         stateStore.Advance();
-        logger.Write(LogLevel.Trace, $"spectator: saved frame {nextState.Frame} (checksum: {nextState.Checksum}).");
+        logger.Write(LogLevel.Trace, $"spectator: saved frame {nextState.Frame} (checksum: {nextState.Checksum:x8}).");
+    }
+
+    public bool LoadFrame(in Frame frame)
+    {
+        if (frame.IsNull || frame == CurrentFrame)
+        {
+            logger.Write(LogLevel.Trace, "Skipping NOP.");
+            return true;
+        }
+
+        try
+        {
+            var savedFrame = stateStore.Load(in frame);
+            logger.Write(LogLevel.Trace,
+                $"Loading replay frame {savedFrame.Frame} (checksum: {savedFrame.Checksum:x8})");
+            var offset = 0;
+            BinaryBufferReader reader = new(savedFrame.GameState.WrittenSpan, ref offset, endianness);
+            callbacks.LoadState(in frame, in reader);
+            CurrentFrame = savedFrame.Frame;
+            return true;
+        }
+        catch (NetcodeException)
+        {
+            return false;
+        }
     }
 
     public ref readonly SynchronizedInput<TInput> GetInput(int index) =>

@@ -26,23 +26,26 @@ sealed class ReplayBackend<TInput> : INetcodeSession<TInput> where TInput : unma
     readonly bool useInputSeedForRandom;
     readonly IStateStore stateStore;
     readonly IChecksumProvider checksumProvider;
+    readonly Endianness endianness;
 
     public ReplayBackend(int numberOfPlayers,
-        bool useInputSeedForRandom,
         IReadOnlyList<ConfirmedInputs<TInput>> inputList,
         SessionReplayControl controls,
-        BackendServices<TInput> services)
+        BackendServices<TInput> services,
+        NetcodeOptions options
+    )
     {
         ArgumentNullException.ThrowIfNull(services);
 
         this.inputList = inputList;
         this.controls = controls;
-        this.useInputSeedForRandom = useInputSeedForRandom;
+        useInputSeedForRandom = options.UseInputSeedForRandom;
         logger = services.Logger;
         stateStore = services.StateStore;
         checksumProvider = services.ChecksumProvider;
         Random = services.DeterministicRandom;
         NumberOfPlayers = numberOfPlayers;
+        endianness = options.StateSerializationEndianness ?? Platform.GetEndianness(options.UseNetworkEndianness);
         callbacks = new EmptySessionHandler(logger);
         fakePlayers = Enumerable.Range(0, numberOfPlayers)
             .Select(x => new PlayerHandle(PlayerType.Remote, x + 1, x))
@@ -71,7 +74,7 @@ sealed class ReplayBackend<TInput> : INetcodeSession<TInput> where TInput : unma
     public FrameSpan RollbackFrames => FrameSpan.Zero;
     public FrameSpan FramesBehind => FrameSpan.Zero;
 
-    public SavedFrame CurrentSavedFrame => stateStore.GetCurrent();
+    public SavedFrame GetCurrentSavedFrame() => stateStore.Last();
 
     public int NumberOfSpectators => 0;
     public int NumberOfPlayers { get; private set; }
@@ -165,39 +168,41 @@ sealed class ReplayBackend<TInput> : INetcodeSession<TInput> where TInput : unma
     public void SaveCurrentFrame()
     {
         var currentFrame = CurrentFrame;
-        ref var nextState = ref stateStore.GetCurrent();
+        ref var nextState = ref stateStore.Next();
 
-        BinaryBufferWriter writer = new(nextState.GameState);
+        BinaryBufferWriter writer = new(nextState.GameState, endianness);
         callbacks.SaveState(in currentFrame, in writer);
         nextState.Frame = currentFrame;
         nextState.Checksum = checksumProvider.Compute(nextState.GameState.WrittenSpan);
 
         stateStore.Advance();
-        logger.Write(LogLevel.Trace, $"replay: saved frame {nextState.Frame} (checksum: {nextState.Checksum}).");
+        logger.Write(LogLevel.Trace, $"replay: saved frame {nextState.Frame} (checksum: {nextState.Checksum:x8})");
     }
 
-    public void LoadFrame(in Frame frame)
+    public bool LoadFrame(in Frame frame)
     {
         if (frame.IsNull || frame == CurrentFrame)
         {
-            logger.Write(LogLevel.Trace, "Skipping NOP.");
-            return;
+            logger.Write(LogLevel.Trace, "Skipping NOP");
+            return true;
         }
 
         try
         {
             var savedFrame = stateStore.Load(in frame);
             logger.Write(LogLevel.Trace,
-                $"Loading replay frame {savedFrame.Frame} (checksum: {savedFrame.Checksum})");
+                $"Loading replay frame {savedFrame.Frame} (checksum: {savedFrame.Checksum:x8})");
             var offset = 0;
-            BinaryBufferReader reader = new(savedFrame.GameState.WrittenSpan, ref offset);
+            BinaryBufferReader reader = new(savedFrame.GameState.WrittenSpan, ref offset, endianness);
             callbacks.LoadState(in frame, in reader);
             CurrentFrame = savedFrame.Frame;
+            return true;
         }
         catch (NetcodeException)
         {
             controls.IsBackward = false;
             controls.Pause();
+            return false;
         }
     }
 

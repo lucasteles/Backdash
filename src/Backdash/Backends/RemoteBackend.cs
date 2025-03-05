@@ -141,12 +141,12 @@ sealed class RemoteBackend<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
     public Frame CurrentFrame => synchronizer.CurrentFrame;
     public FrameSpan RollbackFrames => synchronizer.RollbackFrames;
     public FrameSpan FramesBehind => synchronizer.FramesBehind;
-    public SavedFrame CurrentSavedFrame => synchronizer.GetLastSavedFrame();
+    public SavedFrame GetCurrentSavedFrame() => synchronizer.GetLastSavedFrame();
     public int NumberOfPlayers => addedPlayers.Count;
 
     public int NumberOfSpectators => addedSpectators.Count;
 
-    public SessionMode Mode => SessionMode.Rollback;
+    public SessionMode Mode => SessionMode.Remote;
 
     public IReadOnlyCollection<PlayerHandle> GetPlayers() => addedPlayers;
     public IReadOnlyCollection<PlayerHandle> GetSpectators() => addedSpectators;
@@ -193,9 +193,8 @@ sealed class RemoteBackend<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
         if (!synchronizer.AddLocalInput(in player, ref input))
             return ResultCode.PredictionThreshold;
 
-        // Update the local connect status state to indicate that we've got a
-        // confirmed local frame for this player.  this must come first so it
-        // gets incorporated into the next packet we send.
+        // Update the local connect status state to indicate that we've got a confirmed local frame for this player.
+        // This must come first so it gets incorporated into the next packet we send.
         if (input.Frame.IsNull)
             return ResultCode.Ok;
 
@@ -701,7 +700,7 @@ sealed class RemoteBackend<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
         endpoints[player.InternalQueue]?.Disconnect();
         ref var connStatus = ref localConnections[player];
         logger.Write(LogLevel.Debug,
-            $"Changing player {player} local connect status for last frame from {connStatus.LastFrame} to {syncTo} on disconnect request (current: {frameCount})");
+            $"Changing player {player} local connect status for last frame from {connStatus.LastFrame.Number} to {syncTo} on disconnect request (current: {frameCount})");
         connStatus.Disconnected = true;
         connStatus.LastFrame = syncTo;
         if (syncTo < frameCount && !syncTo.IsNull)
@@ -714,6 +713,25 @@ sealed class RemoteBackend<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
 
         callbacks.OnPeerEvent(player, new(PeerEvent.Disconnected));
         CheckInitialSync();
+    }
+
+    public bool LoadFrame(in Frame frame)
+    {
+        if (frame.IsNull || frame == CurrentFrame)
+        {
+            logger.Write(LogLevel.Trace, "Skipping NOP.");
+            return true;
+        }
+
+        try
+        {
+            synchronizer.LoadFrame(in frame);
+            return true;
+        }
+        catch (NetcodeException)
+        {
+            return false;
+        }
     }
 
     public void DisconnectPlayer(in PlayerHandle player)
