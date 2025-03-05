@@ -4,6 +4,7 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Backdash.Core;
+using Backdash.Data;
 using Backdash.Network;
 
 namespace Backdash.Serialization;
@@ -202,8 +203,11 @@ public readonly ref struct BinaryRawBufferWriter
             WriteSpan(in value);
     }
 
-    /// <summary>Writes an <see cref="string"/> <paramref name="value"/> into buffer.</summary>
-    public void WriteString(in string value) => Write(value.AsSpan());
+
+    /// <summary>Reinterprets the <paramref name="value"/> as <see cref="int"/> and writes it into buffer.</summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Write(in Frame value) =>
+        Write(in Unsafe.As<Frame, int>(ref Unsafe.AsRef(in value)));
 
     /// <summary>Writes an <see cref="string"/> <paramref name="value"/> into buffer as UTF8.</summary>
     public void WriteUtf8String(in ReadOnlySpan<char> value) =>

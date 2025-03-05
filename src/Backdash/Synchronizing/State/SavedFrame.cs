@@ -20,4 +20,7 @@ public record SavedFrame(Frame Frame, ArrayBufferWriter<byte> GameState, uint Ch
 
     /// <summary>Saved game state</summary>
     public ArrayBufferWriter<byte> GameState = GameState;
+
+    /// <summary>Saved state size</summary>
+    public ByteSize Size => ByteSize.FromBytes(GameState.WrittenCount);
 }

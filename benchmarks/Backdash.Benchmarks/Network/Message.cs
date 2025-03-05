@@ -19,7 +19,7 @@ sealed class PingMessageHandler(string name, IPeerClient<PingMessage> sender) : 
     public long BadMessages => badMessages;
     public event Action<long> OnProcessed = delegate { };
 
-    public void OnPeerMessage(in PingMessage message, SocketAddress from, int bytesReceived
+    public void OnPeerMessage(ref readonly PingMessage message, in SocketAddress from, int bytesReceived
     )
     {
         Interlocked.Increment(ref processedCount);

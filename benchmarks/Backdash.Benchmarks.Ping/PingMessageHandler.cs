@@ -9,11 +9,7 @@ sealed class PingMessageHandler(IPeerClient<PingMessage> sender) : IPeerObserver
     public static long TotalProcessed => processedCount;
     static long processedCount;
 
-    public void OnPeerMessage(
-        in PingMessage message,
-        SocketAddress from,
-        int bytesReceived
-    )
+    public void OnPeerMessage(ref readonly PingMessage message, in SocketAddress from, int bytesReceived)
     {
         Interlocked.Increment(ref processedCount);
 

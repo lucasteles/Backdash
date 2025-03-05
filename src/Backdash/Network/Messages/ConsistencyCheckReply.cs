@@ -13,13 +13,13 @@ record struct ConsistencyCheckReply : IUtf8SpanFormattable
 
     public readonly void Serialize(in BinaryRawBufferWriter writer)
     {
-        writer.Write(Frame.Number);
-        writer.Write(Checksum);
+        writer.Write(in Frame);
+        writer.Write(in Checksum);
     }
 
     public void Deserialize(in BinaryBufferReader reader)
     {
-        Frame = new(reader.ReadInt32());
+        Frame = reader.ReadFrame();
         Checksum = reader.ReadUInt32();
     }
 
@@ -31,6 +31,6 @@ record struct ConsistencyCheckReply : IUtf8SpanFormattable
     {
         bytesWritten = 0;
         using Utf8ObjectWriter writer = new(in utf8Destination, ref bytesWritten);
-        return writer.Write(Frame) && writer.Write(Checksum);
+        return writer.Write(in Frame) && writer.Write(in Checksum);
     }
 }

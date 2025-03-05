@@ -1,4 +1,4 @@
-using Backdash.Data;
+using Backdash;
 using Backdash.Serialization;
 
 namespace SpaceWar.Logic;
@@ -13,8 +13,7 @@ public sealed record GameState
     public void Init(int numberOfPlayers)
     {
         Ships = new Ship[numberOfPlayers];
-        for (var i = 0; i < numberOfPlayers; i++)
-            Ships[i] = new();
+        for (var i = 0; i < numberOfPlayers; i++) Ships[i] = new();
         FrameNumber = 0;
         Bounds = Config.InternalBounds;
         Bounds.Inflate(-Config.WindowPadding, -Config.WindowPadding);

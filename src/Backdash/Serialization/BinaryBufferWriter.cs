@@ -289,6 +289,17 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
             Write(in Nullable.GetValueRefOrDefaultRef(in value));
     }
 
+    /// <summary>Writes single <see cref="Frame"/> <paramref name="value"/> into buffer.</summary>
+    public void Write(in Frame value) => WriteAsInt32(in value);
+
+    /// <inheritdoc cref="Write(in Frame)"/>
+    public void Write(in Frame? value)
+    {
+        Write(value.HasValue);
+        if (value.HasValue)
+            Write(in Nullable.GetValueRefOrDefaultRef(in value));
+    }
+
     /// <summary>Writes a span of <see cref="sbyte"/> <paramref name="value"/> into buffer.</summary>
     public void Write(in ReadOnlySpan<sbyte> value) => WriteSpan(in value);
 
@@ -493,6 +504,12 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
 
     /// <summary>Writes a list <see cref="DateOnly"/> <paramref name="values"/> into buffer.</summary>
     public void Write(in List<DateOnly> values) => Write(GetListSpan(in values));
+
+    /// <summary>Writes a span of <see cref="Frame"/> <paramref name="values"/> into buffer.</summary>
+    public void Write(in ReadOnlySpan<Frame> values) => Write(MemoryMarshal.Cast<Frame, int>(values));
+
+    /// <summary>Writes a list <see cref="Frame"/> <paramref name="values"/> into buffer.</summary>
+    public void Write(in List<Frame> values) => Write(GetListSpan(in values));
 
     /// <summary>Writes a <see cref="IBinarySerializable"/> <paramref name="value"/> into buffer.</summary>
     /// <typeparam name="T">A type that implements <see cref="IBinarySerializable"/>.</typeparam>

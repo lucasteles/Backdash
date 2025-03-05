@@ -188,6 +188,7 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
     {
         if (inbox.LastReceivedInput.Frame.IsNull)
             return true;
+
         ProtocolMessage msg = new(MessageType.InputAck)
         {
             InputAck = new()
@@ -323,15 +324,14 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
         if (state.CurrentStatus is not ProtocolStatus.Running)
             return;
 
-        outbox
-            .SendMessage(new(MessageType.QualityReport)
+        outbox.SendMessage(new(MessageType.QualityReport)
+        {
+            QualityReport = new()
             {
-                QualityReport = new()
-                {
-                    Ping = clock.GetTimeStamp(),
-                    FrameAdvantage = state.Fairness.LocalFrameAdvantage.FrameCount,
-                },
-            });
+                Ping = clock.GetTimeStamp(),
+                FrameAdvantage = state.Fairness.LocalFrameAdvantage.FrameCount,
+            },
+        });
     }
 
     void OnNetworkStatsTick(object? sender, ElapsedEventArgs e)
@@ -345,11 +345,14 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
         var seconds = elapsed.TotalSeconds;
         UpdateStats(ref state.Stats.Send);
         UpdateStats(ref state.Stats.Received);
+
         if (options.LogNetworkStats)
         {
             logger.Write(LogLevel.Information, $"Network Stats(send): {state.Stats.Send}");
             logger.Write(LogLevel.Information, $"Network Stats(recv): {state.Stats.Received}");
         }
+
+        return;
 
         void UpdateStats(ref ProtocolState.PackagesStats stats)
         {

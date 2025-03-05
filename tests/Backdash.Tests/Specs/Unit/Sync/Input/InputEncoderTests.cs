@@ -127,13 +127,14 @@ public class InputEncoderTests
     internal static IReadOnlyList<GameInput> DecompressToList(InputMessage inputMsg) =>
         DecompressToList(inputMsg, new());
 
-    // LATER: after encoding refactoring this ends having too many logic, must be improved
-    internal static IReadOnlyList<GameInput> DecompressToList(InputMessage inputMsg, GameInput lastRecv)
+    // LATER: after encoding refactoring this, too much logic, must be improved
+    static IReadOnlyList<GameInput> DecompressToList(InputMessage inputMsg, GameInput lastRecv)
     {
         List<GameInput> inputs = [];
         if (lastRecv.Frame.IsNull)
             lastRecv.Frame = inputMsg.StartFrame.Previous();
         lastRecv.Data.Length = inputMsg.InputSize;
+
         var currentFrame = inputMsg.StartFrame;
         var nextFrame = lastRecv.Frame.Next();
         currentFrame.Number.Should().BeLessOrEqualTo(nextFrame.Number);
@@ -150,6 +151,6 @@ public class InputEncoderTests
             inputs.Add(lastRecv);
         }
 
-        return inputs;
+        return inputs.AsReadOnly();
     }
 }

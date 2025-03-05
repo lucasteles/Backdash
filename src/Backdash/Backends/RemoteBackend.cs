@@ -11,6 +11,7 @@ using Backdash.Serialization;
 using Backdash.Synchronizing.Input;
 using Backdash.Synchronizing.Input.Confirmed;
 using Backdash.Synchronizing.Random;
+using Backdash.Synchronizing.State;
 
 namespace Backdash.Backends;
 
@@ -68,10 +69,10 @@ sealed class RemoteBackend<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
         logger = services.Logger;
         inputListener = services.InputListener;
         Random = services.DeterministicRandom;
-        syncNumber = services.Random.MagicNumber();
         inputComparer = services.InputComparer;
-        inputGroupComparer = ConfirmedInputComparer<TInput>.Create(services.InputComparer);
 
+        inputGroupComparer = ConfirmedInputComparer<TInput>.Create(services.InputComparer);
+        syncNumber = services.Random.MagicNumber();
         peerInputEventQueue = new();
         peerCombinedInputsEventPublisher = new ProtocolCombinedInputsEventPublisher<TInput>(peerInputEventQueue);
         inputGroupSerializer = new ConfirmedInputsSerializer<TInput>(inputSerializer);
@@ -140,6 +141,7 @@ sealed class RemoteBackend<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
     public Frame CurrentFrame => synchronizer.CurrentFrame;
     public FrameSpan RollbackFrames => synchronizer.RollbackFrames;
     public FrameSpan FramesBehind => synchronizer.FramesBehind;
+    public SavedFrame CurrentSavedFrame => synchronizer.GetLastSavedFrame();
     public int NumberOfPlayers => addedPlayers.Count;
 
     public int NumberOfSpectators => addedSpectators.Count;

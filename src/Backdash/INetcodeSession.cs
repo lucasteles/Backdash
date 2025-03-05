@@ -1,6 +1,7 @@
 using Backdash.Data;
 using Backdash.Network;
 using Backdash.Synchronizing.Random;
+using Backdash.Synchronizing.State;
 
 namespace Backdash;
 
@@ -28,6 +29,11 @@ public interface INetcodeSessionInfo
     /// Returns the number of frames the client is behind. <seealso cref="FrameSpan"/>
     /// </summary>
     FrameSpan FramesBehind { get; }
+
+    /// <summary>
+    /// Returns the checksum of the last saved state
+    /// </summary>
+    SavedFrame CurrentSavedFrame { get; }
 }
 
 /// <summary>
@@ -122,7 +128,6 @@ public interface INetcodeSession<TInput> : INetcodeSessionInfo, IDisposable wher
     /// Should be called at the end of each frame of your application and also in <see cref="INetcodeSessionHandler.AdvanceFrame"/>.
     /// </summary>
     void AdvanceFrame();
-
 
     /// <summary>
     /// Returns connection status of a player.

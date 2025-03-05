@@ -7,10 +7,11 @@ namespace Backdash.Network.Messages;
 [StructLayout(LayoutKind.Sequential, Size = Size, Pack = 2)]
 record struct Header(MessageType Type)
 {
+    public const int Size = 6;
+
     public MessageType Type = Type;
     public ushort Magic = 0;
     public ushort SequenceNumber = 0;
-    public const int Size = 6;
 
     public readonly void Serialize(in BinaryRawBufferWriter writer)
     {
@@ -23,7 +24,7 @@ record struct Header(MessageType Type)
     {
         try
         {
-            Type = (MessageType)reader.ReadUInt16();
+            Type = reader.ReadAsUInt16<MessageType>();
             Magic = reader.ReadUInt16();
             SequenceNumber = reader.ReadUInt16();
         }

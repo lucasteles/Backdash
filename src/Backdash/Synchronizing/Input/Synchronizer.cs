@@ -44,9 +44,9 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
         this.localConnections = localConnections;
         this.inputComparer = inputComparer ?? EqualityComparer<TInput>.Default;
 
-        endianness = options.StateSerializationEndianness ?? Platform.GetEndianness(options.UseNetworkEndianness);
-        stateStore.Initialize(options.PredictionFrames + options.PredictionFramesOffset);
         inputQueues = new(2);
+        endianness = options.StateSerializationEndianness ?? Platform.GetEndianness(options.UseNetworkEndianness);
+        stateStore.Initialize(options.TotalPredictionFrames);
     }
 
     public bool InRollback { get; private set; }

@@ -9,13 +9,11 @@ using Backdash.Synchronizing.State;
 
 namespace Backdash.Backends;
 
-sealed class ReplayBackend<TInput> : INetcodeSession<TInput>
-    where TInput : unmanaged
+sealed class ReplayBackend<TInput> : INetcodeSession<TInput> where TInput : unmanaged
 {
     readonly Logger logger;
     readonly PlayerHandle[] fakePlayers;
     INetcodeSessionHandler callbacks;
-    readonly IDeterministicRandom deterministicRandom;
     bool isSynchronizing = true;
     SynchronizedInput<TInput>[] syncInputBuffer = [];
     TInput[] inputBuffer = [];
@@ -43,12 +41,12 @@ sealed class ReplayBackend<TInput> : INetcodeSession<TInput>
         logger = services.Logger;
         stateStore = services.StateStore;
         checksumProvider = services.ChecksumProvider;
-        deterministicRandom = services.DeterministicRandom;
+        Random = services.DeterministicRandom;
         NumberOfPlayers = numberOfPlayers;
-        fakePlayers = Enumerable.Range(0, numberOfPlayers)
-            .Select(x => new PlayerHandle(PlayerType.Remote, x + 1, x)).ToArray();
-
         callbacks = new EmptySessionHandler(logger);
+        fakePlayers = Enumerable.Range(0, numberOfPlayers)
+            .Select(x => new PlayerHandle(PlayerType.Remote, x + 1, x))
+            .ToArray();
 
         stateStore.Initialize(controls.MaxBackwardFrames);
     }
@@ -72,9 +70,13 @@ sealed class ReplayBackend<TInput> : INetcodeSession<TInput>
     public Frame CurrentFrame { get; private set; } = Frame.Zero;
     public FrameSpan RollbackFrames => FrameSpan.Zero;
     public FrameSpan FramesBehind => FrameSpan.Zero;
-    public int NumberOfPlayers { get; private set; }
+
+    public SavedFrame CurrentSavedFrame => stateStore.GetCurrent();
+
     public int NumberOfSpectators => 0;
-    public IDeterministicRandom Random => deterministicRandom;
+    public int NumberOfPlayers { get; private set; }
+    public IDeterministicRandom Random { get; }
+
     public SessionMode Mode => SessionMode.Replaying;
     public void DisconnectPlayer(in PlayerHandle player) { }
     public ResultCode AddLocalInput(PlayerHandle player, in TInput localInput) => ResultCode.Ok;
@@ -155,7 +157,7 @@ sealed class ReplayBackend<TInput> : INetcodeSession<TInput>
         }
 
         var inputPopCount = useInputSeedForRandom ? Mem.PopCount<TInput>(inputBuffer.AsSpan()) : 0;
-        deterministicRandom.UpdateSeed(CurrentFrame.Number, inputPopCount);
+        Random.UpdateSeed(CurrentFrame.Number, inputPopCount);
 
         return ResultCode.Ok;
     }
@@ -190,7 +192,6 @@ sealed class ReplayBackend<TInput> : INetcodeSession<TInput>
             var offset = 0;
             BinaryBufferReader reader = new(savedFrame.GameState.WrittenSpan, ref offset);
             callbacks.LoadState(in frame, in reader);
-
             CurrentFrame = savedFrame.Frame;
         }
         catch (NetcodeException)

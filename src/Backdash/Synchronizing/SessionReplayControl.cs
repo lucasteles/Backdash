@@ -4,7 +4,7 @@ namespace Backdash.Synchronizing;
 /// Control flow of a replay session.
 /// <seealso cref="RollbackNetcode.CreateReplaySession{TInput}"/>
 /// </summary>
-public sealed class SessionReplayControl
+public class SessionReplayControl
 {
     /// <summary>
     /// Maximum number of frames for backward play

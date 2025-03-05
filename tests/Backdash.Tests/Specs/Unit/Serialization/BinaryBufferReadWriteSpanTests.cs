@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Backdash.Data;
 using Backdash.Network;
 using Backdash.Serialization;
 using Backdash.Tests.TestUtils;
@@ -298,6 +299,18 @@ public class BinaryBufferReadWriteSpanTests
         writer.Write(value);
         var reader = GetReader(writer);
         Span<DateOnly> read = stackalloc DateOnly[value.Length];
+        reader.Read(in read);
+        reader.ReadCount.Should().Be(size);
+        return value.AsSpan().SequenceEqual(read);
+    }
+
+    [PropertyTest]
+    public bool SpanOfFrame(Frame[] value, Endianness endianness)
+    {
+        var size = Setup(value, endianness, out var writer);
+        writer.Write(value);
+        var reader = GetReader(writer);
+        Span<Frame> read = stackalloc Frame[value.Length];
         reader.Read(in read);
         reader.ReadCount.Should().Be(size);
         return value.AsSpan().SequenceEqual(read);

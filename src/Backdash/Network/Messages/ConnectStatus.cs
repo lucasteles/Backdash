@@ -13,12 +13,12 @@ record struct ConnectStatus
     public readonly void Serialize(in BinaryRawBufferWriter writer)
     {
         writer.Write(in Disconnected);
-        writer.Write(in LastFrame.Number);
+        writer.Write(in LastFrame);
     }
 
     public void Deserialize(in BinaryBufferReader reader)
     {
         Disconnected = reader.ReadBoolean();
-        LastFrame = new(reader.ReadInt32());
+        LastFrame = reader.ReadFrame();
     }
 }

@@ -1,4 +1,5 @@
 using System.Numerics;
+using Backdash.Data;
 using Backdash.Network;
 using Backdash.Serialization;
 using Backdash.Serialization.Numerics;
@@ -290,6 +291,17 @@ public class BinaryBufferReadWriteNullableValues
         writer.Write(value);
         var reader = GetReader(writer);
         var read = reader.ReadNullableDateOnly();
+        reader.ReadCount.Should().Be(size);
+        return value == read;
+    }
+
+    [PropertyTest]
+    public bool TestFrame(Frame? value, Endianness endianness)
+    {
+        var size = Setup(value, endianness, out var writer);
+        writer.Write(value);
+        var reader = GetReader(writer);
+        var read = reader.ReadNullableFrame();
         reader.ReadCount.Should().Be(size);
         return value == read;
     }
@@ -646,6 +658,17 @@ public class BinaryBufferReadWriteNullableValues
 
         [PropertyTest]
         public bool TestDateOnly(DateOnly? value, DateOnly? read, Endianness endianness)
+        {
+            var size = Setup(value, endianness, out var writer);
+            writer.Write(value);
+            var reader = GetReader(writer);
+            reader.Read(ref read);
+            reader.ReadCount.Should().Be(size);
+            return value == read;
+        }
+
+        [PropertyTest]
+        public bool TestFrame(Frame? value, Frame? read, Endianness endianness)
         {
             var size = Setup(value, endianness, out var writer);
             writer.Write(value);

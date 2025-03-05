@@ -1,4 +1,6 @@
-namespace Backdash.Data;
+using System.Runtime.InteropServices;
+
+namespace Backdash;
 
 /// <summary>
 /// Synchronized input result
@@ -7,7 +9,8 @@ namespace Backdash.Data;
 /// <param name="Disconnected">Is <see langword="true"/> if input owner is disconnected</param>
 /// <typeparam name="T">Type of the Input</typeparam>
 [Serializable]
-public readonly record struct SynchronizedInput<T>(T Input, bool Disconnected) where T : struct
+[StructLayout(LayoutKind.Sequential)]
+public readonly record struct SynchronizedInput<T>(T Input, bool Disconnected) where T : unmanaged
 {
     /// <summary>
     /// Returns the input associated with this type

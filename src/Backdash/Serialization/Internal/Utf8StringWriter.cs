@@ -39,7 +39,7 @@ readonly ref struct Utf8StringWriter
         return true;
     }
 
-    public bool Write<T>(T value, ReadOnlySpan<char> format, IFormatProvider? provider = null)
+    public bool Write<T>(in T value, ReadOnlySpan<char> format, IFormatProvider? provider = null)
         where T : IUtf8SpanFormattable
     {
         Span<byte> dest = CurrentBuffer;
@@ -50,7 +50,7 @@ readonly ref struct Utf8StringWriter
         return true;
     }
 
-    public bool Write<T>(T value) where T : IUtf8SpanFormattable => Write(value, []);
+    public bool Write<T>(in T value) where T : IUtf8SpanFormattable => Write(in value, []);
     const int MaxLocalStringSize = 24;
 
     public bool WriteFormat<T>(T value, ReadOnlySpan<char> format = default) where T : ISpanFormattable
@@ -61,7 +61,7 @@ readonly ref struct Utf8StringWriter
         return value.TryFormat(charBuffer, out int written, format, null) && WriteChars(charBuffer[..written]);
     }
 
-    public bool WriteEnum<T>(T value, ReadOnlySpan<char> format = default) where T : struct, Enum
+    public bool WriteEnum<T>(in T value, ReadOnlySpan<char> format = default) where T : struct, Enum
     {
         Span<byte> dest = CurrentBuffer;
         if (dest.IsEmpty) return false;
@@ -85,7 +85,7 @@ readonly ref struct Utf8ObjectWriter
     }
 
     public bool Write<T>(
-        T value,
+        in T value,
         ReadOnlySpan<char> format = default,
         [CallerArgumentExpression(nameof(value))]
         string name = ""

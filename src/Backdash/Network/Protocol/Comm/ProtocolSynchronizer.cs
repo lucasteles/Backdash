@@ -5,8 +5,8 @@ namespace Backdash.Network.Protocol.Comm;
 
 interface IProtocolSynchronizer
 {
-    void CreateRequestMessage(out ProtocolMessage requestMessage);
-    void CreateReplyMessage(in SyncRequest request, out ProtocolMessage replyMessage);
+    void CreateRequestMessage(ref ProtocolMessage message);
+    void CreateReplyMessage(in SyncRequest request, ref ProtocolMessage replyMessage);
     void Synchronize();
     void Update();
 }
@@ -27,40 +27,31 @@ sealed class ProtocolSynchronizer(
 
     public void RequestSync()
     {
-        CreateRequestMessage(out var syncMsg);
+        ProtocolMessage syncMsg = new();
+        CreateRequestMessage(ref syncMsg);
         logger.Write(LogLevel.Debug, $"New Sync Request: {syncMsg.SyncRequest.RandomRequest} for {state.Player}");
         lastRequest = clock.GetTimeStamp();
         sender.SendMessage(in syncMsg);
     }
 
-    public void CreateRequestMessage(out ProtocolMessage requestMessage)
+    public void CreateRequestMessage(ref ProtocolMessage message)
     {
         lock (state.Sync.Locker)
         {
             state.Sync.CurrentRandom = random.SyncNumber();
-            requestMessage = new(MessageType.SyncRequest)
-            {
-                SyncRequest = new()
-                {
-                    RandomRequest = state.Sync.CurrentRandom,
-                    Ping = clock.GetTimeStamp(),
-                },
-            };
+            message.Header.Type = MessageType.SyncRequest;
+            message.SyncRequest.RandomRequest = state.Sync.CurrentRandom;
+            message.SyncRequest.Ping = clock.GetTimeStamp();
         }
     }
 
-    public void CreateReplyMessage(in SyncRequest request, out ProtocolMessage replyMessage)
+    public void CreateReplyMessage(in SyncRequest request, ref ProtocolMessage replyMessage)
     {
         lock (state.Sync.Locker)
         {
-            replyMessage = new(MessageType.SyncReply)
-            {
-                SyncReply = new()
-                {
-                    RandomReply = request.RandomRequest,
-                    Pong = request.Ping,
-                },
-            };
+            replyMessage.Header.Type = MessageType.SyncReply;
+            replyMessage.SyncReply.RandomReply = request.RandomRequest;
+            replyMessage.SyncReply.Pong = request.Ping;
         }
     }
 

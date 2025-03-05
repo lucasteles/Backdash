@@ -13,7 +13,7 @@ public interface IPeerObserver<T> where T : struct
     /// <summary>
     /// Handle new message from peer
     /// </summary>
-    void OnPeerMessage(in T message, SocketAddress from, int bytesReceived);
+    void OnPeerMessage(ref readonly T message, in SocketAddress from, int bytesReceived);
 }
 
 sealed class PeerObserverGroup<T> : IPeerObserver<T>
@@ -23,7 +23,7 @@ sealed class PeerObserverGroup<T> : IPeerObserver<T>
     public void Add(IPeerObserver<T> observer) => observers.Add(observer);
     public void Remove(IPeerObserver<T> observer) => observers.Remove(observer);
 
-    public void OnPeerMessage(in T message, SocketAddress from, int bytesReceived)
+    public void OnPeerMessage(ref readonly T message, in SocketAddress from, int bytesReceived)
     {
         var span = CollectionsMarshal.AsSpan(observers);
         ref var pointer = ref MemoryMarshal.GetReference(span);
@@ -31,7 +31,7 @@ sealed class PeerObserverGroup<T> : IPeerObserver<T>
 
         while (Unsafe.IsAddressLessThan(ref pointer, ref end))
         {
-            pointer.OnPeerMessage(in message, from, bytesReceived);
+            pointer.OnPeerMessage(in message, in from, bytesReceived);
             pointer = ref Unsafe.Add(ref pointer, 1)!;
         }
     }

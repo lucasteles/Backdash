@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using Backdash.Data;
 using Backdash.Network;
 using Backdash.Serialization;
 using Backdash.Serialization.Numerics;
@@ -328,6 +329,17 @@ public class BinaryBufferReadWriteValueTests
     public bool TestDateOnly(DateOnly value, DateOnly read, Endianness endianness)
     {
         var size = Setup<DateOnly>(endianness, out var writer);
+        writer.Write(value);
+        var reader = GetReader(writer);
+        reader.Read(ref read);
+        reader.ReadCount.Should().Be(size);
+        return value == read;
+    }
+
+    [PropertyTest]
+    public bool TestFrame(Frame value, Frame read, Endianness endianness)
+    {
+        var size = Setup<Frame>(endianness, out var writer);
         writer.Write(value);
         var reader = GetReader(writer);
         reader.Read(ref read);

@@ -74,6 +74,11 @@ public sealed class NetcodeOptions
     public int PredictionFramesOffset { get; init; } = Default.PredictionFramesOffset;
 
     /// <summary>
+    /// Total allowed prediction frames.
+    /// </summary>
+    internal int TotalPredictionFrames => PredictionFrames + PredictionFramesOffset;
+
+    /// <summary>
     /// Amount of frames to delay for local input
     /// </summary>
     /// <inheritdoc cref="Default.FrameDelay"/>

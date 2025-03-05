@@ -20,6 +20,6 @@ record struct QualityReply : IUtf8SpanFormattable
     {
         bytesWritten = 0;
         using Utf8ObjectWriter writer = new(in utf8Destination, ref bytesWritten);
-        return writer.Write(Pong);
+        return writer.Write(in Pong);
     }
 }

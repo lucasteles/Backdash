@@ -245,6 +245,12 @@ public readonly ref struct BinaryBufferReader
     /// <inheritdoc cref="ReadDateOnly()"/>
     public DateOnly? ReadNullableDateOnly() => ReadBoolean() ? ReadDateOnly() : null;
 
+    /// <summary>Reads single <see cref="Frame"/> from buffer.</summary>
+    public Frame ReadFrame() => ReadAsInt32<Frame>();
+
+    /// <inheritdoc cref="ReadFrame()"/>
+    public Frame? ReadNullableFrame() => ReadBoolean() ? ReadFrame() : null;
+
     /// <summary>Reads an unmanaged struct from buffer.</summary>
     public void ReadStruct<T>(ref T value) where T : unmanaged
     {
@@ -608,6 +614,12 @@ public readonly ref struct BinaryBufferReader
     /// <inheritdoc cref="ReadTimeOnly()"/>
     public void Read(ref DateOnly? value) => value = ReadNullableDateOnly();
 
+    /// <inheritdoc cref="ReadFrame()"/>
+    public void Read(ref Frame value) => value = ReadFrame();
+
+    /// <inheritdoc cref="ReadTimeOnly()"/>
+    public void Read(ref Frame? value) => value = ReadNullableFrame();
+
     /// <summary>Reads a span of <see cref="byte"/> from buffer into <paramref name="values"/>.</summary>
     public void Read(in Span<byte> values)
     {
@@ -826,6 +838,16 @@ public readonly ref struct BinaryBufferReader
 
     /// <summary>Reads a list of <see cref="DateOnly"/> from buffer into <paramref name="values"/>.</summary>
     public void Read(in List<DateOnly> values) => Read(GetListSpan(in values));
+
+    /// <summary>Reads a span of <see cref="Frame"/> from buffer into <paramref name="values"/>.</summary>
+    public void Read(in Span<Frame> values)
+    {
+        if (values.IsEmpty) return;
+        Read(MemoryMarshal.Cast<Frame, int>(values));
+    }
+
+    /// <summary>Reads a list of <see cref="Frame"/> from buffer into <paramref name="values"/>.</summary>
+    public void Read(in List<Frame> values) => Read(GetListSpan(in values));
 
 
     /// <summary>Reads a <see cref="byte"/> from buffer and reinterprets it as <typeparamref name="T"/>.</summary>

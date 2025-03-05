@@ -82,12 +82,13 @@ sealed class ProtocolInputBuffer<TInput> : IProtocolInputBuffer<TInput>
 
     public SendInputResult SendPendingInputs()
     {
-        var createMessageResult = CreateInputMessage(out var inputMessage);
-        sender.SendMessage(in inputMessage);
+        ProtocolMessage message = new(MessageType.Input);
+        var createMessageResult = FillInputMessage(ref message.Input);
+        sender.SendMessage(in message);
         return createMessageResult;
     }
 
-    SendInputResult CreateInputMessage(out ProtocolMessage protocolMessage)
+    SendInputResult FillInputMessage(ref InputMessage inputMessage)
     {
         var workingBuffer = workingBufferMemory.AsSpan();
         ThrowIf.Assert(workingBuffer.Length >= WorkingBufferFactor);
@@ -98,14 +99,11 @@ sealed class ProtocolInputBuffer<TInput> : IProtocolInputBuffer<TInput>
         var messageBodyOverflow = false;
         var lastAckFrame = inbox.LastAckedFrame;
 
-        InputMessage inputMessage = new()
-        {
-            StartFrame = Frame.Zero,
-        };
+        inputMessage.StartFrame = Frame.Zero;
 
         if (pendingOutput.Count > 0)
         {
-            while (pendingOutput.Peek().Frame < lastAckFrame)
+            while (pendingOutput.Peek().Frame.Number < lastAckFrame.Number)
             {
                 var acked = pendingOutput.Dequeue();
                 logger.Write(LogLevel.Trace, $"Skipping past frame:{acked.Frame} current is {lastAckFrame}");
@@ -155,14 +153,10 @@ sealed class ProtocolInputBuffer<TInput> : IProtocolInputBuffer<TInput>
         }
 
         inputMessage.AckFrame = inbox.LastReceivedInput.Frame;
+        inputMessage.PeerCount = (byte)state.LocalConnectStatuses.Length;
         state.LocalConnectStatuses.CopyTo(inputMessage.PeerConnectStatus);
         ThrowIf.Assert(inputMessage.NumBits <= Max.CompressedBytes * ByteSize.ByteToBits);
         ThrowIf.Assert(lastAckFrame.IsNull || inputMessage.StartFrame == lastAckFrame);
-
-        protocolMessage = new(MessageType.Input)
-        {
-            Input = inputMessage,
-        };
 
         return messageBodyOverflow
             ? SendInputResult.MessageBodyOverflow

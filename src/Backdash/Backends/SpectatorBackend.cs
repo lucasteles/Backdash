@@ -9,6 +9,7 @@ using Backdash.Serialization;
 using Backdash.Synchronizing.Input;
 using Backdash.Synchronizing.Input.Confirmed;
 using Backdash.Synchronizing.Random;
+using Backdash.Synchronizing.State;
 
 namespace Backdash.Backends;
 
@@ -24,7 +25,6 @@ sealed class SpectatorBackend<TInput> :
     readonly NetcodeOptions options;
     readonly IBackgroundJobManager backgroundJobManager;
     readonly IClock clock;
-    readonly IDeterministicRandom deterministicRandom;
     readonly ConnectionsState localConnections = new(0);
     readonly GameInput<ConfirmedInputs<TInput>>[] inputs;
     readonly PeerConnection<ConfirmedInputs<TInput>> host;
@@ -38,6 +38,8 @@ sealed class SpectatorBackend<TInput> :
     SynchronizedInput<TInput>[] syncInputBuffer = [];
     TInput[] inputBuffer = [];
     bool closed;
+    readonly IStateStore stateStore;
+    readonly IChecksumProvider checksumProvider;
 
     public SpectatorBackend(int port,
         IPEndPoint hostEndpoint,
@@ -53,9 +55,11 @@ sealed class SpectatorBackend<TInput> :
         this.hostEndpoint = hostEndpoint;
         this.options = options;
         backgroundJobManager = services.JobManager;
-        deterministicRandom = services.DeterministicRandom;
+        Random = services.DeterministicRandom;
         logger = services.Logger;
         clock = services.Clock;
+        stateStore = services.StateStore;
+        checksumProvider = services.ChecksumProvider;
         NumberOfPlayers = numberOfPlayers;
         fakePlayers = Enumerable.Range(0, numberOfPlayers)
             .Select(x => new PlayerHandle(PlayerType.Remote, x + 1, x)).ToArray();
@@ -71,7 +75,7 @@ sealed class SpectatorBackend<TInput> :
 
         PeerConnectionFactory peerConnectionFactory = new(
             this, clock, services.Random, logger, udp,
-            options.Protocol, options.TimeSync, services.StateStore
+            options.Protocol, options.TimeSync, stateStore
         );
 
         ProtocolState protocolState =
@@ -79,9 +83,11 @@ sealed class SpectatorBackend<TInput> :
 
         var inputGroupComparer = ConfirmedInputComparer<TInput>.Create(services.InputComparer);
         host = peerConnectionFactory.Create(protocolState, inputGroupSerializer, this, inputGroupComparer);
+
         peerObservers.Add(host.GetUdpObserver());
         host.Synchronize();
         isSynchronizing = true;
+        stateStore.Initialize(options.TotalPredictionFrames);
     }
 
     public void Dispose()
@@ -106,11 +112,14 @@ sealed class SpectatorBackend<TInput> :
     public Frame CurrentFrame { get; private set; } = Frame.Zero;
     public FrameSpan RollbackFrames => FrameSpan.Zero;
     public FrameSpan FramesBehind => FrameSpan.Zero;
+    public SavedFrame CurrentSavedFrame => stateStore.GetCurrent();
+
     public int NumberOfPlayers { get; private set; }
     public int NumberOfSpectators => 0;
 
-    public IDeterministicRandom Random => deterministicRandom;
+    public IDeterministicRandom Random { get; }
     public SessionMode Mode => SessionMode.Spectating;
+
     public void DisconnectPlayer(in PlayerHandle player) { }
     public ResultCode AddLocalInput(PlayerHandle player, in TInput localInput) => ResultCode.Ok;
     public IReadOnlyCollection<PlayerHandle> GetPlayers() => fakePlayers;
@@ -124,8 +133,8 @@ sealed class SpectatorBackend<TInput> :
         if (isSynchronizing)
             return;
 
-        if (lastReceivedInputTime > 0
-            && clock.GetElapsedTime(lastReceivedInputTime) > options.Protocol.DisconnectTimeout)
+        if (lastReceivedInputTime > 0 &&
+            clock.GetElapsedTime(lastReceivedInputTime) > options.Protocol.DisconnectTimeout)
             Close();
     }
 
@@ -243,10 +252,25 @@ sealed class SpectatorBackend<TInput> :
         }
 
         var inputPopCount = options.UseInputSeedForRandom ? Mem.PopCount<TInput>(inputBuffer.AsSpan()) : 0;
-        deterministicRandom.UpdateSeed(CurrentFrame.Number, inputPopCount);
+        Random.UpdateSeed(CurrentFrame.Number, inputPopCount);
 
         CurrentFrame++;
+        SaveCurrentFrame();
         return ResultCode.Ok;
+    }
+
+    void SaveCurrentFrame()
+    {
+        var currentFrame = CurrentFrame;
+        ref var nextState = ref stateStore.GetCurrent();
+
+        BinaryBufferWriter writer = new(nextState.GameState);
+        callbacks.SaveState(in currentFrame, in writer);
+        nextState.Frame = currentFrame;
+        nextState.Checksum = checksumProvider.Compute(nextState.GameState.WrittenSpan);
+
+        stateStore.Advance();
+        logger.Write(LogLevel.Trace, $"spectator: saved frame {nextState.Frame} (checksum: {nextState.Checksum}).");
     }
 
     public ref readonly SynchronizedInput<TInput> GetInput(int index) =>
@@ -257,12 +281,12 @@ sealed class SpectatorBackend<TInput> :
 
     public void GetInputs(Span<SynchronizedInput<TInput>> buffer) => syncInputBuffer.CopyTo(buffer);
 
-    void IProtocolInputEventPublisher<ConfirmedInputs<TInput>>.Publish(in GameInputEvent<ConfirmedInputs<TInput>> evt)
+    bool IProtocolInputEventPublisher<ConfirmedInputs<TInput>>.Publish(in GameInputEvent<ConfirmedInputs<TInput>> evt)
     {
         lastReceivedInputTime = clock.GetTimeStamp();
         var (_, input) = evt;
         inputs[input.Frame.Number % inputs.Length] = input;
         host.SetLocalFrameNumber(input.Frame, options.FramesPerSecond);
-        host.SendInputAck();
+        return host.SendInputAck();
     }
 }

@@ -3,6 +3,7 @@ using Backdash.Data;
 using Backdash.Network;
 using Backdash.Synchronizing.Input;
 using Backdash.Synchronizing.Random;
+using Backdash.Synchronizing.State;
 
 namespace Backdash.Backends;
 
@@ -55,6 +56,7 @@ sealed class LocalBackend<TInput> : INetcodeSession<TInput> where TInput : unman
     public SessionMode Mode => SessionMode.Local;
     public FrameSpan FramesBehind => synchronizer.FramesBehind;
     public FrameSpan RollbackFrames => synchronizer.RollbackFrames;
+    public SavedFrame CurrentSavedFrame => synchronizer.GetLastSavedFrame();
 
     public IReadOnlyCollection<PlayerHandle> GetPlayers() => addedPlayers;
 

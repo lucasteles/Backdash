@@ -9,10 +9,10 @@ namespace Backdash.Network.Messages;
 record struct InputAck : IUtf8SpanFormattable
 {
     public Frame AckFrame;
-    public readonly void Serialize(in BinaryRawBufferWriter writer) => writer.Write(in AckFrame.Number);
+    public readonly void Serialize(in BinaryRawBufferWriter writer) => writer.Write(in AckFrame);
 
     public void Deserialize(in BinaryBufferReader reader) =>
-        AckFrame = new(reader.ReadInt32());
+        AckFrame = reader.ReadFrame();
 
     public readonly bool TryFormat(
         Span<byte> utf8Destination,
@@ -22,6 +22,6 @@ record struct InputAck : IUtf8SpanFormattable
     {
         bytesWritten = 0;
         using Utf8ObjectWriter writer = new(in utf8Destination, ref bytesWritten);
-        return writer.Write(AckFrame);
+        return writer.Write(in AckFrame);
     }
 }

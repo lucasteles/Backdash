@@ -6,7 +6,7 @@ using Backdash.Serialization.Internal;
 namespace Backdash.Network.Messages;
 
 [Serializable, StructLayout(LayoutKind.Explicit, Pack = 2)]
-struct ProtocolMessage(MessageType type) : IEquatable<ProtocolMessage>, IUtf8SpanFormattable
+struct ProtocolMessage(MessageType type = MessageType.Unknown) : IEquatable<ProtocolMessage>, IUtf8SpanFormattable
 {
     [FieldOffset(0)]
     public Header Header = new(type);
@@ -140,18 +140,18 @@ struct ProtocolMessage(MessageType type) : IEquatable<ProtocolMessage>, IUtf8Spa
         bytesWritten = 0;
         Utf8StringWriter writer = new(in utf8Destination, ref bytesWritten);
         if (!writer.Write("Msg("u8)) return false;
-        if (!writer.WriteEnum(Header.Type)) return false;
+        if (!writer.WriteEnum(in Header.Type)) return false;
         if (!writer.Write(")"u8)) return false;
         return Header.Type switch
         {
-            MessageType.Input => writer.Write(Input),
-            MessageType.SyncRequest => writer.Write(SyncRequest),
-            MessageType.SyncReply => writer.Write(SyncReply),
-            MessageType.ConsistencyCheckRequest => writer.Write(ConsistencyCheckRequest),
-            MessageType.ConsistencyCheckReply => writer.Write(ConsistencyCheckReply),
-            MessageType.QualityReply => writer.Write(QualityReply),
-            MessageType.QualityReport => writer.Write(QualityReport),
-            MessageType.InputAck => writer.Write(InputAck),
+            MessageType.Input => writer.Write(in Input),
+            MessageType.SyncRequest => writer.Write(in SyncRequest),
+            MessageType.SyncReply => writer.Write(in SyncReply),
+            MessageType.ConsistencyCheckRequest => writer.Write(in ConsistencyCheckRequest),
+            MessageType.ConsistencyCheckReply => writer.Write(in ConsistencyCheckReply),
+            MessageType.QualityReply => writer.Write(in QualityReply),
+            MessageType.QualityReport => writer.Write(in QualityReport),
+            MessageType.InputAck => writer.Write(in InputAck),
             MessageType.KeepAlive => writer.Write("{}"u8),
             MessageType.Unknown => writer.Write("{Invalid}"u8),
             _ => true,

@@ -11,18 +11,20 @@ namespace Backdash.Network.Messages;
 [Serializable, StructLayout(LayoutKind.Sequential)]
 struct InputMessage : IEquatable<InputMessage>, IUtf8SpanFormattable
 {
+    public byte PeerCount;
     public PeerStatusBuffer PeerConnectStatus;
     public Frame StartFrame;
     public bool DisconnectRequested;
     public Frame AckFrame;
-    public ushort NumBits;
     public byte InputSize;
+    public ushort NumBits;
     public InputMessageBuffer Bits;
 
     public void Clear()
     {
         Mem.Clear(Bits);
-        PeerConnectStatus[..].Clear();
+        PeerCount = 0;
+        ((Span<ConnectStatus>)PeerConnectStatus).Clear();
         StartFrame = Frame.Zero;
         DisconnectRequested = false;
         AckFrame = Frame.Zero;
@@ -32,32 +34,44 @@ struct InputMessage : IEquatable<InputMessage>, IUtf8SpanFormattable
 
     public readonly void Serialize(in BinaryRawBufferWriter writer)
     {
-        ReadOnlySpan<ConnectStatus> peerStatuses = PeerConnectStatus;
-        var peerCount = (byte)peerStatuses.Length;
-        writer.Write(peerCount);
-        for (var i = 0; i < peerCount; i++)
-            peerStatuses[i].Serialize(writer);
-        writer.Write(in StartFrame.Number);
+        writer.Write(in StartFrame);
+        writer.Write(in AckFrame);
         writer.Write(in DisconnectRequested);
-        writer.Write(in AckFrame.Number);
+        writer.Write(in PeerCount);
+
+        ReadOnlySpan<ConnectStatus> peerStatuses = PeerConnectStatus;
+        ref var currentPeerStatus = ref MemoryMarshal.GetReference(peerStatuses);
+        ref var limitPeerStatus = ref Unsafe.Add(ref currentPeerStatus, PeerCount);
+        while (Unsafe.IsAddressLessThan(ref currentPeerStatus, ref limitPeerStatus))
+        {
+            currentPeerStatus.Serialize(writer);
+            currentPeerStatus = ref Unsafe.Add(ref currentPeerStatus, 1)!;
+        }
+
         writer.Write(in InputSize);
         writer.Write(in NumBits);
-        var bitCount = (int)Math.Ceiling(NumBits / (float)ByteSize.ByteToBits);
-        writer.Write(Bits[..bitCount]);
+        writer.Write(Bits[..ByteSize.ByteCountOfBits(in NumBits)]);
     }
 
     public void Deserialize(in BinaryBufferReader reader)
     {
-        var peerCount = reader.ReadByte();
-        for (var i = 0; i < peerCount; i++)
-            PeerConnectStatus[i].Deserialize(reader);
-        StartFrame = new(reader.ReadInt32());
+        StartFrame = reader.ReadAsInt32<Frame>();
+        AckFrame = reader.ReadAsInt32<Frame>();
         DisconnectRequested = reader.ReadBoolean();
-        AckFrame = new(reader.ReadInt32());
+        PeerCount = reader.ReadByte();
+
+        Span<ConnectStatus> peerStatuses = PeerConnectStatus;
+        ref var currentPeerStatus = ref MemoryMarshal.GetReference(peerStatuses);
+        ref var limitPeerStatus = ref Unsafe.Add(ref currentPeerStatus, PeerCount);
+        while (Unsafe.IsAddressLessThan(ref currentPeerStatus, ref limitPeerStatus))
+        {
+            currentPeerStatus.Deserialize(reader);
+            currentPeerStatus = ref Unsafe.Add(ref currentPeerStatus, 1)!;
+        }
+
         InputSize = reader.ReadByte();
         NumBits = reader.ReadUInt16();
-        var bitCount = (int)Math.Ceiling(NumBits / (float)ByteSize.ByteToBits);
-        reader.Read(Bits[..bitCount]);
+        reader.Read(Bits[..ByteSize.ByteCountOfBits(in NumBits)]);
     }
 
     public readonly bool TryFormat(
@@ -66,7 +80,7 @@ struct InputMessage : IEquatable<InputMessage>, IUtf8SpanFormattable
     {
         bytesWritten = 0;
         using Utf8ObjectWriter writer = new(in utf8Destination, ref bytesWritten);
-        return writer.Write(StartFrame) && writer.Write(AckFrame) && writer.Write(NumBits);
+        return writer.Write(in StartFrame) && writer.Write(in AckFrame) && writer.Write(in NumBits);
     }
 
     public readonly bool Equals(in InputMessage other) =>

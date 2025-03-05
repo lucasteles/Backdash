@@ -258,25 +258,20 @@ abstract class TestGenerators
             from startFrame in Generate<Frame>()
             from disconnectReq in Generate<bool>()
             from ackFrame in Generate<Frame>()
-            from inputSize in Generate<byte>()
-            from peerConnectStats in Gen.Sized(testSize =>
-            {
-                var size = Math.Min(testSize, Max.NumberOfPlayers);
-                return connectStatusGenerator.Generator.ArrayOf(size);
-            })
-            from inputBuffer in Gen.Sized(testSize =>
-            {
-                var size = Math.Min(testSize, Max.CompressedBytes);
-                return Generate<byte>().ArrayOf(size);
-            })
+            from peerCount in Gen.Choose(0, Max.NumberOfPlayers - 1)
+            from peerConnectStats in connectStatusGenerator.Generator.ArrayOf(peerCount)
+            from inputSize in Gen.Choose(sizeof(byte), sizeof(long))
+            from inputBufferSize in Gen.Choose(0, Max.CompressedBytes - 1)
+            from inputBuffer in Generate<byte>().ArrayOf(inputBufferSize)
             select new InputMessage
             {
+                PeerCount = (byte)peerCount,
                 PeerConnectStatus = new(peerConnectStats),
                 StartFrame = startFrame,
                 DisconnectRequested = disconnectReq,
                 AckFrame = ackFrame,
-                InputSize = inputSize,
-                NumBits = checked((ushort)(inputBuffer.Length * ByteSize.ByteToBits)),
+                InputSize = (byte)inputSize,
+                NumBits = checked((ushort)(inputBufferSize * ByteSize.ByteToBits)),
                 Bits = new(inputBuffer),
             }
         );

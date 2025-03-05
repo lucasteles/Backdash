@@ -11,10 +11,10 @@ record struct ConsistencyCheckRequest : IUtf8SpanFormattable
     public Frame Frame;
 
     public readonly void Serialize(in BinaryRawBufferWriter writer) =>
-        writer.Write(Frame.Number);
+        writer.Write(in Frame);
 
     public void Deserialize(in BinaryBufferReader reader) =>
-        Frame = new(reader.ReadInt32());
+        Frame = reader.ReadFrame();
 
     public readonly bool TryFormat(
         Span<byte> utf8Destination,
@@ -24,6 +24,6 @@ record struct ConsistencyCheckRequest : IUtf8SpanFormattable
     {
         bytesWritten = 0;
         using Utf8ObjectWriter writer = new(in utf8Destination, ref bytesWritten);
-        return writer.Write(Frame);
+        return writer.Write(in Frame);
     }
 }
