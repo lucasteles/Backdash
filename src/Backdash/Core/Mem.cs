@@ -121,9 +121,6 @@ static class Mem
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int SizeOf<TInput>() where TInput : unmanaged => Unsafe.SizeOf<TInput>();
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsReferenceOrContainsReferences<T>() => RuntimeHelpers.IsReferenceOrContainsReferences<T>();
 
     public static int PopCount<T>(in T[] values) where T : unmanaged => PopCount<T>(values.AsSpan());
