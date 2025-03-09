@@ -1,5 +1,5 @@
 using System.Numerics;
-using Backdash.Serialization.Buffer;
+using Backdash.Serialization.Internal;
 
 namespace Backdash.Data;
 
@@ -225,6 +225,11 @@ public readonly record struct ByteSize(long ByteCount)
         if (str.Contains(ByteSymbol, cmp)) return ByteSymbol;
         return [];
     }
+
+    /// <summary>
+    /// Returns number of bits for <paramref name="byteCount"/> bytes.
+    /// </summary>
+    public static int ByteCountOfBits(in ushort byteCount) => MathI.CeilDiv(byteCount, ByteToBits);
 
     /// <inheritdoc />
     public static bool operator >(ByteSize left, ByteSize right) => left.ByteCount > right.ByteCount;

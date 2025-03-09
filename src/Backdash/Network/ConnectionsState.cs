@@ -11,8 +11,12 @@ sealed class ConnectionsState
     public ConnectionsState(int size, Frame lastFrame)
     {
         Statuses = new ConnectStatus[size];
-        for (var i = 0; i < Statuses.Length; i++)
-            Statuses[i].LastFrame = lastFrame;
+        ConnectStatus defaultStatus = new()
+        {
+            LastFrame = lastFrame,
+        };
+
+        Array.Fill(Statuses, defaultStatus);
     }
 
     public ConnectionsState(int size) : this(size, Frame.Null) { }

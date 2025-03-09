@@ -23,25 +23,27 @@ static class Parser
     {
         var declarationSyntax = (TypeDeclarationSyntax)context.Node;
 
-        foreach (var attributeListSyntax in declarationSyntax.AttributeLists)
+        var attributes = declarationSyntax.AttributeLists
+            .SelectMany(attributeListSyntax => attributeListSyntax.Attributes)
+            .OrderBy(a => a.Name.Parent?.ToString(), StringComparer.InvariantCulture);
+
+        foreach (var attributeSyntax in attributes)
         {
-            foreach (var attributeSyntax in attributeListSyntax.Attributes)
-            {
-                if (ModelExtensions.GetSymbolInfo(context.SemanticModel, attributeSyntax)
-                        .Symbol is not IMethodSymbol attributeSymbol)
-                    continue;
+            if (ModelExtensions.GetSymbolInfo(
+                    context.SemanticModel, attributeSyntax
+                ).Symbol is not IMethodSymbol attributeSymbol)
+                continue;
 
-                var attributeContainingTypeSymbol = attributeSymbol.ContainingType;
-                var fullName = attributeContainingTypeSymbol.ToDisplayString();
+            var attributeContainingTypeSymbol = attributeSymbol.ContainingType;
+            var fullName = attributeContainingTypeSymbol.ToDisplayString();
 
-                if (!fullName.StartsWith(BackdashSerializerAttribute)
-                    || !attributeContainingTypeSymbol.IsGenericType
-                    || attributeContainingTypeSymbol.TypeArguments.FirstOrDefault() is not { } typeArg
-                   )
-                    continue;
+            if (!fullName.StartsWith(BackdashSerializerAttribute)
+                || !attributeContainingTypeSymbol.IsGenericType
+                || attributeContainingTypeSymbol.TypeArguments.FirstOrDefault() is not { } typeArg
+               )
+                continue;
 
-                return (declarationSyntax, typeArg);
-            }
+            return (declarationSyntax, typeArg);
         }
 
         return null;

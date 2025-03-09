@@ -1,45 +1,74 @@
-using System.Diagnostics.CodeAnalysis;
-
 namespace Backdash.Synchronizing.State;
 
 /// <summary>
-/// Provider of checksum values for <typeparamref name="T"/>.
+/// Provider of checksum values
 /// </summary>
-/// <typeparam name="T">Game state type</typeparam>
-public interface IChecksumProvider<T> where T : notnull
+public interface IChecksumProvider
 {
     /// <summary>
-    /// Returns the checksum value for <paramref name="value"/>.
+    /// Returns the checksum value for <paramref name="data"/>.
     /// </summary>
-    /// <param name="value"></param>
+    /// <param name="data"></param>
     /// <returns><see cref="int"/> checksum value</returns>
-    int Compute(in T value);
+    uint Compute(ReadOnlySpan<byte> data);
 }
 
 /// <summary>
-/// HashCode checksum provider for <typeparamref name="T"/>.
+/// Provider always zero checksum
 /// </summary>
-/// <typeparam name="T">Game state type</typeparam>
-public sealed class HashCodeChecksumProvider<T> : IChecksumProvider<T> where T : notnull
+public class EmptyChecksumProvider : IChecksumProvider
 {
     /// <inheritdoc />
-    public int Compute(in T value) => EqualityComparer<T>.Default.GetHashCode(value);
+    public uint Compute(ReadOnlySpan<byte> data) => 0;
 }
 
-/// <inheritdoc />
-sealed class EmptyChecksumProvider<T> : IChecksumProvider<T> where T : notnull
+/// <summary>
+/// Fletcher 32 checksum provider
+/// see: http://en.wikipedia.org/wiki/Fletcher%27s_checksum
+/// </summary>
+public sealed class Fletcher32ChecksumProvider : IChecksumProvider
 {
+    const int BlockSize = 360;
+
     /// <inheritdoc />
-    public int Compute(in T value) => 0;
-}
-
-static class ChecksumProviderFactory
-{
-    public static IChecksumProvider<T> Create<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] T>() where T : notnull
+    public unsafe uint Compute(ReadOnlySpan<byte> data)
     {
-        if (Core.TypeHelpers.HasInvariantHashCode<T>())
-            return new HashCodeChecksumProvider<T>();
+        if (data.IsEmpty) return 0;
 
-        return new EmptyChecksumProvider<T>();
+        uint sum1 = 0xFFFF, sum2 = 0xFFFF;
+        var dataIndex = 0;
+        var dataLen = data.Length;
+        var len = dataLen / sizeof(ushort);
+
+        fixed (byte* ptr = data)
+        {
+            while (len > 0)
+            {
+                var blockLen = len > BlockSize ? BlockSize : len;
+                len -= blockLen;
+
+                do
+                {
+                    sum1 += *(ushort*)(ptr + dataIndex);
+                    sum2 += sum1;
+                    dataIndex += sizeof(ushort);
+                } while (--blockLen > 0);
+
+                sum1 = (sum1 & 0xFFFF) + (sum1 >> 16);
+                sum2 = (sum2 & 0xFFFF) + (sum2 >> 16);
+            }
+
+            if (dataIndex < dataLen)
+            {
+                sum1 += *(ptr + dataLen - 1);
+                sum2 += sum1;
+                sum1 = (sum1 & 0xFFFF) + (sum1 >> 16);
+                sum2 = (sum2 & 0xFFFF) + (sum2 >> 16);
+            }
+        }
+
+        sum1 = (sum1 & 0xFFFF) + (sum1 >> 16);
+        sum2 = (sum2 & 0xFFFF) + (sum2 >> 16);
+        return (sum2 << 16) | sum1;
     }
 }

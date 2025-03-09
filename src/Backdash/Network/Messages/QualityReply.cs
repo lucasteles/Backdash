@@ -1,18 +1,18 @@
 using System.Runtime.InteropServices;
 using Backdash.Serialization;
-using Backdash.Serialization.Buffer;
+using Backdash.Serialization.Internal;
 
 namespace Backdash.Network.Messages;
 
 [Serializable, StructLayout(LayoutKind.Sequential)]
-record struct QualityReply : IBinarySerializable, IUtf8SpanFormattable
+record struct QualityReply : IUtf8SpanFormattable
 {
     public long Pong;
 
-    public readonly void Serialize(BinarySpanWriter writer) =>
+    public readonly void Serialize(in BinaryRawBufferWriter writer) =>
         writer.Write(in Pong);
 
-    public void Deserialize(BinarySpanReader reader) =>
+    public void Deserialize(in BinaryBufferReader reader) =>
         Pong = reader.ReadInt64();
 
     public readonly bool TryFormat(Span<byte> utf8Destination, out int bytesWritten, ReadOnlySpan<char> format,
@@ -20,6 +20,6 @@ record struct QualityReply : IBinarySerializable, IUtf8SpanFormattable
     {
         bytesWritten = 0;
         using Utf8ObjectWriter writer = new(in utf8Destination, ref bytesWritten);
-        return writer.Write(Pong);
+        return writer.Write(in Pong);
     }
 }

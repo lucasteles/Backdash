@@ -1,50 +1,40 @@
-using System.Diagnostics.CodeAnalysis;
-using System.Text.Json;
-using System.Text.Json.Serialization.Metadata;
+using System.Buffers;
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network;
+using Backdash.Serialization;
 using Backdash.Synchronizing.Input;
 using Backdash.Synchronizing.Random;
 using Backdash.Synchronizing.State;
 
 namespace Backdash.Backends;
 
-sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGameState>
+sealed class SyncTestBackend<TInput> : INetcodeSession<TInput>
     where TInput : unmanaged
-    where TGameState : notnull, new()
 {
-    readonly record struct SavedFrame(
+    readonly record struct SavedFrameBytes(
         Frame Frame,
-        int Checksum,
-        string State,
+        uint Checksum,
+        byte[] State,
         GameInput<TInput> Input
     );
 
-    readonly Synchronizer<TInput, TGameState> synchronizer;
+    readonly Synchronizer<TInput> synchronizer;
     readonly TaskCompletionSource tsc = new();
     readonly Logger logger;
     readonly IDeterministicRandom deterministicRandom;
     readonly HashSet<PlayerHandle> addedPlayers = [];
     readonly HashSet<PlayerHandle> addedSpectators = [];
-    readonly Queue<SavedFrame> savedFrames = [];
+    readonly Queue<SavedFrameBytes> savedFrames = [];
     readonly SynchronizedInput<TInput>[] syncInputBuffer = new SynchronizedInput<TInput>[Max.NumberOfPlayers];
     readonly TInput[] inputBuffer = new TInput[Max.NumberOfPlayers];
-    readonly RollbackOptions options;
+    readonly NetcodeOptions options;
     readonly FrameSpan checkDistance;
     readonly bool throwError;
+    readonly IStateDesyncHandler? mismatchHandler;
     readonly IInputGenerator<TInput>? inputGenerator;
 
-    readonly JsonSerializerOptions jsonOptions = new()
-    {
-        WriteIndented = false,
-        IncludeFields = true,
-    };
-
-    readonly JsonTypeInfo<TGameState>? gameStateJsonTypeInfo;
-    readonly JsonTypeInfo<TInput>? inputJsonTypeInfo;
-
-    IRollbackHandler<TGameState> callbacks;
+    INetcodeSessionHandler callbacks;
     bool inRollback;
     bool running;
     Task backGroundJobTask = Task.CompletedTask;
@@ -52,62 +42,36 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
     GameInput<TInput> lastInput;
     Frame lastVerified = Frame.Zero;
 
-    [RequiresUnreferencedCode("Use the constructor which provides JsonTypeInfo(s) instead")]
-    [RequiresDynamicCode("Use the constructor which provides JsonTypeInfo(s) instead")]
-    public SyncTestBackend(
-        RollbackOptions options,
+    public SyncTestBackend(NetcodeOptions options,
         FrameSpan checkDistance,
         bool throwError,
-        BackendServices<TInput, TGameState> services
-    )
+        IStateDesyncHandler? mismatchHandler,
+        BackendServices<TInput> services)
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(options);
-        ThrowHelpers.ThrowIfTypeTooBigForStack<TInput>();
-        ThrowHelpers.ThrowIfTypeTooBigForStack<GameInput<TInput>>();
-        ThrowHelpers.ThrowIfArgumentIsNegative(checkDistance.FrameCount);
+        ArgumentOutOfRangeException.ThrowIfNegative(checkDistance.FrameCount);
         this.options = options;
         this.checkDistance = checkDistance;
         this.throwError = throwError;
+        this.mismatchHandler = mismatchHandler;
         deterministicRandom = services.DeterministicRandom;
         inputGenerator = services.InputGenerator;
         logger = services.Logger;
-        callbacks ??= new EmptySessionHandler<TGameState>(logger);
+        callbacks ??= new EmptySessionHandler(logger);
         synchronizer = new(
             options, logger,
             addedPlayers,
             services.StateStore,
             services.ChecksumProvider,
-            new(Max.NumberOfPlayers)
+            new(Max.NumberOfPlayers),
+            services.InputComparer
         )
         {
             Callbacks = callbacks,
         };
         currentInput = new();
         lastInput = new();
-        jsonOptions.TypeInfoResolver = new DefaultJsonTypeInfoResolver();
-    }
-
-    [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "gameStateJsonTypeInfo and inputJsonTypeInfo are set.")]
-    [UnconditionalSuppressMessage("AOT", "IL3050:Calling members annotated with 'RequiresDynamicCodeAttribute' may break functionality when AOT compiling.", Justification = "gameStateJsonTypeInfo and inputJsonTypeInfo are set.")]
-    public SyncTestBackend(
-        RollbackOptions options,
-        FrameSpan checkDistance,
-        bool throwError,
-        BackendServices<TInput, TGameState> services,
-        JsonTypeInfo<TGameState> gameStateJsonTypeInfo,
-        JsonTypeInfo<TInput> inputJsonTypeInfo
-    ) : this(
-        options,
-        checkDistance,
-        throwError,
-        services
-    )
-    {
-        ArgumentNullException.ThrowIfNull(gameStateJsonTypeInfo);
-        ArgumentNullException.ThrowIfNull(inputJsonTypeInfo);
-        this.gameStateJsonTypeInfo = gameStateJsonTypeInfo;
-        this.inputJsonTypeInfo = inputJsonTypeInfo;
     }
 
     public void Dispose() => tsc.SetResult();
@@ -118,6 +82,7 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
     public SessionMode Mode => SessionMode.SyncTest;
     public FrameSpan FramesBehind => synchronizer.FramesBehind;
     public FrameSpan RollbackFrames => synchronizer.RollbackFrames;
+    public SavedFrame GetCurrentSavedFrame() => synchronizer.GetLastSavedFrame();
 
     public IReadOnlyCollection<PlayerHandle> GetPlayers() =>
         addedPlayers.Count is 0 ? [new(PlayerType.Local, 1, 0)] : addedPlayers;
@@ -182,14 +147,18 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
 
     public bool GetNetworkStatus(in PlayerHandle player, ref PeerNetworkStats info) => false;
 
-    public ResultCode AddLocalInput(PlayerHandle player, TInput localInput)
+    public ResultCode AddLocalInput(PlayerHandle player, in TInput localInput)
     {
         if (!running)
             return ResultCode.NotSynchronized;
+
+        var testInput = localInput;
+
         if (inputGenerator is not null)
-            localInput = inputGenerator.Generate();
+            testInput = inputGenerator.Generate();
+
         currentInput.Frame = synchronizer.CurrentFrame;
-        currentInput.Data = localInput;
+        currentInput.Data = testInput;
         return ResultCode.Ok;
     }
 
@@ -223,6 +192,25 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
     public ref readonly SynchronizedInput<TInput> GetInput(int index) =>
         ref syncInputBuffer[index];
 
+    public bool LoadFrame(in Frame frame)
+    {
+        if (frame.IsNull || frame == CurrentFrame)
+        {
+            logger.Write(LogLevel.Trace, "Skipping NOP.");
+            return true;
+        }
+
+        try
+        {
+            synchronizer.LoadFrame(in frame);
+            return true;
+        }
+        catch (NetcodeException)
+        {
+            return false;
+        }
+    }
+
     public void AdvanceFrame()
     {
         logger.Write(LogLevel.Trace, $"End of frame({synchronizer.CurrentFrame})...");
@@ -231,16 +219,17 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
 
         if (inRollback) return;
 
-        // Hold onto the current frame in our queue of saved states.  We'll need
-        // the checksum later to verify that our replay of the same frame got the
-        // same results.
-        ref readonly var lastSaved = ref synchronizer.GetLastSavedFrame();
+        // Hold onto the current frame in our queue of saved states.
+        // We'll need the checksum later to verify that our replay of the same frame got the same results.
+        var lastSaved = synchronizer.GetLastSavedFrame();
+        var stateBytes = ArrayPool<byte>.Shared.Rent(lastSaved.GameState.WrittenCount);
+        lastSaved.GameState.WrittenSpan.CopyTo(stateBytes);
 
         var frame = synchronizer.CurrentFrame;
         savedFrames.Enqueue(new(
             Frame: frame,
             Input: lastInput,
-            State: JsonSerializer.Serialize(lastSaved.GameState, gameStateJsonTypeInfo ?? jsonOptions.TypeInfoResolver?.GetTypeInfo(typeof(TGameState), jsonOptions) ?? throw new InvalidOperationException("Could not get JsonTypeInfo<TGameState>")),
+            State: stateBytes,
             Checksum: lastSaved.Checksum
         ));
         if (frame - lastVerified != checkDistance.FrameValue)
@@ -252,81 +241,90 @@ sealed class SyncTestBackend<TInput, TGameState> : IRollbackSession<TInput, TGam
         while (savedFrames.Count > 0)
         {
             callbacks.AdvanceFrame();
-            // Verify that the checksum of this frame is the same as the one in our
-            // list.
+            // Verify that the checksum of this frame is the same as the one in our list.
             var info = savedFrames.Dequeue();
+            ArrayPool<byte>.Shared.Return(info.State);
             if (info.Frame != synchronizer.CurrentFrame)
             {
-                var message = $"Frame number {info.Frame} does not match saved frame number {frame}";
+                var message = $"Frame number {info.Frame.Number} does not match saved frame number {frame}";
                 logger.Write(LogLevel.Error, message);
                 if (throwError) throw new NetcodeException(message);
             }
 
-            ref readonly var last = ref synchronizer.GetLastSavedFrame();
-            var checksum = last.Checksum;
-            if (info.Checksum != checksum)
-            {
-                LogSaveState(info, "current");
-                LogSaveState(last, "last");
-                var message = $"Checksum for frame {frame} does not match saved ({checksum} != {info.Checksum})";
-                logger.Write(LogLevel.Error, message);
-                if (throwError) throw new NetcodeException(message);
-            }
-
-            logger.Write(LogLevel.Trace, $"Checksum {checksum} for frame {info.Frame} matches");
+            var last = synchronizer.GetLastSavedFrame();
+            if (info.Checksum != last.Checksum)
+                HandleDesync(frame, info, last);
+            else
+                logger.Write(LogLevel.Trace, $"Checksum #{last.Checksum:x8} for frame {info.Frame.Number} matches");
         }
 
         lastVerified = frame;
         inRollback = false;
     }
 
-    void LogSaveState(SavedFrame info, string description)
+    void HandleDesync(Frame frame, SavedFrameBytes current, SavedFrame previous)
     {
-        const LogLevel level = LogLevel.Information;
-        logger.Write(level, $"=== SAVED STATE [{description.ToUpper()}] ({info.Frame}) ===\n");
-        logger.Write(level, $"INPUT FRAME {info.Input.Frame}:");
-        logger.Write(level, JsonSerializer.Serialize(info.Input.Data, inputJsonTypeInfo ?? jsonOptions.TypeInfoResolver?.GetTypeInfo(typeof(TInput), jsonOptions) as JsonTypeInfo<TInput> ?? throw new InvalidOperationException("Could not get JsonTypeInfo<TInput>")));
-        logger.Write(level, $"GAME STATE #{info.Checksum}:");
-        LogStringChunked(level, info.State);
-        logger.Write(level, "====================================");
+        const LogLevel level = LogLevel.Error;
+        var message =
+            $"Checksum for frame {frame} does NOT match: (#{previous.Checksum:x8} != #{current.Checksum:x8})\n";
+        logger.Write(LogLevel.Error, message);
+
+        var (currentOffset, lastOffset) = (0, 0);
+
+        BinaryBufferReader currentReader = new(current.State, ref currentOffset);
+        var currentBody = callbacks.GetStateString(current.Frame, in currentReader);
+
+        BinaryBufferReader previousReader = new(previous.GameState.WrittenSpan, ref lastOffset);
+        var previousBody = callbacks.GetStateString(current.Frame, in previousReader);
+
+        LogSaveState(level, "CURRENT", currentBody, current.Checksum, current.Frame, current.Input.Frame.Number);
+        LogSaveState(level, "LAST", previousBody, previous.Checksum, previous.Frame);
+
+        if (mismatchHandler is not null)
+        {
+            (currentOffset, lastOffset) = (0, 0);
+            mismatchHandler.Handle(currentBody, current.Checksum, previousBody, previous.Checksum);
+            mismatchHandler.Handle(in currentReader, current.Checksum, in previousReader, previous.Checksum);
+        }
+
+        if (throwError) throw new NetcodeException(message);
     }
 
-    void LogSaveState(SavedFrame<TGameState> info, string description)
+    void LogSaveState(LogLevel level,
+        string description, string body,
+        uint checksum, Frame frame,
+        object? extra = null
+    )
     {
-        const LogLevel level = LogLevel.Information;
-        logger.Write(level, $"=== SAVED STATE [{description.ToUpper()}] ({info.Frame}) ===\n");
-        logger.Write(level, $"GAME STATE #{info.Checksum}:");
-        LogJson(level, info.GameState, gameStateJsonTypeInfo ?? jsonOptions.TypeInfoResolver?.GetTypeInfo(typeof(TGameState), jsonOptions) as JsonTypeInfo<TGameState> ?? throw new InvalidOperationException("Could not get JsonTypeInfo<TGameState>"));
-        logger.Write(level, "====================================");
+        logger.Write(level, $"=> SAVED [{description}] (Frame {frame}{(extra is not null ? $" / {extra}" : "")})");
+        logger.Write(level, $"== START STATE #{checksum:x8} ==");
+        LogText(level, body);
+        logger.Write(level, $"== END STATE #{checksum:x8} ==\n");
     }
 
-    void LogStringChunked(LogLevel level, string value)
+    void LogText(LogLevel level, string text)
     {
-        var chunks = value
-            .Chunk(LogStringBuffer.Capacity / 2)
-            .Select(x => new string(x));
-        foreach (var chunk in chunks)
-            logger.Write(level, chunk);
-    }
+        if (level is LogLevel.None || string.IsNullOrEmpty(text)) return;
 
-    void LogJson<TValue>(LogLevel level, TValue value, JsonTypeInfo<TValue> jsonTypeInfo)
-    {
         var jsonChunks =
-            JsonSerializer.Serialize(value, jsonTypeInfo)
-                .Chunk(LogStringBuffer.Capacity / 2)
-                .Select(x => new string(x));
+            text
+                .Split(Environment.NewLine)
+                .SelectMany(p => p
+                    .Chunk(LogStringBuffer.Capacity / 2)
+                    .Select(x => new string(x)));
+
         foreach (var chunk in jsonChunks)
             logger.Write(level, chunk);
     }
 
     public void SetFrameDelay(PlayerHandle player, int delayInFrames)
     {
-        ThrowHelpers.ThrowIfArgumentOutOfBounds(player.InternalQueue, 0, addedPlayers.Count);
-        ThrowHelpers.ThrowIfArgumentIsNegative(delayInFrames);
+        ThrowIf.ArgumentOutOfBounds(player.InternalQueue, 0, addedPlayers.Count);
+        ArgumentOutOfRangeException.ThrowIfNegative(delayInFrames);
         synchronizer.SetFrameDelay(player, delayInFrames);
     }
 
-    public void SetHandler(IRollbackHandler<TGameState> handler)
+    public void SetHandler(INetcodeSessionHandler handler)
     {
         ArgumentNullException.ThrowIfNull(handler);
         callbacks = handler;

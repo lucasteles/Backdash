@@ -1,23 +1,23 @@
 namespace Backdash.Analyzers;
 
-class Templates
+static class Templates
 {
     public const string BaseSerializer =
         """
         #pragma warning disable CS1591
         using Backdash.Serialization;
-        using Backdash.Serialization.Buffer;
+        using Backdash.Serialization.Numerics;
 
-        public partial class [[NAME]]: BinarySerializer<[[TYPE]]>
+        public partial class [[NAME]]
         {
-            public static readonly IBinarySerializer<[[TYPE]]> Shared = new [[NAME]]();
+            public static readonly [[NAME]] Shared = new [[NAME]]();
 
-            protected override void Serialize(in BinarySpanWriter binaryWriter, in [[TYPE]] data)
+            public void Serialize(in BinaryBufferWriter binaryWriter, in [[TYPE]] data)
             {
         [[WRITES]]
             }
 
-            protected override void Deserialize(in BinarySpanReader binaryReader, ref [[TYPE]] result)
+            public void Deserialize(in BinaryBufferReader binaryReader, ref [[TYPE]] result)
             {
         [[READS]]
             }

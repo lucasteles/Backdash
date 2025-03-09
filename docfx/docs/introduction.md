@@ -13,7 +13,7 @@ etc). Dispensing with the need to create native
 builds and native binds to the _C++_ [GGPO](https://github.com/pond3r/ggpo) code.
 
 And also adding more options
-for [configuration](https://lucasteles.github.io/Backdash/api/Backdash.RollbackOptions.html)
+for [configuration](https://lucasteles.github.io/Backdash/api/Backdash.NetcodeOptions.html)
 and [extensibility](https://lucasteles.github.io/Backdash/api/Backdash.SessionServices-2.html).
 
 > [!WARNING]

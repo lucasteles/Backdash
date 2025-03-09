@@ -1,6 +1,6 @@
 using Backdash.Core;
 using Backdash.Data;
-using Backdash.Serialization.Buffer;
+using Backdash.Serialization.Internal;
 
 namespace Backdash.Network.Protocol;
 
@@ -17,6 +17,7 @@ sealed class ProtocolState(
     public readonly PeerAddress PeerAddress = peerAddress;
     public readonly SyncState Sync = new();
     public readonly ConnectionState Connection = new();
+    public readonly ConsistencyState Consistency = new();
     public readonly AdvantageState Fairness = new();
     public readonly Statistics Stats = new();
     public readonly ConnectionsState LocalConnectStatuses = localConnectStatuses;
@@ -32,13 +33,20 @@ sealed class ProtocolState(
         public bool IsConnected;
     }
 
+    public sealed class ConsistencyState
+    {
+        public long LastCheck;
+        public Frame AskedFrame;
+        public uint AskedChecksum;
+    }
+
     public sealed class AdvantageState
     {
         public FrameSpan LocalFrameAdvantage;
         public FrameSpan RemoteFrameAdvantage;
     }
 
-    public class Statistics
+    public sealed class Statistics
     {
         public TimeSpan RoundTripTime = TimeSpan.Zero;
         public long LastReceivedInputTime = 0;
@@ -81,9 +89,9 @@ sealed class ProtocolState(
     public sealed class SyncState
     {
         public readonly object Locker = new();
-        int remainingRoundtrips;
+        int remainingRoundTrips;
         uint currentRandom;
-        TimeSpan totalRoundtripsPing;
+        TimeSpan totalRoundTripsPing;
 
         public uint CurrentRandom
         {
@@ -97,27 +105,27 @@ sealed class ProtocolState(
             }
         }
 
-        public TimeSpan TotalRoundtripsPing
+        public TimeSpan TotalRoundTripsPing
         {
             get
             {
-                lock (Locker) return totalRoundtripsPing;
+                lock (Locker) return totalRoundTripsPing;
             }
             set
             {
-                lock (Locker) totalRoundtripsPing = value;
+                lock (Locker) totalRoundTripsPing = value;
             }
         }
 
-        public int RemainingRoundtrips
+        public int RemainingRoundTrips
         {
             get
             {
-                lock (Locker) return remainingRoundtrips;
+                lock (Locker) return remainingRoundTrips;
             }
             set
             {
-                lock (Locker) remainingRoundtrips = value;
+                lock (Locker) remainingRoundTrips = value;
             }
         }
     }

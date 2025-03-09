@@ -1,5 +1,5 @@
-using System.Diagnostics;
 using System.Net;
+using Backdash.Core;
 using Backdash.Network.Client;
 
 #pragma warning disable CS9113 // Parameter is unread.
@@ -19,7 +19,7 @@ sealed class PingMessageHandler(string name, IPeerClient<PingMessage> sender) : 
     public long BadMessages => badMessages;
     public event Action<long> OnProcessed = delegate { };
 
-    public void OnPeerMessage(in PingMessage message, SocketAddress from, int bytesReceived
+    public void OnPeerMessage(ref readonly PingMessage message, in SocketAddress from, int bytesReceived
     )
     {
         Interlocked.Increment(ref processedCount);
@@ -34,7 +34,7 @@ sealed class PingMessageHandler(string name, IPeerClient<PingMessage> sender) : 
             _ => throw new ArgumentOutOfRangeException(nameof(message), message, null),
         };
 
-        Trace.Assert(sender.TrySendTo(from, reply));
+        ThrowIf.Assert(sender.TrySendTo(from, reply));
         OnProcessed(processedCount);
 #if DEBUG
         Console.WriteLine(

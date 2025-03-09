@@ -3,7 +3,7 @@ using Backdash.Core;
 namespace Backdash;
 
 /// <summary>
-/// Results for <see cref="IRollbackSession{TInput}"/> operations.
+/// Results for <see cref="INetcodeSession{TInput}"/> operations.
 /// </summary>
 public enum ResultCode : short
 {
@@ -17,8 +17,8 @@ public enum ResultCode : short
     PlayerOutOfRange,
 
     /// <summary>When emulator reached prediction barrier.</summary>
-    /// <seealso cref="RollbackOptions.PredictionFrames"/>
-    /// <seealso cref="IRollbackSession{TInput}.AddLocalInput"/>
+    /// <seealso cref="NetcodeOptions.PredictionFrames"/>
+    /// <seealso cref="INetcodeSession{TInput}.AddLocalInput"/>
     PredictionThreshold,
 
     /// <summary>The synchronization with peer was not finished.</summary>
@@ -31,19 +31,19 @@ public enum ResultCode : short
     InputDropped,
 
     /// <summary>Max number of spectators reached.</summary>
-    /// <seealso cref="RollbackOptions"/>
+    /// <seealso cref="NetcodeOptions"/>
     /// <inheritdoc cref="Max.NumberOfSpectators"/>
     TooManySpectators,
 
     /// <summary>
     /// Max number of players reached.
-    /// <seealso cref="RollbackOptions"/>
+    /// <seealso cref="NetcodeOptions"/>
     /// </summary>
     /// <inheritdoc cref="Max.NumberOfPlayers"/>
     TooManyPlayers,
 
     /// <summary>The operations need to requested before synchronization starts.</summary>
-    /// <seealso cref="IRollbackSession{TInput, TGameState}.Start"/>
+    /// <seealso cref="INetcodeSession{TInput}.Start"/>
     AlreadySynchronized,
 
     /// <summary>The <see cref="PlayerHandle"/> is already added to the session.</summary>

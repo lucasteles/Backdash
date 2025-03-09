@@ -12,7 +12,6 @@ global using Nuke.Common.Utilities;
 global using Nuke.Common.Utilities.Collections;
 global using Serilog;
 global using static Nuke.Common.EnvironmentInfo;
-global using static Nuke.Common.IO.FileSystemTasks;
 global using static Nuke.Common.Tools.Docker.DockerTasks;
 global using static Nuke.Common.Tools.DotNet.DotNetTasks;
 global using NukePlus;

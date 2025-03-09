@@ -1,6 +1,5 @@
 using System.Net;
 using System.Numerics;
-using Backdash.Core;
 
 namespace Backdash.Synchronizing.Random;
 
@@ -27,8 +26,8 @@ public sealed class XorSimdRandom : IDeterministicRandom
     /// <inheritdoc />
     public void UpdateSeed(int newState, int extraState = 0)
     {
-        ThrowHelpers.ThrowIfArgumentIsNegative(newState);
-        ThrowHelpers.ThrowIfArgumentIsNegative(extraState);
+        ArgumentOutOfRangeException.ThrowIfNegative(newState);
+        ArgumentOutOfRangeException.ThrowIfNegative(extraState);
 
         if (extraState is 0)
             extraState = unchecked(1812433253 * (newState ^ (newState >> 30)));

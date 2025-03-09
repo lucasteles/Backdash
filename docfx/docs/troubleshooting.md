@@ -60,7 +60,7 @@ state of the random number generator is included in your game state. Doing both 
 numbers which get generated for a particular frame are always the same, regardless of how many
 times [Backdash](https://github.com/lucasteles/Backdash) needs to rollback to that frame.
 
-### Beware of External Time Sources (aka. Wall clock time)
+### Beware of External Time Sources (eg. random, clock time)
 
 Be careful if you use the current time of day in your game state calculation. This may be used for an effect on the game
 or to derive another game state (e.g. using the timer as a seed to the random number generator). The time on two computers
@@ -71,17 +71,15 @@ players as part of the input to a frame and always use that time in your calcula
 The use of external time sources in **non-game state** calculations is fine (_e.g. computing the duration of effects on
 screen, or the attenuation of audio samples_).
 
+> [!INFORMATION]
+> We provide an implementation of a _[Deterministic Random](https://lucasteles.github.io/Backdash/api/Backdash.Synchronizing.Random.IDeterministicRandom.html)_  out of the box
+> which can be accessed directly from the _[Rollback Session](https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSession-1.html#Backdash_INetcodeSession_1_Random)_
+
 ## Beware of Dangling References
 
 If your game state contains any reference type be very careful in your `save` and `load` functions to rebase
 your reference pointers as you `save` and `load` your data. When copying data, be sure that you are no copying an object
 reference instead of the values.
-
-## Beware of default array type
-
-The `.NET` default array type is a reference type, not `IEquatable<>` and will mess with your state `GetHashCode()`,
-use the type [`Backdash.Array<T>`](https://lucasteles.github.io/Backdash/api/Backdash.Data.Array-1.html) instead. It
-still a reference type (**do not copy the reference**) but with implements valid `IEquatable<>` and `GetHashCode()`.
 
 ## Beware of Static Variables or Other Hidden State
 
@@ -117,13 +115,13 @@ public record MyGameState
     public int CurrentCounter; // keeps track of the counter value
 }
 
-public class MySessionHandler : IRollbackHandler<MyGameState>
+public class MySessionHandler : INetcodeSessionHandler
 {
     MyGameState currentGameState = new();
 
-    public void LoadState(in Frame frame, in MyGameState gameState)
+    public void LoadState(in Frame frame, ref readonly BinaryBufferReader reader)
     {
-        currentGameState.CurrentCounter = gameState.CurrentCounter;
+        currentGameState.CurrentCounter = reader.ReadInt32();
         GlobalState.Counter = currentGameState.CurrentCounter;
     }
 
@@ -134,7 +132,7 @@ public class MySessionHandler : IRollbackHandler<MyGameState>
 ## Use the [Backdash](https://github.com/lucasteles/Backdash) Sync Test Feature. A Lot.
 
 Once you've ported your application to [Backdash](https://github.com/lucasteles/Backdash), you can use
-the [`CreateSyncTestSession`](https://lucasteles.github.io/Backdash/api/Backdash.RollbackNetcode.html#Backdash_RollbackNetcode_CreateSyncTestSession__2_System_Nullable_Backdash_Data_FrameSpan__Backdash_RollbackOptions_Backdash_SessionServices___0___1__System_Boolean_)
+the [`CreateSyncTestSession`](https://lucasteles.github.io/Backdash/api/Backdash.RollbackNetcode.html#Backdash_RollbackNetcode_CreateSyncTestSession__2_System_Nullable_Backdash_Data_FrameSpan__Backdash_NetcodeOptions_Backdash_SessionServices___0___1__System_Boolean_)
 function to help track down synchronization issues which may be the result of a leaky game state.
 
 The sync test session is a special, single player session which is designed to find errors in your simulation's
@@ -154,7 +152,7 @@ You can also set the **sync-test session** to auto-generate random inputs to hel
 using Backdash;
 using Backdash.Sync.Input;
 
-var session = RollbackNetcode.CreateSyncTestSession<MyGameInput, MyGameState>(
+var session = RollbackNetcode.CreateSyncTestSession<MyGameInput>(
     options: new()
     {
         Log = new()
@@ -168,6 +166,36 @@ var session = RollbackNetcode.CreateSyncTestSession<MyGameInput, MyGameState>(
     }
 );
 ```
+
+If you want a meaningful string representation of your state in the sync-test, you need to implement
+ the method `GetStateString` in your handler.
+
+```csharp
+// print the state as json
+public string GetStateString(in Frame frame, ref readonly BinaryBufferReader reader)
+{
+    GameState state = new();
+
+    state.LoadState(in reader); // read and fill the state properties
+
+    return JsonSerializer.Serialize(state, jsonOptions);
+}
+
+static readonly JsonSerializerOptions jsonOptions = new()
+{
+    WriteIndented = true,
+    IncludeFields = true,
+};
+
+```
+
+> [!NOTE]
+> For better debugging the `RollbackNetcode.CreateSyncTestSession` accepts an implementation of the `IStateDesyncHandler`
+> which is called whenever a state desync happens in the test.
+>
+> You can use it for enhanced state logging or showing semantic diffs.
+
+
 
 ## Where to Go from Here
 

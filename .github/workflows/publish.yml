@@ -18,6 +18,7 @@ env:
     DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
     DOTNET_CLI_TELEMETRY_OPTOUT: true
     GITHUB_ACTIONS: true
+    NUGET_TAG: -preview
 
 jobs:
     build:
@@ -39,13 +40,15 @@ jobs:
                     global-json-file: global.json
 
             -   name: Install GitVersion
-                uses: gittools/actions/gitversion/setup@v1.1.1
+                uses: gittools/actions/gitversion/setup@v3.1.11
                 with:
-                    versionSpec: 5.x
+                    versionSpec: 6.0.x
 
             -   name: Determine Version
-                uses: gittools/actions/gitversion/execute@v1.1.1
+                uses: gittools/actions/gitversion/execute@v3.1.11
                 id: gitversion
+                with:
+                    useConfigFile: true
 
             -   name: Tool Restore
                 run: dotnet tool restore
@@ -54,12 +57,13 @@ jobs:
                 run: dotnet nuke test
             -   name: Build and Pack NuGet package
                 run: |
-                    dotnet pack src/Backdash --configuration Release --include-symbols -p:Version='${{ steps.gitversion.outputs.SemVer }}' --output ./build_artifacts
-                    dotnet pack src/Backdash.Utils --configuration Release --include-symbols -p:Version='${{ steps.gitversion.outputs.SemVer }}' --output ./build_artifacts
-                    dotnet pack src/Backdash.Analyzers --configuration Release --include-symbols -p:Version='${{ steps.gitversion.outputs.SemVer }}' --output ./build_artifacts
+                    SEMVER="${{ steps.gitversion.outputs.SemVer }}${{ env.NUGET_TAG }}"
+                    dotnet pack src/Backdash --configuration Release --include-symbols -p:Version="$SEMVER" --output ./build_artifacts
+                    dotnet pack src/Backdash.Utils --configuration Release --include-symbols -p:Version="$SEMVER" --output ./build_artifacts
+                    dotnet pack src/Backdash.Analyzers --configuration Release --include-symbols -p:Version="$SEMVER" --output ./build_artifacts
 
             -   name: Upload lib NuGet package artifact to GitHub
-                uses: actions/upload-artifact@v3
+                uses: actions/upload-artifact@v4
                 with:
                     name: buildArtifacts
                     path: ./build_artifacts
@@ -71,7 +75,7 @@ jobs:
         needs: build
         steps:
             -   name: Download lib nuget package artifact
-                uses: actions/download-artifact@v3
+                uses: actions/download-artifact@v4
                 with:
                     name: buildArtifacts
                     path: ./build_artifacts
@@ -89,7 +93,7 @@ jobs:
         needs: build
         steps:
             -   name: Download lib nuget package artifact
-                uses: actions/download-artifact@v3
+                uses: actions/download-artifact@v4
                 with:
                     name: buildArtifacts
                     path: ./build_artifacts
@@ -102,7 +106,7 @@ jobs:
                 uses: ncipollo/release-action@v1
                 with:
                     tag: ${{ needs.build.outputs.Version }}
-                    prerelease: ${{ needs.build.outputs.PreReleaseTag }}
+                    prerelease: true
                     name: Release ${{ needs.build.outputs.Version }}
                     artifacts: "build_artifacts/*"
                     token: ${{ secrets.GITHUB_TOKEN }}

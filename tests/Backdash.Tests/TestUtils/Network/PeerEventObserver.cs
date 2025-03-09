@@ -8,6 +8,6 @@ sealed class PeerEventObserver<T> : IPeerObserver<T>
 {
     public event Action<T, SocketAddress, int> OnMessage = delegate { };
 
-    void IPeerObserver<T>.OnPeerMessage(in T message, SocketAddress from, int bytesReceived) =>
+    void IPeerObserver<T>.OnPeerMessage(ref readonly T message, in SocketAddress from, int bytesReceived) =>
         OnMessage(message, from, bytesReceived);
 }

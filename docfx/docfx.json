@@ -3,9 +3,9 @@
         {
             "src": [
                 {
-                    "src": "../",
+                    "src": "../src",
                     "files": [
-                        "src/Backdash/**/bin/Release/**.dll"
+                        "Backdash/bin/Release/**/*.dll"
                     ]
                 }
             ],

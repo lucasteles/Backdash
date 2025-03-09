@@ -1,6 +1,6 @@
 using System.Diagnostics;
 using System.Numerics;
-using Backdash.Serialization.Buffer;
+using Backdash.Serialization.Internal;
 
 namespace Backdash.Data;
 
@@ -63,11 +63,6 @@ public readonly record struct Frame :
     /// </summary>
     public bool IsNull => Number is NullValue;
 
-    /// <summary>
-    /// Returns <see langword="true"/> if the current frame is not a null frame
-    /// </summary>
-    public bool IsNotNull => !IsNull;
-
     /// <inheritdoc />
     public int CompareTo(Frame other) => Number.CompareTo(other.Number);
 
@@ -79,7 +74,7 @@ public readonly record struct Frame :
 
     /// <inheritdoc />
     public string ToString(string? format, IFormatProvider? formatProvider) =>
-        Number.ToString(format ?? "Frame(0);Frame(-#)", formatProvider);
+        Number.ToString(format ?? "(Frame 0);(Frame -#)", formatProvider);
 
     /// <inheritdoc />
     public override string ToString() => ToString(null, null);
@@ -103,10 +98,10 @@ public readonly record struct Frame :
     public static explicit operator Frame(int frame) => new(frame);
 
     /// <summary>Returns the smaller of two <see cref="Frame"/>.</summary>
-    public static Frame Min(in Frame left, in Frame right) => left <= right ? left : right;
+    public static Frame Min(in Frame left, in Frame right) => left.Number <= right.Number ? left : right;
 
     /// <summary>Returns the larger of two <see cref="Frame"/>.</summary>
-    public static Frame Max(in Frame left, in Frame right) => left >= right ? left : right;
+    public static Frame Max(in Frame left, in Frame right) => left.Number >= right.Number ? left : right;
 
     /// <inheritdoc />
     public static bool operator >(Frame left, Frame right) => left.Number > right.Number;

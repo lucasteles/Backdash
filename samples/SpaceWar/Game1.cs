@@ -9,11 +9,11 @@ namespace SpaceWar;
 public class Game1 : Game
 {
     readonly GraphicsDeviceManager graphics;
-    readonly IRollbackSession<PlayerInputs, GameState> rollbackSession;
+    readonly INetcodeSession<PlayerInputs> rollbackSession;
     readonly SessionReplayControl replayControls = new();
     readonly KeyboardController keyboard = new();
 
-    readonly RollbackOptions options = new()
+    readonly NetcodeOptions options = new()
     {
         FrameDelay = 2,
         Log = new()
@@ -96,9 +96,18 @@ public class Game1 : Game
             if (player.IsLocal())
             {
                 playerInfo.ConnectProgress = 100;
-                ngs.LocalPlayerHandle = player;
                 ngs.SetConnectState(player, PlayerConnectState.Connecting);
-                ConfigurePlayerWindow(player);
+
+                if (ngs.LocalPlayerHandle is null)
+                {
+                    ConfigurePlayerWindow(player);
+                    ngs.LocalPlayerHandle = player;
+                }
+                // used for local session, 2nd player that mirrors the player 1
+                else if (ngs.MirrorPlayerHandle is null)
+                    ngs.MirrorPlayerHandle = player;
+                else
+                    throw new InvalidOperationException("Too many local players");
             }
 
             ngs.StatusText.Clear();
@@ -156,17 +165,26 @@ public class Game1 : Game
 
     void HandleReplayKeys()
     {
-        if (rollbackSession.Mode is not SessionMode.Replaying)
+        if (rollbackSession.Mode is SessionMode.Remote or SessionMode.Spectating)
             return;
 
-        if (keyboard.IsKeyPressed(Keys.Space))
-            replayControls.TogglePause();
+        if (rollbackSession.Mode is SessionMode.Replaying)
+        {
+            if (keyboard.IsKeyPressed(Keys.Space))
+                replayControls.TogglePause();
 
-        if (keyboard.IsKeyPressed(Keys.Right))
-            replayControls.Play();
+            if (keyboard.IsKeyPressed(Keys.Right))
+                replayControls.Play();
 
-        if (keyboard.IsKeyPressed(Keys.Left))
-            replayControls.Play(backwards: true);
+            if (keyboard.IsKeyPressed(Keys.Left))
+                replayControls.Play(isBackwards: true);
+        }
+
+        if (keyboard.IsKeyPressed(Keys.Back))
+        {
+            rollbackSession.LoadFrame(rollbackSession.CurrentFrame - 10);
+            replayControls.Pause();
+        }
     }
 
     protected override void Draw(GameTime gameTime)

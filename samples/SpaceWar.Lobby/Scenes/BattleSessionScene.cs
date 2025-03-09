@@ -9,10 +9,10 @@ namespace SpaceWar.Scenes;
 public sealed class BattleSessionScene : Scene
 {
     readonly IReadOnlyList<Peer> peersInfo;
-    readonly IRollbackSession<PlayerInputs, GameState> rollbackSession;
+    readonly INetcodeSession<PlayerInputs> rollbackSession;
     GameSession gameSession = null!;
 
-    readonly RollbackOptions options = new()
+    readonly NetcodeOptions options = new()
     {
         FrameDelay = 2,
         Log = new()
@@ -36,7 +36,7 @@ public sealed class BattleSessionScene : Scene
         if (localPlayer is null)
             throw new InvalidOperationException("No local player defined");
 
-        rollbackSession = RollbackNetcode.CreateSession<PlayerInputs, GameState>(port, options);
+        rollbackSession = RollbackNetcode.CreateSession<PlayerInputs>(port, options);
         rollbackSession.AddPlayers(players);
     }
 
@@ -47,7 +47,7 @@ public sealed class BattleSessionScene : Scene
     )
     {
         this.peersInfo = peersInfo;
-        rollbackSession = RollbackNetcode.CreateSpectatorSession<PlayerInputs, GameState>(
+        rollbackSession = RollbackNetcode.CreateSpectatorSession<PlayerInputs>(
             port, host, playerCount, options
         );
     }
@@ -68,8 +68,15 @@ public sealed class BattleSessionScene : Scene
             if (player.IsLocal())
             {
                 playerInfo.ConnectProgress = 100;
-                ngs.LocalPlayerHandle = player;
                 ngs.SetConnectState(player, PlayerConnectState.Connecting);
+
+                if (ngs.LocalPlayerHandle is null)
+                    ngs.LocalPlayerHandle = player;
+                // used for local session, 2nd player that mirrors the player 1
+                else if (ngs.MirrorPlayerHandle is null)
+                    ngs.MirrorPlayerHandle = player;
+                else
+                    throw new InvalidOperationException("Too many local players");
             }
 
             ngs.StatusText.Clear();

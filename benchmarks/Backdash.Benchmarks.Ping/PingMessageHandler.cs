@@ -1,5 +1,5 @@
-using System.Diagnostics;
 using System.Net;
+using Backdash.Core;
 using Backdash.Network.Client;
 
 namespace Backdash.Benchmarks.Ping;
@@ -9,11 +9,7 @@ sealed class PingMessageHandler(IPeerClient<PingMessage> sender) : IPeerObserver
     public static long TotalProcessed => processedCount;
     static long processedCount;
 
-    public void OnPeerMessage(
-        in PingMessage message,
-        SocketAddress from,
-        int bytesReceived
-    )
+    public void OnPeerMessage(ref readonly PingMessage message, in SocketAddress from, int bytesReceived)
     {
         Interlocked.Increment(ref processedCount);
 
@@ -24,6 +20,6 @@ sealed class PingMessageHandler(IPeerClient<PingMessage> sender) : IPeerObserver
             _ => throw new ArgumentOutOfRangeException(nameof(message), message, null),
         };
 
-        Trace.Assert(sender.TrySendTo(from, reply));
+        ThrowIf.Assert(sender.TrySendTo(from, reply));
     }
 }

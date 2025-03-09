@@ -1,18 +1,18 @@
 using System.Runtime.InteropServices;
 using Backdash.Data;
 using Backdash.Serialization;
-using Backdash.Serialization.Buffer;
+using Backdash.Serialization.Internal;
 
 namespace Backdash.Network.Messages;
 
 [Serializable, StructLayout(LayoutKind.Sequential)]
-record struct InputAck : IBinarySerializable, IUtf8SpanFormattable
+record struct InputAck : IUtf8SpanFormattable
 {
     public Frame AckFrame;
-    public readonly void Serialize(BinarySpanWriter writer) => writer.Write(in AckFrame.Number);
+    public readonly void Serialize(in BinaryRawBufferWriter writer) => writer.Write(in AckFrame);
 
-    public void Deserialize(BinarySpanReader reader) =>
-        AckFrame = new(reader.ReadInt32());
+    public void Deserialize(in BinaryBufferReader reader) =>
+        AckFrame = reader.ReadFrame();
 
     public readonly bool TryFormat(
         Span<byte> utf8Destination,
@@ -22,6 +22,6 @@ record struct InputAck : IBinarySerializable, IUtf8SpanFormattable
     {
         bytesWritten = 0;
         using Utf8ObjectWriter writer = new(in utf8Destination, ref bytesWritten);
-        return writer.Write(AckFrame);
+        return writer.Write(in AckFrame);
     }
 }

@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
-using Backdash.Core;
 using Backdash.Data;
 
 #pragma warning disable S1215
@@ -82,7 +81,7 @@ public sealed class Measurer : IAsyncDisposable
              Duration: {watch.Elapsed:c}
              Snapshots: {snapshots.Count:N0}
              Msg Count: {PingMessageHandler.TotalProcessed:N0}
-             Msg Size: {(ByteSize)Mem.SizeOf<PingMessage>()}
+             Msg Size: {(ByteSize)Unsafe.SizeOf<PingMessage>()}
              """
         );
         if (snapshots is [.., var last])

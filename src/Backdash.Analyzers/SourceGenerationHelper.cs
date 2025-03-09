@@ -29,116 +29,24 @@ static class SourceGenerationHelper
 
         StringBuilder writes = new();
         StringBuilder reads = new();
-        const string tab = "\t\t";
+        const string tab1 = "    ";
+        const string tab2 = $"{tab1}{tab1}";
+        const string tab3 = $"{tab2}{tab1}";
         var arrays = 0;
+        const string sizeProp = "Length";
+        string paramModifier;
 
-        foreach (var member in item.Members)
+        foreach (var member in item.Members.OrderBy(x => x.Name, StringComparer.InvariantCulture))
         {
-            var paramModifier = member.IsProperty ? string.Empty : "in ";
-            const string sizeProp = "Length";
+            paramModifier = member.IsProperty ? string.Empty : "in ";
 
             if (IsArrayLike(member.Type, out var itemType))
             {
-                if (IsTypeArrayCopiable(itemType))
-                {
-                    writes.Append(tab);
-                    writes.AppendLine($"binaryWriter.Write(data.{member.Name});");
-
-                    reads.Append(tab);
-                    reads.AppendLine($"binaryReader.Read{itemType.Name}(result.{member.Name});");
-                }
-                else
-                {
-                    var arrayIndex = ++arrays;
-                    var path = $"data.{member.Name}";
-
-                    writes.AppendLine(
-                        $$"""
-                                  binaryWriter.Write({{path}}.{{sizeProp}});
-                                  for(var i = 0; i < {{path}}.{{sizeProp}}; i++)
-                                  {
-                          """);
-
-                    reads.AppendLine(
-                        $$"""
-                                  var size{{arrayIndex}} = binaryReader.ReadInt32();
-                                  for(var i = 0; i < size{{arrayIndex}}; i++)
-                                  {
-                          """);
-
-                    if (serializerMap.TryGetValue(itemType.ToDisplayString(), out var memberSerializer))
-                    {
-                        var serializerName = $"{memberSerializer.NameSpace}.{memberSerializer.Name}.Shared";
-
-                        writes.AppendLine(
-                            $"""
-                             {tab}var byteCount{arrayIndex} = {serializerName}.Serialize(in data.{member.Name}[i], binaryWriter.CurrentBuffer);
-                             {tab}binaryWriter.Advance(byteCount{arrayIndex});
-                             """);
-
-                        reads.AppendLine(
-                            $"""
-                             {tab}var byteCount{arrayIndex} = {serializerName}.Deserialize(binaryReader.CurrentBuffer, ref result.{member.Name}[i]);
-                             {tab}binaryReader.Advance(byteCount{arrayIndex});
-                             """);
-                    }
-                    else if (itemType.IsUnmanagedType)
-                    {
-                        writes.Append(tab);
-                        writes.AppendLine(
-                            itemType is INamedTypeSymbol { EnumUnderlyingType: not null }
-                                ? $"binaryWriter.WriteEnum<{itemType.Name}>({paramModifier}data.{member.Name}[i]);"
-                                : $"binaryWriter.Write({paramModifier}data.{member.Name}[i]);"
-                        );
-
-                        reads.Append(tab);
-                        reads.AppendLine(
-                            itemType is INamedTypeSymbol { EnumUnderlyingType: not null }
-                                ? $"result.{member.Name}[i] = binaryReader.ReadEnum<{itemType.Name}>();"
-                                : $"result.{member.Name}[i] = binaryReader.Read{itemType.Name}();"
-                        );
-                    }
-
-                    writes.Append(tab);
-                    writes.AppendLine("}");
-                    reads.Append(tab);
-                    reads.AppendLine("}");
-                }
+                BuildArrayMember(itemType, member);
             }
             else
             {
-                if (serializerMap.TryGetValue(member.Type.ToDisplayString(), out var memberSerializer))
-                {
-                    var serializerName = $"{memberSerializer.NameSpace}.{memberSerializer.Name}.Shared";
-
-                    writes.AppendLine(
-                        $"""
-                         {tab}var byteCount = {serializerName}.Serialize(in data.{member.Name}, binaryWriter.CurrentBuffer);
-                         {tab}binaryWriter.Advance(byteCount);
-                         """);
-
-                    reads.AppendLine(
-                        $"""
-                         {tab}var byteCount = {serializerName}.Deserialize(binaryReader.CurrentBuffer, ref result.{member.Name});
-                         {tab}binaryReader.Advance(byteCount);
-                         """);
-                }
-                else if (member.Type.IsUnmanagedType)
-                {
-                    writes.Append(tab);
-                    writes.AppendLine(
-                        member.Type is INamedTypeSymbol { EnumUnderlyingType: not null }
-                            ? $"binaryWriter.WriteEnum<{member.Type.Name}>({paramModifier}data.{member.Name});"
-                            : $"binaryWriter.Write({paramModifier}data.{member.Name});"
-                    );
-
-                    reads.Append(tab);
-                    reads.AppendLine(
-                        member.Type is INamedTypeSymbol { EnumUnderlyingType: not null }
-                            ? $"result.{member.Name} = binaryReader.ReadEnum<{member.Type.Name}>();"
-                            : $"result.{member.Name} = binaryReader.Read{member.Type.Name}();"
-                    );
-                }
+                BuildValueMember(member);
             }
         }
 
@@ -146,32 +54,123 @@ static class SourceGenerationHelper
         sb.Replace("[[READS]]", reads.ToString());
 
         if (hasNamespace) sb.Append('}');
+
+        return;
+
+        void BuildValueMember(ClassMember member)
+        {
+            if (serializerMap.TryGetValue(member.Type.ToDisplayString(), out var memberSerializer))
+            {
+                var serializerName = $"{memberSerializer.NameSpace}.{memberSerializer.Name}.Shared";
+
+                writes.AppendLine(
+                    $"""
+                     {tab2}{serializerName}.Serialize(in binaryWriter, in data.{member.Name});
+                     """);
+
+                reads.AppendLine(
+                    $"""
+                     {tab2}{serializerName}.Deserialize(in binaryReader, ref result.{member.Name});
+                     """);
+            }
+            else if (member.Type.IsUnmanagedType)
+            {
+                writes.Append(tab2);
+                writes.AppendLine(
+                    member.Type is INamedTypeSymbol { EnumUnderlyingType: { } underTypeWrite }
+                        ? $"binaryWriter.Write(({underTypeWrite.Name})data.{member.Name});"
+                        : $"binaryWriter.Write({paramModifier}data.{member.Name});"
+                );
+
+                reads.Append(tab2);
+                reads.AppendLine(
+                    member.Type is INamedTypeSymbol { EnumUnderlyingType: { } underTypeRead }
+                        ? $"result.{member.Name} = ({member.Type.Name})binaryReader.Read{underTypeRead.Name}();"
+                        : $"result.{member.Name} = binaryReader.Read{member.Type.Name}();"
+                );
+            }
+        }
+
+        void BuildArrayMember(ITypeSymbol itemType, ClassMember member)
+        {
+            if (IsTypeArrayCopiable(itemType))
+            {
+                writes.Append(tab2);
+                writes.AppendLine($"binaryWriter.Write(data.{member.Name});");
+
+                reads.Append(tab2);
+                reads.AppendLine($"binaryReader.Read(result.{member.Name});");
+            }
+            else
+            {
+                var arrayIndex = ++arrays;
+                var path = $"data.{member.Name}";
+
+                writes.AppendLine(
+                    $$"""
+                              binaryWriter.Write({{path}}.{{sizeProp}});
+                              for(var i = 0; i < {{path}}.{{sizeProp}}; i++)
+                              {
+                      """);
+
+                reads.AppendLine(
+                    $$"""
+                              var size{{arrayIndex}} = binaryReader.ReadInt32();
+                              for(var i = 0; i < size{{arrayIndex}}; i++)
+                              {
+                      """);
+
+                if (serializerMap.TryGetValue(itemType.ToDisplayString(), out var memberSerializer))
+                {
+                    var serializerName = $"{memberSerializer.NameSpace}.{memberSerializer.Name}.Shared";
+
+                    writes.AppendLine(
+                        $"""
+                         {tab3}{serializerName}.Serialize(in binaryWriter, in data.{member.Name}[i]);
+                         """);
+
+                    reads.AppendLine(
+                        $"""
+                         {tab3}{serializerName}.Deserialize(in binaryReader, ref result.{member.Name}[i]);
+                         """);
+                }
+                else if (itemType.IsUnmanagedType)
+                {
+                    writes.Append(tab3);
+                    writes.AppendLine(
+                        itemType is INamedTypeSymbol { EnumUnderlyingType: { } underTypeWrite }
+                            ? $"binaryWriter.Write(({underTypeWrite.Name})data.{member.Name}[i]);"
+                            : $"binaryWriter.Write({paramModifier}data.{member.Name}[i]);"
+                    );
+
+                    reads.Append(tab3);
+                    reads.AppendLine(
+                        itemType is INamedTypeSymbol { EnumUnderlyingType: { } underTypeRead }
+                            ? $"result.{member.Name}[i] = ({itemType.Name})binaryReader.Read{underTypeRead.Name}();"
+                            : $"result.{member.Name}[i] = binaryReader.Read{itemType.Name}();"
+                    );
+                }
+
+                writes.Append(tab2);
+                writes.AppendLine("}");
+                reads.Append(tab2);
+                reads.AppendLine("}");
+            }
+        }
     }
 
     static bool IsArrayLike(ITypeSymbol memberType, out ITypeSymbol elementType)
     {
         elementType = memberType;
-
-        if (memberType is IArrayTypeSymbol { ElementType: { } itemType })
-        {
-            elementType = itemType;
-            return true;
-        }
-
-        if (memberType is INamedTypeSymbol { TypeArguments.Length: 1 } named
-            && named.ToDisplayString().StartsWith("Backdash.Data.EquatableArray"))
-        {
-            elementType = named.TypeArguments.First();
-            return true;
-        }
-
-        return false;
+        if (memberType is not IArrayTypeSymbol { ElementType: { } itemType }) return false;
+        elementType = itemType;
+        return true;
     }
 
     internal static string CreateSourceName(string nameSpace, ParentClass? parent, string name)
     {
         var sb = new StringBuilder(nameSpace).Append('.');
-        while (parent != null)
+        while (parent is not null)
         {
             var s = parent.Name
                 .Replace(" ", "")

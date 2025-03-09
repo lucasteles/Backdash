@@ -1,5 +1,7 @@
+using System.Text.Json;
 using Backdash;
 using Backdash.Data;
+using Backdash.Serialization;
 using SpaceWar.Logic;
 
 namespace SpaceWar;
@@ -8,8 +10,8 @@ public sealed class GameSession(
     GameState gameState,
     NonGameState nonGameState,
     Renderer renderer,
-    IRollbackSession<PlayerInputs> session
-) : IRollbackHandler<GameState>
+    INetcodeSession<PlayerInputs> session
+) : INetcodeSessionHandler
 {
     readonly SynchronizedInput<PlayerInputs>[] inputs =
         new SynchronizedInput<PlayerInputs>[nonGameState.NumberOfPlayers];
@@ -24,14 +26,16 @@ public sealed class GameSession(
 
         UpdateStats();
         session.BeginFrame();
-        if (nonGameState.LocalPlayerHandle is { } localPlayer)
-        {
-            var keyboard = Keyboard.GetState();
-            HandleNoGameInput(keyboard);
-            var localInput = Inputs.ReadInputs(keyboard);
-            if (session.AddLocalInput(localPlayer, localInput) is not ResultCode.Ok)
-                return;
-        }
+
+        var keyboard = Keyboard.GetState();
+        HandleNoGameInput(keyboard);
+        var localInput = Inputs.ReadInputs(keyboard);
+
+        if (nonGameState.LocalPlayerHandle is { } localPlayer
+            && session.AddLocalInput(localPlayer, localInput) is not ResultCode.Ok) return;
+
+        if (nonGameState.MirrorPlayerHandle is { } mirrorPlayer
+            && session.AddLocalInput(mirrorPlayer, localInput) is not ResultCode.Ok) return;
 
         var syncInputResult = session.SynchronizeInputs();
         if (syncInputResult is not ResultCode.Ok)
@@ -87,6 +91,11 @@ public sealed class GameSession(
     void UpdateStats()
     {
         nonGameState.RollbackFrames = session.RollbackFrames;
+
+        var saved = session.GetCurrentSavedFrame();
+        nonGameState.StateChecksum = saved.Checksum;
+        nonGameState.StateSize = saved.Size;
+
         for (var i = 0; i < nonGameState.Players.Length; i++)
         {
             ref var player = ref nonGameState.Players[i];
@@ -99,8 +108,8 @@ public sealed class GameSession(
     public void OnPeerEvent(PlayerHandle player, PeerEventInfo evt)
     {
         Console.WriteLine($"{DateTime.Now:o} => PEER EVENT: {evt} from {player}");
-        if (player.IsSpectator())
-            return;
+        if (player.IsSpectator()) return;
+
         switch (evt.Type)
         {
             case PeerEvent.Connected:
@@ -132,45 +141,13 @@ public sealed class GameSession(
         }
     }
 
-    public static void CopyState(GameState from, GameState to)
-    {
-        to.Bounds = from.Bounds;
-        to.FrameNumber = from.FrameNumber;
-        if (to.Ships.Length is 0)
-        {
-            to.Ships = new(from.Ships.Length);
-            for (var i = 0; i < from.Ships.Length; i++)
-                to.Ships[i] = new();
-        }
+    public void SaveState(in Frame frame, ref readonly BinaryBufferWriter writer) =>
+        gameState.SaveState(in writer);
 
-        for (var i = 0; i < from.Ships.Length; i++)
-        {
-            ref var toShip = ref to.Ships[i];
-            ref var fromShip = ref from.Ships[i];
-            toShip.Id = fromShip.Id;
-            toShip.Position = fromShip.Position;
-            toShip.Velocity = fromShip.Velocity;
-            toShip.Radius = fromShip.Radius;
-            toShip.Heading = fromShip.Heading;
-            toShip.Health = fromShip.Health;
-            toShip.Active = fromShip.Active;
-            toShip.FireCooldown = fromShip.FireCooldown;
-            toShip.MissileCooldown = fromShip.MissileCooldown;
-            toShip.Invincible = fromShip.Invincible;
-            toShip.Score = fromShip.Score;
-            toShip.Thrust = fromShip.Thrust;
-            // safe because Missile is a struct/value type
-            toShip.Missile = fromShip.Missile;
-            fromShip.Bullets.CopyTo(toShip.Bullets);
-        }
-    }
-
-    public void SaveState(in Frame frame, ref GameState state) => CopyState(gameState, state);
-
-    public void LoadState(in Frame frame, in GameState gs)
+    public void LoadState(in Frame frame, ref readonly BinaryBufferReader reader)
     {
         Console.WriteLine($"{DateTime.Now:o} => Loading state {frame}...");
-        CopyState(gs, gameState);
+        gameState.LoadState(in reader);
     }
 
     public void AdvanceFrame()
@@ -180,4 +157,17 @@ public sealed class GameSession(
         gameState.Update(inputs);
         session.AdvanceFrame();
     }
+
+    public string GetStateString(in Frame frame, ref readonly BinaryBufferReader reader)
+    {
+        GameState state = new();
+        state.LoadState(in reader);
+        return JsonSerializer.Serialize(state, jsonOptions);
+    }
+
+    static readonly JsonSerializerOptions jsonOptions = new()
+    {
+        WriteIndented = true,
+        IncludeFields = true,
+    };
 }

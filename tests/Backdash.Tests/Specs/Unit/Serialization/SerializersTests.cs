@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using Backdash.Serialization;
+using Backdash.Serialization.Internal;
 using Backdash.Tests.TestUtils;
 using Backdash.Tests.TestUtils.Types;
 
@@ -120,32 +121,32 @@ public class SerializersTests
     }
 
     [PropertyTest]
-    public bool ShouldSerializeIntEnum(IntEnum value)
+    public bool ShouldSerializeIntEnum(Int32Enum value)
     {
-        var serializer = BinarySerializerFactory.ForEnum<IntEnum>();
-        AssertBaseSerializer<IntEnum, int>(serializer);
-        Span<byte> buffer = stackalloc byte[sizeof(IntEnum)];
+        var serializer = BinarySerializerFactory.ForEnum<Int32Enum>();
+        AssertBaseSerializer<Int32Enum, int>(serializer);
+        Span<byte> buffer = stackalloc byte[sizeof(Int32Enum)];
         serializer.Serialize(in value, buffer);
         var result = serializer.Deserialize(buffer);
         return result == value;
     }
 
     [PropertyTest]
-    public bool ShouldSerializeUIntEnum(UIntEnum value)
+    public bool ShouldSerializeUIntEnum(UInt32Enum value)
     {
-        var serializer = BinarySerializerFactory.ForEnum<UIntEnum>();
-        AssertBaseSerializer<UIntEnum, uint>(serializer);
-        Span<byte> buffer = stackalloc byte[sizeof(UIntEnum)];
+        var serializer = BinarySerializerFactory.ForEnum<UInt32Enum>();
+        AssertBaseSerializer<UInt32Enum, uint>(serializer);
+        Span<byte> buffer = stackalloc byte[sizeof(UInt32Enum)];
         serializer.Serialize(in value, buffer);
         var result = serializer.Deserialize(buffer);
         return result == value;
     }
 
     [PropertyTest]
-    public bool ShouldSerializeULongEnum(ULongEnum value)
+    public bool ShouldSerializeULongEnum(UInt64Enum value)
     {
-        var serializer = BinarySerializerFactory.ForEnum<ULongEnum>();
-        AssertBaseSerializer<ULongEnum, ulong>(serializer);
+        var serializer = BinarySerializerFactory.ForEnum<UInt64Enum>();
+        AssertBaseSerializer<UInt64Enum, ulong>(serializer);
         Span<byte> buffer = stackalloc byte[sizeof(ulong)];
         serializer.Serialize(in value, buffer);
         var result = serializer.Deserialize(buffer);
@@ -153,33 +154,33 @@ public class SerializersTests
     }
 
     [PropertyTest]
-    public bool ShouldSerializeLongEnum(LongEnum value)
+    public bool ShouldSerializeLongEnum(Int64Enum value)
     {
-        var serializer = BinarySerializerFactory.ForEnum<LongEnum>();
-        AssertBaseSerializer<LongEnum, long>(serializer);
-        Span<byte> buffer = stackalloc byte[sizeof(LongEnum)];
+        var serializer = BinarySerializerFactory.ForEnum<Int64Enum>();
+        AssertBaseSerializer<Int64Enum, long>(serializer);
+        Span<byte> buffer = stackalloc byte[sizeof(Int64Enum)];
         serializer.Serialize(in value, buffer);
         var result = serializer.Deserialize(buffer);
         return result == value;
     }
 
     [PropertyTest]
-    public bool ShouldSerializeShortEnum(ShortEnum value)
+    public bool ShouldSerializeShortEnum(Int16Enum value)
     {
-        var serializer = BinarySerializerFactory.ForEnum<ShortEnum>();
-        AssertBaseSerializer<ShortEnum, short>(serializer);
-        Span<byte> buffer = stackalloc byte[sizeof(ShortEnum)];
+        var serializer = BinarySerializerFactory.ForEnum<Int16Enum>();
+        AssertBaseSerializer<Int16Enum, short>(serializer);
+        Span<byte> buffer = stackalloc byte[sizeof(Int16Enum)];
         serializer.Serialize(in value, buffer);
         var result = serializer.Deserialize(buffer);
         return result == value;
     }
 
     [PropertyTest]
-    public bool ShouldSerializeUShortEnum(UShortEnum value)
+    public bool ShouldSerializeUShortEnum(UInt16Enum value)
     {
-        var serializer = BinarySerializerFactory.ForEnum<UShortEnum>();
-        AssertBaseSerializer<UShortEnum, ushort>(serializer);
-        Span<byte> buffer = stackalloc byte[sizeof(UShortEnum)];
+        var serializer = BinarySerializerFactory.ForEnum<UInt16Enum>();
+        AssertBaseSerializer<UInt16Enum, ushort>(serializer);
+        Span<byte> buffer = stackalloc byte[sizeof(UInt16Enum)];
         serializer.Serialize(in value, buffer);
         var result = serializer.Deserialize(buffer);
         return result == value;
@@ -221,10 +222,11 @@ public class SerializersTests
     static void AssertBaseSerializer<T, TInt>(IBinarySerializer<T> serializer)
         where T : unmanaged, Enum
         where TInt : unmanaged, IBinaryInteger<TInt>, IMinMaxValue<TInt> =>
-        (serializer as EnumBinarySerializer<T>)?
-        .GetBaseSerializer().Should().NotBeNull()
+        (serializer as EnumBinarySerializer<T, TInt>)?
+        .GetBaseSerializer()
+        .Should().NotBeNull()
         .And
-        .BeOfType<EnumBinarySerializer<T, TInt>>();
+        .BeOfType<IntegerBinarySerializer<TInt>>();
 
     [Fact]
     public void ShouldReturnCorrectSerializerForStruct()
@@ -239,10 +241,12 @@ public class SerializersTests
         serializer.Should().BeOfType<IntegerBinarySerializer<T>>();
     }
 
-    static void AssertEnumSerializer<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] T>() where T : unmanaged, Enum
+    static void AssertEnumSerializer<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] T, TInt>()
+        where T : unmanaged, Enum
+        where TInt : unmanaged, IBinaryInteger<TInt>, IMinMaxValue<TInt>
     {
         var serializer = BinarySerializerFactory.Get<T>();
-        serializer.Should().BeOfType<EnumBinarySerializer<T>>();
+        serializer.Should().BeOfType<EnumBinarySerializer<T, TInt>>();
     }
 
     [Fact] public void AssertSerializerByte() => AssertIntegerSerializer<byte>();
@@ -256,13 +260,23 @@ public class SerializersTests
     [Fact] public void AssertSerializerInt128() => AssertIntegerSerializer<Int128>();
     [Fact] public void AssertSerializerUInt128() => AssertIntegerSerializer<UInt128>();
 
-    [Fact] public void AssertSerializerByteEnum() => AssertEnumSerializer<ByteEnum>();
-    [Fact] public void AssertSerializerSByteEnum() => AssertEnumSerializer<SByteEnum>();
-    [Fact] public void AssertSerializerShortEnum() => AssertEnumSerializer<ShortEnum>();
-    [Fact] public void AssertSerializerUShortEnum() => AssertEnumSerializer<UShortEnum>();
-    [Fact] public void AssertSerializerIntEnum() => AssertEnumSerializer<IntEnum>();
-    [Fact] public void AssertSerializerUIntEnum() => AssertEnumSerializer<UIntEnum>();
-    [Fact] public void AssertSerializerLongEnum() => AssertEnumSerializer<LongEnum>();
-    [Fact] public void AssertSerializerULongEnum() => AssertEnumSerializer<ULongEnum>();
+    [Fact] public void AssertSerializerByteEnum() => AssertEnumSerializer<ByteEnum, byte>();
+    [Fact] public void AssertSerializerSByteEnum() => AssertEnumSerializer<SByteEnum, sbyte>();
+    [Fact] public void AssertSerializerShortEnum() => AssertEnumSerializer<Int16Enum, short>();
+    [Fact] public void AssertSerializerUShortEnum() => AssertEnumSerializer<UInt16Enum, ushort>();
+    [Fact] public void AssertSerializerIntEnum() => AssertEnumSerializer<Int32Enum, int>();
+    [Fact] public void AssertSerializerUIntEnum() => AssertEnumSerializer<UInt32Enum, uint>();
+    [Fact] public void AssertSerializerLongEnum() => AssertEnumSerializer<Int64Enum, long>();
+    [Fact] public void AssertSerializerULongEnum() => AssertEnumSerializer<UInt64Enum, ulong>();
 
+}
+
+static file class Extensions
+{
+    public static T Deserialize<T>(this IBinarySerializer<T> serializer, ReadOnlySpan<byte> data) where T : new()
+    {
+        var result = new T();
+        serializer.Deserialize(data, ref result);
+        return result;
+    }
 }

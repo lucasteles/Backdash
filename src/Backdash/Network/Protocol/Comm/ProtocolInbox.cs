@@ -1,12 +1,13 @@
-using System.Diagnostics;
 using System.Net;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network.Client;
 using Backdash.Network.Messages;
 using Backdash.Serialization;
 using Backdash.Synchronizing.Input;
+using Backdash.Synchronizing.State;
 
 namespace Backdash.Network.Protocol.Comm;
 
@@ -18,13 +19,14 @@ interface IProtocolInbox<TInput> : IPeerObserver<ProtocolMessage> where TInput :
 
 sealed class ProtocolInbox<TInput>(
     ProtocolOptions options,
-    IBinaryReader<TInput> inputSerializer,
+    IBinarySerializer<TInput> inputSerializer,
     ProtocolState state,
     IClock clock,
     IProtocolSynchronizer sync,
     IMessageSender messageSender,
     IProtocolNetworkEventHandler networkEvents,
     IProtocolInputEventPublisher<TInput> inputEvents,
+    IStateStore stateStore,
     Logger logger
 ) : IProtocolInbox<TInput> where TInput : unmanaged
 {
@@ -35,7 +37,7 @@ sealed class ProtocolInbox<TInput>(
     public GameInput<TInput> LastReceivedInput => lastReceivedInput;
     public Frame LastAckedFrame { get; private set; } = Frame.Null;
 
-    public void OnPeerMessage(in ProtocolMessage message, SocketAddress from, int bytesReceived)
+    public void OnPeerMessage(ref readonly ProtocolMessage message, in SocketAddress from, int bytesReceived)
     {
         if (!from.Equals(state.PeerAddress.Address))
             return;
@@ -88,7 +90,7 @@ sealed class ProtocolInbox<TInput>(
         }
     }
 
-    bool HandleMessage(in ProtocolMessage message, out ProtocolMessage replyMsg)
+    bool HandleMessage(ref readonly ProtocolMessage message, out ProtocolMessage replyMsg)
     {
         replyMsg = new(MessageType.Unknown);
         var handled = message.Header.Type switch
@@ -96,9 +98,11 @@ sealed class ProtocolInbox<TInput>(
             MessageType.SyncRequest => OnSyncRequest(in message, ref replyMsg),
             MessageType.SyncReply => OnSyncReply(in message, ref replyMsg),
             MessageType.Input => OnInput(in message.Input),
-            MessageType.QualityReport => OnQualityReport(in message, out replyMsg),
+            MessageType.QualityReport => OnQualityReport(in message, ref replyMsg),
             MessageType.QualityReply => OnQualityReply(in message),
             MessageType.InputAck => OnInputAck(in message),
+            MessageType.ConsistencyCheckRequest => OnConsistencyCheckRequest(in message, ref replyMsg),
+            MessageType.ConsistencyCheckReply => OnConsistencyCheckReply(in message),
             MessageType.KeepAlive => true,
             MessageType.Unknown =>
                 throw new NetcodeException($"Unknown UDP protocol message received: {message.Header.Type}"),
@@ -129,16 +133,25 @@ sealed class ProtocolInbox<TInput>(
              * Update the peer connection status if this peer is still considered to be part
              * of the network.
              */
-            var remoteStatus = msg.PeerConnectStatus;
-            var peerConnectStatus = state.PeerConnectStatuses;
-            for (var i = 0; i < peerConnectStatus.Length; i++)
+            Span<ConnectStatus> localStatus = state.PeerConnectStatuses.Statuses;
+            ReadOnlySpan<ConnectStatus> remoteStatus = msg.PeerConnectStatus;
+            var peerCount = Math.Min(msg.PeerCount, localStatus.Length);
+
+            ref var currentLocalStatus = ref MemoryMarshal.GetReference(localStatus);
+            ref var currentRemoteStatus = ref MemoryMarshal.GetReference(remoteStatus);
+            ref var limitRemoteStatus = ref Unsafe.Add(ref currentRemoteStatus, peerCount);
+
+            while (Unsafe.IsAddressLessThan(ref currentRemoteStatus, ref limitRemoteStatus))
             {
-                Trace.Assert(remoteStatus[i].LastFrame >= peerConnectStatus[i].LastFrame);
-                peerConnectStatus[i].Disconnected = peerConnectStatus[i].Disconnected || remoteStatus[i].Disconnected;
-                peerConnectStatus[i].LastFrame = Frame.Max(
-                    in peerConnectStatus[i].LastFrame,
-                    in remoteStatus[i].LastFrame
+                ThrowIf.Assert(currentRemoteStatus.LastFrame >= currentLocalStatus.LastFrame);
+                currentLocalStatus.Disconnected = currentLocalStatus.Disconnected || currentRemoteStatus.Disconnected;
+                currentLocalStatus.LastFrame = Frame.Max(
+                    in currentLocalStatus.LastFrame,
+                    in currentRemoteStatus.LastFrame
                 );
+
+                currentRemoteStatus = ref Unsafe.Add(ref currentRemoteStatus, 1)!;
+                currentLocalStatus = ref Unsafe.Add(ref currentLocalStatus, 1)!;
             }
         }
 
@@ -166,12 +179,12 @@ sealed class ProtocolInbox<TInput>(
                     return true;
             }
 
-            Trace.Assert(currentFrame == nextFrame);
+            ThrowIf.Assert(currentFrame == nextFrame);
             var lastReceivedBuffer = lastReceivedInputBuffer.AsSpan(..msg.InputSize);
             while (decompressor.Read(lastReceivedBuffer))
             {
                 inputSerializer.Deserialize(lastReceivedBuffer, ref lastReceivedInput.Data);
-                Trace.Assert(currentFrame == lastReceivedFrame.Next());
+                ThrowIf.Assert(currentFrame == lastReceivedFrame.Next());
                 lastReceivedFrame = currentFrame;
                 lastReceivedInput.Frame = currentFrame;
                 state.Stats.LastReceivedInputTime = clock.GetTimeStamp();
@@ -184,36 +197,31 @@ sealed class ProtocolInbox<TInput>(
             LastAckedFrame = msg.AckFrame;
         }
 
-        Trace.Assert(lastReceivedInput.Frame >= startLastReceivedFrame);
+        ThrowIf.Assert(lastReceivedInput.Frame >= startLastReceivedFrame);
         return true;
     }
 
-    bool OnInputAck(in ProtocolMessage msg)
+    bool OnInputAck(ref readonly ProtocolMessage msg)
     {
         LastAckedFrame = msg.InputAck.AckFrame;
         return true;
     }
 
-    bool OnQualityReply(in ProtocolMessage msg)
+    bool OnQualityReply(ref readonly ProtocolMessage msg)
     {
         state.Stats.RoundTripTime = clock.GetElapsedTime(msg.QualityReply.Pong);
         return true;
     }
 
-    bool OnQualityReport(in ProtocolMessage msg, out ProtocolMessage newMsg)
+    bool OnQualityReport(ref readonly ProtocolMessage msg, ref ProtocolMessage replyMsg)
     {
-        newMsg = new(MessageType.QualityReply)
-        {
-            QualityReply = new()
-            {
-                Pong = msg.QualityReport.Ping,
-            },
-        };
+        replyMsg.Header.Type = MessageType.QualityReply;
+        replyMsg.QualityReply.Pong = msg.QualityReport.Ping;
         state.Fairness.RemoteFrameAdvantage = new(msg.QualityReport.FrameAdvantage);
         return true;
     }
 
-    bool OnSyncReply(in ProtocolMessage msg, ref ProtocolMessage replyMsg)
+    bool OnSyncReply(ref readonly ProtocolMessage msg, ref ProtocolMessage replyMsg)
     {
         var elapsed = clock.GetElapsedTime(msg.SyncReply.Pong);
         if (state.CurrentStatus is not ProtocolStatus.Syncing)
@@ -236,13 +244,13 @@ sealed class ProtocolInbox<TInput>(
         }
 
         logger.Write(LogLevel.Debug,
-            $"Checking sync state ({state.Sync.RemainingRoundtrips} round trips remaining)");
-        if (options.NumberOfSyncRoundtrips >= state.Sync.RemainingRoundtrips)
-            state.Sync.TotalRoundtripsPing = TimeSpan.Zero;
-        state.Sync.TotalRoundtripsPing += elapsed;
-        if (--state.Sync.RemainingRoundtrips == 0)
+            $"Checking sync state ({state.Sync.RemainingRoundTrips} round trips remaining)");
+        if (options.NumberOfSyncRoundtrips >= state.Sync.RemainingRoundTrips)
+            state.Sync.TotalRoundTripsPing = TimeSpan.Zero;
+        state.Sync.TotalRoundTripsPing += elapsed;
+        if (--state.Sync.RemainingRoundTrips == 0)
         {
-            var ping = state.Sync.TotalRoundtripsPing / options.NumberOfSyncRoundtrips;
+            var ping = state.Sync.TotalRoundTripsPing / options.NumberOfSyncRoundtrips;
             logger.Write(LogLevel.Information,
                 $"Player {state.Player.Number} Synchronized! (Ping: {ping.TotalMilliseconds:f4})");
             state.CurrentStatus = ProtocolStatus.Running;
@@ -261,17 +269,17 @@ sealed class ProtocolInbox<TInput>(
                 {
                     Synchronizing = new(
                         TotalSteps: options.NumberOfSyncRoundtrips,
-                        CurrentStep: options.NumberOfSyncRoundtrips - state.Sync.RemainingRoundtrips
+                        CurrentStep: options.NumberOfSyncRoundtrips - state.Sync.RemainingRoundTrips
                     ),
                 }
             );
-            sync.CreateRequestMessage(out replyMsg);
+            sync.CreateRequestMessage(ref replyMsg);
         }
 
         return true;
     }
 
-    public bool OnSyncRequest(in ProtocolMessage msg, ref ProtocolMessage replyMsg)
+    public bool OnSyncRequest(ref readonly ProtocolMessage msg, ref ProtocolMessage replyMsg)
     {
         var remoteMagicNumber = state.RemoteMagicNumber;
         if (remoteMagicNumber is not 0 && msg.Header.Magic != remoteMagicNumber)
@@ -281,7 +289,56 @@ sealed class ProtocolInbox<TInput>(
             return false;
         }
 
-        sync.CreateReplyMessage(in msg.SyncRequest, out replyMsg);
+        sync.CreateReplyMessage(in msg.SyncRequest, ref replyMsg);
+        return true;
+    }
+
+    bool OnConsistencyCheckReply(ref readonly ProtocolMessage message)
+    {
+        var checkFrame = message.ConsistencyCheckReply.Frame;
+        var checksum = message.ConsistencyCheckReply.Checksum;
+        var localChecksum = state.Consistency.AskedChecksum;
+
+        logger.Write(LogLevel.Debug, $"Received consistency request reply for: {checkFrame} #{checksum:x8}");
+
+        if (state.Consistency.AskedFrame != checkFrame || localChecksum is 0 || checksum is 0)
+        {
+            logger.Write(LogLevel.Warning, $"Unable to find reply local checksum #{checksum:x8} for {checkFrame}");
+            return false;
+        }
+
+        if (localChecksum != checksum)
+        {
+            logger.Write(LogLevel.Error,
+                $"Invalid remote checksum on frame {checkFrame}, {localChecksum:x8} != {checksum:x8}");
+            state.StoppingTokenSource.Cancel();
+            return false;
+        }
+
+        logger.Write(LogLevel.Debug, $"Consistency request check for: {checkFrame} OK({checksum:x8})");
+        state.Consistency.LastCheck = clock.GetTimeStamp();
+        state.Consistency.AskedFrame = Frame.Null;
+        state.Consistency.AskedChecksum = 0;
+
+        return true;
+    }
+
+    bool OnConsistencyCheckRequest(ref readonly ProtocolMessage message, ref ProtocolMessage replyMsg)
+    {
+        var checkFrame = message.ConsistencyCheckRequest.Frame;
+        var checksum = stateStore.GetChecksum(checkFrame);
+
+        logger.Write(LogLevel.Debug, $"Received consistency request check for: {checkFrame} (reply {checksum:x8})");
+
+        if (checksum is 0)
+        {
+            logger.Write(LogLevel.Warning, $"Unable to find requested local checksum for {checkFrame}");
+            return false;
+        }
+
+        replyMsg.Header.Type = MessageType.ConsistencyCheckReply;
+        replyMsg.ConsistencyCheckReply.Frame = checkFrame;
+        replyMsg.ConsistencyCheckReply.Checksum = checksum;
         return true;
     }
 }

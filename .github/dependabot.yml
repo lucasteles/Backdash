@@ -1,7 +1,10 @@
 version: 2
 updates:
-    - package-ecosystem: nuget
-      directory: /
-      schedule:
-          interval: weekly
-      open-pull-requests-limit: 3
+  - package-ecosystem: nuget
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 2
+    ignore:
+      - dependency-name: "FluentAssertions"
+        versions: [">=8.0.0"]

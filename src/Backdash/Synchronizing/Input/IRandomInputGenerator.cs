@@ -13,7 +13,7 @@ public interface IInputGenerator<out TInput> where TInput : unmanaged
     /// <summary>
     /// Returns the next input
     /// </summary>
-    public TInput Generate();
+    TInput Generate();
 }
 
 /// <summary>
@@ -29,8 +29,7 @@ public sealed class RandomInputGenerator<TInput> : IInputGenerator<TInput> where
     /// </summary>
     public RandomInputGenerator(Random? random = null)
     {
-        ThrowHelpers.ThrowIfTypeTooBigForStack<TInput>();
-        ThrowHelpers.ThrowIfTypeIsReferenceOrContainsReferences<TInput>();
+        ThrowIf.TypeIsReferenceOrContainsReferences<TInput>();
         Random = random ?? Random.Shared;
     }
 
@@ -38,7 +37,7 @@ public sealed class RandomInputGenerator<TInput> : IInputGenerator<TInput> where
     public TInput Generate()
     {
         TInput newInput = new();
-        var buffer = Mem.GetSpan(ref newInput);
+        var buffer = Mem.AsBytes(ref newInput);
         Random.NextBytes(buffer);
         return newInput;
     }

@@ -1,13 +1,15 @@
 using System.Diagnostics;
 using Backdash;
 using Backdash.Data;
+using Backdash.Serialization;
+using Backdash.Serialization.Numerics;
 
 namespace ConsoleGame;
 
-public sealed class Game : IRollbackHandler<GameState>
+public sealed class Game : INetcodeSessionHandler
 {
-    // Rollback NetCode Session
-    readonly IRollbackSession<GameInput> session;
+    // Rollback Net-code session callbacks
+    readonly INetcodeSession<GameInput> session;
 
     readonly CancellationTokenSource cancellation;
 
@@ -20,7 +22,7 @@ public sealed class Game : IRollbackHandler<GameState>
     // Actual game state
     GameState currentState = GameLogic.InitialState();
 
-    public Game(IRollbackSession<GameInput> session, CancellationTokenSource cancellation)
+    public Game(INetcodeSession<GameInput> session, CancellationTokenSource cancellation)
     {
         view = new();
         this.session = session;
@@ -104,6 +106,24 @@ public sealed class Game : IRollbackHandler<GameState>
         nonGameState.RemotePlayerStatus = PlayerStatus.Disconnected;
     }
 
+    public void SaveState(in Frame frame, ref readonly BinaryBufferWriter writer)
+    {
+        writer.Write(currentState.Position1);
+        writer.Write(currentState.Position2);
+        writer.Write(currentState.Score1);
+        writer.Write(currentState.Score2);
+        writer.Write(currentState.Target);
+    }
+
+    public void LoadState(in Frame frame, ref readonly BinaryBufferReader reader)
+    {
+        currentState.Position1 = reader.ReadVector2();
+        currentState.Position2 = reader.ReadVector2();
+        currentState.Score1 = reader.ReadInt32();
+        currentState.Score2 = reader.ReadInt32();
+        currentState.Target = reader.ReadVector2();
+    }
+
     public void TimeSync(FrameSpan framesAhead)
     {
         Console.SetCursorPosition(1, 0);
@@ -141,18 +161,6 @@ public sealed class Game : IRollbackHandler<GameState>
                 nonGameState.IsRunning = false;
                 break;
         }
-    }
-
-    public void SaveState(in Frame frame, ref GameState state)
-    {
-        state.Position1 = currentState.Position1;
-        state.Position2 = currentState.Position2;
-    }
-
-    public void LoadState(in Frame frame, in GameState gameState)
-    {
-        currentState.Position1 = gameState.Position1;
-        currentState.Position2 = gameState.Position2;
     }
 
     public void AdvanceFrame()

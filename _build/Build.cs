@@ -166,6 +166,8 @@ class MainBuild : NukeBuild
         .DependsOn(Restore)
         .Executes(() =>
         {
+            DocsSitePath.CreateOrCleanDirectory();
+            (DocsPath / "api").CreateOrCleanDirectory();
             BuildProj(Solution, Configuration.Release);
             DocFX.Serve(c => c
                 .SetProcessWorkingDirectory(DocsPath)

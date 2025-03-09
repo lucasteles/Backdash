@@ -1,5 +1,6 @@
 using System.Numerics;
 using Backdash;
+
 namespace ConsoleGame;
 
 [Flags]
@@ -27,7 +28,7 @@ public class NonGameState
 {
     public required PlayerHandle? LocalPlayer;
     public required PlayerHandle RemotePlayer;
-    public required IRollbackSessionInfo SessionInfo;
+    public required INetcodeSessionInfo SessionInfo;
     public bool IsRunning;
     public float SyncProgress;
     public string LastError = "";

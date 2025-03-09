@@ -1,6 +1,6 @@
 using System.Net;
 using Backdash.Network.Client;
-using Backdash.Serialization;
+using Backdash.Serialization.Internal;
 using Backdash.Tests.TestUtils;
 using Backdash.Tests.TestUtils.Fixtures;
 using Backdash.Tests.TestUtils.Network;

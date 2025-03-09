@@ -1,6 +1,6 @@
 using Backdash.Core;
 using Backdash.Network.Client;
-using Backdash.Serialization;
+using Backdash.Serialization.Internal;
 
 namespace Backdash.Benchmarks.Network;
 

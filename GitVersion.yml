@@ -1,13 +1,14 @@
-next-version: 0.4.1
-mode: ContinuousDelivery
-continuous-delivery-fallback-tag: ""
+workflow: GitFlow/v1
+mode: ContinuousDeployment
+next-version: 0.5.3
+
 major-version-bump-message: "^(breaking|major):"
 minor-version-bump-message: "^(feature|minor):"
 patch-version-bump-message: "^(fix|patch):"
 no-bump-message: "^(none|skip):"
+
 branches:
     main:
         regex: ^master$|^main$
-        tag: beta
-        is-mainline: true
+        is-main-branch: true
         source-branches: [ ]

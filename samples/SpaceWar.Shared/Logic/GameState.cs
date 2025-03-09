@@ -1,19 +1,19 @@
-using Backdash.Data;
+using Backdash;
+using Backdash.Serialization;
 
 namespace SpaceWar.Logic;
 
 public sealed record GameState
 {
-    public EquatableArray<Ship> Ships = [];
+    public Ship[] Ships = [];
     public Rectangle Bounds;
     public int FrameNumber;
     public int NumberOfShips => Ships.Length;
 
     public void Init(int numberOfPlayers)
     {
-        Ships = new(numberOfPlayers);
-        for (var i = 0; i < numberOfPlayers; i++)
-            Ships[i] = new();
+        Ships = new Ship[numberOfPlayers];
+        for (var i = 0; i < numberOfPlayers; i++) Ships[i] = new();
         FrameNumber = 0;
         Bounds = Config.InternalBounds;
         Bounds.Inflate(-Config.WindowPadding, -Config.WindowPadding);
@@ -26,8 +26,8 @@ public sealed record GameState
             var heading = (i + 1) * 360f / numberOfPlayers;
             var theta = MathHelper.ToRadians(heading);
             var (cosT, sinT) = (Math.Cos(theta), Math.Sin(theta));
-            var x = Math.Round(width / 2.0 + r * cosT, 2);
-            var y = Math.Round(height / 2.0 + r * sinT, 2);
+            var x = Math.Round((width / 2.0) + (r * cosT), 2);
+            var y = Math.Round((height / 2.0) + (r * sinT), 2);
             Ships[i].Id = (byte)(i + 1);
             Ships[i].Position = new((float)x, (float)y);
             Ships[i].Active = true;
@@ -35,6 +35,20 @@ public sealed record GameState
             Ships[i].Health = Config.StartingHealth;
             Ships[i].Radius = Config.ShipRadius;
         }
+    }
+
+    public void SaveState(ref readonly BinaryBufferWriter writer)
+    {
+        writer.Write(in FrameNumber);
+        writer.Write(in Bounds);
+        writer.Write(Ships);
+    }
+
+    public void LoadState(ref readonly BinaryBufferReader reader)
+    {
+        reader.Read(ref FrameNumber);
+        reader.Read(ref Bounds);
+        reader.Read(Ships);
     }
 
     static GameInput GetShipAI(in Ship ship) => new(
@@ -83,8 +97,8 @@ public sealed record GameState
                 if (bullet.Active)
                     continue;
                 bullet.Active = true;
-                bullet.Position = (ship.Position + dir * ship.Radius).RoundTo();
-                bullet.Velocity = (ship.Velocity + dir * Config.BulletSpeed).RoundTo();
+                bullet.Position = (ship.Position + (dir * ship.Radius)).RoundTo();
+                bullet.Velocity = (ship.Velocity + (dir * Config.BulletSpeed)).RoundTo();
                 ship.FireCooldown = Config.BulletCooldown;
                 break;
             }
@@ -100,8 +114,8 @@ public sealed record GameState
             ship.Missile.HitBoxTime = Config.MissileHitBoxTimeout;
             ship.Missile.Velocity = dir * Config.MissileSpeed;
             ship.Missile.Position = (
-                ship.Position + ship.Velocity + dir *
-                (ship.Radius + ship.Missile.ProjectileRadius)
+                ship.Position + ship.Velocity + (dir *
+                                                 (ship.Radius + ship.Missile.ProjectileRadius))
             ).RoundTo();
 
             ship.Velocity += (ship.Missile.Velocity * -2).RoundTo();

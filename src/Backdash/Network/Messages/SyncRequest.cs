@@ -1,22 +1,22 @@
 using System.Runtime.InteropServices;
 using Backdash.Serialization;
-using Backdash.Serialization.Buffer;
+using Backdash.Serialization.Internal;
 
 namespace Backdash.Network.Messages;
 
 [Serializable, StructLayout(LayoutKind.Sequential)]
-record struct SyncRequest : IBinarySerializable, IUtf8SpanFormattable
+record struct SyncRequest : IUtf8SpanFormattable
 {
     public uint RandomRequest; /* please reply with this random data */
     public long Ping;
 
-    public readonly void Serialize(BinarySpanWriter writer)
+    public readonly void Serialize(in BinaryRawBufferWriter writer)
     {
         writer.Write(in RandomRequest);
         writer.Write(in Ping);
     }
 
-    public void Deserialize(BinarySpanReader reader)
+    public void Deserialize(in BinaryBufferReader reader)
     {
         RandomRequest = reader.ReadUInt32();
         Ping = reader.ReadInt64();
@@ -30,8 +30,6 @@ record struct SyncRequest : IBinarySerializable, IUtf8SpanFormattable
     {
         bytesWritten = 0;
         using Utf8ObjectWriter writer = new(in utf8Destination, ref bytesWritten);
-        if (!writer.Write(RandomRequest)) return false;
-        if (!writer.Write(Ping)) return false;
-        return true;
+        return writer.Write(in RandomRequest) && writer.Write(in Ping);
     }
 }

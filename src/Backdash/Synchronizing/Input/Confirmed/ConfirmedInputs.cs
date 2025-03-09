@@ -1,4 +1,6 @@
+using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Backdash.Core;
 
 namespace Backdash.Synchronizing.Input.Confirmed;
@@ -7,7 +9,8 @@ namespace Backdash.Synchronizing.Input.Confirmed;
 /// All confirmed inputs for all players
 /// </summary>
 /// <typeparam name="TInput"></typeparam>
-public record struct ConfirmedInputs<TInput> where TInput : unmanaged
+[StructLayout(LayoutKind.Sequential)]
+public struct ConfirmedInputs<TInput> : IEquatable<ConfirmedInputs<TInput>> where TInput : unmanaged
 {
     /// <summary>
     /// Number of inputs
@@ -32,6 +35,39 @@ public record struct ConfirmedInputs<TInput> where TInput : unmanaged
         Count = (byte)inputs.Length;
         inputs.CopyTo(Inputs);
     }
+
+    /// <summary>
+    /// Indicates whether the current object is equal to another object of the same type.
+    /// </summary>
+    public readonly bool Equals(in ConfirmedInputs<TInput> other)
+    {
+        var thisSpan = ((ReadOnlySpan<TInput>)Inputs)[..Count];
+        var otherSpan = ((ReadOnlySpan<TInput>)other.Inputs)[..other.Count];
+        return thisSpan.SequenceEqual(otherSpan);
+    }
+
+    /// <inheritdoc />
+    public override readonly bool Equals(object? obj) => obj is ConfirmedInputs<TInput> other && Equals(other);
+
+    readonly bool IEquatable<ConfirmedInputs<TInput>>.Equals(ConfirmedInputs<TInput> other) =>
+        Count == other.Count && Inputs.Equals(other.Inputs);
+
+    ///  <inheritdoc cref="IEqualityOperators{TSelf,TOther,TResult}.op_Inequality"/>
+    public static bool operator ==(in ConfirmedInputs<TInput> left, in ConfirmedInputs<TInput> right) =>
+        left.Equals(in right);
+
+    ///  <inheritdoc cref="IEqualityOperators{TSelf,TOther,TResult}.op_Equality"/>
+    public static bool operator !=(in ConfirmedInputs<TInput> left, in ConfirmedInputs<TInput> right) =>
+        !left.Equals(in right);
+
+    /// <inheritdoc />
+    public override readonly int GetHashCode()
+    {
+        var span = ((ReadOnlySpan<TInput>)Inputs)[..Count];
+        HashCode hash = new();
+        hash.AddBytes(MemoryMarshal.AsBytes(span));
+        return hash.ToHashCode();
+    }
 }
 
 /// <summary>
@@ -39,7 +75,7 @@ public record struct ConfirmedInputs<TInput> where TInput : unmanaged
 /// </summary>
 /// <typeparam name="TInput"></typeparam>
 [InlineArray(Capacity)]
-public struct InputArray<TInput> where TInput : unmanaged
+public struct InputArray<TInput> : IEquatable<InputArray<TInput>> where TInput : unmanaged
 {
     /// <summary>
     /// Max size of <see cref="InputArray{TInput}"/>
@@ -47,18 +83,32 @@ public struct InputArray<TInput> where TInput : unmanaged
     /// <inheritdoc cref="Max.NumberOfPlayers"/>
     public const int Capacity = Max.NumberOfPlayers;
 
+#pragma warning disable S1144, IDE0051, IDE0044
     TInput element0;
-
-    ///<inheritdoc/>
-    public override readonly int GetHashCode() => Mem.GetHashCode<TInput>(this);
+#pragma warning restore IDE0051, S1144, IDE0044
 
     /// <summary>
-    /// Determines whether the specified object is equal to the current object.
+    /// Indicates whether the current object is equal to another object of the same type.
     /// </summary>
-    /// <param name="other">The <see cref="InputArray{TInput}"/> to compare with the current object.</param>
-    /// <returns>true if the specified object is equal to the current object; otherwise, false.</returns>
-    public readonly bool Equals(InputArray<TInput> other) => this[..].SequenceEqual(other);
+    public readonly bool Equals(in InputArray<TInput> other) => ((ReadOnlySpan<TInput>)this).SequenceEqual(other);
 
-    ///<inheritdoc/>
+    /// <inheritdoc />
     public override readonly bool Equals(object? obj) => obj is InputArray<TInput> other && Equals(other);
+
+    /// <inheritdoc />
+    readonly bool IEquatable<InputArray<TInput>>.Equals(InputArray<TInput> other) => Equals(in other);
+
+    ///  <inheritdoc cref="IEqualityOperators{TSelf,TOther,TResult}.op_Inequality"/>
+    public static bool operator ==(in InputArray<TInput> a, in InputArray<TInput> b) => a.Equals(in b);
+
+    ///  <inheritdoc cref="IEqualityOperators{TSelf,TOther,TResult}.op_Equality"/>
+    public static bool operator !=(in InputArray<TInput> a, in InputArray<TInput> b) => !a.Equals(in b);
+
+    /// <inheritdoc />
+    public override readonly int GetHashCode()
+    {
+        HashCode hash = new();
+        hash.AddBytes(MemoryMarshal.AsBytes((ReadOnlySpan<TInput>)this));
+        return hash.ToHashCode();
+    }
 }

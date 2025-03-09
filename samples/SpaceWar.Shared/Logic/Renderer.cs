@@ -8,11 +8,13 @@ public sealed class Renderer(
 )
 {
     readonly StringBuilder statsString = new();
+    readonly StringBuilder stateInfoString = new();
     readonly StringBuilder scoreString = new();
 
     public void Draw(GameState gs, NonGameState ngs)
     {
         DrawBackground(ngs.Background);
+
         for (var i = 0; i < gs.NumberOfShips; i++)
         {
             DrawShip(i, gs, ngs);
@@ -171,6 +173,7 @@ public sealed class Renderer(
     {
         for (var i = 0; i < gs.NumberOfShips; i++)
             DrawScore(i, gs, ngs);
+
         if (ngs.StatusText.Length > 0)
         {
             var statusSize = gameAssets.MainFont.MeasureString(ngs.StatusText);
@@ -185,7 +188,8 @@ public sealed class Renderer(
                 Color.Yellow, 0, Vector2.Zero, 1, SpriteEffects.None, 0);
         }
 
-        DrawStats(gs, ngs);
+        DrawConnectionStats(gs, ngs);
+        DrawStateStats(gs, ngs);
     }
 
     void DrawScore(int num, GameState gs, NonGameState ngs)
@@ -236,8 +240,11 @@ public sealed class Renderer(
             0, Vector2.Zero, SpriteEffects.None, 0);
     }
 
-    void DrawStats(GameState gs, NonGameState ngs)
+    void DrawConnectionStats(GameState gs, NonGameState ngs)
     {
+        const float statsScale = 0.6f;
+        const int statsPadding = 2;
+
         var maxPing = TimeSpan.Zero;
         for (var i = 0; i < gs.NumberOfShips; i++)
         {
@@ -250,21 +257,41 @@ public sealed class Renderer(
         statsString.Clear();
         statsString.Append($"ping: {maxPing.TotalMilliseconds:f2} ms  ");
         statsString.Append($"rollback: {ngs.RollbackFrames.FrameCount}");
-        const float scale = 0.6f;
-        const int padding = 2;
-        var statsSize = gameAssets.MainFont.MeasureString(statsString) * scale;
+        var statsSize = gameAssets.MainFont.MeasureString(statsString) * statsScale;
         Vector2 statsPos = new(
             (gs.Bounds.Width - statsSize.X) / 2,
-            gs.Bounds.Bottom + Config.WindowPadding - padding - statsSize.Y
+            gs.Bounds.Bottom + Config.WindowPadding - statsPadding - statsSize.Y
         );
         Rectangle statsBox = new(statsPos.ToPoint(), statsSize.ToPoint());
-        statsBox.Inflate(padding * 2, padding);
-        statsBox.Offset(-padding / 2, padding);
+        statsBox.Inflate(statsPadding * 2, statsPadding);
+        statsBox.Offset(-statsPadding / 2, statsPadding);
         spriteBatch.Draw(gameAssets.Blank, statsBox, null,
             new(0x303030),
             0, Vector2.Zero, SpriteEffects.None, 0);
         spriteBatch.DrawString(gameAssets.MainFont, statsString, statsPos, Color.White,
-            0, Vector2.Zero, scale, SpriteEffects.None, 0);
+            0, Vector2.Zero, statsScale, SpriteEffects.None, 0);
+    }
+
+    void DrawStateStats(GameState gs, NonGameState ngs)
+    {
+        const float statsScale = 0.5f;
+        const int statsPadding = 2;
+
+        stateInfoString.Clear();
+        stateInfoString.Append($"State: {ngs.StateChecksum:x8} {ngs.StateSize}");
+        var size = gameAssets.MainFont.MeasureString(stateInfoString) * statsScale;
+
+        Vector2 pos = new((gs.Bounds.Width - size.X) / 2, gs.Bounds.Top - Config.WindowPadding);
+        Rectangle box = new(pos.ToPoint(), size.ToPoint());
+
+        box.Inflate(statsPadding * 2, statsPadding);
+        box.Offset(-statsPadding / 2, statsPadding);
+
+        spriteBatch.Draw(gameAssets.Blank, box, null,
+            new(0x303030), 0, Vector2.Zero, SpriteEffects.None, 0);
+
+        spriteBatch.DrawString(gameAssets.MainFont, stateInfoString, pos, Color.White,
+            0, Vector2.Zero, statsScale, SpriteEffects.None, 0);
     }
 
     static readonly Rectangle[] missileExplosionSpriteMap =

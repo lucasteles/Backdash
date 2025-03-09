@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 using Backdash.Network.Protocol;
-using Backdash.Serialization.Buffer;
+using Backdash.Serialization.Internal;
 
 namespace Backdash;
 
@@ -51,7 +51,7 @@ public enum PeerEvent : sbyte
 
 /// <summary>
 /// Data structure for <see cref="PeerEventInfo"/> notifications.
-/// <seealso cref="IRollbackHandler{TState}.OnPeerEvent"/>
+/// <seealso cref="INetcodeSessionHandler.OnPeerEvent"/>
 /// </summary>
 /// <param name="type">Event notification type</param>
 [StructLayout(LayoutKind.Explicit, Pack = 1)]

@@ -18,13 +18,15 @@ static file class TimeSyncCounter
 
 sealed class TimeSync<TInput>(
     TimeSyncOptions options,
-    Logger logger
+    Logger logger,
+    EqualityComparer<TInput>? inputComparer = null
 ) : ITimeSync<TInput>
     where TInput : unmanaged
 {
     readonly int[] local = new int[options.FrameWindowSize];
     readonly int[] remote = new int[options.FrameWindowSize];
     readonly GameInput<TInput>[] lastInputs = new GameInput<TInput>[options.MinUniqueFrames];
+    readonly EqualityComparer<TInput> inputComparer = inputComparer ?? EqualityComparer<TInput>.Default;
 
     int MinFrameAdvantage => options.MinFrameAdvantage;
     int MaxFrameAdvantage => options.MaxFrameAdvantage;
@@ -46,31 +48,27 @@ sealed class TimeSync<TInput>(
         var localAdvantage = local.Average();
         var remoteAdvantage = remote.Average();
         var iteration = TimeSyncCounter.Increment();
-        // See if someone should take action.  The person furthest ahead
-        // needs to slow down so the other user can catch up.
-        // Only do this if both clients agree on who's ahead!!
+        // See if someone should take action.  The person furthest ahead needs to slow down so the other user can catch up.
+        // Only do this if both clients agree on who's ahead!.
         if (localAdvantage >= remoteAdvantage)
             return 0;
-        // Both clients agree that we're the one ahead.  Split
-        // the difference between the two to figure out how long to
-        // sleep for.
+        // Both clients agree that we're the one ahead.
+        // Split the difference between the two to figure out how long to sleep for.
         var sleepFrames = (int)(((remoteAdvantage - localAdvantage) / 2) + 0.5f);
         logger.Write(LogLevel.Trace, $"iteration {iteration}:  sleep frames is {sleepFrames}");
-        // Some things just aren't worth correcting for.  Make sure
-        // the difference is relevant before proceeding.
+        // Some things just aren't worth correcting for.  Make sure the difference is relevant before proceeding.
         if (sleepFrames < MinFrameAdvantage)
             return 0;
 
-        // Make sure our input had been "idle enough" before recommending
-        // a sleep.  This tries to make the emulator sleep while the
-        // user's input isn't sweeping in arcs (e.g. fireball motions in
-        // Street Fighter), which could cause the player to miss moves.
+        // Make sure our input had been "idle enough" before recommending a sleep.
+        // This tries to make the emulator sleep while the user's input isn't sweeping in arcs
+        // (e.g. fireball motions in Street Fighter), which could cause the player to miss moves.
         if (options.RequireIdleInput)
         {
             SpinWait sw = new();
             for (var i = 1; i < lastInputs.Length; i++)
             {
-                if (EqualityComparer<TInput>.Default.Equals(lastInputs[i].Data, lastInputs[0].Data))
+                if (inputComparer.Equals(lastInputs[i].Data, lastInputs[0].Data))
                 {
                     sw.SpinOnce();
                     continue;
@@ -85,7 +83,8 @@ sealed class TimeSync<TInput>(
         var recommendation = Math.Min(sleepFrames, MaxFrameAdvantage);
         logger.Write(LogLevel.Information,
             $"time sync: recommending sleep: {recommendation}, total:{sleepFrames}, max:{MaxFrameAdvantage}");
-        // Success!!! Recommend the number of frames to sleep and adjust
+
+        // Success, Recommend the number of frames to sleep and adjust
         return recommendation;
     }
 }

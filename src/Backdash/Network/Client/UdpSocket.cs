@@ -63,7 +63,7 @@ public sealed class UdpSocket : IPeerSocket
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            socket.IOControl((IOControlCode)SIO_UDP_CONN_RESET, [0, 0, 0, 0,], null);
+            socket.IOControl((IOControlCode)SIO_UDP_CONN_RESET, [0, 0, 0, 0], null);
             socket.SetIPProtectionLevel(IPProtectionLevel.Unrestricted);
         }
 

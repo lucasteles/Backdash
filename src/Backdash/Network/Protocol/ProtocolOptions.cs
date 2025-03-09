@@ -15,7 +15,7 @@ public class ProtocolOptions
     public int UdpPacketBufferSize { get; init; } = Default.UdpPacketBufferSize;
 
     /// <summary>
-    /// Max allowed pending inputs in sending queue. When reached <see cref="IRollbackSession{TInput}.AddLocalInput"/>
+    /// Max allowed pending inputs in sending queue. When reached <see cref="INetcodeSession{TInput}.AddLocalInput"/>
     /// returns <see cref="ResultCode.InputDropped"/>.
     /// </summary>
     /// <inheritdoc cref="Default.MaxPendingInputs"/>
@@ -127,4 +127,40 @@ public class ProtocolOptions
     /// </summary>
     /// <inheritdoc cref="Default.ResendInputInterval"/>
     public TimeSpan ResendInputInterval { get; init; } = TimeSpan.FromMilliseconds(Default.ResendInputInterval);
+
+    /// <summary>
+    /// Offset to be applied to frame on checksum consistency check.
+    /// The frame sent is (<c>LastReceivedFrame - ConsistencyCheckOffset</c>).
+    /// </summary>
+    /// <inheritdoc cref="Default.ConsistencyCheckDistance"/>
+    /// <seealso cref="ConsistencyCheckTimeout"/>
+    /// <seealso cref="ConsistencyCheckInterval"/>
+    public int ConsistencyCheckDistance { get; init; } = Default.ConsistencyCheckDistance;
+
+    /// <summary>
+    /// Enable/Disable consistency check.
+    /// </summary>
+    /// <seealso cref="ConsistencyCheckDistance"/>
+    /// <seealso cref="ConsistencyCheckTimeout"/>
+    public bool ConsistencyCheckEnabled { get; init; } = true;
+
+    /// <summary>
+    /// The time to wait before send next consistency check (0 to disable).
+    /// On each interval one peer requests a frame to other peer which must respond
+    /// with the state checksum of that frame.
+    /// </summary>
+    /// <inheritdoc cref="Default.ConsistencyCheckInterval"/>
+    /// <seealso cref="ConsistencyCheckDistance"/>
+    /// <seealso cref="ConsistencyCheckTimeout"/>
+    public TimeSpan ConsistencyCheckInterval { get; init; } =
+        TimeSpan.FromMilliseconds(Default.ConsistencyCheckInterval);
+
+    /// <summary>
+    /// Max wait time for non-success consistency checks (0 to disable)
+    /// </summary>
+    /// <inheritdoc cref="Default.ConsistencyCheckTimeout"/>
+    /// <seealso cref="ConsistencyCheckDistance"/>
+    /// <seealso cref="ConsistencyCheckInterval"/>
+    public TimeSpan ConsistencyCheckTimeout { get; init; } =
+        TimeSpan.FromMilliseconds(Default.ConsistencyCheckTimeout);
 }

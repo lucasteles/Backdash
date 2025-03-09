@@ -12,7 +12,7 @@ interface IProtocolClientFactory
 }
 
 sealed class ProtocolClientFactory(
-    RollbackOptions options,
+    NetcodeOptions options,
     IPeerSocketFactory socketFactory,
     IClock clock,
     Logger logger,
@@ -22,7 +22,7 @@ sealed class ProtocolClientFactory(
     public IProtocolClient CreateProtocolClient(int port, IPeerObserver<ProtocolMessage> observer) =>
         new PeerClient<ProtocolMessage>(
             socketFactory.Create(port, options),
-            new ProtocolMessageBinarySerializer(options.NetworkEndianness),
+            new ProtocolMessageSerializer(options.UseNetworkEndianness),
             observer,
             logger,
             clock,

@@ -1,12 +1,12 @@
 using System.Runtime.InteropServices;
 using Backdash.Core;
 using Backdash.Serialization;
-using Backdash.Serialization.Buffer;
+using Backdash.Serialization.Internal;
 
 namespace Backdash.Network.Messages;
 
 [Serializable, StructLayout(LayoutKind.Explicit, Pack = 2)]
-struct ProtocolMessage(MessageType type) : IBinarySerializable, IEquatable<ProtocolMessage>, IUtf8SpanFormattable
+struct ProtocolMessage(MessageType type = MessageType.Unknown) : IEquatable<ProtocolMessage>, IUtf8SpanFormattable
 {
     [FieldOffset(0)]
     public Header Header = new(type);
@@ -30,32 +30,44 @@ struct ProtocolMessage(MessageType type) : IBinarySerializable, IEquatable<Proto
     public KeepAlive KeepAlive;
 
     [FieldOffset(Header.Size)]
+    public ConsistencyCheckRequest ConsistencyCheckRequest;
+
+    [FieldOffset(Header.Size)]
+    public ConsistencyCheckReply ConsistencyCheckReply;
+
+    [FieldOffset(Header.Size)]
     public InputMessage Input;
 
-    public readonly void Serialize(BinarySpanWriter writer)
+    public readonly void Serialize(in BinaryRawBufferWriter writer)
     {
-        Header.Serialize(writer);
+        Header.Serialize(in writer);
         switch (Header.Type)
         {
             case MessageType.SyncRequest:
-                SyncRequest.Serialize(writer);
+                SyncRequest.Serialize(in writer);
                 break;
             case MessageType.SyncReply:
-                SyncReply.Serialize(writer);
+                SyncReply.Serialize(in writer);
                 break;
             case MessageType.QualityReport:
-                QualityReport.Serialize(writer);
+                QualityReport.Serialize(in writer);
                 break;
             case MessageType.QualityReply:
-                QualityReply.Serialize(writer);
+                QualityReply.Serialize(in writer);
                 break;
             case MessageType.InputAck:
-                InputAck.Serialize(writer);
+                InputAck.Serialize(in writer);
                 break;
             case MessageType.KeepAlive:
                 break;
+            case MessageType.ConsistencyCheckRequest:
+                ConsistencyCheckRequest.Serialize(in writer);
+                break;
+            case MessageType.ConsistencyCheckReply:
+                ConsistencyCheckReply.Serialize(in writer);
+                break;
             case MessageType.Input:
-                Input.Serialize(writer);
+                Input.Serialize(in writer);
                 break;
             case MessageType.Unknown:
             default:
@@ -63,30 +75,36 @@ struct ProtocolMessage(MessageType type) : IBinarySerializable, IEquatable<Proto
         }
     }
 
-    public void Deserialize(BinarySpanReader reader)
+    public void Deserialize(in BinaryBufferReader reader)
     {
-        Header.Deserialize(reader);
+        Header.Deserialize(in reader);
         switch (Header.Type)
         {
             case MessageType.SyncRequest:
-                SyncRequest.Deserialize(reader);
+                SyncRequest.Deserialize(in reader);
                 break;
             case MessageType.SyncReply:
-                SyncReply.Deserialize(reader);
+                SyncReply.Deserialize(in reader);
                 break;
             case MessageType.QualityReport:
-                QualityReport.Deserialize(reader);
+                QualityReport.Deserialize(in reader);
                 break;
             case MessageType.QualityReply:
-                QualityReply.Deserialize(reader);
+                QualityReply.Deserialize(in reader);
                 break;
             case MessageType.InputAck:
-                InputAck.Deserialize(reader);
+                InputAck.Deserialize(in reader);
                 break;
             case MessageType.KeepAlive:
                 break;
+            case MessageType.ConsistencyCheckRequest:
+                ConsistencyCheckRequest.Deserialize(in reader);
+                break;
+            case MessageType.ConsistencyCheckReply:
+                ConsistencyCheckReply.Deserialize(in reader);
+                break;
             case MessageType.Input:
-                Input.Deserialize(reader);
+                Input.Deserialize(in reader);
                 break;
             case MessageType.Unknown:
             default:
@@ -101,6 +119,8 @@ struct ProtocolMessage(MessageType type) : IBinarySerializable, IEquatable<Proto
             {
                 MessageType.SyncRequest => SyncRequest.ToString(),
                 MessageType.SyncReply => SyncReply.ToString(),
+                MessageType.ConsistencyCheckRequest => ConsistencyCheckRequest.ToString(),
+                MessageType.ConsistencyCheckReply => ConsistencyCheckReply.ToString(),
                 MessageType.Input => Input.ToString(),
                 MessageType.QualityReport => QualityReport.ToString(),
                 MessageType.QualityReply => QualityReply.ToString(),
@@ -120,29 +140,33 @@ struct ProtocolMessage(MessageType type) : IBinarySerializable, IEquatable<Proto
         bytesWritten = 0;
         Utf8StringWriter writer = new(in utf8Destination, ref bytesWritten);
         if (!writer.Write("Msg("u8)) return false;
-        if (!writer.WriteEnum(Header.Type)) return false;
+        if (!writer.WriteEnum(in Header.Type)) return false;
         if (!writer.Write(")"u8)) return false;
         return Header.Type switch
         {
-            MessageType.Input => writer.Write(Input),
-            MessageType.SyncRequest => writer.Write(SyncRequest),
-            MessageType.SyncReply => writer.Write(SyncReply),
-            MessageType.QualityReply => writer.Write(QualityReply),
-            MessageType.QualityReport => writer.Write(QualityReport),
-            MessageType.InputAck => writer.Write(InputAck),
+            MessageType.Input => writer.Write(in Input),
+            MessageType.SyncRequest => writer.Write(in SyncRequest),
+            MessageType.SyncReply => writer.Write(in SyncReply),
+            MessageType.ConsistencyCheckRequest => writer.Write(in ConsistencyCheckRequest),
+            MessageType.ConsistencyCheckReply => writer.Write(in ConsistencyCheckReply),
+            MessageType.QualityReply => writer.Write(in QualityReply),
+            MessageType.QualityReport => writer.Write(in QualityReport),
+            MessageType.InputAck => writer.Write(in InputAck),
             MessageType.KeepAlive => writer.Write("{}"u8),
             MessageType.Unknown => writer.Write("{Invalid}"u8),
             _ => true,
         };
     }
 
-    public readonly bool Equals(ProtocolMessage other) =>
+    public readonly bool Equals(in ProtocolMessage other) =>
         Header.Type == other.Header.Type && Header.Type switch
         {
             MessageType.Unknown => other.Header.Type is MessageType.Unknown,
             MessageType.SyncRequest => SyncRequest.Equals(other.SyncRequest),
             MessageType.SyncReply => SyncReply.Equals(other.SyncReply),
-            MessageType.Input => Input.Equals(other.Input),
+            MessageType.ConsistencyCheckRequest => ConsistencyCheckRequest.Equals(other.ConsistencyCheckRequest),
+            MessageType.ConsistencyCheckReply => ConsistencyCheckReply.Equals(other.ConsistencyCheckReply),
+            MessageType.Input => Input.Equals(in other.Input),
             MessageType.QualityReport => QualityReport.Equals(other.QualityReport),
             MessageType.QualityReply => QualityReply.Equals(other.QualityReply),
             MessageType.KeepAlive => KeepAlive.Equals(other.KeepAlive),
@@ -151,7 +175,10 @@ struct ProtocolMessage(MessageType type) : IBinarySerializable, IEquatable<Proto
         };
 
     public override readonly bool Equals(object? obj) => obj is ProtocolMessage msg && Equals(msg);
+
+    readonly bool IEquatable<ProtocolMessage>.Equals(ProtocolMessage other) => Equals(in other);
+
     public override readonly int GetHashCode() => HashCode.Combine(typeof(ProtocolMessage));
-    public static bool operator ==(ProtocolMessage left, ProtocolMessage right) => left.Equals(right);
-    public static bool operator !=(ProtocolMessage left, ProtocolMessage right) => !left.Equals(right);
+    public static bool operator ==(in ProtocolMessage left, in ProtocolMessage right) => left.Equals(right);
+    public static bool operator !=(in ProtocolMessage left, in ProtocolMessage right) => !left.Equals(right);
 }

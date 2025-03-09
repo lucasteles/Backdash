@@ -4,25 +4,27 @@ using System.Text;
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Serialization;
-using Backdash.Serialization.Buffer;
+using Backdash.Serialization.Internal;
 
 namespace Backdash.Network.Messages;
 
 [Serializable, StructLayout(LayoutKind.Sequential)]
-struct InputMessage : IEquatable<InputMessage>, IBinarySerializable, IUtf8SpanFormattable
+struct InputMessage : IEquatable<InputMessage>, IUtf8SpanFormattable
 {
+    public byte PeerCount;
     public PeerStatusBuffer PeerConnectStatus;
     public Frame StartFrame;
     public bool DisconnectRequested;
     public Frame AckFrame;
-    public ushort NumBits;
     public byte InputSize;
+    public ushort NumBits;
     public InputMessageBuffer Bits;
 
     public void Clear()
     {
         Mem.Clear(Bits);
-        PeerConnectStatus[..].Clear();
+        PeerCount = 0;
+        ((Span<ConnectStatus>)PeerConnectStatus).Clear();
         StartFrame = Frame.Zero;
         DisconnectRequested = false;
         AckFrame = Frame.Zero;
@@ -30,34 +32,46 @@ struct InputMessage : IEquatable<InputMessage>, IBinarySerializable, IUtf8SpanFo
         InputSize = 0;
     }
 
-    public readonly void Serialize(BinarySpanWriter writer)
+    public readonly void Serialize(in BinaryRawBufferWriter writer)
     {
-        ReadOnlySpan<ConnectStatus> peerStatuses = PeerConnectStatus;
-        var peerCount = (byte)peerStatuses.Length;
-        writer.Write(peerCount);
-        for (var i = 0; i < peerCount; i++)
-            peerStatuses[i].Serialize(writer);
-        writer.Write(in StartFrame.Number);
+        writer.Write(in StartFrame);
+        writer.Write(in AckFrame);
         writer.Write(in DisconnectRequested);
-        writer.Write(in AckFrame.Number);
+        writer.Write(in PeerCount);
+
+        ReadOnlySpan<ConnectStatus> peerStatuses = PeerConnectStatus;
+        ref var currentPeerStatus = ref MemoryMarshal.GetReference(peerStatuses);
+        ref var limitPeerStatus = ref Unsafe.Add(ref currentPeerStatus, PeerCount);
+        while (Unsafe.IsAddressLessThan(ref currentPeerStatus, ref limitPeerStatus))
+        {
+            currentPeerStatus.Serialize(writer);
+            currentPeerStatus = ref Unsafe.Add(ref currentPeerStatus, 1)!;
+        }
+
         writer.Write(in InputSize);
         writer.Write(in NumBits);
-        var bitCount = (int)Math.Ceiling(NumBits / (float)ByteSize.ByteToBits);
-        writer.Write(Bits[..bitCount]);
+        writer.Write(Bits[..ByteSize.ByteCountOfBits(in NumBits)]);
     }
 
-    public void Deserialize(BinarySpanReader reader)
+    public void Deserialize(in BinaryBufferReader reader)
     {
-        var peerCount = reader.ReadByte();
-        for (var i = 0; i < peerCount; i++)
-            PeerConnectStatus[i].Deserialize(reader);
-        StartFrame = new(reader.ReadInt32());
+        StartFrame = reader.ReadAsInt32<Frame>();
+        AckFrame = reader.ReadAsInt32<Frame>();
         DisconnectRequested = reader.ReadBoolean();
-        AckFrame = new(reader.ReadInt32());
+        PeerCount = reader.ReadByte();
+
+        Span<ConnectStatus> peerStatuses = PeerConnectStatus;
+        ref var currentPeerStatus = ref MemoryMarshal.GetReference(peerStatuses);
+        ref var limitPeerStatus = ref Unsafe.Add(ref currentPeerStatus, PeerCount);
+        while (Unsafe.IsAddressLessThan(ref currentPeerStatus, ref limitPeerStatus))
+        {
+            currentPeerStatus.Deserialize(reader);
+            currentPeerStatus = ref Unsafe.Add(ref currentPeerStatus, 1)!;
+        }
+
         InputSize = reader.ReadByte();
         NumBits = reader.ReadUInt16();
-        var bitCount = (int)Math.Ceiling(NumBits / (float)ByteSize.ByteToBits);
-        reader.ReadByte(Bits[..bitCount]);
+        reader.Read(Bits[..ByteSize.ByteCountOfBits(in NumBits)]);
     }
 
     public readonly bool TryFormat(
@@ -66,13 +80,10 @@ struct InputMessage : IEquatable<InputMessage>, IBinarySerializable, IUtf8SpanFo
     {
         bytesWritten = 0;
         using Utf8ObjectWriter writer = new(in utf8Destination, ref bytesWritten);
-        if (!writer.Write(StartFrame)) return false;
-        if (!writer.Write(AckFrame)) return false;
-        if (!writer.Write(NumBits)) return false;
-        return true;
+        return writer.Write(in StartFrame) && writer.Write(in AckFrame) && writer.Write(in NumBits);
     }
 
-    public readonly bool Equals(InputMessage other) =>
+    public readonly bool Equals(in InputMessage other) =>
         StartFrame.Equals(other.StartFrame) &&
         DisconnectRequested == other.DisconnectRequested &&
         AckFrame.Equals(other.AckFrame) && NumBits == other.NumBits &&
@@ -80,13 +91,15 @@ struct InputMessage : IEquatable<InputMessage>, IBinarySerializable, IUtf8SpanFo
         PeerConnectStatus.Equals(other.PeerConnectStatus) &&
         Bits.Equals(other.Bits);
 
-    public override readonly bool Equals(object? obj) => obj is InputMessage other && Equals(other);
+    public override readonly bool Equals(object? obj) => obj is InputMessage other && Equals(in other);
+
+    readonly bool IEquatable<InputMessage>.Equals(InputMessage other) => Equals(in other);
 
     public override readonly int GetHashCode() => HashCode.Combine(
         PeerConnectStatus, StartFrame, DisconnectRequested, AckFrame, NumBits, InputSize, Bits);
 
-    public static bool operator ==(InputMessage left, InputMessage right) => left.Equals(right);
-    public static bool operator !=(InputMessage left, InputMessage right) => !left.Equals(right);
+    public static bool operator ==(in InputMessage left, in InputMessage right) => left.Equals(in right);
+    public static bool operator !=(in InputMessage left, in InputMessage right) => !left.Equals(in right);
 }
 
 [Serializable, InlineArray(Max.NumberOfPlayers)]
@@ -133,6 +146,10 @@ struct InputMessageBuffer : IEquatable<InputMessageBuffer>
 
     public override readonly string ToString() => Mem.GetBitString(this);
     public override readonly int GetHashCode() => Mem.GetHashCode<byte>(this);
-    public readonly bool Equals(InputMessageBuffer other) => Mem.EqualBytes(this, other, truncate: true);
+
+    public readonly bool Equals(in InputMessageBuffer other) => Mem.EqualBytes(this, other, truncate: true);
+
     public override readonly bool Equals(object? obj) => obj is InputMessageBuffer other && Equals(other);
+
+    readonly bool IEquatable<InputMessageBuffer>.Equals(InputMessageBuffer other) => Equals(in other);
 }

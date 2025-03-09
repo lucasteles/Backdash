@@ -1,20 +1,19 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
-using System.Text.Json.Serialization.Metadata;
 using Backdash.Backends;
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network.Client;
 using Backdash.Synchronizing;
 using Backdash.Synchronizing.Input.Confirmed;
+using Backdash.Synchronizing.State;
 
 namespace Backdash;
 
 /// <summary>
 /// The session factory used to create new netcode sessions.
 /// </summary>
-///  <seealso cref="IRollbackSession{TInput}"/>
-///  <seealso cref="IRollbackSession{TInput,TGameState}"/>
+///  <seealso cref="INetcodeSession{TInput}"/>
 public static class RollbackNetcode
 {
     /// <summary>
@@ -24,17 +23,15 @@ public static class RollbackNetcode
     /// <param name="options">Session configuration</param>
     /// <param name="services">Session customizable dependencies</param>
     /// <typeparam name="TInput">Game input type</typeparam>
-    /// <typeparam name="TGameState">Game state type</typeparam>
-    public static IRollbackSession<TInput, TGameState> CreateSession<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] TInput, TGameState>(
+    public static INetcodeSession<TInput> CreateSession<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] TInput>(
         int port,
-        RollbackOptions? options = null,
-        SessionServices<TInput, TGameState>? services = null
+        NetcodeOptions? options = null,
+        SessionServices<TInput>? services = null
     )
         where TInput : unmanaged
-        where TGameState : notnull, new()
     {
         options ??= new();
-        return new Peer2PeerBackend<TInput, TGameState>(port, options, BackendServices.Create(options, services));
+        return new RemoteBackend<TInput>(port, options, BackendServices.Create(options, services));
     }
 
     /// <summary>
@@ -46,20 +43,33 @@ public static class RollbackNetcode
     /// <param name="options">Session configuration</param>
     /// <param name="services">Session customizable dependencies</param>
     /// <typeparam name="TInput">Game input type</typeparam>
-    /// <typeparam name="TGameState">Game state type</typeparam>
-    public static IRollbackSession<TInput, TGameState> CreateSpectatorSession<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] TInput, TGameState>(
+    public static INetcodeSession<TInput> CreateSpectatorSession<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] TInput>(
         int port,
         IPEndPoint host,
         int numberOfPlayers,
-        RollbackOptions? options = null,
-        SessionServices<TInput, TGameState>? services = null)
-        where TInput : unmanaged
-        where TGameState : notnull, new()
+        NetcodeOptions? options = null,
+        SessionServices<TInput>? services = null) where TInput : unmanaged
     {
         options ??= new();
-        return new SpectatorBackend<TInput, TGameState>(
+        return new SpectatorBackend<TInput>(
             port, host, numberOfPlayers, options,
             BackendServices.Create(options, services));
+    }
+
+    /// <summary>
+    /// Initializes new local players only session.
+    /// </summary>
+    /// <param name="options">Session configuration</param>
+    /// <param name="services">Session customizable dependencies</param>
+    /// <typeparam name="TInput">Game input type</typeparam>
+    public static INetcodeSession<TInput> CreateLocalSession<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] TInput>(
+        NetcodeOptions? options = null,
+        SessionServices<TInput>? services = null
+    )
+        where TInput : unmanaged
+    {
+        options ??= new();
+        return new LocalBackend<TInput>(options, BackendServices.Create(options, services));
     }
 
     /// <summary>
@@ -69,75 +79,41 @@ public static class RollbackNetcode
     /// <param name="inputs">Inputs to be replayed</param>
     /// <param name="services">Session customizable dependencies</param>
     /// <param name="controls">replay control</param>
-    /// <param name="useInputSeedForRandom"><see cref="RollbackOptions.UseInputSeedForRandom"/></param>
+    /// <param name="options">Session configuration</param>
     /// <typeparam name="TInput">Game input type</typeparam>
-    /// <typeparam name="TGameState">Game state type</typeparam>
-    public static IRollbackSession<TInput, TGameState> CreateReplaySession<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] TInput, TGameState>(
+    public static INetcodeSession<TInput> CreateReplaySession<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] TInput>(
         int numberOfPlayers,
         IReadOnlyList<ConfirmedInputs<TInput>> inputs,
-        SessionServices<TInput, TGameState>? services = null,
+        SessionServices<TInput>? services = null,
         SessionReplayControl? controls = null,
-        bool useInputSeedForRandom = true)
-        where TInput : unmanaged
-        where TGameState : notnull, new() =>
-        new ReplayBackend<TInput, TGameState>(
-            numberOfPlayers, useInputSeedForRandom, inputs,
+        NetcodeOptions? options = null
+    )
+        where TInput : unmanaged =>
+        new ReplayBackend<TInput>(
+            numberOfPlayers,
+            inputs,
             controls ?? new SessionReplayControl(),
-            BackendServices.Create(new(), services));
-
-    /// <summary>
-    /// Initializes new sync test session.
-    /// </summary>
-    /// <param name="checkDistance">Total forced rollback frames.</param>
-    /// <param name="options">Session configuration</param>
-    /// <param name="services">Session customizable dependencies</param>
-    /// <param name="throwException">If true, throws on state de-synchronization.</param>
-    /// <typeparam name="TInput">Game input type</typeparam>
-    /// <typeparam name="TGameState">Game state type</typeparam>
-    [RequiresUnreferencedCode("Use the CreateSyncTestSession overload which provides JsonTypeInfo(s) instead")]
-    [RequiresDynamicCode("Use the CreateSyncTestSession overload which provides JsonTypeInfo(s) instead")]
-    public static IRollbackSession<TInput, TGameState> CreateSyncTestSession<TInput, TGameState>(
-        FrameSpan? checkDistance = null,
-        RollbackOptions? options = null,
-        SessionServices<TInput, TGameState>? services = null,
-        bool throwException = true
-    )
-        where TInput : unmanaged
-        where TGameState : notnull, new()
-    {
-        options ??= new()
-        {
-            // ReSharper disable once RedundantArgumentDefaultValue
-            Log = new(LogLevel.Information),
-        };
-        checkDistance ??= FrameSpan.One;
-        return new SyncTestBackend<TInput, TGameState>(
-            options, checkDistance.Value, throwException,
-            BackendServices.Create(options, services)
+            BackendServices.Create(new(), services),
+            options ?? new()
         );
-    }
 
     /// <summary>
     /// Initializes new sync test session.
     /// </summary>
-    /// <param name="gameStateJsonTypeInfo"><typeparamref name="TGameState"/> json serialization information</param>
-    /// <param name="inputJsonTypeInfo"><typeparamref name="TInput"/> json serialization information</param>
     /// <param name="checkDistance">Total forced rollback frames.</param>
     /// <param name="options">Session configuration</param>
     /// <param name="services">Session customizable dependencies</param>
+    /// <param name="desyncHandler">State de-sync handler</param>
     /// <param name="throwException">If true, throws on state de-synchronization.</param>
     /// <typeparam name="TInput">Game input type</typeparam>
-    /// <typeparam name="TGameState">Game state type</typeparam>
-    public static IRollbackSession<TInput, TGameState> CreateSyncTestSession<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] TInput, TGameState>(
-        JsonTypeInfo<TGameState> gameStateJsonTypeInfo,
-        JsonTypeInfo<TInput> inputJsonTypeInfo,
+    public static INetcodeSession<TInput> CreateSyncTestSession<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] TInput>(
         FrameSpan? checkDistance = null,
-        RollbackOptions? options = null,
-        SessionServices<TInput, TGameState>? services = null,
+        NetcodeOptions? options = null,
+        SessionServices<TInput>? services = null,
+        IStateDesyncHandler? desyncHandler = null,
         bool throwException = true
     )
         where TInput : unmanaged
-        where TGameState : notnull, new()
     {
         options ??= new()
         {
@@ -145,11 +121,10 @@ public static class RollbackNetcode
             Log = new(LogLevel.Information),
         };
         checkDistance ??= FrameSpan.One;
-        return new SyncTestBackend<TInput, TGameState>(
+        return new SyncTestBackend<TInput>(
             options, checkDistance.Value, throwException,
-            BackendServices.Create(options, services),
-            gameStateJsonTypeInfo,
-            inputJsonTypeInfo
+            desyncHandler,
+            BackendServices.Create(options, services)
         );
     }
 }

@@ -9,9 +9,9 @@ namespace SpaceWar;
 
 public static class GameSessionFactory
 {
-    public static IRollbackSession<PlayerInputs, GameState> ParseArgs(
+    public static INetcodeSession<PlayerInputs> ParseArgs(
         string[] args,
-        RollbackOptions options,
+        NetcodeOptions options,
         SessionReplayControl replayControls
     )
     {
@@ -23,56 +23,65 @@ public static class GameSessionFactory
         if (playerCount > Config.MaxShips)
             throw new InvalidOperationException("Too many players");
 
-        if (lastArgs is ["sync-test"])
-            return RollbackNetcode.CreateSyncTestSession<PlayerInputs, GameState>(
-                options: options,
-                services: new()
+        switch (lastArgs)
+        {
+            case ["local-only", ..]:
+                var localSession = RollbackNetcode.CreateLocalSession<PlayerInputs>(options);
+
+                for (var i = 0; i < playerCount; i++)
+                    localSession.AddPlayer(new LocalPlayer(i));
+
+                return localSession;
+
+            case ["spectate", { } hostArg] when IPEndPoint.TryParse(hostArg, out var host):
+                return RollbackNetcode.CreateSpectatorSession<PlayerInputs>(
+                    port, host, playerCount, options
+                );
+
+            case ["replay", { } replayFile]:
+                if (!File.Exists(replayFile))
+                    throw new InvalidOperationException("Invalid replay file");
+
+                var inputs = SaveInputsToFileListener.GetInputs(playerCount, replayFile).ToArray();
+
+                return RollbackNetcode.CreateReplaySession(playerCount, inputs, controls: replayControls);
+
+            case ["sync-test", ..]:
+                return RollbackNetcode.CreateSyncTestSession<PlayerInputs>(
+                    options: options,
+                    services: new()
+                    {
+                        InputGenerator = new RandomInputGenerator<PlayerInputs>(),
+                    }
+                );
+
+            default:
+                // defaults to remote session
+
+                IInputListener<PlayerInputs>? saveInputsListener = null;
+                // save confirmed inputs to file
+                if (lastArgs is ["--save-to", { } filename, .. var argsAfterSave])
                 {
-                    InputGenerator = new RandomInputGenerator<PlayerInputs>(),
+                    saveInputsListener = new SaveInputsToFileListener(filename);
+                    lastArgs = argsAfterSave;
                 }
-            );
 
-        if (lastArgs is ["spectate", { } hostArg] && IPEndPoint.TryParse(hostArg, out var host))
-            return RollbackNetcode.CreateSpectatorSession<PlayerInputs, GameState>(
-                port, host, playerCount, options
-            );
+                var players = lastArgs.Select((x, i) => ParsePlayer(playerCount, i + 1, x)).ToArray();
+                var localPlayer = players.FirstOrDefault(x => x.IsLocal());
 
-        if (lastArgs is ["replay", { } replayFile])
-        {
-            if (!File.Exists(replayFile))
-                throw new InvalidOperationException("Invalid replay file");
+                if (localPlayer is null)
+                    throw new InvalidOperationException("No local player defined");
 
-            var inputs = SaveInputsToFileListener.GetInputs(playerCount, replayFile).ToArray();
+                var session = RollbackNetcode.CreateSession<PlayerInputs>(port, options, new()
+                {
+                    // LogWriter = new Backdash.Core.FileTextLogWriter($"log_{localPlayer.Number}.log"),
+                    InputListener = saveInputsListener,
+                });
 
-            return RollbackNetcode.CreateReplaySession<PlayerInputs, GameState>(
-                playerCount, inputs, controls: replayControls
-            );
+                session.AddPlayers(players);
+
+                return session;
         }
-
-
-        // save confirmed inputs to file
-        IInputListener<PlayerInputs>? saveInputsListener = null;
-        if (lastArgs is ["--save-to", { } filename, .. var argsAfterSave])
-        {
-            saveInputsListener = new SaveInputsToFileListener(filename);
-            lastArgs = argsAfterSave;
-        }
-
-        var players = lastArgs.Select((x, i) => ParsePlayer(playerCount, i + 1, x)).ToArray();
-        var localPlayer = players.FirstOrDefault(x => x.IsLocal());
-
-        if (localPlayer is null)
-            throw new InvalidOperationException("No local player defined");
-
-        var session = RollbackNetcode.CreateSession<PlayerInputs, GameState>(port, options, new()
-        {
-            // LogWriter = new Backdash.Core.FileTextLogWriter($"log_{localPlayer.Number}.log"),
-            InputListener = saveInputsListener,
-        });
-
-        session.AddPlayers(players);
-
-        return session;
     }
 
     static Player ParsePlayer(int totalNumber, int number, string address)

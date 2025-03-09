@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading.Channels;
@@ -16,19 +15,11 @@ readonly record struct GameInputEvent<TInput>(PlayerHandle Player, GameInput<TIn
 
 interface IProtocolInputEventPublisher<TInput> where TInput : unmanaged
 {
-    void Publish(in GameInputEvent<TInput> evt);
+    bool Publish(in GameInputEvent<TInput> evt);
 }
 
-interface IProtocolInputEventConsumer<TInput> where TInput : unmanaged
-{
-    bool TryConsume(out GameInputEvent<TInput> nextEvent);
-}
-
-interface IProtocolInputEventQueue<TInput> :
-    IDisposable, IProtocolInputEventPublisher<TInput>, IProtocolInputEventConsumer<TInput>
-    where TInput : unmanaged;
-
-sealed class ProtocolInputEventQueue<TInput> : IProtocolInputEventQueue<TInput> where TInput : unmanaged
+sealed class ProtocolInputEventQueue<TInput> : IDisposable, IProtocolInputEventPublisher<TInput>
+    where TInput : unmanaged
 {
     bool disposed;
 
@@ -42,12 +33,7 @@ sealed class ProtocolInputEventQueue<TInput> : IProtocolInputEventQueue<TInput> 
 
     public bool TryConsume(out GameInputEvent<TInput> nextEvent) => channel.Reader.TryRead(out nextEvent);
 
-    public void Publish(in GameInputEvent<TInput> evt)
-    {
-        if (disposed) return;
-        var published = channel.Writer.TryWrite(evt);
-        Trace.Assert(published);
-    }
+    public bool Publish(in GameInputEvent<TInput> evt) => !disposed && channel.Writer.TryWrite(evt);
 
     public void Dispose()
     {
@@ -61,7 +47,7 @@ sealed class ProtocolCombinedInputsEventPublisher<TInput>(IProtocolInputEventPub
     : IProtocolInputEventPublisher<ConfirmedInputs<TInput>>
     where TInput : unmanaged
 {
-    public void Publish(in GameInputEvent<ConfirmedInputs<TInput>> evt)
+    public bool Publish(in GameInputEvent<ConfirmedInputs<TInput>> evt)
     {
         var player = evt.Player;
         var frame = evt.Input.Frame;
@@ -70,10 +56,13 @@ sealed class ProtocolCombinedInputsEventPublisher<TInput>(IProtocolInputEventPub
         ref var pointer = ref MemoryMarshal.GetReference(span);
         ref var end = ref Unsafe.Add(ref pointer, span.Length);
 
+        bool result = true;
         while (Unsafe.IsAddressLessThan(ref pointer, ref end))
         {
-            peerInputEventPublisher.Publish(new(player, new(pointer, frame)));
+            result = result && peerInputEventPublisher.Publish(new(player, new(pointer, frame)));
             pointer = ref Unsafe.Add(ref pointer, 1)!;
         }
+
+        return result;
     }
 }

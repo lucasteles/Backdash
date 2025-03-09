@@ -4,8 +4,9 @@ using System.Numerics;
 namespace Backdash;
 
 /// <summary>
-/// Holds data of a player to be added to <see cref="IRollbackSession{TInput}"/>.
+/// Holds data of a player to be added to <see cref="INetcodeSession{TInput}"/>.
 /// </summary>
+[Serializable]
 public abstract class Player : IEquatable<Player>, IEqualityOperators<Player, Player, bool>
 {
     private protected Player(PlayerType type, int playerNumber) => Handle = new(type, playerNumber);
@@ -60,6 +61,7 @@ public abstract class Player : IEquatable<Player>, IEqualityOperators<Player, Pl
 /// Holds data for a new player of type <see cref="PlayerType.Local"/>.
 /// </summary>
 /// <param name="playerNumber">Player number (starting from <c>1</c>)</param>
+[Serializable]
 public sealed class LocalPlayer(int playerNumber) : Player(PlayerType.Local, playerNumber);
 
 /// <summary>
@@ -67,6 +69,7 @@ public sealed class LocalPlayer(int playerNumber) : Player(PlayerType.Local, pla
 /// </summary>
 /// <param name="playerNumber">Player number (starting from <c>1</c>)</param>
 /// <param name="endpoint">Player IP Endpoint <see cref="IPEndPoint"/></param>
+[Serializable]
 public sealed class RemotePlayer(int playerNumber, IPEndPoint endpoint) : Player(PlayerType.Remote, playerNumber)
 {
     /// <summary>
@@ -88,6 +91,7 @@ public sealed class RemotePlayer(int playerNumber, IPEndPoint endpoint) : Player
 /// Holds data for a new player of type <see cref="PlayerType.Spectator"/>.
 /// </summary>
 /// <param name="endpoint">Player IP Endpoint <see cref="IPEndPoint"/></param>
+[Serializable]
 public sealed class Spectator(IPEndPoint endpoint) : Player(PlayerType.Spectator, 0)
 {
     /// <summary>

@@ -31,10 +31,13 @@ public class NonGameState(int numberOfPlayers)
     public readonly Background Background = new();
     public readonly StringBuilder StatusText = new();
     public PlayerHandle? LocalPlayerHandle;
+    public PlayerHandle? MirrorPlayerHandle;
     public TimeSpan SleepTime;
     public bool Sleeping => SleepTime > TimeSpan.Zero;
     public int NumberOfPlayers => numberOfPlayers;
     public FrameSpan RollbackFrames;
+    public uint StateChecksum;
+    public ByteSize StateSize;
 
     public bool TryGetPlayer(PlayerHandle handle, out PlayerConnectionInfo state)
     {

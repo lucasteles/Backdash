@@ -1,7 +1,7 @@
-using System.Diagnostics;
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network;
+using Backdash.Serialization;
 using Backdash.Synchronizing;
 using Backdash.Synchronizing.Input.Confirmed;
 using Backdash.Synchronizing.Random;
@@ -9,14 +9,11 @@ using Backdash.Synchronizing.State;
 
 namespace Backdash.Backends;
 
-sealed class ReplayBackend<TInput, TGameState> : IRollbackSession<TInput, TGameState>
-    where TInput : unmanaged
-    where TGameState : notnull, new()
+sealed class ReplayBackend<TInput> : INetcodeSession<TInput> where TInput : unmanaged
 {
     readonly Logger logger;
     readonly PlayerHandle[] fakePlayers;
-    IRollbackHandler<TGameState> callbacks;
-    readonly IDeterministicRandom deterministicRandom;
+    INetcodeSessionHandler callbacks;
     bool isSynchronizing = true;
     SynchronizedInput<TInput>[] syncInputBuffer = [];
     TInput[] inputBuffer = [];
@@ -27,29 +24,32 @@ sealed class ReplayBackend<TInput, TGameState> : IRollbackSession<TInput, TGameS
     readonly IReadOnlyList<ConfirmedInputs<TInput>> inputList;
     readonly SessionReplayControl controls;
     readonly bool useInputSeedForRandom;
-    readonly IStateStore<TGameState> stateStore;
-    readonly IChecksumProvider<TGameState> checksumProvider;
+    readonly IStateStore stateStore;
+    readonly IChecksumProvider checksumProvider;
+    readonly Endianness endianness;
 
     public ReplayBackend(int numberOfPlayers,
-        bool useInputSeedForRandom,
         IReadOnlyList<ConfirmedInputs<TInput>> inputList,
         SessionReplayControl controls,
-        BackendServices<TInput, TGameState> services)
+        BackendServices<TInput> services,
+        NetcodeOptions options
+    )
     {
         ArgumentNullException.ThrowIfNull(services);
 
         this.inputList = inputList;
         this.controls = controls;
-        this.useInputSeedForRandom = useInputSeedForRandom;
+        useInputSeedForRandom = options.UseInputSeedForRandom;
         logger = services.Logger;
         stateStore = services.StateStore;
         checksumProvider = services.ChecksumProvider;
-        deterministicRandom = services.DeterministicRandom;
+        Random = services.DeterministicRandom;
         NumberOfPlayers = numberOfPlayers;
+        endianness = options.StateSerializationEndianness ?? Platform.GetEndianness(options.UseNetworkEndianness);
+        callbacks = new EmptySessionHandler(logger);
         fakePlayers = Enumerable.Range(0, numberOfPlayers)
-            .Select(x => new PlayerHandle(PlayerType.Remote, x + 1, x)).ToArray();
-
-        callbacks = new EmptySessionHandler<TGameState>(logger);
+            .Select(x => new PlayerHandle(PlayerType.Remote, x + 1, x))
+            .ToArray();
 
         stateStore.Initialize(controls.MaxBackwardFrames);
     }
@@ -73,12 +73,16 @@ sealed class ReplayBackend<TInput, TGameState> : IRollbackSession<TInput, TGameS
     public Frame CurrentFrame { get; private set; } = Frame.Zero;
     public FrameSpan RollbackFrames => FrameSpan.Zero;
     public FrameSpan FramesBehind => FrameSpan.Zero;
-    public int NumberOfPlayers { get; private set; }
+
+    public SavedFrame GetCurrentSavedFrame() => stateStore.Last();
+
     public int NumberOfSpectators => 0;
-    public IDeterministicRandom Random => deterministicRandom;
+    public int NumberOfPlayers { get; private set; }
+    public IDeterministicRandom Random { get; }
+
     public SessionMode Mode => SessionMode.Replaying;
     public void DisconnectPlayer(in PlayerHandle player) { }
-    public ResultCode AddLocalInput(PlayerHandle player, TInput localInput) => ResultCode.Ok;
+    public ResultCode AddLocalInput(PlayerHandle player, in TInput localInput) => ResultCode.Ok;
     public IReadOnlyCollection<PlayerHandle> GetPlayers() => fakePlayers;
     public IReadOnlyCollection<PlayerHandle> GetSpectators() => [];
 
@@ -121,7 +125,7 @@ sealed class ReplayBackend<TInput, TGameState> : IRollbackSession<TInput, TGameS
 
     public Task WaitToStop(CancellationToken stoppingToken = default) => Task.CompletedTask;
 
-    public void SetHandler(IRollbackHandler<TGameState> handler)
+    public void SetHandler(INetcodeSessionHandler handler)
     {
         ArgumentNullException.ThrowIfNull(handler);
         callbacks = handler;
@@ -140,7 +144,7 @@ sealed class ReplayBackend<TInput, TGameState> : IRollbackSession<TInput, TGameS
         if (confirmed.Count is 0 && CurrentFrame == Frame.Zero)
             return ResultCode.NotSynchronized;
 
-        Trace.Assert(confirmed.Count > 0);
+        ThrowIf.Assert(confirmed.Count > 0);
         NumberOfPlayers = confirmed.Count;
 
         if (syncInputBuffer.Length != NumberOfPlayers)
@@ -156,7 +160,7 @@ sealed class ReplayBackend<TInput, TGameState> : IRollbackSession<TInput, TGameS
         }
 
         var inputPopCount = useInputSeedForRandom ? Mem.PopCount<TInput>(inputBuffer.AsSpan()) : 0;
-        deterministicRandom.UpdateSeed(CurrentFrame.Number, inputPopCount);
+        Random.UpdateSeed(CurrentFrame.Number, inputPopCount);
 
         return ResultCode.Ok;
     }
@@ -164,34 +168,41 @@ sealed class ReplayBackend<TInput, TGameState> : IRollbackSession<TInput, TGameS
     public void SaveCurrentFrame()
     {
         var currentFrame = CurrentFrame;
-        ref var nextState = ref stateStore.GetCurrent();
-        callbacks.ClearState(ref nextState);
-        callbacks.SaveState(in currentFrame, ref nextState);
-        var checksum = checksumProvider.Compute(in nextState);
-        ref readonly var next = ref stateStore.SaveCurrent(in currentFrame, in checksum);
-        logger.Write(LogLevel.Trace, $"replay: saved frame {next.Frame} (checksum: {next.Checksum}).");
+        ref var nextState = ref stateStore.Next();
+
+        BinaryBufferWriter writer = new(nextState.GameState, endianness);
+        callbacks.SaveState(in currentFrame, in writer);
+        nextState.Frame = currentFrame;
+        nextState.Checksum = checksumProvider.Compute(nextState.GameState.WrittenSpan);
+
+        stateStore.Advance();
+        logger.Write(LogLevel.Trace, $"replay: saved frame {nextState.Frame} (checksum: {nextState.Checksum:x8})");
     }
 
-    public void LoadFrame(in Frame frame)
+    public bool LoadFrame(in Frame frame)
     {
         if (frame.IsNull || frame == CurrentFrame)
         {
-            logger.Write(LogLevel.Trace, "Skipping NOP.");
-            return;
+            logger.Write(LogLevel.Trace, "Skipping NOP");
+            return true;
         }
 
         try
         {
-            ref readonly var savedFrame = ref stateStore.Load(frame);
+            var savedFrame = stateStore.Load(in frame);
             logger.Write(LogLevel.Trace,
-                $"Loading replay frame {savedFrame.Frame} (checksum: {savedFrame.Checksum})");
-            callbacks.LoadState(in frame, in savedFrame.GameState);
+                $"Loading replay frame {savedFrame.Frame} (checksum: {savedFrame.Checksum:x8})");
+            var offset = 0;
+            BinaryBufferReader reader = new(savedFrame.GameState.WrittenSpan, ref offset, endianness);
+            callbacks.LoadState(in frame, in reader);
             CurrentFrame = savedFrame.Frame;
+            return true;
         }
         catch (NetcodeException)
         {
             controls.IsBackward = false;
             controls.Pause();
+            return false;
         }
     }
 

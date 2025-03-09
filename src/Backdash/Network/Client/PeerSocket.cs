@@ -50,10 +50,10 @@ public interface IPeerSocketFactory
     /// <summary>
     /// Creates instance of <see cref="IPeerSocket"/>
     /// </summary>
-    IPeerSocket Create(int port, RollbackOptions options);
+    IPeerSocket Create(int port, NetcodeOptions options);
 }
 
 sealed class PeerSocketFactory : IPeerSocketFactory
 {
-    public IPeerSocket Create(int port, RollbackOptions options) => new UdpSocket(port, options.UseIPv6);
+    public IPeerSocket Create(int port, NetcodeOptions options) => new UdpSocket(port, options.UseIPv6);
 }
