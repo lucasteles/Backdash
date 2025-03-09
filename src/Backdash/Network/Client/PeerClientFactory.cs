@@ -36,6 +36,9 @@ public static class PeerClientFactory
     ///  Creates new <see cref="IPeerClient{T}"/>
     /// </summary>
     /// <remarks>Prefer using the <see cref="Create{T}(IPeerSocket, IBinarySerializer{T}, IPeerObserver{T}, int, LogLevel, ILogWriter?, DelayStrategy, Random?)"/> overload in NativeAoT/Trimmed applications</remarks>
+#if !NET9_0_OR_GREATER
+    [RequiresDynamicCode("The native code for this instantiation might not be available at runtime.")]
+#endif
     public static IPeerClient<T> Create<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] T>(
         IPeerSocket socket,
         IPeerObserver<T> observer,

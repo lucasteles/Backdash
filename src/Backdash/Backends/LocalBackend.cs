@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network;
@@ -7,7 +8,7 @@ using Backdash.Synchronizing.State;
 
 namespace Backdash.Backends;
 
-sealed class LocalBackend<TInput> : INetcodeSession<TInput> where TInput : unmanaged
+sealed class LocalBackend<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] TInput> : INetcodeSession<TInput> where TInput : unmanaged
 {
     readonly TaskCompletionSource tsc = new();
     readonly Logger logger;

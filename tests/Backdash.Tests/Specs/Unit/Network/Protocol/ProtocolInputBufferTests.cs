@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network;
@@ -42,7 +43,7 @@ public class ProtocolInputBufferTests
         decompressedInput.Should().BeEquivalentTo(GetSampleInputs());
     }
 
-    [Fact]
+    [DynamicFact(nameof(AutoFakeIt) + " requires dynamic code, even if the library is not annotated with " + nameof(RequiresDynamicCodeAttribute))]
     public void ShouldSendSingleInput()
     {
         var faker = GetFaker();
@@ -68,7 +69,7 @@ public class ProtocolInputBufferTests
         queue.SendInput(input).Should().Be(SendInputResult.Ok);
     }
 
-    [Fact]
+    [DynamicFact(nameof(AutoFakeIt) + " requires dynamic code, even if the library is not annotated with " + nameof(RequiresDynamicCodeAttribute))]
     public void ShouldCompressMultipleBufferedInputs()
     {
         var faker = GetFakerWithSender();
@@ -85,7 +86,7 @@ public class ProtocolInputBufferTests
         lastMessageSent.Should().BeEquivalentTo(GetSampleMessage());
     }
 
-    [Fact]
+    [DynamicFact(nameof(AutoFakeIt) + " requires dynamic code, even if the library is not annotated with " + nameof(RequiresDynamicCodeAttribute))]
     public void ShouldSkipAckedInputs()
     {
         var faker = GetFakerWithSender();
@@ -115,7 +116,7 @@ public class ProtocolInputBufferTests
         lastSentMessage.Should().BeEquivalentTo(expectedMessage);
     }
 
-    [Fact]
+    [DynamicFact(nameof(AutoFakeIt) + " requires dynamic code, even if the library is not annotated with " + nameof(RequiresDynamicCodeAttribute))]
     public void ShouldHandleWhenMaxInputSizeReached()
     {
         var faker = GetFakerWithSender();

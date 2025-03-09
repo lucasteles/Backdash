@@ -33,7 +33,9 @@ static class BinarySerializerFactory
         return new StructBinarySerializer<TInput>();
     }
 
-
+#if !NET9_0_OR_GREATER
+    [RequiresDynamicCode("The native code for this instantiation might not be available at runtime.")]
+#endif
     public static IBinarySerializer<TInput>? Get<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] TInput>(bool networkEndianness = true)
         where TInput : unmanaged
     {
@@ -67,6 +69,9 @@ static class BinarySerializerFactory
         };
     }
 
+#if !NET9_0_OR_GREATER
+    [RequiresDynamicCode("The native code for this instantiation might not be available at runtime.")]
+#endif
     public static IBinarySerializer<TInput> FindOrThrow<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] TInput>(bool networkEndianness = true)
         where TInput : unmanaged =>
         Get<TInput>(networkEndianness)

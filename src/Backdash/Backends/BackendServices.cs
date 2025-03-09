@@ -29,6 +29,9 @@ sealed class BackendServices<[DynamicallyAccessedMembers(DynamicallyAccessedMemb
 
     public EqualityComparer<TInput> InputComparer { get; }
 
+#if !NET9_0_OR_GREATER
+    [RequiresDynamicCode("Requires dynamic code unless " + nameof(services) + "." + nameof(SessionServices<TInput>.InputSerializer) + " is valorized. If so, suppress this warning.")]
+#endif
     public BackendServices(NetcodeOptions options, SessionServices<TInput>? services)
     {
         ChecksumProvider = services?.ChecksumProvider ?? new Fletcher32ChecksumProvider();
@@ -58,6 +61,9 @@ sealed class BackendServices<[DynamicallyAccessedMembers(DynamicallyAccessedMemb
 
 static class BackendServices
 {
+#if !NET9_0_OR_GREATER
+    [RequiresDynamicCode("Requires dynamic code unless " + nameof(services) + "." + nameof(SessionServices<TInput>.InputSerializer) + " is valorized. If so, suppress this warning.")]
+#endif
     public static BackendServices<TInput> Create<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] TInput>(NetcodeOptions options, SessionServices<TInput>? services)
         where TInput : unmanaged =>
         new(options, services);

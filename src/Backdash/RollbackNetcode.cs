@@ -23,6 +23,9 @@ public static class RollbackNetcode
     /// <param name="options">Session configuration</param>
     /// <param name="services">Session customizable dependencies</param>
     /// <typeparam name="TInput">Game input type</typeparam>
+#if !NET9_0_OR_GREATER
+    [RequiresDynamicCode("Requires dynamic code unless " + nameof(services) + "." + nameof(SessionServices<TInput>.InputSerializer) + " is valorized. If so, suppress this warning.")]
+#endif
     public static INetcodeSession<TInput> CreateSession<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] TInput>(
         int port,
         NetcodeOptions? options = null,
@@ -43,6 +46,9 @@ public static class RollbackNetcode
     /// <param name="options">Session configuration</param>
     /// <param name="services">Session customizable dependencies</param>
     /// <typeparam name="TInput">Game input type</typeparam>
+#if !NET9_0_OR_GREATER
+    [RequiresDynamicCode("Requires dynamic code unless " + nameof(services) + "." + nameof(SessionServices<TInput>.InputSerializer) + " is valorized. If so, suppress this warning.")]
+#endif
     public static INetcodeSession<TInput> CreateSpectatorSession<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] TInput>(
         int port,
         IPEndPoint host,
@@ -62,6 +68,9 @@ public static class RollbackNetcode
     /// <param name="options">Session configuration</param>
     /// <param name="services">Session customizable dependencies</param>
     /// <typeparam name="TInput">Game input type</typeparam>
+#if !NET9_0_OR_GREATER
+    [RequiresDynamicCode("Requires dynamic code unless " + nameof(services) + "." + nameof(SessionServices<TInput>.InputSerializer) + " is valorized. If so, suppress this warning.")]
+#endif
     public static INetcodeSession<TInput> CreateLocalSession<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] TInput>(
         NetcodeOptions? options = null,
         SessionServices<TInput>? services = null
@@ -81,6 +90,9 @@ public static class RollbackNetcode
     /// <param name="controls">replay control</param>
     /// <param name="options">Session configuration</param>
     /// <typeparam name="TInput">Game input type</typeparam>
+#if !NET9_0_OR_GREATER
+    [RequiresDynamicCode("Requires dynamic code unless " + nameof(services) + "." + nameof(SessionServices<TInput>.InputSerializer) + " is valorized. If so, suppress this warning.")]
+#endif
     public static INetcodeSession<TInput> CreateReplaySession<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] TInput>(
         int numberOfPlayers,
         IReadOnlyList<ConfirmedInputs<TInput>> inputs,
@@ -106,6 +118,9 @@ public static class RollbackNetcode
     /// <param name="desyncHandler">State de-sync handler</param>
     /// <param name="throwException">If true, throws on state de-synchronization.</param>
     /// <typeparam name="TInput">Game input type</typeparam>
+#if !NET9_0_OR_GREATER
+    [RequiresDynamicCode("Requires dynamic code unless " + nameof(services) + "." + nameof(SessionServices<TInput>.InputSerializer) + " is valorized. If so, suppress this warning.")]
+#endif
     public static INetcodeSession<TInput> CreateSyncTestSession<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] TInput>(
         FrameSpan? checkDistance = null,
         NetcodeOptions? options = null,
