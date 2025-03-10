@@ -530,6 +530,18 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
     /// <typeparam name="T">A type that implements <see cref="IBinarySerializable"/>.</typeparam>
     public void Write<T>(T value) where T : class, IBinarySerializable => value.Serialize(in this);
 
+    /// <summary>Writes a <see cref="IBinarySerializable"/> <paramref name="value"/> into buffer.</summary>
+    /// <typeparam name="T">A type that implements <see cref="IBinarySerializable"/>.</typeparam>
+    /// <param name="value">Value to be written</param>
+    /// <param name="nullable">If true write as nullable reference type.</param>
+    public void Write<T>(T? value, bool nullable) where T : class, IBinarySerializable
+    {
+        if (nullable)
+            WriteNullable(value);
+        else
+            Write(value!);
+    }
+
     /// <summary>Writes span of <see cref="IBinarySerializable"/> <paramref name="values"/> into buffer.</summary>
     /// <typeparam name="T">A type that implements <see cref="IBinarySerializable"/>.</typeparam>
     public void Write<T>(in ReadOnlySpan<T> values) where T : IBinarySerializable
@@ -571,6 +583,19 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
         var len = value.Length;
         Write(len);
         value.CopyTo(0, AllocSpan<char>(len), len);
+    }
+
+    /// <summary>Writes a maybe null <see cref="IBinarySerializable"/> <paramref name="value"/> into buffer.</summary>
+    /// <typeparam name="T">A nullable reference type that implements <see cref="IBinarySerializable"/>.</typeparam>
+    public void WriteNullable<T>(T? value) where T : class, IBinarySerializable
+    {
+        if (value is null)
+            Write(false);
+        else
+        {
+            Write(true);
+            Write(value);
+        }
     }
 
     /// <summary>Writes an unmanaged struct into buffer.</summary>

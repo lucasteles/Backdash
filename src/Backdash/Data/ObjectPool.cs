@@ -66,4 +66,14 @@ sealed class DefaultObjectPool<T> : IObjectPool<T> where T : class, new()
         items.Push(value);
         set.Add(value);
     }
+
+    public void Clear()
+    {
+        numItems = 0;
+        fastItem = null;
+        items.Clear();
+        set.Clear();
+    }
+
+    public int Count => numItems + (fastItem is null ? 0 : 1);
 }

@@ -365,6 +365,34 @@ public readonly ref struct BinaryBufferReader
         return value;
     }
 
+    /// <summary>Reads a nullable <see cref="IBinarySerializable"/> <paramref name="value"/> from buffer.</summary>
+    /// <typeparam name="T">A nullable reference type that implements <see cref="IBinarySerializable"/>.</typeparam>
+    public void ReadNullable<T>(ref T? value, IObjectPool<T> pool, bool forceReturn = true)
+        where T : class, IBinarySerializable
+    {
+        if (ReadBoolean())
+        {
+            if (forceReturn)
+            {
+                if (value is not null)
+                    pool.Return(value);
+
+                value = pool.Rent();
+            }
+            else
+                value ??= pool.Rent();
+
+            Read(value);
+        }
+        else
+            value = null;
+    }
+
+    /// <summary>Reads a nullable <see cref="IBinarySerializable"/> <paramref name="value"/> from buffer.</summary>
+    /// <typeparam name="T">A nullable reference type that implements <see cref="IBinarySerializable"/>.</typeparam>
+    public void ReadNullable<T>(ref T? value, bool forceReturn = true) where T : class, IBinarySerializable, new() =>
+        ReadNullable(ref value, DefaultObjectPool<T>.Instance, forceReturn);
+
     /// <summary>Reads a <see cref="IBinarySerializable"/> <paramref name="value"/> from buffer.</summary>
     /// <typeparam name="T">A value type that implements <see cref="IBinarySerializable"/>.</typeparam>
     public void Read<T>(ref T value) where T : struct, IBinarySerializable => value.Deserialize(in this);
@@ -417,8 +445,19 @@ public readonly ref struct BinaryBufferReader
     }
 
     /// <summary>Reads a <see cref="IBinarySerializable"/> <paramref name="value"/> from buffer.</summary>
-    /// <typeparam name="T">A reference value type that implements <see cref="IBinarySerializable"/>.</typeparam>
+    /// <typeparam name="T">A reference type that implements <see cref="IBinarySerializable"/>.</typeparam>
     public void Read<T>(T value) where T : class, IBinarySerializable => value.Deserialize(in this);
+
+    /// <inheritdoc cref="Read{T}(T)"/>
+    public void Read<T>(
+        ref T? value, bool nullable, bool forceReturn = true
+    ) where T : class, IBinarySerializable, new()
+    {
+        if (nullable)
+            ReadNullable(ref value, forceReturn);
+        else
+            Read(value!);
+    }
 
     /// <summary>Reads a span of <see cref="IBinarySerializable"/> <paramref name="values"/> into buffer.</summary>
     /// <typeparam name="T">A list of a reference type that implements <see cref="IBinarySerializable"/>.</typeparam>

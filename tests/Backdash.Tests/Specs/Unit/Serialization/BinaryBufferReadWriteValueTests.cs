@@ -7,6 +7,7 @@ using Backdash.Serialization;
 using Backdash.Serialization.Numerics;
 using Backdash.Tests.TestUtils;
 using Backdash.Tests.TestUtils.Types;
+using Microsoft.FSharp.Core;
 
 // ReSharper disable CompareOfFloatsByEqualityOperator
 #pragma warning disable S1244
@@ -401,6 +402,101 @@ public class BinaryBufferReadWriteValueTests
 
         return value == result;
     }
+
+    static DefaultObjectPool<SimpleRefData> DataPool =>
+        (DefaultObjectPool<SimpleRefData>)DefaultObjectPool<SimpleRefData>.Instance;
+
+    [PropertyTest]
+    public bool SerializableNullableObjectToObject(
+        FSharpOption<SimpleRefData> valueOpt,
+        SimpleRefData? result,
+        Endianness endianness,
+        bool forceReturn
+    )
+    {
+        SimpleRefData? value = OptionModule.ToObj(valueOpt);
+
+        var size = Setup<SimpleStructData>(endianness, out var writer);
+        var expectedSize = (value is null ? 0 : size) + 1;
+
+        writer.Write(value, nullable: true);
+        writer.WrittenCount.Should().Be(expectedSize);
+
+        var reader = GetReader(writer);
+        reader.Read(ref result, nullable: true, forceReturn);
+        reader.ReadCount.Should().Be(expectedSize);
+
+        return value == result;
+    }
+
+    [PropertyTest]
+    public bool SerializableNullableObjectToNullRef(
+        FSharpOption<SimpleRefData> valueOpt,
+        Endianness endianness,
+        bool forceReturn
+    )
+    {
+        SimpleRefData? value = OptionModule.ToObj(valueOpt);
+        SimpleRefData? result = null;
+
+        DataPool.Clear();
+        var size = Setup<SimpleStructData>(endianness, out var writer);
+        var expectedSize = (value is null ? 0 : size) + 1;
+
+        writer.Write(value, nullable: true);
+        writer.WrittenCount.Should().Be(expectedSize);
+
+        var reader = GetReader(writer);
+        reader.Read(ref result, nullable: true, forceReturn);
+        reader.ReadCount.Should().Be(expectedSize);
+
+        DataPool.Count.Should().Be(0);
+        return value == result;
+    }
+
+    [PropertyTest]
+    public bool SerializableNullableObjectShouldUsePool(
+        FSharpOption<SimpleRefData> valueOpt,
+        SimpleRefData? result,
+        Endianness endianness,
+        bool forceReturn
+    )
+    {
+        DataPool.Clear();
+        DataPool.Return(DataPool.Rent());
+        SimpleRefData? value = OptionModule.ToObj(valueOpt);
+
+        Setup<SimpleStructData>(endianness, out var writer);
+        writer.Write(value, nullable: true);
+
+        var reader = GetReader(writer);
+        reader.Read(ref result, nullable: true, forceReturn);
+
+        if (forceReturn)
+            DataPool.Count.Should().Be(1);
+
+        return value == result;
+    }
+
+    [PropertyTest]
+    public bool SerializableNullableObject(
+        FSharpOption<SimpleRefData> valueOpt,
+        FSharpOption<SimpleRefData> resultOpt,
+        bool useNullable,
+        Endianness endianness
+    )
+    {
+        SimpleRefData? value = OptionModule.ToObj(valueOpt);
+        SimpleRefData? result = OptionModule.ToObj(resultOpt);
+        var withNullable = value is null || result is null || useNullable;
+        Setup<SimpleStructData>(endianness, out var writer);
+        writer.Write(value, nullable: withNullable);
+        var reader = GetReader(writer);
+        reader.Read(ref result, nullable: withNullable);
+
+        return value == result;
+    }
+
 
     [Collection(SerialCollectionDefinition.Name)]
     public class BinaryIntegerTests
