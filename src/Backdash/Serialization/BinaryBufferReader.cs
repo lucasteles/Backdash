@@ -57,7 +57,7 @@ public readonly ref struct BinaryBufferReader
     public void Advance(int count) => offset += count;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    Span<T> GetListSpan<T>(in List<T> values) where T : unmanaged
+    Span<T> GetListSpan<T>(in List<T> values) where T : struct
     {
         var count = ReadInt32();
         CollectionsMarshal.SetCount(values, count);
@@ -429,11 +429,11 @@ public readonly ref struct BinaryBufferReader
     /// <summary>Reads an array of <see cref="IBinarySerializable"/> <paramref name="values"/> from buffer.</summary>
     /// <typeparam name="T">A type that implements <see cref="IBinarySerializable"/>.</typeparam>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Read<T>(in T[] values) where T : unmanaged, IBinarySerializable => Read(values.AsSpan());
+    public void Read<T>(in T[] values) where T : struct, IBinarySerializable => Read(values.AsSpan());
 
     /// <summary>Reads an array of unmanaged <see cref="IBinarySerializable"/> <paramref name="values"/> from buffer.</summary>
     /// <typeparam name="T">A value type that implements <see cref="IBinarySerializable"/>.</typeparam>
-    public void Read<T>(in List<T> values) where T : unmanaged, IBinarySerializable => Read(GetListSpan(in values));
+    public void Read<T>(in List<T> values) where T : struct, IBinarySerializable => Read(GetListSpan(in values));
 
     /// <summary>Reads a circular buffer of unmanaged <see cref="IBinarySerializable"/> <paramref name="values"/> from buffer.</summary>
     /// <typeparam name="T">A value type that implements <see cref="IBinarySerializable"/>.</typeparam>

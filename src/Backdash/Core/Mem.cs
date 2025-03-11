@@ -130,39 +130,41 @@ static class Mem
         var bytes = MemoryMarshal.AsBytes(values);
         var index = 0;
         var count = 0;
+
         while (index < bytes.Length)
         {
             var remaining = bytes[index..];
 
-            if (remaining.Length >= sizeof(ulong))
+            switch (remaining.Length)
             {
-                var value = MemoryMarshal.Read<ulong>(remaining[..sizeof(ulong)]);
-                index += sizeof(ulong);
-                count += BitOperations.PopCount(value);
-                continue;
-            }
-
-            if (remaining.Length >= sizeof(uint))
-            {
-                var value = MemoryMarshal.Read<uint>(remaining[..sizeof(uint)]);
-                index += sizeof(uint);
-                count += BitOperations.PopCount(value);
-                continue;
-            }
-
-            if (remaining.Length >= sizeof(ushort))
-            {
-                var value = MemoryMarshal.Read<ushort>(remaining[..sizeof(ushort)]);
-                index += sizeof(ushort);
-                count += ushort.PopCount(value);
-                continue;
-            }
-
-            if (remaining.Length >= sizeof(byte))
-            {
-                var value = remaining[0];
-                index += sizeof(byte);
-                count += byte.PopCount(value);
+                case >= sizeof(ulong):
+                {
+                    var value = MemoryMarshal.Read<ulong>(remaining[..sizeof(ulong)]);
+                    index += sizeof(ulong);
+                    count += BitOperations.PopCount(value);
+                    continue;
+                }
+                case >= sizeof(uint):
+                {
+                    var value = MemoryMarshal.Read<uint>(remaining[..sizeof(uint)]);
+                    index += sizeof(uint);
+                    count += BitOperations.PopCount(value);
+                    continue;
+                }
+                case >= sizeof(ushort):
+                {
+                    var value = MemoryMarshal.Read<ushort>(remaining[..sizeof(ushort)]);
+                    index += sizeof(ushort);
+                    count += ushort.PopCount(value);
+                    continue;
+                }
+                case >= sizeof(byte):
+                {
+                    var value = remaining[0];
+                    index += sizeof(byte);
+                    count += byte.PopCount(value);
+                    break;
+                }
             }
         }
 
