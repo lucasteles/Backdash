@@ -9,8 +9,6 @@ sealed class ConfirmedInputsSerializer<T>(IBinarySerializer<T> inputSerializer) 
     where T : unmanaged
 {
     readonly Endianness endianness = inputSerializer.Endianness;
-
-    /// <inheritdoc cref="NetcodeOptions.UseNetworkEndianness"/>
     public Endianness Endianness => endianness;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -25,7 +23,6 @@ sealed class ConfirmedInputsSerializer<T>(IBinarySerializer<T> inputSerializer) 
         {
             var size = inputSerializer.Serialize(in current, writer.CurrentBuffer);
             writer.Advance(size);
-
             current = ref Unsafe.Add(ref current, 1)!;
         }
     }
@@ -42,7 +39,6 @@ sealed class ConfirmedInputsSerializer<T>(IBinarySerializer<T> inputSerializer) 
         {
             var size = inputSerializer.Deserialize(reader.CurrentBuffer, ref current);
             reader.Advance(size);
-
             current = ref Unsafe.Add(ref current, 1)!;
         }
     }

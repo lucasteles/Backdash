@@ -23,7 +23,10 @@ public class ProtocolInputBufferTests
             AckFrame = Frame.Null,
             StartFrame = new(startFrame),
             NumBits = 74,
-            PeerConnectStatus = new(new ConnectionsState(4, Frame.Null).Statuses),
+            PeerConnectStatus = new(
+                new ConnectionsState(4, Frame.Null).Statuses
+            ),
+            PeerCount = 4,
         },
     };
 

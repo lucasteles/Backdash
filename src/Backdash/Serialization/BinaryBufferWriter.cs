@@ -599,7 +599,13 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
     }
 
     /// <summary>Writes an unmanaged struct into buffer.</summary>
-    public void WriteStruct<T>(in T value) where T : unmanaged => Write(Mem.AsBytes(in value));
+    public void WriteStruct<T>(in T value) where T : unmanaged
+    {
+        var size = Unsafe.SizeOf<T>();
+        var span = buffer.GetSpan(size);
+        MemoryMarshal.Write(span, in value);
+        Advance(size);
+    }
 
     /// <summary>Writes an unmanaged struct span into buffer.</summary>
     public void WriteStruct<T>(in ReadOnlySpan<T> values) where T : unmanaged => Write(MemoryMarshal.AsBytes(values));
@@ -639,8 +645,8 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
     /// <summary>Writes an <see cref="string"/> <paramref name="value"/> into buffer as UTF8.</summary>
     public void WriteUtf8String(in ReadOnlySpan<char> value)
     {
-        var span = buffer.GetSpan(System.Text.Encoding.UTF8.GetByteCount(value));
-        var writtenCount = System.Text.Encoding.UTF8.GetBytes(value, span);
+        var span = buffer.GetSpan(Encoding.UTF8.GetByteCount(value));
+        var writtenCount = Encoding.UTF8.GetBytes(value, span);
         Advance(writtenCount);
     }
 

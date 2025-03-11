@@ -20,18 +20,13 @@ public interface IInputGenerator<out TInput> where TInput : unmanaged
 /// Random input value provider
 /// </summary>
 /// <typeparam name="TInput"></typeparam>
-public sealed class RandomInputGenerator<TInput> : IInputGenerator<TInput> where TInput : unmanaged
+/// <remarks>
+/// Initializes new <see cref="RandomInputGenerator{TInput}"/>
+/// </remarks>
+public sealed class RandomInputGenerator<TInput>(Random? random = null)
+    : IInputGenerator<TInput> where TInput : unmanaged
 {
-    Random Random { get; }
-
-    /// <summary>
-    /// Initializes new <see cref="RandomInputGenerator{TInput}"/>
-    /// </summary>
-    public RandomInputGenerator(Random? random = null)
-    {
-        ThrowIf.TypeIsReferenceOrContainsReferences<TInput>();
-        Random = random ?? Random.Shared;
-    }
+    Random Random { get; } = random ?? Random.Shared;
 
     /// <inheritdoc />
     public TInput Generate()

@@ -36,18 +36,14 @@ public interface IDeterministicRandom
         if (minValue >= maxValue)
             throw new ArgumentOutOfRangeException(nameof(minValue), "minValue must be less than maxValue");
 
-        uint range = (uint)(maxValue - minValue);
+        var range = (uint)(maxValue - minValue);
         return (int)(Next() % range) + minValue;
     }
 
     /// <summary>
     /// Returns a random integer that is between 0 and <paramref name="maxValue"/>
     /// </summary>
-    int NextInt(int maxValue)
-    {
-        ArgumentOutOfRangeException.ThrowIfNegative(maxValue);
-        return NextInt(0, maxValue);
-    }
+    int NextInt(int maxValue) => NextInt(0, maxValue);
 
     /// <summary>
     /// Returns a random floating-point number that is greater than or equal to 0.0, and less than 1.0.

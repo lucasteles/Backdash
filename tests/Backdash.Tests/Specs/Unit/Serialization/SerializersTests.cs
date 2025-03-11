@@ -1,5 +1,6 @@
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using Backdash.Network;
 using Backdash.Serialization;
 using Backdash.Serialization.Internal;
 using Backdash.Tests.TestUtils;
@@ -9,114 +10,234 @@ namespace Backdash.Tests.Specs.Unit.Serialization;
 
 public class SerializersTests
 {
-    [PropertyTest]
-    public bool ShouldSerializeInt(int value)
+    public class SerializeIntegerBigEndianTests
     {
-        var serializer = BinarySerializerFactory.ForInteger<int>();
-        serializer.Should().NotBeNull().And.BeOfType<IntegerBinarySerializer<int>>();
-        Span<byte> buffer = stackalloc byte[sizeof(int)];
-        serializer.Serialize(in value, buffer);
-        var result = serializer.Deserialize(buffer);
-        return result == value;
+        const Endianness Endianness = Backdash.Network.Endianness.BigEndian;
+
+        [PropertyTest]
+        public bool ShouldSerializeInt(int value)
+        {
+            var serializer = BinarySerializerFactory.ForInteger<int>(Endianness);
+            serializer.Should().NotBeNull().And.BeOfType<IntegerBinaryBigEndianSerializer<int>>();
+            Span<byte> buffer = stackalloc byte[sizeof(int)];
+            serializer.Serialize(in value, buffer);
+            var result = serializer.Deserialize(buffer);
+            return result == value;
+        }
+
+        [PropertyTest]
+        public bool ShouldSerializeUInt(uint value)
+        {
+            var serializer = BinarySerializerFactory.ForInteger<uint>(Endianness);
+            serializer.Should().NotBeNull().And.BeOfType<IntegerBinaryBigEndianSerializer<uint>>();
+            Span<byte> buffer = stackalloc byte[sizeof(uint)];
+            serializer.Serialize(in value, buffer);
+            var result = serializer.Deserialize(buffer);
+            return result == value;
+        }
+
+        [PropertyTest]
+        public bool ShouldSerializeULong(ulong value)
+        {
+            var serializer = BinarySerializerFactory.ForInteger<ulong>(Endianness);
+            serializer.Should().NotBeNull().And.BeOfType<IntegerBinaryBigEndianSerializer<ulong>>();
+            Span<byte> buffer = stackalloc byte[sizeof(ulong)];
+            serializer.Serialize(in value, buffer);
+            var result = serializer.Deserialize(buffer);
+            return result == value;
+        }
+
+        [PropertyTest]
+        public bool ShouldSerializeLong(long value)
+        {
+            var serializer = BinarySerializerFactory.ForInteger<long>(Endianness);
+            serializer.Should().NotBeNull().And.BeOfType<IntegerBinaryBigEndianSerializer<long>>();
+            Span<byte> buffer = stackalloc byte[sizeof(long)];
+            serializer.Serialize(in value, buffer);
+            var result = serializer.Deserialize(buffer);
+            return result == value;
+        }
+
+        [PropertyTest]
+        public bool ShouldSerializeShort(short value)
+        {
+            var serializer = BinarySerializerFactory.ForInteger<short>(Endianness);
+            serializer.Should().NotBeNull().And.BeOfType<IntegerBinaryBigEndianSerializer<short>>();
+            Span<byte> buffer = stackalloc byte[sizeof(short)];
+            serializer.Serialize(in value, buffer);
+            var result = serializer.Deserialize(buffer);
+            return result == value;
+        }
+
+        [PropertyTest]
+        public bool ShouldSerializeUShort(ushort value)
+        {
+            var serializer = BinarySerializerFactory.ForInteger<ushort>(Endianness);
+            serializer.Should().NotBeNull().And.BeOfType<IntegerBinaryBigEndianSerializer<ushort>>();
+            Span<byte> buffer = stackalloc byte[sizeof(ushort)];
+            serializer.Serialize(in value, buffer);
+            var result = serializer.Deserialize(buffer);
+            return result == value;
+        }
+
+        [PropertyTest]
+        public bool ShouldSerializeByte(byte value)
+        {
+            var serializer = BinarySerializerFactory.ForInteger<byte>(Endianness);
+            serializer.Should().NotBeNull().And.BeOfType<IntegerBinaryBigEndianSerializer<byte>>();
+            Span<byte> buffer = stackalloc byte[sizeof(byte)];
+            serializer.Serialize(in value, buffer);
+            var result = serializer.Deserialize(buffer);
+            return result == value;
+        }
+
+        [PropertyTest]
+        public bool ShouldSerializeSByte(sbyte value)
+        {
+            var serializer = BinarySerializerFactory.ForInteger<sbyte>(Endianness);
+            serializer.Should().NotBeNull().And.BeOfType<IntegerBinaryBigEndianSerializer<sbyte>>();
+            Span<byte> buffer = stackalloc byte[sizeof(sbyte)];
+            serializer.Serialize(in value, buffer);
+            var result = serializer.Deserialize(buffer);
+            return result == value;
+        }
+
+        [PropertyTest]
+        public bool ShouldSerializeInt128(Int128 value)
+        {
+            var serializer = BinarySerializerFactory.ForInteger<Int128>(Endianness);
+            serializer.Should().NotBeNull().And.BeOfType<IntegerBinaryBigEndianSerializer<Int128>>();
+            Span<byte> buffer = stackalloc byte[Unsafe.SizeOf<Int128>()];
+            serializer.Serialize(in value, buffer);
+            var result = serializer.Deserialize(buffer);
+            return result == value;
+        }
+
+        [PropertyTest]
+        public bool ShouldSerializeIntU128(UInt128 value)
+        {
+            var serializer = BinarySerializerFactory.ForInteger<UInt128>(Endianness);
+            serializer.Should().NotBeNull().And.BeOfType<IntegerBinaryBigEndianSerializer<UInt128>>();
+            Span<byte> buffer = stackalloc byte[Unsafe.SizeOf<UInt128>()];
+            serializer.Serialize(in value, buffer);
+            var result = serializer.Deserialize(buffer);
+            return result == value;
+        }
     }
 
-    [PropertyTest]
-    public bool ShouldSerializeUInt(uint value)
+    public class SerializeIntegerLittleEndianTests
     {
-        var serializer = BinarySerializerFactory.ForInteger<uint>();
-        serializer.Should().NotBeNull().And.BeOfType<IntegerBinarySerializer<uint>>();
-        Span<byte> buffer = stackalloc byte[sizeof(uint)];
-        serializer.Serialize(in value, buffer);
-        var result = serializer.Deserialize(buffer);
-        return result == value;
-    }
+        const Endianness Endianness = Backdash.Network.Endianness.LittleEndian;
 
-    [PropertyTest]
-    public bool ShouldSerializeULong(ulong value)
-    {
-        var serializer = BinarySerializerFactory.ForInteger<ulong>();
-        serializer.Should().NotBeNull().And.BeOfType<IntegerBinarySerializer<ulong>>();
-        Span<byte> buffer = stackalloc byte[sizeof(ulong)];
-        serializer.Serialize(in value, buffer);
-        var result = serializer.Deserialize(buffer);
-        return result == value;
-    }
+        [PropertyTest]
+        public bool ShouldSerializeInt(int value)
+        {
+            var serializer = BinarySerializerFactory.ForInteger<int>(Endianness);
+            serializer.Should().NotBeNull().And.BeOfType<IntegerBinaryLittleEndianSerializer<int>>();
+            Span<byte> buffer = stackalloc byte[sizeof(int)];
+            serializer.Serialize(in value, buffer);
+            var result = serializer.Deserialize(buffer);
+            return result == value;
+        }
 
-    [PropertyTest]
-    public bool ShouldSerializeLong(long value)
-    {
-        var serializer = BinarySerializerFactory.ForInteger<long>();
-        serializer.Should().NotBeNull().And.BeOfType<IntegerBinarySerializer<long>>();
-        Span<byte> buffer = stackalloc byte[sizeof(long)];
-        serializer.Serialize(in value, buffer);
-        var result = serializer.Deserialize(buffer);
-        return result == value;
-    }
+        [PropertyTest]
+        public bool ShouldSerializeUInt(uint value)
+        {
+            var serializer = BinarySerializerFactory.ForInteger<uint>(Endianness);
+            serializer.Should().NotBeNull().And.BeOfType<IntegerBinaryLittleEndianSerializer<uint>>();
+            Span<byte> buffer = stackalloc byte[sizeof(uint)];
+            serializer.Serialize(in value, buffer);
+            var result = serializer.Deserialize(buffer);
+            return result == value;
+        }
 
-    [PropertyTest]
-    public bool ShouldSerializeShort(short value)
-    {
-        var serializer = BinarySerializerFactory.ForInteger<short>();
-        serializer.Should().NotBeNull().And.BeOfType<IntegerBinarySerializer<short>>();
-        Span<byte> buffer = stackalloc byte[sizeof(short)];
-        serializer.Serialize(in value, buffer);
-        var result = serializer.Deserialize(buffer);
-        return result == value;
-    }
+        [PropertyTest]
+        public bool ShouldSerializeULong(ulong value)
+        {
+            var serializer = BinarySerializerFactory.ForInteger<ulong>(Endianness);
+            serializer.Should().NotBeNull().And.BeOfType<IntegerBinaryLittleEndianSerializer<ulong>>();
+            Span<byte> buffer = stackalloc byte[sizeof(ulong)];
+            serializer.Serialize(in value, buffer);
+            var result = serializer.Deserialize(buffer);
+            return result == value;
+        }
 
-    [PropertyTest]
-    public bool ShouldSerializeUShort(ushort value)
-    {
-        var serializer = BinarySerializerFactory.ForInteger<ushort>();
-        serializer.Should().NotBeNull().And.BeOfType<IntegerBinarySerializer<ushort>>();
-        Span<byte> buffer = stackalloc byte[sizeof(ushort)];
-        serializer.Serialize(in value, buffer);
-        var result = serializer.Deserialize(buffer);
-        return result == value;
-    }
+        [PropertyTest]
+        public bool ShouldSerializeLong(long value)
+        {
+            var serializer = BinarySerializerFactory.ForInteger<long>(Endianness);
+            serializer.Should().NotBeNull().And.BeOfType<IntegerBinaryLittleEndianSerializer<long>>();
+            Span<byte> buffer = stackalloc byte[sizeof(long)];
+            serializer.Serialize(in value, buffer);
+            var result = serializer.Deserialize(buffer);
+            return result == value;
+        }
 
-    [PropertyTest]
-    public bool ShouldSerializeByte(byte value)
-    {
-        var serializer = BinarySerializerFactory.ForInteger<byte>();
-        serializer.Should().NotBeNull().And.BeOfType<IntegerBinarySerializer<byte>>();
-        Span<byte> buffer = stackalloc byte[sizeof(byte)];
-        serializer.Serialize(in value, buffer);
-        var result = serializer.Deserialize(buffer);
-        return result == value;
-    }
+        [PropertyTest]
+        public bool ShouldSerializeShort(short value)
+        {
+            var serializer = BinarySerializerFactory.ForInteger<short>(Endianness);
+            serializer.Should().NotBeNull().And.BeOfType<IntegerBinaryLittleEndianSerializer<short>>();
+            Span<byte> buffer = stackalloc byte[sizeof(short)];
+            serializer.Serialize(in value, buffer);
+            var result = serializer.Deserialize(buffer);
+            return result == value;
+        }
 
-    [PropertyTest]
-    public bool ShouldSerializeSByte(sbyte value)
-    {
-        var serializer = BinarySerializerFactory.ForInteger<sbyte>();
-        serializer.Should().NotBeNull().And.BeOfType<IntegerBinarySerializer<sbyte>>();
-        Span<byte> buffer = stackalloc byte[sizeof(sbyte)];
-        serializer.Serialize(in value, buffer);
-        var result = serializer.Deserialize(buffer);
-        return result == value;
-    }
+        [PropertyTest]
+        public bool ShouldSerializeUShort(ushort value)
+        {
+            var serializer = BinarySerializerFactory.ForInteger<ushort>(Endianness);
+            serializer.Should().NotBeNull().And.BeOfType<IntegerBinaryLittleEndianSerializer<ushort>>();
+            Span<byte> buffer = stackalloc byte[sizeof(ushort)];
+            serializer.Serialize(in value, buffer);
+            var result = serializer.Deserialize(buffer);
+            return result == value;
+        }
 
-    [PropertyTest]
-    public bool ShouldSerializeInt128(Int128 value)
-    {
-        var serializer = BinarySerializerFactory.ForInteger<Int128>();
-        serializer.Should().NotBeNull().And.BeOfType<IntegerBinarySerializer<Int128>>();
-        Span<byte> buffer = stackalloc byte[Unsafe.SizeOf<Int128>()];
-        serializer.Serialize(in value, buffer);
-        var result = serializer.Deserialize(buffer);
-        return result == value;
-    }
+        [PropertyTest]
+        public bool ShouldSerializeByte(byte value)
+        {
+            var serializer = BinarySerializerFactory.ForInteger<byte>(Endianness);
+            serializer.Should().NotBeNull().And.BeOfType<IntegerBinaryLittleEndianSerializer<byte>>();
+            Span<byte> buffer = stackalloc byte[sizeof(byte)];
+            serializer.Serialize(in value, buffer);
+            var result = serializer.Deserialize(buffer);
+            return result == value;
+        }
 
-    [PropertyTest]
-    public bool ShouldSerializeIntU128(UInt128 value)
-    {
-        var serializer = BinarySerializerFactory.ForInteger<UInt128>();
-        serializer.Should().NotBeNull().And.BeOfType<IntegerBinarySerializer<UInt128>>();
-        Span<byte> buffer = stackalloc byte[Unsafe.SizeOf<UInt128>()];
-        serializer.Serialize(in value, buffer);
-        var result = serializer.Deserialize(buffer);
-        return result == value;
+        [PropertyTest]
+        public bool ShouldSerializeSByte(sbyte value)
+        {
+            var serializer = BinarySerializerFactory.ForInteger<sbyte>(Endianness);
+            serializer.Should().NotBeNull().And.BeOfType<IntegerBinaryLittleEndianSerializer<sbyte>>();
+            Span<byte> buffer = stackalloc byte[sizeof(sbyte)];
+            serializer.Serialize(in value, buffer);
+            var result = serializer.Deserialize(buffer);
+            return result == value;
+        }
+
+        [PropertyTest]
+        public bool ShouldSerializeInt128(Int128 value)
+        {
+            var serializer = BinarySerializerFactory.ForInteger<Int128>(Endianness);
+            serializer.Should().NotBeNull().And.BeOfType<IntegerBinaryLittleEndianSerializer<Int128>>();
+            Span<byte> buffer = stackalloc byte[Unsafe.SizeOf<Int128>()];
+            serializer.Serialize(in value, buffer);
+            var result = serializer.Deserialize(buffer);
+            return result == value;
+        }
+
+        [PropertyTest]
+        public bool ShouldSerializeIntU128(UInt128 value)
+        {
+            var serializer = BinarySerializerFactory.ForInteger<UInt128>(Endianness);
+            serializer.Should().NotBeNull().And.BeOfType<IntegerBinaryLittleEndianSerializer<UInt128>>();
+            Span<byte> buffer = stackalloc byte[Unsafe.SizeOf<UInt128>()];
+            serializer.Serialize(in value, buffer);
+            var result = serializer.Deserialize(buffer);
+            return result == value;
+        }
     }
 
     [PropertyTest]
@@ -217,15 +338,27 @@ public class SerializersTests
         return result == value;
     }
 
-
     static void AssertBaseSerializer<T, TInt>(IBinarySerializer<T> serializer)
         where T : unmanaged, Enum
-        where TInt : unmanaged, IBinaryInteger<TInt>, IMinMaxValue<TInt> =>
-        (serializer as EnumBinarySerializer<T, TInt>)?
-        .GetBaseSerializer()
-        .Should().NotBeNull()
-        .And
-        .BeOfType<IntegerBinarySerializer<TInt>>();
+        where TInt : unmanaged, IBinaryInteger<TInt>, IMinMaxValue<TInt>
+    {
+        var baseSerializer = (serializer as EnumBinarySerializer<T, TInt>)?.GetBaseSerializer();
+
+        baseSerializer.Should().NotBeNull();
+
+        switch (serializer.Endianness)
+        {
+            case Endianness.LittleEndian:
+                baseSerializer.Should().BeOfType<IntegerBinaryLittleEndianSerializer<TInt>>();
+                break;
+            case Endianness.BigEndian:
+                baseSerializer.Should().BeOfType<IntegerBinaryBigEndianSerializer<TInt>>();
+                break;
+            default:
+                Assert.Fail("Invalid endianness");
+                break;
+        }
+    }
 
 #if !AOT_ENABLED
     [Fact]
@@ -237,8 +370,8 @@ public class SerializersTests
 
     static void AssertIntegerSerializer<T>() where T : unmanaged, IBinaryInteger<T>, IMinMaxValue<T>
     {
-        var serializer = BinarySerializerFactory.Get<T>();
-        serializer.Should().BeOfType<IntegerBinarySerializer<T>>();
+        var serializer = BinarySerializerFactory.Get<T>(true);
+        serializer.Should().BeOfType<IntegerBinaryBigEndianSerializer<T>>();
     }
 
     static void AssertEnumSerializer<T, TInt>()

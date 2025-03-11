@@ -1,5 +1,4 @@
 using Backdash.Network;
-using Backdash.Serialization;
 using Backdash.Serialization.Internal;
 using Backdash.Synchronizing.Input.Confirmed;
 using Backdash.Tests.TestUtils;
@@ -13,8 +12,10 @@ public class ConfirmedInputsTests
     {
         var endianness = Platform.GetEndianness(network);
 
-        IBinarySerializer<ConfirmedInputs<int>> serializer =
-            new ConfirmedInputsSerializer<int>(new IntegerBinarySerializer<int>(endianness));
+        var serializer = new ConfirmedInputsSerializer<int>(
+            IntegerBinarySerializer.Create<int>(endianness)
+        );
+
         Span<byte> buffer = stackalloc byte[(inputData.Count * sizeof(int)) + 1];
         var writtenCount = serializer.Serialize(inputData, buffer);
         ConfirmedInputs<int> result = new();

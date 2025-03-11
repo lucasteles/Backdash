@@ -57,8 +57,7 @@ public sealed class SessionServices<TInput> where TInput : unmanaged
 
     /// <summary>
     /// Service for random value generation in session
-    /// Defaults to <see cref="XorSimdRandom"/>
-    /// <seealso cref="XorShiftRandom"/>
+    /// Defaults to <see cref="XorShiftRandom"/>
     /// </summary>
     public IDeterministicRandom? DeterministicRandom { get; set; }
 

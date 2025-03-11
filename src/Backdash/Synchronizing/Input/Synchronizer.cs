@@ -132,7 +132,7 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
         ThrowIf.Assert(syncOutput.Length >= NumberOfPlayers);
         syncOutput.Clear();
 
-        ReadOnlySpan<ConnectStatus> connections = localConnections.Statuses;
+        ReadOnlySpan<ConnectStatus> connections = localConnections;
         var queues = CollectionsMarshal.AsSpan(inputQueues);
 
         for (var i = 0; i < NumberOfPlayers; i++)
@@ -225,14 +225,25 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
     bool CheckSimulationConsistency(out Frame seekTo)
     {
         var firstIncorrect = Frame.Null;
-        for (var i = 0; i < NumberOfPlayers; i++)
+
+        var span = CollectionsMarshal.AsSpan(inputQueues);
+        ref var current = ref MemoryMarshal.GetReference(span);
+        ref var limit = ref Unsafe.Add(ref current, span.Length);
+        while (Unsafe.IsAddressLessThan(ref current, ref limit))
         {
-            var incorrect = inputQueues[i].FirstIncorrectFrame;
+            var incorrect = current.FirstIncorrectFrame;
             if (incorrect.IsNull || (!firstIncorrect.IsNull && incorrect.Number >= firstIncorrect.Number))
+            {
+                current = ref Unsafe.Add(ref current, 1)!;
                 continue;
-            logger.Write(LogLevel.Information, $"Incorrect frame {incorrect.Number} reported by queue {i}");
+            }
+
+            logger.Write(LogLevel.Information,
+                $"Incorrect frame {incorrect.Number} reported by queue {current.QueueId}");
             RollbackFrames = new(Math.Max(RollbackFrames.FrameCount, incorrect.Number));
             firstIncorrect = incorrect;
+
+            current = ref Unsafe.Add(ref current, 1)!;
         }
 
         if (firstIncorrect.IsNull)

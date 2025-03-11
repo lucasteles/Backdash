@@ -5,7 +5,7 @@ namespace Backdash.Synchronizing.Input;
 
 sealed class InputQueue<TInput> where TInput : unmanaged
 {
-    readonly int queueId;
+    public readonly int QueueId;
     readonly EqualityComparer<TInput> inputComparer;
     readonly Logger logger;
 
@@ -19,9 +19,9 @@ sealed class InputQueue<TInput> where TInput : unmanaged
 
     public InputQueue(int queueId, int queueSize, Logger logger, EqualityComparer<TInput>? inputComparer = null)
     {
-        this.queueId = queueId;
         this.logger = logger;
         this.inputComparer = inputComparer ?? EqualityComparer<TInput>.Default;
+        QueueId = queueId;
         LocalFrameDelay = 0;
         firstFrame = true;
         lastUserAddedFrame = Frame.Null;
@@ -45,18 +45,18 @@ sealed class InputQueue<TInput> where TInput : unmanaged
         if (!lastFrameRequested.IsNull)
             frame = Frame.Min(in frame, in lastFrameRequested);
         logger.Write(LogLevel.Trace,
-            $"Queue {queueId} => discarding confirmed frames up to {frame} (last add:{lastAddedFrame.Number} len:{inputs.Size} front:{FirstInput.Frame.Number} back:{LastInput.Frame.Number})");
+            $"Queue {QueueId} => discarding confirmed frames up to {frame} (last add:{lastAddedFrame.Number} len:{inputs.Size} front:{FirstInput.Frame.Number} back:{LastInput.Frame.Number})");
         if (frame >= lastAddedFrame)
             inputs.Clear();
         else
         {
             var offset = frame.Number - FirstInput.Frame.Number + 1;
-            logger.Write(LogLevel.Trace, $"Queue {queueId} => difference of {offset} frames.");
+            logger.Write(LogLevel.Trace, $"Queue {QueueId} => difference of {offset} frames.");
             inputs.Discard(offset);
         }
 
         logger.Write(LogLevel.Trace,
-            $"Queue {queueId} => after discarding, new back is {LastInput.Frame.Number} (front:{FirstInput.Frame.Number})."
+            $"Queue {QueueId} => after discarding, new back is {LastInput.Frame.Number} (front:{FirstInput.Frame.Number})."
         );
     }
 
@@ -64,7 +64,7 @@ sealed class InputQueue<TInput> where TInput : unmanaged
     {
         ThrowIf.Assert(firstIncorrectFrame.IsNull || frame.Number <= firstIncorrectFrame.Number);
         logger.Write(LogLevel.Trace,
-            $"Queue {queueId} => resetting all prediction errors back to frame {frame.Number}.");
+            $"Queue {QueueId} => resetting all prediction errors back to frame {frame.Number}.");
         // There's nothing really to do other than reset our prediction state and the incorrect frame counter...
         prediction.ResetFrame();
         firstIncorrectFrame = Frame.Null;
@@ -86,7 +86,7 @@ sealed class InputQueue<TInput> where TInput : unmanaged
 
     public bool GetInput(Frame requestedFrame, out GameInput<TInput> input)
     {
-        logger.Write(LogLevel.Trace, $"Queue {queueId} => requesting input frame {requestedFrame.Number}.");
+        logger.Write(LogLevel.Trace, $"Queue {QueueId} => requesting input frame {requestedFrame.Number}.");
         // No one should ever try to grab any input when we have a prediction error.
         // Doing so means that we're just going further down the wrong path.
         ThrowIf.Assert(firstIncorrectFrame.IsNull);
@@ -103,7 +103,7 @@ sealed class InputQueue<TInput> where TInput : unmanaged
                 ThrowIf.Assert(next.Frame == requestedFrame);
                 input = next;
                 logger.Write(LogLevel.Trace,
-                    $"Queue {queueId} => returning confirmed frame number {input.Frame.Number}.");
+                    $"Queue {QueueId} => returning confirmed frame number {input.Frame.Number}.");
                 return true;
             }
 
@@ -112,19 +112,19 @@ sealed class InputQueue<TInput> where TInput : unmanaged
             if (requestedFrame == 0)
             {
                 logger.Write(LogLevel.Trace,
-                    $"Queue {queueId} => basing new prediction frame from nothing, you're client wants frame 0.");
+                    $"Queue {QueueId} => basing new prediction frame from nothing, you're client wants frame 0.");
                 prediction.Erase();
             }
             else if (lastAddedFrame.IsNull)
             {
                 logger.Write(LogLevel.Trace,
-                    $"Queue {queueId} => basing new prediction frame from nothing, since we have no frames yet.");
+                    $"Queue {QueueId} => basing new prediction frame from nothing, since we have no frames yet.");
                 prediction.Erase();
             }
             else
             {
                 logger.Write(LogLevel.Trace,
-                    $"Queue {queueId} => basing new prediction frame from previously added frame (queue entry:{inputs.CurrentIndex}, frame:{LastInput.Frame.Number})"
+                    $"Queue {QueueId} => basing new prediction frame from previously added frame (queue entry:{inputs.CurrentIndex}, frame:{LastInput.Frame.Number})"
                 );
                 prediction = LastInput;
             }
@@ -138,13 +138,13 @@ sealed class InputQueue<TInput> where TInput : unmanaged
         input = prediction;
         input.Frame = requestedFrame;
         logger.Write(LogLevel.Trace,
-            $"Queue {queueId} => returning prediction frame number {input.Frame.Number} ({prediction.Frame.Number}).");
+            $"Queue {QueueId} => returning prediction frame number {input.Frame.Number} ({prediction.Frame.Number}).");
         return false;
     }
 
     public void AddInput(ref GameInput<TInput> input)
     {
-        logger.Write(LogLevel.Trace, $"Queue {queueId} => adding input frame number {input.Frame.Number} to queue.");
+        logger.Write(LogLevel.Trace, $"Queue {QueueId} => adding input frame number {input.Frame.Number} to queue.");
         // These next two lines simply verify that inputs are passed in sequentially by the user, regardless of frame delay.
         ThrowIf.Assert(lastUserAddedFrame.IsNull || input.Frame.Number == lastUserAddedFrame.Next().Number);
         lastUserAddedFrame = input.Frame;
@@ -159,7 +159,7 @@ sealed class InputQueue<TInput> where TInput : unmanaged
     void AddDelayedInputToQueue(GameInput<TInput> input, in Frame inputFrame)
     {
         logger.Write(LogLevel.Trace,
-            $"Queue {queueId} => adding delayed input frame number {inputFrame.Number} to queue.");
+            $"Queue {QueueId} => adding delayed input frame number {inputFrame.Number} to queue.");
         ThrowIf.Assert(lastAddedFrame.IsNull || inputFrame == lastAddedFrame.Next());
         ThrowIf.Assert(inputFrame.Number is 0 || LastInput.Frame.Number == inputFrame.Previous().Number);
 
@@ -176,7 +176,7 @@ sealed class InputQueue<TInput> where TInput : unmanaged
         if (firstIncorrectFrame.IsNull && !inputComparer.Equals(prediction.Data, input.Data))
         {
             logger.Write(LogLevel.Debug,
-                $"Queue {queueId} => frame {inputFrame} does not match prediction.  marking error.");
+                $"Queue {QueueId} => frame {inputFrame} does not match prediction.  marking error.");
             firstIncorrectFrame = inputFrame;
         }
 
@@ -185,7 +185,7 @@ sealed class InputQueue<TInput> where TInput : unmanaged
         if (prediction.Frame.Number == lastFrameRequested.Number && firstIncorrectFrame.IsNull)
         {
             logger.Write(LogLevel.Debug,
-                $"Queue {queueId} => prediction is correct!  dumping out of prediction mode.");
+                $"Queue {QueueId} => prediction is correct!  dumping out of prediction mode.");
             prediction.ResetFrame();
         }
         else
@@ -202,7 +202,7 @@ sealed class InputQueue<TInput> where TInput : unmanaged
             // This can occur when the frame delay has dropped since the last time we shoved a frame into the system.
             // In this case, there's no room on the queue. Discard it.
             logger.Write(LogLevel.Information,
-                $"Queue {queueId} => Dropping input frame {frame.Number} (expected next frame to be {expectedFrame.Number})");
+                $"Queue {QueueId} => Dropping input frame {frame.Number} (expected next frame to be {expectedFrame.Number})");
             return Frame.Null;
         }
 
@@ -211,7 +211,7 @@ sealed class InputQueue<TInput> where TInput : unmanaged
             // This can occur when the frame delay has been increased since the last time we shoved a frame into the system.
             // We need to replicate the last frame in the queue several times in order to fill the space left.
             logger.Write(LogLevel.Information,
-                $"Queue {queueId} => Adding padding frame {expectedFrame.Number} to account for change in frame delay");
+                $"Queue {QueueId} => Adding padding frame {expectedFrame.Number} to account for change in frame delay");
 
             AddDelayedInputToQueue(LastInput, in expectedFrame);
             expectedFrame++;

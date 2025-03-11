@@ -32,7 +32,7 @@ sealed class BackendServices<TInput> where TInput : unmanaged
     {
         ChecksumProvider = services?.ChecksumProvider ?? new Fletcher32ChecksumProvider();
         StateStore = services?.StateStore ?? new DefaultStateStore(options.StateSizeHint);
-        DeterministicRandom = services?.DeterministicRandom ?? new XorSimdRandom();
+        DeterministicRandom = services?.DeterministicRandom ?? new XorShiftRandom();
         InputListener = services?.InputListener;
         Random = new DefaultRandomNumberGenerator(services?.Random ?? System.Random.Shared);
         DelayStrategy = DelayStrategyFactory.Create(Random, options.Protocol.DelayStrategy);

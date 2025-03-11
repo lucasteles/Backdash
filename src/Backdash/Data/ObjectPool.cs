@@ -1,7 +1,7 @@
 namespace Backdash.Data;
 
 /// <summary>
-/// Defines a object pooling contract
+/// Defines an object pooling contract
 /// </summary>
 /// <typeparam name="T"></typeparam>
 public interface IObjectPool<T>
@@ -17,17 +17,37 @@ public interface IObjectPool<T>
     void Return(T value);
 }
 
-sealed class DefaultObjectPool<T> : IObjectPool<T> where T : class, new()
+/// <summary>
+/// Default object pool for types with empty constructor
+/// </summary>
+public sealed class DefaultObjectPool<T> : IObjectPool<T> where T : class, new()
 {
+    /// <summary>
+    /// Default object pool singleton.
+    /// </summary>
     public static readonly IObjectPool<T> Instance = new DefaultObjectPool<T>();
 
-    const int MaxCapacity = 99; // -1 to account for fastItem
+    /// <summary>
+    /// Maximum number of objects allowed in the pool
+    /// </summary>
+    public readonly int MaxCapacity; // -1 to account for fastItem
 
     int numItems;
-    readonly Stack<T> items = new(MaxCapacity);
-    readonly HashSet<T> set = new(MaxCapacity, ReferenceEqualityComparer.Instance);
+    readonly Stack<T> items;
+    readonly HashSet<T> set;
     T? fastItem;
 
+    /// <summary>
+    /// Instantiate new <see cref="DefaultObjectPool{T}"/>
+    /// </summary>
+    public DefaultObjectPool(int capacity = 100, IEqualityComparer<T>? comparer = null)
+    {
+        MaxCapacity = capacity - 1;
+        items = new(MaxCapacity);
+        set = new(MaxCapacity, comparer ?? ReferenceEqualityComparer.Instance);
+    }
+
+    /// <inheritdoc />
     public T Rent()
     {
         var item = fastItem;
@@ -46,6 +66,7 @@ sealed class DefaultObjectPool<T> : IObjectPool<T> where T : class, new()
         return item;
     }
 
+    /// <inheritdoc />
     public void Return(T value)
     {
         ArgumentNullException.ThrowIfNull(value);
@@ -67,6 +88,9 @@ sealed class DefaultObjectPool<T> : IObjectPool<T> where T : class, new()
         set.Add(value);
     }
 
+    /// <summary>
+    /// Clear object pool
+    /// </summary>
     public void Clear()
     {
         numItems = 0;
@@ -75,5 +99,8 @@ sealed class DefaultObjectPool<T> : IObjectPool<T> where T : class, new()
         set.Clear();
     }
 
+    /// <summary>
+    /// Number of instances in the object pool
+    /// </summary>
     public int Count => numItems + (fastItem is null ? 0 : 1);
 }

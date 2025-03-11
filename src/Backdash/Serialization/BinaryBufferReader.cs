@@ -269,8 +269,7 @@ public readonly ref struct BinaryBufferReader
     public T ReadStruct<T>() where T : unmanaged
     {
         var size = Unsafe.SizeOf<T>();
-        if (size > FreeCapacity) size = FreeCapacity;
-        var result = Mem.ReadStruct<T>(CurrentBuffer[..size]);
+        var result = MemoryMarshal.Read<T>(CurrentBuffer[..size]);
         Advance(size);
         return result;
     }

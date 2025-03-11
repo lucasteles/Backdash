@@ -133,7 +133,7 @@ sealed class ProtocolInbox<TInput>(
              * Update the peer connection status if this peer is still considered to be part
              * of the network.
              */
-            Span<ConnectStatus> localStatus = state.PeerConnectStatuses.Statuses;
+            Span<ConnectStatus> localStatus = state.PeerConnectStatuses;
             ReadOnlySpan<ConnectStatus> remoteStatus = msg.PeerConnectStatus;
             var peerCount = Math.Min(msg.PeerCount, localStatus.Length);
 
