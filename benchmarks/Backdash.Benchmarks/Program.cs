@@ -8,6 +8,4 @@ switcher.Run(args, new BenchmarkDotNet.Configs.DebugInProcessConfig());
 switcher.Run(args);
 #endif
 
-// BenchmarkRunner.Run<GetBitStringBenchmark>();
-// BenchmarkRunner.Run<UdpClientBenchmark>();
 // await new UdpClientBenchmark().Start(10, false).ConfigureAwait(false);

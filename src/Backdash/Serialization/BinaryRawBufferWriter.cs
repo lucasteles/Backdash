@@ -24,12 +24,12 @@ public readonly ref struct BinaryRawBufferWriter
     public BinaryRawBufferWriter(
         scoped in Span<byte> buffer,
         ref int offset,
-        Endianness endianness = Endianness.BigEndian
+        Endianness? endianness = null
     )
     {
         this.buffer = buffer;
         this.offset = ref offset;
-        Endianness = endianness;
+        Endianness = endianness ?? Platform.Endianness;
     }
 
     readonly ref int offset;

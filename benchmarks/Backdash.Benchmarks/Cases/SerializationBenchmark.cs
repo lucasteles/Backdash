@@ -5,8 +5,6 @@
 using System.Buffers;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network;
@@ -15,8 +13,8 @@ using MemoryPack;
 
 namespace Backdash.Benchmarks.Cases;
 
-[RPlotExporter]
-[InProcess, MemoryDiagnoser, RankColumn]
+[InProcess, MemoryDiagnoser]
+[RPlotExporter, RankColumn]
 public class SerializationBenchmark
 {
     TestData data = null!;
@@ -24,54 +22,25 @@ public class SerializationBenchmark
 
     readonly ArrayBufferWriter<byte> buffer = new((int)ByteSize.FromMebiBytes(10).ByteCount);
 
-    Utf8JsonWriter jsonWriter = null!;
-
-    readonly JsonSerializerOptions jsonOptions = new()
-    {
-        PreferredObjectCreationHandling = JsonObjectCreationHandling.Populate,
-        WriteIndented = false,
-        IncludeFields = true,
-    };
-
-    static TestData NewTestData(Random random)
-    {
-        TestData testData = new()
-        {
-            Field1 = random.NextBool(),
-            Field2 = random.Next<ulong>(),
-        };
-
-        for (int i = 0; i < testData.Field3.Length; i++)
-        {
-            ref var entry = ref testData.Field3[i];
-            entry.Field1 = random.Next();
-            entry.Field2 = random.Next<uint>();
-            entry.Field3 = random.Next<ulong>();
-            entry.Field4 = random.Next<long>();
-            entry.Field5 = random.Next<short>();
-            entry.Field6 = random.Next<ushort>();
-            entry.Field7 = random.Next<byte>();
-            entry.Field8 = random.Next<sbyte>();
-            random.Next(entry.Field9.AsSpan());
-        }
-
-        return testData;
-    }
-
     [GlobalSetup]
     public void Setup()
     {
         Random random = new(42);
-        data = NewTestData(random);
-        jsonWriter = new(buffer);
+        data = TestData.Generate(random);
     }
 
     [IterationSetup]
     public void BeforeEach()
     {
         buffer.Clear();
-        jsonWriter.Reset();
         result = new();
+    }
+
+    [IterationCleanup]
+    public void AfterEach()
+    {
+        var size = ByteSize.FromBytes(buffer.WrittenCount);
+        Console.WriteLine($"Data Size: {size} ({size.ByteCount} bytes)");
     }
 
     [Benchmark]
@@ -86,19 +55,21 @@ public class SerializationBenchmark
     }
 
     [Benchmark]
-    public void MemoryPack()
+    public void Backdash_BigEndian()
     {
-        MemoryPackSerializer.Serialize(buffer, data);
-        MemoryPackSerializer.Deserialize(buffer.WrittenSpan, ref result!);
+        var writer = new BinaryBufferWriter(buffer, Endianness.BigEndian);
+        writer.Write(data);
+        int offset = 0;
+        var reader = new BinaryBufferReader(buffer.WrittenSpan, ref offset, Endianness.BigEndian);
+        reader.Read(result);
         Debug.Assert(data == result);
     }
 
     [Benchmark]
-    public void SystemJson()
+    public void MemoryPack()
     {
-        JsonSerializer.Serialize(jsonWriter, data, jsonOptions);
-        Utf8JsonReader reader = new(buffer.WrittenSpan);
-        result = JsonSerializer.Deserialize<TestData>(ref reader, jsonOptions)!;
+        MemoryPackSerializer.Serialize(buffer, data);
+        MemoryPackSerializer.Deserialize(buffer.WrittenSpan, ref result!);
         Debug.Assert(data == result);
     }
 }
@@ -112,7 +83,7 @@ public sealed partial class TestData : IBinarySerializable, IEquatable<TestData>
 
     public TestData()
     {
-        Field3 = new TestEntryData[1_000];
+        Field3 = new TestEntryData[20_000];
         for (var i = 0; i < Field3.Length; i++)
             Field3[i].Field9 = new int[10_000];
     }
@@ -148,6 +119,31 @@ public sealed partial class TestData : IBinarySerializable, IEquatable<TestData>
 
     public static bool operator ==(TestData? left, TestData? right) => Equals(left, right);
     public static bool operator !=(TestData? left, TestData? right) => !Equals(left, right);
+
+    public static TestData Generate(Random random)
+    {
+        TestData testData = new()
+        {
+            Field1 = random.NextBool(),
+            Field2 = random.Next<ulong>(),
+        };
+
+        for (int i = 0; i < testData.Field3.Length; i++)
+        {
+            ref var entry = ref testData.Field3[i];
+            entry.Field1 = random.Next();
+            entry.Field2 = random.Next<uint>();
+            entry.Field3 = random.Next<ulong>();
+            entry.Field4 = random.Next<long>();
+            entry.Field5 = random.Next<short>();
+            entry.Field6 = random.Next<ushort>();
+            entry.Field7 = random.Next<byte>();
+            entry.Field8 = random.Next<sbyte>();
+            random.Next(entry.Field9.AsSpan());
+        }
+
+        return testData;
+    }
 }
 
 [MemoryPackable]

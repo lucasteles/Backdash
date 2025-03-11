@@ -1,5 +1,6 @@
 using System.Buffers;
 using Backdash.Core;
+using Backdash.Network;
 using Backdash.Serialization;
 
 namespace Backdash.Tests.TestUtils.Fixtures;
@@ -15,13 +16,13 @@ readonly ref struct BinarySerializerFixture
     // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
     readonly Offset offset = new();
 
-    public BinarySerializerFixture()
+    public BinarySerializerFixture(Endianness? endianness = null)
     {
         ReadOffset = ref offset.Read;
         WriteOffset = ref offset.Write;
         buffer = ArrayPool<byte>.Shared.Rent(Max.UdpPacketSize);
-        Reader = new(buffer, ref ReadOffset);
-        Writer = new(buffer, ref WriteOffset);
+        Reader = new(buffer, ref ReadOffset, endianness);
+        Writer = new(buffer, ref WriteOffset, endianness);
     }
 
     public void Dispose() => ArrayPool<byte>.Shared.Return(buffer, true);

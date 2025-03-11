@@ -20,12 +20,12 @@ namespace Backdash.Serialization;
 /// <param name="buffer">Byte buffer to be written</param>
 /// <param name="endianness">Serialization endianness</param>
 [DebuggerDisplay("Written: {WrittenCount}")]
-public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endianness endianness = Endianness.BigEndian)
+public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endianness? endianness = null)
 {
     /// <summary>
     /// Gets or init the value to define which endianness should be used for serialization.
     /// </summary>
-    public readonly Endianness Endianness = endianness;
+    public readonly Endianness Endianness = endianness ?? Platform.Endianness;
 
     /// <summary>
     /// Backing IBufferWriter <see cref="IBufferWriter{T}"/>

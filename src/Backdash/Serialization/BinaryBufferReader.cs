@@ -22,11 +22,11 @@ public readonly ref struct BinaryBufferReader
     /// <param name="buffer">Byte buffer to be read</param>
     /// <param name="offset">Read offset reference</param>
     /// <param name="endianness">Deserialization endianness</param>
-    public BinaryBufferReader(ReadOnlySpan<byte> buffer, ref int offset, Endianness endianness = Endianness.BigEndian)
+    public BinaryBufferReader(ReadOnlySpan<byte> buffer, ref int offset, Endianness? endianness = null)
     {
         this.offset = ref offset;
         this.buffer = buffer;
-        Endianness = endianness;
+        Endianness = endianness ?? Platform.Endianness;
     }
 
     readonly ref int offset;

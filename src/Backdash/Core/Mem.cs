@@ -138,33 +138,33 @@ static class Mem
             switch (remaining.Length)
             {
                 case >= sizeof(ulong):
-                {
-                    var value = MemoryMarshal.Read<ulong>(remaining[..sizeof(ulong)]);
-                    index += sizeof(ulong);
-                    count += BitOperations.PopCount(value);
-                    continue;
-                }
+                    {
+                        var value = MemoryMarshal.Read<ulong>(remaining[..sizeof(ulong)]);
+                        index += sizeof(ulong);
+                        count += BitOperations.PopCount(value);
+                        continue;
+                    }
                 case >= sizeof(uint):
-                {
-                    var value = MemoryMarshal.Read<uint>(remaining[..sizeof(uint)]);
-                    index += sizeof(uint);
-                    count += BitOperations.PopCount(value);
-                    continue;
-                }
+                    {
+                        var value = MemoryMarshal.Read<uint>(remaining[..sizeof(uint)]);
+                        index += sizeof(uint);
+                        count += BitOperations.PopCount(value);
+                        continue;
+                    }
                 case >= sizeof(ushort):
-                {
-                    var value = MemoryMarshal.Read<ushort>(remaining[..sizeof(ushort)]);
-                    index += sizeof(ushort);
-                    count += ushort.PopCount(value);
-                    continue;
-                }
+                    {
+                        var value = MemoryMarshal.Read<ushort>(remaining[..sizeof(ushort)]);
+                        index += sizeof(ushort);
+                        count += ushort.PopCount(value);
+                        continue;
+                    }
                 case >= sizeof(byte):
-                {
-                    var value = remaining[0];
-                    index += sizeof(byte);
-                    count += byte.PopCount(value);
-                    break;
-                }
+                    {
+                        var value = remaining[0];
+                        index += sizeof(byte);
+                        count += byte.PopCount(value);
+                        break;
+                    }
             }
         }
 
