@@ -135,6 +135,7 @@ sealed class RemoteBackend<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
             spectator.Dispose();
 
         callbacks.OnSessionClose();
+        inputListener?.OnSessionClose();
     }
 
     public INetcodeRandom Random => random;
@@ -152,8 +153,11 @@ sealed class RemoteBackend<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
     public IReadOnlyCollection<PlayerHandle> GetPlayers() => addedPlayers;
     public IReadOnlyCollection<PlayerHandle> GetSpectators() => addedSpectators;
 
-    public void Start(CancellationToken stoppingToken = default) =>
+    public void Start(CancellationToken stoppingToken = default)
+    {
+        inputListener?.OnSessionStart(in inputSerializer);
         backgroundJobTask = backgroundJobManager.Start(stoppingToken);
+    }
 
     public Task WaitToStop(CancellationToken stoppingToken = default)
     {
@@ -525,7 +529,8 @@ sealed class RemoteBackend<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
                         break;
 
                     logger.Write(LogLevel.Trace, $"pushing frame {nextListenerFrame} to listener");
-                    inputListener.OnConfirmed(in confirmed.Frame, in confirmed.Data);
+                    var inputs = confirmed.Data.Inputs[..confirmed.Data.Count];
+                    inputListener.OnConfirmed(in confirmed.Frame, inputs);
 
                     nextListenerFrame++;
                 }

@@ -52,7 +52,7 @@ static INetcodeSession<PlayerInputs> ParseSessionArgs(string[] args)
         case ["replay", { } replayFile]:
             return builder
                 .ForReplay(options =>
-                    options.InputList = SaveInputsToFileListener.GetInputs(playerCount, replayFile).ToArray()
+                    options.InputList = InputsFileListener.GetInputs(playerCount, replayFile).ToArray()
                 )
                 .Build();
 
@@ -70,7 +70,7 @@ static INetcodeSession<PlayerInputs> ParseSessionArgs(string[] args)
             if (lastArgs is ["--save-to", { } filename, .. var argsAfterSave])
             {
                 // save confirmed inputs to file
-                builder.WithInputListener(new SaveInputsToFileListener(filename));
+                builder.WithInputListener(new InputsFileListener(filename));
                 lastArgs = argsAfterSave;
             }
 
