@@ -1,9 +1,11 @@
 namespace Backdash;
 
 /// <summary>
-/// The session factory used to create new netcode sessions.
+/// The session builder entrypoint.
+/// used to create new netcode sessions.
 /// </summary>
 ///  <seealso cref="INetcodeSession{TInput}"/>
+///  <seealso cref="NetcodeSessionBuilder{TInput}"/>
 public static class RollbackNetcode
 {
     /// <inheritdoc cref="NetcodeSessionBuilder.WithInputType{T}(System.Func{Backdash.NetcodeSessionBuilder.InputTypeSelector,Backdash.NetcodeSessionBuilder.InputTypeSelected{T}})"/>
