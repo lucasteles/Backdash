@@ -19,5 +19,12 @@ public sealed record SpectatorOptions
     /// <value>Defaults to 9000</value>
     public int HostPort { get; set; } = 9000;
 
-    internal IPEndPoint HostEndPoint => new(HostAddress, HostPort);
+    /// <summary>
+    /// Host IP endpoint
+    /// </summary>
+    public IPEndPoint HostEndPoint
+    {
+        get => new(HostAddress, HostPort);
+        set => (HostAddress, HostPort) = (value.Address, value.Port);
+    }
 }

@@ -9,7 +9,7 @@ namespace ConsoleGame;
 public sealed class Game : INetcodeSessionHandler
 {
     // Rollback Net-code session callbacks
-    readonly INetcodeSession<GameInput> session;
+    readonly INetcodeGameSession<GameInput> session;
 
     readonly CancellationTokenSource cancellation;
 
@@ -22,7 +22,7 @@ public sealed class Game : INetcodeSessionHandler
     // Actual game state
     GameState currentState = GameLogic.InitialState();
 
-    public Game(INetcodeSession<GameInput> session, CancellationTokenSource cancellation)
+    public Game(INetcodeGameSession<GameInput> session, CancellationTokenSource cancellation)
     {
         view = new();
         this.session = session;

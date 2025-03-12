@@ -4,7 +4,6 @@ using Backdash.Network.Client;
 using Backdash.Network.Protocol;
 using Backdash.Options;
 using Backdash.Serialization;
-using Backdash.Serialization.Internal;
 using Backdash.Synchronizing.Input;
 using Backdash.Synchronizing.Input.Confirmed;
 using Backdash.Synchronizing.Random;
@@ -45,14 +44,9 @@ sealed class BackendServices<TInput> where TInput : unmanaged
         DelayStrategy = DelayStrategyFactory.Create(Random, options.Protocol.DelayStrategy);
         InputGenerator = services?.InputGenerator;
         InputComparer = services?.InputComparer ?? EqualityComparer<TInput>.Default;
+        InputSerializer = inputSerializer;
 
-        InputSerializer = services?.InputSerializer ?? BinarySerializerFactory
-            .FindOrThrow<TInput>(options.Protocol.SerializationEndianness);
-
-        var logWriter = services?.LogWriter is null || options.Logger.EnabledLevel is LogLevel.None
-            ? new ConsoleTextLogWriter()
-            : services.LogWriter;
-
+        var logWriter = services?.LogWriter ?? new ConsoleTextLogWriter();
         Logger = new(options.Logger, logWriter);
         JobManager = new BackgroundJobManager(Logger);
 

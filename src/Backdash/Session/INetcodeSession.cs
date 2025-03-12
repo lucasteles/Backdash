@@ -155,14 +155,6 @@ public interface INetcodeGameSession<TInput> : INetcodeSession where TInput : un
     void SetFrameDelay(PlayerHandle player, int delayInFrames);
 
     /// <summary>
-    /// Add the <paramref name="player"/> into current session.
-    /// Usually an instance of <see cref="LocalPlayer"/>, <see cref="RemotePlayer"/> or <see cref="Spectator"/>.
-    /// </summary>
-    /// <param name="player"></param>
-    /// <returns><see cref="ResultCode.Ok"/> if success.</returns>
-    ResultCode AddPlayer(Player player);
-
-    /// <summary>
     /// Load state for saved <paramref name="frame"/>.
     /// </summary>
     /// <returns>true if succeeded.</returns>
@@ -175,6 +167,14 @@ public interface INetcodeGameSession<TInput> : INetcodeSession where TInput : un
 /// <typeparam name="TInput">Game input type</typeparam>
 public interface INetcodeSession<TInput> : INetcodeGameSession<TInput>, IDisposable where TInput : unmanaged
 {
+    /// <summary>
+    /// Add the <paramref name="player"/> into current session.
+    /// Usually an instance of <see cref="LocalPlayer"/>, <see cref="RemotePlayer"/> or <see cref="Spectator"/>.
+    /// </summary>
+    /// <param name="player"></param>
+    /// <returns><see cref="ResultCode.Ok"/> if success.</returns>
+    ResultCode AddPlayer(Player player);
+
     /// <summary>
     /// Add a list of <see name="Player"/> into current session.
     /// Usually instances of <see cref="LocalPlayer"/>, <see cref="RemotePlayer"/> or <see cref="Spectator"/>

@@ -1,6 +1,5 @@
 using Backdash.Core;
 using Backdash.Network.Client;
-using Backdash.Serialization;
 using Backdash.Synchronizing.Input;
 using Backdash.Synchronizing.Input.Confirmed;
 using Backdash.Synchronizing.Random;
@@ -15,11 +14,6 @@ namespace Backdash;
 [Serializable]
 public sealed class SessionServices<TInput> where TInput : unmanaged
 {
-    /// <summary>
-    /// Serializer for session input.
-    /// </summary>
-    public IBinarySerializer<TInput>? InputSerializer { get; set; }
-
     /// <summary>
     /// Checksum provider service for session state.
     /// Defaults to: Fletcher32 <see cref="Fletcher32ChecksumProvider"/>

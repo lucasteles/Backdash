@@ -26,6 +26,9 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
     SessionReplayOptions<TInput>? replayOptions;
     SpectatorOptions? spectatorOptions;
 
+    INetcodeSessionHandler? sessionHandler;
+    readonly List<Player> playerList = [];
+
     internal NetcodeSessionBuilder(NetcodeSessionBuilder.SerializerFactory<TInput> serializer) =>
         this.serializer = serializer;
 
@@ -41,23 +44,40 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
             serializer.Invoke(options.Protocol.SerializationEndianness),
             options, sessionServices);
 
-        switch (sessionMode)
+        var session = GetSession();
+
+        foreach (var player in playerList)
         {
-            case SessionMode.Remote:
-                return new RemoteBackend<TInput>(options, services);
-            case SessionMode.Local:
-                return new LocalBackend<TInput>(options, services);
-            case SessionMode.Spectator:
-                ConfigureSpectator();
-                return new SpectatorBackend<TInput>(spectatorOptions, options, services);
-            case SessionMode.Replay:
-                ConfigureReplay();
-                return new ReplayBackend<TInput>(replayOptions, options, services);
-            case SessionMode.SyncTest:
-                ConfigureSyncTest();
-                return new SyncTestBackend<TInput>(syncTestOptions, options, services);
-            default:
-                throw new InvalidOperationException($"Unknown session mode: {sessionMode}");
+            var addResult = session.AddPlayer(player);
+            if (addResult is not ResultCode.Ok)
+                throw new InvalidOperationException($"Failed to add player {playerList}: {addResult}");
+        }
+
+        if (sessionHandler is not null)
+            session.SetHandler(sessionHandler);
+
+        return session;
+
+        INetcodeSession<TInput> GetSession()
+        {
+            switch (sessionMode)
+            {
+                case SessionMode.Remote:
+                    return new RemoteBackend<TInput>(options, services);
+                case SessionMode.Local:
+                    return new LocalBackend<TInput>(options, services);
+                case SessionMode.Spectator:
+                    ConfigureSpectator();
+                    return new SpectatorBackend<TInput>(spectatorOptions, options, services);
+                case SessionMode.Replay:
+                    ConfigureReplay();
+                    return new ReplayBackend<TInput>(replayOptions, options, services);
+                case SessionMode.SyncTest:
+                    ConfigureSyncTest();
+                    return new SyncTestBackend<TInput>(syncTestOptions, options, services);
+                default:
+                    throw new InvalidOperationException($"Unknown session mode: {sessionMode}");
+            }
         }
     }
 
@@ -114,12 +134,34 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(count);
         ArgumentOutOfRangeException.ThrowIfGreaterThan(count, Max.NumberOfPlayers);
         options.NumberOfPlayers = count;
+        return this;
+    }
 
+    /// <summary>
+    /// Set the players for the <see cref="INetcodeSession{TInput}"/>
+    /// </summary>
+    public NetcodeSessionBuilder<TInput> WithPlayers(params Player[] players)
+    {
+        ArgumentNullException.ThrowIfNull(players);
+        ArgumentOutOfRangeException.ThrowIfZero(players.Length);
+        playerList.AddRange(players);
+        return WithPlayerCount(Math.Max(players.Length, options.NumberOfPlayers));
+    }
+
+    /// <summary>
+    /// Set the session handler for the <see cref="INetcodeSession{TInput}"/>
+    /// </summary>
+    /// <seealso cref="INetcodeSessionHandler"/>
+    /// <seealso cref="INetcodeSession{TInput}.SetHandler"/>
+    public NetcodeSessionBuilder<TInput> WithHandler(INetcodeSessionHandler handler)
+    {
+        ArgumentNullException.ThrowIfNull(handler);
+        sessionHandler = handler;
         return this;
     }
 
     /// <inheritdoc cref="NetcodeOptions.InputDelayFrames"/>
-    public NetcodeSessionBuilder<TInput> WithInputDelay(int frames)
+    public NetcodeSessionBuilder<TInput> WithInputDelayFrames(int frames)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(frames);
         options.InputDelayFrames = frames;
@@ -176,6 +218,33 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
     }
 
     /// <summary>
+    /// Set the logger <see cref="SessionServices{TInput}.LogWriter"/>
+    /// </summary>
+    /// <seealso cref="NetcodeOptions"/>
+    [MemberNotNull(nameof(sessionServices))]
+    public NetcodeSessionBuilder<TInput> WithLogWriter(ILogWriter writer)
+    {
+        ArgumentNullException.ThrowIfNull(writer);
+        sessionServices ??= new();
+        sessionServices.LogWriter = writer;
+        return this;
+    }
+
+    /// <summary>
+    /// Set the logger <see cref="SessionServices{TInput}.LogWriter"/>
+    /// </summary>
+    /// <seealso cref="NetcodeOptions"/>
+    [MemberNotNull(nameof(sessionServices))]
+    public NetcodeSessionBuilder<TInput> WithLogWriter(Action<LogLevel, string> logAction) =>
+        WithLogWriter(new DelegateLogWriter(logAction));
+
+    /// <inheritdoc cref="WithLogWriter(ILogWriter)"/>
+    /// <seealso cref="FileTextLogWriter"/>
+    [MemberNotNull(nameof(sessionServices))]
+    public NetcodeSessionBuilder<TInput> WithFileLogWriter(string? filename = null, bool append = true) =>
+        WithLogWriter(new FileTextLogWriter(filename, append));
+
+    /// <summary>
     /// Set <see cref="INetcodeSession{TInput}"/> options
     /// </summary>
     /// <seealso cref="NetcodeOptions"/>
@@ -191,7 +260,7 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
     /// <seealso cref="SessionServices{TInput}"/>
     public NetcodeSessionBuilder<TInput> WithServices(SessionServices<TInput> services)
     {
-        this.sessionServices = services;
+        sessionServices = services;
         return this;
     }
 
@@ -201,7 +270,7 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
     /// <seealso cref="SessionServices{TInput}"/>
     public NetcodeSessionBuilder<TInput> ConfigureServices(Action<SessionServices<TInput>> config)
     {
-        var services = this.sessionServices ?? new();
+        var services = sessionServices ?? new();
         config.Invoke(services);
         return WithServices(services);
     }
@@ -257,7 +326,6 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
         config?.Invoke(spectatorOptions);
         return WithMode(SessionMode.Spectator);
     }
-
 
     /// <summary>
     /// Set sync test session options.

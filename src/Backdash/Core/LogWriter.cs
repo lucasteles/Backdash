@@ -15,14 +15,14 @@ public interface ILogWriter : IDisposable
 }
 
 /// <summary>
-/// Base implementation of <see cref="ILogWriter"/> for any <see cref="textWriter"/>.
+/// Base implementation of <see cref="ILogWriter"/> for any <see cref="TextWriter"/>.
 /// </summary>
 public abstract class TextLogWriter : ILogWriter
 {
     /// <summary>
-    /// Current <see cref="TextWriter"/>
+    /// Current <see cref="System.IO.TextWriter"/>
     /// </summary>
-    protected abstract TextWriter textWriter { get; }
+    protected abstract TextWriter TextWriter { get; }
 
     readonly object locker = new();
     bool disposed;
@@ -32,7 +32,7 @@ public abstract class TextLogWriter : ILogWriter
     {
         if (disposed) return;
         lock (locker)
-            textWriter.WriteLine(chars, 0, size);
+            TextWriter.WriteLine(chars, 0, size);
     }
 
     /// <summary>
@@ -46,8 +46,8 @@ public abstract class TextLogWriter : ILogWriter
         disposed = true;
         lock (locker)
         {
-            textWriter.Close();
-            textWriter.Dispose();
+            TextWriter.Close();
+            TextWriter.Dispose();
         }
     }
 
@@ -59,13 +59,30 @@ public abstract class TextLogWriter : ILogWriter
     }
 }
 
+sealed class DelegateLogWriter(Action<LogLevel, string> action) : ILogWriter
+{
+    readonly object locker = new();
+    bool disposed;
+
+    /// <inheritdoc />
+    public void Write(LogLevel level, char[] chars, int size)
+    {
+        if (disposed) return;
+        lock (locker)
+            action.Invoke(level, new(chars.AsSpan(0, size)));
+    }
+
+    /// <inheritdoc />
+    public void Dispose() => disposed = true;
+}
+
 /// <summary>
 /// Implementation of <see cref="ILogWriter"/> for logging into <see cref="Console"/>.
 /// </summary>
 public sealed class ConsoleTextLogWriter : TextLogWriter
 {
     /// <inheritdoc />
-    protected override TextWriter textWriter { get; } = Console.Out;
+    protected override TextWriter TextWriter { get; } = Console.Out;
 }
 
 /// <summary>
@@ -74,7 +91,7 @@ public sealed class ConsoleTextLogWriter : TextLogWriter
 public sealed class FileTextLogWriter : TextLogWriter
 {
     /// <inheritdoc />
-    protected override TextWriter textWriter { get; }
+    protected override TextWriter TextWriter { get; }
 
     const string DefaultFileName = "{{proc_id}}_{{timestamp}}.log";
 
@@ -97,7 +114,7 @@ public sealed class FileTextLogWriter : TextLogWriter
         filename = filename
             .Replace("{{proc_id}}", Environment.ProcessId.ToString())
             .Replace("{{timestamp}}", $"{DateTime.UtcNow:yyyyMMddhhmmss}");
-        textWriter = new StreamWriter(filename, append)
+        TextWriter = new StreamWriter(filename, append)
         {
             AutoFlush = true,
         };
