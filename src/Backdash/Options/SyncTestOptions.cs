@@ -8,6 +8,12 @@ namespace Backdash.Options;
 public sealed record SyncTestOptions
 {
     /// <summary>
+    /// Total forced rollback frames.
+    /// </summary>
+    /// <value>Defaults to <c>1</c></value>
+    public int CheckDistance { get; set; } = 1;
+
+    /// <summary>
     /// If true, throws on state de-synchronization.
     /// </summary>
     public bool ThrowOnDesync { get; set; } = true;
@@ -19,8 +25,8 @@ public sealed record SyncTestOptions
     public IStateDesyncHandler? DesyncHandler { get; set; }
 
     /// <summary>
-    /// Total forced rollback frames.
+    /// Sets desync handler for <see cref="SessionMode.SyncTest"/> sessions.
+    /// Useful for showing smart state diff.
     /// </summary>
-    /// <value>Defaults to <c>1</c></value>
-    public int CheckDistance { get; set; } = 1;
+    public IStateStringParser? StateStringParser { get; set; }
 }

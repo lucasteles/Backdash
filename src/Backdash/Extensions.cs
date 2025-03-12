@@ -20,4 +20,14 @@ static class InternalExtensions
         ProtocolStatus.Disconnected => PlayerConnectionStatus.Disconnected,
         _ => PlayerConnectionStatus.Unknown,
     };
+
+    public static IEnumerable<string> SplitToLines(this string value, int size)
+    {
+        var chunks = value.Chunk(size);
+        foreach (var chars in chunks)
+            yield return new(chars);
+    }
+
+    public static string BreakToLines(this string value, int size) =>
+        string.Join('\n', value.SplitToLines(size));
 }
