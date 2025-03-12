@@ -128,7 +128,7 @@ public sealed record NetcodeOptions
         ArgumentOutOfRangeException.ThrowIfGreaterThan(NumberOfPlayers, Max.NumberOfPlayers);
 
         if (Protocol.UdpPacketBufferSize <= 0)
-            Protocol.UdpPacketBufferSize = NumberOfPlayers * Max.CompressedBytes * 2;
+            Protocol.UdpPacketBufferSize = Max.NumberOfPlayers * Max.CompressedBytes * 2;
 
         if (SpectatorInputBufferLength <= 0)
             SpectatorInputBufferLength = InputQueueLength;
