@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Reflection;
 using Backdash.Core;
@@ -32,12 +33,12 @@ static class BinarySerializerFactory
         return new StructBinarySerializer<TInput>();
     }
 
-    public static IBinarySerializer<TInput>? Get<TInput>(bool networkEndianness = true)
+#if !NET9_0_OR_GREATER
+    [RequiresDynamicCode("The native code for this instantiation might not be available at runtime.")]
+#endif
+    public static IBinarySerializer<TInput>? Get<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] TInput>(bool networkEndianness = true)
         where TInput : unmanaged
     {
-#if AOT_ENABLED
-        return null;
-#else
         var inputType = typeof(TInput);
         Type[] integerInterfaces = [typeof(IBinaryInteger<>), typeof(IMinMaxValue<>)];
         return inputType switch
@@ -62,10 +63,12 @@ static class BinarySerializerFactory
                     .Invoke(null, []) as IBinarySerializer<TInput>,
             _ => null,
         };
-#endif
     }
 
-    public static IBinarySerializer<TInput> FindOrThrow<TInput>(bool networkEndianness = true)
+#if !NET9_0_OR_GREATER
+    [RequiresDynamicCode("The native code for this instantiation might not be available at runtime.")]
+#endif
+    public static IBinarySerializer<TInput> FindOrThrow<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] TInput>(bool networkEndianness = true)
         where TInput : unmanaged =>
         Get<TInput>(networkEndianness)
         ?? throw new InvalidOperationException($"Unable to infer serializer for type {typeof(TInput).FullName}");

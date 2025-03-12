@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics;
 using System.Net;
 using Backdash.Core;
@@ -14,7 +15,7 @@ using Backdash.Synchronizing.State;
 
 namespace Backdash.Backends;
 
-sealed class SpectatorBackend<TInput> :
+sealed class SpectatorBackend<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] TInput> :
     INetcodeSession<TInput>,
     IProtocolNetworkEventHandler,
     IProtocolInputEventPublisher<ConfirmedInputs<TInput>>

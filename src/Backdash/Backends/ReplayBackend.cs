@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network;
@@ -9,7 +10,7 @@ using Backdash.Synchronizing.State;
 
 namespace Backdash.Backends;
 
-sealed class ReplayBackend<TInput> : INetcodeSession<TInput> where TInput : unmanaged
+sealed class ReplayBackend<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] TInput> : INetcodeSession<TInput> where TInput : unmanaged
 {
     readonly Logger logger;
     readonly PlayerHandle[] fakePlayers;

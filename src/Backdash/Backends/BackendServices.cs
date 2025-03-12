@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Backdash.Core;
 using Backdash.Network;
 using Backdash.Network.Client;
@@ -11,7 +12,7 @@ using Backdash.Synchronizing.State;
 
 namespace Backdash.Backends;
 
-sealed class BackendServices<TInput> where TInput : unmanaged
+sealed class BackendServices<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] TInput> where TInput : unmanaged
 {
     public IBinarySerializer<TInput> InputSerializer { get; }
     public IChecksumProvider ChecksumProvider { get; }
@@ -27,6 +28,9 @@ sealed class BackendServices<TInput> where TInput : unmanaged
 
     public EqualityComparer<TInput> InputComparer { get; }
 
+#if !NET9_0_OR_GREATER
+    [RequiresDynamicCode("Requires dynamic code unless " + nameof(services) + "." + nameof(SessionServices<TInput>.InputSerializer) + " is valorized. If so, suppress this warning.")]
+#endif
     public BackendServices(NetcodeOptions options, SessionServices<TInput>? services)
     {
         ChecksumProvider = services?.ChecksumProvider ?? new Fletcher32ChecksumProvider();
@@ -55,7 +59,10 @@ sealed class BackendServices<TInput> where TInput : unmanaged
 
 static class BackendServices
 {
-    public static BackendServices<TInput> Create<TInput>(NetcodeOptions options, SessionServices<TInput>? services)
+#if !NET9_0_OR_GREATER
+    [RequiresDynamicCode("Requires dynamic code unless " + nameof(services) + "." + nameof(SessionServices<TInput>.InputSerializer) + " is valorized. If so, suppress this warning.")]
+#endif
+    public static BackendServices<TInput> Create<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] TInput>(NetcodeOptions options, SessionServices<TInput>? services)
         where TInput : unmanaged =>
         new(options, services);
 }

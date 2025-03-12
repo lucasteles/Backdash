@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Backdash.Core;
@@ -15,7 +16,7 @@ using Backdash.Synchronizing.State;
 
 namespace Backdash.Backends;
 
-sealed class RemoteBackend<TInput> : INetcodeSession<TInput>, IProtocolNetworkEventHandler
+sealed class RemoteBackend<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] TInput> : INetcodeSession<TInput>, IProtocolNetworkEventHandler
     where TInput : unmanaged
 {
     readonly NetcodeOptions options;

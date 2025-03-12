@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network;
@@ -9,7 +10,7 @@ using Backdash.Synchronizing.State;
 
 namespace Backdash.Backends;
 
-sealed class SyncTestBackend<TInput> : INetcodeSession<TInput>
+sealed class SyncTestBackend<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] TInput> : INetcodeSession<TInput>
     where TInput : unmanaged
 {
     readonly record struct SavedFrameBytes(
