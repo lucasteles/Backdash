@@ -77,24 +77,24 @@ public static class RollbackNetcode
     /// <param name="numberOfPlayers">Session player count</param>
     /// <param name="inputs">Inputs to be replayed</param>
     /// <param name="services">Session customizable dependencies</param>
-    /// <param name="controls">replay control</param>
     /// <param name="options">Session configuration</param>
     /// <typeparam name="TInput">Game input type</typeparam>
     public static INetcodeSession<TInput> CreateReplaySession<TInput>(
         int numberOfPlayers,
         IReadOnlyList<ConfirmedInputs<TInput>> inputs,
         SessionServices<TInput>? services = null,
-        SessionReplayControl? controls = null,
         NetcodeOptions? options = null
     )
-        where TInput : unmanaged =>
-        new ReplayBackend<TInput>(
+        where TInput : unmanaged
+    {
+        return new ReplayBackend<TInput>(
             numberOfPlayers,
             inputs,
-            controls ?? new SessionReplayControl(),
+            services?.ReplayController ?? new SessionReplayControl(),
             BackendServices.Create(new(), services),
             options ?? new()
         );
+    }
 
     /// <summary>
     /// Initializes new sync test session.

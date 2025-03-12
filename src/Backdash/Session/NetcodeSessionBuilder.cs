@@ -21,6 +21,7 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
     NetcodeOptions options = new();
     SessionServices<TInput>? services;
     int numberOfPlayer = 2;
+    bool syncTestThrowException = true;
 
     internal NetcodeSessionBuilder(NetcodeSessionBuilder.SerializerFactory<TInput> serializer) =>
         this.serializer = serializer;
@@ -28,6 +29,7 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
     /// <summary>
     /// Sets the number of players for the <see cref="INetcodeSession{TInput}"/>
     /// </summary>
+    /// <value>Defaults to <c>2</c></value>
     public NetcodeSessionBuilder<TInput> WithPlayerCount(int count)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(count);
@@ -128,7 +130,7 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
     }
 
     /// <summary>
-    /// Configure session timesync
+    /// Configure session time synchronization
     /// </summary>
     /// <seealso cref="TimeSyncOptions"/>
     public NetcodeSessionBuilder<TInput> ConfigureTimeSync(Action<TimeSyncOptions> config)
