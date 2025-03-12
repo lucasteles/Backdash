@@ -24,7 +24,7 @@ public sealed record ProtocolOptions
 
     /// <summary>
     /// Max allowed pending inputs in sending queue.
-    /// When reached <see cref="INetcodeSession{TInput}.AddLocalInput"/> will return <see cref="ResultCode.InputDropped"/>.
+    /// When reached <see cref="INetcodeGameSession{TInput}.AddLocalInput"/> will return <see cref="ResultCode.InputDropped"/>.
     /// </summary>
     /// <value>Defaults to <c>64</c></value>
     public int MaxPendingInputs { get; set; } = 64;

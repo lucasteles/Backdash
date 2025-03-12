@@ -38,8 +38,8 @@ public interface INetcodeSessionHandler
 
     /// <summary>
     /// Called during a rollback after <see cref="LoadState"/>. You should advance your game
-    /// state by exactly one frame.  Before each frame, call <see cref="INetcodeSession{TInput}.SynchronizeInputs"/>
-    /// to retrieve the inputs you should use for that frame. After each frame, you should call <see cref="INetcodeSession{TInput}.AdvanceFrame"/> to notify
+    /// state by exactly one frame.  Before each frame, call <see cref="INetcodeGameSession{TInput}.SynchronizeInputs"/>
+    /// to retrieve the inputs you should use for that frame. After each frame, you should call <see cref="INetcodeGameSession{TInput}.AdvanceFrame"/> to notify
     /// Backdash that you're finished.
     /// </summary>
     void AdvanceFrame();

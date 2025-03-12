@@ -6,9 +6,9 @@ using Backdash.Synchronizing.State;
 namespace Backdash;
 
 /// <summary>
-/// Holds basic session information.
+/// Provides basic session information.
 /// </summary>
-public interface INetcodeSessionInfo
+public interface INetcodeSession
 {
     /// <summary>
     /// Returns the number of player in the current session.
@@ -49,10 +49,10 @@ public interface INetcodeSessionInfo
 }
 
 /// <summary>
-/// Context for a multiplayer game session.
+/// Contract for a netcode game session.
 /// </summary>
 /// <typeparam name="TInput">Game input type</typeparam>
-public interface INetcodeSession<TInput> : INetcodeSessionInfo, IDisposable where TInput : unmanaged
+public interface INetcodeGameSession<TInput> : INetcodeSession where TInput : unmanaged
 {
     /// <summary>
     /// Deterministic random value generator.
@@ -165,8 +165,16 @@ public interface INetcodeSession<TInput> : INetcodeSessionInfo, IDisposable wher
     /// <summary>
     /// Load state for saved <paramref name="frame"/>.
     /// </summary>
+    /// <returns>true if succeeded.</returns>
     bool LoadFrame(in Frame frame);
+}
 
+/// <summary>
+/// Contract for managing a netcode session.
+/// </summary>
+/// <typeparam name="TInput">Game input type</typeparam>
+public interface INetcodeSession<TInput> : INetcodeGameSession<TInput>, IDisposable where TInput : unmanaged
+{
     /// <summary>
     /// Add a list of <see name="Player"/> into current session.
     /// Usually instances of <see cref="LocalPlayer"/>, <see cref="RemotePlayer"/> or <see cref="Spectator"/>
