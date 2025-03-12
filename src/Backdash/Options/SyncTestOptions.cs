@@ -1,3 +1,5 @@
+using System.Text.Json;
+using Backdash.Synchronizing.Input;
 using Backdash.Synchronizing.State;
 
 namespace Backdash.Options;
@@ -5,7 +7,7 @@ namespace Backdash.Options;
 /// <summary>
 /// Configurations for <see cref="INetcodeSession{TInput}"/> in <see cref="SessionMode.SyncTest"/> mode.
 /// </summary>
-public sealed record SyncTestOptions
+public sealed record SyncTestOptions<TInput> where TInput : unmanaged
 {
     /// <summary>
     /// Total forced rollback frames.
@@ -29,4 +31,28 @@ public sealed record SyncTestOptions
     /// Useful for showing smart state diff.
     /// </summary>
     public IStateStringParser? StateStringParser { get; set; }
+
+    /// <summary>
+    /// Input generator service for session.
+    /// </summary>
+    public IInputProvider<TInput>? InputProvider { get; set; }
+
+    /// <summary>
+    /// Use <see cref="RandomInputProvider{TInput}"/> as input provider.
+    /// </summary>
+    /// <seealso cref="InputProvider"/>
+    public SyncTestOptions<TInput> UseRandomInputProvider()
+    {
+        InputProvider = new RandomInputProvider<TInput>();
+        return this;
+    }
+
+    /// <summary>
+    /// Use <see cref="JsonStateStringParser"/> as state viewer.
+    /// </summary>
+    public SyncTestOptions<TInput> UseJsonStateViewer(JsonSerializerOptions? options = null)
+    {
+        StateStringParser = new JsonStateStringParser(options);
+        return this;
+    }
 }

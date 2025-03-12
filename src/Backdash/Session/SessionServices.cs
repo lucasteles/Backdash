@@ -26,11 +26,6 @@ public sealed class SessionServices<TInput> where TInput : unmanaged
     public ILogWriter? LogWriter { get; set; }
 
     /// <summary>
-    /// Input generator service for session.
-    /// </summary>
-    public IInputGenerator<TInput>? InputGenerator { get; set; }
-
-    /// <summary>
     /// State store service for session.
     /// </summary>
     public IStateStore? StateStore { get; set; }
@@ -59,5 +54,5 @@ public sealed class SessionServices<TInput> where TInput : unmanaged
     /// <summary>
     /// Comparer to be used with <typeparamref name="TInput"/>
     /// </summary>
-    public EqualityComparer<TInput>? InputComparer { get; set; }
+    public IEqualityComparer<TInput>? InputComparer { get; set; }
 }

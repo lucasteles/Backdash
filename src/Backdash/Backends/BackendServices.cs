@@ -19,13 +19,12 @@ sealed class BackendServices<TInput> where TInput : unmanaged
     public IBackgroundJobManager JobManager { get; }
     public IProtocolClientFactory ProtocolClientFactory { get; }
     public IStateStore StateStore { get; }
-    public IInputGenerator<TInput>? InputGenerator { get; }
     public IRandomNumberGenerator Random { get; }
     public IDeterministicRandom<TInput> DeterministicRandom { get; }
     public IDelayStrategy DelayStrategy { get; }
     public IInputListener<TInput>? InputListener { get; }
 
-    public EqualityComparer<TInput> InputComparer { get; }
+    public IEqualityComparer<TInput> InputComparer { get; }
 
     public BackendServices(
         IBinarySerializer<TInput> inputSerializer,
@@ -42,7 +41,6 @@ sealed class BackendServices<TInput> where TInput : unmanaged
         InputListener = services?.InputListener;
         Random = new DefaultRandomNumberGenerator(services?.Random ?? System.Random.Shared);
         DelayStrategy = DelayStrategyFactory.Create(Random, options.Protocol.DelayStrategy);
-        InputGenerator = services?.InputGenerator;
         InputComparer = services?.InputComparer ?? EqualityComparer<TInput>.Default;
         InputSerializer = inputSerializer;
 

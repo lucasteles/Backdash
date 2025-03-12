@@ -1,7 +1,5 @@
 #nullable disable
 using Backdash;
-using Backdash.Core;
-using Backdash.Synchronizing;
 using SpaceWar.Logic;
 
 namespace SpaceWar;
@@ -9,26 +7,8 @@ namespace SpaceWar;
 public class Game1 : Game
 {
     readonly GraphicsDeviceManager graphics;
-    readonly INetcodeSession<PlayerInputs> rollbackSession;
-    readonly SessionReplayControl replayControls = new();
+    readonly INetcodeSession<PlayerInputs> session;
     readonly KeyboardController keyboard = new();
-
-    readonly NetcodeOptions options = new()
-    {
-        FrameDelay = 2,
-        Log = new()
-        {
-            EnabledLevel = LogLevel.Warning,
-        },
-        Protocol = new()
-        {
-            NumberOfSyncRoundtrips = 10,
-            DisconnectTimeout = TimeSpan.FromSeconds(3),
-            DisconnectNotifyStart = TimeSpan.FromSeconds(1),
-            LogNetworkStats = false,
-            // NetworkDelay = FrameSpan.Of(3).Duration(),
-        },
-    };
 
     GameSession gameSession;
     SpriteBatch spriteBatch;
@@ -39,14 +19,14 @@ public class Game1 : Game
         graphics = new(this);
         Content.RootDirectory = "Content";
         IsMouseVisible = true;
-        rollbackSession = GameSessionFactory.ParseArgs(args, options, replayControls);
+        session = Netcode.ParseArgs(args);
     }
 
     protected override void Initialize()
     {
         SetResolution();
         base.Initialize();
-        rollbackSession.Start();
+        session.Start();
     }
 
     void SetResolution()
@@ -74,7 +54,7 @@ public class Game1 : Game
 
     protected override void Dispose(bool disposing)
     {
-        rollbackSession.Dispose();
+        session.Dispose();
         base.Dispose(disposing);
     }
 
@@ -82,12 +62,12 @@ public class Game1 : Game
     {
         spriteBatch = new(GraphicsDevice);
         GameAssets assets = new(Content, GraphicsDevice);
-        var numPlayers = rollbackSession.NumberOfPlayers;
+        var numPlayers = session.NumberOfPlayers;
         NonGameState ngs = new(numPlayers);
         GameState gs = new();
         gs.Init(numPlayers);
 
-        foreach (var player in rollbackSession.GetPlayers())
+        foreach (var player in session.GetPlayers())
         {
             PlayerConnectionInfo playerInfo = new();
             ngs.Players[player.Index] = playerInfo;
@@ -114,7 +94,7 @@ public class Game1 : Game
             ngs.StatusText.Append("Connecting to peers ...");
         }
 
-        if (rollbackSession.Mode is SessionMode.Spectating)
+        if (session.IsSpectator())
         {
             Window.Title = "SpaceWar - Spectator";
             Window.Position = Window.Position with
@@ -124,8 +104,8 @@ public class Game1 : Game
             };
         }
 
-        gameSession = new(gs, ngs, new(assets, spriteBatch), rollbackSession);
-        rollbackSession.SetHandler(gameSession);
+        gameSession = new(gs, ngs, new(assets, spriteBatch), session);
+        session.SetHandler(gameSession);
     }
 
     void ConfigurePlayerWindow(PlayerHandle player)
@@ -165,25 +145,25 @@ public class Game1 : Game
 
     void HandleReplayKeys()
     {
-        if (rollbackSession.Mode is SessionMode.Remote or SessionMode.Spectating)
+        if (session.IsRemote() || session.IsSpectator())
             return;
 
-        if (rollbackSession.Mode is SessionMode.Replaying)
+        if (session.IsReplay())
         {
             if (keyboard.IsKeyPressed(Keys.Space))
-                replayControls.TogglePause();
+                session.ReplayController.TogglePause();
 
             if (keyboard.IsKeyPressed(Keys.Right))
-                replayControls.Play();
+                session.ReplayController.Play();
 
             if (keyboard.IsKeyPressed(Keys.Left))
-                replayControls.Play(isBackwards: true);
+                session.ReplayController.Play(isBackwards: true);
         }
 
         if (keyboard.IsKeyPressed(Keys.Back))
         {
-            rollbackSession.LoadFrame(rollbackSession.CurrentFrame - 10);
-            replayControls.Pause();
+            session.LoadFrame(session.CurrentFrame - 10);
+            session.ReplayController?.Pause();
         }
     }
 

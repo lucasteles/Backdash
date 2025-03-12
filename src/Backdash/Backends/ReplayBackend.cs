@@ -212,4 +212,6 @@ sealed class ReplayBackend<TInput> : INetcodeSession<TInput> where TInput : unma
 
     public ref readonly SynchronizedInput<TInput> GetInput(in PlayerHandle player) =>
         ref syncInputBuffer[player.Number - 1];
+
+    public SessionReplayControl ReplayController => controls;
 }

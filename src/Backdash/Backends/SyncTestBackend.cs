@@ -32,7 +32,7 @@ sealed class SyncTestBackend<TInput> : INetcodeSession<TInput>
     readonly bool throwError;
     readonly IStateDesyncHandler? mismatchHandler;
     readonly IStateStringParser stateParser;
-    readonly IInputGenerator<TInput>? inputGenerator;
+    readonly IInputProvider<TInput>? inputGenerator;
     readonly IDeterministicRandom<TInput> random;
 
     INetcodeSessionHandler callbacks;
@@ -44,7 +44,7 @@ sealed class SyncTestBackend<TInput> : INetcodeSession<TInput>
     Frame lastVerified = Frame.Zero;
 
     public SyncTestBackend(
-        SyncTestOptions syncTestOptions,
+        SyncTestOptions<TInput> syncTestOptions,
         NetcodeOptions options,
         BackendServices<TInput> services
     )
@@ -58,13 +58,14 @@ sealed class SyncTestBackend<TInput> : INetcodeSession<TInput>
         throwError = syncTestOptions.ThrowOnDesync;
         logger = services.Logger;
         random = services.DeterministicRandom;
-        inputGenerator = services.InputGenerator;
+        inputGenerator = syncTestOptions.InputProvider;
         mismatchHandler = syncTestOptions.DesyncHandler;
         callbacks ??= new EmptySessionHandler(logger);
-        stateParser = syncTestOptions.StateStringParser ?? new JsonStateStringParser
-        {
-            Logger = services.Logger,
-        };
+        stateParser = syncTestOptions.StateStringParser ?? new HexStateStringParser();
+
+        if (stateParser is JsonStateStringParser jsonParser)
+            jsonParser.Logger = logger;
+
         synchronizer = new(
             options, logger,
             addedPlayers,
@@ -162,7 +163,7 @@ sealed class SyncTestBackend<TInput> : INetcodeSession<TInput>
         var testInput = localInput;
 
         if (inputGenerator is not null)
-            testInput = inputGenerator.Generate();
+            testInput = inputGenerator.Next();
 
         currentInput.Frame = synchronizer.CurrentFrame;
         currentInput.Data = testInput;

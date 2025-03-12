@@ -1,19 +1,15 @@
 using System.Net;
 using Backdash;
-using Backdash.Synchronizing;
+using Backdash.Core;
 using Backdash.Synchronizing.Input;
 using Backdash.Synchronizing.Input.Confirmed;
 using SpaceWar.Logic;
 
 namespace SpaceWar;
 
-public static class GameSessionFactory
+public static class Netcode
 {
-    public static INetcodeSession<PlayerInputs> ParseArgs(
-        string[] args,
-        NetcodeOptions options,
-        SessionReplayControl replayControls
-    )
+    public static INetcodeSession<PlayerInputs> ParseArgs(string[] args)
     {
         if (args is not [{ } portArg, { } playerCountArg, .. { } lastArgs]
             || !int.TryParse(portArg, out var port)
@@ -23,46 +19,56 @@ public static class GameSessionFactory
         if (playerCount > Config.MaxShips)
             throw new InvalidOperationException("Too many players");
 
+        // create rollback session builder
+        var builder = RollbackNetcode
+                .WithInputType<PlayerInputs>()
+                .WithPort(port)
+                .WithPlayerCount(playerCount)
+                .WithInputDelayFrames(2)
+                .WithLogLevel(LogLevel.Warning)
+                .ConfigureProtocol(options =>
+                {
+                    options.NumberOfSyncRoundtrips = 10;
+                    options.DisconnectTimeout = TimeSpan.FromSeconds(3);
+                    options.DisconnectNotifyStart = TimeSpan.FromSeconds(1);
+                    options.LogNetworkStats = false;
+                    // options.NetworkLatency = Backdash.Data.FrameSpan.Of(3).Duration();
+                })
+            ;
+
         switch (lastArgs)
         {
             case ["local-only", ..]:
-                var localSession = RollbackNetcode.CreateLocalSession<PlayerInputs>(options);
-
-                for (var i = 0; i < playerCount; i++)
-                    localSession.AddPlayer(new LocalPlayer(i));
-
-                return localSession;
+                return builder
+                    .ForLocal()
+                    .Build();
 
             case ["spectate", { } hostArg] when IPEndPoint.TryParse(hostArg, out var host):
-                return RollbackNetcode.CreateSpectatorSession<PlayerInputs>(
-                    port, host, playerCount, options
-                );
+                return builder
+                    .ForSpectator(options => options.HostEndPoint = host)
+                    .Build();
 
             case ["replay", { } replayFile]:
-                if (!File.Exists(replayFile))
-                    throw new InvalidOperationException("Invalid replay file");
-
-                var inputs = SaveInputsToFileListener.GetInputs(playerCount, replayFile).ToArray();
-
-                return RollbackNetcode.CreateReplaySession(playerCount, inputs, controls: replayControls);
+                return builder
+                    .ForReplay(options =>
+                        options.InputList = SaveInputsToFileListener.GetInputs(playerCount, replayFile).ToArray()
+                    )
+                    .Build();
 
             case ["sync-test", ..]:
-                return RollbackNetcode.CreateSyncTestSession<PlayerInputs>(
-                    options: options,
-                    services: new()
-                    {
-                        InputGenerator = new RandomInputGenerator<PlayerInputs>(),
-                    }
-                );
+                return builder
+                    .ForSyncTest(options => options
+                        .UseJsonStateViewer()
+                        .UseRandomInputProvider()
+                    )
+                    .Build();
 
+            // defaults to remote session
             default:
-                // defaults to remote session
-
-                IInputListener<PlayerInputs>? saveInputsListener = null;
                 // save confirmed inputs to file
                 if (lastArgs is ["--save-to", { } filename, .. var argsAfterSave])
                 {
-                    saveInputsListener = new SaveInputsToFileListener(filename);
+                    builder.WithInputListener(new SaveInputsToFileListener(filename));
                     lastArgs = argsAfterSave;
                 }
 

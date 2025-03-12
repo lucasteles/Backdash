@@ -7,6 +7,8 @@ using Backdash.Network;
 using Backdash.Options;
 using Backdash.Serialization;
 using Backdash.Serialization.Internal;
+using Backdash.Synchronizing.Input;
+using Backdash.Synchronizing.Input.Confirmed;
 
 // ReSharper disable LocalVariableHidesMember, ParameterHidesMember
 #pragma warning disable S2325, CA1822
@@ -22,7 +24,7 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
     SessionServices<TInput>? sessionServices;
     SessionMode sessionMode = SessionMode.Remote;
 
-    SyncTestOptions? syncTestOptions;
+    SyncTestOptions<TInput>? syncTestOptions;
     SessionReplayOptions<TInput>? replayOptions;
     SpectatorOptions? spectatorOptions;
 
@@ -65,6 +67,7 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
                 case SessionMode.Remote:
                     return new RemoteBackend<TInput>(options, services);
                 case SessionMode.Local:
+                    ConfigureLocal();
                     return new LocalBackend<TInput>(options, services);
                 case SessionMode.Spectator:
                     ConfigureSpectator();
@@ -81,8 +84,13 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
         }
     }
 
-    /// <inheritdoc cref="Build()"/>
-    public INetcodeSession<TInput> Build(SessionMode mode) => WithMode(mode).Build();
+    void ConfigureLocal()
+    {
+        if (playerList.Count > 0) return;
+
+        for (var i = 0; i < options.NumberOfPlayers; i++)
+            playerList.Add(new LocalPlayer(i));
+    }
 
     /// <summary>
     /// Set the <see cref="SessionMode"/> as <see cref="SessionMode.Remote"/>.
@@ -109,7 +117,7 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
     /// <summary>
     /// Set the <see cref="SessionMode"/> as <see cref="SessionMode.SyncTest"/>.
     /// </summary>
-    public NetcodeSessionBuilder<TInput> ForSyncTest(Action<SyncTestOptions>? config = null) =>
+    public NetcodeSessionBuilder<TInput> ForSyncTest(Action<SyncTestOptions<TInput>>? config = null) =>
         ConfigureSyncTest(config);
 
     /// <summary>
@@ -220,20 +228,18 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
     /// <summary>
     /// Set the logger <see cref="SessionServices{TInput}.LogWriter"/>
     /// </summary>
-    /// <seealso cref="NetcodeOptions"/>
+    /// <seealso cref="NetcodeOptions.Logger"/>
     [MemberNotNull(nameof(sessionServices))]
     public NetcodeSessionBuilder<TInput> WithLogWriter(ILogWriter writer)
     {
         ArgumentNullException.ThrowIfNull(writer);
-        sessionServices ??= new();
-        sessionServices.LogWriter = writer;
-        return this;
+        return ConfigureServices(s => s.LogWriter = writer);
     }
 
     /// <summary>
     /// Set the logger <see cref="SessionServices{TInput}.LogWriter"/>
     /// </summary>
-    /// <seealso cref="NetcodeOptions"/>
+    /// <seealso cref="NetcodeOptions.Logger"/>
     [MemberNotNull(nameof(sessionServices))]
     public NetcodeSessionBuilder<TInput> WithLogWriter(Action<LogLevel, string> logAction) =>
         WithLogWriter(new DelegateLogWriter(logAction));
@@ -243,6 +249,27 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
     [MemberNotNull(nameof(sessionServices))]
     public NetcodeSessionBuilder<TInput> WithFileLogWriter(string? filename = null, bool append = true) =>
         WithLogWriter(new FileTextLogWriter(filename, append));
+
+    /// <summary>
+    /// Set the logger <see cref="SessionServices{TInput}.InputListener"/>
+    /// </summary>
+    /// <seealso cref="IInputListener{TInput}"/>
+    [MemberNotNull(nameof(sessionServices))]
+    public NetcodeSessionBuilder<TInput> WithInputListener(IInputListener<TInput> listener)
+    {
+        ArgumentNullException.ThrowIfNull(listener);
+        return ConfigureServices(s => s.InputListener = listener);
+    }
+
+    /// <summary>
+    /// Set the <typeparamref name="TInput"/> comparer.
+    /// </summary>
+    [MemberNotNull(nameof(sessionServices))]
+    public NetcodeSessionBuilder<TInput> WithComparer(IEqualityComparer<TInput> comparer)
+    {
+        ArgumentNullException.ThrowIfNull(comparer);
+        return ConfigureServices(s => s.InputComparer = comparer);
+    }
 
     /// <summary>
     /// Set <see cref="INetcodeSession{TInput}"/> options
@@ -258,8 +285,10 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
     /// Set custom session services
     /// </summary>
     /// <seealso cref="SessionServices{TInput}"/>
+    [MemberNotNull(nameof(sessionServices))]
     public NetcodeSessionBuilder<TInput> WithServices(SessionServices<TInput> services)
     {
+        ArgumentNullException.ThrowIfNull(services);
         sessionServices = services;
         return this;
     }
@@ -268,6 +297,7 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
     /// Configure custom session services
     /// </summary>
     /// <seealso cref="SessionServices{TInput}"/>
+    [MemberNotNull(nameof(sessionServices))]
     public NetcodeSessionBuilder<TInput> ConfigureServices(Action<SessionServices<TInput>> config)
     {
         var services = sessionServices ?? new();
@@ -330,8 +360,8 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
     /// <summary>
     /// Set sync test session options.
     /// </summary>
-    /// <seealso cref="SyncTestOptions"/>
-    public NetcodeSessionBuilder<TInput> WithSyncTestOptions(SyncTestOptions options)
+    /// <seealso cref="SyncTestOptions{TInput}"/>
+    public NetcodeSessionBuilder<TInput> WithSyncTestOptions(SyncTestOptions<TInput> options)
     {
         syncTestOptions = options;
         return WithMode(SessionMode.SyncTest);
@@ -340,9 +370,9 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
     /// <summary>
     /// Configure sync test session options.
     /// </summary>
-    /// <seealso cref="SyncTestOptions"/>
+    /// <seealso cref="SyncTestOptions{TInput}"/>
     [MemberNotNull(nameof(syncTestOptions))]
-    public NetcodeSessionBuilder<TInput> ConfigureSyncTest(Action<SyncTestOptions>? config = null)
+    public NetcodeSessionBuilder<TInput> ConfigureSyncTest(Action<SyncTestOptions<TInput>>? config = null)
     {
         syncTestOptions ??= new();
         config?.Invoke(syncTestOptions);

@@ -29,6 +29,9 @@ sealed class SaveInputsToFileListener(string filename) : IInputListener<PlayerIn
 
     public static IEnumerable<ConfirmedInputs<PlayerInputs>> GetInputs(int players, string file)
     {
+        if (!File.Exists(file))
+            throw new InvalidOperationException("Invalid replay file");
+
         using var replayStream = File.OpenRead(file);
         var buffer = new byte[InputSize * players];
         var inputsBuffer = new PlayerInputs[players];
