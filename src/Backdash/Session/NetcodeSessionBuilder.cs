@@ -190,7 +190,6 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
     /// <inheritdoc cref="NetcodeOptions.LocalPort"/>
     public NetcodeSessionBuilder<TInput> WithPort(int port)
     {
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(port);
         options.LocalPort = port;
         return this;
     }
