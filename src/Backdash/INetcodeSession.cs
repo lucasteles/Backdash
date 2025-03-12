@@ -49,9 +49,9 @@ public interface INetcodeSession<TInput> : INetcodeSessionInfo, IDisposable wher
 {
     /// <summary>
     /// Deterministic random value generator.
-    /// This must be called after <see cref="SynchronizeInputs"/>
+    /// Must be called after <see cref="SynchronizeInputs"/>.
     /// </summary>
-    IDeterministicRandom Random { get; }
+    INetcodeRandom Random { get; }
 
     /// <summary>
     /// Returns a list of all input players in the session.

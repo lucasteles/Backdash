@@ -22,17 +22,16 @@ sealed class SyncTestBackend<TInput> : INetcodeSession<TInput>
     readonly Synchronizer<TInput> synchronizer;
     readonly TaskCompletionSource tsc = new();
     readonly Logger logger;
-    readonly IDeterministicRandom deterministicRandom;
     readonly HashSet<PlayerHandle> addedPlayers = [];
     readonly HashSet<PlayerHandle> addedSpectators = [];
     readonly Queue<SavedFrameBytes> savedFrames = [];
     readonly SynchronizedInput<TInput>[] syncInputBuffer = new SynchronizedInput<TInput>[Max.NumberOfPlayers];
     readonly TInput[] inputBuffer = new TInput[Max.NumberOfPlayers];
-    readonly NetcodeOptions options;
     readonly FrameSpan checkDistance;
     readonly bool throwError;
     readonly IStateDesyncHandler? mismatchHandler;
     readonly IInputGenerator<TInput>? inputGenerator;
+    readonly IDeterministicRandom<TInput> random;
 
     INetcodeSessionHandler callbacks;
     bool inRollback;
@@ -51,11 +50,10 @@ sealed class SyncTestBackend<TInput> : INetcodeSession<TInput>
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(options);
         ArgumentOutOfRangeException.ThrowIfNegative(checkDistance.FrameCount);
-        this.options = options;
         this.checkDistance = checkDistance;
         this.throwError = throwError;
         this.mismatchHandler = mismatchHandler;
-        deterministicRandom = services.DeterministicRandom;
+        random = services.DeterministicRandom;
         inputGenerator = services.InputGenerator;
         logger = services.Logger;
         callbacks ??= new EmptySessionHandler(logger);
@@ -77,7 +75,7 @@ sealed class SyncTestBackend<TInput> : INetcodeSession<TInput>
     public void Dispose() => tsc.SetResult();
     public int NumberOfPlayers => Math.Max(addedPlayers.Count, 1);
     public int NumberOfSpectators => addedSpectators.Count;
-    public IDeterministicRandom Random => deterministicRandom;
+    public INetcodeRandom Random => random;
     public Frame CurrentFrame => synchronizer.CurrentFrame;
     public SessionMode Mode => SessionMode.SyncTest;
     public FrameSpan FramesBehind => synchronizer.FramesBehind;
@@ -179,9 +177,7 @@ sealed class SyncTestBackend<TInput> : INetcodeSession<TInput>
 
         inputBuffer[0] = lastInput.Data;
         syncInputBuffer[0] = new(lastInput.Data, false);
-
-        var inputPopCount = options.UseInputSeedForRandom ? Mem.PopCount<TInput>(inputBuffer.AsSpan()) : 0;
-        deterministicRandom.UpdateSeed(CurrentFrame.Number, inputPopCount);
+        random.UpdateSeed(CurrentFrame, inputBuffer);
 
         return ResultCode.Ok;
     }

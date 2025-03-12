@@ -35,9 +35,9 @@ sealed class RemoteBackend<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
     readonly HashSet<PlayerHandle> addedPlayers = [];
     readonly HashSet<PlayerHandle> addedSpectators = [];
     readonly IInputListener<TInput>? inputListener;
-    public IDeterministicRandom Random { get; }
     readonly EqualityComparer<TInput> inputComparer;
     readonly EqualityComparer<ConfirmedInputs<TInput>> inputGroupComparer;
+    readonly IDeterministicRandom<TInput> random;
 
     bool isSynchronizing = true;
     int nextRecommendedInterval;
@@ -68,7 +68,7 @@ sealed class RemoteBackend<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
         backgroundJobManager = services.JobManager;
         logger = services.Logger;
         inputListener = services.InputListener;
-        Random = services.DeterministicRandom;
+        random = services.DeterministicRandom;
         inputComparer = services.InputComparer;
 
         inputGroupComparer = ConfirmedInputComparer<TInput>.Create(services.InputComparer);
@@ -138,12 +138,12 @@ sealed class RemoteBackend<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
         callbacks.OnSessionClose();
     }
 
+    public INetcodeRandom Random => random;
     public Frame CurrentFrame => synchronizer.CurrentFrame;
     public FrameSpan RollbackFrames => synchronizer.RollbackFrames;
     public FrameSpan FramesBehind => synchronizer.FramesBehind;
     public SavedFrame GetCurrentSavedFrame() => synchronizer.GetLastSavedFrame();
     public int NumberOfPlayers => addedPlayers.Count;
-
     public int NumberOfSpectators => addedSpectators.Count;
 
     public SessionMode Mode => SessionMode.Remote;
@@ -384,10 +384,7 @@ sealed class RemoteBackend<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
         if (isSynchronizing)
             return ResultCode.NotSynchronized;
         synchronizer.SynchronizeInputs(syncInputBuffer, inputBuffer);
-
-        var inputPopCount = options.UseInputSeedForRandom ? Mem.PopCount<TInput>(inputBuffer.AsSpan()) : 0;
-        Random.UpdateSeed(CurrentFrame.Number, inputPopCount);
-
+        random.UpdateSeed(CurrentFrame, inputBuffer);
         return ResultCode.Ok;
     }
 

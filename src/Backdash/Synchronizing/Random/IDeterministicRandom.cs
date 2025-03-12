@@ -1,15 +1,12 @@
+using Backdash.Data;
+
 namespace Backdash.Synchronizing.Random;
 
 /// <summary>
 /// Defines a random number generator
 /// </summary>
-public interface IDeterministicRandom
+public interface INetcodeRandom
 {
-    /// <summary>
-    /// Updates the seed for the current random instance
-    /// </summary>
-    void UpdateSeed(int newState, int extraState = 0);
-
     /// <summary>
     /// Returns a random unsigned integer.
     /// </summary>
@@ -49,4 +46,15 @@ public interface IDeterministicRandom
     /// Returns a random floating-point number that is greater than or equal to 0.0, and less than 1.0.
     /// </summary>
     float NextFloat() => (float)Next() / uint.MaxValue;
+}
+
+/// <summary>
+/// Defines a deterministic random number generator
+/// </summary>
+public interface IDeterministicRandom<TInput> : INetcodeRandom where TInput : unmanaged
+{
+    /// <summary>
+    /// Updates the seed for the current random instance
+    /// </summary>
+    void UpdateSeed(in Frame currentFrame, ReadOnlySpan<TInput> inputs);
 }

@@ -29,6 +29,7 @@ sealed class SpectatorBackend<TInput> :
     readonly GameInput<ConfirmedInputs<TInput>>[] inputs;
     readonly PeerConnection<ConfirmedInputs<TInput>> host;
     readonly PlayerHandle[] fakePlayers;
+    readonly IDeterministicRandom<TInput> random;
 
     INetcodeSessionHandler callbacks;
     bool isSynchronizing;
@@ -56,7 +57,7 @@ sealed class SpectatorBackend<TInput> :
         this.hostEndpoint = hostEndpoint;
         this.options = options;
         backgroundJobManager = services.JobManager;
-        Random = services.DeterministicRandom;
+        random = services.DeterministicRandom;
         logger = services.Logger;
         clock = services.Clock;
         stateStore = services.StateStore;
@@ -114,11 +115,10 @@ sealed class SpectatorBackend<TInput> :
     public FrameSpan RollbackFrames => FrameSpan.Zero;
     public FrameSpan FramesBehind => FrameSpan.Zero;
     public SavedFrame GetCurrentSavedFrame() => stateStore.Last();
-
+    public INetcodeRandom Random => random;
     public int NumberOfPlayers { get; private set; }
     public int NumberOfSpectators => 0;
 
-    public IDeterministicRandom Random { get; }
     public SessionMode Mode => SessionMode.Spectating;
 
     public void DisconnectPlayer(in PlayerHandle player) { }
@@ -262,9 +262,7 @@ sealed class SpectatorBackend<TInput> :
             inputBuffer[i] = input.Data.Inputs[i];
         }
 
-        var inputPopCount = options.UseInputSeedForRandom ? Mem.PopCount<TInput>(inputBuffer.AsSpan()) : 0;
-        Random.UpdateSeed(CurrentFrame.Number, inputPopCount);
-
+        random.UpdateSeed(CurrentFrame, inputBuffer);
         return ResultCode.Ok;
     }
 

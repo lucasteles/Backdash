@@ -1,12 +1,14 @@
+using System.Buffers.Binary;
 using System.Diagnostics;
-using System.Net;
+using Backdash.Core;
+using Backdash.Data;
 
 namespace Backdash.Synchronizing.Random;
 
 /// <summary>
-/// XOR Shift random number generators (shift-register generators) implementation <seealso cref="IDeterministicRandom"/>
+/// XOR Shift random number generators (shift-register generators) implementation <seealso cref="IDeterministicRandom{T}"/>
 /// </summary>
-public sealed class XorShiftRandom : IDeterministicRandom
+public sealed class XorShiftRandom<TInput> : IDeterministicRandom<TInput> where TInput : unmanaged
 {
     uint seed;
 
@@ -25,11 +27,11 @@ public sealed class XorShiftRandom : IDeterministicRandom
     }
 
     /// <inheritdoc />
-    public void UpdateSeed(int newState, int extraState = 0)
+    public void UpdateSeed(in Frame currentFrame, ReadOnlySpan<TInput> inputs)
     {
-        ArgumentOutOfRangeException.ThrowIfNegative(newState);
-        ArgumentOutOfRangeException.ThrowIfNegative(extraState);
-        newState = unchecked(newState + extraState + 1);
-        seed = (uint)IPAddress.HostToNetworkOrder(newState);
+        var extraState = Mem.PopCount(inputs);
+        seed = unchecked((uint)(currentFrame.Number + extraState + 1));
+        if (BitConverter.IsLittleEndian)
+            seed = BinaryPrimitives.ReverseEndianness(seed);
     }
 }

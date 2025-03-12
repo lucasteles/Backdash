@@ -23,9 +23,9 @@ sealed class ReplayBackend<TInput> : INetcodeSession<TInput> where TInput : unma
 
     readonly IReadOnlyList<ConfirmedInputs<TInput>> inputList;
     readonly SessionReplayControl controls;
-    readonly bool useInputSeedForRandom;
     readonly IStateStore stateStore;
     readonly IChecksumProvider checksumProvider;
+    readonly IDeterministicRandom<TInput> random;
     readonly Endianness endianness;
 
     public ReplayBackend(int numberOfPlayers,
@@ -39,11 +39,10 @@ sealed class ReplayBackend<TInput> : INetcodeSession<TInput> where TInput : unma
 
         this.inputList = inputList;
         this.controls = controls;
-        useInputSeedForRandom = options.UseInputSeedForRandom;
         logger = services.Logger;
         stateStore = services.StateStore;
         checksumProvider = services.ChecksumProvider;
-        Random = services.DeterministicRandom;
+        random = services.DeterministicRandom;
         NumberOfPlayers = numberOfPlayers;
         endianness = options.StateSerializationEndianness ?? Platform.GetEndianness(options.UseNetworkEndianness);
         callbacks = new EmptySessionHandler(logger);
@@ -78,7 +77,8 @@ sealed class ReplayBackend<TInput> : INetcodeSession<TInput> where TInput : unma
 
     public int NumberOfSpectators => 0;
     public int NumberOfPlayers { get; private set; }
-    public IDeterministicRandom Random { get; }
+
+    public INetcodeRandom Random => random;
 
     public SessionMode Mode => SessionMode.Replaying;
     public void DisconnectPlayer(in PlayerHandle player) { }
@@ -159,9 +159,7 @@ sealed class ReplayBackend<TInput> : INetcodeSession<TInput> where TInput : unma
             inputBuffer[i] = confirmed.Inputs[i];
         }
 
-        var inputPopCount = useInputSeedForRandom ? Mem.PopCount<TInput>(inputBuffer.AsSpan()) : 0;
-        Random.UpdateSeed(CurrentFrame.Number, inputPopCount);
-
+        random.UpdateSeed(CurrentFrame, inputBuffer);
         return ResultCode.Ok;
     }
 

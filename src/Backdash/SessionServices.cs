@@ -12,6 +12,7 @@ namespace Backdash;
 /// Session dependencies.
 /// </summary>
 /// <typeparam name="TInput">Input type</typeparam>
+[Serializable]
 public sealed class SessionServices<TInput> where TInput : unmanaged
 {
     /// <summary>
@@ -46,20 +47,20 @@ public sealed class SessionServices<TInput> where TInput : unmanaged
     public IPeerSocketFactory? PeerSocketFactory { get; set; }
 
     /// <summary>
-    /// Default random service
+    /// Default internal random instance
     /// </summary>
     public Random? Random { get; set; }
+
+    /// <summary>
+    /// Service for in-game random value generation in session
+    /// Defaults to <see cref="XorShiftRandom{T}"/>
+    /// </summary>
+    public IDeterministicRandom<TInput>? DeterministicRandom { get; set; }
 
     /// <summary>
     /// Service to listen for confirmed inputs
     /// </summary>
     public IInputListener<TInput>? InputListener { get; set; }
-
-    /// <summary>
-    /// Service for random value generation in session
-    /// Defaults to <see cref="XorShiftRandom"/>
-    /// </summary>
-    public IDeterministicRandom? DeterministicRandom { get; set; }
 
     /// <summary>
     /// Comparer to be used with <typeparamref name="TInput"/>
