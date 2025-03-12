@@ -2,6 +2,7 @@ using Backdash.Core;
 using Backdash.Network;
 using Backdash.Network.Client;
 using Backdash.Network.Protocol;
+using Backdash.Options;
 using Backdash.Serialization;
 using Backdash.Serialization.Internal;
 using Backdash.Synchronizing.Input;
@@ -27,8 +28,15 @@ sealed class BackendServices<TInput> where TInput : unmanaged
 
     public EqualityComparer<TInput> InputComparer { get; }
 
-    public BackendServices(NetcodeOptions options, SessionServices<TInput>? services)
+    public BackendServices(
+        IBinarySerializer<TInput> inputSerializer,
+        NetcodeOptions options,
+        SessionServices<TInput>? services
+    )
     {
+        ArgumentNullException.ThrowIfNull(inputSerializer);
+        ArgumentNullException.ThrowIfNull(options);
+
         ChecksumProvider = services?.ChecksumProvider ?? new Fletcher32ChecksumProvider();
         StateStore = services?.StateStore ?? new DefaultStateStore(options.StateSizeHint);
         DeterministicRandom = services?.DeterministicRandom ?? new XorShiftRandom<TInput>();
@@ -51,11 +59,4 @@ sealed class BackendServices<TInput> where TInput : unmanaged
         var socketFactory = services?.PeerSocketFactory ?? new PeerSocketFactory();
         ProtocolClientFactory = new ProtocolClientFactory(options, socketFactory, Logger, DelayStrategy);
     }
-}
-
-static class BackendServices
-{
-    public static BackendServices<TInput> Create<TInput>(NetcodeOptions options, SessionServices<TInput>? services)
-        where TInput : unmanaged =>
-        new(options, services);
 }

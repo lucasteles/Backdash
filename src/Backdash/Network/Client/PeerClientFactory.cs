@@ -20,14 +20,16 @@ public static class PeerClientFactory
         LogLevel logLevel = LogLevel.None,
         ILogWriter? logWriter = null,
         DelayStrategy delayStrategy = DelayStrategy.Gaussian,
-        Random? random = null
+        Random? random = null,
+        int maxPackageQueue = Max.PackageQueue
     ) where T : unmanaged => new PeerClient<T>(
         socket,
         serializer,
         observer,
         Logger.CreateConsoleLogger(logLevel, logWriter),
         DelayStrategyFactory.Create(new DefaultRandomNumberGenerator(random ?? Random.Shared), delayStrategy),
-        maxPacketSize
+        maxPacketSize,
+        maxPackageQueue
     );
 
 #if !AOT_ENABLED

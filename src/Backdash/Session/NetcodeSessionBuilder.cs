@@ -1,12 +1,12 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using Backdash.Backends;
 using Backdash.Core;
 using Backdash.Network;
-using Backdash.Network.Protocol;
+using Backdash.Options;
 using Backdash.Serialization;
 using Backdash.Serialization.Internal;
-using Backdash.Synchronizing;
 
 // ReSharper disable LocalVariableHidesMember, ParameterHidesMember
 #pragma warning disable S2325, CA1822
@@ -19,12 +19,91 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
 {
     readonly NetcodeSessionBuilder.SerializerFactory<TInput> serializer;
     NetcodeOptions options = new();
-    SessionServices<TInput>? services;
-    int numberOfPlayer = 2;
-    bool syncTestThrowException = true;
+    SessionServices<TInput>? sessionServices;
+    SessionMode sessionMode = SessionMode.Remote;
+
+    SyncTestOptions? syncTestOptions;
+    SessionReplayOptions<TInput>? replayOptions;
+    SpectatorOptions? spectatorOptions;
 
     internal NetcodeSessionBuilder(NetcodeSessionBuilder.SerializerFactory<TInput> serializer) =>
         this.serializer = serializer;
+
+    /// <summary>
+    /// Builds a new <see cref="INetcodeSession{TInput}"/>.
+    /// </summary>
+    public INetcodeSession<TInput> Build()
+    {
+        this.options.EnsureDefaults();
+        var options = this.options.CloneOptions();
+
+        BackendServices<TInput> services = new(
+            serializer.Invoke(options.Protocol.SerializationEndianness),
+            options, sessionServices);
+
+        switch (sessionMode)
+        {
+            case SessionMode.Remote:
+                return new RemoteBackend<TInput>(options, services);
+            case SessionMode.Local:
+                return new LocalBackend<TInput>(options, services);
+            case SessionMode.Spectator:
+                ConfigureSpectator();
+                return new SpectatorBackend<TInput>(spectatorOptions, options, services);
+            case SessionMode.Replay:
+                ConfigureReplay();
+                return new ReplayBackend<TInput>(replayOptions, options, services);
+            case SessionMode.SyncTest:
+                ConfigureSyncTest();
+                return new SyncTestBackend<TInput>(syncTestOptions, options, services);
+            default:
+                throw new InvalidOperationException($"Unknown session mode: {sessionMode}");
+        }
+    }
+
+    /// <inheritdoc cref="Build()"/>
+    public INetcodeSession<TInput> Build(SessionMode mode) => WithMode(mode).Build();
+
+    /// <summary>
+    /// Set the <see cref="SessionMode"/> as <see cref="SessionMode.Remote"/>.
+    /// </summary>
+    public NetcodeSessionBuilder<TInput> ForRemote() => WithMode(SessionMode.Remote);
+
+    /// <summary>
+    /// Set the <see cref="SessionMode"/> as <see cref="SessionMode.Local"/>.
+    /// </summary>
+    public NetcodeSessionBuilder<TInput> ForLocal() => WithMode(SessionMode.Local);
+
+    /// <summary>
+    /// Set the <see cref="SessionMode"/> as <see cref="SessionMode.Spectator"/>.
+    /// </summary>
+    public NetcodeSessionBuilder<TInput> ForSpectator(Action<SpectatorOptions>? config = null) =>
+        ConfigureSpectator(config);
+
+    /// <summary>
+    /// Set the <see cref="SessionMode"/> as <see cref="SessionMode.Replay"/>.
+    /// </summary>
+    public NetcodeSessionBuilder<TInput> ForReplay(Action<SessionReplayOptions<TInput>>? config = null) =>
+        ConfigureReplay(config);
+
+    /// <summary>
+    /// Set the <see cref="SessionMode"/> as <see cref="SessionMode.SyncTest"/>.
+    /// </summary>
+    public NetcodeSessionBuilder<TInput> ForSyncTest(Action<SyncTestOptions>? config = null) =>
+        ConfigureSyncTest(config);
+
+    /// <summary>
+    /// Set the <see cref="SessionMode"/> for the <see cref="INetcodeSession{TInput}"/> to be build.
+    /// </summary>
+    /// <value>Defaults to <see cref="SessionMode.Remote"/></value>
+    public NetcodeSessionBuilder<TInput> WithMode(SessionMode mode)
+    {
+        if (!Enum.IsDefined(sessionMode))
+            throw new ArgumentOutOfRangeException(nameof(mode), mode, null);
+
+        sessionMode = mode;
+        return this;
+    }
 
     /// <summary>
     /// Sets the number of players for the <see cref="INetcodeSession{TInput}"/>
@@ -33,8 +112,26 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
     public NetcodeSessionBuilder<TInput> WithPlayerCount(int count)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(count);
-        numberOfPlayer = count;
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(count, Max.NumberOfPlayers);
+        options.NumberOfPlayers = count;
 
+        return this;
+    }
+
+    /// <inheritdoc cref="NetcodeOptions.InputDelayFrames"/>
+    public NetcodeSessionBuilder<TInput> WithInputDelay(int frames)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(frames);
+        options.InputDelayFrames = frames;
+
+        return this;
+    }
+
+    /// <inheritdoc cref="NetcodeOptions.LocalPort"/>
+    public NetcodeSessionBuilder<TInput> WithPort(int port)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(port);
+        options.LocalPort = port;
         return this;
     }
 
@@ -94,7 +191,7 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
     /// <seealso cref="SessionServices{TInput}"/>
     public NetcodeSessionBuilder<TInput> WithServices(SessionServices<TInput> services)
     {
-        this.services = services;
+        this.sessionServices = services;
         return this;
     }
 
@@ -104,7 +201,7 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
     /// <seealso cref="SessionServices{TInput}"/>
     public NetcodeSessionBuilder<TInput> ConfigureServices(Action<SessionServices<TInput>> config)
     {
-        var services = this.services ?? new();
+        var services = this.sessionServices ?? new();
         config.Invoke(services);
         return WithServices(services);
     }
@@ -138,12 +235,79 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
         config.Invoke(options.TimeSync);
         return this;
     }
+
+    /// <summary>
+    /// Set spectator session options.
+    /// </summary>
+    /// <seealso cref="SpectatorOptions"/>
+    public NetcodeSessionBuilder<TInput> WithSpectatorOptions(SpectatorOptions options)
+    {
+        spectatorOptions = options;
+        return WithMode(SessionMode.Spectator);
+    }
+
+    /// <summary>
+    /// Configure spectator session options.
+    /// </summary>
+    /// <seealso cref="SpectatorOptions"/>
+    [MemberNotNull(nameof(spectatorOptions))]
+    public NetcodeSessionBuilder<TInput> ConfigureSpectator(Action<SpectatorOptions>? config = null)
+    {
+        spectatorOptions ??= new();
+        config?.Invoke(spectatorOptions);
+        return WithMode(SessionMode.Spectator);
+    }
+
+
+    /// <summary>
+    /// Set sync test session options.
+    /// </summary>
+    /// <seealso cref="SyncTestOptions"/>
+    public NetcodeSessionBuilder<TInput> WithSyncTestOptions(SyncTestOptions options)
+    {
+        syncTestOptions = options;
+        return WithMode(SessionMode.SyncTest);
+    }
+
+    /// <summary>
+    /// Configure sync test session options.
+    /// </summary>
+    /// <seealso cref="SyncTestOptions"/>
+    [MemberNotNull(nameof(syncTestOptions))]
+    public NetcodeSessionBuilder<TInput> ConfigureSyncTest(Action<SyncTestOptions>? config = null)
+    {
+        syncTestOptions ??= new();
+        config?.Invoke(syncTestOptions);
+        return WithMode(SessionMode.SyncTest);
+    }
+
+    /// <summary>
+    /// Set replay session options.
+    /// </summary>
+    /// <seealso cref="SessionReplayOptions{TInput}"/>
+    public NetcodeSessionBuilder<TInput> WithReplayTestOptions(SessionReplayOptions<TInput> options)
+    {
+        replayOptions = options;
+        return WithMode(SessionMode.Replay);
+    }
+
+    /// <summary>
+    /// Configure replay session options.
+    /// </summary>
+    /// <seealso cref="SessionReplayOptions{TInptut}"/>
+    [MemberNotNull(nameof(replayOptions))]
+    public NetcodeSessionBuilder<TInput> ConfigureReplay(Action<SessionReplayOptions<TInput>>? config = null)
+    {
+        replayOptions ??= new();
+        config?.Invoke(replayOptions);
+        return WithMode(SessionMode.Replay);
+    }
 }
 
 /// <summary>
 /// Builder for <see cref="INetcodeSession{TInput}"/>.
-///  <seealso cref="RollbackNetcode"/>
 /// </summary>
+/// <seealso cref="RollbackNetcode"/>
 [SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Global")]
 public sealed class NetcodeSessionBuilder
 {

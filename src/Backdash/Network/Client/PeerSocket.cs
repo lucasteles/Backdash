@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Sockets;
+using Backdash.Options;
 
 namespace Backdash.Network.Client;
 

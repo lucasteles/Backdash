@@ -1,12 +1,13 @@
 using Backdash.Core;
+using Backdash.Network;
 using Backdash.Network.Client;
 
-namespace Backdash.Network.Protocol;
+namespace Backdash.Options;
 
 /// <summary>
 /// Network protocol configuration.
 /// </summary>
-public class ProtocolOptions
+public sealed record ProtocolOptions
 {
     /// <summary>
     /// Sets the <see cref="Endianness"/> used for network communication.
@@ -18,41 +19,41 @@ public class ProtocolOptions
     /// <summary>
     /// Number of bytes used on the <see cref="UdpSocket"/> message buffer.
     /// </summary>
-    /// <inheritdoc cref="Default.UdpPacketBufferSize"/>
-    public int UdpPacketBufferSize { get; set; } = Default.UdpPacketBufferSize;
+    ///<value>Defaults to (<see cref="NetcodeOptions.NumberOfPlayers"/> * <see cref="Max.CompressedBytes"/> * <c>2</c>)</value>
+    public int UdpPacketBufferSize { get; set; }
 
     /// <summary>
     /// Max allowed pending inputs in sending queue.
     /// When reached <see cref="INetcodeSession{TInput}.AddLocalInput"/> will return <see cref="ResultCode.InputDropped"/>.
     /// </summary>
-    /// <inheritdoc cref="Default.MaxPendingInputs"/>
-    public int MaxPendingInputs { get; set; } = Default.MaxPendingInputs;
+    ///<value>Defaults to <c>64</c></value>
+    public int MaxPendingInputs { get; set; } = 64;
 
     /// <summary>
     /// Max allowed pending UDP output messages.
     /// When reached removes and ignores the oldest package in the queue in order to make room for the new package.
     /// </summary>
-    /// <inheritdoc cref="Default.MaxPackageQueue"/>
-    public int MaxPackageQueue { get; set; } = Default.MaxPackageQueue;
+    ///<value>Defaults to <c>64</c></value>
+    public int MaxPackageQueue { get; set; } = 64;
 
     /// <summary>
     /// Number of synchronization roundtrips to consider two clients synchronized.
     /// </summary>
-    /// <inheritdoc cref="Default.NumberOfSyncPackets"/>
-    public int NumberOfSyncRoundtrips { get; set; } = Default.NumberOfSyncPackets;
+    ///<value>Defaults to <c>10</c></value>
+    public int NumberOfSyncRoundtrips { get; set; } = 10;
 
     /// <summary>
     /// Distance to check out-of-order packets.
     /// </summary>
-    /// <inheritdoc cref="Default.MaxSeqDistance"/>
-    public int MaxSequenceDistance { get; set; } = Default.MaxSeqDistance;
+    ///<value>Defaults to <c>32_768</c></value>
+    public int MaxSequenceDistance { get; set; } = 1 << 15;
 
     /// <summary>
     /// Total number of synchronization request retries.
     /// When reached, session will dispatch the <see cref="PeerEvent.SynchronizationFailure"/> event.
     /// </summary>
-    /// <inheritdoc cref="Default.MaxSyncRetries"/>
-    public int MaxSyncRetries { get; set; } = Default.MaxSyncRetries;
+    ///<value>Defaults to <c>64</c></value>
+    public int MaxSyncRetries { get; set; } = 64;
 
     /// <summary>
     /// Forced network packet sending latency for the current peer.
@@ -80,69 +81,69 @@ public class ProtocolOptions
     /// <summary>
     /// The time to wait before the first <see cref="PeerEvent.ConnectionInterrupted"/> timeout will be sent.
     /// </summary>
-    /// <inheritdoc cref="Default.DisconnectNotifyStart"/>
-    public TimeSpan DisconnectNotifyStart { get; set; } = TimeSpan.FromMilliseconds(Default.DisconnectNotifyStart);
+    ///<value>Defaults to <c>750</c> milliseconds</value>
+    public TimeSpan DisconnectNotifyStart { get; set; } = TimeSpan.FromMilliseconds(750);
 
     /// <summary>
     /// The session will automatically disconnect from a remote peer if it has not received a packet in the timeout window.
     /// You will be notified of the disconnect via <see cref="PeerEvent.Disconnected"/> event.
     /// </summary>
-    /// <inheritdoc cref="Default.DisconnectTimeout"/>
-    public TimeSpan DisconnectTimeout { get; set; } = TimeSpan.FromMilliseconds(Default.DisconnectTimeout);
+    ///<value>Defaults to <c>5_000</c> milliseconds</value>
+    public TimeSpan DisconnectTimeout { get; set; } = TimeSpan.FromMilliseconds(5_000);
 
     /// <summary>
     /// The time to wait before end the session.
     /// </summary>
-    /// <inheritdoc cref="Default.UdpShutdownTime"/>
-    public TimeSpan ShutdownTime { get; set; } = TimeSpan.FromMilliseconds(Default.UdpShutdownTime);
+    ///<value>Defaults to <c>100</c> milliseconds</value>
+    public TimeSpan ShutdownTime { get; set; } = TimeSpan.FromMilliseconds(100);
 
     /// <summary>
     /// The time to wait before resend synchronization retries after the first.
     /// </summary>
-    /// <inheritdoc cref="Default.SyncRetryInterval"/>
+    /// <value>Defaults to <c>1000</c> milliseconds</value>
     /// <seealso cref="SyncFirstRetryInterval"/>
-    public TimeSpan SyncRetryInterval { get; set; } = TimeSpan.FromMilliseconds(Default.SyncRetryInterval);
+    public TimeSpan SyncRetryInterval { get; set; } = TimeSpan.FromMilliseconds(1000);
 
     /// <summary>
     /// The time to wait before resend the first synchronization request retry.
     /// </summary>
-    /// <inheritdoc cref="Default.SyncFirstRetryInterval"/>
+    /// <value>Defaults to <c>500</c> milliseconds</value>
     /// <seealso cref="SyncRetryInterval"/>
-    public TimeSpan SyncFirstRetryInterval { get; set; } = TimeSpan.FromMilliseconds(Default.SyncFirstRetryInterval);
+    public TimeSpan SyncFirstRetryInterval { get; set; } = TimeSpan.FromMilliseconds(500);
 
     /// <summary>
     /// When the time from the last send package until now is greater than this, sends a keep alive packets.
     /// </summary>
-    /// <inheritdoc cref="Default.KeepAliveInterval"/>
-    public TimeSpan KeepAliveInterval { get; set; } = TimeSpan.FromMilliseconds(Default.KeepAliveInterval);
+    /// <value>Defaults to <c>200</c> milliseconds</value>
+    public TimeSpan KeepAliveInterval { get; set; } = TimeSpan.FromMilliseconds(200);
 
     /// <summary>
     /// The time to wait before send the next quality report package (determines ping).
     /// </summary>
-    /// <inheritdoc cref="Default.QualityReportInterval"/>
-    public TimeSpan QualityReportInterval { get; set; } = TimeSpan.FromMilliseconds(Default.QualityReportInterval);
+    ///<value>Defaults to <c>1000</c> milliseconds</value>
+    public TimeSpan QualityReportInterval { get; set; } = TimeSpan.FromMilliseconds(1000);
 
     /// <summary>
     /// The time to wait before recalculate network statistics.
     /// </summary>
-    /// <inheritdoc cref="Default.NetworkStatsInterval"/>
+    ///<value>Defaults to <c>1000</c> milliseconds</value>
     /// <seealso cref="PeerNetworkStats"/>
-    public TimeSpan NetworkStatsInterval { get; set; } = TimeSpan.FromMilliseconds(Default.NetworkStatsInterval);
+    public TimeSpan NetworkStatsInterval { get; set; } = TimeSpan.FromMilliseconds(1000);
 
     /// <summary>
     /// When the time from the last send input until now is greater than this, resends pending inputs.
     /// </summary>
-    /// <inheritdoc cref="Default.ResendInputInterval"/>
-    public TimeSpan ResendInputInterval { get; set; } = TimeSpan.FromMilliseconds(Default.ResendInputInterval);
+    ///<value>Defaults to <c>200</c> milliseconds</value>
+    public TimeSpan ResendInputInterval { get; set; } = TimeSpan.FromMilliseconds(200);
 
     /// <summary>
     /// Offset to be applied to frame on checksum consistency check.
     /// The frame sent is (<c>LastReceivedFrame - ConsistencyCheckOffset</c>).
     /// </summary>
-    /// <inheritdoc cref="Default.ConsistencyCheckDistance"/>
+    /// <value>Defaults to <c>8</c></value>
     /// <seealso cref="ConsistencyCheckTimeout"/>
     /// <seealso cref="ConsistencyCheckInterval"/>
-    public int ConsistencyCheckDistance { get; set; } = Default.ConsistencyCheckDistance;
+    public int ConsistencyCheckDistance { get; set; } = 8;
 
     /// <summary>
     /// Enable/Disable consistency check.
@@ -156,18 +157,18 @@ public class ProtocolOptions
     /// On each interval one peer requests a frame to other peer which must respond
     /// with the state checksum of that frame.
     /// </summary>
-    /// <inheritdoc cref="Default.ConsistencyCheckInterval"/>
+    /// <value>Defaults to <c>3_000</c> milliseconds</value>
     /// <seealso cref="ConsistencyCheckDistance"/>
     /// <seealso cref="ConsistencyCheckTimeout"/>
     public TimeSpan ConsistencyCheckInterval { get; set; } =
-        TimeSpan.FromMilliseconds(Default.ConsistencyCheckInterval);
+        TimeSpan.FromMilliseconds(3_000);
 
     /// <summary>
     /// Max wait time for non-success consistency checks (0 to disable).
     /// </summary>
-    /// <inheritdoc cref="Default.ConsistencyCheckTimeout"/>
+    /// <value>Defaults to <c>10_000</c> milliseconds</value>
     /// <seealso cref="ConsistencyCheckDistance"/>
     /// <seealso cref="ConsistencyCheckInterval"/>
     public TimeSpan ConsistencyCheckTimeout { get; set; } =
-        TimeSpan.FromMilliseconds(Default.ConsistencyCheckTimeout);
+        TimeSpan.FromMilliseconds(10_000);
 }

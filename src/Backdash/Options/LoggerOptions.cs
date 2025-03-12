@@ -1,4 +1,6 @@
-namespace Backdash.Core;
+using Backdash.Core;
+
+namespace Backdash.Options;
 
 /// <summary>
 /// Specifies options common to logging.

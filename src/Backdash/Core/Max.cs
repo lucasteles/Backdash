@@ -10,4 +10,6 @@ static class Max
 
     public const int CompressedBytes = 512;
     public const int UdpPacketSize = 65_527;
+
+    public const int PackageQueue = 64;
 }

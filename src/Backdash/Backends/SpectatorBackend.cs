@@ -6,6 +6,7 @@ using Backdash.Network;
 using Backdash.Network.Client;
 using Backdash.Network.Messages;
 using Backdash.Network.Protocol;
+using Backdash.Options;
 using Backdash.Serialization;
 using Backdash.Synchronizing.Input;
 using Backdash.Synchronizing.Input.Confirmed;
@@ -21,7 +22,7 @@ sealed class SpectatorBackend<TInput> :
     where TInput : unmanaged
 {
     readonly Logger logger;
-    readonly IProtocolClient udp;
+    readonly IProtocolPeerClient udp;
     readonly IPEndPoint hostEndpoint;
     readonly NetcodeOptions options;
     readonly IBackgroundJobManager backgroundJobManager;
@@ -43,26 +44,27 @@ sealed class SpectatorBackend<TInput> :
     readonly IChecksumProvider checksumProvider;
     readonly Endianness endianness;
 
-    public SpectatorBackend(int port,
-        IPEndPoint hostEndpoint,
-        int numberOfPlayers,
+    public SpectatorBackend(
+        SpectatorOptions spectatorOptions,
         NetcodeOptions options,
-        BackendServices<TInput> services)
+        BackendServices<TInput> services
+    )
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(options);
-        ArgumentNullException.ThrowIfNull(hostEndpoint);
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(port);
+        ArgumentNullException.ThrowIfNull(spectatorOptions);
+        ArgumentNullException.ThrowIfNull(spectatorOptions.HostAddress);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(options.LocalPort);
 
-        this.hostEndpoint = hostEndpoint;
         this.options = options;
+        hostEndpoint = spectatorOptions.HostEndPoint;
         backgroundJobManager = services.JobManager;
         random = services.DeterministicRandom;
         logger = services.Logger;
         stateStore = services.StateStore;
         checksumProvider = services.ChecksumProvider;
-        NumberOfPlayers = numberOfPlayers;
-        fakePlayers = Enumerable.Range(0, numberOfPlayers)
+        NumberOfPlayers = options.NumberOfPlayers;
+        fakePlayers = Enumerable.Range(0, options.NumberOfPlayers)
             .Select(x => new PlayerHandle(PlayerType.Remote, x + 1, x)).ToArray();
         IBinarySerializer<ConfirmedInputs<TInput>> inputGroupSerializer =
             new ConfirmedInputsSerializer<TInput>(services.InputSerializer);
@@ -71,7 +73,7 @@ sealed class SpectatorBackend<TInput> :
         inputs = new GameInput<ConfirmedInputs<TInput>>[options.SpectatorInputBufferLength];
 
         endianness = options.GetStateSerializationEndianness();
-        udp = services.ProtocolClientFactory.CreateProtocolClient(port, peerObservers);
+        udp = services.ProtocolClientFactory.CreateProtocolClient(options.LocalPort, peerObservers);
         backgroundJobManager.Register(udp);
         var magicNumber = services.Random.MagicNumber();
 
@@ -117,8 +119,9 @@ sealed class SpectatorBackend<TInput> :
     public INetcodeRandom Random => random;
     public int NumberOfPlayers { get; private set; }
     public int NumberOfSpectators => 0;
+    public int LocalPort => udp.BindPort;
 
-    public SessionMode Mode => SessionMode.Spectating;
+    public SessionMode Mode => SessionMode.Spectator;
 
     public void DisconnectPlayer(in PlayerHandle player) { }
     public ResultCode AddLocalInput(PlayerHandle player, in TInput localInput) => ResultCode.Ok;

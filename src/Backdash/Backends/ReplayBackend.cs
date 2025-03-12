@@ -1,6 +1,7 @@
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network;
+using Backdash.Options;
 using Backdash.Serialization;
 using Backdash.Synchronizing;
 using Backdash.Synchronizing.Input.Confirmed;
@@ -28,25 +29,26 @@ sealed class ReplayBackend<TInput> : INetcodeSession<TInput> where TInput : unma
     readonly IDeterministicRandom<TInput> random;
     readonly Endianness endianness;
 
-    public ReplayBackend(int numberOfPlayers,
-        IReadOnlyList<ConfirmedInputs<TInput>> inputList,
-        SessionReplayControl controls,
-        BackendServices<TInput> services,
-        NetcodeOptions options
+    public ReplayBackend(
+        SessionReplayOptions<TInput> replayOptions,
+        NetcodeOptions options,
+        BackendServices<TInput> services
     )
     {
+        ArgumentNullException.ThrowIfNull(options);
+        ArgumentNullException.ThrowIfNull(replayOptions);
         ArgumentNullException.ThrowIfNull(services);
 
-        this.inputList = inputList;
-        this.controls = controls;
+        inputList = replayOptions.InputList;
+        controls = replayOptions.ReplayController ?? new();
         logger = services.Logger;
         stateStore = services.StateStore;
         checksumProvider = services.ChecksumProvider;
         random = services.DeterministicRandom;
-        NumberOfPlayers = numberOfPlayers;
+        NumberOfPlayers = options.NumberOfPlayers;
         endianness = options.GetStateSerializationEndianness();
         callbacks = new EmptySessionHandler(logger);
-        fakePlayers = Enumerable.Range(0, numberOfPlayers)
+        fakePlayers = Enumerable.Range(0, NumberOfPlayers)
             .Select(x => new PlayerHandle(PlayerType.Remote, x + 1, x))
             .ToArray();
 
@@ -76,11 +78,12 @@ sealed class ReplayBackend<TInput> : INetcodeSession<TInput> where TInput : unma
     public SavedFrame GetCurrentSavedFrame() => stateStore.Last();
 
     public int NumberOfSpectators => 0;
+    public int LocalPort => 0;
     public int NumberOfPlayers { get; private set; }
 
     public INetcodeRandom Random => random;
 
-    public SessionMode Mode => SessionMode.Replaying;
+    public SessionMode Mode => SessionMode.Replay;
     public void DisconnectPlayer(in PlayerHandle player) { }
     public ResultCode AddLocalInput(PlayerHandle player, in TInput localInput) => ResultCode.Ok;
     public IReadOnlyCollection<PlayerHandle> GetPlayers() => fakePlayers;

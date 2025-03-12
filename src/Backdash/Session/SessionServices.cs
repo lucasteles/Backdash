@@ -1,7 +1,6 @@
 using Backdash.Core;
 using Backdash.Network.Client;
 using Backdash.Serialization;
-using Backdash.Synchronizing;
 using Backdash.Synchronizing.Input;
 using Backdash.Synchronizing.Input.Confirmed;
 using Backdash.Synchronizing.Random;
@@ -67,15 +66,4 @@ public sealed class SessionServices<TInput> where TInput : unmanaged
     /// Comparer to be used with <typeparamref name="TInput"/>
     /// </summary>
     public EqualityComparer<TInput>? InputComparer { get; set; }
-
-    /// <summary>
-    /// Controller for replay session.
-    /// </summary>
-    public SessionReplayControl? ReplayController { get; set; }
-
-    /// <summary>
-    /// Sets desync handler for <see cref="SessionMode.SyncTest"/> sessions.
-    /// Useful for showing smart state diff.
-    /// </summary>
-    public IStateDesyncHandler? TestSessionDesyncHandler { get; set; }
 }

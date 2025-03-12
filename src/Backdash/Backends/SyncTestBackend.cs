@@ -2,6 +2,7 @@ using System.Buffers;
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network;
+using Backdash.Options;
 using Backdash.Serialization;
 using Backdash.Synchronizing.Input;
 using Backdash.Synchronizing.Random;
@@ -41,18 +42,20 @@ sealed class SyncTestBackend<TInput> : INetcodeSession<TInput>
     GameInput<TInput> lastInput;
     Frame lastVerified = Frame.Zero;
 
-    public SyncTestBackend(NetcodeOptions options,
-        FrameSpan checkDistance,
-        bool throwError,
-        IStateDesyncHandler? mismatchHandler,
-        BackendServices<TInput> services)
+    public SyncTestBackend(
+        SyncTestOptions syncTestOptions,
+        NetcodeOptions options,
+        BackendServices<TInput> services
+    )
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(options);
-        ArgumentOutOfRangeException.ThrowIfNegative(checkDistance.FrameCount);
-        this.checkDistance = checkDistance;
-        this.throwError = throwError;
-        this.mismatchHandler = mismatchHandler;
+        ArgumentNullException.ThrowIfNull(syncTestOptions);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(syncTestOptions.CheckDistance);
+
+        checkDistance = new(syncTestOptions.CheckDistance);
+        throwError = syncTestOptions.ThrowOnDesync;
+        mismatchHandler = syncTestOptions.DesyncHandler;
         random = services.DeterministicRandom;
         inputGenerator = services.InputGenerator;
         logger = services.Logger;
@@ -75,6 +78,7 @@ sealed class SyncTestBackend<TInput> : INetcodeSession<TInput>
     public void Dispose() => tsc.SetResult();
     public int NumberOfPlayers => Math.Max(addedPlayers.Count, 1);
     public int NumberOfSpectators => addedSpectators.Count;
+    public int LocalPort => 0;
     public INetcodeRandom Random => random;
     public Frame CurrentFrame => synchronizer.CurrentFrame;
     public SessionMode Mode => SessionMode.SyncTest;

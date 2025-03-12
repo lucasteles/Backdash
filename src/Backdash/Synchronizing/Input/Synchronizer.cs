@@ -4,6 +4,7 @@ using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network;
 using Backdash.Network.Messages;
+using Backdash.Options;
 using Backdash.Serialization;
 using Backdash.Synchronizing.Input.Confirmed;
 using Backdash.Synchronizing.State;
@@ -58,7 +59,7 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
     public void AddQueue(PlayerHandle player) =>
         inputQueues.Add(new(player.InternalQueue, options.InputQueueLength, logger, inputComparer)
         {
-            LocalFrameDelay = player.IsLocal() ? Math.Max(options.FrameDelay, 0) : 0,
+            LocalFrameDelay = player.IsLocal() ? Math.Max(options.InputDelayFrames, 0) : 0,
         });
 
     public void SetLastConfirmedFrame(in Frame frame)

@@ -2,11 +2,9 @@ using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network;
 using Backdash.Network.Client;
-using Backdash.Network.Protocol;
-using Backdash.Synchronizing;
 using Backdash.Synchronizing.State;
 
-namespace Backdash;
+namespace Backdash.Options;
 
 /// <summary>
 /// Configurations for sessions.
@@ -16,20 +14,34 @@ namespace Backdash;
 public sealed record NetcodeOptions
 {
     /// <summary>
+    /// Local Port for UDP connections
+    /// </summary>
+    /// <seealso cref="UdpSocket"/>
+    ///<value>Defaults to <c>random port</c></value>
+    public int LocalPort { get; set; }
+
+    /// <summary>
+    /// Number of players
+    /// Can not be greater than <see cref="Max.NumberOfPlayers"/>
+    /// </summary>
+    ///<value>Defaults to <c>2</c></value>
+    public int NumberOfPlayers { get; set; } = 2;
+
+    /// <summary>
     /// Offset to be incremented to spectators <see cref="PlayerHandle.Number"/> when added to session.
     /// </summary>
     /// <seealso cref="PlayerType.Spectator"/>
     /// <seealso cref="INetcodeSession{TInput}.AddPlayer"/>
-    /// <inheritdoc cref="Default.SpectatorOffset"/>
-    public int SpectatorOffset { get; set; } = Default.SpectatorOffset;
+    ///<value>Defaults to <c>1000</c></value>
+    public int SpectatorOffset { get; set; } = 1000;
 
     /// <summary>
     /// Interval for time synchronization notifications.
     /// </summary>
     /// <seealso cref="TimeSync"/>
     /// <seealso cref="TimeSyncOptions"/>
-    /// <inheritdoc cref="Default.RecommendationInterval"/>
-    public int RecommendationInterval { get; set; } = Default.RecommendationInterval;
+    ///<value>Defaults to <c>240</c> milliseconds</value>
+    public int RecommendationInterval { get; set; } = 240;
 
     /// <summary>
     /// Sets the <see cref="Endianness"/> used for state serialization.
@@ -45,29 +57,29 @@ public sealed record NetcodeOptions
     /// <summary>
     /// Max length for player input queues.
     /// </summary>
-    /// <inheritdoc cref="Default.InputQueueLength"/>
-    public int InputQueueLength { get; set; } = Default.InputQueueLength;
+    ///<value>Defaults to <c>128</c></value>
+    public int InputQueueLength { get; set; } = 128;
 
     /// <summary>
     /// Max length for spectators input queues.
     /// </summary>
-    /// <inheritdoc cref="Default.InputQueueLength"/>
-    public int SpectatorInputBufferLength { get; set; } = Default.InputQueueLength;
+    ///<value>Defaults to <see cref="InputQueueLength"/></value>
+    public int SpectatorInputBufferLength { get; set; }
 
     /// <summary>
     /// Max allowed prediction frames.
     /// </summary>
     /// <seealso cref="ResultCode.PredictionThreshold"/>
-    /// <inheritdoc cref="Default.PredictionFrames"/>
-    public int PredictionFrames { get; set; } = Default.PredictionFrames;
+    ///<value>Defaults to <c>16</c></value>
+    public int PredictionFrames { get; set; } = 16;
 
     /// <summary>
     /// Value to be incremented on <see cref="PredictionFrames"/> in state store.
     /// <see cref="IStateStore.Initialize"/>
     /// </summary>
-    /// <inheritdoc cref="Default.PredictionFramesOffset"/>
+    /// <value>Defaults to <c>2</c></value>
     /// <seealso cref="IStateStore"/>
-    public int PredictionFramesOffset { get; set; } = Default.PredictionFramesOffset;
+    public int PredictionFramesOffset { get; set; } = 2;
 
     /// <summary>
     /// Total allowed prediction frames.
@@ -75,16 +87,16 @@ public sealed record NetcodeOptions
     internal int TotalPredictionFrames => PredictionFrames + PredictionFramesOffset;
 
     /// <summary>
-    /// Amount of frames to delay for local input.
+    /// Amount of frames to delay local input.
     /// </summary>
-    /// <inheritdoc cref="Default.FrameDelay"/>
-    public int FrameDelay { get; set; } = Default.FrameDelay;
+    ///<value>Defaults to <c>2</c></value>
+    public int InputDelayFrames { get; set; } = 2;
 
     /// <summary>
     /// Size hint in bytes for state serialization pre-allocation.
     /// </summary>
-    /// <inheritdoc cref="Default.StateSizeHint"/>
-    public int StateSizeHint { get; set; } = Default.StateSizeHint;
+    ///<value>Defaults to <c>512</c> bytes</value>
+    public int StateSizeHint { get; set; } = 512;
 
     /// <summary>
     /// Config <see cref="UdpSocket"/> to use IPv6.
@@ -109,4 +121,27 @@ public sealed record NetcodeOptions
     /// <summary>Networking Protocol options.</summary>
     /// <seealso cref="ProtocolOptions"/>
     public ProtocolOptions Protocol { get; set; } = new();
+
+    internal void EnsureDefaults()
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(NumberOfPlayers);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(NumberOfPlayers, Max.NumberOfPlayers);
+
+        if (Protocol.UdpPacketBufferSize <= 0)
+            Protocol.UdpPacketBufferSize = NumberOfPlayers * Max.CompressedBytes * 2;
+
+        if (SpectatorInputBufferLength <= 0)
+            SpectatorInputBufferLength = InputQueueLength;
+
+        if (LocalPort < 0)
+            LocalPort = NetUtils.FindFreePort();
+    }
+
+    internal NetcodeOptions CloneOptions() =>
+        this with
+        {
+            TimeSync = TimeSync with { },
+            Protocol = Protocol with { },
+            Logger = Logger with { },
+        };
 }

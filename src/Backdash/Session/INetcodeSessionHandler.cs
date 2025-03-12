@@ -60,7 +60,7 @@ public interface INetcodeSessionHandler
 
     /// <summary>
     /// Get string representation of the state
-    /// Used for Sync Test logging <see cref="RollbackNetcode.CreateSyncTestSession{TInput}"/>
+    /// Used for Sync Test logging <see cref="NetcodeSessionBuilder{TInput}.ForSyncTest"/>
     /// </summary>
     string GetStateString(in Frame frame, ref readonly BinaryBufferReader reader) =>
         $""""

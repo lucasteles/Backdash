@@ -13,35 +13,40 @@ namespace Backdash.Network.Client;
 public interface IPeerClient<T> : IDisposable where T : struct
 {
     /// <summary>
-    /// Send Message to peer
+    /// Send Message to peer.
     /// </summary>
     ValueTask SendTo(SocketAddress peerAddress, in T payload, IMessageHandler<T>? callback = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Try To Send Message to peer
+    /// Try To Send Message to peer.
     /// </summary>
     bool TrySendTo(SocketAddress peerAddress, in T payload, IMessageHandler<T>? callback = null);
 
 
     /// <summary>
-    /// Start receiving messages
+    /// Start receiving messages.
     /// </summary>
     Task ProcessMessages(CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Local binding port.
+    /// </summary>
+    int BindPort { get; }
 }
 
 /// <summary>
-/// Message sent handler
+/// Message sent handler.
 /// </summary>
 public interface IMessageHandler<T> where T : struct
 {
     /// <summary>
-    /// Handles sent message
+    /// Handles sent message.
     /// </summary>
     void AfterSendMessage(int bytesSent);
 
     /// <summary>
-    /// Prepare message to be sent
+    /// Prepare message to be sent.
     /// </summary>
     void BeforeSendMessage(ref T message);
 }
@@ -77,7 +82,7 @@ sealed class PeerClient<T> : IPeerJobClient<T> where T : struct
         Logger logger,
         IDelayStrategy? delayStrategy = null,
         int maxPacketSize = Max.UdpPacketSize,
-        int maxPackageQueue = Default.MaxPackageQueue
+        int maxPackageQueue = Max.PackageQueue
     )
     {
         ArgumentNullException.ThrowIfNull(socket);
@@ -117,6 +122,8 @@ sealed class PeerClient<T> : IPeerJobClient<T> where T : struct
 
         await Task.WhenAll(StartReceiving(token), StartSending(token)).ConfigureAwait(false);
     }
+
+    public int BindPort => socket.Port;
 
     async Task StartSending(CancellationToken cancellationToken)
     {

@@ -1,5 +1,6 @@
 using System.Net;
 using Backdash.Core;
+using Backdash.Network;
 using Backdash.Network.Client;
 using Backdash.Serialization;
 
@@ -17,7 +18,7 @@ sealed class UdpClientContext<T> : IDisposable where T : struct
     public UdpClientContext(IBinarySerializer<T> serializer, int? port = null)
     {
         Observer = new();
-        port ??= PortUtils.FindFreePort();
+        port ??= NetUtils.FindFreePort();
         UdpSocket socket = new(port.Value);
         Loopback = new(IPAddress.Loopback, port.Value);
         Port = port.Value;

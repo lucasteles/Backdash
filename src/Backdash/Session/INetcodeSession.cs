@@ -11,34 +11,41 @@ namespace Backdash;
 public interface INetcodeSessionInfo
 {
     /// <summary>
-    /// Returns the number of player in the current session
+    /// Returns the number of player in the current session.
     /// </summary>
     int NumberOfPlayers { get; }
 
     /// <summary>
-    /// Returns the number of spectators in the current session
+    /// Returns the number of spectators in the current session.
     /// </summary>
     int NumberOfSpectators { get; }
 
     /// <summary>
-    /// Returns the current session <see cref="Frame"/>
+    /// Returns the current session <see cref="Frame"/>.
     /// </summary>
     Frame CurrentFrame { get; }
 
     /// <summary>
-    /// Returns the current <see cref="SessionMode"/>
+    /// Returns the current <see cref="SessionMode"/>.
     /// </summary>
     SessionMode Mode { get; }
 
     /// <summary>
-    /// Returns the number of current rollback frames. <seealso cref="FrameSpan"/>
+    /// Returns the number of current rollback frames.
     /// </summary>
+    /// <seealso cref="FrameSpan"/>
     FrameSpan RollbackFrames { get; }
 
     /// <summary>
-    /// Returns the number of frames the client is behind. <seealso cref="FrameSpan"/>
+    /// Returns the number of frames the client is behind.
     /// </summary>
+    /// <seealso cref="FrameSpan"/>
     FrameSpan FramesBehind { get; }
+
+    /// <summary>
+    /// Returns the current TCP local port.
+    /// </summary>
+    int LocalPort { get; }
 }
 
 /// <summary>
@@ -64,7 +71,7 @@ public interface INetcodeSession<TInput> : INetcodeSessionInfo, IDisposable wher
     IReadOnlyCollection<PlayerHandle> GetSpectators();
 
     /// <summary>
-    /// Returns the checksum of the last saved state
+    /// Returns the checksum of the last saved state.
     /// </summary>
     SavedFrame GetCurrentSavedFrame();
 
@@ -82,7 +89,7 @@ public interface INetcodeSession<TInput> : INetcodeSessionInfo, IDisposable wher
     ResultCode AddLocalInput(PlayerHandle player, in TInput localInput);
 
     /// <summary>
-    /// Synchronizes the inputs of the local and remote players into a local buffer
+    /// Synchronizes the inputs of the local and remote players into a local buffer.
     /// You should call this before every frame of execution, including those frames which happen during rollback.
     /// </summary>
     ResultCode SynchronizeInputs();
@@ -120,7 +127,7 @@ public interface INetcodeSession<TInput> : INetcodeSessionInfo, IDisposable wher
     }
 
     /// <summary>
-    /// Should be called at the start of each frame of your application
+    /// Should be called at the start of each frame of your application.
     /// </summary>
     void BeginFrame();
 
@@ -149,14 +156,14 @@ public interface INetcodeSession<TInput> : INetcodeSessionInfo, IDisposable wher
 
     /// <summary>
     /// Add the <paramref name="player"/> into current session.
-    /// Usually an instance of <see cref="LocalPlayer"/>, <see cref="RemotePlayer"/> or <see cref="Spectator"/>
+    /// Usually an instance of <see cref="LocalPlayer"/>, <see cref="RemotePlayer"/> or <see cref="Spectator"/>.
     /// </summary>
     /// <param name="player"></param>
     /// <returns><see cref="ResultCode.Ok"/> if success.</returns>
     ResultCode AddPlayer(Player player);
 
     /// <summary>
-    /// Load state for saved <paramref name="frame"/>
+    /// Load state for saved <paramref name="frame"/>.
     /// </summary>
     bool LoadFrame(in Frame frame);
 
@@ -168,7 +175,7 @@ public interface INetcodeSession<TInput> : INetcodeSessionInfo, IDisposable wher
     IReadOnlyList<ResultCode> AddPlayers(IReadOnlyList<Player> players);
 
     /// <summary>
-    /// Starts the background work for the session
+    /// Starts the background work for the session.
     /// (Socket receiver, input queue, peer synchronization, etc.)
     /// </summary>
     void Start(CancellationToken stoppingToken = default);

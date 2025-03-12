@@ -7,6 +7,7 @@ using Backdash.Network.Client;
 using Backdash.Network.Messages;
 using Backdash.Network.Protocol;
 using Backdash.Network.Protocol.Comm;
+using Backdash.Options;
 using Backdash.Serialization;
 using Backdash.Synchronizing.Input;
 using Backdash.Synchronizing.Input.Confirmed;
@@ -22,7 +23,7 @@ sealed class RemoteBackend<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
     readonly IBinarySerializer<TInput> inputSerializer;
     readonly IBinarySerializer<ConfirmedInputs<TInput>> inputGroupSerializer;
     readonly Logger logger;
-    readonly IProtocolClient udp;
+    readonly IProtocolPeerClient udp;
     readonly PeerObserverGroup<ProtocolMessage> peerObservers;
     readonly Synchronizer<TInput> synchronizer;
     readonly ConnectionsState localConnections;
@@ -52,14 +53,13 @@ sealed class RemoteBackend<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
     bool closed;
 
     public RemoteBackend(
-        int port,
         NetcodeOptions options,
         BackendServices<TInput> services
     )
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(options);
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(port);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(options.LocalPort);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(options.FramesPerSecond);
         ThrowIf.ArgumentOutOfBounds(options.SpectatorOffset, min: Max.NumberOfPlayers);
 
@@ -95,7 +95,7 @@ sealed class RemoteBackend<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
             Callbacks = callbacks,
         };
 
-        udp = services.ProtocolClientFactory.CreateProtocolClient(port, peerObservers);
+        udp = services.ProtocolClientFactory.CreateProtocolClient(options.LocalPort, peerObservers);
 
         peerConnectionFactory = new(
             this,
@@ -144,6 +144,8 @@ sealed class RemoteBackend<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
     public SavedFrame GetCurrentSavedFrame() => synchronizer.GetLastSavedFrame();
     public int NumberOfPlayers => addedPlayers.Count;
     public int NumberOfSpectators => addedSpectators.Count;
+
+    public int LocalPort => udp.BindPort;
 
     public SessionMode Mode => SessionMode.Remote;
 

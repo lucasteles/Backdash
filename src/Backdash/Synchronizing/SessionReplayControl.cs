@@ -1,8 +1,8 @@
 namespace Backdash.Synchronizing;
 
 /// <summary>
-/// Control flow of a replay session.
-/// <seealso cref="RollbackNetcode.CreateReplaySession{TInput}"/>
+/// Control flow of a <see cref="SessionMode.Replay"/> session.
+/// <seealso cref="NetcodeSessionBuilder{TInput}.ForReplay"/>
 /// </summary>
 public class SessionReplayControl
 {

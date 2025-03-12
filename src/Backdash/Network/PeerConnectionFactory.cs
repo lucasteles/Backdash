@@ -3,6 +3,7 @@ using Backdash.Network.Client;
 using Backdash.Network.Messages;
 using Backdash.Network.Protocol;
 using Backdash.Network.Protocol.Comm;
+using Backdash.Options;
 using Backdash.Serialization;
 using Backdash.Synchronizing;
 using Backdash.Synchronizing.State;
