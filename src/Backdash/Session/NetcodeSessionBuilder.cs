@@ -139,11 +139,7 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
     public NetcodeSessionBuilder<TInput> WithPlayerCount(int count)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(count);
-        ArgumentOutOfRangeException.ThrowIfGreaterThan(count, Max.NumberOfPlayers);
         options.NumberOfPlayers = count;
-
-        while (playerList.Count > count)
-            playerList.RemoveAt(playerList.Count - 1);
 
         return this;
     }
@@ -156,8 +152,7 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
         ArgumentNullException.ThrowIfNull(players);
         ArgumentOutOfRangeException.ThrowIfZero(players.Length);
         playerList.AddRange(players);
-        ArgumentOutOfRangeException.ThrowIfGreaterThan(playerList.Count, Max.NumberOfPlayers);
-        return WithPlayerCount(Math.Max(playerList.Count, options.NumberOfPlayers));
+        return this;
     }
 
     /// <summary>
@@ -168,8 +163,7 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
         ArgumentNullException.ThrowIfNull(players);
         playerList.AddRange(players);
         ArgumentOutOfRangeException.ThrowIfZero(playerList.Count);
-        ArgumentOutOfRangeException.ThrowIfGreaterThan(playerList.Count, Max.NumberOfPlayers);
-        return WithPlayerCount(Math.Max(playerList.Count, options.NumberOfPlayers));
+        return this;
     }
 
     /// <summary>

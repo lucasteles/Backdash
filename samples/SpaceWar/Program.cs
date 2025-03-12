@@ -90,7 +90,7 @@ static Player ParsePlayer(int totalNumber, int number, string address)
 {
     if (address.Equals("local", StringComparison.OrdinalIgnoreCase))
         return new LocalPlayer(number);
-    
+
     if (IPEndPoint.TryParse(address, out var endPoint))
     {
         if (number <= totalNumber)
