@@ -3,8 +3,7 @@ using Backdash.Serialization;
 namespace Backdash.Synchronizing.State;
 
 /// <summary>
-/// Handle Sync Test state mismatches
-/// Tip: useful for smart state comparisons
+/// Handles <see cref="SessionMode.SyncTest"/> state desync.
 /// </summary>
 public interface IStateDesyncHandler
 {

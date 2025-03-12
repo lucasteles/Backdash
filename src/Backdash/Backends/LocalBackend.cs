@@ -1,6 +1,7 @@
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network;
+using Backdash.Options;
 using Backdash.Serialization;
 using Backdash.Synchronizing.Random;
 using Backdash.Synchronizing.State;
@@ -39,13 +40,14 @@ sealed class LocalBackend<TInput> : INetcodeSession<TInput> where TInput : unman
         random = services.DeterministicRandom;
         logger = services.Logger;
         callbacks ??= new EmptySessionHandler(logger);
-        endianness = options.StateSerializationEndianness ?? Platform.GetEndianness(options.UseNetworkEndianness);
+        endianness = options.GetStateSerializationEndianness();
         stateStore.Initialize(options.TotalPredictionFrames);
     }
 
     public void Dispose() => tsc.SetResult();
     public int NumberOfPlayers => Math.Max(addedPlayers.Count, 1);
     public int NumberOfSpectators => 0;
+    public int LocalPort => 0;
     public INetcodeRandom Random => random;
 
     public Frame CurrentFrame { get; private set; } = Frame.Zero;

@@ -9,9 +9,7 @@ namespace Backdash.Serialization;
 public interface IBinarySerializer<T>
 {
     /// <summary>
-    /// Serialization Endianness
-    /// <see cref="Platform.GetEndianness"/>
-    /// <see cref="Endianness"/>
+    /// Get the <see cref="Endianness"/> used for serialization
     /// </summary>
     Endianness Endianness { get; }
 

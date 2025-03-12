@@ -28,7 +28,7 @@ public class NonGameState
 {
     public required PlayerHandle? LocalPlayer;
     public required PlayerHandle RemotePlayer;
-    public required INetcodeSessionInfo SessionInfo;
+    public required INetcodeSession SessionInfo;
     public bool IsRunning;
     public float SyncProgress;
     public string LastError = "";

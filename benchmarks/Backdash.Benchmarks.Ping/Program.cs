@@ -42,7 +42,6 @@ measurer.Stop();
 Console.Clear();
 Console.WriteLine(measurer.Summary(printSnapshots));
 
-
 IPeerClient<PingMessage> CreateClient(int port)
 {
     PeerObserverGroup<PingMessage> observers = new();

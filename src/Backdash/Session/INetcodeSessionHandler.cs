@@ -1,6 +1,7 @@
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Serialization;
+using Backdash.Synchronizing.State;
 
 namespace Backdash;
 
@@ -38,8 +39,8 @@ public interface INetcodeSessionHandler
 
     /// <summary>
     /// Called during a rollback after <see cref="LoadState"/>. You should advance your game
-    /// state by exactly one frame.  Before each frame, call <see cref="INetcodeSession{TInput}.SynchronizeInputs"/>
-    /// to retrieve the inputs you should use for that frame. After each frame, you should call <see cref="INetcodeSession{TInput}.AdvanceFrame"/> to notify
+    /// state by exactly one frame.  Before each frame, call <see cref="INetcodeGameSession{TInput}.SynchronizeInputs"/>
+    /// to retrieve the inputs you should use for that frame. After each frame, you should call <see cref="INetcodeGameSession{TInput}.AdvanceFrame"/> to notify
     /// Backdash that you're finished.
     /// </summary>
     void AdvanceFrame();
@@ -59,15 +60,13 @@ public interface INetcodeSessionHandler
     void OnPeerEvent(PlayerHandle player, PeerEventInfo evt);
 
     /// <summary>
-    /// Get string representation of the state
-    /// Used for Sync Test logging <see cref="RollbackNetcode.CreateSyncTestSession{TInput}"/>
+    /// Get current state object.
+    /// Used mostly for SyncTest and logging.
     /// </summary>
-    string GetStateString(in Frame frame, ref readonly BinaryBufferReader reader) =>
-        $""""
-         --- Begin Hex ---
-         {Convert.ToHexString(reader.CurrentBuffer)}
-         ---  End Hex  ---
-         """";
+    /// <seealso cref="NetcodeSessionBuilder{TInput}.ForSyncTest"/>
+    /// <seealso cref="IStateStringParser"/>
+    /// <seealso cref="IStateStringParser.GetStateString"/>
+    object? GetCurrentState() => null;
 }
 
 sealed class EmptySessionHandler(Logger logger) : INetcodeSessionHandler

@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Backdash.Core;
 using Backdash.Network.Messages;
+using Backdash.Options;
 
 namespace Backdash.Network.Protocol.Comm;
 

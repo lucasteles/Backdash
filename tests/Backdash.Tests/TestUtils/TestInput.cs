@@ -44,7 +44,7 @@ public record struct TestInput
 
 sealed class TestInputSerializer : IBinarySerializer<TestInput>
 {
-    public Endianness Endianness { get; } = Platform.GetEndianness(false);
+    public Endianness Endianness { get; } = Platform.GetNetworkEndianness(false);
 
     public int Serialize(in TestInput data, Span<byte> buffer)
     {

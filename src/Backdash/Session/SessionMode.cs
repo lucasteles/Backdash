@@ -8,15 +8,15 @@ public enum SessionMode : byte
     /// <summary>Normal P2P match session</summary>
     Remote,
 
+    /// <summary>Local only session</summary>
+    Local,
+
     /// <summary>Spectator session</summary>
-    Spectating,
+    Spectator,
 
     /// <summary>Replay session</summary>
-    Replaying,
+    Replay,
 
     /// <summary>Special sync test session</summary>
     SyncTest,
-
-    /// <summary>Local only session</summary>
-    Local,
 }

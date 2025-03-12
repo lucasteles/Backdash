@@ -1,4 +1,5 @@
 using Backdash.Core;
+using Backdash.Options;
 
 namespace Backdash;
 
@@ -18,7 +19,7 @@ public enum ResultCode : short
 
     /// <summary>When emulator reached prediction barrier.</summary>
     /// <seealso cref="NetcodeOptions.PredictionFrames"/>
-    /// <seealso cref="INetcodeSession{TInput}.AddLocalInput"/>
+    /// <seealso cref="INetcodeGameSession{TInput}.AddLocalInput"/>
     PredictionThreshold,
 
     /// <summary>The synchronization with peer was not finished.</summary>

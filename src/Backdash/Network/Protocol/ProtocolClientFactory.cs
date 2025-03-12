@@ -1,14 +1,15 @@
-global using IProtocolClient = Backdash.Network.Client.IPeerJobClient<Backdash.Network.Messages.ProtocolMessage>;
+global using IProtocolPeerClient = Backdash.Network.Client.IPeerJobClient<Backdash.Network.Messages.ProtocolMessage>;
 using Backdash.Core;
 using Backdash.Network.Client;
 using Backdash.Network.Messages;
 using Backdash.Network.Protocol.Comm;
+using Backdash.Options;
 
 namespace Backdash.Network.Protocol;
 
 interface IProtocolClientFactory
 {
-    IProtocolClient CreateProtocolClient(int port, IPeerObserver<ProtocolMessage> observer);
+    IProtocolPeerClient CreateProtocolClient(int port, IPeerObserver<ProtocolMessage> observer);
 }
 
 sealed class ProtocolClientFactory(
@@ -18,10 +19,10 @@ sealed class ProtocolClientFactory(
     IDelayStrategy delayStrategy
 ) : IProtocolClientFactory
 {
-    public IProtocolClient CreateProtocolClient(int port, IPeerObserver<ProtocolMessage> observer) =>
+    public IProtocolPeerClient CreateProtocolClient(int port, IPeerObserver<ProtocolMessage> observer) =>
         new PeerClient<ProtocolMessage>(
             socketFactory.Create(port, options),
-            new ProtocolMessageSerializer(options.UseNetworkEndianness),
+            new ProtocolMessageSerializer(options.Protocol.SerializationEndianness),
             observer,
             logger,
             delayStrategy,

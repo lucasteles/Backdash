@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Backdash;
 using Backdash.Data;
 using Backdash.Serialization;
@@ -10,7 +9,7 @@ public sealed class GameSession(
     GameState gameState,
     NonGameState nonGameState,
     Renderer renderer,
-    INetcodeSession<PlayerInputs> session
+    INetcodeGameSession<PlayerInputs> session
 ) : INetcodeSessionHandler
 {
     readonly SynchronizedInput<PlayerInputs>[] inputs =
@@ -158,16 +157,5 @@ public sealed class GameSession(
         session.AdvanceFrame();
     }
 
-    public string GetStateString(in Frame frame, ref readonly BinaryBufferReader reader)
-    {
-        GameState state = new();
-        state.LoadState(in reader);
-        return JsonSerializer.Serialize(state, jsonOptions);
-    }
-
-    static readonly JsonSerializerOptions jsonOptions = new()
-    {
-        WriteIndented = true,
-        IncludeFields = true,
-    };
+    public object? GetCurrentState() => gameState;
 }

@@ -2,6 +2,7 @@ using System.Buffers;
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network;
+using Backdash.Options;
 using Backdash.Serialization;
 using Backdash.Synchronizing.Input;
 using Backdash.Synchronizing.Random;
@@ -30,7 +31,8 @@ sealed class SyncTestBackend<TInput> : INetcodeSession<TInput>
     readonly FrameSpan checkDistance;
     readonly bool throwError;
     readonly IStateDesyncHandler? mismatchHandler;
-    readonly IInputGenerator<TInput>? inputGenerator;
+    readonly IStateStringParser stateParser;
+    readonly IInputProvider<TInput>? inputGenerator;
     readonly IDeterministicRandom<TInput> random;
 
     INetcodeSessionHandler callbacks;
@@ -41,28 +43,35 @@ sealed class SyncTestBackend<TInput> : INetcodeSession<TInput>
     GameInput<TInput> lastInput;
     Frame lastVerified = Frame.Zero;
 
-    public SyncTestBackend(NetcodeOptions options,
-        FrameSpan checkDistance,
-        bool throwError,
-        IStateDesyncHandler? mismatchHandler,
-        BackendServices<TInput> services)
+    public SyncTestBackend(
+        SyncTestOptions<TInput> syncTestOptions,
+        NetcodeOptions options,
+        BackendServices<TInput> services
+    )
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(options);
-        ArgumentOutOfRangeException.ThrowIfNegative(checkDistance.FrameCount);
-        this.checkDistance = checkDistance;
-        this.throwError = throwError;
-        this.mismatchHandler = mismatchHandler;
-        random = services.DeterministicRandom;
-        inputGenerator = services.InputGenerator;
+        ArgumentNullException.ThrowIfNull(syncTestOptions);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(syncTestOptions.CheckDistance);
+
+        checkDistance = new(syncTestOptions.CheckDistance);
+        throwError = syncTestOptions.ThrowOnDesync;
         logger = services.Logger;
+        random = services.DeterministicRandom;
+        inputGenerator = syncTestOptions.InputProvider;
+        mismatchHandler = syncTestOptions.DesyncHandler;
         callbacks ??= new EmptySessionHandler(logger);
+        stateParser = syncTestOptions.StateStringParser ?? new HexStateStringParser();
+
+        if (stateParser is JsonStateStringParser jsonParser)
+            jsonParser.Logger = logger;
+
         synchronizer = new(
             options, logger,
             addedPlayers,
             services.StateStore,
             services.ChecksumProvider,
-            new(Max.NumberOfPlayers),
+            new(options.NumberOfPlayers),
             services.InputComparer
         )
         {
@@ -75,6 +84,7 @@ sealed class SyncTestBackend<TInput> : INetcodeSession<TInput>
     public void Dispose() => tsc.SetResult();
     public int NumberOfPlayers => Math.Max(addedPlayers.Count, 1);
     public int NumberOfSpectators => addedSpectators.Count;
+    public int LocalPort => 0;
     public INetcodeRandom Random => random;
     public Frame CurrentFrame => synchronizer.CurrentFrame;
     public SessionMode Mode => SessionMode.SyncTest;
@@ -153,7 +163,7 @@ sealed class SyncTestBackend<TInput> : INetcodeSession<TInput>
         var testInput = localInput;
 
         if (inputGenerator is not null)
-            testInput = inputGenerator.Generate();
+            testInput = inputGenerator.Next();
 
         currentInput.Frame = synchronizer.CurrentFrame;
         currentInput.Data = testInput;
@@ -267,11 +277,12 @@ sealed class SyncTestBackend<TInput> : INetcodeSession<TInput>
 
         var (currentOffset, lastOffset) = (0, 0);
 
+        var stateObject = callbacks.GetCurrentState();
         BinaryBufferReader currentReader = new(current.State, ref currentOffset);
-        var currentBody = callbacks.GetStateString(current.Frame, in currentReader);
+        var currentBody = stateParser.GetStateString(current.Frame, in currentReader, stateObject);
 
         BinaryBufferReader previousReader = new(previous.GameState.WrittenSpan, ref lastOffset);
-        var previousBody = callbacks.GetStateString(current.Frame, in previousReader);
+        var previousBody = stateParser.GetStateString(current.Frame, in previousReader, stateObject);
 
         LogSaveState(level, "CURRENT", currentBody, current.Checksum, current.Frame, current.Input.Frame.Number);
         LogSaveState(level, "LAST", previousBody, previous.Checksum, previous.Frame);

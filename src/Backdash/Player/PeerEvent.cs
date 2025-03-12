@@ -1,5 +1,5 @@
 using System.Runtime.InteropServices;
-using Backdash.Network.Protocol;
+using Backdash.Options;
 using Backdash.Serialization.Internal;
 
 namespace Backdash;

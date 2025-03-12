@@ -1,5 +1,6 @@
 using Backdash.Core;
 using Backdash.Network.Protocol;
+using Backdash.Options;
 using Backdash.Synchronizing.Input;
 
 namespace Backdash.Synchronizing;

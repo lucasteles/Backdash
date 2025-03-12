@@ -37,6 +37,11 @@ public struct ConfirmedInputs<TInput> : IEquatable<ConfirmedInputs<TInput>> wher
     }
 
     /// <summary>
+    /// Copy inputs to buffer
+    /// </summary>
+    public readonly void CopyTo(Span<TInput> output) => Inputs[..Count].CopyTo(output);
+
+    /// <summary>
     /// Indicates whether the current object is equal to another object of the same type.
     /// </summary>
     public readonly bool Equals(in ConfirmedInputs<TInput> other)

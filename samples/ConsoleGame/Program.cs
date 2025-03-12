@@ -25,37 +25,50 @@ if (args is not [{ } portArg, { } playerCountArg, .. { } endpoints]
    )
     throw new InvalidOperationException("Invalid port argument");
 
-// netcode configurations
-NetcodeOptions options = new()
-{
-    FrameDelay = 2,
-    Log = new()
-    {
-        EnabledLevel = LogLevel.Information,
-    },
-    Protocol = new()
-    {
-        NumberOfSyncRoundtrips = 10,
-        // LogNetworkStats = true,
-        // NetworkDelay = TimeSpan.FromMilliseconds(300),
-        // DelayStrategy = Backdash.Network.DelayStrategy.Constant,
-    },
-};
+// ## Netcode Configuration
 
-// Set up the rollback network session
-INetcodeSession<GameInput> session;
+// create rollback session builder
+var builder = RollbackNetcode
+        .WithInputType<GameInput>()
+        .WithPort(port)
+        .WithPlayerCount(playerCount)
+        .WithInputDelayFrames(2)
+        .WithLogLevel(LogLevel.Information)
+        .WithNetworkStats()
+        .ConfigureProtocol(options =>
+        {
+            options.NumberOfSyncRoundtrips = 10;
+            // p.LogNetworkStats = true;
+            // p.NetworkLatency = TimeSpan.FromMilliseconds(300);
+            // p.DelayStrategy = Backdash.Network.DelayStrategy.Constant;
+        })
+    ;
 
 // parse console arguments checking if it is a spectator
 if (endpoints is ["spectate", { } hostArg] && IPEndPoint.TryParse(hostArg, out var host))
-    session = RollbackNetcode.CreateSpectatorSession<GameInput>(
-        port, host, playerCount, options, new()
+{
+    builder
+        .WithFileLogWriter($"log_spectator_{port}.log", append: false)
+        .ConfigureSpectator(options =>
         {
-            LogWriter = new FileTextLogWriter($"log_spectator_{port}.log", append: false),
-        }
-    );
-// not a spectator, creating a peer 2 peer game session
+            options.HostEndPoint = host;
+        });
+}
+// not a spectator, creating a `remote` game session
 else
-    session = CreatePlayerSession(port, options, ParsePlayers(playerCount, endpoints));
+{
+    var players = ParsePlayers(playerCount, endpoints);
+    var localPlayer = players.SingleOrDefault(x => x.IsLocal())
+                      ?? throw new InvalidOperationException("No local player defined");
+    builder
+        // Write logs in a file with player number
+        .WithFileLogWriter($"log_player_{localPlayer.Number}.log", append: false)
+        .WithPlayers(players)
+        .ForRemote();
+}
+
+
+var session = builder.Build();
 
 // create the actual game
 Game game = new(session, cts);
@@ -83,32 +96,7 @@ session.Dispose();
 await session.WaitToStop();
 Console.Clear();
 
-// -------------------------------------------------------------- //
-//    Create and configure a game session                         //
-// -------------------------------------------------------------- //
-static INetcodeSession<GameInput> CreatePlayerSession(
-    int port,
-    NetcodeOptions options,
-    Player[] players
-)
-{
-    var localPlayer = players.SingleOrDefault(x => x.IsLocal());
-    if (localPlayer is null)
-        throw new InvalidOperationException("No local player defined");
-    // Write logs in a file with player number
-    var fileLogWriter = new FileTextLogWriter($"log_player_{localPlayer.Number}.log", append: false);
-    var session = RollbackNetcode.CreateSession<GameInput>(
-        port,
-        options,
-        new()
-        {
-            LogWriter = fileLogWriter,
-            // StateSerializer = new GameStateSerializer(),
-        }
-    );
-    session.AddPlayers(players);
-    return session;
-}
+return;
 
 static Player[] ParsePlayers(int totalNumberOfPlayers, IEnumerable<string> endpoints)
 {

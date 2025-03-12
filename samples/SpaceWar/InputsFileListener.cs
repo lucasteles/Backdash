@@ -1,25 +1,39 @@
 using Backdash.Data;
+using Backdash.Serialization;
 using Backdash.Synchronizing.Input.Confirmed;
 using SpaceWar.Logic;
 
 namespace SpaceWar;
 
-sealed class SaveInputsToFileListener(string filename) : IInputListener<PlayerInputs>
+/// <summary>
+/// Sample of an INGENUOUS implementation for saving inputs.
+/// </summary>
+sealed class InputsFileListener(string filename) : IInputListener<PlayerInputs>
 {
     const int InputSize = sizeof(PlayerInputs);
     readonly FileStream fileStream = File.Create(filename);
     readonly byte[] inputBuffer = new byte[InputSize];
 
-    public void OnConfirmed(in Frame frame, in ConfirmedInputs<PlayerInputs> inputs)
+    public void OnSessionStart(in IBinarySerializer<PlayerInputs> serializer)
     {
-        for (var i = 0; i < inputs.Count; i++)
+        fileStream.SetLength(0);
+        fileStream.Seek(0, SeekOrigin.Begin);
+    }
+
+    public void OnSessionClose() => fileStream.Flush();
+
+    public void OnConfirmed(in Frame frame, ReadOnlySpan<PlayerInputs> inputs)
+    {
+        var buffer = inputBuffer.AsSpan();
+        for (var i = 0; i < inputs.Length; i++)
         {
-            var input = (ushort)inputs.Inputs[i];
-            Array.Clear(inputBuffer);
-            if (!input.TryFormat(inputBuffer, out _))
+            var input = (ushort)inputs[i];
+            buffer.Clear();
+
+            if (!input.TryFormat(buffer, out _))
                 throw new InvalidOperationException("unable to save input");
 
-            fileStream.Write(inputBuffer);
+            fileStream.Write(buffer);
         }
 
         fileStream.Write("\n"u8);
@@ -29,6 +43,9 @@ sealed class SaveInputsToFileListener(string filename) : IInputListener<PlayerIn
 
     public static IEnumerable<ConfirmedInputs<PlayerInputs>> GetInputs(int players, string file)
     {
+        if (!File.Exists(file))
+            throw new InvalidOperationException("Invalid replay file");
+
         using var replayStream = File.OpenRead(file);
         var buffer = new byte[InputSize * players];
         var inputsBuffer = new PlayerInputs[players];
@@ -38,7 +55,8 @@ sealed class SaveInputsToFileListener(string filename) : IInputListener<PlayerIn
         {
             for (var i = 0; i < players; i++)
             {
-                if (ushort.TryParse(buffer.AsSpan().Slice(i * InputSize, InputSize), out var value))
+                var slice = buffer.AsSpan().Slice(i * InputSize, InputSize);
+                if (ushort.TryParse(slice, out var value))
                     inputsBuffer[i] = (PlayerInputs)value;
             }
 

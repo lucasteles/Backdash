@@ -10,7 +10,7 @@ public class ConfirmedInputsTests
     [PropertyTest]
     internal void ShouldSerializeAndDeserializeGroupSamples(ConfirmedInputs<int> inputData, bool network)
     {
-        var endianness = Platform.GetEndianness(network);
+        var endianness = Platform.GetNetworkEndianness(network);
 
         var serializer = new ConfirmedInputsSerializer<int>(
             IntegerBinarySerializer.Create<int>(endianness)
