@@ -157,7 +157,7 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
         ArgumentOutOfRangeException.ThrowIfZero(players.Length);
         playerList.AddRange(players);
         ArgumentOutOfRangeException.ThrowIfGreaterThan(playerList.Count, Max.NumberOfPlayers);
-        return WithPlayerCount(Math.Max(players.Length, options.NumberOfPlayers));
+        return WithPlayerCount(Math.Max(playerList.Count, options.NumberOfPlayers));
     }
 
     /// <summary>
