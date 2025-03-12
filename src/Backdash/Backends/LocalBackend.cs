@@ -17,9 +17,9 @@ sealed class LocalBackend<[DynamicallyAccessedMembers(DynamicallyAccessedMemberT
     SynchronizedInput<TInput>[] syncInputBuffer = [];
     TInput[] inputBuffer = [];
 
-    readonly NetcodeOptions options;
     readonly IStateStore stateStore;
     readonly IChecksumProvider checksumProvider;
+    readonly IDeterministicRandom<TInput> random;
     readonly Endianness endianness;
 
     bool running;
@@ -35,21 +35,19 @@ sealed class LocalBackend<[DynamicallyAccessedMembers(DynamicallyAccessedMemberT
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(options);
 
-        this.options = options;
         stateStore = services.StateStore;
         checksumProvider = services.ChecksumProvider;
-        Random = services.DeterministicRandom;
+        random = services.DeterministicRandom;
         logger = services.Logger;
         callbacks ??= new EmptySessionHandler(logger);
         endianness = options.StateSerializationEndianness ?? Platform.GetEndianness(options.UseNetworkEndianness);
-        stateStore.Initialize(this.options.TotalPredictionFrames);
+        stateStore.Initialize(options.TotalPredictionFrames);
     }
 
     public void Dispose() => tsc.SetResult();
     public int NumberOfPlayers => Math.Max(addedPlayers.Count, 1);
     public int NumberOfSpectators => 0;
-
-    public IDeterministicRandom Random { get; }
+    public INetcodeRandom Random => random;
 
     public Frame CurrentFrame { get; private set; } = Frame.Zero;
     public SessionMode Mode => SessionMode.Local;
@@ -142,8 +140,7 @@ sealed class LocalBackend<[DynamicallyAccessedMembers(DynamicallyAccessedMemberT
 
     public ResultCode SynchronizeInputs()
     {
-        var inputPopCount = options.UseInputSeedForRandom ? Mem.PopCount<TInput>(inputBuffer.AsSpan()) : 0;
-        Random.UpdateSeed(CurrentFrame.Number, inputPopCount);
+        random.UpdateSeed(CurrentFrame, inputBuffer);
         return ResultCode.Ok;
     }
 

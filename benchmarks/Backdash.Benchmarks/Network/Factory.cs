@@ -16,8 +16,7 @@ static class Factory
             new UdpSocket(port),
             BinarySerializerFactory.ForEnum<PingMessage>(),
             observers,
-            Logger.CreateConsoleLogger(LogLevel.None),
-            new Clock()
+            Logger.CreateConsoleLogger(LogLevel.None)
         );
 
         return client;

@@ -61,13 +61,7 @@ public struct ConfirmedInputs<TInput> : IEquatable<ConfirmedInputs<TInput>> wher
         !left.Equals(in right);
 
     /// <inheritdoc />
-    public override readonly int GetHashCode()
-    {
-        var span = ((ReadOnlySpan<TInput>)Inputs)[..Count];
-        HashCode hash = new();
-        hash.AddBytes(MemoryMarshal.AsBytes(span));
-        return hash.ToHashCode();
-    }
+    public override readonly int GetHashCode() => Mem.GetHashCode(Inputs[..Count]);
 }
 
 /// <summary>
@@ -105,10 +99,5 @@ public struct InputArray<TInput> : IEquatable<InputArray<TInput>> where TInput :
     public static bool operator !=(in InputArray<TInput> a, in InputArray<TInput> b) => !a.Equals(in b);
 
     /// <inheritdoc />
-    public override readonly int GetHashCode()
-    {
-        HashCode hash = new();
-        hash.AddBytes(MemoryMarshal.AsBytes((ReadOnlySpan<TInput>)this));
-        return hash.ToHashCode();
-    }
+    public override readonly int GetHashCode() => Mem.GetHashCode<TInput>(this);
 }

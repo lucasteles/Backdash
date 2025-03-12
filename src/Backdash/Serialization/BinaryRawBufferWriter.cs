@@ -24,12 +24,12 @@ public readonly ref struct BinaryRawBufferWriter
     public BinaryRawBufferWriter(
         scoped in Span<byte> buffer,
         ref int offset,
-        Endianness endianness = Endianness.BigEndian
+        Endianness? endianness = null
     )
     {
         this.buffer = buffer;
         this.offset = ref offset;
-        Endianness = endianness;
+        Endianness = endianness ?? Platform.Endianness;
     }
 
     readonly ref int offset;
@@ -214,7 +214,11 @@ public readonly ref struct BinaryRawBufferWriter
         Advance(System.Text.Encoding.UTF8.GetBytes(value, CurrentBuffer));
 
     /// <summary>Writes an unmanaged struct into buffer.</summary>
-    public void WriteStruct<T>(in T value) where T : unmanaged => Write(Mem.AsBytes(in value));
+    public void WriteStruct<T>(in T value) where T : unmanaged
+    {
+        MemoryMarshal.Write(CurrentBuffer, in value);
+        Advance(Unsafe.SizeOf<T>());
+    }
 
     /// <summary>Writes an unmanaged struct span into buffer.</summary>
     public void WriteStruct<T>(ReadOnlySpan<T> values) where T : unmanaged => Write(MemoryMarshal.AsBytes(values));

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Channels;
@@ -53,7 +54,6 @@ sealed class PeerClient<T> : IPeerJobClient<T> where T : struct
     readonly IPeerObserver<T> observer;
     readonly IBinarySerializer<T> serializer;
     readonly Logger logger;
-    readonly IClock clock;
     readonly IDelayStrategy? delayStrategy;
     readonly int maxPacketSize;
     readonly Channel<QueueEntry> sendQueue;
@@ -75,7 +75,6 @@ sealed class PeerClient<T> : IPeerJobClient<T> where T : struct
         IBinarySerializer<T> serializer,
         IPeerObserver<T> observer,
         Logger logger,
-        IClock clock,
         IDelayStrategy? delayStrategy = null,
         int maxPacketSize = Max.UdpPacketSize,
         int maxPackageQueue = Default.MaxPackageQueue
@@ -90,7 +89,6 @@ sealed class PeerClient<T> : IPeerJobClient<T> where T : struct
         this.observer = observer;
         this.serializer = serializer;
         this.logger = logger;
-        this.clock = clock;
         this.delayStrategy = delayStrategy;
         this.maxPacketSize = maxPacketSize;
 
@@ -140,7 +138,7 @@ sealed class PeerClient<T> : IPeerJobClient<T> where T : struct
                     {
                         var jitter = delayStrategy.Jitter(NetworkLatency);
                         SpinWait sw = new();
-                        while (clock.GetElapsedTime(entry.QueuedAt) <= jitter)
+                        while (Stopwatch.GetElapsedTime(entry.QueuedAt) <= jitter)
                         {
                             sw.SpinOnce();
                             // LATER: allocations here with Task.Delay
@@ -232,10 +230,10 @@ sealed class PeerClient<T> : IPeerJobClient<T> where T : struct
 
     public ValueTask SendTo(SocketAddress peerAddress, in T payload,
         IMessageHandler<T>? callback = null, CancellationToken cancellationToken = default) =>
-        sendQueue.Writer.WriteAsync(new(payload, peerAddress, clock.GetTimeStamp(), callback), cancellationToken);
+        sendQueue.Writer.WriteAsync(new(payload, peerAddress, Stopwatch.GetTimestamp(), callback), cancellationToken);
 
     public bool TrySendTo(SocketAddress peerAddress, in T payload, IMessageHandler<T>? callback = null) =>
-        sendQueue.Writer.TryWrite(new(payload, peerAddress, clock.GetTimeStamp(), callback));
+        sendQueue.Writer.TryWrite(new(payload, peerAddress, Stopwatch.GetTimestamp(), callback));
 
     public void Dispose()
     {

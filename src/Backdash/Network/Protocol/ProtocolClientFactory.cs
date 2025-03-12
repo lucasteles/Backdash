@@ -14,7 +14,6 @@ interface IProtocolClientFactory
 sealed class ProtocolClientFactory(
     NetcodeOptions options,
     IPeerSocketFactory socketFactory,
-    IClock clock,
     Logger logger,
     IDelayStrategy delayStrategy
 ) : IProtocolClientFactory
@@ -25,7 +24,6 @@ sealed class ProtocolClientFactory(
             new ProtocolMessageSerializer(options.UseNetworkEndianness),
             observer,
             logger,
-            clock,
             delayStrategy,
             options.Protocol.UdpPacketBufferSize,
             options.Protocol.MaxPackageQueue

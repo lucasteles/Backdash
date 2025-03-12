@@ -6,13 +6,13 @@ on:
                 description: 'Publish Nuget.org ?'
                 type: boolean
                 required: false
-                default: false
+                default: true
 
             release_github:
                 description: 'Publish GitHub Packages ?'
                 type: boolean
                 required: false
-                default: true
+                default: false
 
 env:
     DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true

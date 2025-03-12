@@ -26,7 +26,7 @@ static class DeltaXorRle
         public bool Write(ReadOnlySpan<byte> current)
         {
             ThrowIf.Assert(current.Length <= last.Length);
-            if (!Mem.EqualBytes(current, last, truncate: true))
+            if (!Mem.ByteEqual(current, last, truncate: true))
             {
                 var currentBits = ReadOnlyBitVector.FromSpan(current);
                 var lastBits = ReadOnlyBitVector.FromSpan(last);

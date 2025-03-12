@@ -27,7 +27,6 @@ public static class PeerClientFactory
         serializer,
         observer,
         Logger.CreateConsoleLogger(logLevel, logWriter),
-        new Clock(),
         DelayStrategyFactory.Create(new DefaultRandomNumberGenerator(random ?? Random.Shared), delayStrategy),
         maxPacketSize
     );

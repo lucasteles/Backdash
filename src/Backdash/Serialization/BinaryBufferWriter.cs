@@ -20,12 +20,12 @@ namespace Backdash.Serialization;
 /// <param name="buffer">Byte buffer to be written</param>
 /// <param name="endianness">Serialization endianness</param>
 [DebuggerDisplay("Written: {WrittenCount}")]
-public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endianness endianness = Endianness.BigEndian)
+public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endianness? endianness = null)
 {
     /// <summary>
     /// Gets or init the value to define which endianness should be used for serialization.
     /// </summary>
-    public readonly Endianness Endianness = endianness;
+    public readonly Endianness Endianness = endianness ?? Platform.Endianness;
 
     /// <summary>
     /// Backing IBufferWriter <see cref="IBufferWriter{T}"/>
@@ -530,6 +530,18 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
     /// <typeparam name="T">A type that implements <see cref="IBinarySerializable"/>.</typeparam>
     public void Write<T>(T value) where T : class, IBinarySerializable => value.Serialize(in this);
 
+    /// <summary>Writes a <see cref="IBinarySerializable"/> <paramref name="value"/> into buffer.</summary>
+    /// <typeparam name="T">A type that implements <see cref="IBinarySerializable"/>.</typeparam>
+    /// <param name="value">Value to be written</param>
+    /// <param name="nullable">If true write as nullable reference type.</param>
+    public void Write<T>(T? value, bool nullable) where T : class, IBinarySerializable
+    {
+        if (nullable)
+            WriteNullable(value);
+        else
+            Write(value!);
+    }
+
     /// <summary>Writes span of <see cref="IBinarySerializable"/> <paramref name="values"/> into buffer.</summary>
     /// <typeparam name="T">A type that implements <see cref="IBinarySerializable"/>.</typeparam>
     public void Write<T>(in ReadOnlySpan<T> values) where T : IBinarySerializable
@@ -573,8 +585,27 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
         value.CopyTo(0, AllocSpan<char>(len), len);
     }
 
+    /// <summary>Writes a maybe null <see cref="IBinarySerializable"/> <paramref name="value"/> into buffer.</summary>
+    /// <typeparam name="T">A nullable reference type that implements <see cref="IBinarySerializable"/>.</typeparam>
+    public void WriteNullable<T>(T? value) where T : class, IBinarySerializable
+    {
+        if (value is null)
+            Write(false);
+        else
+        {
+            Write(true);
+            Write(value);
+        }
+    }
+
     /// <summary>Writes an unmanaged struct into buffer.</summary>
-    public void WriteStruct<T>(in T value) where T : unmanaged => Write(Mem.AsBytes(in value));
+    public void WriteStruct<T>(in T value) where T : unmanaged
+    {
+        var size = Unsafe.SizeOf<T>();
+        var span = buffer.GetSpan(size);
+        MemoryMarshal.Write(span, in value);
+        Advance(size);
+    }
 
     /// <summary>Writes an unmanaged struct span into buffer.</summary>
     public void WriteStruct<T>(in ReadOnlySpan<T> values) where T : unmanaged => Write(MemoryMarshal.AsBytes(values));
@@ -614,8 +645,8 @@ public readonly struct BinaryBufferWriter(ArrayBufferWriter<byte> buffer, Endian
     /// <summary>Writes an <see cref="string"/> <paramref name="value"/> into buffer as UTF8.</summary>
     public void WriteUtf8String(in ReadOnlySpan<char> value)
     {
-        var span = buffer.GetSpan(System.Text.Encoding.UTF8.GetByteCount(value));
-        var writtenCount = System.Text.Encoding.UTF8.GetBytes(value, span);
+        var span = buffer.GetSpan(Encoding.UTF8.GetByteCount(value));
+        var writtenCount = Encoding.UTF8.GetBytes(value, span);
         Advance(writtenCount);
     }
 

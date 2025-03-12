@@ -28,4 +28,9 @@ sealed class ConnectionsState
         IsKnown(in player) && !Statuses[player.InternalQueue].Disconnected;
 
     public void CopyTo(Span<ConnectStatus> buffer) => Statuses.CopyTo(buffer);
+
+    public Span<ConnectStatus> AsSpan() => Statuses;
+
+    public static implicit operator Span<ConnectStatus>(ConnectionsState state) => state.AsSpan();
+    public static implicit operator ReadOnlySpan<ConnectStatus>(ConnectionsState state) => state.AsSpan();
 }

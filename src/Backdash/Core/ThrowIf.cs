@@ -16,13 +16,6 @@ static class ThrowIf
             throw new ArgumentOutOfRangeException(argument.ToString(CultureInfo.InvariantCulture), paramName);
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void TypeIsReferenceOrContainsReferences<T>() where T : struct
-    {
-        if (Mem.IsReferenceOrContainsReferences<T>())
-            throw new ArgumentException($"Type {typeof(T).FullName} must not have reference type members");
-    }
-
     public static void Assert(
         bool condition,
         string? info = null,

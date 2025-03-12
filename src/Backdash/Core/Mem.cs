@@ -12,44 +12,13 @@ static class Mem
     public static void Clear(in Span<byte> bytes) => bytes.Clear();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static TValue ReadStruct<TValue>(in ReadOnlySpan<byte> bytes) where TValue : struct =>
-        MemoryMarshal.Read<TValue>(bytes);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int WriteStruct<TValue>(in TValue value, Span<byte> destination) where TValue : struct
-    {
-        MemoryMarshal.Write(destination, in value);
-        return Unsafe.SizeOf<TValue>();
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Span<T> AsSpan<T>(scoped ref readonly T data) where T : unmanaged =>
-        new(ref Unsafe.AsRef(in data));
+    public static ReadOnlySpan<T> AsSpan<T>(ref readonly T data) where T : unmanaged => new(in data);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Span<byte> AsBytes<T>(scoped ref readonly T data) where T : unmanaged =>
-        MemoryMarshal.AsBytes(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in data), 1));
+        MemoryMarshal.AsBytes(new Span<T>(ref Unsafe.AsRef(in data)));
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Span<byte> AsBytesUnsafe<T>(scoped ref readonly T data) where T : struct
-    {
-        ThrowIf.TypeIsReferenceOrContainsReferences<T>();
-        return MemoryMarshal.AsBytes(MemoryMarshal.CreateSpan(ref Unsafe.AsRef(in data), 1));
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ref TInt EnumAsInteger<TEnum, TInt>(ref readonly TEnum enumValue)
-        where TEnum : unmanaged, Enum
-        where TInt : unmanaged, IBinaryInteger<TInt> =>
-        ref Unsafe.As<TEnum, TInt>(ref Unsafe.AsRef(in enumValue));
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ref TEnum IntegerAsEnum<TEnum, TInt>(ref TInt intValue)
-        where TEnum : unmanaged, Enum
-        where TInt : unmanaged, IBinaryInteger<TInt> =>
-        ref Unsafe.As<TInt, TEnum>(ref intValue);
-
-    public static bool EqualBytes(ReadOnlySpan<byte> left, ReadOnlySpan<byte> right, bool truncate = false)
+    public static bool ByteEqual(ReadOnlySpan<byte> left, ReadOnlySpan<byte> right, bool truncate = false)
     {
         if (!truncate) return right.SequenceEqual(left);
         var minLength = Math.Min(left.Length, right.Length);
@@ -75,6 +44,9 @@ static class Mem
         hash.AddBytes(MemoryMarshal.AsBytes(values));
         return hash.ToHashCode();
     }
+
+    public static bool IsUnsigned<T>() where T : IBinaryInteger<T>, IMinMaxValue<T> =>
+        T.IsZero(T.MinValue);
 
     public static string GetBitString(
         in ReadOnlySpan<byte> bytes,
@@ -121,51 +93,53 @@ static class Mem
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsReferenceOrContainsReferences<T>() => RuntimeHelpers.IsReferenceOrContainsReferences<T>();
+    public static bool IsUnmanagedStruct<T>() => !RuntimeHelpers.IsReferenceOrContainsReferences<T>();
 
     public static int PopCount<T>(in T[] values) where T : unmanaged => PopCount<T>(values.AsSpan());
 
     public static int PopCount<T>(in ReadOnlySpan<T> values) where T : unmanaged
     {
-        var bytes = MemoryMarshal.AsBytes(values);
-        var index = 0;
+#pragma warning disable S907
         var count = 0;
-        while (index < bytes.Length)
+        var bytes = MemoryMarshal.AsBytes(values);
+        ref var current = ref MemoryMarshal.GetReference(bytes);
+        ref var limit = ref Unsafe.Add(ref current, bytes.Length);
+        ref var next = ref current;
+        while (Unsafe.IsAddressLessThan(ref current, ref limit))
         {
-            var remaining = bytes[index..];
-
-            if (remaining.Length >= sizeof(ulong))
+            next = ref Unsafe.Add(ref current, sizeof(ulong) - 1);
+            if (Unsafe.IsAddressLessThan(ref next, ref limit))
             {
-                var value = MemoryMarshal.Read<ulong>(remaining[..sizeof(ulong)]);
-                index += sizeof(ulong);
+                var value = Unsafe.ReadUnaligned<ulong>(ref current);
                 count += BitOperations.PopCount(value);
-                continue;
+                current = ref next;
+                goto LOOP;
             }
 
-            if (remaining.Length >= sizeof(uint))
+            next = ref Unsafe.Add(ref current, sizeof(uint) - 1);
+            if (Unsafe.IsAddressLessThan(ref next, ref limit))
             {
-                var value = MemoryMarshal.Read<uint>(remaining[..sizeof(uint)]);
-                index += sizeof(uint);
+                var value = Unsafe.ReadUnaligned<uint>(ref current);
                 count += BitOperations.PopCount(value);
-                continue;
+                current = ref next;
+                goto LOOP;
             }
 
-            if (remaining.Length >= sizeof(ushort))
+            next = ref Unsafe.Add(ref current, sizeof(ushort) - 1);
+            if (Unsafe.IsAddressLessThan(ref next, ref limit))
             {
-                var value = MemoryMarshal.Read<ushort>(remaining[..sizeof(ushort)]);
-                index += sizeof(ushort);
+                var value = Unsafe.ReadUnaligned<ushort>(ref current);
                 count += ushort.PopCount(value);
-                continue;
+                current = ref next;
+                goto LOOP;
             }
 
-            if (remaining.Length >= sizeof(byte))
-            {
-                var value = remaining[0];
-                index += sizeof(byte);
-                count += byte.PopCount(value);
-            }
+            count += byte.PopCount(current);
+LOOP:
+            current = ref Unsafe.Add(ref current, 1);
         }
 
         return count;
+#pragma warning restore S907
     }
 }

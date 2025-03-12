@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics;
 using System.Net;
 using Backdash.Core;
 using Backdash.Data;
@@ -25,11 +26,11 @@ sealed class SpectatorBackend<[DynamicallyAccessedMembers(DynamicallyAccessedMem
     readonly IPEndPoint hostEndpoint;
     readonly NetcodeOptions options;
     readonly IBackgroundJobManager backgroundJobManager;
-    readonly IClock clock;
     readonly ConnectionsState localConnections = new(0);
     readonly GameInput<ConfirmedInputs<TInput>>[] inputs;
     readonly PeerConnection<ConfirmedInputs<TInput>> host;
     readonly PlayerHandle[] fakePlayers;
+    readonly IDeterministicRandom<TInput> random;
 
     INetcodeSessionHandler callbacks;
     bool isSynchronizing;
@@ -57,9 +58,8 @@ sealed class SpectatorBackend<[DynamicallyAccessedMembers(DynamicallyAccessedMem
         this.hostEndpoint = hostEndpoint;
         this.options = options;
         backgroundJobManager = services.JobManager;
-        Random = services.DeterministicRandom;
+        random = services.DeterministicRandom;
         logger = services.Logger;
-        clock = services.Clock;
         stateStore = services.StateStore;
         checksumProvider = services.ChecksumProvider;
         NumberOfPlayers = numberOfPlayers;
@@ -77,7 +77,7 @@ sealed class SpectatorBackend<[DynamicallyAccessedMembers(DynamicallyAccessedMem
         var magicNumber = services.Random.MagicNumber();
 
         PeerConnectionFactory peerConnectionFactory = new(
-            this, clock, services.Random, logger, udp,
+            this, services.Random, logger, udp,
             options.Protocol, options.TimeSync, stateStore
         );
 
@@ -115,11 +115,10 @@ sealed class SpectatorBackend<[DynamicallyAccessedMembers(DynamicallyAccessedMem
     public FrameSpan RollbackFrames => FrameSpan.Zero;
     public FrameSpan FramesBehind => FrameSpan.Zero;
     public SavedFrame GetCurrentSavedFrame() => stateStore.Last();
-
+    public INetcodeRandom Random => random;
     public int NumberOfPlayers { get; private set; }
     public int NumberOfSpectators => 0;
 
-    public IDeterministicRandom Random { get; }
     public SessionMode Mode => SessionMode.Spectating;
 
     public void DisconnectPlayer(in PlayerHandle player) { }
@@ -136,7 +135,7 @@ sealed class SpectatorBackend<[DynamicallyAccessedMembers(DynamicallyAccessedMem
             return;
 
         if (lastReceivedInputTime > 0 &&
-            clock.GetElapsedTime(lastReceivedInputTime) > options.Protocol.DisconnectTimeout)
+            Stopwatch.GetElapsedTime(lastReceivedInputTime) > options.Protocol.DisconnectTimeout)
             Close();
 
         if (CurrentFrame.Number == 0)
@@ -263,9 +262,7 @@ sealed class SpectatorBackend<[DynamicallyAccessedMembers(DynamicallyAccessedMem
             inputBuffer[i] = input.Data.Inputs[i];
         }
 
-        var inputPopCount = options.UseInputSeedForRandom ? Mem.PopCount<TInput>(inputBuffer.AsSpan()) : 0;
-        Random.UpdateSeed(CurrentFrame.Number, inputPopCount);
-
+        random.UpdateSeed(CurrentFrame, inputBuffer);
         return ResultCode.Ok;
     }
 
@@ -317,7 +314,7 @@ sealed class SpectatorBackend<[DynamicallyAccessedMembers(DynamicallyAccessedMem
 
     bool IProtocolInputEventPublisher<ConfirmedInputs<TInput>>.Publish(in GameInputEvent<ConfirmedInputs<TInput>> evt)
     {
-        lastReceivedInputTime = clock.GetTimeStamp();
+        lastReceivedInputTime = Stopwatch.GetTimestamp();
         var (_, input) = evt;
         inputs[input.Frame.Number % inputs.Length] = input;
         host.SetLocalFrameNumber(input.Frame, options.FramesPerSecond);

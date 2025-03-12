@@ -97,12 +97,6 @@ public sealed class NetcodeOptions
     public bool UseIPv6 { get; init; }
 
     /// <summary>
-    /// Enabled input base seed for deterministic random
-    /// </summary>
-    /// <value>Defaults to <see langword="true"/></value>
-    public bool UseInputSeedForRandom { get; init; } = true;
-
-    /// <summary>
     /// Base FPS used to estimate fairness (frame advantage) over peers.
     /// </summary>
     /// <inheritdoc cref="FrameSpan.DefaultFramesPerSecond"/>

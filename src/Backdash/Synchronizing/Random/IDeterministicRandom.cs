@@ -1,15 +1,12 @@
+using Backdash.Data;
+
 namespace Backdash.Synchronizing.Random;
 
 /// <summary>
 /// Defines a random number generator
 /// </summary>
-public interface IDeterministicRandom
+public interface INetcodeRandom
 {
-    /// <summary>
-    /// Updates the seed for the current random instance
-    /// </summary>
-    void UpdateSeed(int newState, int extraState = 0);
-
     /// <summary>
     /// Returns a random unsigned integer.
     /// </summary>
@@ -36,21 +33,28 @@ public interface IDeterministicRandom
         if (minValue >= maxValue)
             throw new ArgumentOutOfRangeException(nameof(minValue), "minValue must be less than maxValue");
 
-        uint range = (uint)(maxValue - minValue);
+        var range = (uint)(maxValue - minValue);
         return (int)(Next() % range) + minValue;
     }
 
     /// <summary>
     /// Returns a random integer that is between 0 and <paramref name="maxValue"/>
     /// </summary>
-    int NextInt(int maxValue)
-    {
-        ArgumentOutOfRangeException.ThrowIfNegative(maxValue);
-        return NextInt(0, maxValue);
-    }
+    int NextInt(int maxValue) => NextInt(0, maxValue);
 
     /// <summary>
     /// Returns a random floating-point number that is greater than or equal to 0.0, and less than 1.0.
     /// </summary>
     float NextFloat() => (float)Next() / uint.MaxValue;
+}
+
+/// <summary>
+/// Defines a deterministic random number generator
+/// </summary>
+public interface IDeterministicRandom<TInput> : INetcodeRandom where TInput : unmanaged
+{
+    /// <summary>
+    /// Updates the seed for the current random instance
+    /// </summary>
+    void UpdateSeed(in Frame currentFrame, ReadOnlySpan<TInput> inputs);
 }

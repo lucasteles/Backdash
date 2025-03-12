@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network.Client;
@@ -10,7 +11,6 @@ interface IProtocolOutbox : IMessageSender, IMessageHandler<ProtocolMessage>;
 sealed class ProtocolOutbox(
     ProtocolState state,
     IPeerClient<ProtocolMessage> peer,
-    IClock clock,
     Logger logger
 ) : IProtocolOutbox
 {
@@ -29,7 +29,7 @@ sealed class ProtocolOutbox(
 
     public void AfterSendMessage(int bytesSent)
     {
-        state.Stats.Send.LastTime = clock.GetTimeStamp();
+        state.Stats.Send.LastTime = Stopwatch.GetTimestamp();
         state.Stats.Send.TotalBytes += (ByteSize)bytesSent;
         state.Stats.Send.TotalPackets++;
     }

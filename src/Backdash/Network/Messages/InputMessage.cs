@@ -84,6 +84,7 @@ struct InputMessage : IEquatable<InputMessage>, IUtf8SpanFormattable
     }
 
     public readonly bool Equals(in InputMessage other) =>
+        PeerCount.Equals(other.PeerCount) &&
         StartFrame.Equals(other.StartFrame) &&
         DisconnectRequested == other.DisconnectRequested &&
         AckFrame.Equals(other.AckFrame) && NumBits == other.NumBits &&
@@ -96,7 +97,10 @@ struct InputMessage : IEquatable<InputMessage>, IUtf8SpanFormattable
     readonly bool IEquatable<InputMessage>.Equals(InputMessage other) => Equals(in other);
 
     public override readonly int GetHashCode() => HashCode.Combine(
-        PeerConnectStatus, StartFrame, DisconnectRequested, AckFrame, NumBits, InputSize, Bits);
+        PeerCount, PeerConnectStatus, StartFrame,
+        DisconnectRequested, AckFrame, NumBits, InputSize,
+        Bits
+    );
 
     public static bool operator ==(in InputMessage left, in InputMessage right) => left.Equals(in right);
     public static bool operator !=(in InputMessage left, in InputMessage right) => !left.Equals(in right);
@@ -147,7 +151,7 @@ struct InputMessageBuffer : IEquatable<InputMessageBuffer>
     public override readonly string ToString() => Mem.GetBitString(this);
     public override readonly int GetHashCode() => Mem.GetHashCode<byte>(this);
 
-    public readonly bool Equals(in InputMessageBuffer other) => Mem.EqualBytes(this, other, truncate: true);
+    public readonly bool Equals(in InputMessageBuffer other) => Mem.ByteEqual(this, other, truncate: true);
 
     public override readonly bool Equals(object? obj) => obj is InputMessageBuffer other && Equals(other);
 
