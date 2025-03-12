@@ -14,12 +14,12 @@ public class Game1 : Game
     SpriteBatch spriteBatch;
     Matrix scaleMatrix = Matrix.CreateScale(1);
 
-    public Game1(string[] args)
+    public Game1(INetcodeSession<PlayerInputs> netcodeSession)
     {
         graphics = new(this);
         Content.RootDirectory = "Content";
         IsMouseVisible = true;
-        session = Netcode.ParseArgs(args);
+        session = netcodeSession;
     }
 
     protected override void Initialize()

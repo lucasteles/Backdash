@@ -7,7 +7,6 @@ using Backdash.Network;
 using Backdash.Options;
 using Backdash.Serialization;
 using Backdash.Serialization.Internal;
-using Backdash.Synchronizing.Input;
 using Backdash.Synchronizing.Input.Confirmed;
 
 // ReSharper disable LocalVariableHidesMember, ParameterHidesMember
@@ -157,6 +156,17 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
     }
 
     /// <summary>
+    /// Set the players for the <see cref="INetcodeSession{TInput}"/>
+    /// </summary>
+    public NetcodeSessionBuilder<TInput> WithPlayers(IEnumerable<Player> players)
+    {
+        ArgumentNullException.ThrowIfNull(players);
+        playerList.AddRange(players);
+        ArgumentOutOfRangeException.ThrowIfZero(playerList.Count);
+        return WithPlayerCount(Math.Max(playerList.Count, options.NumberOfPlayers));
+    }
+
+    /// <summary>
     /// Set the session handler for the <see cref="INetcodeSession{TInput}"/>
     /// </summary>
     /// <seealso cref="INetcodeSessionHandler"/>
@@ -218,12 +228,19 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
     /// Set <see cref="INetcodeSession{TInput}"/> options
     /// </summary>
     /// <seealso cref="NetcodeOptions"/>
-    public NetcodeSessionBuilder<TInput> WithLogLevel(LogLevel level, bool appendLevel = true)
-    {
-        options.Logger.EnabledLevel = level;
-        options.Logger.AppendLevel = appendLevel;
-        return this;
-    }
+    public NetcodeSessionBuilder<TInput> WithLogLevel(LogLevel level, bool appendLevel = true) =>
+        ConfigureLogger(o =>
+        {
+            o.EnabledLevel = level;
+            o.AppendLevel = appendLevel;
+        });
+
+    /// <summary>
+    /// Set <see cref="INetcodeSession{TInput}"/> options
+    /// </summary>
+    /// <seealso cref="NetcodeOptions"/>
+    public NetcodeSessionBuilder<TInput> WithNetworkStats(bool enabled = true) =>
+        ConfigureProtocol(o => o.LogNetworkStats = enabled);
 
     /// <summary>
     /// Set the logger <see cref="SessionServices{TInput}.LogWriter"/>
@@ -265,7 +282,7 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
     /// Set the <typeparamref name="TInput"/> comparer.
     /// </summary>
     [MemberNotNull(nameof(sessionServices))]
-    public NetcodeSessionBuilder<TInput> WithComparer(IEqualityComparer<TInput> comparer)
+    public NetcodeSessionBuilder<TInput> WithComparer(EqualityComparer<TInput> comparer)
     {
         ArgumentNullException.ThrowIfNull(comparer);
         return ConfigureServices(s => s.InputComparer = comparer);

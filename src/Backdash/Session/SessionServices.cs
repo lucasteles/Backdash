@@ -1,6 +1,5 @@
 using Backdash.Core;
 using Backdash.Network.Client;
-using Backdash.Synchronizing.Input;
 using Backdash.Synchronizing.Input.Confirmed;
 using Backdash.Synchronizing.Random;
 using Backdash.Synchronizing.State;
@@ -54,5 +53,5 @@ public sealed class SessionServices<TInput> where TInput : unmanaged
     /// <summary>
     /// Comparer to be used with <typeparamref name="TInput"/>
     /// </summary>
-    public IEqualityComparer<TInput>? InputComparer { get; set; }
+    public EqualityComparer<TInput>? InputComparer { get; set; }
 }

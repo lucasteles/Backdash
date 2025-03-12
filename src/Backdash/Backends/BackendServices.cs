@@ -4,7 +4,6 @@ using Backdash.Network.Client;
 using Backdash.Network.Protocol;
 using Backdash.Options;
 using Backdash.Serialization;
-using Backdash.Synchronizing.Input;
 using Backdash.Synchronizing.Input.Confirmed;
 using Backdash.Synchronizing.Random;
 using Backdash.Synchronizing.State;
@@ -24,7 +23,7 @@ sealed class BackendServices<TInput> where TInput : unmanaged
     public IDelayStrategy DelayStrategy { get; }
     public IInputListener<TInput>? InputListener { get; }
 
-    public IEqualityComparer<TInput> InputComparer { get; }
+    public EqualityComparer<TInput> InputComparer { get; }
 
     public BackendServices(
         IBinarySerializer<TInput> inputSerializer,

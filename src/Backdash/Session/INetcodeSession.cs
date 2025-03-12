@@ -161,6 +161,37 @@ public interface INetcodeGameSession<TInput> : INetcodeSession where TInput : un
     /// </summary>
     /// <returns>true if succeeded.</returns>
     bool LoadFrame(in Frame frame);
+
+    /// <summary>
+    /// Try to get the session <see cref="SessionReplayControl"/>
+    /// </summary>
+    SessionReplayControl? ReplayController => null;
+
+    /// <summary>
+    /// Return true if the session is <see cref="SessionMode.Replay"/>
+    /// </summary>
+    [MemberNotNullWhen(true, nameof(ReplayController))]
+    bool IsReplay() => Mode is SessionMode.Replay;
+
+    /// <summary>
+    /// Return true if the session is <see cref="SessionMode.Remote"/>
+    /// </summary>
+    bool IsRemote() => Mode is SessionMode.Remote;
+
+    /// <summary>
+    /// Return true if the session is <see cref="SessionMode.Spectator"/>
+    /// </summary>
+    bool IsSpectator() => Mode is SessionMode.Spectator;
+
+    /// <summary>
+    /// Return true if the session is <see cref="SessionMode.Local"/>
+    /// </summary>
+    bool IsLocal() => Mode is SessionMode.Local;
+
+    /// <summary>
+    /// Return true if the session is <see cref="SessionMode.SyncTest"/>
+    /// </summary>
+    bool IsSyncTest() => Mode is SessionMode.SyncTest;
 }
 
 /// <summary>
@@ -200,35 +231,4 @@ public interface INetcodeSession<TInput> : INetcodeGameSession<TInput>, IDisposa
     /// The client must call this before <see cref="Start"/>.
     /// </summary>
     void SetHandler(INetcodeSessionHandler handler);
-
-    /// <summary>
-    /// Try to get the session <see cref="SessionReplayControl"/>
-    /// </summary>
-    SessionReplayControl? ReplayController => null;
-
-    /// <summary>
-    /// Return true if the session is <see cref="SessionMode.Replay"/>
-    /// </summary>
-    [MemberNotNullWhen(true, nameof(ReplayController))]
-    bool IsReplay() => Mode is SessionMode.Replay;
-
-    /// <summary>
-    /// Return true if the session is <see cref="SessionMode.Remote"/>
-    /// </summary>
-    bool IsRemote() => Mode is SessionMode.Remote;
-
-    /// <summary>
-    /// Return true if the session is <see cref="SessionMode.Spectator"/>
-    /// </summary>
-    bool IsSpectator() => Mode is SessionMode.Spectator;
-
-    /// <summary>
-    /// Return true if the session is <see cref="SessionMode.Local"/>
-    /// </summary>
-    bool IsLocal() => Mode is SessionMode.Local;
-
-    /// <summary>
-    /// Return true if the session is <see cref="SessionMode.SyncTest"/>
-    /// </summary>
-    bool IsSyncTest() => Mode is SessionMode.SyncTest;
 }

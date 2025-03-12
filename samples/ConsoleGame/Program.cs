@@ -34,6 +34,7 @@ var builder = RollbackNetcode
         .WithPlayerCount(playerCount)
         .WithInputDelayFrames(2)
         .WithLogLevel(LogLevel.Information)
+        .WithNetworkStats()
         .ConfigureProtocol(options =>
         {
             options.NumberOfSyncRoundtrips = 10;
