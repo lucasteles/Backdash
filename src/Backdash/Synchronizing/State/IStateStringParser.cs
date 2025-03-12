@@ -17,20 +17,16 @@ public interface IStateStringParser
     string GetStateString(in Frame frame, ref readonly BinaryBufferReader reader, object? currentState);
 }
 
+/// <inheritdoc />
 sealed class HexStateStringParser : IStateStringParser
 {
-    /// <summary>
-    /// Get string representation of the state
-    /// Used for Sync Test logging <see cref="NetcodeSessionBuilder{TInput}.ForSyncTest"/>
-    /// </summary>
+    /// <inheritdoc />
     public string GetStateString(in Frame frame, ref readonly BinaryBufferReader reader, object? currentState) =>
         $$"""
           {
-            Frame: {{frame.Number}},
-            State:
-                --- Begin Hex ---
-                {{Convert.ToHexString(reader.CurrentBuffer).BreakToLines(LogStringBuffer.Capacity / 2)}}
-                ---  End Hex  ---
+            --- Begin Hex ---
+            {{Convert.ToHexString(reader.CurrentBuffer).BreakToLines(LogStringBuffer.Capacity / 2)}}
+            ---  End Hex  ---
           }
           """;
 }
