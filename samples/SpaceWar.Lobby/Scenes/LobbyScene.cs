@@ -381,7 +381,7 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
             }
         }
 
-        var netcodeSession = GetNetcodeSessionBuilder()
+        var netcodeSession = NetcodeSessionBuilder()
             .WithPlayers(players)
             .ForRemote()
             .Build();
@@ -400,18 +400,15 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
 
         Window.Title = $"Space War {Config.LocalPort} - {user.Username} watching {host.Username}";
 
-        var netcodeSession = GetNetcodeSessionBuilder()
+        var netcodeSession = NetcodeSessionBuilder()
             .WithPlayerCount(playerCount)
-            .ForSpectator(opt =>
-            {
-                opt.HostEndPoint = hostEndpoint;
-            })
+            .ForSpectator(opt => opt.HostEndPoint = hostEndpoint)
             .Build();
 
         LoadScene(new BattleSessionScene(netcodeSession, lobbyInfo.Players));
     }
 
-    NetcodeSessionBuilder<PlayerInputs> GetNetcodeSessionBuilder() =>
+    NetcodeSessionBuilder<PlayerInputs> NetcodeSessionBuilder() =>
         RollbackNetcode
             .WithInputType<PlayerInputs>()
             .WithPort(Config.LocalPort)
