@@ -16,7 +16,6 @@ sealed class BackendServices<TInput> where TInput : unmanaged
     public IBinarySerializer<TInput> InputSerializer { get; }
     public IChecksumProvider ChecksumProvider { get; }
     public Logger Logger { get; }
-    public IClock Clock { get; }
     public IBackgroundJobManager JobManager { get; }
     public IProtocolClientFactory ProtocolClientFactory { get; }
     public IStateStore StateStore { get; }
@@ -47,11 +46,10 @@ sealed class BackendServices<TInput> where TInput : unmanaged
             : services.LogWriter;
 
         Logger = new(options.Log, logWriter);
-        Clock = new Clock();
         JobManager = new BackgroundJobManager(Logger);
 
         var socketFactory = services?.PeerSocketFactory ?? new PeerSocketFactory();
-        ProtocolClientFactory = new ProtocolClientFactory(options, socketFactory, Clock, Logger, DelayStrategy);
+        ProtocolClientFactory = new ProtocolClientFactory(options, socketFactory, Logger, DelayStrategy);
     }
 }
 

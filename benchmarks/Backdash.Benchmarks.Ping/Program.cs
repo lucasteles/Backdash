@@ -51,7 +51,6 @@ IPeerClient<PingMessage> CreateClient(int port)
         BinarySerializerFactory.ForEnum<PingMessage>(),
         observers,
         logger,
-        new Clock(),
         null,
         bufferSize
     );

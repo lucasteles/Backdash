@@ -20,7 +20,7 @@ public static class GameLogic
     };
 
     public static void AdvanceState(
-        IDeterministicRandom random,
+        INetcodeRandom random,
         ref GameState currentState,
         GameInput inputPlayer1,
         GameInput inputPlayer2

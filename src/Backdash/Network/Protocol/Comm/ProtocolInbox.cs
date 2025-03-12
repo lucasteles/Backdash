@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -21,7 +22,6 @@ sealed class ProtocolInbox<TInput>(
     ProtocolOptions options,
     IBinarySerializer<TInput> inputSerializer,
     ProtocolState state,
-    IClock clock,
     IProtocolSynchronizer sync,
     IMessageSender messageSender,
     IProtocolNetworkEventHandler networkEvents,
@@ -79,7 +79,7 @@ sealed class ProtocolInbox<TInput>(
             if (replyMsg.Header.Type is not MessageType.Unknown && !messageSender.SendMessage(in replyMsg))
                 logger.Write(LogLevel.Warning, $"inbox response dropped (seq: {seqNum})");
 
-            state.Stats.Received.LastTime = clock.GetTimeStamp();
+            state.Stats.Received.LastTime = Stopwatch.GetTimestamp();
             state.Stats.Received.TotalPackets++;
             state.Stats.Received.TotalBytes += (ByteSize)bytesReceived;
             if (state.Connection.DisconnectNotifySent && state.CurrentStatus is ProtocolStatus.Running)
@@ -187,7 +187,7 @@ sealed class ProtocolInbox<TInput>(
                 ThrowIf.Assert(currentFrame == lastReceivedFrame.Next());
                 lastReceivedFrame = currentFrame;
                 lastReceivedInput.Frame = currentFrame;
-                state.Stats.LastReceivedInputTime = clock.GetTimeStamp();
+                state.Stats.LastReceivedInputTime = Stopwatch.GetTimestamp();
                 currentFrame++;
                 logger.Write(LogLevel.Debug,
                     $"Received input: frame {lastReceivedInput.Frame}, sending to emulator queue {state.Player} (ack: {LastAckedFrame})");
@@ -209,7 +209,7 @@ sealed class ProtocolInbox<TInput>(
 
     bool OnQualityReply(ref readonly ProtocolMessage msg)
     {
-        state.Stats.RoundTripTime = clock.GetElapsedTime(msg.QualityReply.Pong);
+        state.Stats.RoundTripTime = Stopwatch.GetElapsedTime(msg.QualityReply.Pong);
         return true;
     }
 
@@ -223,7 +223,7 @@ sealed class ProtocolInbox<TInput>(
 
     bool OnSyncReply(ref readonly ProtocolMessage msg, ref ProtocolMessage replyMsg)
     {
-        var elapsed = clock.GetElapsedTime(msg.SyncReply.Pong);
+        var elapsed = Stopwatch.GetElapsedTime(msg.SyncReply.Pong);
         if (state.CurrentStatus is not ProtocolStatus.Syncing)
         {
             logger.Write(LogLevel.Trace, "Ignoring SyncReply while not syncing");
@@ -316,7 +316,7 @@ sealed class ProtocolInbox<TInput>(
         }
 
         logger.Write(LogLevel.Debug, $"Consistency request check for: {checkFrame} OK({checksum:x8})");
-        state.Consistency.LastCheck = clock.GetTimeStamp();
+        state.Consistency.LastCheck = Stopwatch.GetTimestamp();
         state.Consistency.AskedFrame = Frame.Null;
         state.Consistency.AskedChecksum = 0;
 

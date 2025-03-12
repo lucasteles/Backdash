@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Timers;
 using Backdash.Core;
 using Backdash.Data;
@@ -17,7 +18,6 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
     readonly ProtocolOptions options;
     readonly ProtocolState state;
     readonly Logger logger;
-    readonly IClock clock;
     readonly ITimeSync<TInput> timeSync;
     readonly IProtocolNetworkEventHandler networkEventHandler;
     readonly IProtocolSynchronizer syncRequest;
@@ -37,7 +37,6 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
         ProtocolOptions options,
         ProtocolState state,
         Logger logger,
-        IClock clock,
         ITimeSync<TInput> timeSync,
         IProtocolNetworkEventHandler networkEventHandler,
         IProtocolSynchronizer syncRequest,
@@ -50,7 +49,6 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
         this.options = options;
         this.state = state;
         this.logger = logger;
-        this.clock = clock;
         this.timeSync = timeSync;
         this.networkEventHandler = networkEventHandler;
         this.syncRequest = syncRequest;
@@ -140,7 +138,7 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
         if (startedAt is 0)
             StartTimers();
 
-        startedAt = clock.GetTimeStamp();
+        startedAt = Stopwatch.GetTimestamp();
     }
 
     public void Update()
@@ -210,12 +208,12 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
         info.LocalFramesBehind = state.Fairness.LocalFrameAdvantage;
         info.Send.TotalBytes = stats.Send.TotalBytesWithHeaders;
         info.Send.Count = stats.Send.TotalPackets;
-        info.Send.LastTime = clock.GetElapsedTime(stats.Send.LastTime);
+        info.Send.LastTime = Stopwatch.GetElapsedTime(stats.Send.LastTime);
         info.Send.PackagesPerSecond = stats.Send.PackagesPerSecond;
         info.Send.Bandwidth = stats.Send.Bandwidth;
         info.Send.LastFrame = inputBuffer.LastSent.Frame;
         info.Received.TotalBytes = stats.Received.TotalBytesWithHeaders;
-        info.Received.LastTime = clock.GetElapsedTime(stats.Received.LastTime);
+        info.Received.LastTime = Stopwatch.GetElapsedTime(stats.Received.LastTime);
         info.Received.Count = stats.Received.TotalPackets;
         info.Received.PackagesPerSecond = stats.Received.PackagesPerSecond;
         info.Received.Bandwidth = stats.Received.Bandwidth;
@@ -234,7 +232,7 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
     public void CheckDisconnection()
     {
         if (state.Stats.Received.LastTime <= 0 || options.DisconnectTimeout <= TimeSpan.Zero) return;
-        var lastReceivedTime = clock.GetElapsedTime(state.Stats.Received.LastTime);
+        var lastReceivedTime = Stopwatch.GetElapsedTime(state.Stats.Received.LastTime);
         if (lastReceivedTime > options.DisconnectNotifyStart &&
             DispatchInterruptedEvent(options.DisconnectTimeout - options.DisconnectNotifyStart))
         {
@@ -294,7 +292,7 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
             return;
 
         var lastSend = state.Stats.Send.LastTime;
-        if (lastSend is 0 || clock.GetElapsedTime(lastSend) < options.KeepAliveInterval)
+        if (lastSend is 0 || Stopwatch.GetElapsedTime(lastSend) < options.KeepAliveInterval)
             return;
 
         logger.Write(LogLevel.Information, "Sending keep alive packet");
@@ -310,7 +308,8 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
             return;
 
         var lastReceivedInputTime = state.Stats.LastReceivedInputTime;
-        if (lastReceivedInputTime <= 0 || clock.GetElapsedTime(lastReceivedInputTime) <= options.ResendInputInterval)
+        if (lastReceivedInputTime <= 0 ||
+            Stopwatch.GetElapsedTime(lastReceivedInputTime) <= options.ResendInputInterval)
             return;
 
         logger.Write(LogLevel.Information,
@@ -328,7 +327,7 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
         {
             QualityReport = new()
             {
-                Ping = clock.GetTimeStamp(),
+                Ping = Stopwatch.GetTimestamp(),
                 FrameAdvantage = state.Fairness.LocalFrameAdvantage.FrameCount,
             },
         });
@@ -341,7 +340,7 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
         const int totalHeaderSize = udpHeaderSize + ipAddressHeaderSize;
         if (state.CurrentStatus is not ProtocolStatus.Running)
             return;
-        var elapsed = clock.GetElapsedTime(startedAt);
+        var elapsed = Stopwatch.GetElapsedTime(startedAt);
         var seconds = elapsed.TotalSeconds;
         UpdateStats(ref state.Stats.Send);
         UpdateStats(ref state.Stats.Received);
@@ -384,12 +383,12 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
             return;
 
         if (state.Consistency.LastCheck is 0)
-            state.Consistency.LastCheck = clock.GetTimeStamp();
+            state.Consistency.LastCheck = Stopwatch.GetTimestamp();
 
         logger.Write(LogLevel.Trace,
             $"Start consistency check for frame {state.Consistency.AskedFrame} #{state.Consistency.AskedChecksum:x8}");
 
-        var elapsed = clock.GetElapsedTime(state.Consistency.LastCheck);
+        var elapsed = Stopwatch.GetElapsedTime(state.Consistency.LastCheck);
         if (options.ConsistencyCheckTimeout > TimeSpan.Zero && elapsed > options.ConsistencyCheckTimeout)
         {
             logger.Write(LogLevel.Error,

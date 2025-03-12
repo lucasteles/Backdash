@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net;
 using Backdash.Core;
 using Backdash.Data;
@@ -24,7 +25,6 @@ sealed class SpectatorBackend<TInput> :
     readonly IPEndPoint hostEndpoint;
     readonly NetcodeOptions options;
     readonly IBackgroundJobManager backgroundJobManager;
-    readonly IClock clock;
     readonly ConnectionsState localConnections = new(0);
     readonly GameInput<ConfirmedInputs<TInput>>[] inputs;
     readonly PeerConnection<ConfirmedInputs<TInput>> host;
@@ -59,7 +59,6 @@ sealed class SpectatorBackend<TInput> :
         backgroundJobManager = services.JobManager;
         random = services.DeterministicRandom;
         logger = services.Logger;
-        clock = services.Clock;
         stateStore = services.StateStore;
         checksumProvider = services.ChecksumProvider;
         NumberOfPlayers = numberOfPlayers;
@@ -77,7 +76,7 @@ sealed class SpectatorBackend<TInput> :
         var magicNumber = services.Random.MagicNumber();
 
         PeerConnectionFactory peerConnectionFactory = new(
-            this, clock, services.Random, logger, udp,
+            this, services.Random, logger, udp,
             options.Protocol, options.TimeSync, stateStore
         );
 
@@ -135,7 +134,7 @@ sealed class SpectatorBackend<TInput> :
             return;
 
         if (lastReceivedInputTime > 0 &&
-            clock.GetElapsedTime(lastReceivedInputTime) > options.Protocol.DisconnectTimeout)
+            Stopwatch.GetElapsedTime(lastReceivedInputTime) > options.Protocol.DisconnectTimeout)
             Close();
 
         if (CurrentFrame.Number == 0)
@@ -314,7 +313,7 @@ sealed class SpectatorBackend<TInput> :
 
     bool IProtocolInputEventPublisher<ConfirmedInputs<TInput>>.Publish(in GameInputEvent<ConfirmedInputs<TInput>> evt)
     {
-        lastReceivedInputTime = clock.GetTimeStamp();
+        lastReceivedInputTime = Stopwatch.GetTimestamp();
         var (_, input) = evt;
         inputs[input.Frame.Number % inputs.Length] = input;
         host.SetLocalFrameNumber(input.Frame, options.FramesPerSecond);

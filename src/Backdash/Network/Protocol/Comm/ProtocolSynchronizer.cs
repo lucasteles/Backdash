@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Backdash.Core;
 using Backdash.Network.Messages;
 
@@ -13,7 +14,6 @@ interface IProtocolSynchronizer
 
 sealed class ProtocolSynchronizer(
     Logger logger,
-    IClock clock,
     IRandomNumberGenerator random,
     ProtocolState state,
     ProtocolOptions options,
@@ -30,7 +30,7 @@ sealed class ProtocolSynchronizer(
         ProtocolMessage syncMsg = new();
         CreateRequestMessage(ref syncMsg);
         logger.Write(LogLevel.Debug, $"New Sync Request: {syncMsg.SyncRequest.RandomRequest} for {state.Player}");
-        lastRequest = clock.GetTimeStamp();
+        lastRequest = Stopwatch.GetTimestamp();
         sender.SendMessage(in syncMsg);
     }
 
@@ -41,7 +41,7 @@ sealed class ProtocolSynchronizer(
             state.Sync.CurrentRandom = random.SyncNumber();
             message.Header.Type = MessageType.SyncRequest;
             message.SyncRequest.RandomRequest = state.Sync.CurrentRandom;
-            message.SyncRequest.Ping = clock.GetTimeStamp();
+            message.SyncRequest.Ping = Stopwatch.GetTimestamp();
         }
     }
 
@@ -81,7 +81,7 @@ sealed class ProtocolSynchronizer(
 
         var firstIteration = state.Sync.RemainingRoundTrips == options.NumberOfSyncRoundtrips;
         var interval = firstIteration ? options.SyncFirstRetryInterval : options.SyncRetryInterval;
-        var elapsed = clock.GetElapsedTime(lastRequest);
+        var elapsed = Stopwatch.GetElapsedTime(lastRequest);
         if (elapsed < interval)
             return;
         logger.Write(LogLevel.Information,
