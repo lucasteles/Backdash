@@ -13,7 +13,7 @@ namespace Backdash;
 /// </summary>
 ///  <seealso cref="RollbackNetcode"/>
 ///  <seealso cref="INetcodeSession{TInput}"/>
-public sealed class NetcodeOptions
+public sealed record NetcodeOptions
 {
     /// <summary>
     /// Offset to be incremented to spectators <see cref="PlayerHandle.Number"/> when added to session.
@@ -21,7 +21,7 @@ public sealed class NetcodeOptions
     /// <seealso cref="PlayerType.Spectator"/>
     /// <seealso cref="INetcodeSession{TInput}.AddPlayer"/>
     /// <inheritdoc cref="Default.SpectatorOffset"/>
-    public int SpectatorOffset { get; init; } = Default.SpectatorOffset;
+    public int SpectatorOffset { get; set; } = Default.SpectatorOffset;
 
     /// <summary>
     /// Interval for time synchronization notifications.
@@ -29,49 +29,45 @@ public sealed class NetcodeOptions
     /// <seealso cref="TimeSync"/>
     /// <seealso cref="TimeSyncOptions"/>
     /// <inheritdoc cref="Default.RecommendationInterval"/>
-    public int RecommendationInterval { get; init; } = Default.RecommendationInterval;
+    public int RecommendationInterval { get; set; } = Default.RecommendationInterval;
 
     /// <summary>
-    /// Forces input serialization byte order to network order <see cref="Endianness.BigEndian"/>.
+    /// Sets the <see cref="Endianness"/> used for state serialization.
+    /// If null, use the same endianness as <see cref="ProtocolOptions"/>.<see cref="ProtocolOptions.SerializationEndianness"/> will be used.
     /// </summary>
-    /// <seealso cref="Endianness"/>
-    /// <value>Defaults to <see langword="true"/></value>
-    public bool UseNetworkEndianness { get; init; } = true;
-
-    /// <summary>
-    /// Sets the endianness used for state serialization.
-    /// If null, the same endianness as the input serializer will be used.
-    /// </summary>
-    /// <seealso cref="Endianness"/>
-    /// <seealso cref="UseNetworkEndianness"/>
+    /// <seealso cref="Platform"/>
     /// <value>Defaults to <see cref="Endianness.LittleEndian"/></value>
-    public Endianness? StateSerializationEndianness { get; init; } = Endianness.LittleEndian;
+    public Endianness? StateSerializationEndianness { get; set; } = Endianness.LittleEndian;
+
+    internal Endianness GetStateSerializationEndianness() =>
+        StateSerializationEndianness ?? Protocol.SerializationEndianness;
 
     /// <summary>
     /// Max length for player input queues.
     /// </summary>
     /// <inheritdoc cref="Default.InputQueueLength"/>
-    public int InputQueueLength { get; init; } = Default.InputQueueLength;
+    public int InputQueueLength { get; set; } = Default.InputQueueLength;
 
     /// <summary>
     /// Max length for spectators input queues.
     /// </summary>
     /// <inheritdoc cref="Default.InputQueueLength"/>
-    public int SpectatorInputBufferLength { get; init; } = Default.InputQueueLength;
+    public int SpectatorInputBufferLength { get; set; } = Default.InputQueueLength;
 
     /// <summary>
     /// Max allowed prediction frames.
     /// </summary>
     /// <seealso cref="ResultCode.PredictionThreshold"/>
     /// <inheritdoc cref="Default.PredictionFrames"/>
-    public int PredictionFrames { get; init; } = Default.PredictionFrames;
+    public int PredictionFrames { get; set; } = Default.PredictionFrames;
 
     /// <summary>
-    /// Value to be incremented on <see cref="PredictionFrames"/> in state store <see cref="IStateStore.Initialize"/>
+    /// Value to be incremented on <see cref="PredictionFrames"/> in state store.
+    /// <see cref="IStateStore.Initialize"/>
     /// </summary>
     /// <inheritdoc cref="Default.PredictionFramesOffset"/>
     /// <seealso cref="IStateStore"/>
-    public int PredictionFramesOffset { get; init; } = Default.PredictionFramesOffset;
+    public int PredictionFramesOffset { get; set; } = Default.PredictionFramesOffset;
 
     /// <summary>
     /// Total allowed prediction frames.
@@ -79,35 +75,38 @@ public sealed class NetcodeOptions
     internal int TotalPredictionFrames => PredictionFrames + PredictionFramesOffset;
 
     /// <summary>
-    /// Amount of frames to delay for local input
+    /// Amount of frames to delay for local input.
     /// </summary>
     /// <inheritdoc cref="Default.FrameDelay"/>
-    public int FrameDelay { get; init; } = Default.FrameDelay;
+    public int FrameDelay { get; set; } = Default.FrameDelay;
 
     /// <summary>
-    /// Size hint in bytes for state serialization pre-allocation
+    /// Size hint in bytes for state serialization pre-allocation.
     /// </summary>
     /// <inheritdoc cref="Default.StateSizeHint"/>
-    public int StateSizeHint { get; init; } = Default.StateSizeHint;
+    public int StateSizeHint { get; set; } = Default.StateSizeHint;
 
     /// <summary>
     /// Config <see cref="UdpSocket"/> to use IPv6.
     /// </summary>
     /// <value>Defaults to <see langword="false"/></value>
-    public bool UseIPv6 { get; init; }
+    public bool UseIPv6 { get; set; }
 
     /// <summary>
     /// Base FPS used to estimate fairness (frame advantage) over peers.
     /// </summary>
     /// <inheritdoc cref="FrameSpan.DefaultFramesPerSecond"/>
-    public short FramesPerSecond { get; init; } = FrameSpan.DefaultFramesPerSecond;
+    public short FramesPerSecond { get; set; } = FrameSpan.DefaultFramesPerSecond;
 
-    /// <summary>Logging options. <seealso cref="LogOptions"/></summary>
-    public LogOptions Log { get; init; } = new();
+    /// <summary>Time synchronization options.</summary>
+    /// <seealso cref="TimeSyncOptions"/>
+    public TimeSyncOptions TimeSync { get; set; } = new();
 
-    /// <summary>Time synchronization options. <seealso cref="TimeSyncOptions"/></summary>
-    public TimeSyncOptions TimeSync { get; init; } = new();
+    /// <summary>Logging options.</summary>
+    /// <seealso cref="LoggerOptions"/>
+    public LoggerOptions Logger { get; set; } = new();
 
-    /// <summary>Networking Protocol options. <seealso cref="ProtocolOptions"/></summary>
-    public ProtocolOptions Protocol { get; init; } = new();
+    /// <summary>Networking Protocol options.</summary>
+    /// <seealso cref="ProtocolOptions"/>
+    public ProtocolOptions Protocol { get; set; } = new();
 }

@@ -88,7 +88,7 @@ public enum InputType : long
 
 sealed class InputTypeCustomSerializer(Endianness endianness) : IBinarySerializer<InputType>
 {
-    /// <inheritdoc cref="NetcodeOptions.UseNetworkEndianness"/>
+    /// <inheritdoc/>
     public Endianness Endianness => endianness;
 
     public int Serialize(in InputType data, Span<byte> buffer)
@@ -128,7 +128,7 @@ sealed class InputTypeCustomSerializer(Endianness endianness) : IBinarySerialize
 
 sealed class InputTypeLongSerializer(Endianness endianness) : IBinarySerializer<long>
 {
-    /// <inheritdoc cref="NetcodeOptions.UseNetworkEndianness"/>
+    /// <inheritdoc/>
     public Endianness Endianness => endianness;
 
     public int Serialize(in long data, Span<byte> buffer)

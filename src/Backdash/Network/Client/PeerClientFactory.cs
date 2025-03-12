@@ -41,10 +41,11 @@ public static class PeerClientFactory
         LogLevel logLevel = LogLevel.None,
         ILogWriter? logWriter = null,
         DelayStrategy delayStrategy = DelayStrategy.Gaussian,
-        Random? random = null
+        Random? random = null,
+        Endianness endianness = Endianness.BigEndian
     ) where T : unmanaged => Create(
         socket,
-        BinarySerializerFactory.FindOrThrow<T>(),
+        BinarySerializerFactory.FindOrThrow<T>(endianness),
         observer,
         maxPacketSize,
         logLevel,

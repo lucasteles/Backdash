@@ -39,7 +39,7 @@ sealed class LocalBackend<TInput> : INetcodeSession<TInput> where TInput : unman
         random = services.DeterministicRandom;
         logger = services.Logger;
         callbacks ??= new EmptySessionHandler(logger);
-        endianness = options.StateSerializationEndianness ?? Platform.GetEndianness(options.UseNetworkEndianness);
+        endianness = options.GetStateSerializationEndianness();
         stateStore.Initialize(options.TotalPredictionFrames);
     }
 

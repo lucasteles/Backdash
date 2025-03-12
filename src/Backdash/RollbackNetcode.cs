@@ -117,7 +117,7 @@ public static class RollbackNetcode
         options ??= new()
         {
             // ReSharper disable once RedundantArgumentDefaultValue
-            Log = new(LogLevel.Information),
+            Logger = new(LogLevel.Information),
         };
         checkDistance ??= FrameSpan.One;
         return new SyncTestBackend<TInput>(
@@ -126,4 +126,15 @@ public static class RollbackNetcode
             BackendServices.Create(options, services)
         );
     }
+
+    /// <inheritdoc cref="NetcodeSessionBuilder.WithInputType{T}(System.Func{Backdash.NetcodeSessionBuilder.InputTypeSelector,Backdash.NetcodeSessionBuilder.InputTypeSelected{T}})"/>
+    public static NetcodeSessionBuilder<T> WithInputType<T>(
+        Func<NetcodeSessionBuilder.InputTypeSelector, NetcodeSessionBuilder.InputTypeSelected<T>> selector)
+        where T : unmanaged =>
+        new NetcodeSessionBuilder().WithInputType(selector);
+
+
+    /// <inheritdoc cref="NetcodeSessionBuilder.WithInputType{T}()"/>
+    public static NetcodeSessionBuilder<T> WithInputType<T>() where T : unmanaged, Enum =>
+        WithInputType(x => x.Enum<T>());
 }

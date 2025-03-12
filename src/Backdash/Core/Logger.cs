@@ -43,7 +43,7 @@ public enum LogLevel : byte
 }
 
 sealed class Logger(
-    LogOptions options,
+    LoggerOptions options,
     ILogWriter writer
 ) : IDisposable
 {

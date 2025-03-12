@@ -46,7 +46,7 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
         this.inputComparer = inputComparer ?? EqualityComparer<TInput>.Default;
 
         inputQueues = new(2);
-        endianness = options.StateSerializationEndianness ?? Platform.GetEndianness(options.UseNetworkEndianness);
+        endianness = options.GetStateSerializationEndianness();
         stateStore.Initialize(options.TotalPredictionFrames);
     }
 

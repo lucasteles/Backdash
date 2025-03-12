@@ -70,7 +70,7 @@ sealed class SpectatorBackend<TInput> :
         callbacks = new EmptySessionHandler(logger);
         inputs = new GameInput<ConfirmedInputs<TInput>>[options.SpectatorInputBufferLength];
 
-        endianness = options.StateSerializationEndianness ?? Platform.GetEndianness(options.UseNetworkEndianness);
+        endianness = options.GetStateSerializationEndianness();
         udp = services.ProtocolClientFactory.CreateProtocolClient(port, peerObservers);
         backgroundJobManager.Register(udp);
         var magicNumber = services.Random.MagicNumber();

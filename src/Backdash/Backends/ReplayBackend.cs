@@ -44,7 +44,7 @@ sealed class ReplayBackend<TInput> : INetcodeSession<TInput> where TInput : unma
         checksumProvider = services.ChecksumProvider;
         random = services.DeterministicRandom;
         NumberOfPlayers = numberOfPlayers;
-        endianness = options.StateSerializationEndianness ?? Platform.GetEndianness(options.UseNetworkEndianness);
+        endianness = options.GetStateSerializationEndianness();
         callbacks = new EmptySessionHandler(logger);
         fakePlayers = Enumerable.Range(0, numberOfPlayers)
             .Select(x => new PlayerHandle(PlayerType.Remote, x + 1, x))

@@ -39,13 +39,13 @@ sealed class BackendServices<TInput> where TInput : unmanaged
         InputComparer = services?.InputComparer ?? EqualityComparer<TInput>.Default;
 
         InputSerializer = services?.InputSerializer ?? BinarySerializerFactory
-            .FindOrThrow<TInput>(options.UseNetworkEndianness);
+            .FindOrThrow<TInput>(options.Protocol.SerializationEndianness);
 
-        var logWriter = services?.LogWriter is null || options.Log.EnabledLevel is LogLevel.None
+        var logWriter = services?.LogWriter is null || options.Logger.EnabledLevel is LogLevel.None
             ? new ConsoleTextLogWriter()
             : services.LogWriter;
 
-        Logger = new(options.Log, logWriter);
+        Logger = new(options.Logger, logWriter);
         JobManager = new BackgroundJobManager(Logger);
 
         var socketFactory = services?.PeerSocketFactory ?? new PeerSocketFactory();
