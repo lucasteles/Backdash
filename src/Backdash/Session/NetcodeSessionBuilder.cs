@@ -19,16 +19,16 @@ namespace Backdash;
 public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
 {
     readonly NetcodeSessionBuilder.SerializerFactory<TInput> serializer;
-    NetcodeOptions options = new();
-    SessionServices<TInput>? sessionServices;
-    SessionMode sessionMode = SessionMode.Remote;
+    readonly List<Player> playerList = [];
 
+    SessionMode sessionMode = SessionMode.Remote;
+    INetcodeSessionHandler? sessionHandler;
+    SessionServices<TInput>? sessionServices;
+
+    NetcodeOptions options = new();
     SyncTestOptions<TInput>? syncTestOptions;
     SessionReplayOptions<TInput>? replayOptions;
     SpectatorOptions? spectatorOptions;
-
-    INetcodeSessionHandler? sessionHandler;
-    readonly List<Player> playerList = [];
 
     internal NetcodeSessionBuilder(NetcodeSessionBuilder.SerializerFactory<TInput> serializer) =>
         this.serializer = serializer;
