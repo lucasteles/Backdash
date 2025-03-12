@@ -17,14 +17,14 @@ public sealed record NetcodeOptions
     /// Local Port for UDP connections
     /// </summary>
     /// <seealso cref="UdpSocket"/>
-    ///<value>Defaults to <c>random port</c></value>
+    /// <value>Defaults to <c>random port</c></value>
     public int LocalPort { get; set; }
 
     /// <summary>
     /// Number of players
     /// Can not be greater than <see cref="Max.NumberOfPlayers"/>
     /// </summary>
-    ///<value>Defaults to <c>2</c></value>
+    /// <value>Defaults to <c>2</c></value>
     public int NumberOfPlayers { get; set; } = 2;
 
     /// <summary>
@@ -32,7 +32,7 @@ public sealed record NetcodeOptions
     /// </summary>
     /// <seealso cref="PlayerType.Spectator"/>
     /// <seealso cref="INetcodeSession{TInput}.AddPlayer"/>
-    ///<value>Defaults to <c>1000</c></value>
+    /// <value>Defaults to <c>1000</c></value>
     public int SpectatorOffset { get; set; } = 1000;
 
     /// <summary>
@@ -40,7 +40,7 @@ public sealed record NetcodeOptions
     /// </summary>
     /// <seealso cref="TimeSync"/>
     /// <seealso cref="TimeSyncOptions"/>
-    ///<value>Defaults to <c>240</c> milliseconds</value>
+    /// <value>Defaults to <c>240</c> milliseconds</value>
     public int RecommendationInterval { get; set; } = 240;
 
     /// <summary>
@@ -57,20 +57,20 @@ public sealed record NetcodeOptions
     /// <summary>
     /// Max length for player input queues.
     /// </summary>
-    ///<value>Defaults to <c>128</c></value>
+    /// <value>Defaults to <c>128</c></value>
     public int InputQueueLength { get; set; } = 128;
 
     /// <summary>
     /// Max length for spectators input queues.
     /// </summary>
-    ///<value>Defaults to <see cref="InputQueueLength"/></value>
+    /// <value>Defaults to <see cref="InputQueueLength"/></value>
     public int SpectatorInputBufferLength { get; set; }
 
     /// <summary>
     /// Max allowed prediction frames.
     /// </summary>
     /// <seealso cref="ResultCode.PredictionThreshold"/>
-    ///<value>Defaults to <c>16</c></value>
+    /// <value>Defaults to <c>16</c></value>
     public int PredictionFrames { get; set; } = 16;
 
     /// <summary>
@@ -89,13 +89,13 @@ public sealed record NetcodeOptions
     /// <summary>
     /// Amount of frames to delay local input.
     /// </summary>
-    ///<value>Defaults to <c>2</c></value>
+    /// <value>Defaults to <c>2</c></value>
     public int InputDelayFrames { get; set; } = 2;
 
     /// <summary>
     /// Size hint in bytes for state serialization pre-allocation.
     /// </summary>
-    ///<value>Defaults to <c>512</c> bytes</value>
+    /// <value>Defaults to <c>512</c> bytes</value>
     public int StateSizeHint { get; set; } = 512;
 
     /// <summary>

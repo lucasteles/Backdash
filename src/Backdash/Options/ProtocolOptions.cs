@@ -19,40 +19,40 @@ public sealed record ProtocolOptions
     /// <summary>
     /// Number of bytes used on the <see cref="UdpSocket"/> message buffer.
     /// </summary>
-    ///<value>Defaults to (<see cref="NetcodeOptions.NumberOfPlayers"/> * <see cref="Max.CompressedBytes"/> * <c>2</c>)</value>
+    /// <value>Defaults to (<see cref="NetcodeOptions.NumberOfPlayers"/> * <see cref="Max.CompressedBytes"/> * <c>2</c>)</value>
     public int UdpPacketBufferSize { get; set; }
 
     /// <summary>
     /// Max allowed pending inputs in sending queue.
     /// When reached <see cref="INetcodeSession{TInput}.AddLocalInput"/> will return <see cref="ResultCode.InputDropped"/>.
     /// </summary>
-    ///<value>Defaults to <c>64</c></value>
+    /// <value>Defaults to <c>64</c></value>
     public int MaxPendingInputs { get; set; } = 64;
 
     /// <summary>
     /// Max allowed pending UDP output messages.
     /// When reached removes and ignores the oldest package in the queue in order to make room for the new package.
     /// </summary>
-    ///<value>Defaults to <c>64</c></value>
+    /// <value>Defaults to <c>64</c></value>
     public int MaxPackageQueue { get; set; } = 64;
 
     /// <summary>
     /// Number of synchronization roundtrips to consider two clients synchronized.
     /// </summary>
-    ///<value>Defaults to <c>10</c></value>
+    /// <value>Defaults to <c>10</c></value>
     public int NumberOfSyncRoundtrips { get; set; } = 10;
 
     /// <summary>
     /// Distance to check out-of-order packets.
     /// </summary>
-    ///<value>Defaults to <c>32_768</c></value>
+    /// <value>Defaults to <c>32_768</c></value>
     public int MaxSequenceDistance { get; set; } = 1 << 15;
 
     /// <summary>
     /// Total number of synchronization request retries.
     /// When reached, session will dispatch the <see cref="PeerEvent.SynchronizationFailure"/> event.
     /// </summary>
-    ///<value>Defaults to <c>64</c></value>
+    /// <value>Defaults to <c>64</c></value>
     public int MaxSyncRetries { get; set; } = 64;
 
     /// <summary>
@@ -81,20 +81,20 @@ public sealed record ProtocolOptions
     /// <summary>
     /// The time to wait before the first <see cref="PeerEvent.ConnectionInterrupted"/> timeout will be sent.
     /// </summary>
-    ///<value>Defaults to <c>750</c> milliseconds</value>
+    /// <value>Defaults to <c>750</c> milliseconds</value>
     public TimeSpan DisconnectNotifyStart { get; set; } = TimeSpan.FromMilliseconds(750);
 
     /// <summary>
     /// The session will automatically disconnect from a remote peer if it has not received a packet in the timeout window.
     /// You will be notified of the disconnect via <see cref="PeerEvent.Disconnected"/> event.
     /// </summary>
-    ///<value>Defaults to <c>5_000</c> milliseconds</value>
+    /// <value>Defaults to <c>5_000</c> milliseconds</value>
     public TimeSpan DisconnectTimeout { get; set; } = TimeSpan.FromMilliseconds(5_000);
 
     /// <summary>
     /// The time to wait before end the session.
     /// </summary>
-    ///<value>Defaults to <c>100</c> milliseconds</value>
+    /// <value>Defaults to <c>100</c> milliseconds</value>
     public TimeSpan ShutdownTime { get; set; } = TimeSpan.FromMilliseconds(100);
 
     /// <summary>
@@ -120,20 +120,20 @@ public sealed record ProtocolOptions
     /// <summary>
     /// The time to wait before send the next quality report package (determines ping).
     /// </summary>
-    ///<value>Defaults to <c>1000</c> milliseconds</value>
+    /// <value>Defaults to <c>1000</c> milliseconds</value>
     public TimeSpan QualityReportInterval { get; set; } = TimeSpan.FromMilliseconds(1000);
 
     /// <summary>
     /// The time to wait before recalculate network statistics.
     /// </summary>
-    ///<value>Defaults to <c>1000</c> milliseconds</value>
+    /// <value>Defaults to <c>1000</c> milliseconds</value>
     /// <seealso cref="PeerNetworkStats"/>
     public TimeSpan NetworkStatsInterval { get; set; } = TimeSpan.FromMilliseconds(1000);
 
     /// <summary>
     /// When the time from the last send input until now is greater than this, resends pending inputs.
     /// </summary>
-    ///<value>Defaults to <c>200</c> milliseconds</value>
+    /// <value>Defaults to <c>200</c> milliseconds</value>
     public TimeSpan ResendInputInterval { get; set; } = TimeSpan.FromMilliseconds(200);
 
     /// <summary>
