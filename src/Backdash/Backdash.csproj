@@ -7,7 +7,7 @@
     <Description>Rollback netcode library</Description>
     <PackageTags>rollback, netcode, network, peer to peer, online, game, multiplayer</PackageTags>
   </PropertyGroup>
-  
+
   <PropertyGroup Condition="$([System.Text.RegularExpressions.Regex]::IsMatch($(DefineConstants), '^(.*;)*AOT_ENABLED(;.*)*$'))">
     <IsAotCompatible>true</IsAotCompatible>
     <OptimizationPreference>Speed</OptimizationPreference>

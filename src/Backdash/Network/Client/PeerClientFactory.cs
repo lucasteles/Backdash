@@ -32,7 +32,6 @@ public static class PeerClientFactory
         maxPackageQueue
     );
 
-#if !AOT_ENABLED
     /// <summary>
     ///  Creates new <see cref="IPeerClient{T}"/>
     /// </summary>
@@ -45,9 +44,9 @@ public static class PeerClientFactory
         DelayStrategy delayStrategy = DelayStrategy.Gaussian,
         Random? random = null,
         Endianness endianness = Endianness.BigEndian
-    ) where T : unmanaged => Create(
+    ) where T : unmanaged, Enum => Create(
         socket,
-        BinarySerializerFactory.FindOrThrow<T>(endianness),
+        BinarySerializerFactory.ForEnum<T>(endianness),
         observer,
         maxPacketSize,
         logLevel,
@@ -55,5 +54,4 @@ public static class PeerClientFactory
         delayStrategy,
         random
     );
-#endif
 }

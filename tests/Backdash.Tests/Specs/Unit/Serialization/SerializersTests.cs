@@ -360,17 +360,16 @@ public class SerializersTests
         }
     }
 
-#if !AOT_ENABLED
     [Fact]
     public void ShouldReturnCorrectSerializerForStruct()
     {
-        var serializer = BinarySerializerFactory.Get<SimpleStructData>();
+        var serializer = BinarySerializerFactory.ForStruct<SimpleStructData>();
         serializer.Should().BeOfType<StructBinarySerializer<SimpleStructData>>();
     }
 
     static void AssertIntegerSerializer<T>() where T : unmanaged, IBinaryInteger<T>, IMinMaxValue<T>
     {
-        var serializer = BinarySerializerFactory.Get<T>(true);
+        var serializer = BinarySerializerFactory.ForInteger<T>(Endianness.BigEndian);
         serializer.Should().BeOfType<IntegerBinaryBigEndianSerializer<T>>();
     }
 
@@ -378,7 +377,7 @@ public class SerializersTests
         where T : unmanaged, Enum
         where TInt : unmanaged, IBinaryInteger<TInt>, IMinMaxValue<TInt>
     {
-        var serializer = BinarySerializerFactory.Get<T>();
+        var serializer = BinarySerializerFactory.ForEnum<T>();
         serializer.Should().BeOfType<EnumBinarySerializer<T, TInt>>();
     }
 
@@ -401,7 +400,6 @@ public class SerializersTests
     [Fact] public void AssertSerializerUIntEnum() => AssertEnumSerializer<UInt32Enum, uint>();
     [Fact] public void AssertSerializerLongEnum() => AssertEnumSerializer<Int64Enum, long>();
     [Fact] public void AssertSerializerULongEnum() => AssertEnumSerializer<UInt64Enum, ulong>();
-#endif
 }
 
 static file class Extensions
