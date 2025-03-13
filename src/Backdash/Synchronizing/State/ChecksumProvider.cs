@@ -1,19 +1,19 @@
 namespace Backdash.Synchronizing.State;
 
 /// <summary>
-/// Provider of checksum values
+///     Provider of checksum values
 /// </summary>
 public interface IChecksumProvider
 {
     /// <summary>
-    /// Returns the checksum value for <paramref name="data"/>.
+    ///     Returns the checksum value for <paramref name="data" />.
     /// </summary>
     /// <param name="data"></param>
-    /// <returns><see cref="int"/> checksum value</returns>
+    /// <returns><see cref="int" /> checksum value</returns>
     uint Compute(ReadOnlySpan<byte> data);
 }
 
-/// <inheritdoc cref="IChecksumProvider"/>
+/// <inheritdoc cref="IChecksumProvider" />
 public delegate uint ChecksumDelegate(ReadOnlySpan<byte> data);
 
 sealed class DelegateChecksumProvider(ChecksumDelegate compute) : IChecksumProvider
@@ -22,7 +22,7 @@ sealed class DelegateChecksumProvider(ChecksumDelegate compute) : IChecksumProvi
 }
 
 /// <summary>
-/// Provider always zero checksum
+///     Provider always zero checksum
 /// </summary>
 public class EmptyChecksumProvider : IChecksumProvider
 {
@@ -31,8 +31,8 @@ public class EmptyChecksumProvider : IChecksumProvider
 }
 
 /// <summary>
-/// Fletcher 32 checksum provider
-/// see: http://en.wikipedia.org/wiki/Fletcher%27s_checksum
+///     Fletcher 32 checksum provider
+///     see: http://en.wikipedia.org/wiki/Fletcher%27s_checksum
 /// </summary>
 public sealed class Fletcher32ChecksumProvider : IChecksumProvider
 {

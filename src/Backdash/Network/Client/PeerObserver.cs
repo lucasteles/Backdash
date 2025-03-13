@@ -5,13 +5,13 @@ using System.Runtime.InteropServices;
 namespace Backdash.Network.Client;
 
 /// <summary>
-/// Observe a <see cref="IPeerClient{T}"/>
+///     Observe a <see cref="IPeerClient{T}" />
 /// </summary>
 /// <typeparam name="T"></typeparam>
 public interface IPeerObserver<T> where T : struct
 {
     /// <summary>
-    /// Handle new message from peer
+    ///     Handle new message from peer
     /// </summary>
     void OnPeerMessage(ref readonly T message, in SocketAddress from, int bytesReceived);
 }

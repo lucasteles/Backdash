@@ -4,7 +4,7 @@ using Backdash.Serialization.Internal;
 namespace Backdash.Data;
 
 /// <summary>
-/// Represents a byte size value
+///     Represents a byte size value
 /// </summary>
 public readonly record struct ByteSize(long ByteCount)
     :
@@ -153,7 +153,7 @@ public readonly record struct ByteSize(long ByteCount)
     }
 
     /// <summary>
-    /// Returns the string representation for the current byte size
+    ///     Returns the string representation for the current byte size
     /// </summary>
     public override string ToString() => ToString(null, null);
 
@@ -161,7 +161,7 @@ public readonly record struct ByteSize(long ByteCount)
     public string ToString(string? format) => ToString(format, null);
 
     /// <summary>
-    /// Returns the string representation for the current byte size as <paramref name="measure"/>
+    ///     Returns the string representation for the current byte size as <paramref name="measure" />
     /// </summary>
     /// <para name="measure">The unit of measure conversion</para>
     public string ToString(Measure measure) => ToString(MeasureToSymbol(measure));
@@ -227,7 +227,7 @@ public readonly record struct ByteSize(long ByteCount)
     }
 
     /// <summary>
-    /// Returns number of bits for <paramref name="byteCount"/> bytes.
+    ///     Returns number of bits for <paramref name="byteCount" /> bytes.
     /// </summary>
     public static int ByteCountOfBits(in ushort byteCount) => MathI.CeilDiv(byteCount, ByteToBits);
 
@@ -268,7 +268,7 @@ public readonly record struct ByteSize(long ByteCount)
     public static ByteSize operator *(long left, ByteSize right) => new(left * right.ByteCount);
 
     /// <summary>
-    /// Returns new <see cref="ByteSize"/> with <paramref name="value"/> bytes
+    ///     Returns new <see cref="ByteSize" /> with <paramref name="value" /> bytes
     /// </summary>
     /// <param name="value"></param>
     public static explicit operator ByteSize(long value) => new(value);
@@ -292,55 +292,55 @@ public readonly record struct ByteSize(long ByteCount)
     public static explicit operator ByteSize(byte value) => new(value);
 
     /// <summary>
-    /// Returns new <see cref="ByteSize"/> with <paramref name="value"/> bytes
+    ///     Returns new <see cref="ByteSize" /> with <paramref name="value" /> bytes
     /// </summary>
     /// <param name="value">Number of bytes</param>
     public static ByteSize FromBytes(long value) => new(value);
 
     /// <summary>
-    /// Returns new <see cref="ByteSize"/> with <paramref name="value"/> kilo-bytes
+    ///     Returns new <see cref="ByteSize" /> with <paramref name="value" /> kilo-bytes
     /// </summary>
     /// <param name="value">Number of kilo-bytes</param>
     public static ByteSize FromKiloByte(double value) => new((long)(value * BytesToKiloByte));
 
     /// <summary>
-    /// Returns new <see cref="ByteSize"/> with <paramref name="value"/> mega-bytes
+    ///     Returns new <see cref="ByteSize" /> with <paramref name="value" /> mega-bytes
     /// </summary>
     /// <param name="value">Number of mega-bytes</param>
     public static ByteSize FromMegaBytes(double value) => new((long)(value * BytesToMegaByte));
 
     /// <summary>
-    /// Returns new <see cref="ByteSize"/> with <paramref name="value"/> giga-bytes
+    ///     Returns new <see cref="ByteSize" /> with <paramref name="value" /> giga-bytes
     /// </summary>
     /// <param name="value">Number of giga-bytes</param>
     public static ByteSize FromGigaBytes(double value) => new((long)(value * BytesToGigaByte));
 
     /// <summary>
-    /// Returns new <see cref="ByteSize"/> with <paramref name="value"/> tera-bytes
+    ///     Returns new <see cref="ByteSize" /> with <paramref name="value" /> tera-bytes
     /// </summary>
     /// <param name="value">Number of tera-bytes</param>
     public static ByteSize FromTeraBytes(double value) => new((long)(value * BytesToTeraByte));
 
     /// <summary>
-    /// Returns new <see cref="ByteSize"/> with <paramref name="value"/> kibi-bytes
+    ///     Returns new <see cref="ByteSize" /> with <paramref name="value" /> kibi-bytes
     /// </summary>
     /// <param name="value">Number of kibi-bytes</param>
     public static ByteSize FromKibiBytes(double value) => new((long)(value * BytesToKibiByte));
 
     /// <summary>
-    /// Returns new <see cref="ByteSize"/> with <paramref name="value"/> mebi-bytes
+    ///     Returns new <see cref="ByteSize" /> with <paramref name="value" /> mebi-bytes
     /// </summary>
     /// <param name="value">Number of mebi-bytes</param>
     public static ByteSize FromMebiBytes(double value) => new((long)(value * BytesToMebiByte));
 
     /// <summary>
-    /// Returns new <see cref="ByteSize"/> with <paramref name="value"/> gibi-bytes
+    ///     Returns new <see cref="ByteSize" /> with <paramref name="value" /> gibi-bytes
     /// </summary>
     /// <param name="value">Number of gibi-bytes</param>
     public static ByteSize FromGibiBytes(double value) => new((long)(value * BytesToGibiByte));
 
     /// <summary>
-    /// Returns new <see cref="ByteSize"/> with <paramref name="value"/> gibi-bytes
+    ///     Returns new <see cref="ByteSize" /> with <paramref name="value" /> gibi-bytes
     /// </summary>
     /// <param name="value">Number of tebi-bytes</param>
     public static ByteSize FromTebiBytes(double value) => new((long)(value * BytesToTebiByte));
@@ -376,57 +376,57 @@ public readonly record struct ByteSize(long ByteCount)
         };
 
     /// <summary>
-    /// Unit of measure for <see cref="ByteSize"/>
+    ///     Unit of measure for <see cref="ByteSize" />
     /// </summary>
     public enum Measure : sbyte
     {
         /// <summary>
-        /// Byte
+        ///     Byte
         /// </summary>
         Byte = 0,
 
         /// <summary>
-        /// 1KiB == 1024 bytes
+        ///     1KiB == 1024 bytes
         /// </summary>
         KibiByte,
 
         /// <summary>
-        /// 1MiB == 1_048_576 bytes
+        ///     1MiB == 1_048_576 bytes
         /// </summary>
         MebiByte,
 
         /// <summary>
-        /// 1GiB == 1_073_741_824 bytes
+        ///     1GiB == 1_073_741_824 bytes
         /// </summary>
         GibiByte,
 
         /// <summary>
-        /// 1TiB == 1_099_511_627_776 bytes
+        ///     1TiB == 1_099_511_627_776 bytes
         /// </summary>
         TebiByte,
 
         /// <summary>
-        /// 1KB == 1000 bytes
+        ///     1KB == 1000 bytes
         /// </summary>
         KiloByte,
 
         /// <summary>
-        /// 1MB == 1_000_000 bytes
+        ///     1MB == 1_000_000 bytes
         /// </summary>
         MegaByte,
 
         /// <summary>
-        /// 1GB == 1_000_000_000 bytes
+        ///     1GB == 1_000_000_000 bytes
         /// </summary>
         GigaByte,
 
         /// <summary>
-        /// 1TB == 1_000_000_000_000 bytes
+        ///     1TB == 1_000_000_000_000 bytes
         /// </summary>
         TeraByte,
 
         /// <summary>
-        /// Unknown unit of measure
+        ///     Unknown unit of measure
         /// </summary>
         Unknown = -1,
     }

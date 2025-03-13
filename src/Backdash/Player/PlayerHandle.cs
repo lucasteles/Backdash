@@ -6,7 +6,7 @@ using Backdash.Serialization.Internal;
 namespace Backdash;
 
 /// <summary>
-/// Session player identification .
+///     Session player identification .
 /// </summary>
 [StructLayout(LayoutKind.Sequential, Pack = 4)]
 public readonly struct PlayerHandle : IUtf8SpanFormattable,
@@ -14,19 +14,19 @@ public readonly struct PlayerHandle : IUtf8SpanFormattable,
     IEqualityOperators<PlayerHandle, PlayerHandle, bool>
 {
     /// <summary>
-    /// Player number (starting from <c>1</c>)
+    ///     Player number (starting from <c>1</c>)
     /// </summary>
     public readonly int Number;
 
     /// <summary>
-    /// Player type
+    ///     Player type
     /// </summary>
     public readonly PlayerType Type;
 
     internal readonly int InternalQueue;
 
     /// <summary>
-    /// Player number (starting from <c>0</c>)
+    ///     Player number (starting from <c>0</c>)
     /// </summary>
     public int Index => InternalQueue;
 
@@ -38,17 +38,17 @@ public readonly struct PlayerHandle : IUtf8SpanFormattable,
     }
 
     /// <summary>
-    /// Returns <see langword="true"/> if player is <see cref="PlayerType.Spectator"/>
+    ///     Returns <see langword="true" /> if player is <see cref="PlayerType.Spectator" />
     /// </summary>
     public bool IsSpectator() => Type is PlayerType.Spectator;
 
     /// <summary>
-    /// Returns <see langword="true"/> if player is <see cref="PlayerType.Remote"/>
+    ///     Returns <see langword="true" /> if player is <see cref="PlayerType.Remote" />
     /// </summary>
     public bool IsRemote() => Type is PlayerType.Remote;
 
     /// <summary>
-    /// Returns <see langword="true"/> if player is <see cref="PlayerType.Local"/>
+    ///     Returns <see langword="true" /> if player is <see cref="PlayerType.Local" />
     /// </summary>
     public bool IsLocal() => Type is PlayerType.Local;
 

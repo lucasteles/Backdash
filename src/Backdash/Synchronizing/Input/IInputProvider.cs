@@ -5,23 +5,23 @@ namespace Backdash.Synchronizing.Input;
 using Random = System.Random;
 
 /// <summary>
-/// Input value provider
+///     Input value provider
 /// </summary>
 /// <typeparam name="TInput"></typeparam>
 public interface IInputProvider<out TInput> where TInput : unmanaged
 {
     /// <summary>
-    /// Returns the next input
+    ///     Returns the next input
     /// </summary>
     TInput Next();
 }
 
 /// <summary>
-/// Random input value provider
+///     Random input value provider
 /// </summary>
 /// <typeparam name="TInput"></typeparam>
 /// <remarks>
-/// Initializes new <see cref="RandomInputProvider{TInput}"/>
+///     Initializes new <see cref="RandomInputProvider{TInput}" />
 /// </remarks>
 public sealed class RandomInputProvider<TInput>(Random? random = null)
     : IInputProvider<TInput> where TInput : unmanaged

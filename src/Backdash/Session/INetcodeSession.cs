@@ -8,109 +8,109 @@ using Backdash.Synchronizing.State;
 namespace Backdash;
 
 /// <summary>
-/// Provides basic session information.
+///     Provides basic session information.
 /// </summary>
 public interface INetcodeSession
 {
     /// <summary>
-    /// Returns the number of player in the current session.
+    ///     Returns the number of player in the current session.
     /// </summary>
     int NumberOfPlayers { get; }
 
     /// <summary>
-    /// Returns the number of spectators in the current session.
+    ///     Returns the number of spectators in the current session.
     /// </summary>
     int NumberOfSpectators { get; }
 
     /// <summary>
-    /// Returns the current session <see cref="Frame"/>.
+    ///     Returns the current session <see cref="Frame" />.
     /// </summary>
     Frame CurrentFrame { get; }
 
     /// <summary>
-    /// Returns the current <see cref="SessionMode"/>.
+    ///     Returns the current <see cref="SessionMode" />.
     /// </summary>
     SessionMode Mode { get; }
 
     /// <summary>
-    /// Returns the number of current rollback frames.
+    ///     Returns the number of current rollback frames.
     /// </summary>
-    /// <seealso cref="FrameSpan"/>
+    /// <seealso cref="FrameSpan" />
     FrameSpan RollbackFrames { get; }
 
     /// <summary>
-    /// Returns the number of frames the client is behind.
+    ///     Returns the number of frames the client is behind.
     /// </summary>
-    /// <seealso cref="FrameSpan"/>
+    /// <seealso cref="FrameSpan" />
     FrameSpan FramesBehind { get; }
 
     /// <summary>
-    /// Returns the current TCP local port.
+    ///     Returns the current TCP local port.
     /// </summary>
     int LocalPort { get; }
 }
 
 /// <summary>
-/// Contract for a netcode game session.
+///     Contract for a netcode game session.
 /// </summary>
 /// <typeparam name="TInput">Game input type</typeparam>
 public interface INetcodeGameSession<TInput> : INetcodeSession where TInput : unmanaged
 {
     /// <summary>
-    /// Deterministic random value generator.
-    /// Must be called after <see cref="SynchronizeInputs"/>.
+    ///     Deterministic random value generator.
+    ///     Must be called after <see cref="SynchronizeInputs" />.
     /// </summary>
     INetcodeRandom Random { get; }
 
     /// <summary>
-    /// Returns a list of all input players in the session.
+    ///     Returns a list of all input players in the session.
     /// </summary>
     IReadOnlyCollection<PlayerHandle> GetPlayers();
 
     /// <summary>
-    /// Returns a list of all spectators in the session.
+    ///     Returns a list of all spectators in the session.
     /// </summary>
     IReadOnlyCollection<PlayerHandle> GetSpectators();
 
     /// <summary>
-    /// Returns the checksum of the last saved state.
+    ///     Returns the checksum of the last saved state.
     /// </summary>
     SavedFrame GetCurrentSavedFrame();
 
     /// <summary>
-    /// Disconnects a remote player from a game.
+    ///     Disconnects a remote player from a game.
     /// </summary>
     void DisconnectPlayer(in PlayerHandle player);
 
     /// <summary>
-    /// Used add local inputs and notify the netcode that they should be transmitted to remote players.
-    /// This must be called once every frame for all player of type <see cref="PlayerType.Local"/>.
+    ///     Used add local inputs and notify the netcode that they should be transmitted to remote players.
+    ///     This must be called once every frame for all player of type <see cref="PlayerType.Local" />.
     /// </summary>
     /// <param name="player">Player owner of the inputs</param>
     /// <param name="localInput">The input value</param>
     ResultCode AddLocalInput(PlayerHandle player, in TInput localInput);
 
     /// <summary>
-    /// Synchronizes the inputs of the local and remote players into a local buffer.
-    /// You should call this before every frame of execution, including those frames which happen during rollback.
+    ///     Synchronizes the inputs of the local and remote players into a local buffer.
+    ///     You should call this before every frame of execution, including those frames which happen during rollback.
     /// </summary>
     ResultCode SynchronizeInputs();
 
     /// <summary>
-    /// Returns the value of a synchronized input for the requested <paramref name="player"/>.
-    /// This must be called after <see cref="SynchronizeInputs"/>
+    ///     Returns the value of a synchronized input for the requested <paramref name="player" />.
+    ///     This must be called after <see cref="SynchronizeInputs" />
     /// </summary>
     ref readonly SynchronizedInput<TInput> GetInput(in PlayerHandle player);
 
     /// <summary>
-    /// Returns the value of a synchronized input for the requested player index.
-    /// This must be called after <see cref="SynchronizeInputs"/>
+    ///     Returns the value of a synchronized input for the requested player index.
+    ///     This must be called after <see cref="SynchronizeInputs" />
     /// </summary>
     ref readonly SynchronizedInput<TInput> GetInput(int index);
 
     /// <summary>
-    /// Copy the value of all synchronized inputs into the <paramref name="buffer"/>.
-    /// This must be called after <see cref="SynchronizeInputs"/>
+    ///     Copy the value of all synchronized inputs into the <paramref name="buffer" />.
+    ///     This must be called after <see cref="SynchronizeInputs" />
     /// </summary>
     void GetInputs(Span<SynchronizedInput<TInput>> buffer)
     {
@@ -119,8 +119,8 @@ public interface INetcodeGameSession<TInput> : INetcodeSession where TInput : un
     }
 
     /// <summary>
-    /// Copy the value of all synchronized inputs into the <paramref name="buffer"/>.
-    /// This must be called after <see cref="SynchronizeInputs"/>
+    ///     Copy the value of all synchronized inputs into the <paramref name="buffer" />.
+    ///     This must be called after <see cref="SynchronizeInputs" />
     /// </summary>
     void GetInputs(Span<TInput> buffer)
     {
@@ -129,106 +129,107 @@ public interface INetcodeGameSession<TInput> : INetcodeSession where TInput : un
     }
 
     /// <summary>
-    /// Should be called at the start of each frame of your application.
+    ///     Should be called at the start of each frame of your application.
     /// </summary>
     void BeginFrame();
 
     /// <summary>
-    /// Should be called at the end of each frame of your application and also in <see cref="INetcodeSessionHandler.AdvanceFrame"/>.
+    ///     Should be called at the end of each frame of your application and also in
+    ///     <see cref="INetcodeSessionHandler.AdvanceFrame" />.
     /// </summary>
     void AdvanceFrame();
 
     /// <summary>
-    /// Returns connection status of a player.
+    ///     Returns connection status of a player.
     /// </summary>
     PlayerConnectionStatus GetPlayerStatus(in PlayerHandle player);
 
     /// <summary>
-    /// Gets statistics and information about a player into <paramref name="info"/>.
-    /// Returns <see langword="false"/> if the request player is not connected or synchronized.
+    ///     Gets statistics and information about a player into <paramref name="info" />.
+    ///     Returns <see langword="false" /> if the request player is not connected or synchronized.
     /// </summary>
     bool GetNetworkStatus(in PlayerHandle player, ref PeerNetworkStats info);
 
     /// <summary>
-    /// Change the amount of delay frames for local input.
+    ///     Change the amount of delay frames for local input.
     /// </summary>
     /// <param name="player"></param>
     /// <param name="delayInFrames"></param>
     void SetFrameDelay(PlayerHandle player, int delayInFrames);
 
     /// <summary>
-    /// Load state for saved <paramref name="frame"/>.
+    ///     Load state for saved <paramref name="frame" />.
     /// </summary>
     /// <returns>true if succeeded.</returns>
     bool LoadFrame(in Frame frame);
 
     /// <summary>
-    /// Try to get the session <see cref="SessionReplayControl"/>
+    ///     Try to get the session <see cref="SessionReplayControl" />
     /// </summary>
     SessionReplayControl? ReplayController => null;
 
     /// <summary>
-    /// Return true if the session is <see cref="SessionMode.Replay"/>
+    ///     Return true if the session is <see cref="SessionMode.Replay" />
     /// </summary>
     [MemberNotNullWhen(true, nameof(ReplayController))]
     bool IsReplay() => Mode is SessionMode.Replay;
 
     /// <summary>
-    /// Return true if the session is <see cref="SessionMode.Remote"/>
+    ///     Return true if the session is <see cref="SessionMode.Remote" />
     /// </summary>
     bool IsRemote() => Mode is SessionMode.Remote;
 
     /// <summary>
-    /// Return true if the session is <see cref="SessionMode.Spectator"/>
+    ///     Return true if the session is <see cref="SessionMode.Spectator" />
     /// </summary>
     bool IsSpectator() => Mode is SessionMode.Spectator;
 
     /// <summary>
-    /// Return true if the session is <see cref="SessionMode.Local"/>
+    ///     Return true if the session is <see cref="SessionMode.Local" />
     /// </summary>
     bool IsLocal() => Mode is SessionMode.Local;
 
     /// <summary>
-    /// Return true if the session is <see cref="SessionMode.SyncTest"/>
+    ///     Return true if the session is <see cref="SessionMode.SyncTest" />
     /// </summary>
     bool IsSyncTest() => Mode is SessionMode.SyncTest;
 }
 
 /// <summary>
-/// Contract for managing a netcode session.
+///     Contract for managing a netcode session.
 /// </summary>
 /// <typeparam name="TInput">Game input type</typeparam>
 public interface INetcodeSession<TInput> : INetcodeGameSession<TInput>, IDisposable where TInput : unmanaged
 {
     /// <summary>
-    /// Add the <paramref name="player"/> into current session.
-    /// Usually an instance of <see cref="LocalPlayer"/>, <see cref="RemotePlayer"/> or <see cref="Spectator"/>.
+    ///     Add the <paramref name="player" /> into current session.
+    ///     Usually an instance of <see cref="LocalPlayer" />, <see cref="RemotePlayer" /> or <see cref="Spectator" />.
     /// </summary>
     /// <param name="player"></param>
-    /// <returns><see cref="ResultCode.Ok"/> if success.</returns>
+    /// <returns><see cref="ResultCode.Ok" /> if success.</returns>
     ResultCode AddPlayer(Player player);
 
     /// <summary>
-    /// Add a list of <see name="Player"/> into current session.
-    /// Usually instances of <see cref="LocalPlayer"/>, <see cref="RemotePlayer"/> or <see cref="Spectator"/>
+    ///     Add a list of <see name="Player" /> into current session.
+    ///     Usually instances of <see cref="LocalPlayer" />, <see cref="RemotePlayer" /> or <see cref="Spectator" />
     /// </summary>
-    /// <returns>An equivalent <see cref="ResultCode"/> list.</returns>
+    /// <returns>An equivalent <see cref="ResultCode" /> list.</returns>
     IReadOnlyList<ResultCode> AddPlayers(IReadOnlyList<Player> players);
 
     /// <summary>
-    /// Starts the background work for the session.
-    /// (Socket receiver, input queue, peer synchronization, etc.)
+    ///     Starts the background work for the session.
+    ///     (Socket receiver, input queue, peer synchronization, etc.)
     /// </summary>
     void Start(CancellationToken stoppingToken = default);
 
     /// <summary>
-    /// Waits the session background work to finish.
+    ///     Waits the session background work to finish.
     /// </summary>
     Task WaitToStop(CancellationToken stoppingToken = default);
 
     /// <summary>
-    /// Set the handler for the current session.
-    /// The client must call this before <see cref="Start"/>.
+    ///     Set the handler for the current session.
+    ///     The client must call this before <see cref="Start" />.
     /// </summary>
     void SetHandler(INetcodeSessionHandler handler);
 }

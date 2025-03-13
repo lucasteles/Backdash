@@ -5,12 +5,12 @@ using Backdash.Serialization.Internal;
 namespace Backdash.Network.Client;
 
 /// <summary>
-/// Create new instances of <see cref="IPeerClient{T}"/>
+///     Create new instances of <see cref="IPeerClient{T}" />
 /// </summary>
 public static class PeerClientFactory
 {
     /// <summary>
-    ///  Creates new <see cref="IPeerClient{T}"/>
+    ///     Creates new <see cref="IPeerClient{T}" />
     /// </summary>
     public static IPeerClient<T> Create<T>(
         IPeerSocket socket,
@@ -33,7 +33,7 @@ public static class PeerClientFactory
     );
 
     /// <summary>
-    ///  Creates new <see cref="IPeerClient{T}"/>
+    ///     Creates new <see cref="IPeerClient{T}" />
     /// </summary>
     public static IPeerClient<T> Create<T>(
         IPeerSocket socket,

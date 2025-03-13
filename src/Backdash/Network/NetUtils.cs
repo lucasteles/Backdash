@@ -4,12 +4,12 @@ using System.Net.Sockets;
 namespace Backdash.Network;
 
 /// <summary>
-/// Network utilities
+///     Network utilities
 /// </summary>
 public static class NetUtils
 {
     /// <summary>
-    /// Finds a free TCP port.
+    ///     Finds a free TCP port.
     /// </summary>
     public static int FindFreePort()
     {

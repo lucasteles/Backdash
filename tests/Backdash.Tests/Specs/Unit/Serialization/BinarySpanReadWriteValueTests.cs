@@ -1,5 +1,6 @@
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using Backdash.Data;
 using Backdash.Network;
 using Backdash.Serialization;
 using Backdash.Serialization.Numerics;
@@ -224,6 +225,67 @@ public class BinarySpanReadWriteValueTests
     }
 
     [PropertyTest]
+    public bool TestGuid(Guid value, Guid read, Endianness endianness)
+    {
+        var size = Setup<Guid>(endianness, out var writer, out var reader);
+        writer.Write(value);
+        reader.Read(ref read);
+        reader.ReadCount.Should().Be(size);
+        return value == read;
+    }
+
+    [PropertyTest]
+    public bool TestTimeSpan(TimeSpan value, TimeSpan read, Endianness endianness)
+    {
+        var size = Setup<TimeSpan>(endianness, out var writer, out var reader);
+        writer.Write(value);
+        reader.Read(ref read);
+        reader.ReadCount.Should().Be(size);
+        return value == read;
+    }
+
+    [PropertyTest]
+    public bool TestDateTime(DateTime value, DateTime read, Endianness endianness)
+    {
+        const int kindSize = 1;
+        var size = Setup<DateTime>(endianness, out var writer, out var reader, kindSize);
+        writer.Write(value);
+        reader.Read(ref read);
+        reader.ReadCount.Should().Be(size);
+        return value == read;
+    }
+
+    [PropertyTest]
+    public bool TestDateTimeOffset(DateTimeOffset value, DateTimeOffset read, Endianness endianness)
+    {
+        var size = Setup<DateTimeOffset>(endianness, out var writer, out var reader);
+        writer.Write(value);
+        reader.Read(ref read);
+        reader.ReadCount.Should().Be(size);
+        return value == read;
+    }
+
+    [PropertyTest]
+    public bool TestDateOnly(DateOnly value, DateOnly read, Endianness endianness)
+    {
+        var size = Setup<DateOnly>(endianness, out var writer, out var reader);
+        writer.Write(value);
+        reader.Read(ref read);
+        reader.ReadCount.Should().Be(size);
+        return value == read;
+    }
+
+    [PropertyTest]
+    public bool TestFrame(Frame value, Frame read, Endianness endianness)
+    {
+        var size = Setup<Frame>(endianness, out var writer, out var reader);
+        writer.Write(value);
+        reader.Read(ref read);
+        reader.ReadCount.Should().Be(size);
+        return value == read;
+    }
+
+    [PropertyTest]
     public bool UnmanagedStruct(SimpleStructData value, Endianness endianness)
     {
         var size = Setup<SimpleStructData>(endianness, out var writer, out var reader);
@@ -241,10 +303,11 @@ public class BinarySpanReadWriteValueTests
     static int Setup<T>(
         Endianness endianness,
         out BinaryRawBufferWriter writer,
-        out BinaryBufferReader reader
+        out BinaryBufferReader reader,
+        int extra = 0
     ) where T : struct
     {
-        var size = Unsafe.SizeOf<T>();
+        var size = Unsafe.SizeOf<T>() + extra;
         Span<byte> buffer = new byte[size];
         writeOffset = 0;
         readOffset = 0;

@@ -23,7 +23,8 @@ public class NetcodeDeserializationException : NetcodeException
 }
 
 /// <summary>
-///     An exception that is thrown when an error is encountered on netcode deserialization for type <typeparamref name="T"/>.
+///     An exception that is thrown when an error is encountered on netcode deserialization for type
+///     <typeparamref name="T" />.
 /// </summary>
 /// <typeparam name="T">Deserialization type</typeparam>
 [Serializable]
@@ -44,7 +45,8 @@ public class NetcodeSerializationException : NetcodeException
 }
 
 /// <summary>
-///     An exception that is thrown when an error is encountered on netcode serialization for type <typeparamref name="T"/>.
+///     An exception that is thrown when an error is encountered on netcode serialization for type
+///     <typeparamref name="T" />.
 /// </summary>
 /// <typeparam name="T">Serialization type</typeparam>
 [Serializable]
@@ -64,7 +66,7 @@ public class InvalidTypeArgumentException : NetcodeException
 }
 
 /// <summary>
-///     An exception that is thrown when for invalid type argument <typeparamref name="T"/>.
+///     An exception that is thrown when for invalid type argument <typeparamref name="T" />.
 /// </summary>
 /// <typeparam name="T">Generic type argument</typeparam>
 [Serializable]

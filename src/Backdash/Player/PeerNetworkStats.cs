@@ -4,8 +4,8 @@ using Backdash.Options;
 namespace Backdash;
 
 /// <summary>
-/// Holds current session network stats.
-/// Calculated in intervals of <see cref="ProtocolOptions.NetworkStatsInterval"/>.
+///     Holds current session network stats.
+///     Calculated in intervals of <see cref="ProtocolOptions.NetworkStatsInterval" />.
 /// </summary>
 public sealed class PeerNetworkStats
 {
@@ -31,7 +31,7 @@ public sealed class PeerNetworkStats
     public PackagesInfo Received { get; } = new();
 
     /// <summary>
-    /// Hold package traffic data
+    ///     Hold package traffic data
     /// </summary>
     public sealed class PackagesInfo
     {

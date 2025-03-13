@@ -8,45 +8,45 @@ using Backdash.Serialization;
 namespace Backdash.Network.Client;
 
 /// <summary>
-/// Client for peer communication
+///     Client for peer communication
 /// </summary>
 public interface IPeerClient<T> : IDisposable where T : struct
 {
     /// <summary>
-    /// Send Message to peer.
+    ///     Send Message to peer.
     /// </summary>
     ValueTask SendTo(SocketAddress peerAddress, in T payload, IMessageHandler<T>? callback = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Try To Send Message to peer.
+    ///     Try To Send Message to peer.
     /// </summary>
     bool TrySendTo(SocketAddress peerAddress, in T payload, IMessageHandler<T>? callback = null);
 
 
     /// <summary>
-    /// Start receiving messages.
+    ///     Start receiving messages.
     /// </summary>
     Task ProcessMessages(CancellationToken cancellationToken);
 
     /// <summary>
-    /// Local binding port.
+    ///     Local binding port.
     /// </summary>
     int BindPort { get; }
 }
 
 /// <summary>
-/// Message sent handler.
+///     Message sent handler.
 /// </summary>
 public interface IMessageHandler<T> where T : struct
 {
     /// <summary>
-    /// Handles sent message.
+    ///     Handles sent message.
     /// </summary>
     void AfterSendMessage(int bytesSent);
 
     /// <summary>
-    /// Prepare message to be sent.
+    ///     Prepare message to be sent.
     /// </summary>
     void BeforeSendMessage(ref T message);
 }

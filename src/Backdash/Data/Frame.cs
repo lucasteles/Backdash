@@ -5,7 +5,7 @@ using Backdash.Serialization.Internal;
 namespace Backdash.Data;
 
 /// <summary>
-/// Value representation of a Frame
+///     Value representation of a Frame
 /// </summary>
 [DebuggerDisplay("{ToString()}"), Serializable]
 public readonly record struct Frame :
@@ -39,27 +39,27 @@ public readonly record struct Frame :
     /// <summary>Returns max frame value</summary>
     public static readonly Frame MaxValue = new(int.MaxValue);
 
-    /// <summary>Returns the <see cref="int"/> value for the current <see cref="Frame"/>.</summary>
+    /// <summary>Returns the <see cref="int" /> value for the current <see cref="Frame" />.</summary>
     public readonly int Number = NullValue;
 
     /// <summary>
-    /// Initialize new <see cref="Frame"/> for frame <paramref name="number" />.
+    ///     Initialize new <see cref="Frame" /> for frame <paramref name="number" />.
     /// </summary>
     /// <param name="number"></param>
     public Frame(int number) => Number = number;
 
     /// <summary>
-    /// Returns the next frame for the current <see cref="Frame"/> value.
+    ///     Returns the next frame for the current <see cref="Frame" /> value.
     /// </summary>
     public Frame Next() => new(Number + 1);
 
     /// <summary>
-    /// Returns the previous frame for the current <see cref="Frame"/> value.
+    ///     Returns the previous frame for the current <see cref="Frame" /> value.
     /// </summary>
     public Frame Previous() => new(Number - 1);
 
     /// <summary>
-    /// Returns <see langword="true"/> if the current frame is a null frame
+    ///     Returns <see langword="true" /> if the current frame is a null frame
     /// </summary>
     public bool IsNull => Number is NullValue;
 
@@ -97,10 +97,10 @@ public readonly record struct Frame :
     /// <inheritdoc cref="Frame(int)" />
     public static explicit operator Frame(int frame) => new(frame);
 
-    /// <summary>Returns the smaller of two <see cref="Frame"/>.</summary>
+    /// <summary>Returns the smaller of two <see cref="Frame" />.</summary>
     public static Frame Min(in Frame left, in Frame right) => left.Number <= right.Number ? left : right;
 
-    /// <summary>Returns the larger of two <see cref="Frame"/>.</summary>
+    /// <summary>Returns the larger of two <see cref="Frame" />.</summary>
     public static Frame Max(in Frame left, in Frame right) => left.Number >= right.Number ? left : right;
 
     /// <inheritdoc />
@@ -158,17 +158,17 @@ public readonly record struct Frame :
     public static FrameSpan operator +(Frame left, FrameSpan right) => right + left.Number;
 
     /// <summary>
-    /// Returns the absolute value of a Frame.
+    ///     Returns the absolute value of a Frame.
     /// </summary>
     public static Frame Abs(in Frame frame) => new(Math.Abs(frame.Number));
 
     /// <summary>
-    /// Clamps frame value to a range
+    ///     Clamps frame value to a range
     /// </summary>
     public static Frame Clamp(in Frame frame, int min, int max) => new(Math.Clamp(frame.Number, min, max));
 
     /// <summary>
-    /// Clamps frame value to a range
+    ///     Clamps frame value to a range
     /// </summary>
     public static Frame Clamp(in Frame frame, in Frame min, in Frame max) => Clamp(in frame, min.Number, max.Number);
 }

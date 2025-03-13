@@ -6,13 +6,13 @@ using Backdash.Serialization;
 namespace Backdash.Synchronizing.State;
 
 /// <summary>
-/// Get string representation of the state
-/// Used for Sync Test logging <see cref="NetcodeSessionBuilder{TInput}.ForSyncTest"/>
+///     Get string representation of the state
+///     Used for Sync Test logging <see cref="NetcodeSessionBuilder{TInput}.ForSyncTest" />
 /// </summary>
 public interface IStateStringParser
 {
     /// <summary>
-    /// Parse binary state to a string representation.
+    ///     Parse binary state to a string representation.
     /// </summary>
     string GetStateString(in Frame frame, ref readonly BinaryBufferReader reader, object? currentState);
 }
@@ -32,7 +32,7 @@ sealed class HexStateStringParser : IStateStringParser
 }
 
 /// <summary>
-/// Try to get the json string representation of the state.
+///     Try to get the json string representation of the state.
 /// </summary>
 public sealed class JsonStateStringParser(
     JsonSerializerOptions? options = null,

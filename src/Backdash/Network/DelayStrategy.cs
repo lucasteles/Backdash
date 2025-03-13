@@ -3,7 +3,7 @@ using Backdash.Core;
 namespace Backdash.Network;
 
 /// <summary>
-/// Jitter delay strategy
+///     Jitter delay strategy
 /// </summary>
 public enum DelayStrategy
 {
