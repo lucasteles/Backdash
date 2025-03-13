@@ -272,7 +272,12 @@ The [`LoadState`](https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSes
 For example:
 
 ```csharp
-public record MyGameState
+using System.Numerics;
+using Backdash.Serialization;
+using Backdash.Serialization.Numerics;
+
+
+public class MyGameState
 {
     public int Value1;
     public Vector2 Value2;
@@ -290,8 +295,13 @@ public class MySessionHandler : INetcodeSessionHandler
 
     public void LoadState(in Frame frame, ref readonly BinaryBufferReader reader)
     {
+        reader.Read(ref currentGameState.Value1);
+        reader.Read(ref currentGameState.Value2);
+
+        /* or also:
         currentGameState.Value1 = reader.ReadInt32();
         currentGameState.Value2 = reader.ReadVector2();
+        */
     }
 
     /* ... */
@@ -302,6 +312,45 @@ The saved **Game State** will have a calculated [checksum](https://en.wikipedia.
 
 You can also use you own checksum algorithm, for this just implement the interface
 [`IChecksumProvider`](https://lucasteles.github.io/Backdash/api/Backdash.Sync.State.IChecksumProvider-1.html).
+
+### Custom State Serializer
+
+If you don't want to write/read each member or just need to use other serialization method for the state, you is able to access the `IBufferWriter` for _save_ and the raw `ReadOnlySpan<byte>` for _load_:
+
+Example for [MemoryPack](https://github.com/Cysharp/MemoryPack);
+
+```csharp
+using System.Numerics;
+using Backdash.Data;
+using Backdash.Serialization;
+using MemoryPack;
+
+[MemoryPackable]
+public partial class MyGameState
+{
+    public int Value1;
+    public Vector2 Value2;
+}
+
+public class MySessionHandler : INetcodeSessionHandler
+{
+    MyGameState currentGameState = new();
+
+    public void SaveState(in Frame frame, ref readonly BinaryBufferWriter writer)
+    {
+        MemoryPackSerializer.Serialize(writer.Buffer, currentGameState);
+    }
+
+    public void LoadState(in Frame frame, ref readonly BinaryBufferReader reader)
+    {
+        MemoryPackSerializer.Deserialize(reader.Buffer, ref currentGameState!);
+    }
+
+    /* ... */
+}
+
+
+```
 
 
 ### Advance Frame Callback
