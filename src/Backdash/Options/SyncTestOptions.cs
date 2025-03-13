@@ -55,4 +55,25 @@ public sealed record SyncTestOptions<TInput> where TInput : unmanaged
         StateStringParser = new JsonStateStringParser(options);
         return this;
     }
+
+    /// <inheritdoc cref="StateStringParser"/>
+    public SyncTestOptions<TInput> UseStateViewer<T>() where T : IStateStringParser, new()
+    {
+        StateStringParser = new T();
+        return this;
+    }
+
+    /// <inheritdoc cref="DesyncHandler"/>
+    public SyncTestOptions<TInput> UseDesyncHandler<T>() where T : IStateDesyncHandler, new()
+    {
+        DesyncHandler = new T();
+        return this;
+    }
+
+    /// <inheritdoc cref="InputProvider"/>
+    public SyncTestOptions<TInput> UseInputProvider<T>() where T : IInputProvider<TInput>, new()
+    {
+        InputProvider = new T();
+        return this;
+    }
 }

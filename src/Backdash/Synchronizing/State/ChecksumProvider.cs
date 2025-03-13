@@ -13,6 +13,14 @@ public interface IChecksumProvider
     uint Compute(ReadOnlySpan<byte> data);
 }
 
+/// <inheritdoc cref="IChecksumProvider"/>
+public delegate uint ChecksumDelegate(ReadOnlySpan<byte> data);
+
+sealed class DelegateChecksumProvider(ChecksumDelegate compute) : IChecksumProvider
+{
+    public uint Compute(ReadOnlySpan<byte> data) => compute(data);
+}
+
 /// <summary>
 /// Provider always zero checksum
 /// </summary>

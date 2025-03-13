@@ -8,6 +8,8 @@ using Backdash.Options;
 using Backdash.Serialization;
 using Backdash.Serialization.Internal;
 using Backdash.Synchronizing.Input.Confirmed;
+using Backdash.Synchronizing.Random;
+using Backdash.Synchronizing.State;
 
 // ReSharper disable LocalVariableHidesMember, ParameterHidesMember
 #pragma warning disable S2325, CA1822
@@ -257,6 +259,14 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
     /// </summary>
     /// <seealso cref="NetcodeOptions.Logger"/>
     [MemberNotNull(nameof(sessionServices))]
+    public NetcodeSessionBuilder<TInput> WithLogWriter<T>() where T : ILogWriter, new() =>
+        WithLogWriter(new T());
+
+    /// <summary>
+    /// Set the logger <see cref="SessionServices{TInput}.LogWriter"/>
+    /// </summary>
+    /// <seealso cref="NetcodeOptions.Logger"/>
+    [MemberNotNull(nameof(sessionServices))]
     public NetcodeSessionBuilder<TInput> WithLogWriter(Action<LogLevel, string> logAction) =>
         WithLogWriter(new DelegateLogWriter(logAction));
 
@@ -278,6 +288,14 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
     }
 
     /// <summary>
+    /// Set the logger <see cref="SessionServices{TInput}.InputListener"/>
+    /// </summary>
+    /// <seealso cref="IInputListener{TInput}"/>
+    [MemberNotNull(nameof(sessionServices))]
+    public NetcodeSessionBuilder<TInput> WithInputListener<T>() where T : IInputListener<TInput>, new() =>
+        WithInputListener(new T());
+
+    /// <summary>
     /// Set the <typeparamref name="TInput"/> comparer.
     /// </summary>
     [MemberNotNull(nameof(sessionServices))]
@@ -288,6 +306,13 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
     }
 
     /// <summary>
+    /// Set the <typeparamref name="TInput"/> comparer.
+    /// </summary>
+    [MemberNotNull(nameof(sessionServices))]
+    public NetcodeSessionBuilder<TInput> WithComparer<T>() where T : EqualityComparer<TInput>, new() =>
+        WithComparer(new T());
+
+    /// <summary>
     /// Set <see cref="INetcodeSession{TInput}"/> options
     /// </summary>
     /// <seealso cref="NetcodeOptions"/>
@@ -296,6 +321,73 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
         this.options = options;
         return this;
     }
+
+    /// <summary>
+    /// Set the logger <see cref="SessionServices{TInput}.ChecksumProvider"/>
+    /// </summary>
+    /// <seealso cref="NetcodeOptions.Logger"/>
+    [MemberNotNull(nameof(sessionServices))]
+    public NetcodeSessionBuilder<TInput> WithChecksumProvider(IChecksumProvider provider)
+    {
+        ArgumentNullException.ThrowIfNull(provider);
+        return ConfigureServices(s => s.ChecksumProvider = provider);
+    }
+
+    /// <summary>
+    /// Set the logger <see cref="SessionServices{TInput}.ChecksumProvider"/>
+    /// </summary>
+    /// <seealso cref="NetcodeOptions.Logger"/>
+    [MemberNotNull(nameof(sessionServices))]
+    public NetcodeSessionBuilder<TInput> WithChecksumProvider<T>() where T : IChecksumProvider, new() =>
+        WithChecksumProvider(new T());
+
+    /// <summary>
+    /// Set the logger <see cref="SessionServices{TInput}.ChecksumProvider"/>
+    /// </summary>
+    /// <seealso cref="NetcodeOptions.Logger"/>
+    [MemberNotNull(nameof(sessionServices))]
+    public NetcodeSessionBuilder<TInput> WithChecksumProvider(ChecksumDelegate compute) =>
+        WithChecksumProvider(new DelegateChecksumProvider(compute));
+
+    /// <summary>
+    /// Set the logger <see cref="SessionServices{TInput}.DeterministicRandom"/>
+    /// </summary>
+    /// <seealso cref="NetcodeOptions.Logger"/>
+    [MemberNotNull(nameof(sessionServices))]
+    public NetcodeSessionBuilder<TInput> WithDeterministicRandom(IDeterministicRandom<TInput> writer)
+    {
+        ArgumentNullException.ThrowIfNull(writer);
+        return ConfigureServices(s => s.DeterministicRandom = writer);
+    }
+
+    /// <summary>
+    /// Set the logger <see cref="SessionServices{TInput}.DeterministicRandom"/>
+    /// </summary>
+    /// <seealso cref="NetcodeOptions.Logger"/>
+    [MemberNotNull(nameof(sessionServices))]
+    public NetcodeSessionBuilder<TInput> WithDeterministicRandom<T>() where T : IDeterministicRandom<TInput>, new() =>
+        WithDeterministicRandom(new T());
+
+    /// <summary>
+    /// Set the logger <see cref="SessionServices{TInput}.StateStore"/>
+    /// </summary>
+    /// <seealso cref="NetcodeOptions.Logger"/>
+    [MemberNotNull(nameof(sessionServices))]
+    public NetcodeSessionBuilder<TInput> WithStateStore(IStateStore writer)
+    {
+        ArgumentNullException.ThrowIfNull(writer);
+        return ConfigureServices(s => s.StateStore = writer);
+    }
+
+    /// <summary>
+    /// Set the logger <see cref="SessionServices{TInput}.StateStore"/>
+    /// </summary>
+    /// <seealso cref="NetcodeOptions.Logger"/>
+    [MemberNotNull(nameof(sessionServices))]
+    public NetcodeSessionBuilder<TInput> WithStateStore<T>() where T : IStateStore, new() =>
+        WithStateStore(new T());
+
+
 
     /// <summary>
     /// Set custom session services
