@@ -19,7 +19,7 @@ public enum ResultCode : short
 
     /// <summary>When emulator reached prediction barrier.</summary>
     /// <seealso cref="NetcodeOptions.PredictionFrames" />
-    /// <seealso cref="INetcodeGameSession{TInput}.AddLocalInput" />
+    /// <seealso cref="INetcodeSession{TInput}.AddLocalInput" />
     PredictionThreshold,
 
     /// <summary>The synchronization with peer was not finished.</summary>
@@ -44,7 +44,7 @@ public enum ResultCode : short
     TooManyPlayers,
 
     /// <summary>The operations need to requested before synchronization starts.</summary>
-    /// <seealso cref="INetcodeSession{TInput}.Start" />
+    /// <seealso cref="INetcodeSession.Start" />
     AlreadySynchronized,
 
     /// <summary>The <see cref="PlayerHandle" /> is already added to the session.</summary>

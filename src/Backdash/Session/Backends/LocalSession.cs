@@ -50,6 +50,9 @@ sealed class LocalSession<TInput> : INetcodeSession<TInput> where TInput : unman
     public int LocalPort => 0;
     public INetcodeRandom Random => random;
 
+    public ReadOnlySpan<SynchronizedInput<TInput>> GetSynchronizedInputs() => syncInputBuffer;
+    public ReadOnlySpan<TInput> GetInputs() => inputBuffer;
+
     public Frame CurrentFrame { get; private set; } = Frame.Zero;
     public SessionMode Mode => SessionMode.Local;
     public FrameSpan FramesBehind => FrameSpan.Zero;

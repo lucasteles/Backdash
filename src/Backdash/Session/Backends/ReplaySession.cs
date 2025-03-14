@@ -88,6 +88,8 @@ sealed class ReplaySession<TInput> : INetcodeSession<TInput> where TInput : unma
     public ResultCode AddLocalInput(PlayerHandle player, in TInput localInput) => ResultCode.Ok;
     public IReadOnlyCollection<PlayerHandle> GetPlayers() => fakePlayers;
     public IReadOnlyCollection<PlayerHandle> GetSpectators() => [];
+    public ReadOnlySpan<SynchronizedInput<TInput>> GetSynchronizedInputs() => syncInputBuffer;
+    public ReadOnlySpan<TInput> GetInputs() => inputBuffer;
 
     public void BeginFrame() { }
 

@@ -9,7 +9,7 @@ public sealed class GameSession(
     GameState gameState,
     NonGameState nonGameState,
     Renderer renderer,
-    INetcodeGameSession<PlayerInputs> session
+    INetcodeSession<PlayerInputs> session
 ) : INetcodeSessionHandler
 {
     readonly SynchronizedInput<PlayerInputs>[] inputs =

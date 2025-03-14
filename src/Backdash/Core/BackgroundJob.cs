@@ -15,6 +15,7 @@ interface IBackgroundJobManager : IDisposable
     void Register(IBackgroundJob job, CancellationToken cancellationToken = default);
     void Stop(TimeSpan timeout = default);
     void ThrowIfError();
+    bool IsRunning { get; }
 }
 
 sealed class BackgroundJobManager(Logger logger) : IBackgroundJobManager
@@ -22,14 +23,15 @@ sealed class BackgroundJobManager(Logger logger) : IBackgroundJobManager
     readonly HashSet<JobEntry> jobs = [];
     readonly Dictionary<Task, JobEntry> tasks = [];
     readonly CancellationTokenSource cts = new();
-    bool isRunning;
     CancellationToken StoppingToken => cts.Token;
 
     readonly List<Exception> exceptions = [];
 
+    public bool IsRunning { get; private set; }
+
     public async Task Start(CancellationToken cancellationToken)
     {
-        if (isRunning) return;
+        if (IsRunning) return;
         if (jobs.Count is 0) throw new NetcodeException("No jobs registered");
 
         logger.Write(LogLevel.Debug, "Starting background tasks");
@@ -38,7 +40,7 @@ sealed class BackgroundJobManager(Logger logger) : IBackgroundJobManager
         foreach (var job in jobs)
             AddJobTask(new(job.Job, job.StoppingToken));
 
-        isRunning = true;
+        IsRunning = true;
 
         while (tasks.Keys.Any(x => !x.IsCompleted))
         {
@@ -92,14 +94,14 @@ sealed class BackgroundJobManager(Logger logger) : IBackgroundJobManager
     {
         JobEntry entry = new(job, cancellationToken);
         if (!jobs.Add(entry)) return;
-        if (isRunning)
+        if (IsRunning)
             AddJobTask(entry);
     }
 
     public void Stop(TimeSpan timeout = default)
     {
-        if (!isRunning) return;
-        isRunning = false;
+        if (!IsRunning) return;
+        IsRunning = false;
         if (cts.IsCancellationRequested) return;
 
         if (timeout <= TimeSpan.Zero)

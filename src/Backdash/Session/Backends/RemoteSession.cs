@@ -49,6 +49,7 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
     TInput[] inputBuffer = [];
     Task backgroundJobTask = Task.CompletedTask;
     readonly ushort syncNumber;
+    bool started;
     bool disposed;
     bool closed;
 
@@ -153,16 +154,31 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
     public IReadOnlyCollection<PlayerHandle> GetPlayers() => addedPlayers;
     public IReadOnlyCollection<PlayerHandle> GetSpectators() => addedSpectators;
 
+
     public void Start(CancellationToken stoppingToken = default)
     {
+        if (started) return;
+        started = true;
         inputListener?.OnSessionStart(in inputSerializer);
         backgroundJobTask = backgroundJobManager.Start(stoppingToken);
     }
 
     public Task WaitToStop(CancellationToken stoppingToken = default)
     {
+        if (!backgroundJobManager.IsRunning)
+            return Task.CompletedTask;
+
         backgroundJobManager.Stop(TimeSpan.Zero);
         return backgroundJobTask.WaitAsync(stoppingToken);
+    }
+
+
+    public void BeginFrame()
+    {
+        if (!isSynchronizing)
+            logger.Write(LogLevel.Trace, $"[Begin Frame {synchronizer.CurrentFrame}]");
+
+        DoSync();
     }
 
     public ResultCode AddPlayer(Player player)
@@ -236,16 +252,6 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
         return ResultCode.Ok;
     }
 
-    bool IsPlayerKnown(in PlayerHandle player) =>
-        player.InternalQueue >= 0
-        && player.InternalQueue <
-        player.Type switch
-        {
-            PlayerType.Remote => endpoints.Count,
-            PlayerType.Spectator => spectators.Count,
-            _ => int.MaxValue,
-        };
-
     public bool GetNetworkStatus(in PlayerHandle player, ref PeerNetworkStats info)
     {
         if (!IsPlayerKnown(in player)) return false;
@@ -267,6 +273,102 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
         ArgumentOutOfRangeException.ThrowIfNegative(delayInFrames);
         synchronizer.SetFrameDelay(player, delayInFrames);
     }
+
+    public IReadOnlyList<ResultCode> AddPlayers(IReadOnlyList<Player> players)
+    {
+        var result = new ResultCode[players.Count];
+        for (var index = 0; index < players.Count; index++)
+            result[index] = AddPlayer(players[index]);
+        return result;
+    }
+
+    public bool LoadFrame(in Frame frame)
+    {
+        if (frame.IsNull || frame == CurrentFrame)
+        {
+            logger.Write(LogLevel.Trace, "Skipping NOP.");
+            return true;
+        }
+
+        try
+        {
+            synchronizer.LoadFrame(in frame);
+            return true;
+        }
+        catch (NetcodeException)
+        {
+            return false;
+        }
+    }
+
+    public PlayerConnectionStatus GetPlayerStatus(in PlayerHandle player)
+    {
+        if (!IsPlayerKnown(in player)) return PlayerConnectionStatus.Unknown;
+        if (player.IsLocal()) return PlayerConnectionStatus.Local;
+        if (player.IsSpectator()) return spectators[player.InternalQueue].Status.ToPlayerStatus();
+        var endpoint = endpoints[player.InternalQueue];
+        if (endpoint?.IsRunning == true)
+            return localConnections.IsConnected(in player)
+                ? PlayerConnectionStatus.Connected
+                : PlayerConnectionStatus.Disconnected;
+        return endpoint?.Status.ToPlayerStatus() ?? PlayerConnectionStatus.Unknown;
+    }
+
+    public void DisconnectPlayer(in PlayerHandle player)
+    {
+        if (!IsPlayerKnown(in player)) return;
+        if (localConnections[player].Disconnected) return;
+        if (player.Type is not PlayerType.Remote) return;
+        if (endpoints[player.InternalQueue] is null)
+        {
+            var currentFrame = synchronizer.CurrentFrame;
+            logger.Write(LogLevel.Information,
+                $"Disconnecting {player} at frame {localConnections[player].LastFrame} by user request.");
+            for (int i = 0; i < endpoints.Count; i++)
+                if (endpoints[i] is not null)
+                    DisconnectPlayerQueue(new(PlayerType.Remote, i), currentFrame);
+        }
+        else
+        {
+            logger.Write(LogLevel.Information,
+                $"Disconnecting {player} at frame {localConnections[player].LastFrame} by user request.");
+            DisconnectPlayerQueue(player, localConnections[player].LastFrame);
+        }
+    }
+
+    public ref readonly SynchronizedInput<TInput> GetInput(int index) =>
+        ref syncInputBuffer[index];
+
+    public ref readonly SynchronizedInput<TInput> GetInput(in PlayerHandle player) =>
+        ref syncInputBuffer[player.InternalQueue];
+
+    public ReadOnlySpan<SynchronizedInput<TInput>> GetSynchronizedInputs() => syncInputBuffer;
+    public ReadOnlySpan<TInput> GetInputs() => inputBuffer;
+
+    public void AdvanceFrame()
+    {
+        logger.Write(LogLevel.Trace, $"[End Frame {synchronizer.CurrentFrame}]");
+        synchronizer.IncrementFrame();
+    }
+
+    public ResultCode SynchronizeInputs()
+    {
+        if (isSynchronizing)
+            return ResultCode.NotSynchronized;
+        synchronizer.SynchronizeInputs(syncInputBuffer, inputBuffer);
+        random.UpdateSeed(CurrentFrame, inputBuffer);
+        return ResultCode.Ok;
+    }
+
+    bool IsPlayerKnown(in PlayerHandle player) =>
+        player.InternalQueue >= 0
+        && player.InternalQueue <
+        player.Type switch
+        {
+            PlayerType.Remote => endpoints.Count,
+            PlayerType.Spectator => spectators.Count,
+            _ => int.MaxValue,
+        };
 
     ResultCode AddLocalPlayer(in LocalPlayer player)
     {
@@ -318,14 +420,6 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
         return ResultCode.Ok;
     }
 
-    public IReadOnlyList<ResultCode> AddPlayers(IReadOnlyList<Player> players)
-    {
-        var result = new ResultCode[players.Count];
-        for (var index = 0; index < players.Count; index++)
-            result[index] = AddPlayer(players[index]);
-        return result;
-    }
-
     ResultCode AddSpectator(Spectator spectator)
     {
         if (spectators.Count >= Max.NumberOfSpectators)
@@ -355,44 +449,6 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
         return ResultCode.Ok;
     }
 
-    public PlayerConnectionStatus GetPlayerStatus(in PlayerHandle player)
-    {
-        if (!IsPlayerKnown(in player)) return PlayerConnectionStatus.Unknown;
-        if (player.IsLocal()) return PlayerConnectionStatus.Local;
-        if (player.IsSpectator()) return spectators[player.InternalQueue].Status.ToPlayerStatus();
-        var endpoint = endpoints[player.InternalQueue];
-        if (endpoint?.IsRunning == true)
-            return localConnections.IsConnected(in player)
-                ? PlayerConnectionStatus.Connected
-                : PlayerConnectionStatus.Disconnected;
-        return endpoint?.Status.ToPlayerStatus() ?? PlayerConnectionStatus.Unknown;
-    }
-
-    public ref readonly SynchronizedInput<TInput> GetInput(int index) =>
-        ref syncInputBuffer[index];
-
-    public ref readonly SynchronizedInput<TInput> GetInput(in PlayerHandle player) =>
-        ref syncInputBuffer[player.InternalQueue];
-
-    public void GetInputs(Span<SynchronizedInput<TInput>> buffer) => syncInputBuffer.CopyTo(buffer);
-
-    public void BeginFrame()
-    {
-        if (!isSynchronizing)
-            logger.Write(LogLevel.Trace, $"[Begin Frame {synchronizer.CurrentFrame}]");
-
-        DoSync();
-    }
-
-    public ResultCode SynchronizeInputs()
-    {
-        if (isSynchronizing)
-            return ResultCode.NotSynchronized;
-        synchronizer.SynchronizeInputs(syncInputBuffer, inputBuffer);
-        random.UpdateSeed(CurrentFrame, inputBuffer);
-        return ResultCode.Ok;
-    }
-
     void CheckInitialSync()
     {
         if (!isSynchronizing) return;
@@ -415,12 +471,6 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
 
         isSynchronizing = false;
         callbacks.OnSessionStart();
-    }
-
-    public void AdvanceFrame()
-    {
-        logger.Write(LogLevel.Trace, $"[End Frame {synchronizer.CurrentFrame}]");
-        synchronizer.IncrementFrame();
     }
 
     void ConsumeProtocolInputEvents()
@@ -716,46 +766,5 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
 
         callbacks.OnPeerEvent(player, new(PeerEvent.Disconnected));
         CheckInitialSync();
-    }
-
-    public bool LoadFrame(in Frame frame)
-    {
-        if (frame.IsNull || frame == CurrentFrame)
-        {
-            logger.Write(LogLevel.Trace, "Skipping NOP.");
-            return true;
-        }
-
-        try
-        {
-            synchronizer.LoadFrame(in frame);
-            return true;
-        }
-        catch (NetcodeException)
-        {
-            return false;
-        }
-    }
-
-    public void DisconnectPlayer(in PlayerHandle player)
-    {
-        if (!IsPlayerKnown(in player)) return;
-        if (localConnections[player].Disconnected) return;
-        if (player.Type is not PlayerType.Remote) return;
-        if (endpoints[player.InternalQueue] is null)
-        {
-            var currentFrame = synchronizer.CurrentFrame;
-            logger.Write(LogLevel.Information,
-                $"Disconnecting {player} at frame {localConnections[player].LastFrame} by user request.");
-            for (int i = 0; i < endpoints.Count; i++)
-                if (endpoints[i] is not null)
-                    DisconnectPlayerQueue(new(PlayerType.Remote, i), currentFrame);
-        }
-        else
-        {
-            logger.Write(LogLevel.Information,
-                $"Disconnecting {player} at frame {localConnections[player].LastFrame} by user request.");
-            DisconnectPlayerQueue(player, localConnections[player].LastFrame);
-        }
     }
 }

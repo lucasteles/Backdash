@@ -172,7 +172,7 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
     ///     Set the session handler for the <see cref="INetcodeSession{TInput}" />
     /// </summary>
     /// <seealso cref="INetcodeSessionHandler" />
-    /// <seealso cref="INetcodeSession{TInput}.SetHandler" />
+    /// <seealso cref="INetcodeSession.SetHandler" />
     public NetcodeSessionBuilder<TInput> WithHandler(INetcodeSessionHandler handler)
     {
         ArgumentNullException.ThrowIfNull(handler);

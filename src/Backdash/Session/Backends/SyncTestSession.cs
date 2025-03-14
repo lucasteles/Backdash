@@ -90,6 +90,10 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
     public SessionMode Mode => SessionMode.SyncTest;
     public FrameSpan FramesBehind => synchronizer.FramesBehind;
     public FrameSpan RollbackFrames => synchronizer.RollbackFrames;
+
+    public ReadOnlySpan<SynchronizedInput<TInput>> GetSynchronizedInputs() => syncInputBuffer;
+    public ReadOnlySpan<TInput> GetInputs() => inputBuffer;
+
     public SavedFrame GetCurrentSavedFrame() => synchronizer.GetLastSavedFrame();
 
     public IReadOnlyCollection<PlayerHandle> GetPlayers() =>
