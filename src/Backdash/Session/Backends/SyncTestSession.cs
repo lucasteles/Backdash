@@ -10,7 +10,7 @@ using Backdash.Synchronizing.State;
 
 namespace Backdash.Backends;
 
-sealed class SyncTestBackend<TInput> : INetcodeSession<TInput>
+sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
     where TInput : unmanaged
 {
     readonly record struct SavedFrameBytes(
@@ -43,10 +43,10 @@ sealed class SyncTestBackend<TInput> : INetcodeSession<TInput>
     GameInput<TInput> lastInput;
     Frame lastVerified = Frame.Zero;
 
-    public SyncTestBackend(
+    public SyncTestSession(
         SyncTestOptions<TInput> syncTestOptions,
         NetcodeOptions options,
-        BackendServices<TInput> services
+        SessionServices<TInput> services
     )
     {
         ArgumentNullException.ThrowIfNull(services);

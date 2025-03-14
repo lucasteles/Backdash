@@ -8,7 +8,7 @@ using Backdash.Synchronizing.State;
 
 namespace Backdash.Backends;
 
-sealed class LocalBackend<TInput> : INetcodeSession<TInput> where TInput : unmanaged
+sealed class LocalSession<TInput> : INetcodeSession<TInput> where TInput : unmanaged
 {
     readonly TaskCompletionSource tsc = new();
     readonly Logger logger;
@@ -27,9 +27,9 @@ sealed class LocalBackend<TInput> : INetcodeSession<TInput> where TInput : unman
     INetcodeSessionHandler callbacks;
     Task backGroundJobTask = Task.CompletedTask;
 
-    public LocalBackend(
+    public LocalSession(
         NetcodeOptions options,
-        BackendServices<TInput> services
+        SessionServices<TInput> services
     )
     {
         ArgumentNullException.ThrowIfNull(services);

@@ -10,7 +10,7 @@ using Backdash.Synchronizing.State;
 
 namespace Backdash.Backends;
 
-sealed class BackendServices<TInput> where TInput : unmanaged
+sealed class SessionServices<TInput> where TInput : unmanaged
 {
     public IBinarySerializer<TInput> InputSerializer { get; }
     public IChecksumProvider ChecksumProvider { get; }
@@ -25,10 +25,10 @@ sealed class BackendServices<TInput> where TInput : unmanaged
 
     public EqualityComparer<TInput> InputComparer { get; }
 
-    public BackendServices(
+    public SessionServices(
         IBinarySerializer<TInput> inputSerializer,
         NetcodeOptions options,
-        SessionServices<TInput>? services
+        ServicesConfig<TInput>? services
     )
     {
         ArgumentNullException.ThrowIfNull(inputSerializer);

@@ -11,7 +11,7 @@ namespace Backdash;
 /// </summary>
 /// <typeparam name="TInput">Input type</typeparam>
 [Serializable]
-public sealed class SessionServices<TInput> where TInput : unmanaged
+public sealed class ServicesConfig<TInput> where TInput : unmanaged
 {
     /// <summary>
     ///     Checksum provider service for session state.

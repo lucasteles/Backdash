@@ -16,7 +16,7 @@ using Backdash.Synchronizing.State;
 
 namespace Backdash.Backends;
 
-sealed class RemoteBackend<TInput> : INetcodeSession<TInput>, IProtocolNetworkEventHandler
+sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEventHandler
     where TInput : unmanaged
 {
     readonly NetcodeOptions options;
@@ -52,9 +52,9 @@ sealed class RemoteBackend<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
     bool disposed;
     bool closed;
 
-    public RemoteBackend(
+    public RemoteSession(
         NetcodeOptions options,
-        BackendServices<TInput> services
+        SessionServices<TInput> services
     )
     {
         ArgumentNullException.ThrowIfNull(services);

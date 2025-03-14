@@ -15,7 +15,7 @@ using Backdash.Synchronizing.State;
 
 namespace Backdash.Backends;
 
-sealed class SpectatorBackend<TInput> :
+sealed class SpectatorSession<TInput> :
     INetcodeSession<TInput>,
     IProtocolNetworkEventHandler,
     IProtocolInputEventPublisher<ConfirmedInputs<TInput>>
@@ -44,10 +44,10 @@ sealed class SpectatorBackend<TInput> :
     readonly IChecksumProvider checksumProvider;
     readonly Endianness endianness;
 
-    public SpectatorBackend(
+    public SpectatorSession(
         SpectatorOptions spectatorOptions,
         NetcodeOptions options,
-        BackendServices<TInput> services
+        SessionServices<TInput> services
     )
     {
         ArgumentNullException.ThrowIfNull(services);

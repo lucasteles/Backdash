@@ -10,7 +10,7 @@ using Backdash.Synchronizing.State;
 
 namespace Backdash.Backends;
 
-sealed class ReplayBackend<TInput> : INetcodeSession<TInput> where TInput : unmanaged
+sealed class ReplaySession<TInput> : INetcodeSession<TInput> where TInput : unmanaged
 {
     readonly Logger logger;
     readonly PlayerHandle[] fakePlayers;
@@ -29,10 +29,10 @@ sealed class ReplayBackend<TInput> : INetcodeSession<TInput> where TInput : unma
     readonly IDeterministicRandom<TInput> random;
     readonly Endianness endianness;
 
-    public ReplayBackend(
+    public ReplaySession(
         SessionReplayOptions<TInput> replayOptions,
         NetcodeOptions options,
-        BackendServices<TInput> services
+        SessionServices<TInput> services
     )
     {
         ArgumentNullException.ThrowIfNull(options);
