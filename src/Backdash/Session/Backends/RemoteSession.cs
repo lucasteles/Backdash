@@ -20,25 +20,28 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
     where TInput : unmanaged
 {
     readonly NetcodeOptions options;
-    readonly IBinarySerializer<TInput> inputSerializer;
-    readonly IBinarySerializer<ConfirmedInputs<TInput>> inputGroupSerializer;
     readonly Logger logger;
     readonly IProtocolPeerClient udp;
-    readonly PeerObserverGroup<ProtocolMessage> peerObservers;
     readonly Synchronizer<TInput> synchronizer;
-    readonly ConnectionsState localConnections;
     readonly IBackgroundJobManager backgroundJobManager;
-    readonly ProtocolInputEventQueue<TInput> peerInputEventQueue;
-    readonly IProtocolInputEventPublisher<ConfirmedInputs<TInput>> peerCombinedInputsEventPublisher;
     readonly PeerConnectionFactory peerConnectionFactory;
+    readonly IDeterministicRandom<TInput> random;
+
+    readonly ConnectionsState localConnections;
     readonly List<PeerConnection<ConfirmedInputs<TInput>>> spectators;
     readonly List<PeerConnection<TInput>?> endpoints;
+    readonly PeerObserverGroup<ProtocolMessage> peerObservers;
     readonly HashSet<PlayerHandle> addedPlayers = [];
     readonly HashSet<PlayerHandle> addedSpectators = [];
-    readonly IInputListener<TInput>? inputListener;
+
+    readonly ProtocolInputEventQueue<TInput> peerInputEventQueue;
+    readonly IProtocolInputEventPublisher<ConfirmedInputs<TInput>> peerCombinedInputsEventPublisher;
+
+    readonly IBinarySerializer<TInput> inputSerializer;
+    readonly IBinarySerializer<ConfirmedInputs<TInput>> inputGroupSerializer;
     readonly EqualityComparer<TInput> inputComparer;
     readonly EqualityComparer<ConfirmedInputs<TInput>> inputGroupComparer;
-    readonly IDeterministicRandom<TInput> random;
+    readonly IInputListener<TInput>? inputListener;
 
     bool isSynchronizing = true;
     int nextRecommendedInterval;
@@ -154,6 +157,18 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
     public IReadOnlyCollection<PlayerHandle> GetPlayers() => addedPlayers;
     public IReadOnlyCollection<PlayerHandle> GetSpectators() => addedSpectators;
 
+    public bool TryGetLocalPlayer(out PlayerHandle player)
+    {
+        foreach (var p in addedPlayers)
+        {
+            if (!p.IsLocal()) continue;
+            player = p;
+            return true;
+        }
+
+        player = default;
+        return false;
+    }
 
     public void Start(CancellationToken stoppingToken = default)
     {

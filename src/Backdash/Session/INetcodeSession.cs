@@ -61,16 +61,6 @@ public interface INetcodeSession : INetcodeSessionInfo, IDisposable
     INetcodeSessionInfo GetInfo() => this;
 
     /// <summary>
-    ///     Returns a list of all input players in the session.
-    /// </summary>
-    IReadOnlyCollection<PlayerHandle> GetPlayers();
-
-    /// <summary>
-    ///     Returns a list of all spectators in the session.
-    /// </summary>
-    IReadOnlyCollection<PlayerHandle> GetSpectators();
-
-    /// <summary>
     ///     Returns the checksum of the last saved state.
     /// </summary>
     SavedFrame GetCurrentSavedFrame();
@@ -160,6 +150,32 @@ public interface INetcodeSession : INetcodeSessionInfo, IDisposable
     /// </summary>
     /// <returns>An equivalent <see cref="ResultCode" /> list.</returns>
     IReadOnlyList<ResultCode> AddPlayers(IReadOnlyList<Player> players);
+
+    /// <summary>
+    ///     Returns a list of all input players in the session.
+    /// </summary>
+    IReadOnlyCollection<PlayerHandle> GetPlayers();
+
+    /// <summary>
+    ///     Returns a list of all spectators in the session.
+    /// </summary>
+    IReadOnlyCollection<PlayerHandle> GetSpectators();
+
+
+    /// <summary>
+    ///     Tries to get a single local player
+    /// </summary>
+    bool TryGetLocalPlayer(out PlayerHandle player)
+    {
+        if (GetPlayers().Cast<PlayerHandle?>().FirstOrDefault(p => p?.IsLocal() is true) is { } local)
+        {
+            player = local;
+            return true;
+        }
+
+        player = default;
+        return true;
+    }
 
     /// <summary>
     ///     Starts the background work for the session.
