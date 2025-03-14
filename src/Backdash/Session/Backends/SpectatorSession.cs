@@ -72,13 +72,12 @@ sealed class SpectatorSession<TInput> :
             new ConfirmedInputsSerializer<TInput>(services.InputSerializer);
         PeerObserverGroup<ProtocolMessage> peerObservers = new();
         inputs = new GameInput<ConfirmedInputs<TInput>>[options.SpectatorInputBufferLength];
-
+        callbacks = services.SessionHandler;
         endianness = options.GetStateSerializationEndianness();
         udp = services.ProtocolClientFactory.CreateProtocolClient(options.LocalPort, peerObservers);
         backgroundJobManager.Register(udp);
         var magicNumber = services.Random.MagicNumber();
 
-        SetHandler(services.SessionHandler);
 
         PeerConnectionFactory peerConnectionFactory = new(
             this, services.Random, logger, udp,
@@ -189,10 +188,6 @@ sealed class SpectatorSession<TInput> :
     public void SetHandler(INetcodeSessionHandler handler)
     {
         ArgumentNullException.ThrowIfNull(handler);
-
-        if (handler is INetcodeSessionHandler<TInput> inputHandler)
-            inputHandler.ConfigureSession(this);
-
         callbacks = handler;
     }
 

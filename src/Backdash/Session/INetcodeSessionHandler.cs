@@ -70,19 +70,6 @@ public interface INetcodeSessionHandler
     object? GetCurrentState() => null;
 }
 
-/// <summary>
-///     Defines the callback functions that your application must implement.
-///     Backdash will periodically call these functions during the session lifecycle.
-/// </summary>
-public interface INetcodeSessionHandler<TInput> : INetcodeSessionHandler where TInput : unmanaged
-{
-    /// <summary>
-    /// Callback to configure session handler with the current netcode session
-    /// </summary>
-    /// <param name="netcodeSession"></param>
-    void ConfigureSession(INetcodeSession<TInput> netcodeSession);
-}
-
 sealed class EmptySessionHandler(Logger logger) : INetcodeSessionHandler
 {
     public void OnSessionStart() =>

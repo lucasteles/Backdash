@@ -67,12 +67,11 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
         random = services.DeterministicRandom;
         inputGenerator = syncTestOptions.InputProvider;
         mismatchHandler = syncTestOptions.DesyncHandler;
-        stateParser = syncTestOptions.StateStringParser ?? new HexStateStringParser();
+        callbacks = services.SessionHandler;
 
+        stateParser = syncTestOptions.StateStringParser ?? new HexStateStringParser();
         if (stateParser is JsonStateStringParser jsonParser)
             jsonParser.Logger = logger;
-
-        SetHandler(services.SessionHandler);
 
         synchronizer = new(
             options, logger,
@@ -342,10 +341,6 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
     public void SetHandler(INetcodeSessionHandler handler)
     {
         ArgumentNullException.ThrowIfNull(handler);
-
-        if (handler is INetcodeSessionHandler<TInput> inputHandler)
-            inputHandler.ConfigureSession(this);
-
         callbacks = handler;
         synchronizer.Callbacks = handler;
     }

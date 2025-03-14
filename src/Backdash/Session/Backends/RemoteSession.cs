@@ -85,8 +85,7 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
         endpoints = new(Max.NumberOfPlayers);
         spectators = [];
         peerObservers = new();
-
-        SetHandler(services.SessionHandler);
+        callbacks = services.SessionHandler;
 
         synchronizer = new(
             this.options,
@@ -176,6 +175,7 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
     {
         if (started) return;
         started = true;
+
         inputListener?.OnSessionStart(in inputSerializer);
         backgroundJobTask = backgroundJobManager.Start(stoppingToken);
     }
@@ -281,10 +281,6 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
     public void SetHandler(INetcodeSessionHandler handler)
     {
         ArgumentNullException.ThrowIfNull(handler);
-
-        if (handler is INetcodeSessionHandler<TInput> inputHandler)
-            inputHandler.ConfigureSession(this);
-
         callbacks = handler;
         synchronizer.Callbacks = handler;
     }

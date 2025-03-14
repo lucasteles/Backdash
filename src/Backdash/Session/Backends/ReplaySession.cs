@@ -50,7 +50,7 @@ sealed class ReplaySession<TInput> : INetcodeSession<TInput> where TInput : unma
         random = services.DeterministicRandom;
         NumberOfPlayers = options.NumberOfPlayers;
         endianness = options.GetStateSerializationEndianness();
-        callbacks = new EmptySessionHandler(logger);
+        callbacks = services.SessionHandler;
         fakePlayers = Enumerable.Range(0, NumberOfPlayers)
             .Select(x => new PlayerHandle(PlayerType.Remote, x + 1, x))
             .ToFrozenSet();
@@ -138,10 +138,6 @@ sealed class ReplaySession<TInput> : INetcodeSession<TInput> where TInput : unma
     public void SetHandler(INetcodeSessionHandler handler)
     {
         ArgumentNullException.ThrowIfNull(handler);
-
-        if (handler is INetcodeSessionHandler<TInput> inputHandler)
-            inputHandler.ConfigureSession(this);
-
         callbacks = handler;
     }
 

@@ -42,7 +42,7 @@ sealed class LocalSession<TInput> : INetcodeSession<TInput> where TInput : unman
         random = services.DeterministicRandom;
         logger = services.Logger;
         endianness = options.GetStateSerializationEndianness();
-        SetHandler(services.SessionHandler);
+        callbacks = services.SessionHandler;
         stateStore.Initialize(options.TotalPredictionFrames);
     }
 
@@ -211,10 +211,6 @@ sealed class LocalSession<TInput> : INetcodeSession<TInput> where TInput : unman
     public void SetHandler(INetcodeSessionHandler handler)
     {
         ArgumentNullException.ThrowIfNull(handler);
-
-        if (handler is INetcodeSessionHandler<TInput> inputHandler)
-            inputHandler.ConfigureSession(this);
-
         callbacks = handler;
     }
 }
