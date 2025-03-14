@@ -122,8 +122,9 @@ sealed class SpectatorSession<TInput> :
     public int NumberOfSpectators => 0;
     public int LocalPort => udp.BindPort;
 
-    public ReadOnlySpan<SynchronizedInput<TInput>> GetSynchronizedInputs() => syncInputBuffer;
-    public ReadOnlySpan<TInput> GetInputs() => inputBuffer;
+    public ReadOnlySpan<SynchronizedInput<TInput>> CurrentSynchronizedInputs => syncInputBuffer;
+
+    public ReadOnlySpan<TInput> CurrentInputs => inputBuffer;
 
     public SessionMode Mode => SessionMode.Spectator;
 
@@ -309,12 +310,6 @@ sealed class SpectatorSession<TInput> :
             return false;
         }
     }
-
-    public ref readonly SynchronizedInput<TInput> GetInput(int index) =>
-        ref syncInputBuffer[index];
-
-    public ref readonly SynchronizedInput<TInput> GetInput(in PlayerHandle player) =>
-        ref syncInputBuffer[player.Number - 1];
 
     bool IProtocolInputEventPublisher<ConfirmedInputs<TInput>>.Publish(in GameInputEvent<ConfirmedInputs<TInput>> evt)
     {

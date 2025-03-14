@@ -351,14 +351,15 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
         }
     }
 
-    public ref readonly SynchronizedInput<TInput> GetInput(int index) =>
-        ref syncInputBuffer[index];
-
     public ref readonly SynchronizedInput<TInput> GetInput(in PlayerHandle player) =>
         ref syncInputBuffer[player.InternalQueue];
 
-    public ReadOnlySpan<SynchronizedInput<TInput>> GetSynchronizedInputs() => syncInputBuffer;
-    public ReadOnlySpan<TInput> GetInputs() => inputBuffer;
+    public ref readonly SynchronizedInput<TInput> GetInput(int index) =>
+        ref syncInputBuffer[index];
+
+    public ReadOnlySpan<SynchronizedInput<TInput>> CurrentSynchronizedInputs => syncInputBuffer;
+
+    public ReadOnlySpan<TInput> CurrentInputs => inputBuffer;
 
     public void AdvanceFrame()
     {

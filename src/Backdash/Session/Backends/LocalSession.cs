@@ -51,8 +51,9 @@ sealed class LocalSession<TInput> : INetcodeSession<TInput> where TInput : unman
     public int LocalPort => 0;
     public INetcodeRandom Random => random;
 
-    public ReadOnlySpan<SynchronizedInput<TInput>> GetSynchronizedInputs() => syncInputBuffer;
-    public ReadOnlySpan<TInput> GetInputs() => inputBuffer;
+    public ReadOnlySpan<SynchronizedInput<TInput>> CurrentSynchronizedInputs => syncInputBuffer;
+
+    public ReadOnlySpan<TInput> CurrentInputs => inputBuffer;
 
     public Frame CurrentFrame { get; private set; } = Frame.Zero;
     public SessionMode Mode => SessionMode.Local;
@@ -148,12 +149,6 @@ sealed class LocalSession<TInput> : INetcodeSession<TInput> where TInput : unman
         random.UpdateSeed(CurrentFrame, inputBuffer);
         return ResultCode.Ok;
     }
-
-    public ref readonly SynchronizedInput<TInput> GetInput(in PlayerHandle player) =>
-        ref syncInputBuffer[player.InternalQueue];
-
-    public ref readonly SynchronizedInput<TInput> GetInput(int index) =>
-        ref syncInputBuffer[index];
 
     public void AdvanceFrame()
     {

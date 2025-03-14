@@ -97,8 +97,9 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
     public FrameSpan FramesBehind => synchronizer.FramesBehind;
     public FrameSpan RollbackFrames => synchronizer.RollbackFrames;
 
-    public ReadOnlySpan<SynchronizedInput<TInput>> GetSynchronizedInputs() => syncInputBuffer;
-    public ReadOnlySpan<TInput> GetInputs() => inputBuffer;
+    public ReadOnlySpan<SynchronizedInput<TInput>> CurrentSynchronizedInputs => syncInputBuffer;
+
+    public ReadOnlySpan<TInput> CurrentInputs => inputBuffer;
 
     public SavedFrame GetCurrentSavedFrame() => synchronizer.GetLastSavedFrame();
 
@@ -201,12 +202,6 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
 
         return ResultCode.Ok;
     }
-
-    public ref readonly SynchronizedInput<TInput> GetInput(in PlayerHandle player) =>
-        ref syncInputBuffer[player.InternalQueue];
-
-    public ref readonly SynchronizedInput<TInput> GetInput(int index) =>
-        ref syncInputBuffer[index];
 
     public bool LoadFrame(in Frame frame)
     {

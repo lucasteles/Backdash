@@ -231,38 +231,41 @@ public interface INetcodeSession<TInput> : INetcodeSession where TInput : unmana
     ResultCode SynchronizeInputs();
 
     /// <summary>
-    ///     Returns the value of a synchronized input for the requested <paramref name="player" />.
-    ///     This must be called after <see cref="SynchronizeInputs" />
-    /// </summary>
-    ref readonly SynchronizedInput<TInput> GetInput(in PlayerHandle player);
-
-    /// <summary>
-    ///     Returns the value of a synchronized input for the requested player index.
-    ///     This must be called after <see cref="SynchronizeInputs" />
-    /// </summary>
-    ref readonly SynchronizedInput<TInput> GetInput(int index);
-
-    /// <summary>
     ///     Return all synchronized inputs with connect status.
     ///     This must be called after <see cref="SynchronizeInputs" />
     /// </summary>
-    ReadOnlySpan<SynchronizedInput<TInput>> GetSynchronizedInputs();
+    ReadOnlySpan<SynchronizedInput<TInput>> CurrentSynchronizedInputs { get; }
 
     /// <summary>
     ///     Return all synchronized inputs.
     ///     This must be called after <see cref="SynchronizeInputs" />
     /// </summary>
-    ReadOnlySpan<TInput> GetInputs();
+    ReadOnlySpan<TInput> CurrentInputs { get; }
+
+
+    /// <summary>
+    ///     Returns the value of a synchronized input for the requested <paramref name="player" />.
+    ///     This must be called after <see cref="SynchronizeInputs" />
+    /// </summary>
+    ref readonly SynchronizedInput<TInput> GetInput(in PlayerHandle player) =>
+        ref CurrentSynchronizedInputs[player.InternalQueue];
+
+    /// <summary>
+    ///     Returns the value of a synchronized input for the requested player index.
+    ///     This must be called after <see cref="SynchronizeInputs" />
+    /// </summary>
+    ref readonly SynchronizedInput<TInput> GetInput(int index) =>
+        ref CurrentSynchronizedInputs[index];
 
     /// <summary>
     ///     Copy the value of all synchronized inputs into the <paramref name="buffer" />.
     ///     This must be called after <see cref="SynchronizeInputs" />
     /// </summary>
-    void GetInputs(Span<SynchronizedInput<TInput>> buffer) => GetSynchronizedInputs().CopyTo(buffer);
+    void GetInputs(Span<SynchronizedInput<TInput>> buffer) => CurrentSynchronizedInputs.CopyTo(buffer);
 
     /// <summary>
     ///     Copy the value of all synchronized inputs into the <paramref name="buffer" />.
     ///     This must be called after <see cref="SynchronizeInputs" />
     /// </summary>
-    void GetInputs(Span<TInput> buffer) => GetInputs().CopyTo(buffer);
+    void GetInputs(Span<TInput> buffer) => CurrentInputs.CopyTo(buffer);
 }
