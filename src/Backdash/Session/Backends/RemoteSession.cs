@@ -154,14 +154,14 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
 
     public SessionMode Mode => SessionMode.Remote;
 
-    public IReadOnlyCollection<PlayerHandle> GetPlayers() => addedPlayers;
-    public IReadOnlyCollection<PlayerHandle> GetSpectators() => addedSpectators;
+    public IReadOnlySet<PlayerHandle> GetPlayers() => addedPlayers;
+    public IReadOnlySet<PlayerHandle> GetSpectators() => addedSpectators;
 
-    public bool TryGetLocalPlayer(out PlayerHandle player)
+    public bool TryGetPlayer(PlayerType playerType, out PlayerHandle player)
     {
         foreach (var p in addedPlayers)
         {
-            if (!p.IsLocal()) continue;
+            if (p.Type != playerType) continue;
             player = p;
             return true;
         }

@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using System.Diagnostics;
 using System.Net;
 using Backdash.Core;
@@ -29,7 +30,7 @@ sealed class SpectatorSession<TInput> :
     readonly ConnectionsState localConnections = new(0);
     readonly GameInput<ConfirmedInputs<TInput>>[] inputs;
     readonly PeerConnection<ConfirmedInputs<TInput>> host;
-    readonly PlayerHandle[] fakePlayers;
+    readonly FrozenSet<PlayerHandle> fakePlayers;
     readonly IDeterministicRandom<TInput> random;
 
     INetcodeSessionHandler callbacks;
@@ -65,7 +66,7 @@ sealed class SpectatorSession<TInput> :
         checksumProvider = services.ChecksumProvider;
         NumberOfPlayers = options.NumberOfPlayers;
         fakePlayers = Enumerable.Range(0, options.NumberOfPlayers)
-            .Select(x => new PlayerHandle(PlayerType.Remote, x + 1, x)).ToArray();
+            .Select(x => new PlayerHandle(PlayerType.Remote, x + 1, x)).ToFrozenSet();
         IBinarySerializer<ConfirmedInputs<TInput>> inputGroupSerializer =
             new ConfirmedInputsSerializer<TInput>(services.InputSerializer);
         PeerObserverGroup<ProtocolMessage> peerObservers = new();
@@ -128,8 +129,8 @@ sealed class SpectatorSession<TInput> :
 
     public void DisconnectPlayer(in PlayerHandle player) { }
     public ResultCode AddLocalInput(PlayerHandle player, in TInput localInput) => ResultCode.Ok;
-    public IReadOnlyCollection<PlayerHandle> GetPlayers() => fakePlayers;
-    public IReadOnlyCollection<PlayerHandle> GetSpectators() => [];
+    public IReadOnlySet<PlayerHandle> GetPlayers() => fakePlayers;
+    public IReadOnlySet<PlayerHandle> GetSpectators() => FrozenSet<PlayerHandle>.Empty;
 
     public void BeginFrame()
     {

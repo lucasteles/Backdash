@@ -13,8 +13,7 @@ public enum GameInput
     Right = 1 << 3,
 }
 
-[Serializable]
-public record struct GameState
+public class GameState
 {
     public Vector2 Position1;
     public Vector2 Position2;

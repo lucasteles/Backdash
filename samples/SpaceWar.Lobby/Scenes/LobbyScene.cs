@@ -402,7 +402,7 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
 
         var netcodeSession = NetcodeSessionBuilder()
             .WithPlayerCount(playerCount)
-            .ForSpectator(opt => opt.HostEndPoint = hostEndpoint)
+            .ForSpectator(hostEndpoint)
             .Build();
 
         LoadScene(new BattleSessionScene(netcodeSession, lobbyInfo.Players));

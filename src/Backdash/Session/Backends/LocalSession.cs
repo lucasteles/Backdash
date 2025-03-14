@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network;
@@ -59,9 +60,9 @@ sealed class LocalSession<TInput> : INetcodeSession<TInput> where TInput : unman
     public FrameSpan RollbackFrames => FrameSpan.Zero;
     public SavedFrame GetCurrentSavedFrame() => stateStore.Last();
 
-    public IReadOnlyCollection<PlayerHandle> GetPlayers() => addedPlayers;
+    public IReadOnlySet<PlayerHandle> GetPlayers() => addedPlayers;
 
-    public IReadOnlyCollection<PlayerHandle> GetSpectators() => [];
+    public IReadOnlySet<PlayerHandle> GetSpectators() => FrozenSet<PlayerHandle>.Empty;
     public void DisconnectPlayer(in PlayerHandle player) { }
 
     public void Start(CancellationToken stoppingToken = default)

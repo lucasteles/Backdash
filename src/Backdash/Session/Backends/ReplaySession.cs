@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network;
@@ -13,7 +14,7 @@ namespace Backdash.Backends;
 sealed class ReplaySession<TInput> : INetcodeSession<TInput> where TInput : unmanaged
 {
     readonly Logger logger;
-    readonly PlayerHandle[] fakePlayers;
+    readonly FrozenSet<PlayerHandle> fakePlayers;
     INetcodeSessionHandler callbacks;
     bool isSynchronizing = true;
     SynchronizedInput<TInput>[] syncInputBuffer = [];
@@ -50,7 +51,7 @@ sealed class ReplaySession<TInput> : INetcodeSession<TInput> where TInput : unma
         callbacks = new EmptySessionHandler(logger);
         fakePlayers = Enumerable.Range(0, NumberOfPlayers)
             .Select(x => new PlayerHandle(PlayerType.Remote, x + 1, x))
-            .ToArray();
+            .ToFrozenSet();
 
         stateStore.Initialize(controls.MaxBackwardFrames);
     }
@@ -86,8 +87,8 @@ sealed class ReplaySession<TInput> : INetcodeSession<TInput> where TInput : unma
     public SessionMode Mode => SessionMode.Replay;
     public void DisconnectPlayer(in PlayerHandle player) { }
     public ResultCode AddLocalInput(PlayerHandle player, in TInput localInput) => ResultCode.Ok;
-    public IReadOnlyCollection<PlayerHandle> GetPlayers() => fakePlayers;
-    public IReadOnlyCollection<PlayerHandle> GetSpectators() => [];
+    public IReadOnlySet<PlayerHandle> GetPlayers() => fakePlayers;
+    public IReadOnlySet<PlayerHandle> GetSpectators() => FrozenSet<PlayerHandle>.Empty;
     public ReadOnlySpan<SynchronizedInput<TInput>> GetSynchronizedInputs() => syncInputBuffer;
     public ReadOnlySpan<TInput> GetInputs() => inputBuffer;
 

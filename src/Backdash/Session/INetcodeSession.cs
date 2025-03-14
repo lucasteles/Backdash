@@ -154,28 +154,37 @@ public interface INetcodeSession : INetcodeSessionInfo, IDisposable
     /// <summary>
     ///     Returns a list of all input players in the session.
     /// </summary>
-    IReadOnlyCollection<PlayerHandle> GetPlayers();
+    IReadOnlySet<PlayerHandle> GetPlayers();
 
     /// <summary>
     ///     Returns a list of all spectators in the session.
     /// </summary>
-    IReadOnlyCollection<PlayerHandle> GetSpectators();
-
+    IReadOnlySet<PlayerHandle> GetSpectators();
 
     /// <summary>
-    ///     Tries to get a single local player
+    ///     Tries to get first player of type <paramref name="playerType"/>
     /// </summary>
-    bool TryGetLocalPlayer(out PlayerHandle player)
+    bool TryGetPlayer(PlayerType playerType, out PlayerHandle player)
     {
-        if (GetPlayers().Cast<PlayerHandle?>().FirstOrDefault(p => p?.IsLocal() is true) is { } local)
+        if (GetPlayers().Cast<PlayerHandle?>().FirstOrDefault(p => p?.Type == playerType) is { } found)
         {
-            player = local;
+            player = found;
             return true;
         }
 
         player = default;
         return true;
     }
+
+    /// <summary>
+    ///     Tries to get first local player
+    /// </summary>
+    bool TryGetLocalPlayer(out PlayerHandle player) => TryGetPlayer(PlayerType.Local, out player);
+
+    /// <summary>
+    ///     Tries to get first remote player
+    /// </summary>
+    bool TryGetRemotePlayer(out PlayerHandle player) => TryGetPlayer(PlayerType.Remote, out player);
 
     /// <summary>
     ///     Starts the background work for the session.

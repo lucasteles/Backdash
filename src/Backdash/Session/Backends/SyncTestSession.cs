@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Collections.Frozen;
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network;
@@ -42,6 +43,11 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
     GameInput<TInput> currentInput;
     GameInput<TInput> lastInput;
     Frame lastVerified = Frame.Zero;
+
+    readonly IReadOnlySet<PlayerHandle> localPlayerFallback = new HashSet<PlayerHandle>
+    {
+        new(PlayerType.Local, 1, 0),
+    }.ToFrozenSet();
 
     public SyncTestSession(
         SyncTestOptions<TInput> syncTestOptions,
@@ -96,10 +102,10 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
 
     public SavedFrame GetCurrentSavedFrame() => synchronizer.GetLastSavedFrame();
 
-    public IReadOnlyCollection<PlayerHandle> GetPlayers() =>
-        addedPlayers.Count is 0 ? [new(PlayerType.Local, 1, 0)] : addedPlayers;
+    public IReadOnlySet<PlayerHandle> GetPlayers() =>
+        addedPlayers.Count is 0 ? localPlayerFallback : addedPlayers;
 
-    public IReadOnlyCollection<PlayerHandle> GetSpectators() => addedSpectators;
+    public IReadOnlySet<PlayerHandle> GetSpectators() => addedSpectators;
     public void DisconnectPlayer(in PlayerHandle player) { }
 
     public void Start(CancellationToken stoppingToken = default)

@@ -7,7 +7,7 @@ namespace Backdash;
 
 /// <summary>
 ///     Defines the callback functions that your application must implement.
-///     Backdash will periodically call these functions during the game.
+///     Backdash will periodically call these functions during the session lifecycle.
 /// </summary>
 public interface INetcodeSessionHandler
 {

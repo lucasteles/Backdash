@@ -27,21 +27,33 @@ public sealed class Game : INetcodeSessionHandler
         view = new();
         this.session = session;
         this.cancellation = cancellation;
-        var players = session.GetPlayers();
-        nonGameState =
-            players.Any(x => x.IsLocal())
-                ? new()
-                {
-                    LocalPlayer = players.Single(x => x.IsLocal()),
-                    RemotePlayer = players.Single(x => x.IsRemote()),
-                    SessionInfo = session,
-                }
-                : new()
-                {
-                    LocalPlayer = null,
-                    RemotePlayer = default,
-                    SessionInfo = session,
-                };
+
+        if (session.IsRemote())
+        {
+            if (!session.TryGetLocalPlayer(out var localPlayer))
+                throw new InvalidOperationException("Local player not found");
+
+            if (!session.TryGetRemotePlayer(out var remote))
+                throw new InvalidOperationException("Remote player not found");
+
+            nonGameState = new()
+            {
+                LocalPlayer = localPlayer,
+                RemotePlayer = remote,
+                SessionInfo = session,
+            };
+        }
+        else if (session.IsSpectator())
+        {
+            nonGameState = new()
+            {
+                LocalPlayer = null,
+                RemotePlayer = default,
+                SessionInfo = session,
+            };
+        }
+        else
+            throw new InvalidOperationException($"not supported session mode: {session.Mode}");
     }
 
     // Game Loop
