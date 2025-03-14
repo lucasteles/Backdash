@@ -93,15 +93,17 @@ public sealed class Game : INetcodeSessionHandler
             return;
         }
 
-        var (input1, input2) = (session.GetInput(0), session.GetInput(1));
-        GameLogic.AdvanceState(session.Random, ref currentState, input1, input2);
+        GameLogic.AdvanceState(
+            session.Random,
+            ref currentState,
+            session.GetInput(0),
+            session.GetInput(1)
+        );
         session.AdvanceFrame();
     }
 
     static void Log(string message) =>
-#pragma warning disable S6670
-        Trace.WriteLine($"{DateTime.UtcNow:hh:mm:ss.zzz} GAME => {message}");
-#pragma warning restore S6670
+        Trace.TraceInformation($"{DateTime.UtcNow:hh:mm:ss.zzz} GAME => {message}");
 
     // Session Callbacks
     public void OnSessionStart()

@@ -282,7 +282,7 @@ public sealed record GameState
         }
     }
 
-    public void Update(SynchronizedInput<PlayerInputs>[] inputs)
+    public void Update(ReadOnlySpan<SynchronizedInput<PlayerInputs>> inputs)
     {
         FrameNumber++;
         for (var i = 0; i < NumberOfShips; i++)
