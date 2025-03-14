@@ -1,4 +1,3 @@
-using Backdash.Data;
 using Backdash.Synchronizing.Random;
 
 namespace Backdash.Tests.Specs.Unit.Sync.Input;

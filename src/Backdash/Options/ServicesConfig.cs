@@ -4,7 +4,7 @@ using Backdash.Synchronizing.Input.Confirmed;
 using Backdash.Synchronizing.Random;
 using Backdash.Synchronizing.State;
 
-namespace Backdash;
+namespace Backdash.Options;
 
 /// <summary>
 ///     Session dependencies.

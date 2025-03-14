@@ -4,7 +4,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using Backdash;
 using Backdash.Core;
-using Backdash.Data;
 using ConsoleGame;
 
 var frameDuration = FrameSpan.GetDuration(1);

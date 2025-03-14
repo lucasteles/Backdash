@@ -2,7 +2,6 @@ using System.Buffers;
 using System.Collections.Frozen;
 using System.Diagnostics.CodeAnalysis;
 using Backdash.Core;
-using Backdash.Data;
 using Backdash.Network;
 using Backdash.Options;
 using Backdash.Serialization;

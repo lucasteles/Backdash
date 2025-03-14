@@ -4,7 +4,6 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Backdash.Core;
-using Backdash.Data;
 using Backdash.Network;
 
 namespace Backdash.Serialization;
