@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using Backdash.Data;
 using Backdash.Network;
 using Backdash.Synchronizing;
 using Backdash.Synchronizing.Random;
@@ -8,9 +7,9 @@ using Backdash.Synchronizing.State;
 namespace Backdash;
 
 /// <summary>
-///     Provides basic session information.
+///     Contract for managing a netcode session.
 /// </summary>
-public interface INetcodeSession
+public interface INetcodeSessionInfo
 {
     /// <summary>
     ///     Returns the number of player in the current session.
@@ -51,26 +50,14 @@ public interface INetcodeSession
 }
 
 /// <summary>
-///     Contract for a netcode game session.
+///     Contract for managing a netcode session.
 /// </summary>
-/// <typeparam name="TInput">Game input type</typeparam>
-public interface INetcodeGameSession<TInput> : INetcodeSession where TInput : unmanaged
+public interface INetcodeSession : INetcodeSessionInfo, IDisposable
 {
     /// <summary>
-    ///     Deterministic random value generator.
-    ///     Must be called after <see cref="SynchronizeInputs" />.
+    ///     Returns session info
     /// </summary>
-    INetcodeRandom Random { get; }
-
-    /// <summary>
-    ///     Returns a list of all input players in the session.
-    /// </summary>
-    IReadOnlyCollection<PlayerHandle> GetPlayers();
-
-    /// <summary>
-    ///     Returns a list of all spectators in the session.
-    /// </summary>
-    IReadOnlyCollection<PlayerHandle> GetSpectators();
+    INetcodeSessionInfo GetInfo() => this;
 
     /// <summary>
     ///     Returns the checksum of the last saved state.
@@ -81,52 +68,6 @@ public interface INetcodeGameSession<TInput> : INetcodeSession where TInput : un
     ///     Disconnects a remote player from a game.
     /// </summary>
     void DisconnectPlayer(in PlayerHandle player);
-
-    /// <summary>
-    ///     Used add local inputs and notify the netcode that they should be transmitted to remote players.
-    ///     This must be called once every frame for all player of type <see cref="PlayerType.Local" />.
-    /// </summary>
-    /// <param name="player">Player owner of the inputs</param>
-    /// <param name="localInput">The input value</param>
-    ResultCode AddLocalInput(PlayerHandle player, in TInput localInput);
-
-    /// <summary>
-    ///     Synchronizes the inputs of the local and remote players into a local buffer.
-    ///     You should call this before every frame of execution, including those frames which happen during rollback.
-    /// </summary>
-    ResultCode SynchronizeInputs();
-
-    /// <summary>
-    ///     Returns the value of a synchronized input for the requested <paramref name="player" />.
-    ///     This must be called after <see cref="SynchronizeInputs" />
-    /// </summary>
-    ref readonly SynchronizedInput<TInput> GetInput(in PlayerHandle player);
-
-    /// <summary>
-    ///     Returns the value of a synchronized input for the requested player index.
-    ///     This must be called after <see cref="SynchronizeInputs" />
-    /// </summary>
-    ref readonly SynchronizedInput<TInput> GetInput(int index);
-
-    /// <summary>
-    ///     Copy the value of all synchronized inputs into the <paramref name="buffer" />.
-    ///     This must be called after <see cref="SynchronizeInputs" />
-    /// </summary>
-    void GetInputs(Span<SynchronizedInput<TInput>> buffer)
-    {
-        for (var i = 0; i < buffer.Length; i++)
-            buffer[i] = GetInput(i);
-    }
-
-    /// <summary>
-    ///     Copy the value of all synchronized inputs into the <paramref name="buffer" />.
-    ///     This must be called after <see cref="SynchronizeInputs" />
-    /// </summary>
-    void GetInputs(Span<TInput> buffer)
-    {
-        for (var i = 0; i < buffer.Length; i++)
-            buffer[i] = GetInput(i);
-    }
 
     /// <summary>
     ///     Should be called at the start of each frame of your application.
@@ -193,14 +134,7 @@ public interface INetcodeGameSession<TInput> : INetcodeSession where TInput : un
     ///     Return true if the session is <see cref="SessionMode.SyncTest" />
     /// </summary>
     bool IsSyncTest() => Mode is SessionMode.SyncTest;
-}
 
-/// <summary>
-///     Contract for managing a netcode session.
-/// </summary>
-/// <typeparam name="TInput">Game input type</typeparam>
-public interface INetcodeSession<TInput> : INetcodeGameSession<TInput>, IDisposable where TInput : unmanaged
-{
     /// <summary>
     ///     Add the <paramref name="player" /> into current session.
     ///     Usually an instance of <see cref="LocalPlayer" />, <see cref="RemotePlayer" /> or <see cref="Spectator" />.
@@ -215,6 +149,41 @@ public interface INetcodeSession<TInput> : INetcodeGameSession<TInput>, IDisposa
     /// </summary>
     /// <returns>An equivalent <see cref="ResultCode" /> list.</returns>
     IReadOnlyList<ResultCode> AddPlayers(IReadOnlyList<Player> players);
+
+    /// <summary>
+    ///     Returns a list of all input players in the session.
+    /// </summary>
+    IReadOnlySet<PlayerHandle> GetPlayers();
+
+    /// <summary>
+    ///     Returns a list of all spectators in the session.
+    /// </summary>
+    IReadOnlySet<PlayerHandle> GetSpectators();
+
+    /// <summary>
+    ///     Tries to get first player of type <paramref name="playerType"/>
+    /// </summary>
+    bool TryGetPlayer(PlayerType playerType, out PlayerHandle player)
+    {
+        if (GetPlayers().Cast<PlayerHandle?>().FirstOrDefault(p => p?.Type == playerType) is { } found)
+        {
+            player = found;
+            return true;
+        }
+
+        player = default;
+        return true;
+    }
+
+    /// <summary>
+    ///     Tries to get first local player
+    /// </summary>
+    bool TryGetLocalPlayer(out PlayerHandle player) => TryGetPlayer(PlayerType.Local, out player);
+
+    /// <summary>
+    ///     Tries to get first remote player
+    /// </summary>
+    bool TryGetRemotePlayer(out PlayerHandle player) => TryGetPlayer(PlayerType.Remote, out player);
 
     /// <summary>
     ///     Starts the background work for the session.
@@ -232,4 +201,70 @@ public interface INetcodeSession<TInput> : INetcodeGameSession<TInput>, IDisposa
     ///     The client must call this before <see cref="Start" />.
     /// </summary>
     void SetHandler(INetcodeSessionHandler handler);
+}
+
+/// <summary>
+///     Contract for managing a netcode session.
+/// </summary>
+/// <typeparam name="TInput">Game input type</typeparam>
+public interface INetcodeSession<TInput> : INetcodeSession where TInput : unmanaged
+{
+    /// <summary>
+    ///     Deterministic random value generator.
+    ///     Must be called after <see cref="SynchronizeInputs" />.
+    /// </summary>
+    INetcodeRandom Random { get; }
+
+    /// <summary>
+    ///     Used add local inputs and notify the netcode that they should be transmitted to remote players.
+    ///     This must be called once every frame for all player of type <see cref="PlayerType.Local" />.
+    /// </summary>
+    /// <param name="player">Player owner of the inputs</param>
+    /// <param name="localInput">The input value</param>
+    ResultCode AddLocalInput(PlayerHandle player, in TInput localInput);
+
+    /// <summary>
+    ///     Synchronizes the inputs of the local and remote players into a local buffer.
+    ///     You should call this before every frame of execution, including those frames which happen during rollback.
+    /// </summary>
+    ResultCode SynchronizeInputs();
+
+    /// <summary>
+    ///     Return all synchronized inputs with connect status.
+    ///     This must be called after <see cref="SynchronizeInputs" />
+    /// </summary>
+    ReadOnlySpan<SynchronizedInput<TInput>> CurrentSynchronizedInputs { get; }
+
+    /// <summary>
+    ///     Return all synchronized inputs.
+    ///     This must be called after <see cref="SynchronizeInputs" />
+    /// </summary>
+    ReadOnlySpan<TInput> CurrentInputs { get; }
+
+
+    /// <summary>
+    ///     Returns the value of a synchronized input for the requested <paramref name="player" />.
+    ///     This must be called after <see cref="SynchronizeInputs" />
+    /// </summary>
+    ref readonly SynchronizedInput<TInput> GetInput(in PlayerHandle player) =>
+        ref CurrentSynchronizedInputs[player.InternalQueue];
+
+    /// <summary>
+    ///     Returns the value of a synchronized input for the requested player index.
+    ///     This must be called after <see cref="SynchronizeInputs" />
+    /// </summary>
+    ref readonly SynchronizedInput<TInput> GetInput(int index) =>
+        ref CurrentSynchronizedInputs[index];
+
+    /// <summary>
+    ///     Copy the value of all synchronized inputs into the <paramref name="buffer" />.
+    ///     This must be called after <see cref="SynchronizeInputs" />
+    /// </summary>
+    void GetInputs(Span<SynchronizedInput<TInput>> buffer) => CurrentSynchronizedInputs.CopyTo(buffer);
+
+    /// <summary>
+    ///     Copy the value of all synchronized inputs into the <paramref name="buffer" />.
+    ///     This must be called after <see cref="SynchronizeInputs" />
+    /// </summary>
+    void GetInputs(Span<TInput> buffer) => CurrentInputs.CopyTo(buffer);
 }

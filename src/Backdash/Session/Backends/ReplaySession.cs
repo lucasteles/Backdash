@@ -1,5 +1,6 @@
+using System.Collections.Frozen;
+using System.Diagnostics.CodeAnalysis;
 using Backdash.Core;
-using Backdash.Data;
 using Backdash.Network;
 using Backdash.Options;
 using Backdash.Serialization;
@@ -10,10 +11,10 @@ using Backdash.Synchronizing.State;
 
 namespace Backdash.Backends;
 
-sealed class ReplayBackend<TInput> : INetcodeSession<TInput> where TInput : unmanaged
+sealed class ReplaySession<TInput> : INetcodeSession<TInput> where TInput : unmanaged
 {
     readonly Logger logger;
-    readonly PlayerHandle[] fakePlayers;
+    readonly FrozenSet<PlayerHandle> fakePlayers;
     INetcodeSessionHandler callbacks;
     bool isSynchronizing = true;
     SynchronizedInput<TInput>[] syncInputBuffer = [];
@@ -23,16 +24,17 @@ sealed class ReplayBackend<TInput> : INetcodeSession<TInput> where TInput : unma
     bool closed;
 
     readonly IReadOnlyList<ConfirmedInputs<TInput>> inputList;
-    readonly SessionReplayControl controls;
     readonly IStateStore stateStore;
     readonly IChecksumProvider checksumProvider;
     readonly IDeterministicRandom<TInput> random;
     readonly Endianness endianness;
 
-    public ReplayBackend(
+    public SessionReplayControl ReplayController { get; }
+
+    public ReplaySession(
         SessionReplayOptions<TInput> replayOptions,
         NetcodeOptions options,
-        BackendServices<TInput> services
+        SessionServices<TInput> services
     )
     {
         ArgumentNullException.ThrowIfNull(options);
@@ -40,19 +42,19 @@ sealed class ReplayBackend<TInput> : INetcodeSession<TInput> where TInput : unma
         ArgumentNullException.ThrowIfNull(services);
 
         inputList = replayOptions.InputList;
-        controls = replayOptions.ReplayController ?? new();
+        ReplayController = replayOptions.ReplayController ?? new();
         logger = services.Logger;
         stateStore = services.StateStore;
         checksumProvider = services.ChecksumProvider;
         random = services.DeterministicRandom;
         NumberOfPlayers = options.NumberOfPlayers;
         endianness = options.GetStateSerializationEndianness();
-        callbacks = new EmptySessionHandler(logger);
+        callbacks = services.SessionHandler;
         fakePlayers = Enumerable.Range(0, NumberOfPlayers)
             .Select(x => new PlayerHandle(PlayerType.Remote, x + 1, x))
-            .ToArray();
+            .ToFrozenSet();
 
-        stateStore.Initialize(controls.MaxBackwardFrames);
+        stateStore.Initialize(ReplayController.MaxBackwardFrames);
     }
 
     public void Dispose()
@@ -86,17 +88,20 @@ sealed class ReplayBackend<TInput> : INetcodeSession<TInput> where TInput : unma
     public SessionMode Mode => SessionMode.Replay;
     public void DisconnectPlayer(in PlayerHandle player) { }
     public ResultCode AddLocalInput(PlayerHandle player, in TInput localInput) => ResultCode.Ok;
-    public IReadOnlyCollection<PlayerHandle> GetPlayers() => fakePlayers;
-    public IReadOnlyCollection<PlayerHandle> GetSpectators() => [];
+    public IReadOnlySet<PlayerHandle> GetPlayers() => fakePlayers;
+    public IReadOnlySet<PlayerHandle> GetSpectators() => FrozenSet<PlayerHandle>.Empty;
+
+    public ReadOnlySpan<SynchronizedInput<TInput>> CurrentSynchronizedInputs => syncInputBuffer;
+    public ReadOnlySpan<TInput> CurrentInputs => inputBuffer;
 
     public void BeginFrame() { }
 
     public void AdvanceFrame()
     {
-        if (controls.IsPaused)
+        if (ReplayController.IsPaused)
             return;
 
-        if (controls.IsBackward)
+        if (ReplayController.IsBackward)
         {
             LoadFrame(CurrentFrame.Previous());
         }
@@ -128,6 +133,7 @@ sealed class ReplayBackend<TInput> : INetcodeSession<TInput> where TInput : unma
 
     public Task WaitToStop(CancellationToken stoppingToken = default) => Task.CompletedTask;
 
+    [MemberNotNull(nameof(callbacks))]
     public void SetHandler(INetcodeSessionHandler handler)
     {
         ArgumentNullException.ThrowIfNull(handler);
@@ -136,7 +142,7 @@ sealed class ReplayBackend<TInput> : INetcodeSession<TInput> where TInput : unma
 
     public ResultCode SynchronizeInputs()
     {
-        if (isSynchronizing || controls.IsPaused)
+        if (isSynchronizing || ReplayController.IsPaused)
             return ResultCode.NotSynchronized;
 
         if (CurrentFrame.Number >= inputList.Count)
@@ -201,17 +207,9 @@ sealed class ReplayBackend<TInput> : INetcodeSession<TInput> where TInput : unma
         }
         catch (NetcodeException)
         {
-            controls.IsBackward = false;
-            controls.Pause();
+            ReplayController.IsBackward = false;
+            ReplayController.Pause();
             return false;
         }
     }
-
-    public ref readonly SynchronizedInput<TInput> GetInput(int index) =>
-        ref syncInputBuffer[index];
-
-    public ref readonly SynchronizedInput<TInput> GetInput(in PlayerHandle player) =>
-        ref syncInputBuffer[player.Number - 1];
-
-    public SessionReplayControl ReplayController => controls;
 }

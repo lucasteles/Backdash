@@ -1,6 +1,7 @@
 using System.Buffers;
+using System.Collections.Frozen;
+using System.Diagnostics.CodeAnalysis;
 using Backdash.Core;
-using Backdash.Data;
 using Backdash.Network;
 using Backdash.Options;
 using Backdash.Serialization;
@@ -10,7 +11,7 @@ using Backdash.Synchronizing.State;
 
 namespace Backdash.Backends;
 
-sealed class SyncTestBackend<TInput> : INetcodeSession<TInput>
+sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
     where TInput : unmanaged
 {
     readonly record struct SavedFrameBytes(
@@ -43,10 +44,15 @@ sealed class SyncTestBackend<TInput> : INetcodeSession<TInput>
     GameInput<TInput> lastInput;
     Frame lastVerified = Frame.Zero;
 
-    public SyncTestBackend(
+    readonly IReadOnlySet<PlayerHandle> localPlayerFallback = new HashSet<PlayerHandle>
+    {
+        new(PlayerType.Local, 1, 0),
+    }.ToFrozenSet();
+
+    public SyncTestSession(
         SyncTestOptions<TInput> syncTestOptions,
         NetcodeOptions options,
-        BackendServices<TInput> services
+        SessionServices<TInput> services
     )
     {
         ArgumentNullException.ThrowIfNull(services);
@@ -60,9 +66,9 @@ sealed class SyncTestBackend<TInput> : INetcodeSession<TInput>
         random = services.DeterministicRandom;
         inputGenerator = syncTestOptions.InputProvider;
         mismatchHandler = syncTestOptions.DesyncHandler;
-        callbacks ??= new EmptySessionHandler(logger);
-        stateParser = syncTestOptions.StateStringParser ?? new HexStateStringParser();
+        callbacks = services.SessionHandler;
 
+        stateParser = syncTestOptions.StateStringParser ?? new HexStateStringParser();
         if (stateParser is JsonStateStringParser jsonParser)
             jsonParser.Logger = logger;
 
@@ -90,12 +96,17 @@ sealed class SyncTestBackend<TInput> : INetcodeSession<TInput>
     public SessionMode Mode => SessionMode.SyncTest;
     public FrameSpan FramesBehind => synchronizer.FramesBehind;
     public FrameSpan RollbackFrames => synchronizer.RollbackFrames;
+
+    public ReadOnlySpan<SynchronizedInput<TInput>> CurrentSynchronizedInputs => syncInputBuffer;
+
+    public ReadOnlySpan<TInput> CurrentInputs => inputBuffer;
+
     public SavedFrame GetCurrentSavedFrame() => synchronizer.GetLastSavedFrame();
 
-    public IReadOnlyCollection<PlayerHandle> GetPlayers() =>
-        addedPlayers.Count is 0 ? [new(PlayerType.Local, 1, 0)] : addedPlayers;
+    public IReadOnlySet<PlayerHandle> GetPlayers() =>
+        addedPlayers.Count is 0 ? localPlayerFallback : addedPlayers;
 
-    public IReadOnlyCollection<PlayerHandle> GetSpectators() => addedSpectators;
+    public IReadOnlySet<PlayerHandle> GetSpectators() => addedSpectators;
     public void DisconnectPlayer(in PlayerHandle player) { }
 
     public void Start(CancellationToken stoppingToken = default)
@@ -191,12 +202,6 @@ sealed class SyncTestBackend<TInput> : INetcodeSession<TInput>
 
         return ResultCode.Ok;
     }
-
-    public ref readonly SynchronizedInput<TInput> GetInput(in PlayerHandle player) =>
-        ref syncInputBuffer[player.InternalQueue];
-
-    public ref readonly SynchronizedInput<TInput> GetInput(int index) =>
-        ref syncInputBuffer[index];
 
     public bool LoadFrame(in Frame frame)
     {
@@ -331,6 +336,7 @@ sealed class SyncTestBackend<TInput> : INetcodeSession<TInput>
         synchronizer.SetFrameDelay(player, delayInFrames);
     }
 
+    [MemberNotNull(nameof(callbacks))]
     public void SetHandler(INetcodeSessionHandler handler)
     {
         ArgumentNullException.ThrowIfNull(handler);

@@ -44,9 +44,9 @@ static INetcodeSession<PlayerInputs> ParseSessionArgs(string[] args)
                 .ForLocal()
                 .Build();
 
-        case ["spectate", { } hostArg] when IPEndPoint.TryParse(hostArg, out var host):
+        case ["spectate", { } hostArg] when IPEndPoint.TryParse(hostArg, out var hostEndpoint):
             return builder
-                .ForSpectator(options => options.HostEndPoint = host)
+                .ForSpectator(hostEndpoint)
                 .Build();
 
         case ["replay", { } replayFile]:

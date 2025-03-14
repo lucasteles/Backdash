@@ -2,7 +2,7 @@ using System.Diagnostics;
 using System.Numerics;
 using Backdash.Serialization.Internal;
 
-namespace Backdash.Data;
+namespace Backdash;
 
 /// <summary>
 ///     Value representation of a span of frames
@@ -37,7 +37,7 @@ public readonly record struct FrameSpan :
     /// <summary>Returns max frame span value</summary>
     public static readonly FrameSpan MaxValue = new(int.MaxValue);
 
-    /// <summary>Returns the <see cref="int" /> count of frames in the current frame span <see cref="Data.Frame" />.</summary>
+    /// <summary>Returns the <see cref="int" /> count of frames in the current frame span <see cref="Frame" />.</summary>
     public readonly int FrameCount = 0;
 
     /// <summary>
@@ -53,7 +53,7 @@ public readonly record struct FrameSpan :
     /// <summary>Returns the time value for the current frame span in <see cref="TimeSpan" />.</summary>
     public TimeSpan Duration(short fps = DefaultFramesPerSecond) => GetDuration(FrameCount, fps);
 
-    /// <summary>Returns the value for the current frame span as a <see cref="Data.Frame" />.</summary>
+    /// <summary>Returns the value for the current frame span as a <see cref="Frame" />.</summary>
     public Frame FrameValue => new(FrameCount);
 
     /// <summary>
@@ -172,7 +172,7 @@ public readonly record struct FrameSpan :
     /// <inheritdoc />
     public static FrameSpan operator *(FrameSpan left, int right) => new(left.FrameCount * right);
 
-    /// <inheritdoc cref="op_Multiply(Backdash.Data.FrameSpan,int)" />
+    /// <inheritdoc cref="op_Multiply(Backdash.FrameSpan,int)" />
     public static FrameSpan operator *(int left, FrameSpan right) => right * left;
 
     /// <inheritdoc />

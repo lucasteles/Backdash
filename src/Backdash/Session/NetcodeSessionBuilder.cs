@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Net;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using Backdash.Backends;
@@ -24,8 +25,7 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
     readonly List<Player> playerList = [];
 
     SessionMode sessionMode = SessionMode.Remote;
-    INetcodeSessionHandler? sessionHandler;
-    SessionServices<TInput>? sessionServices;
+    ServicesConfig<TInput>? sessionServices;
 
     NetcodeOptions options = new();
     SyncTestOptions<TInput>? syncTestOptions;
@@ -43,7 +43,7 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
         this.options.EnsureDefaults();
         var options = this.options.CloneOptions();
 
-        BackendServices<TInput> services = new(
+        SessionServices<TInput> services = new(
             serializer.Invoke(options.Protocol.SerializationEndianness),
             options, sessionServices);
 
@@ -56,9 +56,6 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
                 throw new InvalidOperationException($"Failed to add player {playerList}: {addResult}");
         }
 
-        if (sessionHandler is not null)
-            session.SetHandler(sessionHandler);
-
         return session;
 
         INetcodeSession<TInput> GetSession()
@@ -66,19 +63,19 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
             switch (sessionMode)
             {
                 case SessionMode.Remote:
-                    return new RemoteBackend<TInput>(options, services);
+                    return new RemoteSession<TInput>(options, services);
                 case SessionMode.Local:
                     ConfigureLocal();
-                    return new LocalBackend<TInput>(options, services);
+                    return new LocalSession<TInput>(options, services);
                 case SessionMode.Spectator:
                     ConfigureSpectator();
-                    return new SpectatorBackend<TInput>(spectatorOptions, options, services);
+                    return new SpectatorSession<TInput>(spectatorOptions, options, services);
                 case SessionMode.Replay:
                     ConfigureReplay();
-                    return new ReplayBackend<TInput>(replayOptions, options, services);
+                    return new ReplaySession<TInput>(replayOptions, options, services);
                 case SessionMode.SyncTest:
                     ConfigureSyncTest();
-                    return new SyncTestBackend<TInput>(syncTestOptions, options, services);
+                    return new SyncTestSession<TInput>(syncTestOptions, options, services);
                 default:
                     throw new InvalidOperationException($"Unknown session mode: {sessionMode}");
             }
@@ -102,6 +99,12 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
     ///     Set the <see cref="SessionMode" /> as <see cref="SessionMode.Local" />.
     /// </summary>
     public NetcodeSessionBuilder<TInput> ForLocal() => WithMode(SessionMode.Local);
+
+    /// <summary>
+    ///     Set the <see cref="SessionMode" /> as <see cref="SessionMode.Spectator" />.
+    /// </summary>
+    public NetcodeSessionBuilder<TInput> ForSpectator(IPEndPoint hostEndpoint) =>
+        ConfigureSpectator(options => options.HostEndPoint = hostEndpoint);
 
     /// <summary>
     ///     Set the <see cref="SessionMode" /> as <see cref="SessionMode.Spectator" />.
@@ -172,12 +175,11 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
     ///     Set the session handler for the <see cref="INetcodeSession{TInput}" />
     /// </summary>
     /// <seealso cref="INetcodeSessionHandler" />
-    /// <seealso cref="INetcodeSession{TInput}.SetHandler" />
+    /// <seealso cref="INetcodeSession.SetHandler" />
     public NetcodeSessionBuilder<TInput> WithHandler(INetcodeSessionHandler handler)
     {
         ArgumentNullException.ThrowIfNull(handler);
-        sessionHandler = handler;
-        return this;
+        return ConfigureServices(services => services.SessionHandler = handler);
     }
 
     /// <inheritdoc cref="NetcodeOptions.InputDelayFrames" />
@@ -244,7 +246,7 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
         ConfigureProtocol(o => o.LogNetworkStats = enabled);
 
     /// <summary>
-    ///     Set the logger <see cref="SessionServices{TInput}.LogWriter" />
+    ///     Set the logger <see cref="ServicesConfig{TInput}.LogWriter" />
     /// </summary>
     /// <seealso cref="NetcodeOptions.Logger" />
     [MemberNotNull(nameof(sessionServices))]
@@ -255,7 +257,7 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
     }
 
     /// <summary>
-    ///     Set the logger <see cref="SessionServices{TInput}.LogWriter" />
+    ///     Set the logger <see cref="ServicesConfig{TInput}.LogWriter" />
     /// </summary>
     /// <seealso cref="NetcodeOptions.Logger" />
     [MemberNotNull(nameof(sessionServices))]
@@ -263,7 +265,7 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
         WithLogWriter(new T());
 
     /// <summary>
-    ///     Set the logger <see cref="SessionServices{TInput}.LogWriter" />
+    ///     Set the logger <see cref="ServicesConfig{TInput}.LogWriter" />
     /// </summary>
     /// <seealso cref="NetcodeOptions.Logger" />
     [MemberNotNull(nameof(sessionServices))]
@@ -277,7 +279,7 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
         WithLogWriter(new FileTextLogWriter(filename, append));
 
     /// <summary>
-    ///     Set the logger <see cref="SessionServices{TInput}.InputListener" />
+    ///     Set the logger <see cref="ServicesConfig{TInput}.InputListener" />
     /// </summary>
     /// <seealso cref="IInputListener{TInput}" />
     [MemberNotNull(nameof(sessionServices))]
@@ -288,7 +290,7 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
     }
 
     /// <summary>
-    ///     Set the logger <see cref="SessionServices{TInput}.InputListener" />
+    ///     Set the logger <see cref="ServicesConfig{TInput}.InputListener" />
     /// </summary>
     /// <seealso cref="IInputListener{TInput}" />
     [MemberNotNull(nameof(sessionServices))]
@@ -323,7 +325,7 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
     }
 
     /// <summary>
-    ///     Set the logger <see cref="SessionServices{TInput}.ChecksumProvider" />
+    ///     Set the logger <see cref="ServicesConfig{TInput}.ChecksumProvider" />
     /// </summary>
     /// <seealso cref="NetcodeOptions.Logger" />
     [MemberNotNull(nameof(sessionServices))]
@@ -334,7 +336,7 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
     }
 
     /// <summary>
-    ///     Set the logger <see cref="SessionServices{TInput}.ChecksumProvider" />
+    ///     Set the logger <see cref="ServicesConfig{TInput}.ChecksumProvider" />
     /// </summary>
     /// <seealso cref="NetcodeOptions.Logger" />
     [MemberNotNull(nameof(sessionServices))]
@@ -342,7 +344,7 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
         WithChecksumProvider(new T());
 
     /// <summary>
-    ///     Set the logger <see cref="SessionServices{TInput}.ChecksumProvider" />
+    ///     Set the logger <see cref="ServicesConfig{TInput}.ChecksumProvider" />
     /// </summary>
     /// <seealso cref="NetcodeOptions.Logger" />
     [MemberNotNull(nameof(sessionServices))]
@@ -350,7 +352,7 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
         WithChecksumProvider(new DelegateChecksumProvider(compute));
 
     /// <summary>
-    ///     Set the logger <see cref="SessionServices{TInput}.DeterministicRandom" />
+    ///     Set the logger <see cref="ServicesConfig{TInput}.DeterministicRandom" />
     /// </summary>
     /// <seealso cref="NetcodeOptions.Logger" />
     [MemberNotNull(nameof(sessionServices))]
@@ -361,7 +363,7 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
     }
 
     /// <summary>
-    ///     Set the logger <see cref="SessionServices{TInput}.DeterministicRandom" />
+    ///     Set the logger <see cref="ServicesConfig{TInput}.DeterministicRandom" />
     /// </summary>
     /// <seealso cref="NetcodeOptions.Logger" />
     [MemberNotNull(nameof(sessionServices))]
@@ -369,7 +371,7 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
         WithDeterministicRandom(new T());
 
     /// <summary>
-    ///     Set the logger <see cref="SessionServices{TInput}.StateStore" />
+    ///     Set the logger <see cref="ServicesConfig{TInput}.StateStore" />
     /// </summary>
     /// <seealso cref="NetcodeOptions.Logger" />
     [MemberNotNull(nameof(sessionServices))]
@@ -380,7 +382,7 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
     }
 
     /// <summary>
-    ///     Set the logger <see cref="SessionServices{TInput}.StateStore" />
+    ///     Set the logger <see cref="ServicesConfig{TInput}.StateStore" />
     /// </summary>
     /// <seealso cref="NetcodeOptions.Logger" />
     [MemberNotNull(nameof(sessionServices))]
@@ -391,9 +393,9 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
     /// <summary>
     ///     Set custom session services
     /// </summary>
-    /// <seealso cref="SessionServices{TInput}" />
+    /// <seealso cref="ServicesConfig{TInput}" />
     [MemberNotNull(nameof(sessionServices))]
-    public NetcodeSessionBuilder<TInput> WithServices(SessionServices<TInput> services)
+    public NetcodeSessionBuilder<TInput> WithServices(ServicesConfig<TInput> services)
     {
         ArgumentNullException.ThrowIfNull(services);
         sessionServices = services;
@@ -403,9 +405,9 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
     /// <summary>
     ///     Configure custom session services
     /// </summary>
-    /// <seealso cref="SessionServices{TInput}" />
+    /// <seealso cref="ServicesConfig{TInput}" />
     [MemberNotNull(nameof(sessionServices))]
-    public NetcodeSessionBuilder<TInput> ConfigureServices(Action<SessionServices<TInput>> config)
+    public NetcodeSessionBuilder<TInput> ConfigureServices(Action<ServicesConfig<TInput>> config)
     {
         var services = sessionServices ?? new();
         config.Invoke(services);

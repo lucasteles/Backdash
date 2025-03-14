@@ -2,7 +2,7 @@ using System.Diagnostics;
 using System.Numerics;
 using Backdash.Serialization.Internal;
 
-namespace Backdash.Data;
+namespace Backdash;
 
 /// <summary>
 ///     Value representation of a Frame

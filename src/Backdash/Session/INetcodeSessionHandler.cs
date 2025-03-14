@@ -1,5 +1,4 @@
 using Backdash.Core;
-using Backdash.Data;
 using Backdash.Serialization;
 using Backdash.Synchronizing.State;
 
@@ -7,7 +6,7 @@ namespace Backdash;
 
 /// <summary>
 ///     Defines the callback functions that your application must implement.
-///     Backdash will periodically call these functions during the game.
+///     Backdash will periodically call these functions during the session lifecycle.
 /// </summary>
 public interface INetcodeSessionHandler
 {
@@ -39,9 +38,9 @@ public interface INetcodeSessionHandler
 
     /// <summary>
     ///     Called during a rollback after <see cref="LoadState" />. You should advance your game
-    ///     state by exactly one frame.  Before each frame, call <see cref="INetcodeGameSession{TInput}.SynchronizeInputs" />
+    ///     state by exactly one frame.  Before each frame, call <see cref="INetcodeSession{TInput}.SynchronizeInputs" />
     ///     to retrieve the inputs you should use for that frame. After each frame, you should call
-    ///     <see cref="INetcodeGameSession{TInput}.AdvanceFrame" /> to notify
+    ///     <see cref="INetcodeSession.AdvanceFrame" /> to notify
     ///     Backdash that you're finished.
     /// </summary>
     void AdvanceFrame();

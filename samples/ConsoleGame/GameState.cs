@@ -13,8 +13,7 @@ public enum GameInput
     Right = 1 << 3,
 }
 
-[Serializable]
-public record struct GameState
+public class GameState
 {
     public Vector2 Position1;
     public Vector2 Position2;
@@ -28,7 +27,7 @@ public class NonGameState
 {
     public required PlayerHandle? LocalPlayer;
     public required PlayerHandle RemotePlayer;
-    public required INetcodeSession SessionInfo;
+    public required INetcodeSessionInfo SessionInfo;
     public bool IsRunning;
     public float SyncProgress;
     public string LastError = "";

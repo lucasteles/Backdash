@@ -4,7 +4,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using Backdash;
 using Backdash.Core;
-using Backdash.Data;
 using ConsoleGame;
 
 var frameDuration = FrameSpan.GetDuration(1);
@@ -106,7 +105,7 @@ static Player[] ParsePlayers(int totalNumberOfPlayers, IEnumerable<string> endpo
             : throw new InvalidOperationException("Invalid endpoint address"))
         .ToArray();
 
-    if (players.All(x => !x.IsLocal()))
+    if (!players.Any(x => x.IsLocal()))
         throw new InvalidOperationException("No defined local player");
 
     return players;

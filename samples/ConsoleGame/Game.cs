@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using Backdash;
-using Backdash.Data;
 using Backdash.Serialization;
 using Backdash.Serialization.Numerics;
 
@@ -9,7 +8,7 @@ namespace ConsoleGame;
 public sealed class Game : INetcodeSessionHandler
 {
     // Rollback Net-code session callbacks
-    readonly INetcodeGameSession<GameInput> session;
+    readonly INetcodeSession<GameInput> session;
 
     readonly CancellationTokenSource cancellation;
 
@@ -22,26 +21,38 @@ public sealed class Game : INetcodeSessionHandler
     // Actual game state
     GameState currentState = GameLogic.InitialState();
 
-    public Game(INetcodeGameSession<GameInput> session, CancellationTokenSource cancellation)
+    public Game(INetcodeSession<GameInput> session, CancellationTokenSource cancellation)
     {
         view = new();
         this.session = session;
         this.cancellation = cancellation;
-        var players = session.GetPlayers();
-        nonGameState =
-            players.Any(x => x.IsLocal())
-                ? new()
-                {
-                    LocalPlayer = players.Single(x => x.IsLocal()),
-                    RemotePlayer = players.Single(x => x.IsRemote()),
-                    SessionInfo = session,
-                }
-                : new()
-                {
-                    LocalPlayer = null,
-                    RemotePlayer = default,
-                    SessionInfo = session,
-                };
+
+        if (session.IsRemote())
+        {
+            if (!session.TryGetLocalPlayer(out var localPlayer))
+                throw new InvalidOperationException("Local player not found");
+
+            if (!session.TryGetRemotePlayer(out var remote))
+                throw new InvalidOperationException("Remote player not found");
+
+            nonGameState = new()
+            {
+                LocalPlayer = localPlayer,
+                RemotePlayer = remote,
+                SessionInfo = session,
+            };
+        }
+        else if (session.IsSpectator())
+        {
+            nonGameState = new()
+            {
+                LocalPlayer = null,
+                RemotePlayer = default,
+                SessionInfo = session,
+            };
+        }
+        else
+            throw new InvalidOperationException($"not supported session mode: {session.Mode}");
     }
 
     // Game Loop
@@ -50,13 +61,13 @@ public sealed class Game : INetcodeSessionHandler
         session.BeginFrame();
 
         if (nonGameState.IsRunning)
-            UpdatePlayers();
+            UpdateState();
 
         session.GetNetworkStatus(nonGameState.RemotePlayer, ref nonGameState.PeerNetworkStats);
         view.Draw(in currentState, nonGameState);
     }
 
-    void UpdatePlayers()
+    void UpdateState()
     {
         if (nonGameState.LocalPlayer is { } localPlayer)
         {
@@ -81,15 +92,17 @@ public sealed class Game : INetcodeSessionHandler
             return;
         }
 
-        var (input1, input2) = (session.GetInput(0), session.GetInput(1));
-        GameLogic.AdvanceState(session.Random, ref currentState, input1, input2);
+        GameLogic.AdvanceState(
+            session.Random,
+            ref currentState,
+            session.GetInput(0),
+            session.GetInput(1)
+        );
         session.AdvanceFrame();
     }
 
     static void Log(string message) =>
-#pragma warning disable S6670
-        Trace.WriteLine($"{DateTime.UtcNow:hh:mm:ss.zzz} GAME => {message}");
-#pragma warning restore S6670
+        Trace.TraceInformation($"{DateTime.UtcNow:hh:mm:ss.zzz} GAME => {message}");
 
     // Session Callbacks
     public void OnSessionStart()

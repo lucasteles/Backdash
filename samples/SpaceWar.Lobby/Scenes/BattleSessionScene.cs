@@ -18,7 +18,7 @@ public sealed class BattleSessionScene : Scene
         this.peersInfo = peersInfo;
         this.netcodeSession = netcodeSession;
 
-        if (netcodeSession.IsRemote() && !netcodeSession.GetPlayers().Any(x => x.IsLocal()))
+        if (netcodeSession.IsRemote() && !netcodeSession.TryGetLocalPlayer(out _))
             throw new InvalidOperationException("No local player defined");
     }
 

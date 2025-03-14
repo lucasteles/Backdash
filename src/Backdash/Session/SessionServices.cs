@@ -1,57 +1,56 @@
 using Backdash.Core;
+using Backdash.Network;
 using Backdash.Network.Client;
+using Backdash.Network.Protocol;
+using Backdash.Options;
+using Backdash.Serialization;
 using Backdash.Synchronizing.Input.Confirmed;
 using Backdash.Synchronizing.Random;
 using Backdash.Synchronizing.State;
 
 namespace Backdash;
 
-/// <summary>
-///     Session dependencies.
-/// </summary>
-/// <typeparam name="TInput">Input type</typeparam>
-[Serializable]
-public sealed class SessionServices<TInput> where TInput : unmanaged
+sealed class SessionServices<TInput> where TInput : unmanaged
 {
-    /// <summary>
-    ///     Checksum provider service for session state.
-    ///     Defaults to: Fletcher32 <see cref="Fletcher32ChecksumProvider" />
-    /// </summary>
-    public IChecksumProvider? ChecksumProvider { get; set; }
+    public IBinarySerializer<TInput> InputSerializer { get; }
+    public IChecksumProvider ChecksumProvider { get; }
+    public Logger Logger { get; }
+    public IBackgroundJobManager JobManager { get; }
+    public IProtocolClientFactory ProtocolClientFactory { get; }
+    public IStateStore StateStore { get; }
+    public IRandomNumberGenerator Random { get; }
+    public IDeterministicRandom<TInput> DeterministicRandom { get; }
+    public IDelayStrategy DelayStrategy { get; }
+    public IInputListener<TInput>? InputListener { get; }
 
-    /// <summary>
-    ///     Log writer service for session.
-    /// </summary>
-    public ILogWriter? LogWriter { get; set; }
+    public EqualityComparer<TInput> InputComparer { get; }
 
-    /// <summary>
-    ///     State store service for session.
-    /// </summary>
-    public IStateStore? StateStore { get; set; }
+    public INetcodeSessionHandler SessionHandler { get; }
 
-    /// <summary>
-    ///     State store service for session.
-    /// </summary>
-    public IPeerSocketFactory? PeerSocketFactory { get; set; }
+    public SessionServices(
+        IBinarySerializer<TInput> inputSerializer,
+        NetcodeOptions options,
+        ServicesConfig<TInput>? services
+    )
+    {
+        ArgumentNullException.ThrowIfNull(inputSerializer);
+        ArgumentNullException.ThrowIfNull(options);
 
-    /// <summary>
-    ///     Default internal random instance
-    /// </summary>
-    public Random? Random { get; set; }
+        ChecksumProvider = services?.ChecksumProvider ?? new Fletcher32ChecksumProvider();
+        StateStore = services?.StateStore ?? new DefaultStateStore(options.StateSizeHint);
+        DeterministicRandom = services?.DeterministicRandom ?? new XorShiftRandom<TInput>();
+        InputListener = services?.InputListener;
+        Random = new DefaultRandomNumberGenerator(services?.Random ?? System.Random.Shared);
+        DelayStrategy = DelayStrategyFactory.Create(Random, options.Protocol.DelayStrategy);
+        InputComparer = services?.InputComparer ?? EqualityComparer<TInput>.Default;
+        InputSerializer = inputSerializer;
 
-    /// <summary>
-    ///     Service for in-game random value generation in session
-    ///     Defaults to <see cref="XorShiftRandom{T}" />
-    /// </summary>
-    public IDeterministicRandom<TInput>? DeterministicRandom { get; set; }
+        var logWriter = services?.LogWriter ?? new ConsoleTextLogWriter();
+        Logger = new(options.Logger, logWriter);
+        JobManager = new BackgroundJobManager(Logger);
+        SessionHandler = services?.SessionHandler ?? new EmptySessionHandler(Logger);
 
-    /// <summary>
-    ///     Service to listen for confirmed inputs
-    /// </summary>
-    public IInputListener<TInput>? InputListener { get; set; }
-
-    /// <summary>
-    ///     Comparer to be used with <typeparamref name="TInput" />
-    /// </summary>
-    public EqualityComparer<TInput>? InputComparer { get; set; }
+        var socketFactory = services?.PeerSocketFactory ?? new PeerSocketFactory();
+        ProtocolClientFactory = new ProtocolClientFactory(options, socketFactory, Logger, DelayStrategy);
+    }
 }

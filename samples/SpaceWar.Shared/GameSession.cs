@@ -1,5 +1,4 @@
 using Backdash;
-using Backdash.Data;
 using Backdash.Serialization;
 using SpaceWar.Logic;
 
@@ -9,12 +8,9 @@ public sealed class GameSession(
     GameState gameState,
     NonGameState nonGameState,
     Renderer renderer,
-    INetcodeGameSession<PlayerInputs> session
+    INetcodeSession<PlayerInputs> session
 ) : INetcodeSessionHandler
 {
-    readonly SynchronizedInput<PlayerInputs>[] inputs =
-        new SynchronizedInput<PlayerInputs>[nonGameState.NumberOfPlayers];
-
     public void Update(GameTime gameTime)
     {
         if (nonGameState.Sleeping)
@@ -43,8 +39,7 @@ public sealed class GameSession(
             return;
         }
 
-        session.GetInputs(inputs);
-        gameState.Update(inputs);
+        gameState.Update(session.CurrentSynchronizedInputs);
         session.AdvanceFrame();
     }
 
@@ -152,8 +147,7 @@ public sealed class GameSession(
     public void AdvanceFrame()
     {
         session.SynchronizeInputs();
-        session.GetInputs(inputs);
-        gameState.Update(inputs);
+        gameState.Update(session.CurrentSynchronizedInputs);
         session.AdvanceFrame();
     }
 
