@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Collections.Frozen;
+using System.Diagnostics.CodeAnalysis;
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network;
@@ -66,11 +67,12 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
         random = services.DeterministicRandom;
         inputGenerator = syncTestOptions.InputProvider;
         mismatchHandler = syncTestOptions.DesyncHandler;
-        callbacks ??= new EmptySessionHandler(logger);
         stateParser = syncTestOptions.StateStringParser ?? new HexStateStringParser();
 
         if (stateParser is JsonStateStringParser jsonParser)
             jsonParser.Logger = logger;
+
+        SetHandler(services.SessionHandler);
 
         synchronizer = new(
             options, logger,
@@ -336,9 +338,14 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
         synchronizer.SetFrameDelay(player, delayInFrames);
     }
 
+    [MemberNotNull(nameof(callbacks))]
     public void SetHandler(INetcodeSessionHandler handler)
     {
         ArgumentNullException.ThrowIfNull(handler);
+
+        if (handler is INetcodeSessionHandler<TInput> inputHandler)
+            inputHandler.ConfigureSession(this);
+
         callbacks = handler;
         synchronizer.Callbacks = handler;
     }

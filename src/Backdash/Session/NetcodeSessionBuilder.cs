@@ -25,7 +25,6 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
     readonly List<Player> playerList = [];
 
     SessionMode sessionMode = SessionMode.Remote;
-    INetcodeSessionHandler? sessionHandler;
     ServicesConfig<TInput>? sessionServices;
 
     NetcodeOptions options = new();
@@ -56,9 +55,6 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
             if (addResult is not ResultCode.Ok)
                 throw new InvalidOperationException($"Failed to add player {playerList}: {addResult}");
         }
-
-        if (sessionHandler is not null)
-            session.SetHandler(sessionHandler);
 
         return session;
 
@@ -183,8 +179,7 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
     public NetcodeSessionBuilder<TInput> WithHandler(INetcodeSessionHandler handler)
     {
         ArgumentNullException.ThrowIfNull(handler);
-        sessionHandler = handler;
-        return this;
+        return ConfigureServices(services => services.SessionHandler = handler);
     }
 
     /// <inheritdoc cref="NetcodeOptions.InputDelayFrames" />

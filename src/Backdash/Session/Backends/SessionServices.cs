@@ -25,6 +25,8 @@ sealed class SessionServices<TInput> where TInput : unmanaged
 
     public EqualityComparer<TInput> InputComparer { get; }
 
+    public INetcodeSessionHandler SessionHandler { get;  }
+
     public SessionServices(
         IBinarySerializer<TInput> inputSerializer,
         NetcodeOptions options,
@@ -46,6 +48,7 @@ sealed class SessionServices<TInput> where TInput : unmanaged
         var logWriter = services?.LogWriter ?? new ConsoleTextLogWriter();
         Logger = new(options.Logger, logWriter);
         JobManager = new BackgroundJobManager(Logger);
+        SessionHandler = services?.SessionHandler ?? new EmptySessionHandler(Logger);
 
         var socketFactory = services?.PeerSocketFactory ?? new PeerSocketFactory();
         ProtocolClientFactory = new ProtocolClientFactory(options, socketFactory, Logger, DelayStrategy);

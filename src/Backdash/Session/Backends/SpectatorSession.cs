@@ -1,5 +1,6 @@
 using System.Collections.Frozen;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using Backdash.Core;
 using Backdash.Data;
@@ -70,13 +71,14 @@ sealed class SpectatorSession<TInput> :
         IBinarySerializer<ConfirmedInputs<TInput>> inputGroupSerializer =
             new ConfirmedInputsSerializer<TInput>(services.InputSerializer);
         PeerObserverGroup<ProtocolMessage> peerObservers = new();
-        callbacks = new EmptySessionHandler(logger);
         inputs = new GameInput<ConfirmedInputs<TInput>>[options.SpectatorInputBufferLength];
 
         endianness = options.GetStateSerializationEndianness();
         udp = services.ProtocolClientFactory.CreateProtocolClient(options.LocalPort, peerObservers);
         backgroundJobManager.Register(udp);
         var magicNumber = services.Random.MagicNumber();
+
+        SetHandler(services.SessionHandler);
 
         PeerConnectionFactory peerConnectionFactory = new(
             this, services.Random, logger, udp,
@@ -183,9 +185,14 @@ sealed class SpectatorSession<TInput> :
         await backgroundJobTask.WaitAsync(stoppingToken).ConfigureAwait(false);
     }
 
+    [MemberNotNull(nameof(callbacks))]
     public void SetHandler(INetcodeSessionHandler handler)
     {
         ArgumentNullException.ThrowIfNull(handler);
+
+        if (handler is INetcodeSessionHandler<TInput> inputHandler)
+            inputHandler.ConfigureSession(this);
+
         callbacks = handler;
     }
 

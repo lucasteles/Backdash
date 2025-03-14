@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Backdash.Core;
@@ -84,7 +85,8 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
         endpoints = new(Max.NumberOfPlayers);
         spectators = [];
         peerObservers = new();
-        callbacks = new EmptySessionHandler(logger);
+
+        SetHandler(services.SessionHandler);
 
         synchronizer = new(
             this.options,
@@ -275,9 +277,14 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
         return true;
     }
 
+    [MemberNotNull(nameof(callbacks))]
     public void SetHandler(INetcodeSessionHandler handler)
     {
         ArgumentNullException.ThrowIfNull(handler);
+
+        if (handler is INetcodeSessionHandler<TInput> inputHandler)
+            inputHandler.ConfigureSession(this);
+
         callbacks = handler;
         synchronizer.Callbacks = handler;
     }

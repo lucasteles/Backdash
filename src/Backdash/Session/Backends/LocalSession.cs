@@ -1,4 +1,5 @@
 using System.Collections.Frozen;
+using System.Diagnostics.CodeAnalysis;
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network;
@@ -40,8 +41,8 @@ sealed class LocalSession<TInput> : INetcodeSession<TInput> where TInput : unman
         checksumProvider = services.ChecksumProvider;
         random = services.DeterministicRandom;
         logger = services.Logger;
-        callbacks ??= new EmptySessionHandler(logger);
         endianness = options.GetStateSerializationEndianness();
+        SetHandler(services.SessionHandler);
         stateStore.Initialize(options.TotalPredictionFrames);
     }
 
@@ -206,9 +207,14 @@ sealed class LocalSession<TInput> : INetcodeSession<TInput> where TInput : unman
         ArgumentOutOfRangeException.ThrowIfNegative(delayInFrames);
     }
 
+    [MemberNotNull(nameof(callbacks))]
     public void SetHandler(INetcodeSessionHandler handler)
     {
         ArgumentNullException.ThrowIfNull(handler);
+
+        if (handler is INetcodeSessionHandler<TInput> inputHandler)
+            inputHandler.ConfigureSession(this);
+
         callbacks = handler;
     }
 }

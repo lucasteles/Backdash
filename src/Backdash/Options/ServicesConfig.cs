@@ -54,4 +54,7 @@ public sealed class ServicesConfig<TInput> where TInput : unmanaged
     ///     Comparer to be used with <typeparamref name="TInput" />
     /// </summary>
     public EqualityComparer<TInput>? InputComparer { get; set; }
+
+    /// <inheritdoc cref="INetcodeSessionHandler"/>
+    public INetcodeSessionHandler? SessionHandler { get; set; }
 }

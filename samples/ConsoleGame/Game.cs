@@ -62,13 +62,13 @@ public sealed class Game : INetcodeSessionHandler
         session.BeginFrame();
 
         if (nonGameState.IsRunning)
-            UpdatePlayers();
+            UpdateState();
 
         session.GetNetworkStatus(nonGameState.RemotePlayer, ref nonGameState.PeerNetworkStats);
         view.Draw(in currentState, nonGameState);
     }
 
-    void UpdatePlayers()
+    void UpdateState()
     {
         if (nonGameState.LocalPlayer is { } localPlayer)
         {
