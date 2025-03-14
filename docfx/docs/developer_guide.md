@@ -221,10 +221,8 @@ AdvanceGameState(player1Input, player2Input, gameState);
 You should change it to read as follows:
 
 ```csharp
-// usually a reusable reference
-var gameInputs = new MyGameInput[2];
 
-// you must keep the player handlers or read then with session.GetPlayers()
+// you must keep the local player handler reference or query it from the session.
 var player1Handle = player1.Handle;
 
 var localInput = GetControllerInput(0); // read the controller
@@ -237,7 +235,7 @@ if (result is ResultCode.Ok)
     result = session.SynchronizeInputs();
     if (result is ResultCode.Ok)
     {
-        session.GetInputs(gameInputs);
+        var gameInputs = session.CurrentSynchronizedInputs;
         AdvanceGameState(gameInputs[0], gameInputs[1], gameState);
     }
 }
@@ -365,7 +363,7 @@ Usually something like:
 public void AdvanceFrame()
 {
     session.SynchronizeInputs();
-    session.GetInputs(gameInputs);
+    var gameInputs = session.CurrentSynchronizedInputs;
     AdvanceGameState(gameInputs[0], gameInputs[1], gameState);
 }
 // ...
@@ -393,8 +391,6 @@ after you've finished one frame **but before you've started the next**.
 So, the code for each frame should be something close to:
 
 ```csharp
-readonly MyGameInput gameInputs = new MyGameInput[2];
-
 public void Update(){
     session.BeginFrame();
 
@@ -408,7 +404,7 @@ public void Update(){
     if (result is not ResultCode.Ok)
         return;
 
-    session.GetInputs(gameInputs);
+    var gameInputs = session.CurrentSynchronizedInputs;
     AdvanceGameState(gameInputs[0], gameInputs[1], gameState);
 
     session.AdvanceFrame();

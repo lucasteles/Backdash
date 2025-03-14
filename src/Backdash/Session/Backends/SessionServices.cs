@@ -25,7 +25,7 @@ sealed class SessionServices<TInput> where TInput : unmanaged
 
     public EqualityComparer<TInput> InputComparer { get; }
 
-    public INetcodeSessionHandler SessionHandler { get;  }
+    public INetcodeSessionHandler SessionHandler { get; }
 
     public SessionServices(
         IBinarySerializer<TInput> inputSerializer,
