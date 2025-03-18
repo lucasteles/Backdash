@@ -68,8 +68,8 @@ jobs:
                 with:
                     directory: ./
                     badge: ./docfx/_site/lines_badge.svg
-                    patterns: "**/*.fs|**/*.fsx|**/*.cs|**/*.ts|**/*.js"
-                    ignore: "node_modules"
+                    patterns: '**/*.fs|**/*.fsx|**/*.cs|**/*.ts|**/*.js'
+                    ignore: './samples/**|./benchmarks/**'
 
             -   name: Publish Docs
                 if: github.event_name == 'push' && github.ref == 'refs/heads/master'
