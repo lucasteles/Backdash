@@ -1,6 +1,4 @@
-using System.Text.Json;
 using Backdash;
-using Backdash.Data;
 using Backdash.Serialization;
 using SpaceWar.Logic;
 
@@ -13,9 +11,6 @@ public sealed class GameSession(
     INetcodeSession<PlayerInputs> session
 ) : INetcodeSessionHandler
 {
-    readonly SynchronizedInput<PlayerInputs>[] inputs =
-        new SynchronizedInput<PlayerInputs>[nonGameState.NumberOfPlayers];
-
     public void Update(GameTime gameTime)
     {
         if (nonGameState.Sleeping)
@@ -44,8 +39,7 @@ public sealed class GameSession(
             return;
         }
 
-        session.GetInputs(inputs);
-        gameState.Update(inputs);
+        gameState.Update(session.CurrentSynchronizedInputs);
         session.AdvanceFrame();
     }
 
@@ -153,21 +147,9 @@ public sealed class GameSession(
     public void AdvanceFrame()
     {
         session.SynchronizeInputs();
-        session.GetInputs(inputs);
-        gameState.Update(inputs);
+        gameState.Update(session.CurrentSynchronizedInputs);
         session.AdvanceFrame();
     }
 
-    public string GetStateString(in Frame frame, ref readonly BinaryBufferReader reader)
-    {
-        GameState state = new();
-        state.LoadState(in reader);
-        return JsonSerializer.Serialize(state, jsonOptions);
-    }
-
-    static readonly JsonSerializerOptions jsonOptions = new()
-    {
-        WriteIndented = true,
-        IncludeFields = true,
-    };
+    public object? GetCurrentState() => gameState;
 }

@@ -190,7 +190,7 @@ static readonly JsonSerializerOptions jsonOptions = new()
 ```
 
 > [!NOTE]
-> For better debugging the `RollbackNetcode.CreateSyncTestSession` accepts an implementation of the `IStateDesyncHandler`
+> For better debugging the `RollbackNetcode.WithInputType<>().ForSyncTest(...)` accepts an implementation of the `IStateDesyncHandler`
 > which is called whenever a state desync happens in the test.
 >
 > You can use it for enhanced state logging or showing semantic diffs.

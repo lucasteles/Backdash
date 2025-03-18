@@ -1,8 +1,9 @@
 using System.Buffers;
+using System.Collections.Frozen;
 using System.Diagnostics.CodeAnalysis;
 using Backdash.Core;
-using Backdash.Data;
 using Backdash.Network;
+using Backdash.Options;
 using Backdash.Serialization;
 using Backdash.Synchronizing.Input;
 using Backdash.Synchronizing.Random;
@@ -10,7 +11,7 @@ using Backdash.Synchronizing.State;
 
 namespace Backdash.Backends;
 
-sealed class SyncTestBackend<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] TInput> : INetcodeSession<TInput>
+sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
     where TInput : unmanaged
 {
     readonly record struct SavedFrameBytes(
@@ -31,7 +32,8 @@ sealed class SyncTestBackend<[DynamicallyAccessedMembers(DynamicallyAccessedMemb
     readonly FrameSpan checkDistance;
     readonly bool throwError;
     readonly IStateDesyncHandler? mismatchHandler;
-    readonly IInputGenerator<TInput>? inputGenerator;
+    readonly IStateStringParser stateParser;
+    readonly IInputProvider<TInput>? inputGenerator;
     readonly IDeterministicRandom<TInput> random;
 
     INetcodeSessionHandler callbacks;
@@ -42,28 +44,40 @@ sealed class SyncTestBackend<[DynamicallyAccessedMembers(DynamicallyAccessedMemb
     GameInput<TInput> lastInput;
     Frame lastVerified = Frame.Zero;
 
-    public SyncTestBackend(NetcodeOptions options,
-        FrameSpan checkDistance,
-        bool throwError,
-        IStateDesyncHandler? mismatchHandler,
-        BackendServices<TInput> services)
+    readonly IReadOnlySet<PlayerHandle> localPlayerFallback = new HashSet<PlayerHandle>
+    {
+        new(PlayerType.Local, 1, 0),
+    }.ToFrozenSet();
+
+    public SyncTestSession(
+        SyncTestOptions<TInput> syncTestOptions,
+        NetcodeOptions options,
+        SessionServices<TInput> services
+    )
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(options);
-        ArgumentOutOfRangeException.ThrowIfNegative(checkDistance.FrameCount);
-        this.checkDistance = checkDistance;
-        this.throwError = throwError;
-        this.mismatchHandler = mismatchHandler;
-        random = services.DeterministicRandom;
-        inputGenerator = services.InputGenerator;
+        ArgumentNullException.ThrowIfNull(syncTestOptions);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(syncTestOptions.CheckDistance);
+
+        checkDistance = new(syncTestOptions.CheckDistance);
+        throwError = syncTestOptions.ThrowOnDesync;
         logger = services.Logger;
-        callbacks ??= new EmptySessionHandler(logger);
+        random = services.DeterministicRandom;
+        inputGenerator = syncTestOptions.InputProvider;
+        mismatchHandler = syncTestOptions.DesyncHandler;
+        callbacks = services.SessionHandler;
+
+        stateParser = syncTestOptions.StateStringParser ?? new HexStateStringParser();
+        if (stateParser is JsonStateStringParser jsonParser)
+            jsonParser.Logger = logger;
+
         synchronizer = new(
             options, logger,
             addedPlayers,
             services.StateStore,
             services.ChecksumProvider,
-            new(Max.NumberOfPlayers),
+            new(options.NumberOfPlayers),
             services.InputComparer
         )
         {
@@ -76,17 +90,23 @@ sealed class SyncTestBackend<[DynamicallyAccessedMembers(DynamicallyAccessedMemb
     public void Dispose() => tsc.SetResult();
     public int NumberOfPlayers => Math.Max(addedPlayers.Count, 1);
     public int NumberOfSpectators => addedSpectators.Count;
+    public int LocalPort => 0;
     public INetcodeRandom Random => random;
     public Frame CurrentFrame => synchronizer.CurrentFrame;
     public SessionMode Mode => SessionMode.SyncTest;
     public FrameSpan FramesBehind => synchronizer.FramesBehind;
     public FrameSpan RollbackFrames => synchronizer.RollbackFrames;
+
+    public ReadOnlySpan<SynchronizedInput<TInput>> CurrentSynchronizedInputs => syncInputBuffer;
+
+    public ReadOnlySpan<TInput> CurrentInputs => inputBuffer;
+
     public SavedFrame GetCurrentSavedFrame() => synchronizer.GetLastSavedFrame();
 
-    public IReadOnlyCollection<PlayerHandle> GetPlayers() =>
-        addedPlayers.Count is 0 ? [new(PlayerType.Local, 1, 0)] : addedPlayers;
+    public IReadOnlySet<PlayerHandle> GetPlayers() =>
+        addedPlayers.Count is 0 ? localPlayerFallback : addedPlayers;
 
-    public IReadOnlyCollection<PlayerHandle> GetSpectators() => addedSpectators;
+    public IReadOnlySet<PlayerHandle> GetSpectators() => addedSpectators;
     public void DisconnectPlayer(in PlayerHandle player) { }
 
     public void Start(CancellationToken stoppingToken = default)
@@ -154,7 +174,7 @@ sealed class SyncTestBackend<[DynamicallyAccessedMembers(DynamicallyAccessedMemb
         var testInput = localInput;
 
         if (inputGenerator is not null)
-            testInput = inputGenerator.Generate();
+            testInput = inputGenerator.Next();
 
         currentInput.Frame = synchronizer.CurrentFrame;
         currentInput.Data = testInput;
@@ -182,12 +202,6 @@ sealed class SyncTestBackend<[DynamicallyAccessedMembers(DynamicallyAccessedMemb
 
         return ResultCode.Ok;
     }
-
-    public ref readonly SynchronizedInput<TInput> GetInput(in PlayerHandle player) =>
-        ref syncInputBuffer[player.InternalQueue];
-
-    public ref readonly SynchronizedInput<TInput> GetInput(int index) =>
-        ref syncInputBuffer[index];
 
     public bool LoadFrame(in Frame frame)
     {
@@ -268,11 +282,12 @@ sealed class SyncTestBackend<[DynamicallyAccessedMembers(DynamicallyAccessedMemb
 
         var (currentOffset, lastOffset) = (0, 0);
 
+        var stateObject = callbacks.GetCurrentState();
         BinaryBufferReader currentReader = new(current.State, ref currentOffset);
-        var currentBody = callbacks.GetStateString(current.Frame, in currentReader);
+        var currentBody = stateParser.GetStateString(current.Frame, in currentReader, stateObject);
 
         BinaryBufferReader previousReader = new(previous.GameState.WrittenSpan, ref lastOffset);
-        var previousBody = callbacks.GetStateString(current.Frame, in previousReader);
+        var previousBody = stateParser.GetStateString(current.Frame, in previousReader, stateObject);
 
         LogSaveState(level, "CURRENT", currentBody, current.Checksum, current.Frame, current.Input.Frame.Number);
         LogSaveState(level, "LAST", previousBody, previous.Checksum, previous.Frame);
@@ -321,6 +336,7 @@ sealed class SyncTestBackend<[DynamicallyAccessedMembers(DynamicallyAccessedMemb
         synchronizer.SetFrameDelay(player, delayInFrames);
     }
 
+    [MemberNotNull(nameof(callbacks))]
     public void SetHandler(INetcodeSessionHandler handler)
     {
         ArgumentNullException.ThrowIfNull(handler);

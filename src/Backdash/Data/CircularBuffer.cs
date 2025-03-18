@@ -10,7 +10,7 @@ using Backdash.Core;
 namespace Backdash.Data;
 
 /// <summary>
-/// A collection data structure that uses a single fixed-size buffer as if it were connected end-to-end.
+///     A collection data structure that uses a single fixed-size buffer as if it were connected end-to-end.
 /// </summary>
 [DebuggerDisplay("Size = {count}")]
 public sealed class CircularBuffer<T>(int capacity) : IReadOnlyList<T>, IEquatable<CircularBuffer<T>>
@@ -133,16 +133,16 @@ public sealed class CircularBuffer<T>(int capacity) : IReadOnlyList<T>, IEquatab
 
     public bool Equals(CircularBuffer<T>? other, EqualityComparer<T> comparer) => Equals(this, in other, comparer);
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
     public bool Equals(CircularBuffer<T>? other) => Equals(this, in other);
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
     public override bool Equals(object? obj) => obj is CircularBuffer<T> other && Equals(other);
 
     public static bool operator ==(in CircularBuffer<T> a, in CircularBuffer<T> b) => Equals(in a, in b);
     public static bool operator !=(CircularBuffer<T> a, CircularBuffer<T> b) => !Equals(in a, in b);
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
     public override int GetHashCode()
     {
         HashCode hash = new();

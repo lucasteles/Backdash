@@ -1,12 +1,13 @@
-using System.Diagnostics.CodeAnalysis;
+using System.Collections.Frozen;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using Backdash.Core;
-using Backdash.Data;
 using Backdash.Network;
 using Backdash.Network.Client;
 using Backdash.Network.Messages;
 using Backdash.Network.Protocol;
+using Backdash.Options;
 using Backdash.Serialization;
 using Backdash.Synchronizing.Input;
 using Backdash.Synchronizing.Input.Confirmed;
@@ -15,21 +16,21 @@ using Backdash.Synchronizing.State;
 
 namespace Backdash.Backends;
 
-sealed class SpectatorBackend<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] TInput> :
+sealed class SpectatorSession<TInput> :
     INetcodeSession<TInput>,
     IProtocolNetworkEventHandler,
     IProtocolInputEventPublisher<ConfirmedInputs<TInput>>
     where TInput : unmanaged
 {
     readonly Logger logger;
-    readonly IProtocolClient udp;
+    readonly IProtocolPeerClient udp;
     readonly IPEndPoint hostEndpoint;
     readonly NetcodeOptions options;
     readonly IBackgroundJobManager backgroundJobManager;
     readonly ConnectionsState localConnections = new(0);
     readonly GameInput<ConfirmedInputs<TInput>>[] inputs;
     readonly PeerConnection<ConfirmedInputs<TInput>> host;
-    readonly PlayerHandle[] fakePlayers;
+    readonly FrozenSet<PlayerHandle> fakePlayers;
     readonly IDeterministicRandom<TInput> random;
 
     INetcodeSessionHandler callbacks;
@@ -44,37 +45,38 @@ sealed class SpectatorBackend<[DynamicallyAccessedMembers(DynamicallyAccessedMem
     readonly IChecksumProvider checksumProvider;
     readonly Endianness endianness;
 
-    public SpectatorBackend(int port,
-        IPEndPoint hostEndpoint,
-        int numberOfPlayers,
+    public SpectatorSession(
+        SpectatorOptions spectatorOptions,
         NetcodeOptions options,
-        BackendServices<TInput> services)
+        SessionServices<TInput> services
+    )
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(options);
-        ArgumentNullException.ThrowIfNull(hostEndpoint);
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(port);
+        ArgumentNullException.ThrowIfNull(spectatorOptions);
+        ArgumentNullException.ThrowIfNull(spectatorOptions.HostAddress);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(options.LocalPort);
 
-        this.hostEndpoint = hostEndpoint;
         this.options = options;
+        hostEndpoint = spectatorOptions.HostEndPoint;
         backgroundJobManager = services.JobManager;
         random = services.DeterministicRandom;
         logger = services.Logger;
         stateStore = services.StateStore;
         checksumProvider = services.ChecksumProvider;
-        NumberOfPlayers = numberOfPlayers;
-        fakePlayers = Enumerable.Range(0, numberOfPlayers)
-            .Select(x => new PlayerHandle(PlayerType.Remote, x + 1, x)).ToArray();
+        NumberOfPlayers = options.NumberOfPlayers;
+        fakePlayers = Enumerable.Range(0, options.NumberOfPlayers)
+            .Select(x => new PlayerHandle(PlayerType.Remote, x + 1, x)).ToFrozenSet();
         IBinarySerializer<ConfirmedInputs<TInput>> inputGroupSerializer =
             new ConfirmedInputsSerializer<TInput>(services.InputSerializer);
         PeerObserverGroup<ProtocolMessage> peerObservers = new();
-        callbacks = new EmptySessionHandler(logger);
         inputs = new GameInput<ConfirmedInputs<TInput>>[options.SpectatorInputBufferLength];
-
-        endianness = options.StateSerializationEndianness ?? Platform.GetEndianness(options.UseNetworkEndianness);
-        udp = services.ProtocolClientFactory.CreateProtocolClient(port, peerObservers);
+        callbacks = services.SessionHandler;
+        endianness = options.GetStateSerializationEndianness();
+        udp = services.ProtocolClientFactory.CreateProtocolClient(options.LocalPort, peerObservers);
         backgroundJobManager.Register(udp);
         var magicNumber = services.Random.MagicNumber();
+
 
         PeerConnectionFactory peerConnectionFactory = new(
             this, services.Random, logger, udp,
@@ -118,13 +120,18 @@ sealed class SpectatorBackend<[DynamicallyAccessedMembers(DynamicallyAccessedMem
     public INetcodeRandom Random => random;
     public int NumberOfPlayers { get; private set; }
     public int NumberOfSpectators => 0;
+    public int LocalPort => udp.BindPort;
 
-    public SessionMode Mode => SessionMode.Spectating;
+    public ReadOnlySpan<SynchronizedInput<TInput>> CurrentSynchronizedInputs => syncInputBuffer;
+
+    public ReadOnlySpan<TInput> CurrentInputs => inputBuffer;
+
+    public SessionMode Mode => SessionMode.Spectator;
 
     public void DisconnectPlayer(in PlayerHandle player) { }
     public ResultCode AddLocalInput(PlayerHandle player, in TInput localInput) => ResultCode.Ok;
-    public IReadOnlyCollection<PlayerHandle> GetPlayers() => fakePlayers;
-    public IReadOnlyCollection<PlayerHandle> GetSpectators() => [];
+    public IReadOnlySet<PlayerHandle> GetPlayers() => fakePlayers;
+    public IReadOnlySet<PlayerHandle> GetSpectators() => FrozenSet<PlayerHandle>.Empty;
 
     public void BeginFrame()
     {
@@ -176,6 +183,7 @@ sealed class SpectatorBackend<[DynamicallyAccessedMembers(DynamicallyAccessedMem
         await backgroundJobTask.WaitAsync(stoppingToken).ConfigureAwait(false);
     }
 
+    [MemberNotNull(nameof(callbacks))]
     public void SetHandler(INetcodeSessionHandler handler)
     {
         ArgumentNullException.ThrowIfNull(handler);
@@ -303,14 +311,6 @@ sealed class SpectatorBackend<[DynamicallyAccessedMembers(DynamicallyAccessedMem
             return false;
         }
     }
-
-    public ref readonly SynchronizedInput<TInput> GetInput(int index) =>
-        ref syncInputBuffer[index];
-
-    public ref readonly SynchronizedInput<TInput> GetInput(in PlayerHandle player) =>
-        ref syncInputBuffer[player.Number - 1];
-
-    public void GetInputs(Span<SynchronizedInput<TInput>> buffer) => syncInputBuffer.CopyTo(buffer);
 
     bool IProtocolInputEventPublisher<ConfirmedInputs<TInput>>.Publish(in GameInputEvent<ConfirmedInputs<TInput>> evt)
     {

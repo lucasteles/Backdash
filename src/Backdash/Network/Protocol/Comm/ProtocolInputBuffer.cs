@@ -2,6 +2,7 @@ using System.Runtime.CompilerServices;
 using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network.Messages;
+using Backdash.Options;
 using Backdash.Serialization;
 using Backdash.Synchronizing;
 using Backdash.Synchronizing.Input;

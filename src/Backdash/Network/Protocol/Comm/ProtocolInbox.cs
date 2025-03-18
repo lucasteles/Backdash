@@ -6,6 +6,7 @@ using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network.Client;
 using Backdash.Network.Messages;
+using Backdash.Options;
 using Backdash.Serialization;
 using Backdash.Synchronizing.Input;
 using Backdash.Synchronizing.State;

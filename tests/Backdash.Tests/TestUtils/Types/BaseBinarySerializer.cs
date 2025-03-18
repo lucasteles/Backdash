@@ -6,7 +6,7 @@ namespace Backdash.Tests.TestUtils.Types;
 /// <inheritdoc />
 abstract class BaseBinarySerializer<T>(Endianness endianness = Endianness.BigEndian) : IBinarySerializer<T>
 {
-    /// <inheritdoc cref="NetcodeOptions.UseNetworkEndianness"/>
+    /// <inheritdoc />
     public Endianness Endianness { get; } = endianness;
 
     /// <summary>

@@ -1,14 +1,15 @@
+using System.Collections.Frozen;
 using System.Diagnostics.CodeAnalysis;
 using Backdash.Core;
-using Backdash.Data;
 using Backdash.Network;
+using Backdash.Options;
 using Backdash.Serialization;
 using Backdash.Synchronizing.Random;
 using Backdash.Synchronizing.State;
 
 namespace Backdash.Backends;
 
-sealed class LocalBackend<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] TInput> : INetcodeSession<TInput> where TInput : unmanaged
+sealed class LocalSession<TInput> : INetcodeSession<TInput> where TInput : unmanaged
 {
     readonly TaskCompletionSource tsc = new();
     readonly Logger logger;
@@ -27,9 +28,9 @@ sealed class LocalBackend<[DynamicallyAccessedMembers(DynamicallyAccessedMemberT
     INetcodeSessionHandler callbacks;
     Task backGroundJobTask = Task.CompletedTask;
 
-    public LocalBackend(
+    public LocalSession(
         NetcodeOptions options,
-        BackendServices<TInput> services
+        SessionServices<TInput> services
     )
     {
         ArgumentNullException.ThrowIfNull(services);
@@ -39,15 +40,20 @@ sealed class LocalBackend<[DynamicallyAccessedMembers(DynamicallyAccessedMemberT
         checksumProvider = services.ChecksumProvider;
         random = services.DeterministicRandom;
         logger = services.Logger;
-        callbacks ??= new EmptySessionHandler(logger);
-        endianness = options.StateSerializationEndianness ?? Platform.GetEndianness(options.UseNetworkEndianness);
+        endianness = options.GetStateSerializationEndianness();
+        callbacks = services.SessionHandler;
         stateStore.Initialize(options.TotalPredictionFrames);
     }
 
     public void Dispose() => tsc.SetResult();
     public int NumberOfPlayers => Math.Max(addedPlayers.Count, 1);
     public int NumberOfSpectators => 0;
+    public int LocalPort => 0;
     public INetcodeRandom Random => random;
+
+    public ReadOnlySpan<SynchronizedInput<TInput>> CurrentSynchronizedInputs => syncInputBuffer;
+
+    public ReadOnlySpan<TInput> CurrentInputs => inputBuffer;
 
     public Frame CurrentFrame { get; private set; } = Frame.Zero;
     public SessionMode Mode => SessionMode.Local;
@@ -55,9 +61,9 @@ sealed class LocalBackend<[DynamicallyAccessedMembers(DynamicallyAccessedMemberT
     public FrameSpan RollbackFrames => FrameSpan.Zero;
     public SavedFrame GetCurrentSavedFrame() => stateStore.Last();
 
-    public IReadOnlyCollection<PlayerHandle> GetPlayers() => addedPlayers;
+    public IReadOnlySet<PlayerHandle> GetPlayers() => addedPlayers;
 
-    public IReadOnlyCollection<PlayerHandle> GetSpectators() => [];
+    public IReadOnlySet<PlayerHandle> GetSpectators() => FrozenSet<PlayerHandle>.Empty;
     public void DisconnectPlayer(in PlayerHandle player) { }
 
     public void Start(CancellationToken stoppingToken = default)
@@ -144,12 +150,6 @@ sealed class LocalBackend<[DynamicallyAccessedMembers(DynamicallyAccessedMemberT
         return ResultCode.Ok;
     }
 
-    public ref readonly SynchronizedInput<TInput> GetInput(in PlayerHandle player) =>
-        ref syncInputBuffer[player.InternalQueue];
-
-    public ref readonly SynchronizedInput<TInput> GetInput(int index) =>
-        ref syncInputBuffer[index];
-
     public void AdvanceFrame()
     {
         CurrentFrame++;
@@ -206,6 +206,7 @@ sealed class LocalBackend<[DynamicallyAccessedMembers(DynamicallyAccessedMemberT
         ArgumentOutOfRangeException.ThrowIfNegative(delayInFrames);
     }
 
+    [MemberNotNull(nameof(callbacks))]
     public void SetHandler(INetcodeSessionHandler handler)
     {
         ArgumentNullException.ThrowIfNull(handler);

@@ -1,7 +1,7 @@
 namespace Backdash.Network;
 
 /// <summary>
-/// Player Connection Status
+///     Player Connection Status
 /// </summary>
 public enum PlayerConnectionStatus : sbyte
 {

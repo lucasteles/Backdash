@@ -361,183 +361,45 @@ public class SerializersTests
         }
     }
 
-#if NET9_0_OR_GREATER
-    [Fact]
-#else
-    [DynamicFact]
-    [RequiresDynamicCode("Calls Backdash.Serialization.Internal.BinarySerializerFactory.Get<TInput>(Boolean)")]
-#endif
-    public void ShouldReturnCorrectSerializerForStruct()
+    static void ShouldReturnCorrectSerializerForStruct()
     {
-        var serializer = BinarySerializerFactory.Get<SimpleStructData>();
+        var serializer = BinarySerializerFactory.ForStruct<SimpleStructData>();
         serializer.Should().BeOfType<StructBinarySerializer<SimpleStructData>>();
     }
 
-#if !NET9_0_OR_GREATER
-    [RequiresDynamicCode("Calls Backdash.Serialization.Internal.BinarySerializerFactory.Get<TInput>(Boolean)")]
-#endif
     static void AssertIntegerSerializer<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] T>() where T : unmanaged, IBinaryInteger<T>, IMinMaxValue<T>
     {
-        var serializer = BinarySerializerFactory.Get<T>(true);
+        var serializer = BinarySerializerFactory.ForInteger<T>(Endianness.BigEndian);
         serializer.Should().BeOfType<IntegerBinaryBigEndianSerializer<T>>();
     }
 
-#if !NET9_0_OR_GREATER
-    [RequiresDynamicCode("Calls Backdash.Serialization.Internal.BinarySerializerFactory.Get<TInput>(Boolean)")]
-#endif
     static void AssertEnumSerializer<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] T, TInt>()
         where T : unmanaged, Enum
         where TInt : unmanaged, IBinaryInteger<TInt>, IMinMaxValue<TInt>
     {
-        var serializer = BinarySerializerFactory.Get<T>();
+        var serializer = BinarySerializerFactory.ForEnum<T>();
         serializer.Should().BeOfType<EnumBinarySerializer<T, TInt>>();
     }
 
-#if NET9_0_OR_GREATER
-    [Fact]
-#else
-    [DynamicFact]
-    [RequiresDynamicCode("Calls Backdash.Tests.Specs.Unit.Serialization.SerializersTests.AssertIntegerSerializer<T>()")]
-#endif
-    public void AssertSerializerByte() => AssertIntegerSerializer<byte>();
+    [Fact] public void AssertSerializerByte() => AssertIntegerSerializer<byte>();
+    [Fact] public void AssertSerializerSByte() => AssertIntegerSerializer<sbyte>();
+    [Fact] public void AssertSerializerShort() => AssertIntegerSerializer<short>();
+    [Fact] public void AssertSerializerUShort() => AssertIntegerSerializer<ushort>();
+    [Fact] public void AssertSerializerInt() => AssertIntegerSerializer<int>();
+    [Fact] public void AssertSerializerUInt() => AssertIntegerSerializer<uint>();
+    [Fact] public void AssertSerializerLong() => AssertIntegerSerializer<long>();
+    [Fact] public void AssertSerializerULong() => AssertIntegerSerializer<ulong>();
+    [Fact] public void AssertSerializerInt128() => AssertIntegerSerializer<Int128>();
+    [Fact] public void AssertSerializerUInt128() => AssertIntegerSerializer<UInt128>();
 
-#if NET9_0_OR_GREATER
-    [Fact]
-#else
-    [DynamicFact]
-    [RequiresDynamicCode("Calls Backdash.Tests.Specs.Unit.Serialization.SerializersTests.AssertIntegerSerializer<T>()")]
-#endif
-    public void AssertSerializerSByte() => AssertIntegerSerializer<sbyte>();
-
-#if NET9_0_OR_GREATER
-    [Fact]
-#else
-    [DynamicFact]
-    [RequiresDynamicCode("Calls Backdash.Tests.Specs.Unit.Serialization.SerializersTests.AssertIntegerSerializer<T>()")]
-#endif
-    public void AssertSerializerShort() => AssertIntegerSerializer<short>();
-
-#if NET9_0_OR_GREATER
-    [Fact]
-#else
-    [DynamicFact]
-    [RequiresDynamicCode("Calls Backdash.Tests.Specs.Unit.Serialization.SerializersTests.AssertIntegerSerializer<T>()")]
-#endif
-    public void AssertSerializerUShort() => AssertIntegerSerializer<ushort>();
-
-#if NET9_0_OR_GREATER
-    [Fact]
-#else
-    [DynamicFact]
-    [RequiresDynamicCode("Calls Backdash.Tests.Specs.Unit.Serialization.SerializersTests.AssertIntegerSerializer<T>()")]
-#endif
-    public void AssertSerializerInt() => AssertIntegerSerializer<int>();
-
-#if NET9_0_OR_GREATER
-    [Fact]
-#else
-    [DynamicFact]
-    [RequiresDynamicCode("Calls Backdash.Tests.Specs.Unit.Serialization.SerializersTests.AssertIntegerSerializer<T>()")]
-#endif
-    public void AssertSerializerUInt() => AssertIntegerSerializer<uint>();
-
-#if NET9_0_OR_GREATER
-    [Fact]
-#else
-    [DynamicFact]
-    [RequiresDynamicCode("Calls Backdash.Tests.Specs.Unit.Serialization.SerializersTests.AssertIntegerSerializer<T>()")]
-#endif
-    public void AssertSerializerLong() => AssertIntegerSerializer<long>();
-
-#if NET9_0_OR_GREATER
-    [Fact]
-#else
-    [DynamicFact]
-    [RequiresDynamicCode("Calls Backdash.Tests.Specs.Unit.Serialization.SerializersTests.AssertIntegerSerializer<T>()")]
-#endif
-    public void AssertSerializerULong() => AssertIntegerSerializer<ulong>();
-
-#if NET9_0_OR_GREATER
-    [Fact]
-#else
-    [DynamicFact]
-    [RequiresDynamicCode("Calls Backdash.Tests.Specs.Unit.Serialization.SerializersTests.AssertIntegerSerializer<T>()")]
-#endif
-    public void AssertSerializerInt128() => AssertIntegerSerializer<Int128>();
-
-#if NET9_0_OR_GREATER
-    [Fact]
-#else
-    [DynamicFact]
-    [RequiresDynamicCode("Calls Backdash.Tests.Specs.Unit.Serialization.SerializersTests.AssertIntegerSerializer<T>()")]
-#endif
-    public void AssertSerializerUInt128() => AssertIntegerSerializer<UInt128>();
-
-
-#if NET9_0_OR_GREATER
-    [Fact]
-#else
-    [DynamicFact]
-    [RequiresDynamicCode("Calls Backdash.Tests.Specs.Unit.Serialization.SerializersTests.AssertEnumSerializer<T>()")]
-#endif
-    public void AssertSerializerByteEnum() => AssertEnumSerializer<ByteEnum, byte>();
-
-#if NET9_0_OR_GREATER
-    [Fact]
-#else
-    [DynamicFact]
-    [RequiresDynamicCode("Calls Backdash.Tests.Specs.Unit.Serialization.SerializersTests.AssertEnumSerializer<T>()")]
-#endif
-    public void AssertSerializerSByteEnum() => AssertEnumSerializer<SByteEnum, sbyte>();
-
-#if NET9_0_OR_GREATER
-    [Fact]
-#else
-    [DynamicFact]
-    [RequiresDynamicCode("Calls Backdash.Tests.Specs.Unit.Serialization.SerializersTests.AssertEnumSerializer<T>()")]
-#endif
-    public void AssertSerializerShortEnum() => AssertEnumSerializer<Int16Enum, short>();
-
-#if NET9_0_OR_GREATER
-    [Fact]
-#else
-    [DynamicFact]
-    [RequiresDynamicCode("Calls Backdash.Tests.Specs.Unit.Serialization.SerializersTests.AssertEnumSerializer<T>()")]
-#endif
-    public void AssertSerializerUShortEnum() => AssertEnumSerializer<UInt16Enum, ushort>();
-
-#if NET9_0_OR_GREATER
-    [Fact]
-#else
-    [DynamicFact]
-    [RequiresDynamicCode("Calls Backdash.Tests.Specs.Unit.Serialization.SerializersTests.AssertEnumSerializer<T>()")]
-#endif
-    public void AssertSerializerIntEnum() => AssertEnumSerializer<Int32Enum, int>();
-
-#if NET9_0_OR_GREATER
-    [Fact]
-#else
-    [DynamicFact]
-    [RequiresDynamicCode("Calls Backdash.Tests.Specs.Unit.Serialization.SerializersTests.AssertEnumSerializer<T>()")]
-#endif
-    public void AssertSerializerUIntEnum() => AssertEnumSerializer<UInt32Enum, uint>();
-
-#if NET9_0_OR_GREATER
-    [Fact]
-#else
-    [DynamicFact]
-    [RequiresDynamicCode("Calls Backdash.Tests.Specs.Unit.Serialization.SerializersTests.AssertEnumSerializer<T>()")]
-#endif
-    public void AssertSerializerLongEnum() => AssertEnumSerializer<Int64Enum, long>();
-
-#if NET9_0_OR_GREATER
-    [Fact]
-#else
-    [DynamicFact]
-    [RequiresDynamicCode("Calls Backdash.Tests.Specs.Unit.Serialization.SerializersTests.AssertEnumSerializer<T>()")]
-#endif
-    public void AssertSerializerULongEnum() => AssertEnumSerializer<UInt64Enum, ulong>();
-
+    [Fact] public void AssertSerializerByteEnum() => AssertEnumSerializer<ByteEnum, byte>();
+    [Fact] public void AssertSerializerSByteEnum() => AssertEnumSerializer<SByteEnum, sbyte>();
+    [Fact] public void AssertSerializerShortEnum() => AssertEnumSerializer<Int16Enum, short>();
+    [Fact] public void AssertSerializerUShortEnum() => AssertEnumSerializer<UInt16Enum, ushort>();
+    [Fact] public void AssertSerializerIntEnum() => AssertEnumSerializer<Int32Enum, int>();
+    [Fact] public void AssertSerializerUIntEnum() => AssertEnumSerializer<UInt32Enum, uint>();
+    [Fact] public void AssertSerializerLongEnum() => AssertEnumSerializer<Int64Enum, long>();
+    [Fact] public void AssertSerializerULongEnum() => AssertEnumSerializer<UInt64Enum, ulong>();
 }
 
 static file class Extensions

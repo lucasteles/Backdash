@@ -12,7 +12,7 @@ public readonly record struct StringValue(string Value)
 
 class StringBinarySerializer : IBinarySerializer<StringValue>
 {
-    public Endianness Endianness { get; } = Platform.GetEndianness(false);
+    public Endianness Endianness { get; } = Platform.GetNetworkEndianness(false);
 
     public int Serialize(in StringValue data, Span<byte> buffer) =>
         Encoding.UTF8.GetBytes(data.Value, buffer);

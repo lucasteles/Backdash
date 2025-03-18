@@ -1,10 +1,16 @@
 using System.Net;
 using System.Net.Sockets;
 
-namespace Backdash.Tests.TestUtils.Network;
+namespace Backdash.Network;
 
-static class PortUtils
+/// <summary>
+///     Network utilities
+/// </summary>
+public static class NetUtils
 {
+    /// <summary>
+    ///     Finds a free TCP port.
+    /// </summary>
     public static int FindFreePort()
     {
         TcpListener? tcpListener = null;

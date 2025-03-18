@@ -84,12 +84,13 @@ public static class GameLogic
 
         if (press.Key is ConsoleKey.Escape)
             disconnectRequest = true;
+
         return press.Key switch
         {
-            ConsoleKey.LeftArrow => GameInput.Left,
-            ConsoleKey.RightArrow => GameInput.Right,
-            ConsoleKey.UpArrow => GameInput.Up,
-            ConsoleKey.DownArrow => GameInput.Down,
+            ConsoleKey.LeftArrow or ConsoleKey.A => GameInput.Left,
+            ConsoleKey.RightArrow or ConsoleKey.D => GameInput.Right,
+            ConsoleKey.UpArrow or ConsoleKey.W => GameInput.Up,
+            ConsoleKey.DownArrow or ConsoleKey.S => GameInput.Down,
             _ => GameInput.None,
         };
     }

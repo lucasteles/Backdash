@@ -60,7 +60,7 @@ jobs:
                     SEMVER="${{ steps.gitversion.outputs.SemVer }}${{ env.NUGET_TAG }}"
                     dotnet pack src/Backdash --configuration Release --include-symbols -p:Version="$SEMVER" --output ./build_artifacts
                     dotnet pack src/Backdash.Utils --configuration Release --include-symbols -p:Version="$SEMVER" --output ./build_artifacts
-                    dotnet pack src/Backdash.Analyzers --configuration Release --include-symbols -p:Version="$SEMVER" --output ./build_artifacts
+            #       dotnet pack src/Backdash.Analyzers --configuration Release --include-symbols -p:Version="$SEMVER" --output ./build_artifacts
 
             -   name: Upload lib NuGet package artifact to GitHub
                 uses: actions/upload-artifact@v4

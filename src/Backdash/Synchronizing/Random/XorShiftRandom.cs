@@ -1,12 +1,12 @@
 using System.Buffers.Binary;
 using System.Diagnostics;
 using Backdash.Core;
-using Backdash.Data;
 
 namespace Backdash.Synchronizing.Random;
 
 /// <summary>
-/// XOR Shift random number generators (shift-register generators) implementation <seealso cref="IDeterministicRandom{T}"/>
+///     XOR Shift random number generators (shift-register generators) implementation
+///     <seealso cref="IDeterministicRandom{T}" />
 /// </summary>
 public sealed class XorShiftRandom<TInput> : IDeterministicRandom<TInput> where TInput : unmanaged
 {

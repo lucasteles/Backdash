@@ -1,7 +1,7 @@
 namespace Backdash;
 
 /// <summary>
-/// Defines player type.
+///     Defines player type.
 /// </summary>
 public enum PlayerType
 {

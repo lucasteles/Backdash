@@ -1,6 +1,8 @@
 #nullable disable
 
 using Backdash;
+using Backdash.Core;
+using SpaceWar.Logic;
 using SpaceWar.Models;
 using SpaceWar.Services;
 
@@ -17,6 +19,7 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
     bool ready;
     bool connected;
     LobbyUdpClient lobbyUdpClient;
+    PlayerMode mode = mode;
 
     readonly TimeSpan refreshInterval = TimeSpan.FromSeconds(2);
     readonly TimeSpan pingInterval = TimeSpan.FromMilliseconds(300);
@@ -309,7 +312,7 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
 
         if (connected) return;
         connected = lobbyInfo.Players.SingleOrDefault(x => x.PeerId == user.PeerId) is
-        { Connected: true };
+            { Connected: true };
     }
 
     void CheckPlayersReady()
@@ -378,7 +381,12 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
             }
         }
 
-        LoadScene(new BattleSessionScene(Config.LocalPort, players, lobbyInfo.Players));
+        var netcodeSession = NetcodeSessionBuilder()
+            .WithPlayers(players)
+            .ForRemote()
+            .Build();
+
+        LoadScene(new BattleSessionScene(netcodeSession, lobbyInfo.Players));
     }
 
     void StartSpectatorBattleScene()
@@ -390,13 +398,30 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
         var playerCount = lobbyInfo.Players.Length;
         var hostEndpoint = LobbyUdpClient.GetFallbackEndpoint(user, host);
 
-
         Window.Title = $"Space War {Config.LocalPort} - {user.Username} watching {host.Username}";
-        LoadScene(new BattleSessionScene(
-            Config.LocalPort, playerCount,
-            hostEndpoint, lobbyInfo.Players)
-        );
+
+        var netcodeSession = NetcodeSessionBuilder()
+            .WithPlayerCount(playerCount)
+            .ForSpectator(hostEndpoint)
+            .Build();
+
+        LoadScene(new BattleSessionScene(netcodeSession, lobbyInfo.Players));
     }
+
+    NetcodeSessionBuilder<PlayerInputs> NetcodeSessionBuilder() =>
+        RollbackNetcode
+            .WithInputType<PlayerInputs>()
+            .WithPort(Config.LocalPort)
+            .WithInputDelayFrames(2)
+            .WithLogLevel(LogLevel.Warning)
+            .ConfigureProtocol(options =>
+            {
+                options.NumberOfSyncRoundtrips = 10;
+                options.DisconnectTimeout = TimeSpan.FromSeconds(3);
+                options.DisconnectNotifyStart = TimeSpan.FromSeconds(1);
+                options.LogNetworkStats = false;
+                // options.NetworkLatency = Backdash.Data.FrameSpan.Of(3).Duration();
+            });
 
     bool PendingNetworkCall()
     {

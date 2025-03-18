@@ -1,19 +1,17 @@
-using Backdash.Data;
-
 namespace Backdash.Synchronizing.Random;
 
 /// <summary>
-/// Defines a random number generator
+///     Defines a random number generator
 /// </summary>
 public interface INetcodeRandom
 {
     /// <summary>
-    /// Returns a random unsigned integer.
+    ///     Returns a random unsigned integer.
     /// </summary>
     uint Next();
 
     /// <summary>
-    /// Returns a random non-negative integer.
+    ///     Returns a random non-negative integer.
     /// </summary>
     int NextInt()
     {
@@ -26,7 +24,7 @@ public interface INetcodeRandom
     }
 
     /// <summary>
-    /// Returns a random integer that is within a specified range.
+    ///     Returns a random integer that is within a specified range.
     /// </summary>
     int NextInt(int minValue, int maxValue)
     {
@@ -38,23 +36,23 @@ public interface INetcodeRandom
     }
 
     /// <summary>
-    /// Returns a random integer that is between 0 and <paramref name="maxValue"/>
+    ///     Returns a random integer that is between 0 and <paramref name="maxValue" />
     /// </summary>
     int NextInt(int maxValue) => NextInt(0, maxValue);
 
     /// <summary>
-    /// Returns a random floating-point number that is greater than or equal to 0.0, and less than 1.0.
+    ///     Returns a random floating-point number that is greater than or equal to 0.0, and less than 1.0.
     /// </summary>
     float NextFloat() => (float)Next() / uint.MaxValue;
 }
 
 /// <summary>
-/// Defines a deterministic random number generator
+///     Defines a deterministic random number generator
 /// </summary>
 public interface IDeterministicRandom<TInput> : INetcodeRandom where TInput : unmanaged
 {
     /// <summary>
-    /// Updates the seed for the current random instance
+    ///     Updates the seed for the current random instance
     /// </summary>
     void UpdateSeed(in Frame currentFrame, ReadOnlySpan<TInput> inputs);
 }

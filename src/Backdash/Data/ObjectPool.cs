@@ -1,34 +1,34 @@
 namespace Backdash.Data;
 
 /// <summary>
-/// Defines an object pooling contract
+///     Defines an object pooling contract
 /// </summary>
 /// <typeparam name="T"></typeparam>
 public interface IObjectPool<T>
 {
     /// <summary>
-    /// Rent an instance on <typeparamref name="T"/> from the pool
+    ///     Rent an instance on <typeparamref name="T" /> from the pool
     /// </summary>
     T Rent();
 
     /// <summary>
-    /// Return <paramref name="value"/> to the pool
+    ///     Return <paramref name="value" /> to the pool
     /// </summary>
     void Return(T value);
 }
 
 /// <summary>
-/// Default object pool for types with empty constructor
+///     Default object pool for types with empty constructor
 /// </summary>
 public sealed class DefaultObjectPool<T> : IObjectPool<T> where T : class, new()
 {
     /// <summary>
-    /// Default object pool singleton.
+    ///     Default object pool singleton.
     /// </summary>
     public static readonly IObjectPool<T> Instance = new DefaultObjectPool<T>();
 
     /// <summary>
-    /// Maximum number of objects allowed in the pool
+    ///     Maximum number of objects allowed in the pool
     /// </summary>
     public readonly int MaxCapacity; // -1 to account for fastItem
 
@@ -38,7 +38,7 @@ public sealed class DefaultObjectPool<T> : IObjectPool<T> where T : class, new()
     T? fastItem;
 
     /// <summary>
-    /// Instantiate new <see cref="DefaultObjectPool{T}"/>
+    ///     Instantiate new <see cref="DefaultObjectPool{T}" />
     /// </summary>
     public DefaultObjectPool(int capacity = 100, IEqualityComparer<T>? comparer = null)
     {
@@ -89,7 +89,7 @@ public sealed class DefaultObjectPool<T> : IObjectPool<T> where T : class, new()
     }
 
     /// <summary>
-    /// Clear object pool
+    ///     Clear object pool
     /// </summary>
     public void Clear()
     {
@@ -100,7 +100,7 @@ public sealed class DefaultObjectPool<T> : IObjectPool<T> where T : class, new()
     }
 
     /// <summary>
-    /// Number of instances in the object pool
+    ///     Number of instances in the object pool
     /// </summary>
     public int Count => numItems + (fastItem is null ? 0 : 1);
 }

@@ -1,7 +1,8 @@
+using System.Collections.Frozen;
 using System.Diagnostics.CodeAnalysis;
 using Backdash.Core;
-using Backdash.Data;
 using Backdash.Network;
+using Backdash.Options;
 using Backdash.Serialization;
 using Backdash.Synchronizing;
 using Backdash.Synchronizing.Input.Confirmed;
@@ -10,10 +11,10 @@ using Backdash.Synchronizing.State;
 
 namespace Backdash.Backends;
 
-sealed class ReplayBackend<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] TInput> : INetcodeSession<TInput> where TInput : unmanaged
+sealed class ReplaySession<TInput> : INetcodeSession<TInput> where TInput : unmanaged
 {
     readonly Logger logger;
-    readonly PlayerHandle[] fakePlayers;
+    readonly FrozenSet<PlayerHandle> fakePlayers;
     INetcodeSessionHandler callbacks;
     bool isSynchronizing = true;
     SynchronizedInput<TInput>[] syncInputBuffer = [];
@@ -23,35 +24,37 @@ sealed class ReplayBackend<[DynamicallyAccessedMembers(DynamicallyAccessedMember
     bool closed;
 
     readonly IReadOnlyList<ConfirmedInputs<TInput>> inputList;
-    readonly SessionReplayControl controls;
     readonly IStateStore stateStore;
     readonly IChecksumProvider checksumProvider;
     readonly IDeterministicRandom<TInput> random;
     readonly Endianness endianness;
 
-    public ReplayBackend(int numberOfPlayers,
-        IReadOnlyList<ConfirmedInputs<TInput>> inputList,
-        SessionReplayControl controls,
-        BackendServices<TInput> services,
-        NetcodeOptions options
+    public SessionReplayControl ReplayController { get; }
+
+    public ReplaySession(
+        SessionReplayOptions<TInput> replayOptions,
+        NetcodeOptions options,
+        SessionServices<TInput> services
     )
     {
+        ArgumentNullException.ThrowIfNull(options);
+        ArgumentNullException.ThrowIfNull(replayOptions);
         ArgumentNullException.ThrowIfNull(services);
 
-        this.inputList = inputList;
-        this.controls = controls;
+        inputList = replayOptions.InputList;
+        ReplayController = replayOptions.ReplayController ?? new();
         logger = services.Logger;
         stateStore = services.StateStore;
         checksumProvider = services.ChecksumProvider;
         random = services.DeterministicRandom;
-        NumberOfPlayers = numberOfPlayers;
-        endianness = options.StateSerializationEndianness ?? Platform.GetEndianness(options.UseNetworkEndianness);
-        callbacks = new EmptySessionHandler(logger);
-        fakePlayers = Enumerable.Range(0, numberOfPlayers)
+        NumberOfPlayers = options.NumberOfPlayers;
+        endianness = options.GetStateSerializationEndianness();
+        callbacks = services.SessionHandler;
+        fakePlayers = Enumerable.Range(0, NumberOfPlayers)
             .Select(x => new PlayerHandle(PlayerType.Remote, x + 1, x))
-            .ToArray();
+            .ToFrozenSet();
 
-        stateStore.Initialize(controls.MaxBackwardFrames);
+        stateStore.Initialize(ReplayController.MaxBackwardFrames);
     }
 
     public void Dispose()
@@ -77,24 +80,28 @@ sealed class ReplayBackend<[DynamicallyAccessedMembers(DynamicallyAccessedMember
     public SavedFrame GetCurrentSavedFrame() => stateStore.Last();
 
     public int NumberOfSpectators => 0;
+    public int LocalPort => 0;
     public int NumberOfPlayers { get; private set; }
 
     public INetcodeRandom Random => random;
 
-    public SessionMode Mode => SessionMode.Replaying;
+    public SessionMode Mode => SessionMode.Replay;
     public void DisconnectPlayer(in PlayerHandle player) { }
     public ResultCode AddLocalInput(PlayerHandle player, in TInput localInput) => ResultCode.Ok;
-    public IReadOnlyCollection<PlayerHandle> GetPlayers() => fakePlayers;
-    public IReadOnlyCollection<PlayerHandle> GetSpectators() => [];
+    public IReadOnlySet<PlayerHandle> GetPlayers() => fakePlayers;
+    public IReadOnlySet<PlayerHandle> GetSpectators() => FrozenSet<PlayerHandle>.Empty;
+
+    public ReadOnlySpan<SynchronizedInput<TInput>> CurrentSynchronizedInputs => syncInputBuffer;
+    public ReadOnlySpan<TInput> CurrentInputs => inputBuffer;
 
     public void BeginFrame() { }
 
     public void AdvanceFrame()
     {
-        if (controls.IsPaused)
+        if (ReplayController.IsPaused)
             return;
 
-        if (controls.IsBackward)
+        if (ReplayController.IsBackward)
         {
             LoadFrame(CurrentFrame.Previous());
         }
@@ -126,6 +133,7 @@ sealed class ReplayBackend<[DynamicallyAccessedMembers(DynamicallyAccessedMember
 
     public Task WaitToStop(CancellationToken stoppingToken = default) => Task.CompletedTask;
 
+    [MemberNotNull(nameof(callbacks))]
     public void SetHandler(INetcodeSessionHandler handler)
     {
         ArgumentNullException.ThrowIfNull(handler);
@@ -134,7 +142,7 @@ sealed class ReplayBackend<[DynamicallyAccessedMembers(DynamicallyAccessedMember
 
     public ResultCode SynchronizeInputs()
     {
-        if (isSynchronizing || controls.IsPaused)
+        if (isSynchronizing || ReplayController.IsPaused)
             return ResultCode.NotSynchronized;
 
         if (CurrentFrame.Number >= inputList.Count)
@@ -199,15 +207,9 @@ sealed class ReplayBackend<[DynamicallyAccessedMembers(DynamicallyAccessedMember
         }
         catch (NetcodeException)
         {
-            controls.IsBackward = false;
-            controls.Pause();
+            ReplayController.IsBackward = false;
+            ReplayController.Pause();
             return false;
         }
     }
-
-    public ref readonly SynchronizedInput<TInput> GetInput(int index) =>
-        ref syncInputBuffer[index];
-
-    public ref readonly SynchronizedInput<TInput> GetInput(in PlayerHandle player) =>
-        ref syncInputBuffer[player.Number - 1];
 }

@@ -6,7 +6,7 @@ using Backdash.Core;
 namespace Backdash.Network.Client;
 
 /// <summary>
-/// UDP specialized socket interface.
+///     UDP specialized socket interface.
 /// </summary>
 public sealed class UdpSocket : IPeerSocket
 {
@@ -20,7 +20,7 @@ public sealed class UdpSocket : IPeerSocket
     readonly IPEndPoint anyEndPoint;
 
     /// <summary>
-    /// Gets the main bind port of the Socket.
+    ///     Gets the main bind port of the Socket.
     /// </summary>
     public int Port { get; }
 
@@ -28,11 +28,14 @@ public sealed class UdpSocket : IPeerSocket
     public AddressFamily AddressFamily => socket.AddressFamily;
 
     /// <summary>
-    /// Initialize and bind a new <see cref="UdpSocket"/>.
+    ///     Initialize and bind a new <see cref="UdpSocket" />.
     /// </summary>
     /// <param name="bindEndpoint">Local socket binding.</param>
-    /// <exception cref="NetcodeException">Throws if the <see cref="AddressFamily"/> of <see cref="IPAddress"/> in <paramref name="bindEndpoint"/>
-    /// is not <see cref="System.Net.Sockets.AddressFamily.InterNetwork"/> or <see cref="System.Net.Sockets.AddressFamily.InterNetworkV6"/>> </exception>
+    /// <exception cref="NetcodeException">
+    ///     Throws if the <see cref="AddressFamily" /> of <see cref="IPAddress" /> in <paramref name="bindEndpoint" />
+    ///     is not <see cref="System.Net.Sockets.AddressFamily.InterNetwork" /> or
+    ///     <see cref="System.Net.Sockets.AddressFamily.InterNetworkV6" />>
+    /// </exception>
     public UdpSocket(IPEndPoint bindEndpoint)
     {
         anyEndPoint = new(bindEndpoint.AddressFamily switch
@@ -71,18 +74,18 @@ public sealed class UdpSocket : IPeerSocket
     }
 
 
-    /// <inheritdoc  />
+    /// <inheritdoc />
     public UdpSocket(IPAddress bindAddress, int port) : this(new(bindAddress, port)) { }
 
-    /// <inheritdoc  />
+    /// <inheritdoc />
     public UdpSocket(int port, bool useIPv6 = false) : this(useIPv6 ? IPAddress.IPv6Any : IPAddress.Any, port) { }
 
-    /// <inheritdoc  />
+    /// <inheritdoc />
     public UdpSocket(string bindHost, int port, AddressFamily addressFamily = AddressFamily.InterNetwork)
         : this(GetDnsIpAddress(bindHost, addressFamily), port) { }
 
     /// <summary>
-    /// Returns the Internet Protocol (IP) addresses for the specified host and <see cref="AddressFamily"/>.
+    ///     Returns the Internet Protocol (IP) addresses for the specified host and <see cref="AddressFamily" />.
     /// </summary>
     /// <exception cref="NetcodeException"></exception>
     public static IPAddress GetDnsIpAddress(string host, AddressFamily addressFamily = AddressFamily.InterNetwork)
@@ -93,27 +96,42 @@ public sealed class UdpSocket : IPeerSocket
     }
 
     /// <summary>
-    /// Receives a datagram into the data buffer, using the specified SocketFlags, and stores the endpoint.
+    ///     Receives a datagram into the data buffer, using the specified SocketFlags, and stores the endpoint.
     /// </summary>
     /// <param name="buffer">The buffer for the received data.</param>
-    /// <param name="address"> A <see cref="SocketAddress "/> instance that gets updated with the value of the remote peer when this method returns.</param>
-    /// <param name="cancellationToken">A cancellation token that can be used to signal the asynchronous operation should be canceled.</param>
-    /// <returns>An asynchronous task that completes with a <see cref="SocketReceiveFromResult"/> containing the number of bytes received and the endpoint of the sending host.</returns>
+    /// <param name="address">
+    ///     A <see cref="SocketAddress " /> instance that gets updated with the value of the remote peer
+    ///     when this method returns.
+    /// </param>
+    /// <param name="cancellationToken">
+    ///     A cancellation token that can be used to signal the asynchronous operation should be
+    ///     canceled.
+    /// </param>
+    /// <returns>
+    ///     An asynchronous task that completes with a <see cref="SocketReceiveFromResult" /> containing the number of
+    ///     bytes received and the endpoint of the sending host.
+    /// </returns>
     public ValueTask<int> ReceiveFromAsync(Memory<byte> buffer, SocketAddress address,
         CancellationToken cancellationToken) =>
         socket.ReceiveFromAsync(buffer, SocketFlags.None, address, cancellationToken);
 
     /// <summary>
-    /// Receives data and returns the endpoint of the sending host.
+    ///     Receives data and returns the endpoint of the sending host.
     /// </summary>
     /// <param name="buffer">The buffer for the received data.</param>
-    /// <param name="cancellationToken">A cancellation token that can be used to signal the asynchronous operation should be canceled.</param>
-    /// <returns>An asynchronous task that completes with a <see cref="SocketReceiveFromResult"/> containing the number of bytes received and the endpoint of the sending host.</returns>
+    /// <param name="cancellationToken">
+    ///     A cancellation token that can be used to signal the asynchronous operation should be
+    ///     canceled.
+    /// </param>
+    /// <returns>
+    ///     An asynchronous task that completes with a <see cref="SocketReceiveFromResult" /> containing the number of
+    ///     bytes received and the endpoint of the sending host.
+    /// </returns>
     public ValueTask<SocketReceiveFromResult> ReceiveAsync(Memory<byte> buffer, CancellationToken cancellationToken) =>
         socket.ReceiveFromAsync(buffer, SocketFlags.None, anyEndPoint, cancellationToken);
 
     /// <summary>
-    /// Sends data to the specified remote host.
+    ///     Sends data to the specified remote host.
     /// </summary>
     /// <param name="buffer">The buffer for the data to send.</param>
     /// <param name="socketAddress">The remote host to which to send the data.</param>
@@ -124,7 +142,7 @@ public sealed class UdpSocket : IPeerSocket
         socket.SendToAsync(buffer, SocketFlags.None, socketAddress, cancellationToken);
 
     /// <summary>
-    /// Sends data to the specified remote host.
+    ///     Sends data to the specified remote host.
     /// </summary>
     /// <param name="buffer">The buffer for the data to send.</param>
     /// <param name="remoteEndPoint">The remote host to which to send the data.</param>
@@ -134,7 +152,7 @@ public sealed class UdpSocket : IPeerSocket
         CancellationToken cancellationToken) =>
         socket.SendToAsync(buffer, SocketFlags.None, remoteEndPoint, cancellationToken);
 
-    /// <inheritdoc  />
+    /// <inheritdoc />
     public void Dispose() => socket.Dispose();
 
     /// <inheritdoc cref="Socket.Close()" />

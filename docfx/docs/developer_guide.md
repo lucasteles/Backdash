@@ -61,12 +61,9 @@ the [`INetcodeSessionHandler`](https://lucasteles.github.io/Backdash/api/Backdas
 
 ### Creating the [`INetcodeSession`](https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSession-2.html) Object
 
-The [`INetcodeSession<TInput>`](https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSession-2.html)
-object is your interface to the [Backdash](https://github.com/lucasteles/Backdash) framework. Create
-one with
-the [`RollbackNetcode.CreateSession`](https://lucasteles.github.io/Backdash/api/Backdash.RollbackNetcode.html#Backdash_RollbackNetcode_CreateSession__2_System_Int32_Backdash_NetcodeOptions_Backdash_SessionServices___0___1__)
-function passing the port to bind to locally and optionally other configurations with
-an instance of [`NetcodeOptions`](https://lucasteles.github.io/Backdash/api/Backdash.NetcodeOptions.html).
+The [`INetcodeSession<TInput>`](https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSession-2.html) object is your interface to the [Backdash](https://github.com/lucasteles/Backdash) framework.
+
+Create one with the `RollbackNetcode.WithInputType` builder:
 
 For example, giving the user pre-defined types for the **Game State** and **Game Input**
 
@@ -85,35 +82,42 @@ public enum MyGameInput {
 }
 ```
 
-To start a new session bound to port 9001, you would do:
+To create a new session bounded to port `9001`:
 
 ```csharp
 using Backdash;
-using Backdash.Core;
 
-var session = RollbackNetcode.CreateSession<MyGameInput>(9001);
+var session = RollbackNetcode
+    .WithInputType<MyGameInput>()
+    .Configure(options =>
+    {
+        options.LocalPort = 9001;
+    })
+    .Build();
 
-// ...
 ```
 
-It is possible to set many configurations passing an instance of [`NetcodeOptions`](https://lucasteles.github.io/Backdash/api/Backdash.NetcodeOptions.html)
+> [!TIP]
+> If you want to use a integer type as your input type:
+>
+> `RollbackNetcode.WithInputType(t => t.Integer<uint>())`
+
+The session builder can be used to configure the session by setting [`NetcodeOptions`](https://lucasteles.github.io/Backdash/api/Backdash.NetcodeOptions.html):
+- passing an instance to `.WithOptions(..)`
+- using the a delegate function on `.Configure(options => {})`
+- using the a fluent api
+
 
 ```csharp
 using Backdash;
 using Backdash.Core;
 
-const int networkPort = 9001;
-
-NetcodeOptions options = new()
-{
-    FrameDelay = 2,
-    Log = new()
-    {
-        EnabledLevel = LogLevel.Debug,
-    },
-};
-
-var session = RollbackNetcode.CreateSession<MyGameInput>(networkPort, options);
+var session = RollbackNetcode
+    .WithInputType<MyGameInput>()
+    .WithPort(9001)
+    .WithInputDelayFrames(2)
+    .WithLogLevel(LogLevel.Warning)
+    .Build();
 
 ```
 
@@ -217,10 +221,8 @@ AdvanceGameState(player1Input, player2Input, gameState);
 You should change it to read as follows:
 
 ```csharp
-// usually a reusable reference
-var gameInputs = new MyGameInput[2];
 
-// you must keep the player handlers or read then with session.GetPlayers()
+// you must keep the local player handler reference or query it from the session.
 var player1Handle = player1.Handle;
 
 var localInput = GetControllerInput(0); // read the controller
@@ -233,7 +235,7 @@ if (result is ResultCode.Ok)
     result = session.SynchronizeInputs();
     if (result is ResultCode.Ok)
     {
-        session.GetInputs(gameInputs);
+        var gameInputs = session.CurrentSynchronizedInputs;
         AdvanceGameState(gameInputs[0], gameInputs[1], gameState);
     }
 }
@@ -268,7 +270,12 @@ The [`LoadState`](https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSes
 For example:
 
 ```csharp
-public record MyGameState
+using System.Numerics;
+using Backdash.Serialization;
+using Backdash.Serialization.Numerics;
+
+
+public class MyGameState
 {
     public int Value1;
     public Vector2 Value2;
@@ -286,8 +293,13 @@ public class MySessionHandler : INetcodeSessionHandler
 
     public void LoadState(in Frame frame, ref readonly BinaryBufferReader reader)
     {
+        reader.Read(ref currentGameState.Value1);
+        reader.Read(ref currentGameState.Value2);
+
+        /* or also:
         currentGameState.Value1 = reader.ReadInt32();
         currentGameState.Value2 = reader.ReadVector2();
+        */
     }
 
     /* ... */
@@ -299,8 +311,44 @@ The saved **Game State** will have a calculated [checksum](https://en.wikipedia.
 You can also use you own checksum algorithm, for this just implement the interface
 [`IChecksumProvider`](https://lucasteles.github.io/Backdash/api/Backdash.Sync.State.IChecksumProvider-1.html).
 
-Provide the `IChecksumProvider` implementation in the [services](https://lucasteles.github.io/Backdash/api/Backdash.SessionServices-2.html#Backdash_SessionServices_2_ChecksumProvider)
-parameter of [`RollbackNetcode.CreateSession`](https://lucasteles.github.io/Backdash/api/Backdash.RollbackNetcode.html#Backdash_RollbackNetcode_CreateSession__2_System_Int32_Backdash_NetcodeOptions_Backdash_SessionServices___0___1__)
+### Custom State Serializer
+
+If you don't want to write/read each member or just need to use other serialization method for the state, you is able to access the `IBufferWriter` for _save_ and the raw `ReadOnlySpan<byte>` for _load_:
+
+Example for [MemoryPack](https://github.com/Cysharp/MemoryPack);
+
+```csharp
+using System.Numerics;
+using Backdash.Data;
+using Backdash.Serialization;
+using MemoryPack;
+
+[MemoryPackable]
+public partial class MyGameState
+{
+    public int Value1;
+    public Vector2 Value2;
+}
+
+public class MySessionHandler : INetcodeSessionHandler
+{
+    MyGameState currentGameState = new();
+
+    public void SaveState(in Frame frame, ref readonly BinaryBufferWriter writer)
+    {
+        MemoryPackSerializer.Serialize(writer.Buffer, currentGameState);
+    }
+
+    public void LoadState(in Frame frame, ref readonly BinaryBufferReader reader)
+    {
+        MemoryPackSerializer.Deserialize(reader.Buffer, ref currentGameState!);
+    }
+
+    /* ... */
+}
+
+
+```
 
 
 ### Advance Frame Callback
@@ -315,7 +363,7 @@ Usually something like:
 public void AdvanceFrame()
 {
     session.SynchronizeInputs();
-    session.GetInputs(gameInputs);
+    var gameInputs = session.CurrentSynchronizedInputs;
     AdvanceGameState(gameInputs[0], gameInputs[1], gameState);
 }
 // ...
@@ -335,8 +383,7 @@ Check the
 We're almost done. The last step is notify [Backdash](https://github.com/lucasteles/Backdash) every time your frame
 starts and every time the **game state** finishes advancing by one frame.
 
-Just
-call [`BeginFrame`](https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSession-1.html#Backdash_INetcodeSession_1_BeginFrame)
+Just call [`BeginFrame`](https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSession-1.html#Backdash_INetcodeSession_1_BeginFrame)
 method on session at the beginning of each frame
 and [`AdvanceFrame`](https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSession-1.html#Backdash_INetcodeSession_1_AdvanceFrame)
 after you've finished one frame **but before you've started the next**.
@@ -344,8 +391,6 @@ after you've finished one frame **but before you've started the next**.
 So, the code for each frame should be something close to:
 
 ```csharp
-readonly MyGameInput gameInputs = new MyGameInput[2];
-
 public void Update(){
     session.BeginFrame();
 
@@ -359,7 +404,7 @@ public void Update(){
     if (result is not ResultCode.Ok)
         return;
 
-    session.GetInputs(gameInputs);
+    var gameInputs = session.CurrentSynchronizedInputs;
     AdvanceGameState(gameInputs[0], gameInputs[1], gameState);
 
     session.AdvanceFrame();
@@ -416,10 +461,7 @@ If you need a more complex input type and
 support [`Endianess convertion`](https://lucasteles.github.io/Backdash/api/Backdash.NetcodeOptions.html#Backdash_NetcodeOptions_NetworkEndianness)
 you must implement
 an [`IBinarySerializer<TInput>`](https://lucasteles.github.io/Backdash/api/Backdash.Serialization.IBinarySerializer-1.html)
-for your input type, and pass it to
-the [services](https://lucasteles.github.io/Backdash/api/Backdash.SessionServices-2.html#Backdash_SessionServices_2_ChecksumProvider)
-parameter
-of [`RollbackNetcode.CreateSession`](https://lucasteles.github.io/Backdash/api/Backdash.RollbackNetcode.html#Backdash_RollbackNetcode_CreateSession__2_System_Int32_Backdash_NetcodeOptions_Backdash_SessionServices___0___1__)
+for your input type.
 
 > [!TIP]
 > 💡 The easiest way to implement a binary serializer is by deriving
@@ -500,6 +542,15 @@ public class MyPadInputsBinarySerializer : BinarySerializer<PadInputs>
     }
 }
 ```
+To use your custom serializer:
+
+```csharp
+MyPadInputsBinarySerializer mySerializer = new();
+
+var session = RollbackNetcode.WithInputType(t => t.Custom(mySerializer));
+
+```
+
 
 ## Tuning Your Application: Frame Delay vs. Speculative Execution
 

@@ -71,7 +71,7 @@ You need to have installed [.NET 8 SDK](https://dotnet.microsoft.com/en-us/downl
 
 1. Clone this repository.
 2. Restore tools
-   - On root directory run: `dotnet tool restore`
+    - On root directory run: `dotnet tool restore`
 3. Building Library (_root directory_)
     - SDK only: `dotnet nuke build --configuration Release`
         - Alternatively open the solution file `Backdash.sln` on your IDE.

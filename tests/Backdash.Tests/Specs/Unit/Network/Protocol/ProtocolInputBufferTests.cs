@@ -5,6 +5,7 @@ using Backdash.Network;
 using Backdash.Network.Messages;
 using Backdash.Network.Protocol;
 using Backdash.Network.Protocol.Comm;
+using Backdash.Options;
 using Backdash.Serialization;
 using Backdash.Tests.Specs.Unit.Sync.Input;
 using Backdash.Tests.TestUtils;

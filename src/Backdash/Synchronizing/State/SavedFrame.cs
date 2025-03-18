@@ -4,10 +4,10 @@ using Backdash.Data;
 namespace Backdash.Synchronizing.State;
 
 /// <summary>
-/// Represents a save-state at specific frame.
+///     Represents a save-state at specific frame.
 /// </summary>
 /// <param name="Frame">Saved frame number</param>
-/// <param name="GameState">Game state on <paramref name="Frame"/></param>
+/// <param name="GameState">Game state on <paramref name="Frame" /></param>
 /// <param name="Checksum">Checksum of state</param>
 [Serializable]
 public record SavedFrame(Frame Frame, ArrayBufferWriter<byte> GameState, uint Checksum)
