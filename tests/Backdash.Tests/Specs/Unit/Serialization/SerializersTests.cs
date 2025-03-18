@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using Backdash.Network;
@@ -361,19 +360,20 @@ public class SerializersTests
         }
     }
 
-    static void ShouldReturnCorrectSerializerForStruct()
+    [Fact]
+    public void ShouldReturnCorrectSerializerForStruct()
     {
         var serializer = BinarySerializerFactory.ForStruct<SimpleStructData>();
         serializer.Should().BeOfType<StructBinarySerializer<SimpleStructData>>();
     }
 
-    static void AssertIntegerSerializer<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] T>() where T : unmanaged, IBinaryInteger<T>, IMinMaxValue<T>
+    static void AssertIntegerSerializer<T>() where T : unmanaged, IBinaryInteger<T>, IMinMaxValue<T>
     {
         var serializer = BinarySerializerFactory.ForInteger<T>(Endianness.BigEndian);
         serializer.Should().BeOfType<IntegerBinaryBigEndianSerializer<T>>();
     }
 
-    static void AssertEnumSerializer<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] T, TInt>()
+    static void AssertEnumSerializer<T, TInt>()
         where T : unmanaged, Enum
         where TInt : unmanaged, IBinaryInteger<TInt>, IMinMaxValue<TInt>
     {
