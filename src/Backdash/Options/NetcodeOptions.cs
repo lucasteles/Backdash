@@ -27,14 +27,6 @@ public sealed record NetcodeOptions
     public int NumberOfPlayers { get; set; } = 2;
 
     /// <summary>
-    ///     Offset to be incremented to spectators <see cref="PlayerHandle.Number" /> when added to session.
-    /// </summary>
-    /// <seealso cref="PlayerType.Spectator" />
-    /// <seealso cref="INetcodeSession.AddPlayer" />
-    /// <value>Defaults to <c>1000</c></value>
-    public int SpectatorOffset { get; set; } = 1000;
-
-    /// <summary>
     ///     Interval for time synchronization notifications.
     /// </summary>
     /// <seealso cref="TimeSync" />

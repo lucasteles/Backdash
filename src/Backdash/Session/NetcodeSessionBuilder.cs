@@ -22,7 +22,7 @@ namespace Backdash;
 public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
 {
     readonly NetcodeSessionBuilder.SerializerFactory<TInput> serializer;
-    readonly List<Player> playerList = [];
+    readonly List<NetcodePlayer> playerList = [];
 
     SessionMode sessionMode = SessionMode.Remote;
     ServicesConfig<TInput>? sessionServices;
@@ -87,7 +87,7 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
         if (playerList.Count > 0) return;
 
         for (var i = 0; i < options.NumberOfPlayers; i++)
-            playerList.Add(new LocalPlayer(i));
+            playerList.Add(new(PlayerType.Local));
     }
 
     /// <summary>
@@ -152,7 +152,7 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
     /// <summary>
     ///     Set the players for the <see cref="INetcodeSession{TInput}" />
     /// </summary>
-    public NetcodeSessionBuilder<TInput> WithPlayers(params Player[] players)
+    public NetcodeSessionBuilder<TInput> WithPlayers(params NetcodePlayer[] players)
     {
         ArgumentNullException.ThrowIfNull(players);
         ArgumentOutOfRangeException.ThrowIfZero(players.Length);
@@ -163,7 +163,7 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
     /// <summary>
     ///     Set the players for the <see cref="INetcodeSession{TInput}" />
     /// </summary>
-    public NetcodeSessionBuilder<TInput> WithPlayers(IEnumerable<Player> players)
+    public NetcodeSessionBuilder<TInput> WithPlayers(IEnumerable<NetcodePlayer> players)
     {
         ArgumentNullException.ThrowIfNull(players);
         playerList.AddRange(players);

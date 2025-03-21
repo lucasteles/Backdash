@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Collections.Frozen;
 using System.Diagnostics.CodeAnalysis;
+using System.Net;
 using Backdash.Core;
 using Backdash.Network;
 using Backdash.Options;
@@ -46,7 +47,7 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
 
     readonly IReadOnlySet<PlayerHandle> localPlayerFallback = new HashSet<PlayerHandle>
     {
-        new(PlayerType.Local, 1, 0),
+        new(PlayerType.Local, 0),
     }.ToFrozenSet();
 
     public SyncTestSession(
@@ -127,13 +128,10 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
         await backGroundJobTask.WaitAsync(stoppingToken).ConfigureAwait(false);
     }
 
-    public ResultCode AddPlayer(Player player)
+    public ResultCode AddPlayer(NetcodePlayer player)
     {
         if (addedPlayers.Count >= Max.NumberOfPlayers)
             return ResultCode.TooManyPlayers;
-
-        if (!addedPlayers.Add(player.Handle))
-            return ResultCode.DuplicatedPlayer;
 
         if (player.IsSpectator())
         {
@@ -149,12 +147,37 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
         return ResultCode.Ok;
     }
 
-    public IReadOnlyList<ResultCode> AddPlayers(IReadOnlyList<Player> players)
+
+    public ResultCode AddLocalPlayer(out PlayerHandle handle)
     {
-        var result = new ResultCode[players.Count];
-        for (var index = 0; index < players.Count; index++)
-            result[index] = AddPlayer(players[index]);
-        return result;
+        handle = new(PlayerType.Local);
+
+        if (addedPlayers.Count >= Max.NumberOfPlayers)
+            return ResultCode.TooManyPlayers;
+
+        if (!addedPlayers.Add(handle))
+            return ResultCode.DuplicatedPlayer;
+
+        return ResultCode.Ok;
+    }
+
+    public ResultCode AddRemotePlayer(IPEndPoint endpoint, out PlayerHandle handle)
+    {
+        handle = default;
+        return ResultCode.NotSupported;
+    }
+
+    public ResultCode AddSpectator(IPEndPoint endpoint, out PlayerHandle handle)
+    {
+        handle = new(PlayerType.Spectator);
+
+        if (addedSpectators.Count >= Max.NumberOfSpectators)
+            return ResultCode.TooManyPlayers;
+
+        if (!addedSpectators.Add(handle))
+            return ResultCode.DuplicatedPlayer;
+
+        return ResultCode.Ok;
     }
 
     public PlayerConnectionStatus GetPlayerStatus(in PlayerHandle player)
@@ -331,7 +354,7 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
 
     public void SetFrameDelay(PlayerHandle player, int delayInFrames)
     {
-        ThrowIf.ArgumentOutOfBounds(player.InternalQueue, 0, addedPlayers.Count);
+        ThrowIf.ArgumentOutOfBounds(player.QueueIndex, 0, addedPlayers.Count);
         ArgumentOutOfRangeException.ThrowIfNegative(delayInFrames);
         synchronizer.SetFrameDelay(player, delayInFrames);
     }

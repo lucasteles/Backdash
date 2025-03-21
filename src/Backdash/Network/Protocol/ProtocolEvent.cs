@@ -28,7 +28,7 @@ struct ProtocolEventInfo(ProtocolEvent type, PlayerHandle player) : IUtf8SpanFor
         bytesWritten = 0;
         Utf8StringWriter writer = new(in utf8Destination, ref bytesWritten);
         if (!writer.Write("P"u8)) return false;
-        if (!writer.Write(Player.Number)) return false;
+        if (!writer.Write(Player.Index)) return false;
         if (!writer.Write(" ProtoEvt "u8)) return false;
         if (!writer.WriteEnum(Type)) return false;
         if (!writer.Write(":"u8)) return false;

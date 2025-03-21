@@ -19,12 +19,12 @@ sealed class ConnectionsState
     }
 
     public ConnectionsState(int size) : this(size, Frame.Null) { }
-    public ref ConnectStatus this[in PlayerHandle player] => ref Statuses[player.InternalQueue];
+    public ref ConnectStatus this[in PlayerHandle player] => ref Statuses[player.QueueIndex];
     public ref ConnectStatus this[int index] => ref Statuses[index];
-    public bool IsKnown(in PlayerHandle player) => player.InternalQueue >= 0 && player.InternalQueue < Length;
+    public bool IsKnown(in PlayerHandle player) => player.QueueIndex >= 0 && player.QueueIndex < Length;
 
     public bool IsConnected(in PlayerHandle player) =>
-        IsKnown(in player) && !Statuses[player.InternalQueue].Disconnected;
+        IsKnown(in player) && !Statuses[player.QueueIndex].Disconnected;
 
     public void CopyTo(Span<ConnectStatus> buffer) => Statuses.CopyTo(buffer);
 

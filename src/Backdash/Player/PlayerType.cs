@@ -3,7 +3,7 @@ namespace Backdash;
 /// <summary>
 ///     Defines player type.
 /// </summary>
-public enum PlayerType
+public enum PlayerType : byte
 {
     /// <summary>Local player</summary>
     Local,

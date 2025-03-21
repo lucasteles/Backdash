@@ -74,7 +74,7 @@ static INetcodeSession<PlayerInputs> ParseSessionArgs(string[] args)
                 lastArgs = argsAfterSave;
             }
 
-            var players = lastArgs.Select((x, i) => ParsePlayer(playerCount, i + 1, x)).ToArray();
+            var players = lastArgs.Select(ParsePlayer).ToArray();
 
             if (!players.Any(x => x.IsLocal()))
                 throw new InvalidOperationException("No local player defined");
@@ -86,17 +86,21 @@ static INetcodeSession<PlayerInputs> ParseSessionArgs(string[] args)
     }
 }
 
-static Player ParsePlayer(int totalNumber, int number, string address)
+static NetcodePlayer ParsePlayer(string address)
 {
     if (address.Equals("local", StringComparison.OrdinalIgnoreCase))
-        return new LocalPlayer(number);
+        return NetcodePlayer.CreateLocal();
+
+    if (address.StartsWith("s:", StringComparison.OrdinalIgnoreCase))
+        if (IPEndPoint.TryParse(address[2..], out var hostEndPoint))
+            return NetcodePlayer.CreateSpectator(hostEndPoint);
+        else
+            throw new InvalidOperationException("Invalid spectator endpoint");
 
     if (IPEndPoint.TryParse(address, out var endPoint))
     {
-        if (number <= totalNumber)
-            return new RemotePlayer(number, endPoint);
-        return new Spectator(endPoint);
+        return NetcodePlayer.CreateRemote(endPoint);
     }
 
-    throw new InvalidOperationException($"Invalid player {number} argument: {address}");
+    throw new InvalidOperationException($"Invalid player argument: {address}");
 }

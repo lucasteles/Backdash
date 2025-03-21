@@ -1,5 +1,6 @@
 using System.Collections.Frozen;
 using System.Diagnostics.CodeAnalysis;
+using System.Net;
 using Backdash.Core;
 using Backdash.Network;
 using Backdash.Options;
@@ -51,7 +52,7 @@ sealed class ReplaySession<TInput> : INetcodeSession<TInput> where TInput : unma
         endianness = options.GetStateSerializationEndianness();
         callbacks = services.SessionHandler;
         fakePlayers = Enumerable.Range(0, NumberOfPlayers)
-            .Select(x => new PlayerHandle(PlayerType.Remote, x + 1, x))
+            .Select(x => new PlayerHandle(PlayerType.Remote, x))
             .ToFrozenSet();
 
         stateStore.Initialize(ReplayController.MaxBackwardFrames);
@@ -116,10 +117,26 @@ sealed class ReplaySession<TInput> : INetcodeSession<TInput> where TInput : unma
     }
 
     public PlayerConnectionStatus GetPlayerStatus(in PlayerHandle player) => PlayerConnectionStatus.Connected;
-    public ResultCode AddPlayer(Player player) => ResultCode.NotSupported;
 
-    public IReadOnlyList<ResultCode> AddPlayers(IReadOnlyList<Player> players) =>
-        Enumerable.Repeat(ResultCode.NotSupported, players.Count).ToArray();
+    public ResultCode AddLocalPlayer(out PlayerHandle handle)
+    {
+        handle = default;
+        return ResultCode.NotSupported;
+    }
+
+    public ResultCode AddRemotePlayer(IPEndPoint endpoint, out PlayerHandle handle)
+    {
+        handle = default;
+        return ResultCode.NotSupported;
+    }
+
+#pragma warning disable S4144
+    public ResultCode AddSpectator(IPEndPoint endpoint, out PlayerHandle handle)
+    {
+        handle = default;
+        return ResultCode.NotSupported;
+    }
+#pragma warning restore S4144
 
     public bool GetNetworkStatus(in PlayerHandle player, ref PeerNetworkStats info) => true;
 

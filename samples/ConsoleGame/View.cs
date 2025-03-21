@@ -25,7 +25,7 @@ public class View
         if (nonGameState.LocalPlayer is { } localPlayer)
         {
             Console.Title = $"Player {localPlayer.Number}";
-            Console.ForegroundColor = playerColors[localPlayer.Number - 1];
+            Console.ForegroundColor = playerColors[localPlayer.Index];
             Console.WriteLine($"-- Player {localPlayer.Number} --\n");
         }
         else
@@ -53,10 +53,10 @@ public class View
 
     void DrawField(in GameState currentState, NonGameState nonGameState)
     {
-        var status1 = nonGameState.RemotePlayer.Number is 1
+        var status1 = nonGameState.RemotePlayer.Index is 0
             ? nonGameState.RemotePlayerStatus
             : PlayerStatus.Running;
-        var status2 = nonGameState.RemotePlayer.Number is 2
+        var status2 = nonGameState.RemotePlayer.Index is 1
             ? nonGameState.RemotePlayerStatus
             : PlayerStatus.Running;
         for (var row = 0; row < GameLogic.GridSize; row++)
