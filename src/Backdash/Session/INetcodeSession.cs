@@ -276,7 +276,6 @@ public interface INetcodeSession<TInput> : INetcodeSession where TInput : unmana
     /// </summary>
     ReadOnlySpan<TInput> CurrentInputs { get; }
 
-
     /// <summary>
     ///     Returns the value of a synchronized input for the requested <paramref name="player" />.
     ///     This must be called after <see cref="SynchronizeInputs" />

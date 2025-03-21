@@ -65,7 +65,6 @@ else
         .ForRemote();
 }
 
-
 var session = builder.Build();
 
 // create the actual game
