@@ -15,6 +15,7 @@ public class NetcodePlayer : IEquatable<NetcodePlayer>, IEqualityOperators<Netco
     /// </summary>
     public NetcodePlayer(PlayerType type, int playerNumber, IPEndPoint? endPoint = null)
     {
+
         ThrowIf.InvalidEnum(type);
 
         if (type is not PlayerType.Local && endPoint is null)
@@ -73,6 +74,8 @@ public class NetcodePlayer : IEquatable<NetcodePlayer>, IEqualityOperators<Netco
 
     /// <inheritdoc />
     public static bool operator !=(NetcodePlayer? left, NetcodePlayer? right) => !Equals(left, right);
+
+    public static NetcodePlayer CreateLocal(int number) => new(PlayerType.Local, number);
 }
 
 /// <summary>

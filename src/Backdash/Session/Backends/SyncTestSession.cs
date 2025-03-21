@@ -150,8 +150,6 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
 
     public ResultCode AddLocalPlayer(int number, out PlayerHandle handle)
     {
-        ThrowIf.ArgumentOutOfBounds(number, 0, Max.NumberOfPlayers);
-
         handle = new(PlayerType.Local, number);
 
         if (addedPlayers.Count >= Max.NumberOfPlayers)
@@ -171,8 +169,6 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
 
     public ResultCode AddSpectator(int number, IPEndPoint endpoint, out PlayerHandle handle)
     {
-        ThrowIf.ArgumentOutOfBounds(number, 0, Max.NumberOfPlayers);
-
         handle = new(PlayerType.Spectator, number);
 
         if (addedSpectators.Count >= Max.NumberOfSpectators)

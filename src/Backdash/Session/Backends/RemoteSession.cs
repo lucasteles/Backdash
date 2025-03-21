@@ -201,7 +201,6 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
     ///  <inheritdoc />
     public ResultCode AddLocalPlayer(int number, out PlayerHandle handle)
     {
-        ThrowIf.ArgumentOutOfBounds(number, 0, Max.NumberOfPlayers);
         handle = default;
 
         if (addedPlayers.Count >= Max.NumberOfPlayers)
@@ -224,7 +223,6 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
     public ResultCode AddRemotePlayer(int number, IPEndPoint endpoint, out PlayerHandle handle)
     {
         ArgumentNullException.ThrowIfNull(endpoint);
-        ThrowIf.ArgumentOutOfBounds(number, 0, Max.NumberOfPlayers);
         handle = default;
 
         if (addedPlayers.Count >= Max.NumberOfPlayers)
@@ -255,7 +253,6 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
     public ResultCode AddSpectator(int number, IPEndPoint endpoint, out PlayerHandle handle)
     {
         ArgumentNullException.ThrowIfNull(endpoint);
-        ThrowIf.ArgumentOutOfBounds(number, 0, Max.NumberOfPlayers);
         handle = default;
 
         if (spectators.Count >= Max.NumberOfSpectators)

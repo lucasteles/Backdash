@@ -87,8 +87,6 @@ sealed class LocalSession<TInput> : INetcodeSession<TInput> where TInput : unman
 
     public ResultCode AddLocalPlayer(int number, out PlayerHandle handle)
     {
-        ThrowIf.ArgumentOutOfBounds(number, 0, Max.NumberOfPlayers);
-
         handle = default;
 
         if (addedPlayers.Count >= Max.NumberOfPlayers)
