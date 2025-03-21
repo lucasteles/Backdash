@@ -15,6 +15,19 @@ public struct TestInputBuffer
         Mem.GetBitString(this, trimRightZeros: trimZeros);
 
     public override readonly string ToString() => ToString(trimZeros: true);
+
+    ///<inheritdoc/>
+    public override readonly int GetHashCode() => Mem.GetHashCode<byte>(this);
+
+    /// <summary>
+    /// Determines whether the specified object is equal to the current object.
+    /// </summary>
+    /// <param name="other">The <see cref="TestInputBuffer"/> to compare with the current object.</param>
+    /// <returns>true if the specified object is equal to the current object; otherwise, false.</returns>
+    public readonly bool Equals(TestInputBuffer other) => this[..].SequenceEqual(other);
+
+    ///<inheritdoc/>
+    public override readonly bool Equals(object? obj) => obj is TestInputBuffer other && Equals(other);
 }
 
 [Serializable]
