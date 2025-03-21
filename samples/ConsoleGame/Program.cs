@@ -60,7 +60,7 @@ else
                       ?? throw new InvalidOperationException("No local player defined");
     builder
         // Write logs in a file with player number
-        .WithFileLogWriter($"log_player_{localPlayer.Handle.Number}.log", append: false)
+        .WithFileLogWriter($"log_player_{port}.log", append: false)
         .WithPlayers(players)
         .ForRemote();
 }
