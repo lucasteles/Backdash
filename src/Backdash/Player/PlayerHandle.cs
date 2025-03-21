@@ -13,8 +13,6 @@ public readonly struct PlayerHandle : IUtf8SpanFormattable,
     IEquatable<PlayerHandle>,
     IEqualityOperators<PlayerHandle, PlayerHandle, bool>
 {
-    internal static readonly PlayerHandle Invalid = new(0, -1);
-
     /// <summary>
     ///     Player number (starting from <c>1</c>)
     /// </summary>

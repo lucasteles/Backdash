@@ -22,7 +22,6 @@ public class NetcodePlayer : IEquatable<NetcodePlayer>, IEqualityOperators<Netco
 
         Handle = new(type, playerNumber);
         EndPoint = endPoint;
-        Handle = PlayerHandle.Invalid;
     }
 
     /// <summary>
