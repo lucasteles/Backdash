@@ -1,5 +1,6 @@
 using System.Collections.Frozen;
 using System.Diagnostics.CodeAnalysis;
+using System.Net;
 using Backdash.Core;
 using Backdash.Network;
 using Backdash.Options;
@@ -116,10 +117,26 @@ sealed class ReplaySession<TInput> : INetcodeSession<TInput> where TInput : unma
     }
 
     public PlayerConnectionStatus GetPlayerStatus(in PlayerHandle player) => PlayerConnectionStatus.Connected;
-    public ResultCode AddPlayer(Player player) => ResultCode.NotSupported;
 
-    public IReadOnlyList<ResultCode> AddPlayers(IReadOnlyList<Player> players) =>
-        Enumerable.Repeat(ResultCode.NotSupported, players.Count).ToArray();
+    public ResultCode AddLocalPlayer(int number, out PlayerHandle handle)
+    {
+        handle = default;
+        return ResultCode.NotSupported;
+    }
+
+    public ResultCode AddRemotePlayer(int number, IPEndPoint endpoint, out PlayerHandle handle)
+    {
+        handle = default;
+        return ResultCode.NotSupported;
+    }
+
+#pragma warning disable S4144
+    public ResultCode AddSpectator(int number, IPEndPoint endpoint, out PlayerHandle handle)
+    {
+        handle = default;
+        return ResultCode.NotSupported;
+    }
+#pragma warning restore S4144
 
     public bool GetNetworkStatus(in PlayerHandle player, ref PeerNetworkStats info) => true;
 

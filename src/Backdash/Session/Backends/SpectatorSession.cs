@@ -133,6 +133,26 @@ sealed class SpectatorSession<TInput> :
     public IReadOnlySet<PlayerHandle> GetPlayers() => fakePlayers;
     public IReadOnlySet<PlayerHandle> GetSpectators() => FrozenSet<PlayerHandle>.Empty;
 
+    public ResultCode AddLocalPlayer(int number, out PlayerHandle handle)
+    {
+        handle = default;
+        return ResultCode.NotSupported;
+    }
+
+    public ResultCode AddRemotePlayer(int number, IPEndPoint endpoint, out PlayerHandle handle)
+    {
+        handle = default;
+        return ResultCode.NotSupported;
+    }
+
+#pragma warning disable S4144
+    public ResultCode AddSpectator(int number, IPEndPoint endpoint, out PlayerHandle handle)
+    {
+        handle = default;
+        return ResultCode.NotSupported;
+    }
+#pragma warning restore S4144
+
     public void BeginFrame()
     {
         host.Update();
@@ -158,10 +178,6 @@ sealed class SpectatorSession<TInput> :
     }
 
     public PlayerConnectionStatus GetPlayerStatus(in PlayerHandle player) => host.Status.ToPlayerStatus();
-    public ResultCode AddPlayer(Player player) => ResultCode.NotSupported;
-
-    public IReadOnlyList<ResultCode> AddPlayers(IReadOnlyList<Player> players) =>
-        Enumerable.Repeat(ResultCode.NotSupported, players.Count).ToArray();
 
     public bool GetNetworkStatus(in PlayerHandle player, ref PeerNetworkStats info)
     {

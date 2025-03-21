@@ -16,6 +16,16 @@ static class ThrowIf
             throw new ArgumentOutOfRangeException(argument.ToString(CultureInfo.InvariantCulture), paramName);
     }
 
+    public static void InvalidEnum<T>(
+        T value,
+        [CallerArgumentExpression(nameof(value))]
+        string? argName = null
+    ) where T : struct, Enum
+    {
+        if (!Enum.IsDefined(value))
+            throw new ArgumentOutOfRangeException($"Invalid Enum of type {typeof(T).Name} for {argName}: {value}");
+    }
+
     public static void Assert(
         bool condition,
         string? info = null,

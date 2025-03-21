@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Net;
 using Backdash.Network;
 using Backdash.Synchronizing;
 using Backdash.Synchronizing.Random;
@@ -136,19 +137,19 @@ public interface INetcodeSession : INetcodeSessionInfo, IDisposable
     bool IsSyncTest() => Mode is SessionMode.SyncTest;
 
     /// <summary>
-    ///     Add the <paramref name="player" /> into current session.
-    ///     Usually an instance of <see cref="LocalPlayer" />, <see cref="RemotePlayer" /> or <see cref="Spectator" />.
+    ///     Add a local player into the session.
     /// </summary>
-    /// <param name="player"></param>
-    /// <returns><see cref="ResultCode.Ok" /> if success.</returns>
-    ResultCode AddPlayer(Player player);
+    ResultCode AddLocalPlayer(int number, out PlayerHandle handle);
 
     /// <summary>
-    ///     Add a list of <see name="Player" /> into current session.
-    ///     Usually instances of <see cref="LocalPlayer" />, <see cref="RemotePlayer" /> or <see cref="Spectator" />
+    ///     Add a remote player into the session.
     /// </summary>
-    /// <returns>An equivalent <see cref="ResultCode" /> list.</returns>
-    IReadOnlyList<ResultCode> AddPlayers(IReadOnlyList<Player> players);
+    ResultCode AddRemotePlayer(int number, IPEndPoint endpoint, out PlayerHandle handle);
+
+    /// <summary>
+    ///     Add a spectator into the session.
+    /// </summary>
+    ResultCode AddSpectator(int number, IPEndPoint endpoint, out PlayerHandle handle);
 
     /// <summary>
     ///     Returns a list of all input players in the session.
@@ -159,6 +160,57 @@ public interface INetcodeSession : INetcodeSessionInfo, IDisposable
     ///     Returns a list of all spectators in the session.
     /// </summary>
     IReadOnlySet<PlayerHandle> GetSpectators();
+
+    /// <summary>
+    ///     Starts the background work for the session.
+    ///     (Socket receiver, input queue, peer synchronization, etc.)
+    /// </summary>
+    void Start(CancellationToken stoppingToken = default);
+
+    /// <summary>
+    ///     Waits the session background work to finish.
+    /// </summary>
+    Task WaitToStop(CancellationToken stoppingToken = default);
+
+    /// <summary>
+    ///     Set the handler for the current session.
+    ///     The client must call this before <see cref="Start" />.
+    /// </summary>
+    void SetHandler(INetcodeSessionHandler handler);
+
+    /// <summary>
+    ///     Add the <paramref name="player" /> into current session.
+    /// </summary>
+    /// <param name="player"></param>
+    /// <returns><see cref="ResultCode.Ok" /> if success.</returns>
+    ResultCode AddPlayer(NetcodePlayer player)
+    {
+        ArgumentNullException.ThrowIfNull(player);
+        PlayerHandle handle;
+
+        var result = player.Type switch
+        {
+            PlayerType.Spectator => AddSpectator(player.Number, player.EndPoint!, out handle),
+            PlayerType.Remote => AddRemotePlayer(player.Number, player.EndPoint!, out handle),
+            PlayerType.Local => AddLocalPlayer(player.Number, out handle),
+            _ => throw new ArgumentOutOfRangeException(nameof(player)),
+        };
+
+        player.Handle = handle;
+        return result;
+    }
+
+    /// <summary>
+    ///     Add a list of <see name="Player" /> into current session.
+    /// </summary>
+    /// <returns>An equivalent <see cref="ResultCode" /> list.</returns>
+    IReadOnlyList<ResultCode> AddPlayers(IReadOnlyList<NetcodePlayer> players)
+    {
+        var result = new ResultCode[players.Count];
+        for (var index = 0; index < players.Count; index++)
+            result[index] = AddPlayer(players[index]);
+        return result;
+    }
 
     /// <summary>
     ///     Tries to get first player of type <paramref name="playerType"/>
@@ -184,23 +236,6 @@ public interface INetcodeSession : INetcodeSessionInfo, IDisposable
     ///     Tries to get first remote player
     /// </summary>
     bool TryGetRemotePlayer(out PlayerHandle player) => TryGetPlayer(PlayerType.Remote, out player);
-
-    /// <summary>
-    ///     Starts the background work for the session.
-    ///     (Socket receiver, input queue, peer synchronization, etc.)
-    /// </summary>
-    void Start(CancellationToken stoppingToken = default);
-
-    /// <summary>
-    ///     Waits the session background work to finish.
-    /// </summary>
-    Task WaitToStop(CancellationToken stoppingToken = default);
-
-    /// <summary>
-    ///     Set the handler for the current session.
-    ///     The client must call this before <see cref="Start" />.
-    /// </summary>
-    void SetHandler(INetcodeSessionHandler handler);
 }
 
 /// <summary>

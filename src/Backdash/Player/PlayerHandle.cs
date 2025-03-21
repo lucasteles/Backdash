@@ -13,6 +13,8 @@ public readonly struct PlayerHandle : IUtf8SpanFormattable,
     IEquatable<PlayerHandle>,
     IEqualityOperators<PlayerHandle, PlayerHandle, bool>
 {
+    internal static readonly PlayerHandle Invalid = new(0, -1);
+
     /// <summary>
     ///     Player number (starting from <c>1</c>)
     /// </summary>
@@ -93,13 +95,13 @@ public readonly struct PlayerHandle : IUtf8SpanFormattable,
     }
 
     /// <inheritdoc />
-    public bool Equals(PlayerHandle other) => Number == other.Number && Type == other.Type;
+    public bool Equals(PlayerHandle other) => Number == other.Number;
 
     /// <inheritdoc />
     public override bool Equals(object? obj) => obj is PlayerHandle other && Equals(other);
 
     /// <inheritdoc />
-    public override int GetHashCode() => HashCode.Combine((int)Type, Number);
+    public override int GetHashCode() => Number.GetHashCode();
 
     /// <inheritdoc />
     public static bool operator ==(PlayerHandle left, PlayerHandle right) => left.Equals(right);

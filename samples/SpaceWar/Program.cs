@@ -86,15 +86,16 @@ static INetcodeSession<PlayerInputs> ParseSessionArgs(string[] args)
     }
 }
 
-static Player ParsePlayer(int totalNumber, int number, string address)
+static NetcodePlayer ParsePlayer(int totalNumber, int number, string address)
 {
     if (address.Equals("local", StringComparison.OrdinalIgnoreCase))
-        return new LocalPlayer(number);
+        return new(PlayerType.Local, number);
 
     if (IPEndPoint.TryParse(address, out var endPoint))
     {
         if (number <= totalNumber)
-            return new RemotePlayer(number, endPoint);
+            return new(PlayerType.Remote, number, endPoint);
+
         return new Spectator(endPoint);
     }
 

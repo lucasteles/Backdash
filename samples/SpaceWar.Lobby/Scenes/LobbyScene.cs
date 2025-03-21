@@ -357,17 +357,18 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
         if (lobbyInfo is null) return;
 
         currentState = LobbyState.Starting;
-        List<Player> players = [];
+        List<NetcodePlayer> players = [];
 
         for (var i = 0; i < lobbyInfo.Players.Length; i++)
         {
             var player = lobbyInfo.Players[i];
             var playerNumber = i + 1;
 
-            players.Add(player.PeerId == user.PeerId
-                ? new LocalPlayer(playerNumber)
-                : new RemotePlayer(playerNumber,
-                    LobbyUdpClient.GetFallbackEndpoint(user, player)));
+            players.Add(
+                player.PeerId == user.PeerId
+                    ? new(PlayerType.Local, playerNumber)
+                    : new(PlayerType.Remote, playerNumber, LobbyUdpClient.GetFallbackEndpoint(user, player))
+            );
         }
 
         if (lobbyInfo.SpectatorMapping.SingleOrDefault(m => m.Host == user.PeerId)

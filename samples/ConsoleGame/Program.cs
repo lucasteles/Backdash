@@ -97,7 +97,7 @@ Console.Clear();
 
 return;
 
-static Player[] ParsePlayers(int totalNumberOfPlayers, IEnumerable<string> endpoints)
+static NetcodePlayer[] ParsePlayers(int totalNumberOfPlayers, IEnumerable<string> endpoints)
 {
     var players = endpoints
         .Select((x, i) => TryParsePlayer(totalNumberOfPlayers, i + 1, x, out var player)
@@ -114,20 +114,21 @@ static Player[] ParsePlayers(int totalNumberOfPlayers, IEnumerable<string> endpo
 static bool TryParsePlayer(
     int totalNumber,
     int number, string address,
-    [NotNullWhen(true)] out Player? player)
+    [NotNullWhen(true)] out NetcodePlayer? player)
 {
     if (address.Equals("local", StringComparison.OrdinalIgnoreCase))
     {
-        player = new LocalPlayer(number);
+        player = new(PlayerType.Local, number);
         return true;
     }
 
     if (IPEndPoint.TryParse(address, out var endPoint))
     {
         if (number <= totalNumber)
-            player = new RemotePlayer(number, endPoint);
+            player = new(PlayerType.Remote, number, endPoint);
         else
             player = new Spectator(endPoint);
+
         return true;
     }
 

@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Net;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Backdash.Core;
@@ -197,16 +198,91 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
         DoSync();
     }
 
-    public ResultCode AddPlayer(Player player)
+    ///  <inheritdoc />
+    public ResultCode AddLocalPlayer(int number, out PlayerHandle handle)
     {
-        ArgumentNullException.ThrowIfNull(player);
-        return player switch
-        {
-            Spectator spectator => AddSpectator(spectator),
-            RemotePlayer remote => AddRemotePlayer(remote),
-            LocalPlayer local => AddLocalPlayer(local),
-            _ => throw new ArgumentOutOfRangeException(nameof(player)),
-        };
+        ThrowIf.ArgumentOutOfBounds(number, 0, Max.NumberOfPlayers);
+        handle = default;
+
+        if (addedPlayers.Count >= Max.NumberOfPlayers)
+            return ResultCode.TooManyPlayers;
+
+        PlayerHandle playerHandle = new(PlayerType.Local, number, addedPlayers.Count);
+        if (!addedPlayers.Add(playerHandle))
+            return ResultCode.DuplicatedPlayer;
+
+        handle = playerHandle;
+        endpoints.Add(null);
+
+        IncrementInputBufferSize();
+        synchronizer.AddQueue(handle);
+
+        return ResultCode.Ok;
+    }
+
+    ///  <inheritdoc />
+    public ResultCode AddRemotePlayer(int number, IPEndPoint endpoint, out PlayerHandle handle)
+    {
+        ArgumentNullException.ThrowIfNull(endpoint);
+        ThrowIf.ArgumentOutOfBounds(number, 0, Max.NumberOfPlayers);
+        handle = default;
+
+        if (addedPlayers.Count >= Max.NumberOfPlayers)
+            return ResultCode.TooManyPlayers;
+
+        PlayerHandle playerHandle = new(PlayerType.Remote, number, addedPlayers.Count);
+        if (!addedPlayers.Add(playerHandle))
+            return ResultCode.DuplicatedPlayer;
+
+        handle = playerHandle;
+
+        var protocol = peerConnectionFactory.Create(
+            new(handle, endpoint, localConnections, syncNumber),
+            inputSerializer, peerInputEventQueue, inputComparer
+        );
+
+        peerObservers.Add(protocol.GetUdpObserver());
+        endpoints.Add(protocol);
+        IncrementInputBufferSize();
+        synchronizer.AddQueue(handle);
+        logger.Write(LogLevel.Information, $"Adding {handle} at {endpoint}");
+        protocol.Synchronize();
+        isSynchronizing = true;
+        return ResultCode.Ok;
+    }
+
+    ///  <inheritdoc />
+    public ResultCode AddSpectator(int number, IPEndPoint endpoint, out PlayerHandle handle)
+    {
+        ArgumentNullException.ThrowIfNull(endpoint);
+        ThrowIf.ArgumentOutOfBounds(number, 0, Max.NumberOfPlayers);
+        handle = default;
+
+        if (spectators.Count >= Max.NumberOfSpectators)
+            return ResultCode.TooManySpectators;
+
+        // Currently, we can only add spectators before the game starts.
+        if (!isSynchronizing)
+            return ResultCode.AlreadySynchronized;
+
+        var queue = spectators.Count;
+        PlayerHandle spectatorHandle = new(PlayerType.Spectator, options.SpectatorOffset + queue, queue);
+        if (!addedSpectators.Add(spectatorHandle))
+            return ResultCode.DuplicatedPlayer;
+
+        handle = spectatorHandle;
+        var protocol = peerConnectionFactory.Create(
+            new(spectatorHandle, endpoint, localConnections, syncNumber),
+            inputGroupSerializer,
+            peerCombinedInputsEventPublisher,
+            inputGroupComparer
+        );
+        peerObservers.Add(protocol.GetUdpObserver());
+        spectators.Add(protocol);
+        logger.Write(LogLevel.Information, $"Adding {handle} at {endpoint}");
+        protocol.Synchronize();
+
+        return ResultCode.Ok;
     }
 
     public ResultCode AddLocalInput(PlayerHandle player, in TInput localInput)
@@ -289,14 +365,6 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
         ThrowIf.ArgumentOutOfBounds(player.InternalQueue, 0, addedPlayers.Count);
         ArgumentOutOfRangeException.ThrowIfNegative(delayInFrames);
         synchronizer.SetFrameDelay(player, delayInFrames);
-    }
-
-    public IReadOnlyList<ResultCode> AddPlayers(IReadOnlyList<Player> players)
-    {
-        var result = new ResultCode[players.Count];
-        for (var index = 0; index < players.Count; index++)
-            result[index] = AddPlayer(players[index]);
-        return result;
     }
 
     public bool LoadFrame(in Frame frame)
@@ -388,83 +456,10 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
             _ => int.MaxValue,
         };
 
-    ResultCode AddLocalPlayer(in LocalPlayer player)
-    {
-        if (addedPlayers.Count >= Max.NumberOfPlayers)
-            return ResultCode.TooManyPlayers;
-
-        PlayerHandle handle = new(player.Handle.Type, player.Handle.Number, addedPlayers.Count);
-        if (!addedPlayers.Add(handle))
-            return ResultCode.DuplicatedPlayer;
-
-        player.Handle = handle;
-        endpoints.Add(null);
-
-        IncrementInputBufferSize();
-        synchronizer.AddQueue(player.Handle);
-
-        return ResultCode.Ok;
-    }
-
     void IncrementInputBufferSize()
     {
         Array.Resize(ref syncInputBuffer, syncInputBuffer.Length + 1);
         Array.Resize(ref inputBuffer, syncInputBuffer.Length);
-    }
-
-    ResultCode AddRemotePlayer(RemotePlayer player)
-    {
-        if (addedPlayers.Count >= Max.NumberOfPlayers)
-            return ResultCode.TooManyPlayers;
-
-        PlayerHandle handle = new(player.Handle.Type, player.Handle.Number, addedPlayers.Count);
-        if (!addedPlayers.Add(handle))
-            return ResultCode.DuplicatedPlayer;
-
-        player.Handle = handle;
-        var endpoint = player.EndPoint;
-        var protocol = peerConnectionFactory.Create(
-            new(player.Handle, endpoint, localConnections, syncNumber),
-            inputSerializer, peerInputEventQueue, inputComparer
-        );
-
-        peerObservers.Add(protocol.GetUdpObserver());
-        endpoints.Add(protocol);
-        IncrementInputBufferSize();
-        synchronizer.AddQueue(player.Handle);
-        logger.Write(LogLevel.Information, $"Adding {player.Handle} at {endpoint}");
-        protocol.Synchronize();
-        isSynchronizing = true;
-        return ResultCode.Ok;
-    }
-
-    ResultCode AddSpectator(Spectator spectator)
-    {
-        if (spectators.Count >= Max.NumberOfSpectators)
-            return ResultCode.TooManySpectators;
-
-        // Currently, we can only add spectators before the game starts.
-        if (!isSynchronizing)
-            return ResultCode.AlreadySynchronized;
-
-        var queue = spectators.Count;
-        PlayerHandle spectatorHandle = new(PlayerType.Spectator, options.SpectatorOffset + queue, queue);
-        if (!addedSpectators.Add(spectatorHandle))
-            return ResultCode.DuplicatedPlayer;
-
-        spectator.Handle = spectatorHandle;
-        var protocol = peerConnectionFactory.Create(
-            new(spectatorHandle, spectator.EndPoint, localConnections, syncNumber),
-            inputGroupSerializer,
-            peerCombinedInputsEventPublisher,
-            inputGroupComparer
-        );
-        peerObservers.Add(protocol.GetUdpObserver());
-        spectators.Add(protocol);
-        logger.Write(LogLevel.Information, $"Adding {spectator.Handle} at {spectator.EndPoint}");
-        protocol.Synchronize();
-
-        return ResultCode.Ok;
     }
 
     void CheckInitialSync()

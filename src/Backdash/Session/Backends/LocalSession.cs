@@ -1,5 +1,6 @@
 using System.Collections.Frozen;
 using System.Diagnostics.CodeAnalysis;
+using System.Net;
 using Backdash.Core;
 using Backdash.Network;
 using Backdash.Options;
@@ -84,37 +85,44 @@ sealed class LocalSession<TInput> : INetcodeSession<TInput> where TInput : unman
         await backGroundJobTask.WaitAsync(stoppingToken).ConfigureAwait(false);
     }
 
-    public ResultCode AddPlayer(Player player)
+    public ResultCode AddLocalPlayer(int number, out PlayerHandle handle)
     {
+        ThrowIf.ArgumentOutOfBounds(number, 0, Max.NumberOfPlayers);
+
+        handle = default;
+
         if (addedPlayers.Count >= Max.NumberOfPlayers)
             return ResultCode.TooManyPlayers;
 
-        if (!player.IsLocal())
-            return ResultCode.NotSupported;
+        PlayerHandle playerHandle = new(PlayerType.Local, number, addedPlayers.Count);
 
-        PlayerHandle handle = new(player.Handle.Type, player.Handle.Number, addedPlayers.Count);
-
-        if (!addedPlayers.Add(handle))
+        if (!addedPlayers.Add(playerHandle))
             return ResultCode.DuplicatedPlayer;
 
-        player.Handle = handle;
+        handle = playerHandle;
         IncrementInputBufferSize();
 
         return ResultCode.Ok;
+    }
+
+    public ResultCode AddRemotePlayer(int number, IPEndPoint endpoint, out PlayerHandle handle)
+    {
+        handle = default;
+        return ResultCode.NotSupported;
+    }
+
+#pragma warning disable S4144
+    public ResultCode AddSpectator(int number, IPEndPoint endpoint, out PlayerHandle handle)
+#pragma warning restore S4144
+    {
+        handle = default;
+        return ResultCode.NotSupported;
     }
 
     void IncrementInputBufferSize()
     {
         Array.Resize(ref syncInputBuffer, syncInputBuffer.Length + 1);
         Array.Resize(ref inputBuffer, syncInputBuffer.Length);
-    }
-
-    public IReadOnlyList<ResultCode> AddPlayers(IReadOnlyList<Player> players)
-    {
-        var result = new ResultCode[players.Count];
-        for (var index = 0; index < players.Count; index++)
-            result[index] = AddPlayer(players[index]);
-        return result;
     }
 
     public PlayerConnectionStatus GetPlayerStatus(in PlayerHandle player) =>

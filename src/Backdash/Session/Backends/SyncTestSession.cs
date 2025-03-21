@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Collections.Frozen;
 using System.Diagnostics.CodeAnalysis;
+using System.Net;
 using Backdash.Core;
 using Backdash.Network;
 using Backdash.Options;
@@ -127,13 +128,10 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
         await backGroundJobTask.WaitAsync(stoppingToken).ConfigureAwait(false);
     }
 
-    public ResultCode AddPlayer(Player player)
+    public ResultCode AddPlayer(NetcodePlayer player)
     {
         if (addedPlayers.Count >= Max.NumberOfPlayers)
             return ResultCode.TooManyPlayers;
-
-        if (!addedPlayers.Add(player.Handle))
-            return ResultCode.DuplicatedPlayer;
 
         if (player.IsSpectator())
         {
@@ -149,12 +147,41 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
         return ResultCode.Ok;
     }
 
-    public IReadOnlyList<ResultCode> AddPlayers(IReadOnlyList<Player> players)
+
+    public ResultCode AddLocalPlayer(int number, out PlayerHandle handle)
     {
-        var result = new ResultCode[players.Count];
-        for (var index = 0; index < players.Count; index++)
-            result[index] = AddPlayer(players[index]);
-        return result;
+        ThrowIf.ArgumentOutOfBounds(number, 0, Max.NumberOfPlayers);
+
+        handle = new(PlayerType.Local, number);
+
+        if (addedPlayers.Count >= Max.NumberOfPlayers)
+            return ResultCode.TooManyPlayers;
+
+        if (!addedPlayers.Add(handle))
+            return ResultCode.DuplicatedPlayer;
+
+        return ResultCode.Ok;
+    }
+
+    public ResultCode AddRemotePlayer(int number, IPEndPoint endpoint, out PlayerHandle handle)
+    {
+        handle = default;
+        return ResultCode.NotSupported;
+    }
+
+    public ResultCode AddSpectator(int number, IPEndPoint endpoint, out PlayerHandle handle)
+    {
+        ThrowIf.ArgumentOutOfBounds(number, 0, Max.NumberOfPlayers);
+
+        handle = new(PlayerType.Spectator, number);
+
+        if (addedSpectators.Count >= Max.NumberOfSpectators)
+            return ResultCode.TooManyPlayers;
+
+        if (!addedSpectators.Add(handle))
+            return ResultCode.DuplicatedPlayer;
+
+        return ResultCode.Ok;
     }
 
     public PlayerConnectionStatus GetPlayerStatus(in PlayerHandle player)
