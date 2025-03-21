@@ -362,12 +362,11 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
         for (var i = 0; i < lobbyInfo.Players.Length; i++)
         {
             var player = lobbyInfo.Players[i];
-            var playerNumber = i + 1;
 
             players.Add(
                 player.PeerId == user.PeerId
-                    ? new(PlayerType.Local, playerNumber)
-                    : new(PlayerType.Remote, playerNumber, LobbyUdpClient.GetFallbackEndpoint(user, player))
+                    ? NetcodePlayer.CreateLocal()
+                    : NetcodePlayer.CreateRemote(LobbyUdpClient.GetFallbackEndpoint(user, player))
             );
         }
 
@@ -378,7 +377,7 @@ public sealed class LobbyScene(PlayerMode mode) : Scene
             foreach (var spectator in spectators)
             {
                 var spectatorEndpoint = LobbyUdpClient.GetFallbackEndpoint(user, spectator);
-                players.Add(new Spectator(spectatorEndpoint));
+                players.Add(NetcodePlayer.CreateSpectator(spectatorEndpoint));
             }
         }
 

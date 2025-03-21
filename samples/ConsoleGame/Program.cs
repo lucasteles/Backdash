@@ -1,6 +1,5 @@
 // ReSharper disable AccessToDisposedClosure, UnusedVariable
 
-using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using Backdash;
 using Backdash.Core;
@@ -56,12 +55,12 @@ if (endpoints is ["spectate", { } hostArg] && IPEndPoint.TryParse(hostArg, out v
 // not a spectator, creating a `remote` game session
 else
 {
-    var players = ParsePlayers(playerCount, endpoints);
+    var players = ParsePlayers(endpoints);
     var localPlayer = players.SingleOrDefault(x => x.IsLocal())
                       ?? throw new InvalidOperationException("No local player defined");
     builder
         // Write logs in a file with player number
-        .WithFileLogWriter($"log_player_{localPlayer.Number}.log", append: false)
+        .WithFileLogWriter($"log_player_{localPlayer.Handle.Number}.log", append: false)
         .WithPlayers(players)
         .ForRemote();
 }
@@ -97,13 +96,9 @@ Console.Clear();
 
 return;
 
-static NetcodePlayer[] ParsePlayers(int totalNumberOfPlayers, IEnumerable<string> endpoints)
+static NetcodePlayer[] ParsePlayers(IEnumerable<string> endpoints)
 {
-    var players = endpoints
-        .Select((x, i) => TryParsePlayer(totalNumberOfPlayers, i + 1, x, out var player)
-            ? player
-            : throw new InvalidOperationException("Invalid endpoint address"))
-        .ToArray();
+    var players = endpoints.Select(ParsePlayer).ToArray();
 
     if (!players.Any(x => x.IsLocal()))
         throw new InvalidOperationException("No defined local player");
@@ -111,27 +106,21 @@ static NetcodePlayer[] ParsePlayers(int totalNumberOfPlayers, IEnumerable<string
     return players;
 }
 
-static bool TryParsePlayer(
-    int totalNumber,
-    int number, string address,
-    [NotNullWhen(true)] out NetcodePlayer? player)
+static NetcodePlayer ParsePlayer(string address)
 {
     if (address.Equals("local", StringComparison.OrdinalIgnoreCase))
-    {
-        player = new(PlayerType.Local, number);
-        return true;
-    }
+        return NetcodePlayer.CreateLocal();
+
+    if (address.StartsWith("s:", StringComparison.OrdinalIgnoreCase))
+        if (IPEndPoint.TryParse(address[2..], out var hostEndPoint))
+            return NetcodePlayer.CreateSpectator(hostEndPoint);
+        else
+            throw new InvalidOperationException("Invalid spectator endpoint");
 
     if (IPEndPoint.TryParse(address, out var endPoint))
     {
-        if (number <= totalNumber)
-            player = new(PlayerType.Remote, number, endPoint);
-        else
-            player = new Spectator(endPoint);
-
-        return true;
+        return NetcodePlayer.CreateRemote(endPoint);
     }
 
-    player = null;
-    return false;
+    throw new InvalidOperationException($"Invalid player argument: {address}");
 }

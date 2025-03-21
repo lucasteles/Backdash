@@ -66,7 +66,6 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
         ArgumentNullException.ThrowIfNull(options);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(options.LocalPort);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(options.FramesPerSecond);
-        ThrowIf.ArgumentOutOfBounds(options.SpectatorOffset, min: Max.NumberOfPlayers);
 
         this.options = options;
         inputSerializer = services.InputSerializer;
@@ -199,14 +198,14 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
     }
 
     ///  <inheritdoc />
-    public ResultCode AddLocalPlayer(int number, out PlayerHandle handle)
+    public ResultCode AddLocalPlayer(out PlayerHandle handle)
     {
         handle = default;
 
         if (addedPlayers.Count >= Max.NumberOfPlayers)
             return ResultCode.TooManyPlayers;
 
-        PlayerHandle playerHandle = new(PlayerType.Local, number, addedPlayers.Count);
+        PlayerHandle playerHandle = new(PlayerType.Local, addedPlayers.Count);
         if (!addedPlayers.Add(playerHandle))
             return ResultCode.DuplicatedPlayer;
 
@@ -220,7 +219,7 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
     }
 
     ///  <inheritdoc />
-    public ResultCode AddRemotePlayer(int number, IPEndPoint endpoint, out PlayerHandle handle)
+    public ResultCode AddRemotePlayer(IPEndPoint endpoint, out PlayerHandle handle)
     {
         ArgumentNullException.ThrowIfNull(endpoint);
         handle = default;
@@ -228,7 +227,7 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
         if (addedPlayers.Count >= Max.NumberOfPlayers)
             return ResultCode.TooManyPlayers;
 
-        PlayerHandle playerHandle = new(PlayerType.Remote, number, addedPlayers.Count);
+        PlayerHandle playerHandle = new(PlayerType.Remote, addedPlayers.Count);
         if (!addedPlayers.Add(playerHandle))
             return ResultCode.DuplicatedPlayer;
 
@@ -250,7 +249,7 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
     }
 
     ///  <inheritdoc />
-    public ResultCode AddSpectator(int number, IPEndPoint endpoint, out PlayerHandle handle)
+    public ResultCode AddSpectator(IPEndPoint endpoint, out PlayerHandle handle)
     {
         ArgumentNullException.ThrowIfNull(endpoint);
         handle = default;
@@ -263,7 +262,7 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
             return ResultCode.AlreadySynchronized;
 
         var queue = spectators.Count;
-        PlayerHandle spectatorHandle = new(PlayerType.Spectator, options.SpectatorOffset + queue, queue);
+        PlayerHandle spectatorHandle = new(PlayerType.Spectator, queue);
         if (!addedSpectators.Add(spectatorHandle))
             return ResultCode.DuplicatedPlayer;
 
@@ -309,7 +308,7 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
             return ResultCode.Ok;
 
         logger.Write(LogLevel.Trace,
-            $"setting local connect status for local queue {player.InternalQueue} to {input.Frame}");
+            $"setting local connect status for local queue {player.QueueIndex} to {input.Frame}");
         localConnections[player].LastFrame = input.Frame;
 
         // Send the input to all the remote players.
@@ -328,7 +327,7 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
                 {
                     sent = false;
                     logger.Write(LogLevel.Warning,
-                        $"Unable to send input to queue {currEp.Player.InternalQueue}, {result}");
+                        $"Unable to send input to queue {currEp.Player.QueueIndex}, {result}");
                 }
             }
 
@@ -345,7 +344,7 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
     {
         if (!IsPlayerKnown(in player)) return false;
         if (isSynchronizing) return false;
-        endpoints[player.InternalQueue]?.GetNetworkStats(ref info);
+        endpoints[player.QueueIndex]?.GetNetworkStats(ref info);
         return true;
     }
 
@@ -359,7 +358,7 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
 
     public void SetFrameDelay(PlayerHandle player, int delayInFrames)
     {
-        ThrowIf.ArgumentOutOfBounds(player.InternalQueue, 0, addedPlayers.Count);
+        ThrowIf.ArgumentOutOfBounds(player.QueueIndex, 0, addedPlayers.Count);
         ArgumentOutOfRangeException.ThrowIfNegative(delayInFrames);
         synchronizer.SetFrameDelay(player, delayInFrames);
     }
@@ -387,8 +386,8 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
     {
         if (!IsPlayerKnown(in player)) return PlayerConnectionStatus.Unknown;
         if (player.IsLocal()) return PlayerConnectionStatus.Local;
-        if (player.IsSpectator()) return spectators[player.InternalQueue].Status.ToPlayerStatus();
-        var endpoint = endpoints[player.InternalQueue];
+        if (player.IsSpectator()) return spectators[player.QueueIndex].Status.ToPlayerStatus();
+        var endpoint = endpoints[player.QueueIndex];
         if (endpoint?.IsRunning == true)
             return localConnections.IsConnected(in player)
                 ? PlayerConnectionStatus.Connected
@@ -401,7 +400,7 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
         if (!IsPlayerKnown(in player)) return;
         if (localConnections[player].Disconnected) return;
         if (player.Type is not PlayerType.Remote) return;
-        if (endpoints[player.InternalQueue] is null)
+        if (endpoints[player.QueueIndex] is null)
         {
             var currentFrame = synchronizer.CurrentFrame;
             logger.Write(LogLevel.Information,
@@ -419,7 +418,7 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
     }
 
     public ref readonly SynchronizedInput<TInput> GetInput(in PlayerHandle player) =>
-        ref syncInputBuffer[player.InternalQueue];
+        ref syncInputBuffer[player.QueueIndex];
 
     public ref readonly SynchronizedInput<TInput> GetInput(int index) =>
         ref syncInputBuffer[index];
@@ -444,8 +443,8 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
     }
 
     bool IsPlayerKnown(in PlayerHandle player) =>
-        player.InternalQueue >= 0
-        && player.InternalQueue <
+        player.QueueIndex >= 0
+        && player.QueueIndex <
         player.Type switch
         {
             PlayerType.Remote => endpoints.Count,
@@ -638,7 +637,7 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
             case ProtocolEvent.SyncFailure:
                 if (player.IsSpectator())
                 {
-                    spectators[player.InternalQueue].Disconnect();
+                    spectators[player.QueueIndex].Disconnect();
                     addedSpectators.Remove(player);
                     CheckInitialSync();
                 }
@@ -658,7 +657,7 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
             case ProtocolEvent.Disconnected:
                 if (player.Type is PlayerType.Spectator)
                 {
-                    spectators[player.InternalQueue].Disconnect();
+                    spectators[player.QueueIndex].Disconnect();
                     addedSpectators.Remove(player);
                 }
 
@@ -760,7 +759,7 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
     void DisconnectPlayerQueue(in PlayerHandle player, in Frame syncTo)
     {
         var frameCount = synchronizer.CurrentFrame;
-        endpoints[player.InternalQueue]?.Disconnect();
+        endpoints[player.QueueIndex]?.Disconnect();
         ref var connStatus = ref localConnections[player];
         logger.Write(LogLevel.Debug,
             $"Changing player {player} local connect status for last frame from {connStatus.LastFrame.Number} to {syncTo} on disconnect request (current: {frameCount})");

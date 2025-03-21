@@ -13,15 +13,14 @@ public class NetcodePlayer : IEquatable<NetcodePlayer>, IEqualityOperators<Netco
     /// <summary>
     /// Initializes a new netcode player
     /// </summary>
-    public NetcodePlayer(PlayerType type, int playerNumber, IPEndPoint? endPoint = null)
+    public NetcodePlayer(PlayerType type, IPEndPoint? endPoint = null)
     {
-
         ThrowIf.InvalidEnum(type);
 
         if (type is not PlayerType.Local && endPoint is null)
             throw new ArgumentException($"EndPoint is required for player type: {type}", nameof(endPoint));
 
-        Handle = new(type, playerNumber);
+        Handle = new(type);
         EndPoint = endPoint;
     }
 
@@ -38,8 +37,8 @@ public class NetcodePlayer : IEquatable<NetcodePlayer>, IEqualityOperators<Netco
     /// <inheritdoc cref="PlayerHandle.Type" />
     public PlayerType Type => Handle.Type;
 
-    /// <inheritdoc cref="PlayerHandle.Number" />
-    public int Number => Handle.Number;
+    /// <inheritdoc cref="PlayerHandle.Index" />
+    public int Index => Handle.Index;
 
     /// <inheritdoc cref="PlayerHandle.IsSpectator()" />
     public bool IsSpectator() => Handle.IsSpectator();
@@ -60,7 +59,7 @@ public class NetcodePlayer : IEquatable<NetcodePlayer>, IEqualityOperators<Netco
     public sealed override bool Equals(object? obj) => obj is NetcodePlayer player && Equals(player);
 
     /// <inheritdoc />
-    public sealed override int GetHashCode() => HashCode.Combine(Type, Number);
+    public sealed override int GetHashCode() => HashCode.Combine(Type, Index);
 
     static bool Equals(NetcodePlayer? left, NetcodePlayer? right)
     {
@@ -75,19 +74,18 @@ public class NetcodePlayer : IEquatable<NetcodePlayer>, IEqualityOperators<Netco
     /// <inheritdoc />
     public static bool operator !=(NetcodePlayer? left, NetcodePlayer? right) => !Equals(left, right);
 
-    public static NetcodePlayer CreateLocal(int number) => new(PlayerType.Local, number);
-}
-
-/// <summary>
-///     Holds data for a new player of type <see cref="PlayerType.Spectator" />.
-/// </summary>
-[Serializable]
-public class Spectator(IPEndPoint endpoint) : NetcodePlayer(PlayerType.Spectator, 0, endpoint)
-{
     /// <summary>
-    ///     Initialize new <see cref="Spectator" />
+    ///   Create new <see cref="NetcodePlayer"/> of type <see cref="PlayerType.Local"/>
     /// </summary>
-    /// <param name="ipAddress">Player IP Address</param>
-    /// <param name="port">Player remote port number</param>
-    public Spectator(IPAddress ipAddress, int port) : this(new(ipAddress, port)) { }
+    public static NetcodePlayer CreateLocal() => new(PlayerType.Local);
+
+    /// <summary>
+    ///   Create new <see cref="NetcodePlayer"/> of type <see cref="PlayerType.Remote"/>
+    /// </summary>
+    public static NetcodePlayer CreateRemote(IPEndPoint endPoint) => new(PlayerType.Remote, endPoint);
+
+    /// <summary>
+    ///   Create new <see cref="NetcodePlayer"/> of type <see cref="PlayerType.Spectator"/>
+    /// </summary>
+    public static NetcodePlayer CreateSpectator(IPEndPoint endPoint) => new(PlayerType.Spectator, endPoint);
 }

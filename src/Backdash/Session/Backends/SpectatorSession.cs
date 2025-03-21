@@ -66,7 +66,7 @@ sealed class SpectatorSession<TInput> :
         checksumProvider = services.ChecksumProvider;
         NumberOfPlayers = options.NumberOfPlayers;
         fakePlayers = Enumerable.Range(0, options.NumberOfPlayers)
-            .Select(x => new PlayerHandle(PlayerType.Remote, x + 1, x)).ToFrozenSet();
+            .Select(x => new PlayerHandle(PlayerType.Remote, x)).ToFrozenSet();
         IBinarySerializer<ConfirmedInputs<TInput>> inputGroupSerializer =
             new ConfirmedInputsSerializer<TInput>(services.InputSerializer);
         PeerObserverGroup<ProtocolMessage> peerObservers = new();
@@ -133,20 +133,20 @@ sealed class SpectatorSession<TInput> :
     public IReadOnlySet<PlayerHandle> GetPlayers() => fakePlayers;
     public IReadOnlySet<PlayerHandle> GetSpectators() => FrozenSet<PlayerHandle>.Empty;
 
-    public ResultCode AddLocalPlayer(int number, out PlayerHandle handle)
+    public ResultCode AddLocalPlayer(out PlayerHandle handle)
     {
         handle = default;
         return ResultCode.NotSupported;
     }
 
-    public ResultCode AddRemotePlayer(int number, IPEndPoint endpoint, out PlayerHandle handle)
+    public ResultCode AddRemotePlayer(IPEndPoint endpoint, out PlayerHandle handle)
     {
         handle = default;
         return ResultCode.NotSupported;
     }
 
 #pragma warning disable S4144
-    public ResultCode AddSpectator(int number, IPEndPoint endpoint, out PlayerHandle handle)
+    public ResultCode AddSpectator(IPEndPoint endpoint, out PlayerHandle handle)
     {
         handle = default;
         return ResultCode.NotSupported;

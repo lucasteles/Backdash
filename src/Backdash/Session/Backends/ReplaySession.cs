@@ -52,7 +52,7 @@ sealed class ReplaySession<TInput> : INetcodeSession<TInput> where TInput : unma
         endianness = options.GetStateSerializationEndianness();
         callbacks = services.SessionHandler;
         fakePlayers = Enumerable.Range(0, NumberOfPlayers)
-            .Select(x => new PlayerHandle(PlayerType.Remote, x + 1, x))
+            .Select(x => new PlayerHandle(PlayerType.Remote, x))
             .ToFrozenSet();
 
         stateStore.Initialize(ReplayController.MaxBackwardFrames);
@@ -118,20 +118,20 @@ sealed class ReplaySession<TInput> : INetcodeSession<TInput> where TInput : unma
 
     public PlayerConnectionStatus GetPlayerStatus(in PlayerHandle player) => PlayerConnectionStatus.Connected;
 
-    public ResultCode AddLocalPlayer(int number, out PlayerHandle handle)
+    public ResultCode AddLocalPlayer(out PlayerHandle handle)
     {
         handle = default;
         return ResultCode.NotSupported;
     }
 
-    public ResultCode AddRemotePlayer(int number, IPEndPoint endpoint, out PlayerHandle handle)
+    public ResultCode AddRemotePlayer(IPEndPoint endpoint, out PlayerHandle handle)
     {
         handle = default;
         return ResultCode.NotSupported;
     }
 
 #pragma warning disable S4144
-    public ResultCode AddSpectator(int number, IPEndPoint endpoint, out PlayerHandle handle)
+    public ResultCode AddSpectator(IPEndPoint endpoint, out PlayerHandle handle)
     {
         handle = default;
         return ResultCode.NotSupported;

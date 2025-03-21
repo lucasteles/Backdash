@@ -253,7 +253,7 @@ sealed class ProtocolInbox<TInput>(
         {
             var ping = state.Sync.TotalRoundTripsPing / options.NumberOfSyncRoundtrips;
             logger.Write(LogLevel.Information,
-                $"Player {state.Player.Number} Synchronized! (Ping: {ping.TotalMilliseconds:f4})");
+                $"Player {state.Player.Index} Synchronized! (Ping: {ping.TotalMilliseconds:f4})");
             state.CurrentStatus = ProtocolStatus.Running;
             state.Stats.RoundTripTime = ping;
             lastReceivedInput.ResetFrame();

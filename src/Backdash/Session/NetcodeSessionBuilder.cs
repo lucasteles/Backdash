@@ -87,7 +87,7 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
         if (playerList.Count > 0) return;
 
         for (var i = 0; i < options.NumberOfPlayers; i++)
-            playerList.Add(new(PlayerType.Local, i));
+            playerList.Add(new(PlayerType.Local));
     }
 
     /// <summary>

@@ -139,17 +139,17 @@ public interface INetcodeSession : INetcodeSessionInfo, IDisposable
     /// <summary>
     ///     Add a local player into the session.
     /// </summary>
-    ResultCode AddLocalPlayer(int number, out PlayerHandle handle);
+    ResultCode AddLocalPlayer(out PlayerHandle handle);
 
     /// <summary>
     ///     Add a remote player into the session.
     /// </summary>
-    ResultCode AddRemotePlayer(int number, IPEndPoint endpoint, out PlayerHandle handle);
+    ResultCode AddRemotePlayer(IPEndPoint endpoint, out PlayerHandle handle);
 
     /// <summary>
     ///     Add a spectator into the session.
     /// </summary>
-    ResultCode AddSpectator(int number, IPEndPoint endpoint, out PlayerHandle handle);
+    ResultCode AddSpectator(IPEndPoint endpoint, out PlayerHandle handle);
 
     /// <summary>
     ///     Returns a list of all input players in the session.
@@ -190,9 +190,9 @@ public interface INetcodeSession : INetcodeSessionInfo, IDisposable
 
         var result = player.Type switch
         {
-            PlayerType.Spectator => AddSpectator(player.Number, player.EndPoint!, out handle),
-            PlayerType.Remote => AddRemotePlayer(player.Number, player.EndPoint!, out handle),
-            PlayerType.Local => AddLocalPlayer(player.Number, out handle),
+            PlayerType.Spectator => AddSpectator(player.EndPoint!, out handle),
+            PlayerType.Remote => AddRemotePlayer(player.EndPoint!, out handle),
+            PlayerType.Local => AddLocalPlayer(out handle),
             _ => throw new ArgumentOutOfRangeException(nameof(player)),
         };
 
@@ -282,7 +282,7 @@ public interface INetcodeSession<TInput> : INetcodeSession where TInput : unmana
     ///     This must be called after <see cref="SynchronizeInputs" />
     /// </summary>
     ref readonly SynchronizedInput<TInput> GetInput(in PlayerHandle player) =>
-        ref CurrentSynchronizedInputs[player.InternalQueue];
+        ref CurrentSynchronizedInputs[player.QueueIndex];
 
     /// <summary>
     ///     Returns the value of a synchronized input for the requested player index.

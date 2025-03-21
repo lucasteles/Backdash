@@ -85,14 +85,14 @@ sealed class LocalSession<TInput> : INetcodeSession<TInput> where TInput : unman
         await backGroundJobTask.WaitAsync(stoppingToken).ConfigureAwait(false);
     }
 
-    public ResultCode AddLocalPlayer(int number, out PlayerHandle handle)
+    public ResultCode AddLocalPlayer(out PlayerHandle handle)
     {
         handle = default;
 
         if (addedPlayers.Count >= Max.NumberOfPlayers)
             return ResultCode.TooManyPlayers;
 
-        PlayerHandle playerHandle = new(PlayerType.Local, number, addedPlayers.Count);
+        PlayerHandle playerHandle = new(PlayerType.Local, addedPlayers.Count);
 
         if (!addedPlayers.Add(playerHandle))
             return ResultCode.DuplicatedPlayer;
@@ -103,14 +103,14 @@ sealed class LocalSession<TInput> : INetcodeSession<TInput> where TInput : unman
         return ResultCode.Ok;
     }
 
-    public ResultCode AddRemotePlayer(int number, IPEndPoint endpoint, out PlayerHandle handle)
+    public ResultCode AddRemotePlayer(IPEndPoint endpoint, out PlayerHandle handle)
     {
         handle = default;
         return ResultCode.NotSupported;
     }
 
 #pragma warning disable S4144
-    public ResultCode AddSpectator(int number, IPEndPoint endpoint, out PlayerHandle handle)
+    public ResultCode AddSpectator(IPEndPoint endpoint, out PlayerHandle handle)
 #pragma warning restore S4144
     {
         handle = default;
@@ -146,7 +146,7 @@ sealed class LocalSession<TInput> : INetcodeSession<TInput> where TInput : unman
     }
 
     bool IsPlayerKnown(in PlayerHandle player) =>
-        player.InternalQueue >= 0 && addedPlayers.Contains(player);
+        player.QueueIndex >= 0 && addedPlayers.Contains(player);
 
     public void BeginFrame() => logger.Write(LogLevel.Trace, $"Beginning of frame({CurrentFrame.Number})");
 
@@ -208,7 +208,7 @@ sealed class LocalSession<TInput> : INetcodeSession<TInput> where TInput : unman
 
     public void SetFrameDelay(PlayerHandle player, int delayInFrames)
     {
-        ThrowIf.ArgumentOutOfBounds(player.InternalQueue, 0, addedPlayers.Count);
+        ThrowIf.ArgumentOutOfBounds(player.QueueIndex, 0, addedPlayers.Count);
         ArgumentOutOfRangeException.ThrowIfNegative(delayInFrames);
     }
 

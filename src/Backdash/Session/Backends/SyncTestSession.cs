@@ -47,7 +47,7 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
 
     readonly IReadOnlySet<PlayerHandle> localPlayerFallback = new HashSet<PlayerHandle>
     {
-        new(PlayerType.Local, 1, 0),
+        new(PlayerType.Local, 0),
     }.ToFrozenSet();
 
     public SyncTestSession(
@@ -148,9 +148,9 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
     }
 
 
-    public ResultCode AddLocalPlayer(int number, out PlayerHandle handle)
+    public ResultCode AddLocalPlayer(out PlayerHandle handle)
     {
-        handle = new(PlayerType.Local, number);
+        handle = new(PlayerType.Local);
 
         if (addedPlayers.Count >= Max.NumberOfPlayers)
             return ResultCode.TooManyPlayers;
@@ -161,15 +161,15 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
         return ResultCode.Ok;
     }
 
-    public ResultCode AddRemotePlayer(int number, IPEndPoint endpoint, out PlayerHandle handle)
+    public ResultCode AddRemotePlayer(IPEndPoint endpoint, out PlayerHandle handle)
     {
         handle = default;
         return ResultCode.NotSupported;
     }
 
-    public ResultCode AddSpectator(int number, IPEndPoint endpoint, out PlayerHandle handle)
+    public ResultCode AddSpectator(IPEndPoint endpoint, out PlayerHandle handle)
     {
-        handle = new(PlayerType.Spectator, number);
+        handle = new(PlayerType.Spectator);
 
         if (addedSpectators.Count >= Max.NumberOfSpectators)
             return ResultCode.TooManyPlayers;
@@ -354,7 +354,7 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
 
     public void SetFrameDelay(PlayerHandle player, int delayInFrames)
     {
-        ThrowIf.ArgumentOutOfBounds(player.InternalQueue, 0, addedPlayers.Count);
+        ThrowIf.ArgumentOutOfBounds(player.QueueIndex, 0, addedPlayers.Count);
         ArgumentOutOfRangeException.ThrowIfNegative(delayInFrames);
         synchronizer.SetFrameDelay(player, delayInFrames);
     }

@@ -51,10 +51,10 @@ public sealed class GameSession(
         if (keyboard.IsKeyDown(Keys.D4)) DisconnectPlayer(3);
     }
 
-    void DisconnectPlayer(int number)
+    void DisconnectPlayer(int index)
     {
-        if (nonGameState.NumberOfPlayers <= number) return;
-        var handle = nonGameState.Players[number].Handle;
+        if (nonGameState.NumberOfPlayers <= index) return;
+        var handle = nonGameState.Players[index].Handle;
         session.DisconnectPlayer(in handle);
         nonGameState.StatusText.Clear();
         nonGameState.StatusText.Append("Disconnected player ");

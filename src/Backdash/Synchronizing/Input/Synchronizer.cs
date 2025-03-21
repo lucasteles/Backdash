@@ -56,7 +56,7 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
     public FrameSpan RollbackFrames { get; private set; } = FrameSpan.Zero;
 
     public void AddQueue(PlayerHandle player) =>
-        inputQueues.Add(new(player.InternalQueue, options.InputQueueLength, logger, inputComparer)
+        inputQueues.Add(new(player.QueueIndex, options.InputQueueLength, logger, inputComparer)
         {
             LocalFrameDelay = player.IsLocal() ? Math.Max(options.InputDelayFrames, 0) : 0,
         });
@@ -79,7 +79,7 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
     }
 
     void AddInput(in PlayerHandle queue, ref GameInput<TInput> input) =>
-        inputQueues[queue.InternalQueue].AddInput(ref input);
+        inputQueues[queue.QueueIndex].AddInput(ref input);
 
     public bool AddLocalInput(in PlayerHandle queue, ref GameInput<TInput> input)
     {
@@ -259,7 +259,7 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
     }
 
     public void SetFrameDelay(PlayerHandle player, int delay) =>
-        inputQueues[player.InternalQueue].LocalFrameDelay = Math.Max(delay, 0);
+        inputQueues[player.QueueIndex].LocalFrameDelay = Math.Max(delay, 0);
 
     void ResetPrediction(in Frame frameNumber)
     {

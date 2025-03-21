@@ -14,27 +14,28 @@ public readonly struct PlayerHandle : IUtf8SpanFormattable,
     IEqualityOperators<PlayerHandle, PlayerHandle, bool>
 {
     /// <summary>
-    ///     Player number (starting from <c>1</c>)
-    /// </summary>
-    public readonly int Number;
-
-    /// <summary>
     ///     Player type
     /// </summary>
     public readonly PlayerType Type;
 
-    internal readonly int InternalQueue;
+    internal readonly sbyte QueueIndex;
 
     /// <summary>
-    ///     Player number (starting from <c>0</c>)
+    ///     Player index (starting from <c>0</c>)
     /// </summary>
-    public int Index => InternalQueue;
+    public sbyte Index => QueueIndex;
 
-    internal PlayerHandle(PlayerType type, int number, int queue = -1)
+    /// <summary>
+    ///     Player number (starting from <c>1</c>)
+    /// </summary>
+    public int Number => QueueIndex + 1;
+
+    internal PlayerHandle(PlayerType type, int queue) : this(type, checked((sbyte)queue)) { }
+
+    internal PlayerHandle(PlayerType type, sbyte queue = -1)
     {
-        Number = number;
         Type = type;
-        InternalQueue = queue;
+        QueueIndex = queue;
     }
 
     /// <summary>
@@ -65,7 +66,7 @@ public readonly struct PlayerHandle : IUtf8SpanFormattable,
             builder.Append("Player");
         }
 
-        builder.Append(Number);
+        builder.Append(Index);
         builder.Append('}');
         return builder.ToString();
     }
@@ -87,19 +88,20 @@ public readonly struct PlayerHandle : IUtf8SpanFormattable,
             if (!writer.Write("Player: "u8)) return false;
         }
 
-        if (!writer.Write(Number)) return false;
+        if (!writer.Write(QueueIndex)) return false;
         if (!writer.Write("}"u8)) return false;
         return true;
     }
 
     /// <inheritdoc />
-    public bool Equals(PlayerHandle other) => Number == other.Number;
+    public bool Equals(PlayerHandle other) =>
+        Type == other.Type && QueueIndex == other.QueueIndex;
 
     /// <inheritdoc />
     public override bool Equals(object? obj) => obj is PlayerHandle other && Equals(other);
 
     /// <inheritdoc />
-    public override int GetHashCode() => Number.GetHashCode();
+    public override int GetHashCode() => HashCode.Combine(Type, QueueIndex);
 
     /// <inheritdoc />
     public static bool operator ==(PlayerHandle left, PlayerHandle right) => left.Equals(right);
