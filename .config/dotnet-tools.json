@@ -1,27 +1,27 @@
 {
-    "version": 1,
-    "isRoot": true,
-    "tools": {
-        "dotnet-reportgenerator-globaltool": {
-            "version": "5.4.4",
-            "commands": [
-                "reportgenerator"
-            ],
-            "rollForward": false
-        },
-        "nuke.globaltool": {
-            "version": "9.0.4",
-            "commands": [
-                "nuke"
-            ],
-            "rollForward": false
-        },
-        "docfx": {
-            "version": "2.78.3",
-            "commands": [
-                "docfx"
-            ],
-            "rollForward": false
-        }
+  "version": 1,
+  "isRoot": true,
+  "tools": {
+    "dotnet-reportgenerator-globaltool": {
+      "version": "5.4.5",
+      "commands": [
+        "reportgenerator"
+      ],
+      "rollForward": false
+    },
+    "nuke.globaltool": {
+      "version": "9.0.4",
+      "commands": [
+        "nuke"
+      ],
+      "rollForward": false
+    },
+    "docfx": {
+      "version": "2.78.3",
+      "commands": [
+        "docfx"
+      ],
+      "rollForward": false
     }
+  }
 }
