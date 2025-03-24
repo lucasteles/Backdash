@@ -34,7 +34,6 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
     readonly PeerObserverGroup<ProtocolMessage> peerObservers;
     readonly HashSet<PlayerHandle> addedPlayers = [];
     readonly HashSet<PlayerHandle> addedSpectators = [];
-
     readonly ProtocolInputEventQueue<TInput> peerInputEventQueue;
     readonly IProtocolInputEventPublisher<ConfirmedInputs<TInput>> peerCombinedInputsEventPublisher;
 
@@ -281,7 +280,7 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
         return ResultCode.Ok;
     }
 
-    public ResultCode AddLocalInput(PlayerHandle player, in TInput localInput)
+    public ResultCode AddLocalInput(in PlayerHandle player, in TInput localInput)
     {
         GameInput<TInput> input = new()
         {

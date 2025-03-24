@@ -70,6 +70,9 @@ public interface INetcodeSession : INetcodeSessionInfo, IDisposable
     /// </summary>
     void DisconnectPlayer(in PlayerHandle player);
 
+    /// <inheritdoc cref="DisconnectPlayer(in Backdash.PlayerHandle)"/>
+    void DisconnectPlayer(in NetcodePlayer player) => DisconnectPlayer(player.Handle);
+
     /// <summary>
     ///     Should be called at the start of each frame of your application.
     /// </summary>
@@ -196,7 +199,7 @@ public interface INetcodeSession : INetcodeSessionInfo, IDisposable
             _ => throw new ArgumentOutOfRangeException(nameof(player)),
         };
 
-        player.Handle = handle;
+        player.PlayerHandle = handle;
         return result;
     }
 
@@ -256,7 +259,11 @@ public interface INetcodeSession<TInput> : INetcodeSession where TInput : unmana
     /// </summary>
     /// <param name="player">Player owner of the inputs</param>
     /// <param name="localInput">The input value</param>
-    ResultCode AddLocalInput(PlayerHandle player, in TInput localInput);
+    ResultCode AddLocalInput(in PlayerHandle player, in TInput localInput);
+
+    /// <inheritdoc cref="AddLocalInput(in Backdash.PlayerHandle,in TInput)"/>
+    ResultCode AddLocalInput(NetcodePlayer player, in TInput localInput) =>
+        AddLocalInput(in player.PlayerHandle, in localInput);
 
     /// <summary>
     ///     Synchronizes the inputs of the local and remote players into a local buffer.
@@ -282,6 +289,10 @@ public interface INetcodeSession<TInput> : INetcodeSession where TInput : unmana
     /// </summary>
     ref readonly SynchronizedInput<TInput> GetInput(in PlayerHandle player) =>
         ref CurrentSynchronizedInputs[player.QueueIndex];
+
+    /// <inheritdoc cref="GetInput(in Backdash.PlayerHandle)"/>
+    ref readonly SynchronizedInput<TInput> GetInput(in NetcodePlayer player) =>
+        ref CurrentSynchronizedInputs[player.PlayerHandle.QueueIndex];
 
     /// <summary>
     ///     Returns the value of a synchronized input for the requested player index.

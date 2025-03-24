@@ -53,7 +53,6 @@ sealed class LocalSession<TInput> : INetcodeSession<TInput> where TInput : unman
     public INetcodeRandom Random => random;
 
     public ReadOnlySpan<SynchronizedInput<TInput>> CurrentSynchronizedInputs => syncInputBuffer;
-
     public ReadOnlySpan<TInput> CurrentInputs => inputBuffer;
 
     public Frame CurrentFrame { get; private set; } = Frame.Zero;
@@ -128,7 +127,7 @@ sealed class LocalSession<TInput> : INetcodeSession<TInput> where TInput : unman
 
     public bool GetNetworkStatus(in PlayerHandle player, ref PeerNetworkStats info) => false;
 
-    public ResultCode AddLocalInput(PlayerHandle player, in TInput localInput)
+    public ResultCode AddLocalInput(in PlayerHandle player, in TInput localInput)
     {
         if (!running)
             return ResultCode.NotSynchronized;

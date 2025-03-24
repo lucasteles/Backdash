@@ -10,6 +10,8 @@ namespace Backdash;
 [Serializable]
 public class NetcodePlayer : IEquatable<NetcodePlayer>, IEqualityOperators<NetcodePlayer, NetcodePlayer, bool>
 {
+    internal PlayerHandle PlayerHandle;
+
     /// <summary>
     /// Initializes a new netcode player
     /// </summary>
@@ -20,7 +22,7 @@ public class NetcodePlayer : IEquatable<NetcodePlayer>, IEqualityOperators<Netco
         if (type is not PlayerType.Local && endPoint is null)
             throw new ArgumentException($"EndPoint is required for player type: {type}", nameof(endPoint));
 
-        Handle = new(type);
+        PlayerHandle = new(type);
         EndPoint = endPoint;
     }
 
@@ -32,7 +34,7 @@ public class NetcodePlayer : IEquatable<NetcodePlayer>, IEqualityOperators<Netco
     /// <summary>
     ///     Player handler, used to identify any player in session.
     /// </summary>
-    public PlayerHandle Handle { get; internal set; }
+    public PlayerHandle Handle => PlayerHandle;
 
     /// <inheritdoc cref="PlayerHandle.Type" />
     public PlayerType Type => Handle.Type;

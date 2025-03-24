@@ -189,7 +189,7 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
 
     public bool GetNetworkStatus(in PlayerHandle player, ref PeerNetworkStats info) => false;
 
-    public ResultCode AddLocalInput(PlayerHandle player, in TInput localInput)
+    public ResultCode AddLocalInput(in PlayerHandle player, in TInput localInput)
     {
         if (!running)
             return ResultCode.NotSynchronized;

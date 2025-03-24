@@ -19,7 +19,7 @@ public enum ResultCode : short
 
     /// <summary>When emulator reached prediction barrier.</summary>
     /// <seealso cref="NetcodeOptions.PredictionFrames" />
-    /// <seealso cref="INetcodeSession{TInput}.AddLocalInput" />
+    /// <seealso cref="INetcodeSession{TInput}.AddLocalInput(in Backdash.PlayerHandle, in TInput)" />
     PredictionThreshold,
 
     /// <summary>The synchronization with peer was not finished.</summary>

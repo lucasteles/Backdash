@@ -88,7 +88,7 @@ sealed class ReplaySession<TInput> : INetcodeSession<TInput> where TInput : unma
 
     public SessionMode Mode => SessionMode.Replay;
     public void DisconnectPlayer(in PlayerHandle player) { }
-    public ResultCode AddLocalInput(PlayerHandle player, in TInput localInput) => ResultCode.Ok;
+    public ResultCode AddLocalInput(in PlayerHandle player, in TInput localInput) => ResultCode.Ok;
     public IReadOnlySet<PlayerHandle> GetPlayers() => fakePlayers;
     public IReadOnlySet<PlayerHandle> GetSpectators() => FrozenSet<PlayerHandle>.Empty;
 
