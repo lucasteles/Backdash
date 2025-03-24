@@ -13,6 +13,16 @@ namespace Backdash;
 public readonly record struct SynchronizedInput<T>(T Input, bool Disconnected) where T : unmanaged
 {
     /// <summary>
+    ///     The input value
+    /// </summary>
+    public readonly T Input = Input;
+
+    /// <summary>
+    ///     Is <see langword="true" /> if input owner is disconnected
+    /// </summary>
+    public readonly bool Disconnected = Disconnected;
+
+    /// <summary>
     ///     Returns the input associated with this type
     /// </summary>
     public static implicit operator T(SynchronizedInput<T> input) => input.Input;
