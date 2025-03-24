@@ -358,6 +358,20 @@ public class CircularBufferTests
     }
 
     [Fact]
+    public void ShouldAddNewItemAfterGetResetSpan()
+    {
+        CircularBuffer<int> sut = new(3);
+        sut.Add(10);
+        sut.Add(20);
+        sut.Add(30);
+
+        _ = sut.GetResetSpan(3);
+        sut.Add(40);
+
+        AssertBuffer(sut, [20, 30, 40]);
+    }
+
+    [Fact]
     public void ShouldGetSpanAndResetValues()
     {
         CircularBuffer<int> sut = new(3);

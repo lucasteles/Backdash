@@ -68,12 +68,9 @@ sealed class LocalSession<TInput> : INetcodeSession<TInput> where TInput : unman
 
     public void Start(CancellationToken stoppingToken = default)
     {
-        if (!running)
-        {
-            callbacks.OnSessionStart();
-            running = true;
-        }
-
+        if (running) return;
+        running = true;
+        callbacks.OnSessionStart();
         backGroundJobTask = tsc.Task.WaitAsync(stoppingToken);
     }
 

@@ -182,6 +182,17 @@ public sealed class CircularBuffer<T>(int capacity) : IReadOnlyList<T>, IEquatab
         }
     }
 
+    public void CopyTo(Span<T> destination)
+    {
+        if (destination.Length < GetSpan(out var begin, out var end))
+            throw new ArgumentException("Destination is too short", nameof(destination));
+
+        begin.CopyTo(destination);
+        end.CopyTo(destination[begin.Length..]);
+    }
+
+    public void CopyFrom(ReadOnlySpan<T> values) => values.CopyTo(GetResetSpan(values.Length));
+
     public int GetSpan(out ReadOnlySpan<T> begin, out ReadOnlySpan<T> end)
     {
         var items = array.AsSpan();
@@ -201,28 +212,19 @@ public sealed class CircularBuffer<T>(int capacity) : IReadOnlyList<T>, IEquatab
         return count;
     }
 
-    public void CopyTo(Span<T> destination)
-    {
-        if (destination.Length < GetSpan(out var begin, out var end))
-            throw new ArgumentException("Destination is too short", nameof(destination));
-
-        begin.CopyTo(destination);
-        end.CopyTo(destination[begin.Length..]);
-    }
-
-    public void CopyFrom(ReadOnlySpan<T> values) => values.CopyTo(GetResetSpan(values.Length));
 
     public Span<T> GetResetSpan(int size, bool clearArray = false)
     {
         ArgumentOutOfRangeException.ThrowIfGreaterThan(size, array.Length);
+        if (array.Length is 0) return [];
 
         tail = 0;
-        count = head = size;
+        count = size;
+        head = size % array.Length;
 
-        if (clearArray)
-            Array.Clear(array, 0, array.Length);
-
-        return array.AsSpan(0, size);
+        var result = array.AsSpan(0, size);
+        if (clearArray) result.Clear();
+        return result;
     }
 
     public Enumerator GetEnumerator() => new(this);
