@@ -2,7 +2,7 @@
 [![Nuget](https://img.shields.io/nuget/v/Backdash.svg?style=flat)](https://www.nuget.org/packages/Backdash)
 
 ![](https://raw.githubusercontent.com/lucasteles/Backdash/site/test_report_badge.svg)
-![](https://raw.githubusercontent.com/lucasteles/Backdash/site/lines_badge.svg)
+![](https://raw.githubusercontent.com/lucasteles/Backdash/site/lines_of_code.svg)
 ![](https://img.shields.io/badge/Lang-C%23-green)
 ![](https://raw.githubusercontent.com/lucasteles/Backdash/site/dotnet_version_badge.svg)
 ![https://editorconfig.org/](https://img.shields.io/badge/style-EditorConfig-black)

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 
 class MainBuild : NukeBuild
 {
@@ -145,6 +146,13 @@ class MainBuild : NukeBuild
             Badges.ForCoverage(output, CoverageFiles);
             Badges.ForDotNetVersion(output, GlobalJson);
             Badges.ForTests(output, TestResultFile);
+            Badges.ForLineCount(output, new(
+                "*.cs,*.fs,*.fsx,*.js,*.ts",
+                Solution,
+                "*.g.cs",
+                "bin,obj,node_modules,/samples",
+                "^//"
+            ));
         });
 
     Target BuildDocs => _ => _

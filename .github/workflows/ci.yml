@@ -63,14 +63,6 @@ jobs:
             -   name: Build Docs
                 run: dotnet nuke build-docs --skip restore --no-logo
 
-            -   name: Lines of Code Badge
-                uses: DeathSy/GHA-LoC-Badge@1.0.3
-                with:
-                    directory: ./
-                    badge: ./docfx/_site/lines_badge.svg
-                    patterns: '**/*.fs|**/*.fsx|**/*.cs|**/*.ts|**/*.js'
-                    ignore: './samples/**|./benchmarks/**'
-
             -   name: Publish Docs
                 if: github.event_name == 'push' && github.ref == 'refs/heads/master'
                 uses: peaceiris/actions-gh-pages@v4
