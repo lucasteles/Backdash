@@ -1,6 +1,5 @@
 [![Nuget](https://img.shields.io/nuget/v/Backdash.svg?style=flat)](https://www.nuget.org/packages/Backdash)
 ![](https://raw.githubusercontent.com/lucasteles/Backdash/site/dotnet_version_badge.svg)
-![](https://img.shields.io/badge/Lang-C%23-green)
 ![https://editorconfig.org/](https://img.shields.io/badge/style-EditorConfig-black)
 
 [![CI](https://github.com/lucasteles/Backdash/actions/workflows/ci.yml/badge.svg)](https://github.com/lucasteles/Backdash/actions/workflows/ci.yml)
