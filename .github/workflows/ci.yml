@@ -57,7 +57,7 @@ jobs:
                     output_text_description_file: TestReport/Summary.md
                     output: '{"summary":"Created by Report-Generator"}'
 
-            -   name: Generate Coverage Badges
+            -   name: Generate Badges
                 run: dotnet nuke generate-badges --no-logo
 
             -   name: Build Docs

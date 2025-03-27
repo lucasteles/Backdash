@@ -141,7 +141,7 @@ class MainBuild : NukeBuild
         .Requires(() => CoverageFiles.GlobFiles().Any())
         .Executes(() =>
         {
-            var output = RootDirectory / "docfx" / "_site";
+            var output = DocsSitePath;
             if (!output.DirectoryExists()) output.CreateDirectory();
             Badges.ForCoverage(output, CoverageFiles);
             Badges.ForDotNetVersion(output, GlobalJson);
@@ -160,7 +160,9 @@ class MainBuild : NukeBuild
         .DependsOn(Restore)
         .Executes(() =>
         {
-            DocsSitePath.CreateOrCleanDirectory();
+            if (!DocsSitePath.Exists("dir"))
+                DocsSitePath.CreateDirectory();
+
             (DocsPath / "api").CreateOrCleanDirectory();
             BuildProj(Solution, Configuration.Release);
             DocFX.Build(c => c
