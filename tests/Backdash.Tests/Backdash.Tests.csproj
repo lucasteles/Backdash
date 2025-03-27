@@ -7,6 +7,7 @@
     <IsTestProject>true</IsTestProject>
     <IsPackable>false</IsPackable>
     <NoWarn>CS1591;NU1903</NoWarn>
+    <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Bogus" Version="35.6.2" />
