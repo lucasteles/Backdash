@@ -27,10 +27,12 @@ public sealed class GameSession(
         var localInput = Inputs.ReadInputs(keyboard);
 
         if (nonGameState.LocalPlayerHandle is { } localPlayer
-            && session.AddLocalInput(localPlayer, localInput) is not ResultCode.Ok) return;
+            && session.AddLocalInput(localPlayer, localInput) is not ResultCode.Ok)
+            return;
 
-        if (nonGameState.MirrorPlayerHandle is { } mirrorPlayer
-            && session.AddLocalInput(mirrorPlayer, localInput) is not ResultCode.Ok) return;
+        if (nonGameState.MirrorPlayerHandle is { } mirrorPlayer &&
+            session.AddLocalInput(mirrorPlayer, localInput) is not ResultCode.Ok)
+            return;
 
         var syncInputResult = session.SynchronizeInputs();
         if (syncInputResult is not ResultCode.Ok)

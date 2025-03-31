@@ -1,10 +1,13 @@
 using System.Collections.Frozen;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Backdash.Core;
 using Backdash.Network;
 using Backdash.Options;
 using Backdash.Serialization;
+using Backdash.Synchronizing.Input;
 using Backdash.Synchronizing.Random;
 using Backdash.Synchronizing.State;
 
@@ -16,6 +19,7 @@ sealed class LocalSession<TInput> : INetcodeSession<TInput> where TInput : unman
     readonly Logger logger;
     readonly HashSet<PlayerHandle> addedPlayers = new(Max.NumberOfPlayers);
 
+    InputQueue<TInput>[] inputQueues = [];
     SynchronizedInput<TInput>[] syncInputBuffer = [];
     TInput[] inputBuffer = [];
 
@@ -23,6 +27,8 @@ sealed class LocalSession<TInput> : INetcodeSession<TInput> where TInput : unman
     readonly IChecksumProvider checksumProvider;
     readonly IDeterministicRandom<TInput> random;
     readonly Endianness endianness;
+    readonly EqualityComparer<TInput> comparer;
+    readonly NetcodeOptions options;
 
     bool running;
 
@@ -43,7 +49,9 @@ sealed class LocalSession<TInput> : INetcodeSession<TInput> where TInput : unman
         logger = services.Logger;
         endianness = options.GetStateSerializationEndianness();
         callbacks = services.SessionHandler;
+        comparer = services.InputComparer;
         stateStore.Initialize(options.TotalPredictionFrames);
+        this.options = options;
     }
 
     public void Dispose() => tsc.SetResult();
@@ -96,6 +104,10 @@ sealed class LocalSession<TInput> : INetcodeSession<TInput> where TInput : unman
         handle = playerHandle;
         IncrementInputBufferSize();
 
+        inputQueues[handle.QueueIndex] = new(handle.QueueIndex, options.InputQueueLength, logger, comparer)
+        {
+            LocalFrameDelay = options.InputDelayFrames,
+        };
         return ResultCode.Ok;
     }
 
@@ -115,8 +127,10 @@ sealed class LocalSession<TInput> : INetcodeSession<TInput> where TInput : unman
 
     void IncrementInputBufferSize()
     {
-        Array.Resize(ref syncInputBuffer, syncInputBuffer.Length + 1);
-        Array.Resize(ref inputBuffer, syncInputBuffer.Length);
+        var newSize = syncInputBuffer.Length + 1;
+        Array.Resize(ref syncInputBuffer, newSize);
+        Array.Resize(ref inputBuffer, newSize);
+        Array.Resize(ref inputQueues, newSize);
     }
 
     public PlayerConnectionStatus GetPlayerStatus(in PlayerHandle player) =>
@@ -135,8 +149,8 @@ sealed class LocalSession<TInput> : INetcodeSession<TInput> where TInput : unman
         if (!IsPlayerKnown(in player))
             return ResultCode.PlayerOutOfRange;
 
-        inputBuffer[player.Index] = localInput;
-        syncInputBuffer[player.Index] = localInput;
+        GameInput<TInput> gameInput = new(localInput, CurrentFrame);
+        inputQueues[player.QueueIndex].AddInput(ref gameInput);
 
         return ResultCode.Ok;
     }
@@ -148,6 +162,13 @@ sealed class LocalSession<TInput> : INetcodeSession<TInput> where TInput : unman
 
     public ResultCode SynchronizeInputs()
     {
+        for (var i = 0; i < inputQueues.Length; i++)
+        {
+            inputQueues[i].GetInput(CurrentFrame, out var input);
+            inputBuffer[i] = input.Data;
+            syncInputBuffer[i] = new(input.Data, false);
+        }
+
         random.UpdateSeed(CurrentFrame, inputBuffer);
         return ResultCode.Ok;
     }
@@ -180,6 +201,16 @@ sealed class LocalSession<TInput> : INetcodeSession<TInput> where TInput : unman
             BinaryBufferReader reader = new(savedFrame.GameState.WrittenSpan, ref offset, endianness);
             callbacks.LoadState(in frame, in reader);
             CurrentFrame = frame;
+
+            var prevFrame = frame.Previous();
+            ref var current = ref MemoryMarshal.GetReference(inputQueues.AsSpan());
+            ref var limit = ref Unsafe.Add(ref current, inputQueues.Length);
+            while (Unsafe.IsAddressLessThan(ref current, ref limit))
+            {
+                current.ResetLastUserAddedFrame(in prevFrame);
+                current = ref Unsafe.Add(ref current, 1)!;
+            }
+
             return true;
         }
         catch (NetcodeException)
@@ -205,6 +236,16 @@ sealed class LocalSession<TInput> : INetcodeSession<TInput> where TInput : unman
     public void SetFrameDelay(PlayerHandle player, int delayInFrames)
     {
         ThrowIf.ArgumentOutOfBounds(player.QueueIndex, 0, addedPlayers.Count);
+
+        ref var current = ref MemoryMarshal.GetReference(inputQueues.AsSpan());
+        ref var limit = ref Unsafe.Add(ref current, inputQueues.Length);
+        while (Unsafe.IsAddressLessThan(ref current, ref limit))
+        {
+            current.LocalFrameDelay = delayInFrames;
+            current = ref Unsafe.Add(ref current, 1)!;
+        }
+
+
         ArgumentOutOfRangeException.ThrowIfNegative(delayInFrames);
     }
 

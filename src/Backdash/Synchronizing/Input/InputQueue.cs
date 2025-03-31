@@ -71,6 +71,12 @@ sealed class InputQueue<TInput> where TInput : unmanaged
         lastFrameRequested = Frame.Null;
     }
 
+    public void ResetLastUserAddedFrame(in Frame frame)
+    {
+        DiscardConfirmedFrames(frame);
+        lastUserAddedFrame = frame;
+    }
+
     public bool GetConfirmedInput(in Frame requestedFrame, ref GameInput<TInput> input)
     {
         ThrowIf.Assert(firstIncorrectFrame.IsNull || requestedFrame.Number < firstIncorrectFrame.Number);
@@ -84,7 +90,7 @@ sealed class InputQueue<TInput> where TInput : unmanaged
         return true;
     }
 
-    public bool GetInput(Frame requestedFrame, out GameInput<TInput> input)
+    public bool GetInput(in Frame requestedFrame, out GameInput<TInput> input)
     {
         logger.Write(LogLevel.Trace, $"Queue {QueueId} => requesting input frame {requestedFrame.Number}.");
         // No one should ever try to grab any input when we have a prediction error.
