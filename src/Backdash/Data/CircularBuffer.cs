@@ -57,7 +57,7 @@ public sealed class CircularBuffer<T>(int capacity) : IReadOnlyList<T>, IEquatab
     public ref T Front() => ref array[CurrentIndex];
     public ref T Back() => ref array[tail];
 
-    public void AddRange(in ReadOnlySpan<T> values)
+    public void AddRange(ReadOnlySpan<T> values)
     {
         ref var curr = ref MemoryMarshal.GetReference(values);
         ref var end = ref Unsafe.Add(ref curr, values.Length);
@@ -68,8 +68,6 @@ public sealed class CircularBuffer<T>(int capacity) : IReadOnlyList<T>, IEquatab
             curr = ref Unsafe.Add(ref curr, 1)!;
         }
     }
-
-    public void AddRange(ReadOnlySpan<T> values) => AddRange(in values);
 
     public bool TryPop([NotNullWhen(true)] out T? item)
     {

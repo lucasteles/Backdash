@@ -9,7 +9,7 @@ namespace Backdash.Core;
 static class Mem
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Clear(in Span<byte> bytes) => bytes.Clear();
+    public static void Clear(Span<byte> bytes) => bytes.Clear();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ReadOnlySpan<T> AsSpan<T>(ref readonly T data) where T : unmanaged => new(in data);
@@ -49,7 +49,7 @@ static class Mem
         T.IsZero(T.MinValue);
 
     public static string GetBitString(
-        in ReadOnlySpan<byte> bytes,
+        ReadOnlySpan<byte> bytes,
         bool trimRightZeros = true,
         int bytePad = ByteSize.ByteToBits
     )

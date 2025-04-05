@@ -107,7 +107,7 @@ static class DeltaXorRle
             return false;
         }
 
-        public bool Read(in Span<byte> output)
+        public bool Read(Span<byte> output)
         {
             var outputBits = BitVector.FromSpan(output);
             if (bitVector.Offset >= bitCount || bitVector.Completed)

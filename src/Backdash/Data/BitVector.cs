@@ -9,7 +9,7 @@ readonly ref struct ReadOnlyBitVector(scoped in ReadOnlySpan<byte> bits)
     public readonly ReadOnlySpan<byte> Buffer = bits;
     public int Size => Buffer.Length;
     public int BitCount => Size * ByteSize.ByteToBits;
-    public bool Get(int i) => BitVector.GetBit(in Buffer, i);
+    public bool Get(int i) => BitVector.GetBit(Buffer, i);
     public bool this[int bit] => Get(bit);
     public static ReadOnlyBitVector FromSpan(scoped in ReadOnlySpan<byte> bits) => new(bits);
     public override string ToString() => Mem.GetBitString(Buffer);
@@ -23,18 +23,18 @@ readonly ref struct BitVector(scoped in Span<byte> bits)
     public int ByteLength => Buffer.Length;
     public int Length => ByteLength * ByteSize.ByteToBits;
 
-    public static void SetBit(in Span<byte> vector, int index) =>
+    public static void SetBit(Span<byte> vector, int index) =>
         vector[index / 8] |= (byte)(1 << (index % 8));
 
-    public static bool GetBit(in ReadOnlySpan<byte> vector, int index) =>
+    public static bool GetBit(ReadOnlySpan<byte> vector, int index) =>
         (vector[index / 8] & (1 << (index % 8))) != 0;
 
-    public static void ClearBit(in Span<byte> vector, int index) =>
+    public static void ClearBit(Span<byte> vector, int index) =>
         vector[index / 8] &= (byte)~(1 << (index % 8));
 
     public bool Get(int i) => GetBit(Buffer, i);
-    public void Set(int i) => SetBit(in Buffer, i);
-    public void Clear(int i) => ClearBit(in Buffer, i);
+    public void Set(int i) => SetBit(Buffer, i);
+    public void Clear(int i) => ClearBit(Buffer, i);
 
     public bool this[int bit]
     {
@@ -64,7 +64,7 @@ ref struct BitOffsetWriter(Span<byte> buffer, ushort offset = 0, int nibbleSize 
 
     public void SetNext()
     {
-        BitVector.SetBit(in Buffer, Offset);
+        BitVector.SetBit(Buffer, Offset);
         Inc();
     }
 
@@ -77,7 +77,7 @@ ref struct BitOffsetWriter(Span<byte> buffer, ushort offset = 0, int nibbleSize 
 
     public void ClearNext()
     {
-        BitVector.ClearBit(in Buffer, Offset);
+        BitVector.ClearBit(Buffer, Offset);
         Inc();
     }
 

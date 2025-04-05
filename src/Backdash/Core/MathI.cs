@@ -19,7 +19,7 @@ public static class MathI
     ///     Returns the sum of a span of <see cref="IBinaryInteger{TSelf}"/>.
     ///     Use SIMD if available.
     /// </summary>
-    public static T Sum<T>(in ReadOnlySpan<T> span)
+    public static T Sum<T>(ReadOnlySpan<T> span)
         where T : unmanaged, IBinaryInteger<T>, IAdditionOperators<T, T, T>
     {
         unchecked
@@ -54,14 +54,14 @@ public static class MathI
         }
     }
 
-    /// <inheritdoc cref="Sum{T}(in ReadOnlySpan{T})"/>
-    public static T Sum<T>(in T[] values)
+    /// <inheritdoc cref="Sum{T}(ReadOnlySpan{T})"/>
+    public static T Sum<T>(T[] values)
         where T : unmanaged, IBinaryInteger<T>, IAdditionOperators<T, T, T> => Sum((ReadOnlySpan<T>)values);
 
     /// <summary>
     ///     Returns the sum of a span of <see cref="IBinaryInteger{TSelf}"/>
     /// </summary>
-    public static T SumRaw<T>(in ReadOnlySpan<T> span)
+    public static T SumRaw<T>(ReadOnlySpan<T> span)
         where T : unmanaged, IBinaryInteger<T>, IAdditionOperators<T, T, T>
     {
         unchecked
@@ -80,19 +80,19 @@ public static class MathI
         }
     }
 
-    /// <inheritdoc cref="SumRaw{T}(in ReadOnlySpan{T})"/>
-    public static T SumRaw<T>(in T[] values)
+    /// <inheritdoc cref="SumRaw{T}(ReadOnlySpan{T})"/>
+    public static T SumRaw<T>(T[] values)
         where T : unmanaged, IBinaryInteger<T>, IAdditionOperators<T, T, T> => Sum((ReadOnlySpan<T>)values);
 
     /// <summary>
     ///     Returns the average sum of a span of <see cref="int"/>
     /// </summary>
-    public static double Avg(in ReadOnlySpan<int> span)
+    public static double Avg(ReadOnlySpan<int> span)
     {
         if (span.IsEmpty) return 0;
-        return Sum(in span) / (double)span.Length;
+        return Sum(span) / (double)span.Length;
     }
 
-    /// <inheritdoc cref="Avg(in ReadOnlySpan{int})"/>
-    public static double Avg(in int[] values) => Avg((ReadOnlySpan<int>)values);
+    /// <inheritdoc cref="Avg(ReadOnlySpan{int})"/>
+    public static double Avg(int[] values) => Avg((ReadOnlySpan<int>)values);
 }
