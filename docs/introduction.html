@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Introduction | Backdash Netcode </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Introduction | Backdash Netcode ">
+      
+      
+      <link rel="icon" href="../docs/images/favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/lucasteles/Backdash/blob/master/docfx/docs/introduction.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../docs/images/logo.png" alt="Backdash">
+            Backdash
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="introduction">Introduction</h1>
+
+<p><a href="https://github.com/lucasteles/Backdash">Backdash</a> is a multiplayer network SDK to help you
+implement <a href="https://words.infil.net/w02-netcode.html">Rollback Netcode</a> on your game.</p>
+<p>It started as <a href="https://dotnet.microsoft.com">.NET</a> port of the first rollback netcode
+SDK <a href="https://github.com/pond3r/ggpo">GGPO</a> (<em>written in C++</em>)
+to be used in any game engine that
+uses <a href="https://dotnet.microsoft.com/en-us/languages/csharp">C#</a>, <a href="https://dotnet.microsoft.com/en-us/languages/fsharp">F#</a>
+or any <a href="https://dotnet.microsoft.com">.NET</a> dialect as scripting
+language (<a href="https://godotengine.org/">Godot</a>, <a href="https://monogame.net/">Monogame</a>, <a href="https://www.stride3d.net">Stride3D</a>,
+etc). Dispensing with the need to create native
+builds and native binds to the <em>C++</em> <a href="https://github.com/pond3r/ggpo">GGPO</a> code.</p>
+<p>And also adding more options
+for <a href="https://lucasteles.github.io/Backdash/api/Backdash.NetcodeOptions.html">configuration</a>
+and <a href="https://lucasteles.github.io/Backdash/api/Backdash.SessionServices-2.html">extensibility</a>.</p>
+<div class="WARNING">
+<h5>Warning</h5>
+<p>⚠️ This library is not able to run on <a href="https://unity.com/">Unity</a> until they
+finish <a href="https://blog.unity.com/engine-platform/porting-unity-to-coreclr">the CoreCLR port</a>, check:</p>
+<ul>
+<li><a href="https://discussions.unity.com/t/coreclr-and-net-modernization-unite-2024/1519272/277">🔗 CoreCLR and .NET Modernization - Unite 2024</a></li>
+<li><a href="https://forum.unity.com/threads/unity-future-net-development-status.1092205">🔗 Unity Future .NET Development Status</a>.</li>
+</ul>
+</div>
+<h2 id="how-does-it-work">How Does It Work?</h2>
+<p>Rollback networking is designed to be integrated into a fully deterministic peer-to-peer engine. With full determinism,
+the game is guaranteed to play out the same way on all player's computers if we simply feed them the same inputs. One way
+to achieve this is to exchange inputs for all players over the network, only executing a frame of gameplay logic when
+all players have received all the inputs from their peers. This often results in sluggish, unresponsive gameplay. The
+longer it takes to get inputs over the network, the slower the game becomes.</p>
+<p>In rollback networking, the game logic is allowed to proceed with just the inputs from the local player. If the remote
+inputs have not yet arrived when it's time to execute a frame, the networking code will predict what it expects the
+remote players to do based on previously seen inputs. Since there's no waiting, the game feels just as responsive as it
+does offline. When those inputs finally arrive over the network, they can be compared to the ones that were predicted
+earlier. If they differ, the game can be re-simulated from the point of divergence to the current visible frame.</p>
+<p>Don't worry if that sounds like a headache. <a href="https://github.com/lucasteles/Backdash">Backdash</a> was designed specifically
+to implement the rollback algorithms and low-level networking logic in a way that's easy to integrate into your existing
+game loop. If you simply implement the functionality to save your game state, load it back up, and execute a frame of
+game state without rendering its outcome, <a href="https://github.com/lucasteles/Backdash">Backdash</a> can take care of the rest.</p>
+<h2 id="learning-resources">Learning resources</h2>
+<p>More information about how it works and why it is good:</p>
+<ul>
+<li><a href="https://www.youtube.com/watch?v=0NLe4IpdS1w">Analysis: Why Rollback Netcode Is Better</a> <em>(video)</em>.</li>
+<li><a href="https://words.infil.net/w02-netcode-p2.html">Infil's Netcode Article</a>.</li>
+<li><a href="https://www.youtube.com/watch?v=1RI5scXYhK0">Talking Rollback Netcode With Adam &quot;Keits&quot; Heart</a> <em>(video)</em>.</li>
+<li><a href="https://www.youtube.com/watch?v=7jb0FOcImdg">GDC Rollback Networking in Mortal Kombat and Injustice 2</a> <em>(video)</em>.</li>
+<li><a href="https://www.youtube.com/watch?v=k9JTIn1SVQ4">EVO 2017: GGPO panel</a> <em>(video)</em>.</li>
+<li><a href="https://drive.google.com/file/d/1cV0fY8e_SC1hIFF5E1rT8XRVRzPjU8W9/view">Fight the Lag! The Trick Behind GGPO's Low Latency Netcode</a></li>
+<li><a href="https://www.youtube.com/watch?v=Tu2kAdmUCaI&amp;t=41m22s">Cross Counter LIVE feat. Mike Z</a> <em>(video)</em>.</li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/lucasteles/Backdash/blob/master/docfx/docs/introduction.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Developed by <a href="https://lucasteles.dev/">Lucas Teles</a>.</span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
