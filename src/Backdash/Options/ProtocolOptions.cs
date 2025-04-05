@@ -93,6 +93,13 @@ public sealed record ProtocolOptions
     public TimeSpan DisconnectTimeout { get; set; } = TimeSpan.FromMilliseconds(5_000);
 
     /// <summary>
+    ///     Enable or disable the disconnect timeout check
+    ///     <seealso cref="DisconnectTimeout"/>
+    /// </summary>
+    /// <value>Defaults to <c>true</c></value>
+    public bool DisconnectTimeoutEnabled { get; set; } = true;
+
+    /// <summary>
     ///     The time to wait before end the session.
     /// </summary>
     /// <value>Defaults to <c>100</c> milliseconds</value>

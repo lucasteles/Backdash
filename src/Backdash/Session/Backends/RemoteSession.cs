@@ -437,9 +437,12 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
         if (isSynchronizing)
             return ResultCode.NotSynchronized;
         synchronizer.SynchronizeInputs(syncInputBuffer, inputBuffer);
-        random.UpdateSeed(CurrentFrame, inputBuffer);
+        random.UpdateSeed(CurrentFrame, inputBuffer, extraSeedState);
         return ResultCode.Ok;
     }
+
+    uint extraSeedState;
+    public void SetRandomSeed(uint seed, uint extraState = 0) => extraSeedState = unchecked(seed + extraState);
 
     bool IsPlayerKnown(in PlayerHandle player) =>
         player.QueueIndex >= 0

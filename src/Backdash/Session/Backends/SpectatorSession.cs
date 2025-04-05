@@ -286,9 +286,12 @@ sealed class SpectatorSession<TInput> :
             inputBuffer[i] = input.Data.Inputs[i];
         }
 
-        random.UpdateSeed(CurrentFrame, inputBuffer);
+        random.UpdateSeed(CurrentFrame, inputBuffer, extraSeedState);
         return ResultCode.Ok;
     }
+
+    uint extraSeedState;
+    public void SetRandomSeed(uint seed, uint extraState = 0) => extraSeedState = unchecked(seed + extraState);
 
     void SaveCurrentFrame()
     {

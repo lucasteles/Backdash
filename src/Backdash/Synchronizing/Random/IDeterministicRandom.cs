@@ -6,6 +6,11 @@ namespace Backdash.Synchronizing.Random;
 public interface INetcodeRandom
 {
     /// <summary>
+    ///     Returns the current seed
+    /// </summary>
+    uint CurrentSeed { get; }
+
+    /// <summary>
     ///     Returns a random unsigned integer.
     /// </summary>
     uint Next();
@@ -54,5 +59,5 @@ public interface IDeterministicRandom<TInput> : INetcodeRandom where TInput : un
     /// <summary>
     ///     Updates the seed for the current random instance
     /// </summary>
-    void UpdateSeed(in Frame currentFrame, ReadOnlySpan<TInput> inputs);
+    void UpdateSeed(in Frame currentFrame, ReadOnlySpan<TInput> inputs, uint extraState = 0);
 }

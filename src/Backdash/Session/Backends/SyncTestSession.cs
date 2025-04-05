@@ -221,10 +221,13 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
 
         inputBuffer[0] = lastInput.Data;
         syncInputBuffer[0] = new(lastInput.Data, false);
-        random.UpdateSeed(CurrentFrame, inputBuffer);
+        random.UpdateSeed(CurrentFrame, inputBuffer, extraSeedState);
 
         return ResultCode.Ok;
     }
+
+    uint extraSeedState;
+    public void SetRandomSeed(uint seed, uint extraState = 0) => extraSeedState = unchecked(seed + extraState);
 
     public bool LoadFrame(in Frame frame)
     {

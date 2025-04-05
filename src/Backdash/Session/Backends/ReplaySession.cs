@@ -185,9 +185,12 @@ sealed class ReplaySession<TInput> : INetcodeSession<TInput> where TInput : unma
             inputBuffer[i] = confirmed.Inputs[i];
         }
 
-        random.UpdateSeed(CurrentFrame, inputBuffer);
+        random.UpdateSeed(CurrentFrame, inputBuffer, extraSeedState);
         return ResultCode.Ok;
     }
+
+    uint extraSeedState;
+    public void SetRandomSeed(uint seed, uint extraState = 0) => extraSeedState = unchecked(seed + extraState);
 
     public void SaveCurrentFrame()
     {

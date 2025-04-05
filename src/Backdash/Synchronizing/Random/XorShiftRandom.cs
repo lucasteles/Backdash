@@ -13,6 +13,9 @@ public sealed class XorShiftRandom<TInput> : IDeterministicRandom<TInput> where 
     uint seed;
 
     /// <inheritdoc />
+    public uint CurrentSeed => seed;
+
+    /// <inheritdoc />
     public uint Next()
     {
         unchecked
@@ -27,10 +30,10 @@ public sealed class XorShiftRandom<TInput> : IDeterministicRandom<TInput> where 
     }
 
     /// <inheritdoc />
-    public void UpdateSeed(in Frame currentFrame, ReadOnlySpan<TInput> inputs)
+    public void UpdateSeed(in Frame currentFrame, ReadOnlySpan<TInput> inputs, uint extraState = 0)
     {
-        var extraState = Mem.PopCount(inputs);
-        seed = unchecked((uint)(currentFrame.Number + extraState + 1));
+        var extraSeed = Mem.PopCount(inputs);
+        seed = unchecked((uint)(currentFrame.Number + extraSeed + extraState + 1));
         if (BitConverter.IsLittleEndian)
             seed = BinaryPrimitives.ReverseEndianness(seed);
     }

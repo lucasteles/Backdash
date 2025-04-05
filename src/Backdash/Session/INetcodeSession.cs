@@ -61,7 +61,7 @@ public interface INetcodeSession : INetcodeSessionInfo, IDisposable
     INetcodeSessionInfo GetInfo() => this;
 
     /// <summary>
-    ///     Returns the checksum of the last saved state.
+    ///     Returns the last saved state.
     /// </summary>
     SavedFrame GetCurrentSavedFrame();
 
@@ -239,6 +239,12 @@ public interface INetcodeSession : INetcodeSessionInfo, IDisposable
     ///     Tries to get first remote player
     /// </summary>
     bool TryGetRemotePlayer(out PlayerHandle player) => TryGetPlayer(PlayerType.Remote, out player);
+
+
+    /// <summary>
+    ///     Returns the checksum of the last saved state.
+    /// </summary>
+    uint CurrentChecksum => GetCurrentSavedFrame().Checksum;
 }
 
 /// <summary>
@@ -255,7 +261,7 @@ public interface INetcodeSession<TInput> : INetcodeSession where TInput : unmana
 
     /// <summary>
     ///     Used add local inputs and notify the netcode that they should be transmitted to remote players.
-    ///     This must be called once every frame for all player of type <see cref="PlayerType.Local" />.
+    ///     This must be called once every frame for all players of type <see cref="PlayerType.Local" />.
     /// </summary>
     /// <param name="player">Player owner of the inputs</param>
     /// <param name="localInput">The input value</param>
@@ -270,6 +276,12 @@ public interface INetcodeSession<TInput> : INetcodeSession where TInput : unmana
     ///     You should call this before every frame of execution, including those frames which happen during rollback.
     /// </summary>
     ResultCode SynchronizeInputs();
+
+    /// <summary>
+    ///     Add an extra state seed to calculate the next <see cref="INetcodeRandom"/> on <see cref="Random"/>
+    ///     This value state must be deterministic and be called every frame before <see cref="SynchronizeInputs"/>
+    /// </summary>
+    void SetRandomSeed(uint seed, uint extraState = 0);
 
     /// <summary>
     ///     Return all synchronized inputs with connect status.

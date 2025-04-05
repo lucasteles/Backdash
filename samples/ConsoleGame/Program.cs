@@ -5,7 +5,7 @@ using Backdash;
 using Backdash.Core;
 using ConsoleGame;
 
-var frameDuration = FrameSpan.GetDuration(1);
+var frameDuration = FrameSpan.GetDuration(30);
 using CancellationTokenSource cts = new();
 
 // stops the game with ctr+c
@@ -27,20 +27,20 @@ if (args is not [{ } portArg, { } playerCountArg, .. { } endpoints]
 
 // create rollback session builder
 var builder = RollbackNetcode
-        .WithInputType<GameInput>()
-        .WithPort(port)
-        .WithPlayerCount(playerCount)
-        .WithInputDelayFrames(2)
-        .WithLogLevel(LogLevel.Information)
-        .WithNetworkStats()
-        .ConfigureProtocol(options =>
-        {
-            options.NumberOfSyncRoundtrips = 10;
-            // p.LogNetworkStats = true;
-            // p.NetworkLatency = TimeSpan.FromMilliseconds(300);
-            // p.DelayStrategy = Backdash.Network.DelayStrategy.Constant;
-        })
-    ;
+    .WithInputType<GameInput>()
+    .WithPort(port)
+    .WithPlayerCount(playerCount)
+    .WithInputDelayFrames(2)
+    .WithLogLevel(LogLevel.Information)
+    .WithNetworkStats()
+    .ConfigureProtocol(options =>
+    {
+        options.NumberOfSyncRoundtrips = 10;
+        // p.LogNetworkStats = true;
+        // p.NetworkLatency = TimeSpan.FromMilliseconds(300);
+        // p.DelayStrategy = Backdash.Network.DelayStrategy.Constant;
+        // options.DisconnectTimeoutEnabled = false;
+    });
 
 // parse console arguments checking if it is a spectator
 if (endpoints is ["spectate", { } hostArg] && IPEndPoint.TryParse(hostArg, out var host))

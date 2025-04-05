@@ -19,13 +19,14 @@ public static class GameLogic
         Target = Center,
     };
 
-    public static void AdvanceState(
+    public static void Update(
         INetcodeRandom random,
         ref GameState currentState,
         GameInput inputPlayer1,
         GameInput inputPlayer2
     )
     {
+        currentState.RandomSeed = random.CurrentSeed;
         currentState.Position1 = Move(currentState.Position1, inputPlayer1);
         currentState.Position2 = Move(currentState.Position2, inputPlayer2);
 

@@ -32,6 +32,7 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
     readonly Timer keepAliveTimer;
     readonly Timer resendInputsTimer;
     readonly Timer consistencyCheckTimer;
+    readonly bool disconnectCheckEnabled;
     long startedAt;
 
     public PeerConnection(
@@ -57,6 +58,7 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
         this.outbox = outbox;
         this.inputBuffer = inputBuffer;
         this.stateStore = stateStore;
+        disconnectCheckEnabled = options.DisconnectTimeout > TimeSpan.Zero && options.DisconnectTimeoutEnabled;
 
         keepAliveTimer = new(options.KeepAliveInterval);
         keepAliveTimer.Elapsed += OnKeepAliveTick;
@@ -232,7 +234,7 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
 
     public void CheckDisconnection()
     {
-        if (state.Stats.Received.LastTime <= 0 || options.DisconnectTimeout <= TimeSpan.Zero) return;
+        if (state.Stats.Received.LastTime <= 0 || !disconnectCheckEnabled) return;
         var lastReceivedTime = Stopwatch.GetElapsedTime(state.Stats.Received.LastTime);
         if (lastReceivedTime > options.DisconnectNotifyStart &&
             DispatchInterruptedEvent(options.DisconnectTimeout - options.DisconnectNotifyStart))

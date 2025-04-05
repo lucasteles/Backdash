@@ -17,7 +17,7 @@ public class View
         DrawField(in currentState, nonGameState);
         DrawScore(in currentState);
         if (nonGameState.RemotePlayerStatus is PlayerStatus.Running)
-            DrawStats(nonGameState);
+            DrawStats(currentState, nonGameState);
     }
 
     void DrawHeader(NonGameState nonGameState)
@@ -157,7 +157,7 @@ public class View
         Console.ForegroundColor = lastColor;
     }
 
-    static void DrawStats(NonGameState nonGameState)
+    static void DrawStats(GameState currentState, NonGameState nonGameState)
     {
         var peer = nonGameState.PeerNetworkStats;
         var info = nonGameState.SessionInfo;
@@ -165,6 +165,8 @@ public class View
             $"""
              Ping:             {peer.Ping.TotalMilliseconds:f4} ms
              Rollback:         {info.RollbackFrames}
+             Checksum:         {nonGameState.Checksum:x8}
+             Rng Seed:         {currentState.RandomSeed:x8}
              """
         );
 #if DEBUG

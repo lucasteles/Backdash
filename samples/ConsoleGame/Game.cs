@@ -84,6 +84,8 @@ public sealed class Game : INetcodeSessionHandler
             }
         }
 
+        nonGameState.Checksum = session.CurrentChecksum;
+        session.SetRandomSeed(currentState.RandomSeed);
         var syncResult = session.SynchronizeInputs();
         if (syncResult is not ResultCode.Ok)
         {
@@ -92,12 +94,13 @@ public sealed class Game : INetcodeSessionHandler
             return;
         }
 
-        GameLogic.AdvanceState(
+        GameLogic.Update(
             session.Random,
             ref currentState,
             session.GetInput(0),
             session.GetInput(1)
         );
+
         session.AdvanceFrame();
     }
 
@@ -125,6 +128,7 @@ public sealed class Game : INetcodeSessionHandler
         writer.Write(currentState.Position2);
         writer.Write(currentState.Score1);
         writer.Write(currentState.Score2);
+        writer.Write(currentState.RandomSeed);
         writer.Write(currentState.Target);
     }
 
@@ -134,6 +138,7 @@ public sealed class Game : INetcodeSessionHandler
         currentState.Position2 = reader.ReadVector2();
         currentState.Score1 = reader.ReadInt32();
         currentState.Score2 = reader.ReadInt32();
+        currentState.RandomSeed = reader.ReadUInt32();
         currentState.Target = reader.ReadVector2();
     }
 
@@ -178,9 +183,11 @@ public sealed class Game : INetcodeSessionHandler
 
     public void AdvanceFrame()
     {
+        nonGameState.Checksum = session.CurrentChecksum;
+        session.SetRandomSeed(currentState.RandomSeed);
         session.SynchronizeInputs();
         var (input1, input2) = (session.GetInput(0), session.GetInput(1));
-        GameLogic.AdvanceState(session.Random, ref currentState, input1, input2);
+        GameLogic.Update(session.Random, ref currentState, input1, input2);
         session.AdvanceFrame();
     }
 }

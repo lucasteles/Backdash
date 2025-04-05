@@ -20,6 +20,7 @@ public class GameState
     public int Score1;
     public int Score2;
     public Vector2 Target;
+    public uint RandomSeed;
 }
 
 [Serializable]
@@ -31,6 +32,7 @@ public class NonGameState
     public bool IsRunning;
     public float SyncProgress;
     public string LastError = "";
+    public uint Checksum;
     public PlayerStatus RemotePlayerStatus;
     public PeerNetworkStats PeerNetworkStats = new();
     public DateTime LostConnectionTime;
