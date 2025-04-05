@@ -46,8 +46,8 @@ sealed class TimeSync<TInput>(
     public int RecommendFrameWaitDuration()
     {
         // Average our local and remote frame advantages
-        var localAdvantage = local.Average();
-        var remoteAdvantage = remote.Average();
+        var localAdvantage = MathI.Avg(local);
+        var remoteAdvantage = MathI.Avg(remote);
         var iteration = TimeSyncCounter.Increment();
         // See if someone should take action.  The person furthest ahead needs to slow down so the other user can catch up.
         // Only do this if both clients agree on who's ahead!.

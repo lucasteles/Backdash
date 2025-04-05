@@ -11,6 +11,11 @@ public interface INetcodeRandom
     uint CurrentSeed { get; }
 
     /// <summary>
+    ///     Returns the rng state
+    /// </summary>
+    uint CurrentState { get; }
+
+    /// <summary>
     ///     Returns a random unsigned integer.
     /// </summary>
     uint Next();

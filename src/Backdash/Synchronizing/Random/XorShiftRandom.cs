@@ -1,6 +1,6 @@
 using System.Buffers.Binary;
 using System.Diagnostics;
-using Backdash.Core;
+using System.Runtime.InteropServices;
 
 namespace Backdash.Synchronizing.Random;
 
@@ -10,31 +10,39 @@ namespace Backdash.Synchronizing.Random;
 /// </summary>
 public sealed class XorShiftRandom<TInput> : IDeterministicRandom<TInput> where TInput : unmanaged
 {
-    uint seed;
+    uint state;
 
     /// <inheritdoc />
-    public uint CurrentSeed => seed;
+    public uint CurrentSeed { get; private set; }
+
+    /// <inheritdoc />
+    public uint CurrentState => state;
 
     /// <inheritdoc />
     public uint Next()
     {
         unchecked
         {
-            Debug.Assert(seed > 0);
-            var x = seed;
+            Debug.Assert(state > 0);
+            var x = state;
             x ^= x << 13;
             x ^= x >> 17;
             x ^= x << 5;
-            return seed = x;
+            return state = x;
         }
     }
 
     /// <inheritdoc />
     public void UpdateSeed(in Frame currentFrame, ReadOnlySpan<TInput> inputs, uint extraState = 0)
     {
-        var extraSeed = Mem.PopCount(inputs);
-        seed = unchecked((uint)(currentFrame.Number + extraSeed + extraState + 1));
-        if (BitConverter.IsLittleEndian)
-            seed = BinaryPrimitives.ReverseEndianness(seed);
+        unchecked
+        {
+            var offset = currentFrame.Number % 31;
+            var inputSeed = MathI.SumRaw(MemoryMarshal.Cast<TInput, uint>(inputs)) << offset;
+            var newSeed = (uint)currentFrame.Number + inputSeed + extraState + 1;
+            if (BitConverter.IsLittleEndian)
+                newSeed = BinaryPrimitives.ReverseEndianness(newSeed);
+            state = CurrentSeed = newSeed;
+        }
     }
 }
