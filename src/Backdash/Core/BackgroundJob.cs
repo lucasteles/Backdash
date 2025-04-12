@@ -11,7 +11,7 @@ interface IBackgroundJob
 
 interface IBackgroundJobManager : IDisposable
 {
-    Task Start(CancellationToken cancellationToken);
+    Task Start(bool onThread, CancellationToken cancellationToken);
     void Register(IBackgroundJob job, CancellationToken cancellationToken = default);
     void Stop(TimeSpan timeout = default);
     void ThrowIfError();
@@ -29,7 +29,12 @@ sealed class BackgroundJobManager(Logger logger) : IBackgroundJobManager
 
     public bool IsRunning { get; private set; }
 
-    public async Task Start(CancellationToken cancellationToken)
+    public Task Start(bool onThread, CancellationToken cancellationToken) =>
+        onThread
+            ? Task.Run(() => StartJobs(cancellationToken), StoppingToken)
+            : StartJobs(cancellationToken);
+
+    public async Task StartJobs(CancellationToken cancellationToken)
     {
         if (IsRunning) return;
         if (jobs.Count is 0) throw new NetcodeException("No jobs registered");
@@ -55,33 +60,35 @@ sealed class BackgroundJobManager(Logger logger) : IBackgroundJobManager
         logger.Write(LogLevel.Debug, "Finished background tasks");
     }
 
-    void AddJobTask(JobEntry entry)
+    void AddJobTask(JobEntry entry) => tasks.Add(StarJobTask(entry), entry);
+
+    async Task StarJobTask(JobEntry entry)
     {
         var job = entry.Job;
-        logger.Write(LogLevel.Trace, $"job {job.JobName} start");
-        var task = Task.Run(async () =>
+        logger.Write(LogLevel.Trace, $"job {job.JobName}: start");
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(StoppingToken, entry.StoppingToken);
+        try
         {
-            using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(StoppingToken, entry.StoppingToken);
-            try
-            {
-                await job.Start(linkedCts.Token).ConfigureAwait(false);
-            }
-            catch (OperationCanceledException)
-            {
-                logger.Write(LogLevel.Debug, $"job {job.JobName} stopped");
-            }
-            catch (ChannelClosedException)
-            {
-                logger.Write(LogLevel.Debug, $"job {job.JobName} channel closed");
-            }
-            catch (Exception ex)
-            {
-                logger.Write(LogLevel.Error, $"job {job.JobName} error: {ex}");
-                cts.CancelAfter(TimeSpan.FromMilliseconds(100));
-                exceptions.Add(ex);
-            }
-        }, StoppingToken);
-        tasks.Add(task, entry);
+            await job.Start(linkedCts.Token).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            logger.Write(LogLevel.Debug, $"job {job.JobName} stopped");
+        }
+        catch (ChannelClosedException)
+        {
+            logger.Write(LogLevel.Debug, $"job {job.JobName} channel closed");
+        }
+        catch (NetcodeAssertionException ex) when (StoppingToken.IsCancellationRequested)
+        {
+            logger.Write(LogLevel.Debug, $"job {job.JobName} skip assert: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            logger.Write(LogLevel.Error, $"job {job.JobName} error: {ex}");
+            cts.CancelAfter(TimeSpan.FromMilliseconds(100));
+            exceptions.Add(ex);
+        }
     }
 
     public void ThrowIfError()

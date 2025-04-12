@@ -13,6 +13,7 @@ sealed class ProtocolState(
 {
     public readonly CancellationTokenSource StoppingTokenSource = new();
     public CancellationToken StoppingToken => StoppingTokenSource.Token;
+
     public readonly PlayerHandle Player = player;
     public readonly PeerAddress PeerAddress = peerAddress;
     public readonly SyncState Sync = new();

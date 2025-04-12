@@ -119,6 +119,10 @@ public sealed record NetcodeOptions
     /// <seealso cref="ProtocolOptions" />
     public ProtocolOptions Protocol { get; set; } = new();
 
+    /// <summary>Run jobs in a separated thread.</summary>
+    /// <value>Defaults to <c>true</c></value>
+    public bool UseBackgroundThread { get; set; } = true;
+
     internal void EnsureDefaults()
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(NumberOfPlayers);

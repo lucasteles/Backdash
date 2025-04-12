@@ -22,7 +22,7 @@ var stopToken = cts.Token;
 
 Console.WriteLine("Running.");
 
-var tasks = jobs.Start(stopToken);
+var tasks = jobs.Start(true, stopToken);
 
 await using Measurer measurer = new(snapshotInterval);
 measurer.Start();

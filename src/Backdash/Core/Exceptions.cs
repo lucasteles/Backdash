@@ -15,22 +15,20 @@ public class NetcodeException : Exception
 ///     An exception that is thrown when an error is encountered on netcode deserialization.
 /// </summary>
 [Serializable]
+public class NetcodeAssertionException : NetcodeException
+{
+    internal NetcodeAssertionException(string message = "") : base(message) { }
+}
+
+/// <summary>
+///     An exception that is thrown when an error is encountered on netcode deserialization.
+/// </summary>
+[Serializable]
 public class NetcodeDeserializationException : NetcodeException
 {
     internal NetcodeDeserializationException(Type type, string message = "") : base(
         $"Unable to deserialize {type.FullName}. {message}")
     { }
-}
-
-/// <summary>
-///     An exception that is thrown when an error is encountered on netcode deserialization for type
-///     <typeparamref name="T" />.
-/// </summary>
-/// <typeparam name="T">Deserialization type</typeparam>
-[Serializable]
-public class NetcodeDeserializationException<T> : NetcodeDeserializationException
-{
-    internal NetcodeDeserializationException(string message = "") : base(typeof(T), message) { }
 }
 
 /// <summary>

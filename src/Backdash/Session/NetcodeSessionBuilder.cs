@@ -214,6 +214,14 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
         return this;
     }
 
+    /// <inheritdoc cref="NetcodeOptions.UseBackgroundThread" />
+    public NetcodeSessionBuilder<TInput> UseBackgroundThread(bool enabled = true)
+    {
+        options.UseBackgroundThread = enabled;
+        return this;
+    }
+
+
     /// <summary>
     ///     Select the input serialization <see cref="Endianness" />
     /// </summary>

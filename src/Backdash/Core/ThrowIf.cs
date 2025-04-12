@@ -30,11 +30,13 @@ static class ThrowIf
         bool condition,
         string? info = null,
         [CallerArgumentExpression(nameof(condition))]
-        string? paramName = null
+        string? paramName = null,
+        [CallerFilePath] string? location = null,
+        [CallerLineNumber] int line = 0
     )
     {
         if (!condition)
-            throw new InvalidOperationException(
-                $"False assertion on {paramName}: {info ?? "expected true, got false"}");
+            throw new NetcodeAssertionException(
+                $"False assertion {paramName}: {info ?? "expected true, got false"} in {location}:{line}");
     }
 }

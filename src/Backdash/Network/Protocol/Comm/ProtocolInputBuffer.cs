@@ -156,6 +156,7 @@ sealed class ProtocolInputBuffer<TInput> : IProtocolInputBuffer<TInput>
         inputMessage.AckFrame = inbox.LastReceivedInput.Frame;
         inputMessage.PeerCount = (byte)state.LocalConnectStatuses.Length;
         state.LocalConnectStatuses.CopyTo(inputMessage.PeerConnectStatus);
+
         ThrowIf.Assert(inputMessage.NumBits <= Max.CompressedBytes * ByteSize.ByteToBits);
         ThrowIf.Assert(lastAckFrame.IsNull || inputMessage.StartFrame == lastAckFrame);
 

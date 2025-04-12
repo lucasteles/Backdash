@@ -175,7 +175,7 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
         started = true;
 
         inputListener?.OnSessionStart(in inputSerializer);
-        backgroundJobTask = backgroundJobManager.Start(stoppingToken);
+        backgroundJobTask = backgroundJobManager.Start(options.UseBackgroundThread, stoppingToken);
     }
 
     public Task WaitToStop(CancellationToken stoppingToken = default)
