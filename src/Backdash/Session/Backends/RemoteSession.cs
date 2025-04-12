@@ -56,6 +56,8 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
     bool disposed;
     bool closed;
 
+    public int FixedFrameRate { get; }
+
     public RemoteSession(
         NetcodeOptions options,
         SessionServices<TInput> services
@@ -67,6 +69,7 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(options.FrameRate);
 
         this.options = options;
+        FixedFrameRate = this.options.FrameRate;
         inputSerializer = services.InputSerializer;
         backgroundJobManager = services.JobManager;
         logger = services.Logger;
@@ -543,7 +546,7 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
         int i;
         var currentFrame = synchronizer.CurrentFrame;
         for (i = 0; i < eps.Length; i++)
-            eps[i]?.SetLocalFrameNumber(currentFrame, options.FrameRate);
+            eps[i]?.SetLocalFrameNumber(currentFrame, FixedFrameRate);
 
         var minConfirmedFrame = NumberOfPlayers <= 2 ? MinimumFrame2Players() : MinimumFrameNPlayers();
         ThrowIf.Assert(minConfirmedFrame != Frame.MaxValue);

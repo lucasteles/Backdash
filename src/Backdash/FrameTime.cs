@@ -60,6 +60,12 @@ public static class FrameTime
     ///     Returns <see cref="double" /> seconds for <paramref name="frameCount" />.
     /// </summary>
     [Pure, MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static double GetSeconds(double frameCount) => Default.GetSeconds(frameCount);
+
+    /// <summary>
+    ///     Returns <see cref="double" /> seconds for <paramref name="frameCount" />.
+    /// </summary>
+    [Pure, MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static double GetMilliseconds(int frameCount) => Default.GetMilliseconds(frameCount);
 
     /// <summary>
@@ -116,7 +122,13 @@ public static class FrameTime
     ///     Returns <see cref="double" /> seconds for <paramref name="frameCount" /> at specified <paramref name="fps" />.
     /// </summary>
     [Pure, MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static double GetSeconds(int frameCount, int fps) => frameCount / (double)fps;
+    public static double GetSeconds(double frameCount, int fps) => frameCount / fps;
+
+    /// <summary>
+    ///     Returns <see cref="double" /> seconds for <paramref name="frameCount" /> at specified <paramref name="fps" />.
+    /// </summary>
+    [Pure, MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static double GetSeconds(int frameCount, int fps) => GetSeconds((double)frameCount, fps);
 
     /// <summary>
     ///     Returns <see cref="double" /> seconds for <paramref name="frameCount" /> at specified <paramref name="fps" />.
@@ -211,6 +223,12 @@ public static class FrameTime
         /// </summary>
         [Pure, MethodImpl(MethodImplOptions.AggressiveInlining)]
         public double GetSeconds(int frameCount) => FrameTime.GetSeconds(frameCount, frameRate);
+
+        /// <summary>
+        ///     Returns <see cref="double" /> seconds for <paramref name="frameCount" /> .h
+        /// </summary>
+        [Pure, MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public double GetSeconds(double frameCount) => FrameTime.GetSeconds(frameCount, frameRate);
 
         /// <summary>
         ///     Returns <see cref="double" /> seconds for <paramref name="frameCount" />.

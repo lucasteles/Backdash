@@ -45,6 +45,8 @@ sealed class SpectatorSession<TInput> :
     readonly IChecksumProvider checksumProvider;
     readonly Endianness endianness;
 
+    public int FixedFrameRate { get; }
+
     public SpectatorSession(
         SpectatorOptions spectatorOptions,
         NetcodeOptions options,
@@ -56,8 +58,10 @@ sealed class SpectatorSession<TInput> :
         ArgumentNullException.ThrowIfNull(spectatorOptions);
         ArgumentNullException.ThrowIfNull(spectatorOptions.HostAddress);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(options.LocalPort);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(options.FrameRate);
 
         this.options = options;
+        FixedFrameRate = this.options.FrameRate;
         hostEndpoint = spectatorOptions.HostEndPoint;
         backgroundJobManager = services.JobManager;
         random = services.DeterministicRandom;
@@ -334,7 +338,7 @@ sealed class SpectatorSession<TInput> :
         lastReceivedInputTime = Stopwatch.GetTimestamp();
         var (_, input) = evt;
         inputs[input.Frame.Number % inputs.Length] = input;
-        host.SetLocalFrameNumber(input.Frame, options.FrameRate);
+        host.SetLocalFrameNumber(input.Frame, FixedFrameRate);
         return host.SendInputAck();
     }
 }

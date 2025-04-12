@@ -57,6 +57,7 @@ sealed class LocalSession<TInput> : INetcodeSession<TInput> where TInput : unman
     public void Dispose() => tsc.SetResult();
     public int NumberOfPlayers => Math.Max(addedPlayers.Count, 1);
     public int NumberOfSpectators => 0;
+    public int FixedFrameRate => options.FrameRate;
     public int LocalPort => 0;
     public INetcodeRandom Random => random;
 

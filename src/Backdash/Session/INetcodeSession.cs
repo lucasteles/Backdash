@@ -23,6 +23,11 @@ public interface INetcodeSessionInfo
     int NumberOfSpectators { get; }
 
     /// <summary>
+    ///     Returns the configured frame rate.
+    /// </summary>
+    int FixedFrameRate { get; }
+
+    /// <summary>
     ///     Returns the current session <see cref="Frame" />.
     /// </summary>
     Frame CurrentFrame { get; }

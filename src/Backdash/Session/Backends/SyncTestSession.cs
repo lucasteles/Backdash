@@ -45,6 +45,8 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
     GameInput<TInput> lastInput;
     Frame lastVerified = Frame.Zero;
 
+    public int FixedFrameRate { get; }
+
     readonly IReadOnlySet<PlayerHandle> localPlayerFallback = new HashSet<PlayerHandle>
     {
         new(PlayerType.Local, 0),
@@ -61,6 +63,7 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
         ArgumentNullException.ThrowIfNull(syncTestOptions);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(syncTestOptions.CheckDistance);
 
+        FixedFrameRate = options.FrameRate;
         checkDistance = new(syncTestOptions.CheckDistance);
         throwError = syncTestOptions.ThrowOnDesync;
         logger = services.Logger;
