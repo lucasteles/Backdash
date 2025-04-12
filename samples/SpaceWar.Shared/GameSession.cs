@@ -11,11 +11,11 @@ public sealed class GameSession(
     INetcodeSession<PlayerInputs> session
 ) : INetcodeSessionHandler
 {
-    public void Update(GameTime gameTime)
+    public void Update(TimeSpan deltaTime)
     {
         if (nonGameState.Sleeping)
         {
-            nonGameState.SleepTime -= gameTime.ElapsedGameTime;
+            nonGameState.SleepTime -= deltaTime;
             return;
         }
 

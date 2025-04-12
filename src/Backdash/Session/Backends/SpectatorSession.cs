@@ -306,29 +306,27 @@ sealed class SpectatorSession<TInput> :
         logger.Write(LogLevel.Trace, $"spectator: saved frame {nextState.Frame} (checksum: {nextState.Checksum:x8}).");
     }
 
-    public bool LoadFrame(in Frame frame)
+    public bool LoadFrame(Frame frame)
     {
-        if (frame.IsNull || frame == CurrentFrame)
+        frame = Frame.Max(in frame, in Frame.Zero);
+
+        if (frame.Number == CurrentFrame.Number)
         {
             logger.Write(LogLevel.Trace, "Skipping NOP.");
             return true;
         }
 
-        try
-        {
-            var savedFrame = stateStore.Load(in frame);
-            logger.Write(LogLevel.Trace,
-                $"Loading replay frame {savedFrame.Frame} (checksum: {savedFrame.Checksum:x8})");
-            var offset = 0;
-            BinaryBufferReader reader = new(savedFrame.GameState.WrittenSpan, ref offset, endianness);
-            callbacks.LoadState(in frame, in reader);
-            CurrentFrame = savedFrame.Frame;
-            return true;
-        }
-        catch (NetcodeException)
-        {
+        if (!stateStore.TryLoad(in frame, out var savedFrame))
             return false;
-        }
+
+        logger.Write(LogLevel.Trace,
+            $"Loading replay frame {savedFrame.Frame} (checksum: {savedFrame.Checksum:x8})");
+
+        var offset = 0;
+        BinaryBufferReader reader = new(savedFrame.GameState.WrittenSpan, ref offset, endianness);
+        callbacks.LoadState(in frame, in reader);
+        CurrentFrame = savedFrame.Frame;
+        return true;
     }
 
     bool IProtocolInputEventPublisher<ConfirmedInputs<TInput>>.Publish(in GameInputEvent<ConfirmedInputs<TInput>> evt)

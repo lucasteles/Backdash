@@ -229,23 +229,10 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
     uint extraSeedState;
     public void SetRandomSeed(uint seed, uint extraState = 0) => extraSeedState = unchecked(seed + extraState);
 
-    public bool LoadFrame(in Frame frame)
+    public bool LoadFrame(Frame frame)
     {
-        if (frame.IsNull || frame == CurrentFrame)
-        {
-            logger.Write(LogLevel.Trace, "Skipping NOP.");
-            return true;
-        }
-
-        try
-        {
-            synchronizer.LoadFrame(in frame);
-            return true;
-        }
-        catch (NetcodeException)
-        {
-            return false;
-        }
+        frame = Frame.Max(in frame, in Frame.Zero);
+        return synchronizer.TryLoadFrame(in frame);
     }
 
     public void AdvanceFrame()
@@ -274,6 +261,8 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
         // We've gone far enough ahead and should now start replaying frames.
         // Load the last verified frame and set the rollback flag to true.
         synchronizer.LoadFrame(in lastVerified);
+
+
         inRollback = true;
         while (savedFrames.Count > 0)
         {

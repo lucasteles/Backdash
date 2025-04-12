@@ -59,7 +59,7 @@ public sealed class BattleSessionScene : Scene
         netcodeSession.Start();
     }
 
-    public override void Update(GameTime gameTime) => gameSession.Update(gameTime);
+    public override void Update(GameTime gameTime) => gameSession.Update(gameTime.TotalGameTime);
     public override void Draw(SpriteBatch spriteBatch) => gameSession.Draw();
     protected override void Dispose(bool disposing) => netcodeSession.Dispose();
 }

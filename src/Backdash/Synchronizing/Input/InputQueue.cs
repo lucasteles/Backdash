@@ -41,7 +41,8 @@ sealed class InputQueue<TInput> where TInput : unmanaged
 
     public void DiscardConfirmedFrames(Frame frame)
     {
-        ThrowIf.Assert(frame >= Frame.Zero);
+        ArgumentOutOfRangeException.ThrowIfNegative(frame.Number);
+
         if (!lastFrameRequested.IsNull)
             frame = Frame.Min(in frame, in lastFrameRequested);
         logger.Write(LogLevel.Trace,
@@ -79,7 +80,8 @@ sealed class InputQueue<TInput> where TInput : unmanaged
 
     public bool GetConfirmedInput(in Frame requestedFrame, ref GameInput<TInput> input)
     {
-        ThrowIf.Assert(firstIncorrectFrame.IsNull || requestedFrame.Number < firstIncorrectFrame.Number);
+        ThrowIf.Assert(firstIncorrectFrame.IsNull);
+        ArgumentOutOfRangeException.ThrowIfLessThan(requestedFrame.Number, firstIncorrectFrame.Number);
 
         ref var requested = ref inputs.AtRaw(requestedFrame.Number);
 

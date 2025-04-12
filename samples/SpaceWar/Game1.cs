@@ -14,6 +14,8 @@ public class Game1 : Game
     SpriteBatch spriteBatch;
     Matrix scaleMatrix = Matrix.CreateScale(1);
 
+    bool paused;
+
     public Game1(INetcodeSession<PlayerInputs> netcodeSession)
     {
         graphics = new(this);
@@ -134,36 +136,69 @@ public class Game1 : Game
     protected override void Update(GameTime gameTime)
     {
         keyboard.Update();
-        if (keyboard.IsKeyPressed(Keys.Escape))
-            Exit();
 
-        HandleReplayKeys();
+        HandleNonGameKeys();
 
-        gameSession.Update(gameTime);
+        if (!paused)
+            gameSession.Update(gameTime.ElapsedGameTime);
+
         base.Update(gameTime);
     }
 
-    void HandleReplayKeys()
+    void HandleNonGameKeys()
     {
+        if (keyboard.IsKeyPressed(Keys.Escape))
+            Exit();
+
         if (session.IsRemote() || session.IsSpectator())
             return;
 
         if (session.IsReplay())
         {
             if (keyboard.IsKeyPressed(Keys.Space))
+            {
                 session.ReplayController.TogglePause();
+                return;
+            }
 
             if (keyboard.IsKeyPressed(Keys.Right))
+            {
                 session.ReplayController.Play();
+                return;
+            }
 
             if (keyboard.IsKeyPressed(Keys.Left))
+            {
                 session.ReplayController.Play(isBackwards: true);
+                return;
+            }
+
+            return;
         }
+
+        if (keyboard.IsKeyPressed(Keys.P))
+        {
+            paused = !paused;
+            return;
+        }
+
+        if (!paused) return;
 
         if (keyboard.IsKeyPressed(Keys.Back))
         {
-            session.LoadFrame(session.CurrentFrame - 10);
-            session.ReplayController?.Pause();
+            session.LoadFrame(session.CurrentFrame - 5);
+            return;
+        }
+
+        if (keyboard.IsKeyPressed(Keys.Left))
+        {
+            session.LoadFrame(session.CurrentFrame.Previous());
+            return;
+        }
+
+        if (keyboard.IsKeyPressed(Keys.Right))
+        {
+            gameSession.Update(FrameTime.Step);
         }
     }
 

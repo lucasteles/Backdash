@@ -158,18 +158,22 @@ public sealed class CircularBuffer<T>(int capacity) : IReadOnlyList<T>, IEquatab
 
     public void Advance(int offset = 1)
     {
+        ArgumentOutOfRangeException.ThrowIfNegative(offset);
+
         head = (head + offset) % array.Length;
         count += offset;
 
-        if (count < 0 || count > array.Length)
+        if (count > array.Length)
         {
-            count = 0;
-            head = tail;
+            count = array.Length;
+            tail = head;
         }
     }
 
     public void Discard(int offset = 1)
     {
+        ArgumentOutOfRangeException.ThrowIfNegative(offset);
+
         tail = (tail + offset) % array.Length;
         count -= offset;
 

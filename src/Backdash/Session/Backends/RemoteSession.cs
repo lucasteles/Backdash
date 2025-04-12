@@ -362,23 +362,10 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
         synchronizer.SetFrameDelay(player, delayInFrames);
     }
 
-    public bool LoadFrame(in Frame frame)
+    public bool LoadFrame(Frame frame)
     {
-        if (frame.IsNull || frame == CurrentFrame)
-        {
-            logger.Write(LogLevel.Trace, "Skipping NOP.");
-            return true;
-        }
-
-        try
-        {
-            synchronizer.LoadFrame(in frame);
-            return true;
-        }
-        catch (NetcodeException)
-        {
-            return false;
-        }
+        frame = Frame.Max(in frame, in Frame.Zero);
+        return synchronizer.TryLoadFrame(in frame);
     }
 
     public PlayerConnectionStatus GetPlayerStatus(in PlayerHandle player)
@@ -556,7 +543,7 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
         int i;
         var currentFrame = synchronizer.CurrentFrame;
         for (i = 0; i < eps.Length; i++)
-            eps[i]?.SetLocalFrameNumber(currentFrame, options.FramesPerSecond);
+            eps[i]?.SetLocalFrameNumber(currentFrame, options.FrameRate);
 
         var minConfirmedFrame = NumberOfPlayers <= 2 ? MinimumFrame2Players() : MinimumFrameNPlayers();
         ThrowIf.Assert(minConfirmedFrame != Frame.MaxValue);

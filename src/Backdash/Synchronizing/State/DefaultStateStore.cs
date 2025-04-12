@@ -1,6 +1,6 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Backdash.Core;
 using Backdash.Serialization;
 
 namespace Backdash.Synchronizing.State;
@@ -31,17 +31,29 @@ public sealed class DefaultStateStore(int hintSize) : IStateStore
     }
 
     /// <inheritdoc />
-    public SavedFrame Load(in Frame frame)
+    public bool TryLoad(in Frame frame, [MaybeNullWhen(false)] out SavedFrame savedFrame)
     {
-        for (var i = 0; i < savedStates.Length; i++)
+        var i = 0;
+        var span = savedStates.AsSpan();
+        ref var current = ref MemoryMarshal.GetReference(span);
+        ref var limit = ref Unsafe.Add(ref current, span.Length);
+
+        while (Unsafe.IsAddressLessThan(in current, in limit))
         {
-            if (savedStates[i].Frame.Number != frame.Number) continue;
-            head = i;
-            Advance();
-            return savedStates[i];
+            if (current.Frame.Number == frame.Number)
+            {
+                head = i;
+                Advance();
+                savedFrame = current;
+                return true;
+            }
+
+            i++;
+            current = ref Unsafe.Add(ref current, 1)!;
         }
 
-        throw new NetcodeException($"Save state not found for frame {frame.Number}");
+        savedFrame = null;
+        return false;
     }
 
     /// <inheritdoc />

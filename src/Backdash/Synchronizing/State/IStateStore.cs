@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace Backdash.Synchronizing.State;
 
 /// <summary>
@@ -12,10 +14,10 @@ public interface IStateStore
     void Initialize(int saveCount);
 
     /// <summary>
-    ///     Returns a <see cref="SavedFrame" /> for <paramref name="frame" />.
+    ///     Try loads a <see cref="SavedFrame" /> for <paramref name="frame" />.
     /// </summary>
-    /// <param name="frame">Frame to load.</param>
-    SavedFrame Load(in Frame frame);
+    /// <returns>true if the frame was found, false otherwise</returns>
+    bool TryLoad(in Frame frame, [MaybeNullWhen(false)] out SavedFrame savedFrame);
 
     /// <summary>
     ///     Returns last <see cref="SavedFrame" />.

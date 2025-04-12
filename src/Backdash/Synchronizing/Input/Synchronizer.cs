@@ -169,9 +169,11 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
         var rollbackCount = currentFrame.Number - seekTo.Number;
         logger.Write(LogLevel.Debug, $"Catching up. rolling back {rollbackCount} frames");
         InRollback = true;
+
         // Flush our input queue and load the last frame.
         LoadFrame(in seekTo);
-        ThrowIf.Assert(currentFrame == seekTo);
+        ThrowIf.Assert(currentFrame.Number == seekTo.Number);
+
         // Advance frame by frame (stuffing notifications back to the master).
         ResetPrediction(in currentFrame);
         for (var i = 0; i < rollbackCount; i++)
@@ -184,16 +186,18 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
         InRollback = false;
     }
 
-    public void LoadFrame(in Frame frame)
+    public bool TryLoadFrame(in Frame frame)
     {
         // find the frame in question
         if (frame.Number == currentFrame.Number)
         {
             logger.Write(LogLevel.Trace, "Skipping NOP");
-            return;
+            return true;
         }
 
-        var savedFrame = stateStore.Load(in frame);
+        if (!stateStore.TryLoad(in frame, out var savedFrame))
+            return false;
+
         logger.Write(LogLevel.Information,
             $"* Loading frame info {savedFrame.Frame} (checksum: {savedFrame.Checksum:x8})");
 
@@ -205,6 +209,13 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
         // Reset frame count and the head of the state ring-buffer to point in
         // advance of the current frame (as if we had just finished executing it).
         currentFrame = savedFrame.Frame;
+        return true;
+    }
+
+    public void LoadFrame(in Frame frame)
+    {
+        if (!TryLoadFrame(in frame))
+            throw new NetcodeException($"Save state not found for frame {frame.Number}");
     }
 
     public SavedFrame GetLastSavedFrame() => stateStore.Last();

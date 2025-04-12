@@ -185,41 +185,34 @@ sealed class LocalSession<TInput> : INetcodeSession<TInput> where TInput : unman
         logger.Write(LogLevel.Trace, $"End of frame({CurrentFrame.Number})");
     }
 
-    public bool LoadFrame(in Frame frame)
+    public bool LoadFrame(Frame frame)
     {
-        if (frame.IsNull || frame == CurrentFrame)
+        frame = Frame.Max(in frame, in Frame.Zero);
+
+        if (frame.Number == CurrentFrame.Number)
         {
             logger.Write(LogLevel.Trace, "Skipping NOP.");
             return true;
         }
 
-        try
-        {
-            var savedFrame =
-                frame.Number < 0
-                    ? stateStore.Load(Frame.Zero)
-                    : stateStore.Load(in frame);
-
-            var offset = 0;
-            BinaryBufferReader reader = new(savedFrame.GameState.WrittenSpan, ref offset, endianness);
-            callbacks.LoadState(in frame, in reader);
-            CurrentFrame = frame;
-
-            var prevFrame = frame.Previous();
-            ref var current = ref MemoryMarshal.GetReference(inputQueues.AsSpan());
-            ref var limit = ref Unsafe.Add(ref current, inputQueues.Length);
-            while (Unsafe.IsAddressLessThan(ref current, ref limit))
-            {
-                current.ResetLastUserAddedFrame(in prevFrame);
-                current = ref Unsafe.Add(ref current, 1)!;
-            }
-
-            return true;
-        }
-        catch (NetcodeException)
-        {
+        if (!stateStore.TryLoad(in frame, out var savedFrame))
             return false;
+
+        var offset = 0;
+        BinaryBufferReader reader = new(savedFrame.GameState.WrittenSpan, ref offset, endianness);
+        callbacks.LoadState(in frame, in reader);
+        CurrentFrame = frame;
+
+        var prevFrame = frame.Previous();
+        ref var current = ref MemoryMarshal.GetReference(inputQueues.AsSpan());
+        ref var limit = ref Unsafe.Add(ref current, inputQueues.Length);
+        while (Unsafe.IsAddressLessThan(ref current, ref limit))
+        {
+            current.ResetLastUserAddedFrame(in prevFrame);
+            current = ref Unsafe.Add(ref current, 1)!;
         }
+
+        return true;
     }
 
     public void SaveCurrentFrame()

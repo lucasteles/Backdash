@@ -432,10 +432,42 @@ public class CircularBufferTests
         AssertBuffer(sut, [10, 20, 30]);
     }
 
+    [Fact]
+    public void ShouldAdvanceLast()
+    {
+        CircularBuffer<int> sut = new(3);
+        sut.Add(10);
+        sut.Add(20);
+        sut.Add(30);
+        sut.Next() = 40;
+        sut.Advance();
+        AssertBuffer(sut, [20, 30, 40]);
+    }
+
+    [Fact]
+    public void ShouldAdvanceMany()
+    {
+        CircularBuffer<int> sut = new(3);
+        sut.Add(10);
+        sut.Advance(2);
+        sut.Front() = 20;
+        AssertBuffer(sut, [10, 0, 20]);
+    }
+
+    [Fact]
+    public void ShouldAdvanceManyLast()
+    {
+        CircularBuffer<int> sut = new(3);
+        sut.Add(10);
+        sut.Next() = 20;
+        sut.Advance(3);
+        sut.Front() = 30;
+        AssertBuffer(sut, [20, 0, 30]);
+    }
+
     static void AssertBuffer<T>(CircularBuffer<T> buffer, T[] expected)
     {
         buffer.Size.Should().Be(expected.Length);
-
         buffer.ToArray().Should().BeEquivalentTo(expected, "to array");
 
         List<T> list = new(buffer.Size);
@@ -444,7 +476,7 @@ public class CircularBufferTests
         list.Should().BeEquivalentTo(expected, "foreach");
 
         for (var i = 0; i < buffer.Size; i++)
-            buffer[i].Should().Be(expected[i], "by index");
+            buffer[i].Should().Be(expected[i], $"by index {i}");
     }
 }
 

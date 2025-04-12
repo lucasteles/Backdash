@@ -106,7 +106,10 @@ public interface INetcodeSession : INetcodeSessionInfo, IDisposable
     ///     Load state for saved <paramref name="frame" />.
     /// </summary>
     /// <returns>true if succeeded.</returns>
-    bool LoadFrame(in Frame frame);
+    bool LoadFrame(Frame frame);
+
+    ///     <inheritdoc cref="LoadFrame(Backdash.Frame)"/>
+    bool LoadFrame(int frame) => LoadFrame(new Frame(frame));
 
     /// <summary>
     ///     Try to get the session <see cref="SessionReplayControl" />
