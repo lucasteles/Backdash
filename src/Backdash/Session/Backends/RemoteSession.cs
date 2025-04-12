@@ -64,7 +64,7 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(options);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(options.LocalPort);
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(options.FramesPerSecond);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(options.FrameRate);
 
         this.options = options;
         inputSerializer = services.InputSerializer;

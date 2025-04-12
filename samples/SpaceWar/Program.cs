@@ -41,6 +41,7 @@ static INetcodeSession<PlayerInputs> ParseSessionArgs(string[] args)
     {
         case ["local-only", ..]:
             return builder
+                .WithSaveStateCount(120)
                 .ForLocal()
                 .Build();
 

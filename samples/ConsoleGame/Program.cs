@@ -5,7 +5,7 @@ using Backdash;
 using Backdash.Core;
 using ConsoleGame;
 
-var frameDuration = FrameSpan.GetDuration(1);
+var frameDuration = FrameTime.RateStep(60);
 using CancellationTokenSource cts = new();
 
 // stops the game with ctr+c

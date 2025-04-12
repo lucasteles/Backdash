@@ -1,13 +1,18 @@
 using System.Diagnostics;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using Backdash.Serialization.Internal;
 
 namespace Backdash;
 
 /// <summary>
 ///     Value representation of a span of frames
+///     Uses the FPS defined in <seealso cref="FrameTime"/>.<see cref="FrameTime.CurrentFrameRate"/>
 /// </summary>
-[DebuggerDisplay("{ToString()}"), Serializable]
+/// <seealso cref="FrameTime.set_CurrentFrameRate"/>
+[Serializable]
+[DebuggerDisplay("{ToString()}")]
+[StructLayout(LayoutKind.Sequential)]
 public readonly record struct FrameSpan :
     IComparable<FrameSpan>,
     IUtf8SpanFormattable,
@@ -22,12 +27,6 @@ public readonly record struct FrameSpan :
     IAdditionOperators<FrameSpan, Frame, FrameSpan>,
     ISubtractionOperators<FrameSpan, Frame, FrameSpan>
 {
-    /// <summary>Default FPS(frames per second)
-    ///     <value>60</value>
-    /// </summary>
-    public const short DefaultFramesPerSecond = 60;
-
-
     /// <summary>Return frame span of <c>0</c> frames</summary>
     public static readonly FrameSpan Zero = new(0);
 
@@ -46,12 +45,17 @@ public readonly record struct FrameSpan :
     /// <param name="frameCount"></param>
     public FrameSpan(int frameCount) => FrameCount = frameCount;
 
-    /// <summary>Returns the time value for the current frame span in seconds</summary>
-    /// .
-    public double Seconds(short fps = DefaultFramesPerSecond) => InSeconds(FrameCount, fps);
+    /// <summary>Returns the time value for the current frame span in seconds.</summary>
+    public double Seconds(int fps) => FrameTime.GetSeconds(FrameCount, fps);
+
+    /// <summary>Returns the time value for the current frame span in seconds.</summary>
+    public double Seconds() => FrameTime.GetSeconds(FrameCount);
 
     /// <summary>Returns the time value for the current frame span in <see cref="TimeSpan" />.</summary>
-    public TimeSpan Duration(short fps = DefaultFramesPerSecond) => GetDuration(FrameCount, fps);
+    public TimeSpan Duration(int fps) => FrameTime.GetDuration(FrameCount, fps);
+
+    /// <summary>Returns the time value for the current frame span in <see cref="TimeSpan" />.</summary>
+    public TimeSpan Duration() => FrameTime.GetDuration(FrameCount);
 
     /// <summary>Returns the value for the current frame span as a <see cref="Frame" />.</summary>
     public Frame FrameValue => new(FrameCount);
@@ -59,7 +63,7 @@ public readonly record struct FrameSpan :
     /// <summary>
     ///     Returns frame at the time position in milliseconds
     /// </summary>
-    public Frame GetFrameAtMilliSecond(double millis, short fps = DefaultFramesPerSecond)
+    public Frame GetFrameAtMilliSecond(double millis, int fps)
     {
         var span = FromMilliseconds(millis, fps);
         if (span.FrameCount > FrameCount)
@@ -69,9 +73,21 @@ public readonly record struct FrameSpan :
     }
 
     /// <summary>
+    ///     Returns frame at the time position in milliseconds
+    /// </summary>
+    public Frame GetFrameAtMilliSecond(double millis)
+    {
+        var span = FromMilliseconds(millis);
+        if (span.FrameCount > FrameCount)
+            throw new InvalidOperationException("Out of range frame time");
+
+        return span.FrameValue;
+    }
+
+    /// <summary>
     ///     Returns frame at the time position in seconds
     /// </summary>
-    public Frame GetFrameAtSecond(double seconds, short fps = DefaultFramesPerSecond)
+    public Frame GetFrameAtSecond(double seconds, int fps)
     {
         var span = FromSeconds(seconds, fps);
         if (span.FrameCount > FrameCount)
@@ -81,10 +97,26 @@ public readonly record struct FrameSpan :
     }
 
     /// <summary>
+    ///     Returns frame at the time position in seconds
+    /// </summary>
+    public Frame GetFrameAtSecond(double seconds)
+    {
+        var span = FromSeconds(seconds);
+        if (span.FrameCount > FrameCount)
+            throw new InvalidOperationException("Out of range frame time");
+
+        return span.FrameValue;
+    }
+
+    /// <summary>
     ///     Returns frame at the timespan position
     /// </summary>
-    public Frame GetFrameAt(TimeSpan duration, short fps = DefaultFramesPerSecond) =>
-        GetFrameAtMilliSecond(duration.TotalMilliseconds, fps);
+    public Frame GetFrameAt(TimeSpan duration, int fps) => GetFrameAtMilliSecond(duration.TotalMilliseconds, fps);
+
+    /// <summary>
+    ///     Returns frame at the timespan position
+    /// </summary>
+    public Frame GetFrameAt(TimeSpan duration) => GetFrameAtMilliSecond(duration.TotalMilliseconds);
 
     /// <inheritdoc />
     public int CompareTo(FrameSpan other) => FrameCount.CompareTo(other.FrameCount);
@@ -116,31 +148,36 @@ public readonly record struct FrameSpan :
     /// <summary>
     ///     Returns new <see cref="FrameSpan" /> for <paramref name="seconds" /> at specified <paramref name="fps" />.
     /// </summary>
-    public static FrameSpan FromSeconds(double seconds, short fps = DefaultFramesPerSecond) =>
-        new((int)(seconds * fps));
+    public static FrameSpan FromSeconds(double seconds, int fps) =>
+        new(FrameTime.GetFrames(seconds, fps));
 
     /// <summary>
-    ///     Returns new <see cref="FrameSpan" /> for <paramref name="time" /> at specified <paramref name="fps" />.
+    ///     Returns new <see cref="FrameSpan" /> for <paramref name="seconds" />
     /// </summary>
-    public static FrameSpan FromTimeSpan(TimeSpan time, short fps = DefaultFramesPerSecond) =>
-        FromSeconds(time.TotalSeconds, fps);
+    public static FrameSpan FromSeconds(double seconds) => new(FrameTime.GetFrames(seconds));
+
+    /// <summary>
+    ///     Returns new <see cref="FrameSpan" /> for <paramref name="duration" /> at specified <paramref name="fps" />.
+    /// </summary>
+    public static FrameSpan FromTimeSpan(TimeSpan duration, int fps) =>
+        new(FrameTime.GetFrames(duration, fps));
+
+    /// <summary>
+    ///     Returns new <see cref="FrameSpan" /> for <paramref name="duration" />.
+    /// </summary>
+    public static FrameSpan FromTimeSpan(TimeSpan duration) =>
+        new(FrameTime.GetFrames(duration));
 
     /// <summary>
     ///     Returns new <see cref="FrameSpan" /> for <paramref name="milliseconds" /> at specified <paramref name="fps" />.
     /// </summary>
-    public static FrameSpan FromMilliseconds(double milliseconds, short fps = DefaultFramesPerSecond) =>
-        FromSeconds(milliseconds / 1000, fps);
+    public static FrameSpan FromMilliseconds(double milliseconds, int fps) =>
+        FromSeconds(milliseconds / 1000.0, fps);
 
     /// <summary>
-    ///     Returns <see cref="double" /> seconds for <paramref name="frameCount" /> at specified <paramref name="fps" />.
+    ///     Returns new <see cref="FrameSpan" /> for <paramref name="milliseconds" />
     /// </summary>
-    public static double InSeconds(int frameCount, short fps = DefaultFramesPerSecond) => frameCount / (double)fps;
-
-    /// <summary>
-    ///     Returns <see cref="System.TimeSpan" /> for <paramref name="frameCount" /> at specified <paramref name="fps" />.
-    /// </summary>
-    public static TimeSpan GetDuration(int frameCount, short fps = DefaultFramesPerSecond) =>
-        TimeSpan.FromSeconds(InSeconds(frameCount, fps));
+    public static FrameSpan FromMilliseconds(double milliseconds) => FromSeconds(milliseconds / 1000.0);
 
     /// <summary>Returns the smaller of two <see cref="FrameSpan" />.</summary>
     public static FrameSpan Min(in FrameSpan left, in FrameSpan right) => left <= right ? left : right;

@@ -168,7 +168,7 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
     // require idle input should be a configuration parameter
     public int GetRecommendFrameDelay() => timeSync.RecommendFrameWaitDuration();
 
-    public void SetLocalFrameNumber(Frame localFrame, short fps = FrameSpan.DefaultFramesPerSecond)
+    public void SetLocalFrameNumber(Frame localFrame, int fps)
     {
         /*
          * Estimate which frame the other guy is one by looking at the

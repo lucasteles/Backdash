@@ -207,10 +207,10 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
         return this;
     }
 
-    /// <inheritdoc cref="NetcodeOptions.MaxSaveStates" />
-    public NetcodeSessionBuilder<TInput> WithMaxSaveStates(int count)
+    /// <inheritdoc cref="NetcodeOptions.SaveStateCount" />
+    public NetcodeSessionBuilder<TInput> WithSaveStateCount(int count)
     {
-        options.MaxSaveStates = count;
+        options.SaveStateCount = count;
         return this;
     }
 

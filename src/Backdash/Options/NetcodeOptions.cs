@@ -84,9 +84,9 @@ public sealed record NetcodeOptions
     /// </summary>
     /// <value>Defaults to <see cref="PredictionFrames" /> + <see cref="PredictionFramesOffset"/></value>
     /// <seealso cref="IStateStore" />
-    public int MaxSaveStates { get; set; }
+    public int SaveStateCount { get; set; }
 
-    internal int TotalSavedFramesAllowed => Math.Max(PredictionFrames + PredictionFramesOffset, MaxSaveStates);
+    internal int TotalSavedFramesAllowed => Math.Max(PredictionFrames + PredictionFramesOffset, SaveStateCount);
 
     /// <summary>
     ///     Size hint in bytes for state serialization pre-allocation.
@@ -101,10 +101,11 @@ public sealed record NetcodeOptions
     public bool UseIPv6 { get; set; }
 
     /// <summary>
-    ///     Base FPS used to estimate fairness (frame advantage) over peers.
+    ///     Base frame rate used to estimate fairness (frame advantage) over peers.
+    ///     <inheritdoc cref="FrameTime.DefaultFrameRate" />
     /// </summary>
-    /// <inheritdoc cref="FrameSpan.DefaultFramesPerSecond" />
-    public short FramesPerSecond { get; set; } = FrameSpan.DefaultFramesPerSecond;
+    /// <seealso cref="FrameTime"/>
+    public int FrameRate { get; set; } = FrameTime.DefaultFrameRate;
 
     /// <summary>Time synchronization options.</summary>
     /// <seealso cref="TimeSyncOptions" />

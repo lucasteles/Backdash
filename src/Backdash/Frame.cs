@@ -54,9 +54,19 @@ public readonly record struct Frame :
     public Frame Next() => new(Number + 1);
 
     /// <summary>
+    ///     Returns the next frame after <paramref name="amount"/>
+    /// </summary>
+    public Frame Next(int amount) => new(Number + amount);
+
+    /// <summary>
     ///     Returns the previous frame for the current <see cref="Frame" /> value.
     /// </summary>
     public Frame Previous() => new(Number - 1);
+
+    /// <summary>
+    ///     Returns the previous frame after <paramref name="amount"/>
+    /// </summary>
+    public Frame Previous(int amount) => new(Number - amount);
 
     /// <summary>
     ///     Returns <see langword="true" /> if the current frame is a null frame
