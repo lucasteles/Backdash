@@ -67,22 +67,26 @@ public sealed record NetcodeOptions
 
     /// <summary>
     ///     Value to be incremented on <see cref="PredictionFrames" /> in state store.
-    ///     <see cref="IStateStore.Initialize" />
     /// </summary>
     /// <value>Defaults to <c>2</c></value>
+    /// <seealso cref="IStateStore.Initialize" />
     /// <seealso cref="IStateStore" />
     public int PredictionFramesOffset { get; set; } = 2;
-
-    /// <summary>
-    ///     Total allowed prediction frames.
-    /// </summary>
-    internal int TotalPredictionFrames => PredictionFrames + PredictionFramesOffset;
 
     /// <summary>
     ///     Amount of frames to delay local input.
     /// </summary>
     /// <value>Defaults to <c>2</c></value>
     public int InputDelayFrames { get; set; } = 2;
+
+    /// <summary>
+    ///     Value to override the total number of <see cref="SavedFrame" /> in state store.
+    /// </summary>
+    /// <value>Defaults to <see cref="PredictionFrames" /> + <see cref="PredictionFramesOffset"/></value>
+    /// <seealso cref="IStateStore" />
+    public int MaxSaveStates { get; set; }
+
+    internal int TotalSavedFramesAllowed => Math.Max(PredictionFrames + PredictionFramesOffset, MaxSaveStates);
 
     /// <summary>
     ///     Size hint in bytes for state serialization pre-allocation.

@@ -191,10 +191,26 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
         return this;
     }
 
+    /// <inheritdoc cref="NetcodeOptions.FrameRate" />
+    public NetcodeSessionBuilder<TInput> WithFrameRate(int fps)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(fps);
+        options.FrameRate = fps;
+
+        return this;
+    }
+
     /// <inheritdoc cref="NetcodeOptions.LocalPort" />
     public NetcodeSessionBuilder<TInput> WithPort(int port)
     {
         options.LocalPort = port;
+        return this;
+    }
+
+    /// <inheritdoc cref="NetcodeOptions.MaxSaveStates" />
+    public NetcodeSessionBuilder<TInput> WithMaxSaveStates(int count)
+    {
+        options.MaxSaveStates = count;
         return this;
     }
 

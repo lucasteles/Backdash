@@ -88,7 +88,7 @@ sealed class SpectatorSession<TInput> :
 
         var inputGroupComparer = ConfirmedInputComparer<TInput>.Create(services.InputComparer);
         host = peerConnectionFactory.Create(protocolState, inputGroupSerializer, this, inputGroupComparer);
-        stateStore.Initialize(options.TotalPredictionFrames);
+        stateStore.Initialize(options.TotalSavedFramesAllowed);
         peerObservers.Add(host.GetUdpObserver());
         isSynchronizing = true;
         host.Synchronize();

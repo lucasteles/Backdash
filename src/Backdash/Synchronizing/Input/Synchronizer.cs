@@ -47,7 +47,7 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
 
         inputQueues = new(2);
         endianness = options.GetStateSerializationEndianness();
-        stateStore.Initialize(options.TotalPredictionFrames);
+        stateStore.Initialize(options.TotalSavedFramesAllowed);
     }
 
     public bool InRollback { get; private set; }

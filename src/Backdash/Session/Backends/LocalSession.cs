@@ -50,7 +50,7 @@ sealed class LocalSession<TInput> : INetcodeSession<TInput> where TInput : unman
         endianness = options.GetStateSerializationEndianness();
         callbacks = services.SessionHandler;
         comparer = services.InputComparer;
-        stateStore.Initialize(options.TotalPredictionFrames);
+        stateStore.Initialize(options.TotalSavedFramesAllowed);
         this.options = options;
     }
 
