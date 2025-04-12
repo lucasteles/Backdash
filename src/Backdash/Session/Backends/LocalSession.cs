@@ -208,7 +208,7 @@ sealed class LocalSession<TInput> : INetcodeSession<TInput> where TInput : unman
         ref var limit = ref Unsafe.Add(ref current, inputQueues.Length);
         while (Unsafe.IsAddressLessThan(ref current, ref limit))
         {
-            current.ResetLastUserAddedFrame(in prevFrame);
+            current.DiscardInputsAfter(in prevFrame);
             current = ref Unsafe.Add(ref current, 1)!;
         }
 
@@ -231,6 +231,7 @@ sealed class LocalSession<TInput> : INetcodeSession<TInput> where TInput : unman
 
     public void SetFrameDelay(PlayerHandle player, int delayInFrames)
     {
+        ArgumentOutOfRangeException.ThrowIfNegative(delayInFrames);
         ThrowIf.ArgumentOutOfBounds(player.QueueIndex, 0, addedPlayers.Count);
 
         ref var current = ref MemoryMarshal.GetReference(inputQueues.AsSpan());
@@ -240,9 +241,6 @@ sealed class LocalSession<TInput> : INetcodeSession<TInput> where TInput : unman
             current.LocalFrameDelay = delayInFrames;
             current = ref Unsafe.Add(ref current, 1)!;
         }
-
-
-        ArgumentOutOfRangeException.ThrowIfNegative(delayInFrames);
     }
 
     [MemberNotNull(nameof(callbacks))]

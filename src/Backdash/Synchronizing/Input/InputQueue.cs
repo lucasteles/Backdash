@@ -47,7 +47,7 @@ sealed class InputQueue<TInput> where TInput : unmanaged
             frame = Frame.Min(in frame, in lastFrameRequested);
         logger.Write(LogLevel.Trace,
             $"Queue {QueueId} => discarding confirmed frames up to {frame} (last add:{lastAddedFrame.Number} len:{inputs.Size} front:{FirstInput.Frame.Number} back:{LastInput.Frame.Number})");
-        if (frame >= lastAddedFrame)
+        if (frame.Number >= lastAddedFrame.Number)
             inputs.Clear();
         else
         {
@@ -72,16 +72,23 @@ sealed class InputQueue<TInput> where TInput : unmanaged
         lastFrameRequested = Frame.Null;
     }
 
-    public void ResetLastUserAddedFrame(in Frame frame)
+    public void DiscardInputsAfter(in Frame frame)
     {
-        DiscardConfirmedFrames(frame);
+        ArgumentOutOfRangeException.ThrowIfNegative(frame.Number);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(frame.Number, lastUserAddedFrame.Number);
+
+        var offset = lastUserAddedFrame.Number - frame.Number;
+        if (offset < 0) return;
+        logger.Write(LogLevel.Debug, $"Queue {QueueId} => dropping last {offset} frames.");
+        inputs.Advance(-offset);
         lastUserAddedFrame = frame;
+        lastFrameRequested = frame;
+        lastAddedFrame = frame + LocalFrameDelay;
     }
 
     public bool GetConfirmedInput(in Frame requestedFrame, ref GameInput<TInput> input)
     {
-        ThrowIf.Assert(firstIncorrectFrame.IsNull);
-        ArgumentOutOfRangeException.ThrowIfLessThan(requestedFrame.Number, firstIncorrectFrame.Number);
+        ThrowIf.Assert(firstIncorrectFrame.IsNull || requestedFrame.Number < firstIncorrectFrame.Number);
 
         ref var requested = ref inputs.AtRaw(requestedFrame.Number);
 

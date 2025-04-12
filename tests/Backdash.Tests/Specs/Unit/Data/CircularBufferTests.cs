@@ -111,6 +111,20 @@ public class CircularBufferTests
     }
 
     [Fact]
+    public void ShouldNotOverrideDrop()
+    {
+        CircularBuffer<int> sut = new(3);
+        sut.Add(10);
+        sut.Add(20);
+        sut.Add(30);
+        sut.Add(40);
+
+        AssertBuffer(sut, [20, 30, 40]);
+        sut.Drop().Should().Be(20);
+        AssertBuffer(sut, [30, 40]);
+    }
+
+    [Fact]
     public void ShouldThrownWhenPopEmptyBuffer()
     {
         CircularBuffer<int> sut = new(3);
@@ -122,7 +136,7 @@ public class CircularBufferTests
     public void ShouldTryPopEmptyBuffer()
     {
         CircularBuffer<int> sut = new(3);
-        sut.TryPop(out _).Should().BeFalse();
+        sut.TryDrop(out _).Should().BeFalse();
     }
 
     [Fact]
@@ -130,7 +144,7 @@ public class CircularBufferTests
     {
         CircularBuffer<int> sut = new(2);
         sut.Add(10);
-        sut.TryPop(out var value).Should().BeTrue();
+        sut.TryDrop(out var value).Should().BeTrue();
         value.Should().Be(10);
         sut.IsEmpty.Should().BeTrue();
     }
@@ -463,6 +477,50 @@ public class CircularBufferTests
         sut.Advance(3);
         sut.Front() = 30;
         AssertBuffer(sut, [20, 0, 30]);
+    }
+
+    [Fact]
+    public void ShouldAdvanceNegative()
+    {
+        CircularBuffer<int> sut = new(3);
+        sut.Add(10);
+        sut.Add(20);
+        sut.Advance(-1);
+        AssertBuffer(sut, [10]);
+    }
+
+    [Fact]
+    public void ShouldAdvanceNegativeMany()
+    {
+        CircularBuffer<int> sut = new(5);
+        sut.Add(10);
+        sut.Add(20);
+        sut.Add(30);
+        sut.Drop();
+        sut.Drop();
+        sut.Add(40);
+        AssertBuffer(sut, [30, 40]);
+        sut.Add(50);
+        sut.Advance(-2);
+        sut.Add(60);
+        AssertBuffer(sut, [30, 60]);
+    }
+
+    [Fact]
+    public void ShouldDiscardMany()
+    {
+        CircularBuffer<int> sut = new(5);
+        sut.Add(10);
+        sut.Add(20);
+        sut.Add(30);
+        sut.Drop();
+        sut.Drop();
+        sut.Add(40);
+        AssertBuffer(sut, [30, 40]);
+        sut.Add(50);
+        sut.Discard(2);
+        sut.Add(60);
+        AssertBuffer(sut, [50, 60]);
     }
 
     static void AssertBuffer<T>(CircularBuffer<T> buffer, T[] expected)

@@ -53,6 +53,15 @@ public sealed class CircularBuffer<T>(int capacity) : IReadOnlyList<T>, IEquatab
         return value;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    T DropLast()
+    {
+        var value = Back();
+        tail = (tail + 1) % array.Length;
+        return value;
+    }
+
+
     public ref T Next() => ref array[head];
     public ref T Front() => ref array[CurrentIndex];
     public ref T Back() => ref array[tail];
@@ -69,7 +78,7 @@ public sealed class CircularBuffer<T>(int capacity) : IReadOnlyList<T>, IEquatab
         }
     }
 
-    public bool TryPop([NotNullWhen(true)] out T? item)
+    public bool TryDrop([NotNullWhen(true)] out T? item)
     {
         if (count is 0)
         {
@@ -79,14 +88,6 @@ public sealed class CircularBuffer<T>(int capacity) : IReadOnlyList<T>, IEquatab
 
         item = Drop()!;
         return true;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    T DropLast()
-    {
-        var value = Back();
-        tail = (tail + 1) % array.Length;
-        return value;
     }
 
     public int Capacity => array.Length;
@@ -158,29 +159,34 @@ public sealed class CircularBuffer<T>(int capacity) : IReadOnlyList<T>, IEquatab
 
     public void Advance(int offset = 1)
     {
-        ArgumentOutOfRangeException.ThrowIfNegative(offset);
-
         head = (head + offset) % array.Length;
-        count += offset;
 
-        if (count > array.Length)
-        {
-            count = array.Length;
-            tail = head;
-        }
+        if (head < 0)
+            head += array.Length;
+
+        count += offset;
+        CheckCount();
     }
 
     public void Discard(int offset = 1)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(offset);
-
         tail = (tail + offset) % array.Length;
         count -= offset;
+        CheckCount();
+    }
 
+    void CheckCount()
+    {
         if (count < 0)
         {
             count = 0;
             head = tail;
+        }
+        else if (count > array.Length)
+        {
+            count = array.Length;
+            tail = head;
         }
     }
 
