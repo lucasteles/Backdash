@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Class NetcodeOptions | Backdash Netcode </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Class NetcodeOptions | Backdash Netcode ">
+      
+      <meta name="description" content="Configurations for sessions.">
+      <link rel="icon" href="../docs/images/favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../docs/images/logo.png" alt="Backdash">
+            Backdash
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="Backdash.Options.NetcodeOptions">
+
+
+
+  <h1 id="Backdash_Options_NetcodeOptions" data-uid="Backdash.Options.NetcodeOptions" class="text-break">
+Class NetcodeOptions  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Options/NetcodeOptions.cs"><i class="bi bi-code-slash"></i></a>
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Backdash.html">Backdash</a>.<a class="xref" href="Backdash.Options.html">Options</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Backdash.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>Configurations for sessions.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public sealed record NetcodeOptions : IEquatable&lt;NetcodeOptions&gt;</code></pre>
+  </div>
+
+
+
+
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+      <div><span class="xref">NetcodeOptions</span></div>
+    </dd>
+  </dl>
+
+  <dl class="typelist implements">
+    <dt>Implements</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.iequatable-1">IEquatable</a>&lt;<a class="xref" href="Backdash.Options.NetcodeOptions.html">NetcodeOptions</a>&gt;</div>
+    </dd>
+  </dl>
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+  </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="constructors">Constructors
+</h2>
+
+
+  <a id="Backdash_Options_NetcodeOptions__ctor_" data-uid="Backdash.Options.NetcodeOptions.#ctor*"></a>
+
+  <h3 id="Backdash_Options_NetcodeOptions__ctor" data-uid="Backdash.Options.NetcodeOptions.#ctor">
+  NetcodeOptions()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Options/NetcodeOptions.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetcodeOptions()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="properties">Properties
+</h2>
+
+
+  <a id="Backdash_Options_NetcodeOptions_FrameRate_" data-uid="Backdash.Options.NetcodeOptions.FrameRate*"></a>
+
+  <h3 id="Backdash_Options_NetcodeOptions_FrameRate" data-uid="Backdash.Options.NetcodeOptions.FrameRate">
+  FrameRate
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Options/NetcodeOptions.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Base frame rate used to estimate fairness (frame advantage) over peers.</p>
+<p>Default FPS(frames per second)
+<returns>60</returns></p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int FrameRate { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+  <dl class="typelist seealso">
+    <dt>See Also</dt>
+    <dd>
+    <div><a class="xref" href="Backdash.FrameTime.html">FrameTime</a></div>
+    </dd>
+  </dl>
+
+
+  <a id="Backdash_Options_NetcodeOptions_InputDelayFrames_" data-uid="Backdash.Options.NetcodeOptions.InputDelayFrames*"></a>
+
+  <h3 id="Backdash_Options_NetcodeOptions_InputDelayFrames" data-uid="Backdash.Options.NetcodeOptions.InputDelayFrames">
+  InputDelayFrames
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Options/NetcodeOptions.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Amount of frames to delay local input.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int InputDelayFrames { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>Defaults to <code>2</code></p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Backdash_Options_NetcodeOptions_InputQueueLength_" data-uid="Backdash.Options.NetcodeOptions.InputQueueLength*"></a>
+
+  <h3 id="Backdash_Options_NetcodeOptions_InputQueueLength" data-uid="Backdash.Options.NetcodeOptions.InputQueueLength">
+  InputQueueLength
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Options/NetcodeOptions.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Max length for player input queues.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int InputQueueLength { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>Defaults to <code>128</code></p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Backdash_Options_NetcodeOptions_LocalPort_" data-uid="Backdash.Options.NetcodeOptions.LocalPort*"></a>
+
+  <h3 id="Backdash_Options_NetcodeOptions_LocalPort" data-uid="Backdash.Options.NetcodeOptions.LocalPort">
+  LocalPort
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Options/NetcodeOptions.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Local Port for UDP connections</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int LocalPort { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>Defaults to <code>random port</code></p>
+</dd>
+  </dl>
+
+
+
+
+
+
+  <dl class="typelist seealso">
+    <dt>See Also</dt>
+    <dd>
+    <div><a class="xref" href="Backdash.Network.Client.UdpSocket.html">UdpSocket</a></div>
+    </dd>
+  </dl>
+
+
+  <a id="Backdash_Options_NetcodeOptions_Logger_" data-uid="Backdash.Options.NetcodeOptions.Logger*"></a>
+
+  <h3 id="Backdash_Options_NetcodeOptions_Logger" data-uid="Backdash.Options.NetcodeOptions.Logger">
+  Logger
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Options/NetcodeOptions.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Logging options.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public LoggerOptions Logger { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.Options.LoggerOptions.html">LoggerOptions</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+  <dl class="typelist seealso">
+    <dt>See Also</dt>
+    <dd>
+    <div><a class="xref" href="Backdash.Options.LoggerOptions.html">LoggerOptions</a></div>
+    </dd>
+  </dl>
+
+
+  <a id="Backdash_Options_NetcodeOptions_NumberOfPlayers_" data-uid="Backdash.Options.NetcodeOptions.NumberOfPlayers*"></a>
+
+  <h3 id="Backdash_Options_NetcodeOptions_NumberOfPlayers" data-uid="Backdash.Options.NetcodeOptions.NumberOfPlayers">
+  NumberOfPlayers
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Options/NetcodeOptions.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Number of players
+Can not be greater than <span class="xref">Backdash.Core.Max.NumberOfPlayers</span></p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int NumberOfPlayers { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>Defaults to <code>2</code></p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Backdash_Options_NetcodeOptions_PredictionFrames_" data-uid="Backdash.Options.NetcodeOptions.PredictionFrames*"></a>
+
+  <h3 id="Backdash_Options_NetcodeOptions_PredictionFrames" data-uid="Backdash.Options.NetcodeOptions.PredictionFrames">
+  PredictionFrames
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Options/NetcodeOptions.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Max allowed prediction frames.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int PredictionFrames { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>Defaults to <code>16</code></p>
+</dd>
+  </dl>
+
+
+
+
+
+
+  <dl class="typelist seealso">
+    <dt>See Also</dt>
+    <dd>
+    <div><a class="xref" href="Backdash.ResultCode.html#Backdash_ResultCode_PredictionThreshold">PredictionThreshold</a></div>
+    </dd>
+  </dl>
+
+
+  <a id="Backdash_Options_NetcodeOptions_PredictionFramesOffset_" data-uid="Backdash.Options.NetcodeOptions.PredictionFramesOffset*"></a>
+
+  <h3 id="Backdash_Options_NetcodeOptions_PredictionFramesOffset" data-uid="Backdash.Options.NetcodeOptions.PredictionFramesOffset">
+  PredictionFramesOffset
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Options/NetcodeOptions.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Value to be incremented on <a class="xref" href="Backdash.Options.NetcodeOptions.html#Backdash_Options_NetcodeOptions_PredictionFrames">PredictionFrames</a> in state store.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int PredictionFramesOffset { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>Defaults to <code>2</code></p>
+</dd>
+  </dl>
+
+
+
+
+
+
+  <dl class="typelist seealso">
+    <dt>See Also</dt>
+    <dd>
+    <div><a class="xref" href="Backdash.Synchronizing.State.IStateStore.html#Backdash_Synchronizing_State_IStateStore_Initialize_System_Int32_">Initialize</a>(<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a>)</div>
+    <div><a class="xref" href="Backdash.Synchronizing.State.IStateStore.html">IStateStore</a></div>
+    </dd>
+  </dl>
+
+
+  <a id="Backdash_Options_NetcodeOptions_Protocol_" data-uid="Backdash.Options.NetcodeOptions.Protocol*"></a>
+
+  <h3 id="Backdash_Options_NetcodeOptions_Protocol" data-uid="Backdash.Options.NetcodeOptions.Protocol">
+  Protocol
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Options/NetcodeOptions.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Networking Protocol options.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public ProtocolOptions Protocol { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.Options.ProtocolOptions.html">ProtocolOptions</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+  <dl class="typelist seealso">
+    <dt>See Also</dt>
+    <dd>
+    <div><a class="xref" href="Backdash.Options.ProtocolOptions.html">ProtocolOptions</a></div>
+    </dd>
+  </dl>
+
+
+  <a id="Backdash_Options_NetcodeOptions_RecommendationInterval_" data-uid="Backdash.Options.NetcodeOptions.RecommendationInterval*"></a>
+
+  <h3 id="Backdash_Options_NetcodeOptions_RecommendationInterval" data-uid="Backdash.Options.NetcodeOptions.RecommendationInterval">
+  RecommendationInterval
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Options/NetcodeOptions.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Interval for time synchronization notifications.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int RecommendationInterval { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>Defaults to <code>240</code> milliseconds</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+  <dl class="typelist seealso">
+    <dt>See Also</dt>
+    <dd>
+    <div><a class="xref" href="Backdash.Options.NetcodeOptions.html#Backdash_Options_NetcodeOptions_TimeSync">TimeSync</a></div>
+    <div><a class="xref" href="Backdash.Options.TimeSyncOptions.html">TimeSyncOptions</a></div>
+    </dd>
+  </dl>
+
+
+  <a id="Backdash_Options_NetcodeOptions_SaveStateCount_" data-uid="Backdash.Options.NetcodeOptions.SaveStateCount*"></a>
+
+  <h3 id="Backdash_Options_NetcodeOptions_SaveStateCount" data-uid="Backdash.Options.NetcodeOptions.SaveStateCount">
+  SaveStateCount
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Options/NetcodeOptions.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Value to override the total number of <a class="xref" href="Backdash.Synchronizing.State.SavedFrame.html">SavedFrame</a> in state store.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int SaveStateCount { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>Defaults to <a class="xref" href="Backdash.Options.NetcodeOptions.html#Backdash_Options_NetcodeOptions_PredictionFrames">PredictionFrames</a> + <a class="xref" href="Backdash.Options.NetcodeOptions.html#Backdash_Options_NetcodeOptions_PredictionFramesOffset">PredictionFramesOffset</a></p>
+</dd>
+  </dl>
+
+
+
+
+
+
+  <dl class="typelist seealso">
+    <dt>See Also</dt>
+    <dd>
+    <div><a class="xref" href="Backdash.Synchronizing.State.IStateStore.html">IStateStore</a></div>
+    </dd>
+  </dl>
+
+
+  <a id="Backdash_Options_NetcodeOptions_SpectatorInputBufferLength_" data-uid="Backdash.Options.NetcodeOptions.SpectatorInputBufferLength*"></a>
+
+  <h3 id="Backdash_Options_NetcodeOptions_SpectatorInputBufferLength" data-uid="Backdash.Options.NetcodeOptions.SpectatorInputBufferLength">
+  SpectatorInputBufferLength
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Options/NetcodeOptions.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Max length for spectators input queues.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int SpectatorInputBufferLength { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>Defaults to <a class="xref" href="Backdash.Options.NetcodeOptions.html#Backdash_Options_NetcodeOptions_InputQueueLength">InputQueueLength</a></p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Backdash_Options_NetcodeOptions_StateSerializationEndianness_" data-uid="Backdash.Options.NetcodeOptions.StateSerializationEndianness*"></a>
+
+  <h3 id="Backdash_Options_NetcodeOptions_StateSerializationEndianness" data-uid="Backdash.Options.NetcodeOptions.StateSerializationEndianness">
+  StateSerializationEndianness
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Options/NetcodeOptions.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Sets the <a class="xref" href="Backdash.Network.Endianness.html">Endianness</a> used for state serialization.
+If null, use the same endianness as <a class="xref" href="Backdash.Options.ProtocolOptions.html">ProtocolOptions</a>.
+<a class="xref" href="Backdash.Options.ProtocolOptions.html#Backdash_Options_ProtocolOptions_SerializationEndianness">SerializationEndianness</a> will be used.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Endianness? StateSerializationEndianness { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.Network.Endianness.html">Endianness</a>?</dt>
+    <dd><p>Defaults to <a class="xref" href="Backdash.Network.Endianness.html#Backdash_Network_Endianness_LittleEndian">LittleEndian</a></p>
+</dd>
+  </dl>
+
+
+
+
+
+
+  <dl class="typelist seealso">
+    <dt>See Also</dt>
+    <dd>
+    <div><a class="xref" href="Backdash.Network.Platform.html">Platform</a></div>
+    </dd>
+  </dl>
+
+
+  <a id="Backdash_Options_NetcodeOptions_StateSizeHint_" data-uid="Backdash.Options.NetcodeOptions.StateSizeHint*"></a>
+
+  <h3 id="Backdash_Options_NetcodeOptions_StateSizeHint" data-uid="Backdash.Options.NetcodeOptions.StateSizeHint">
+  StateSizeHint
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Options/NetcodeOptions.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Size hint in bytes for state serialization pre-allocation.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int StateSizeHint { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>Defaults to <code>512</code> bytes</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Backdash_Options_NetcodeOptions_TimeSync_" data-uid="Backdash.Options.NetcodeOptions.TimeSync*"></a>
+
+  <h3 id="Backdash_Options_NetcodeOptions_TimeSync" data-uid="Backdash.Options.NetcodeOptions.TimeSync">
+  TimeSync
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Options/NetcodeOptions.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Time synchronization options.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public TimeSyncOptions TimeSync { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.Options.TimeSyncOptions.html">TimeSyncOptions</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+  <dl class="typelist seealso">
+    <dt>See Also</dt>
+    <dd>
+    <div><a class="xref" href="Backdash.Options.TimeSyncOptions.html">TimeSyncOptions</a></div>
+    </dd>
+  </dl>
+
+
+  <a id="Backdash_Options_NetcodeOptions_UseBackgroundThread_" data-uid="Backdash.Options.NetcodeOptions.UseBackgroundThread*"></a>
+
+  <h3 id="Backdash_Options_NetcodeOptions_UseBackgroundThread" data-uid="Backdash.Options.NetcodeOptions.UseBackgroundThread">
+  UseBackgroundThread
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Options/NetcodeOptions.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Run jobs in a separated thread.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool UseBackgroundThread { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p>Defaults to <code>true</code></p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Backdash_Options_NetcodeOptions_UseIPv6_" data-uid="Backdash.Options.NetcodeOptions.UseIPv6*"></a>
+
+  <h3 id="Backdash_Options_NetcodeOptions_UseIPv6" data-uid="Backdash.Options.NetcodeOptions.UseIPv6">
+  UseIPv6
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Options/NetcodeOptions.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Config <a class="xref" href="Backdash.Network.Client.UdpSocket.html">UdpSocket</a> to use IPv6.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool UseIPv6 { get; set; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p>Defaults to <a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">false</a></p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="Backdash_Options_NetcodeOptions_Equals_" data-uid="Backdash.Options.NetcodeOptions.Equals*"></a>
+
+  <h3 id="Backdash_Options_NetcodeOptions_Equals_Backdash_Options_NetcodeOptions_" data-uid="Backdash.Options.NetcodeOptions.Equals(Backdash.Options.NetcodeOptions)">
+  Equals(NetcodeOptions?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Options/NetcodeOptions.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool Equals(NetcodeOptions? other)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>other</code> <a class="xref" href="Backdash.Options.NetcodeOptions.html">NetcodeOptions</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Options_NetcodeOptions_Equals_" data-uid="Backdash.Options.NetcodeOptions.Equals*"></a>
+
+  <h3 id="Backdash_Options_NetcodeOptions_Equals_System_Object_" data-uid="Backdash.Options.NetcodeOptions.Equals(System.Object)">
+  Equals(object?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Options/NetcodeOptions.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override bool Equals(object? obj)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>obj</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Options_NetcodeOptions_GetHashCode_" data-uid="Backdash.Options.NetcodeOptions.GetHashCode*"></a>
+
+  <h3 id="Backdash_Options_NetcodeOptions_GetHashCode" data-uid="Backdash.Options.NetcodeOptions.GetHashCode">
+  GetHashCode()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Options/NetcodeOptions.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override int GetHashCode()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Options_NetcodeOptions_ToString_" data-uid="Backdash.Options.NetcodeOptions.ToString*"></a>
+
+  <h3 id="Backdash_Options_NetcodeOptions_ToString" data-uid="Backdash.Options.NetcodeOptions.ToString">
+  ToString()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Options/NetcodeOptions.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override string ToString()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="operators">Operators
+</h2>
+
+
+  <a id="Backdash_Options_NetcodeOptions_op_Equality_" data-uid="Backdash.Options.NetcodeOptions.op_Equality*"></a>
+
+  <h3 id="Backdash_Options_NetcodeOptions_op_Equality_Backdash_Options_NetcodeOptions_Backdash_Options_NetcodeOptions_" data-uid="Backdash.Options.NetcodeOptions.op_Equality(Backdash.Options.NetcodeOptions,Backdash.Options.NetcodeOptions)">
+  operator ==(NetcodeOptions?, NetcodeOptions?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Options/NetcodeOptions.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool operator ==(NetcodeOptions? left, NetcodeOptions? right)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>left</code> <a class="xref" href="Backdash.Options.NetcodeOptions.html">NetcodeOptions</a></dt>
+    <dd></dd>
+    <dt><code>right</code> <a class="xref" href="Backdash.Options.NetcodeOptions.html">NetcodeOptions</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Options_NetcodeOptions_op_Inequality_" data-uid="Backdash.Options.NetcodeOptions.op_Inequality*"></a>
+
+  <h3 id="Backdash_Options_NetcodeOptions_op_Inequality_Backdash_Options_NetcodeOptions_Backdash_Options_NetcodeOptions_" data-uid="Backdash.Options.NetcodeOptions.op_Inequality(Backdash.Options.NetcodeOptions,Backdash.Options.NetcodeOptions)">
+  operator !=(NetcodeOptions?, NetcodeOptions?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Options/NetcodeOptions.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static bool operator !=(NetcodeOptions? left, NetcodeOptions? right)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>left</code> <a class="xref" href="Backdash.Options.NetcodeOptions.html">NetcodeOptions</a></dt>
+    <dd></dd>
+    <dt><code>right</code> <a class="xref" href="Backdash.Options.NetcodeOptions.html">NetcodeOptions</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <h2 id="seealso">See Also</h2>
+  <div class="seealso">
+      <div><a class="xref" href="Backdash.RollbackNetcode.html">RollbackNetcode</a></div>
+      <div><a class="xref" href="Backdash.INetcodeSession-1.html">INetcodeSession</a>&lt;TInput&gt;</div>
+  </div>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Options/NetcodeOptions.cs" class="edit-link">Edit this page</a>
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Developed by <a href="https://lucasteles.dev/">Lucas Teles</a>.</span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

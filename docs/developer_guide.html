@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title> | Backdash Netcode </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content=" | Backdash Netcode ">
+      
+      
+      <link rel="icon" href="../docs/images/favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/lucasteles/Backdash/blob/master/docfx/docs/developer_guide.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../docs/images/logo.png" alt="Backdash">
+            Backdash
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+
+<h2 id="developer-guide">Developer Guide</h2>
+<div class="NOTE">
+<h5>Note</h5>
+<p>adapted from <a href="https://github.com/pond3r/ggpo/edit/master/doc/DeveloperGuide.md">GGPO</a></p>
+</div>
+<h3 id="installing">Installing</h3>
+<p><a href="https://www.nuget.org/packages/Backdash">NuGet package</a> available:</p>
+<pre><code class="lang-ps">$ dotnet add package Backdash
+</code></pre>
+<h2 id="game-state-and-inputs">Game State and Inputs</h2>
+<p>Your game probably has many moving parts. <a href="https://github.com/lucasteles/Backdash">Backdash</a> only depends on these two:</p>
+<ul>
+<li><p><strong>Game State</strong> describes the current state of everything in your game. In a shooter, this would include the position
+of the ship and all the enemies on the screen, the location of all the bullets, how much health each opponent has, the
+current score, etc.</p>
+</li>
+<li><p><strong>Game Inputs</strong> are the set of things that modify the game state. These obviously include the joystick and button
+presses done by the player but can include other non-obvious inputs as well. For example, if your game uses the
+current time of day to calculate something in the game, the current time of day at the beginning of a frame is also an
+input.</p>
+</li>
+</ul>
+<p>There are many other things in your game engine that are neither game state nor inputs. For example, your audio and
+video renderers are not game state since they don't have an effect on the outcome of the game. If you have a special
+effects engine that's generating effects that do not have an impact on the game, they can be excluded from the game
+state as well.</p>
+<h2 id="using-state-and-inputs-for-synchronization">Using State and Inputs for Synchronization</h2>
+<p>Each player in a <a href="https://github.com/lucasteles/Backdash">Backdash</a> networked game has a complete copy of your game
+running. <a href="https://github.com/lucasteles/Backdash">Backdash</a> needs to keep both copies of the
+game state in sync to ensure that both players are experiencing the same game. It would be much too expensive to send an
+entire copy of the game state between players every frame. Instead <a href="https://github.com/lucasteles/Backdash">Backdash</a>
+sends the players' inputs to each other and has
+each player step the game forward. In order for this to work, your game engine must meet three criteria:</p>
+<ol>
+<li>The game simulation must be fully deterministic. That is, for any given game state and inputs, advancing the game
+state by exactly 1 frame must result in identical game states for all players.</li>
+<li>The game state must be fully encapsulated and serializable.</li>
+<li>Your game engine must be able to load, save, and execute a single simulation frame without rendering the result of
+that frame. <strong>This will be used to implement rollbacks</strong>.</li>
+</ol>
+<h2 id="programming-guide">Programming Guide</h2>
+<p>The following section contains a walk-through for porting your application
+to <a href="https://github.com/lucasteles/Backdash">Backdash</a>.</p>
+<p>For a detailed description of the
+<a href="https://github.com/lucasteles/Backdash">Backdash</a> API, please see
+the <a href="https://lucasteles.github.io/Backdash/api/Backdash.html">API Reference Docs</a>.</p>
+<h3 id="interfacing-with-backdash">Interfacing with <a href="https://github.com/lucasteles/Backdash">Backdash</a></h3>
+<p><a href="https://github.com/lucasteles/Backdash">Backdash</a> is designed to be easy to interface with new and existing game
+engines. It handles most of the implementation of handling rollbacks by calling out to your application via
+the <a href="https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSessionHandler-1.html"><code>INetcodeSessionHandler</code></a> hooks.</p>
+<h3 id="creating-the-inetcodesession-object">Creating the <a href="https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSession-2.html"><code>INetcodeSession</code></a> Object</h3>
+<p>The <a href="https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSession-2.html"><code>INetcodeSession&lt;TInput&gt;</code></a> object is your interface to the <a href="https://github.com/lucasteles/Backdash">Backdash</a> framework.</p>
+<p>Create one with the <code>RollbackNetcode.WithInputType</code> builder:</p>
+<p>For example, giving the user pre-defined types for the <strong>Game State</strong> and <strong>Game Input</strong></p>
+<pre><code class="lang-csharp">public class MyGameState {
+    public MyGameState() {
+        /* initialize state */
+    }
+
+    /* members */
+}
+
+[Flags]
+public enum MyGameInput {
+    /* members */
+}
+</code></pre>
+<p>To create a new session bounded to port <code>9001</code>:</p>
+<pre><code class="lang-csharp">using Backdash;
+
+var session = RollbackNetcode
+    .WithInputType&lt;MyGameInput&gt;()
+    .Configure(options =&gt;
+    {
+        options.LocalPort = 9001;
+    })
+    .Build();
+
+</code></pre>
+<div class="TIP">
+<h5>Tip</h5>
+<p>If you want to use a integer type as your input type:</p>
+<p><code>RollbackNetcode.WithInputType(t =&gt; t.Integer&lt;uint&gt;())</code></p>
+</div>
+<p>The session builder can be used to configure the session by setting <a href="https://lucasteles.github.io/Backdash/api/Backdash.NetcodeOptions.html"><code>NetcodeOptions</code></a>:</p>
+<ul>
+<li>passing an instance to <code>.WithOptions(..)</code></li>
+<li>using the a delegate function on <code>.Configure(options =&gt; {})</code></li>
+<li>using the a fluent api</li>
+</ul>
+<pre><code class="lang-csharp">using Backdash;
+using Backdash.Core;
+
+var session = RollbackNetcode
+    .WithInputType&lt;MyGameInput&gt;()
+    .WithPort(9001)
+    .WithInputDelayFrames(2)
+    .WithLogLevel(LogLevel.Warning)
+    .Build();
+
+</code></pre>
+<p>You should also define an implementation of
+the <a href="https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSessionHandler-1.html"><code>INetcodeSessionHandler</code></a>
+filled in with your game's callback functions for managing game state.</p>
+<pre><code class="lang-csharp">public class MySessionHandler : INetcodeSessionHandler
+{
+    public void OnSessionStart() { /* ... */ }
+    public void OnSessionClose() { /* ... */ }
+    public void SaveState(in Frame frame, ref readonly BinaryBufferWriter writer) { /* ... */ }
+    public void LoadState(in Frame frame, ref readonly BinaryBufferReader reader) { /* ... */ }
+    public void AdvanceFrame() { /* ... */ }
+    public void TimeSync(FrameSpan framesAhead) { /* ... */ }
+    public void OnPeerEvent(PlayerHandle player, PeerEventInfo evt) { /* ... */ }
+}
+</code></pre>
+<p>And then, set it into the session:</p>
+<pre><code class="lang-csharp">session.SetHandler(new MySessionHandler());
+</code></pre>
+<p>The <a href="https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSession-2.html"><code>INetcodeSession</code></a> object should only
+be used for a single game session. If you need to connect to another opponent, dispose your existing object using
+the <a href="https://learn.microsoft.com/pt-br/dotnet/api/system.idisposable.dispose?view=net-8.0"><code>.Dispose</code></a>
+method and start a new one:</p>
+<pre><code class="lang-csharp">/* Close the current session to start a new one */
+session.Dispose();
+</code></pre>
+<h3 id="sending-player-locations">Sending Player Locations</h3>
+<p>When you created the <a href="https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSession-2.html"><code>INetcodeSession</code></a>
+you don't specify any information about the players participating in the game. To do so, call
+the <a href="https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSession-2.html#Backdash_INetcodeSession_2_AddPlayers_System_Collections_Generic_IReadOnlyList_Backdash_Player__"><code>.AddPlayer()</code></a>
+method function with an instance of <a href="https://lucasteles.github.io/Backdash/api/Backdash.Player.html"><code>Player</code></a> for each
+player. The following example shows how you might
+use <a href="https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSession-2.html#Backdash_INetcodeSession_2_AddPlayers_System_Collections_Generic_IReadOnlyList_Backdash_Player__"><code>.AddPlayer()</code></a>
+in a 2-player game:</p>
+<pre><code class="lang-csharp">LocalPlayer player1 = new(1); // local player number 1
+
+var player2Endpoint = IPEndPoint.Parse(&quot;192.168.0.100:8001&quot;); // player 2 ip and port
+RemotePlayer player2 = new(2, player2Endpoint); // remote player number 2
+
+ResultCode result;
+result = session.AddPlayer(player1);
+// ...
+result = session.AddPlayer(player2);
+// ...
+</code></pre>
+<p>Check the <a href="https://github.com/lucasteles/Backdash/tree/master/samples">samples</a> for more complete code.</p>
+<h3 id="starting-session">Starting session</h3>
+<p>After setting up players you must call the
+session <a href="https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSession-2.html#Backdash_INetcodeSession_2_Start_System_Threading_CancellationToken_">.Start()</a>
+method. This will start all the background work like socket receiver, input queue, peer synchronization, etc.</p>
+<pre><code class="lang-csharp">session.Start();
+</code></pre>
+<h3 id="synchronizing-local-and-remote-inputs">Synchronizing Local and Remote Inputs</h3>
+<p>Input synchronization happens on
+the <a href="https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSession-1.html">session</a> at the top of each game frame.
+This is done by
+calling <a href="https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSession-1.html#Backdash_INetcodeSession_1_AddLocalInput_Backdash_PlayerHandle__0_"><code>AddLocalInput</code></a>
+for each local player
+and <a href="https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSession-1.html#Backdash_INetcodeSession_1_SynchronizeInputs"><code>SynchronizeInputs</code></a>
+to fetch the inputs for remote players. Be sure to check the return value of <code>SynchronizeInputs</code>. If it returns a value
+other than <a href="https://lucasteles.github.io/Backdash/api/Backdash.ResultCode.html">ResultCode.Ok`</a>, you should
+<strong>not advance your game state</strong>. This usually happens because <a href="https://github.com/lucasteles/Backdash">Backdash</a> has not
+received packets from the remote player in a while and has reached its internal prediction limit.</p>
+<p>After synchronizing you can read the player's inputs using
+the <a href="https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSession-1.html#Backdash_INetcodeSession_1_GetInput_System_Int32_"><code>GetInput</code></a>
+method for a single-player
+or <a href="https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSession-1.html#Backdash_INetcodeSession_1_GetInputs_System_Span_Backdash_Data_SynchronizedInput__0___"><code>GetInputs</code></a>
+to load all player's inputs into a buffer.</p>
+<p>For example, if your code looks like this currently for a local game:</p>
+<pre><code class="lang-csharp">MyGameInput player1Input = GetControllerInput(0);
+MyGameInput player2Input = GetControllerInput(1);
+
+/* send p1 and p2 to the game */
+AdvanceGameState(player1Input, player2Input, gameState);
+</code></pre>
+<p>You should change it to read as follows:</p>
+<pre><code class="lang-csharp">
+// you must keep the local player handler reference or query it from the session.
+var player1Handle = player1.Handle;
+
+var localInput = GetControllerInput(0); // read the controller
+
+// notify Backdash of the local player's inputs
+var result = session.AddLocalInput(player1Handle, localInput);
+
+if (result is ResultCode.Ok)
+{
+    result = session.SynchronizeInputs();
+    if (result is ResultCode.Ok)
+    {
+        var gameInputs = session.CurrentSynchronizedInputs;
+        AdvanceGameState(gameInputs[0], gameInputs[1], gameState);
+    }
+}
+</code></pre>
+<p>You should
+call <a href="https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSession-1.html#Backdash_INetcodeSession_1_SynchronizeInputs"><code>SynchronizeInputs</code></a>
+every frame, even those that happen during a rollback. Make sure you always use the values returned
+from <a href="https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSession-1.html#Backdash_INetcodeSession_1_GetInputs_System_Span_Backdash_Data_SynchronizedInput__0___"><code>GetInputs</code></a>
+rather than the values you've read from the local controllers to advance your game state. During a
+rollback <a href="https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSession-1.html#Backdash_INetcodeSession_1_SynchronizeInputs"><code>SynchronizeInputs</code></a>
+will replace the values passed
+into <a href="https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSession-1.html#Backdash_INetcodeSession_1_AddLocalInput_Backdash_PlayerHandle__0_"><code>AddLocalInput</code></a>
+with the values used for previous frames. Also, if you've manually added input delay for the local player to smooth out
+the effect of rollbacks, the inputs you pass
+into <a href="https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSession-1.html#Backdash_INetcodeSession_1_AddLocalInput_Backdash_PlayerHandle__0_"><code>AddLocalInput</code></a>
+won't actually be returned
+in <a href="https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSession-1.html#Backdash_INetcodeSession_1_GetInputs_System_Span_Backdash_Data_SynchronizedInput__0___"><code>GetInputs</code></a>
+until after the frame delay.</p>
+<h3 id="implementing-your-save-and-load-state-handlers">Implementing your <code>save</code> and <code>load</code> state handlers</h3>
+<p><a href="https://github.com/lucasteles/Backdash">Backdash</a> will call the <a href="https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSessionHandler-1.html#Backdash_INetcodeSessionHandler_1_LoadState_Backdash_Data_Frame___0__"><code>LoadState</code></a> and <a href="https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSessionHandler-1.html#Backdash_INetcodeSessionHandler_1_SaveState_Backdash_Data_Frame___0__"><code>SaveState</code></a> callbacks to periodically <em>save</em> and <em>restore</em> the state of your game.</p>
+<p>The <a href="https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSessionHandler-1.html#Backdash_INetcodeSessionHandler_1_SaveState_Backdash_Data_Frame___0__"><code>SaveState</code></a> function is called with a plain binary buffer writer (<code>BinaryBufferReader</code>). You need to call <code>.Write</code> on each of the state members.</p>
+<p>The <a href="https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSessionHandler-1.html#Backdash_INetcodeSessionHandler_1_LoadState_Backdash_Data_Frame___0__"><code>LoadState</code></a> function should restore the game state from a previously saved binary buffer using the <code>BinaryBufferReader</code>, reading each member.</p>
+<div class="IMPORTANT">
+<h5>Important</h5>
+<p><strong>⚠️:</strong> You must read and write member in the <strong>SAME ORDER</strong> and also ensure the same size (like arrays or lists).</p>
+</div>
+<p>For example:</p>
+<pre><code class="lang-csharp">using System.Numerics;
+using Backdash.Serialization;
+using Backdash.Serialization.Numerics;
+
+
+public class MyGameState
+{
+    public int Value1;
+    public Vector2 Value2;
+}
+
+public class MySessionHandler : INetcodeSessionHandler
+{
+    MyGameState currentGameState = new();
+
+    public void SaveState(in Frame frame, ref readonly BinaryBufferWriter writer)
+    {
+        writer.Write(in currentGameState.Value1);
+        writer.Write(in currentGameState.Value2);
+    }
+
+    public void LoadState(in Frame frame, ref readonly BinaryBufferReader reader)
+    {
+        reader.Read(ref currentGameState.Value1);
+        reader.Read(ref currentGameState.Value2);
+
+        /* or also:
+        currentGameState.Value1 = reader.ReadInt32();
+        currentGameState.Value2 = reader.ReadVector2();
+        */
+    }
+
+    /* ... */
+}
+</code></pre>
+<p>The saved <strong>Game State</strong> will have a calculated <a href="https://en.wikipedia.org/wiki/Checksum">checksum</a> based on its binary representation. The default implementation is <a href="http://en.wikipedia.org/wiki/Fletcher%27s_checksum">Fletcher 32</a> algorithm by the class <code>Fletcher32ChecksumProvider</code>.</p>
+<p>You can also use you own checksum algorithm, for this just implement the interface
+<a href="https://lucasteles.github.io/Backdash/api/Backdash.Sync.State.IChecksumProvider-1.html"><code>IChecksumProvider</code></a>.</p>
+<h3 id="custom-state-serializer">Custom State Serializer</h3>
+<p>If you don't want to write/read each member or just need to use other serialization method for the state, you is able to access the <code>IBufferWriter</code> for <em>save</em> and the raw <code>ReadOnlySpan&lt;byte&gt;</code> for <em>load</em>:</p>
+<p>Example for <a href="https://github.com/Cysharp/MemoryPack">MemoryPack</a>;</p>
+<pre><code class="lang-csharp">using System.Numerics;
+using Backdash.Data;
+using Backdash.Serialization;
+using MemoryPack;
+
+[MemoryPackable]
+public partial class MyGameState
+{
+    public int Value1;
+    public Vector2 Value2;
+}
+
+public class MySessionHandler : INetcodeSessionHandler
+{
+    MyGameState currentGameState = new();
+
+    public void SaveState(in Frame frame, ref readonly BinaryBufferWriter writer)
+    {
+        MemoryPackSerializer.Serialize(writer.Buffer, currentGameState);
+    }
+
+    public void LoadState(in Frame frame, ref readonly BinaryBufferReader reader)
+    {
+        MemoryPackSerializer.Deserialize(reader.Buffer, ref currentGameState!);
+    }
+
+    /* ... */
+}
+
+
+</code></pre>
+<h3 id="advance-frame-callback">Advance Frame Callback</h3>
+<p>This callback is called when a rollback occurs, just after
+the <a href="https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSessionHandler-1.html#Backdash_INetcodeSessionHandler_1_SaveState_Backdash_Data_Frame___0__"><code>SaveState</code></a>
+here you must synchronize inputs and advance the state.</p>
+<p>Usually something like:</p>
+<pre><code class="lang-csharp">// ...
+public void AdvanceFrame()
+{
+    session.SynchronizeInputs();
+    var gameInputs = session.CurrentSynchronizedInputs;
+    AdvanceGameState(gameInputs[0], gameInputs[1], gameState);
+}
+// ...
+</code></pre>
+<h3 id="remaining-callbacks">Remaining Callbacks</h3>
+<p>There are other callbacks in
+the <a href="https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSessionHandler-1.html"><code>INetcodeSessionHandler</code></a> for
+connection starting/closing the session, peer events, etc.</p>
+<p>Check the
+<strong><a href="https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSessionHandler-1.html">API Docs for more information</a></strong>.</p>
+<h3 id="frame-lifecycle">Frame Lifecycle</h3>
+<p>We're almost done. The last step is notify <a href="https://github.com/lucasteles/Backdash">Backdash</a> every time your frame
+starts and every time the <strong>game state</strong> finishes advancing by one frame.</p>
+<p>Just call <a href="https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSession-1.html#Backdash_INetcodeSession_1_BeginFrame"><code>BeginFrame</code></a>
+method on session at the beginning of each frame
+and <a href="https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSession-1.html#Backdash_INetcodeSession_1_AdvanceFrame"><code>AdvanceFrame</code></a>
+after you've finished one frame <strong>but before you've started the next</strong>.</p>
+<p>So, the code for each frame should be something close to:</p>
+<pre><code class="lang-csharp">public void Update(){
+    session.BeginFrame();
+
+    var localInput = GetControllerInput(localPlayer.Index);
+    var result = session.AddLocalInput(localPlayer, localInput);
+
+    if (result is not ResultCode.Ok)
+        return;
+
+    result = session.SynchronizeInputs();
+    if (result is not ResultCode.Ok)
+        return;
+
+    var gameInputs = session.CurrentSynchronizedInputs;
+    AdvanceGameState(gameInputs[0], gameInputs[1], gameState);
+
+    session.AdvanceFrame();
+}
+</code></pre>
+<h2 id="input-type-encoding">Input Type Encoding</h2>
+<p>We <strong>heavily</strong> recommend that you encode your game input inside
+a <a href="https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/enum"><code>Enum</code></a> with
+<a href="https://learn.microsoft.com/en-us/dotnet/fundamentals/runtime-libraries/system-flagsattribute"><code>FlagsAttribute</code></a>.</p>
+<p><strong>Enum flags</strong> are easy to compose and can represent a large number of inputs in a very low byte count, which is
+important
+because the inputs are what is transmitted over the network to other players.</p>
+<p>For example, we can encode all usable digital buttons of a <strong>XBox DPad</strong> using only
+<a href="https://learn.microsoft.com/en-us/dotnet/api/system.int16">a <code>short</code> type</a> (<em>only 2 bytes</em>):</p>
+<pre><code class="lang-csharp">[Flags]
+public enum PadButtonInputs : short
+{
+    None = 0,
+    Select = 1 &lt;&lt; 0,
+    Up = 1 &lt;&lt; 1,
+    Down = 1 &lt;&lt; 2,
+    Left = 1 &lt;&lt; 3,
+    Right = 1 &lt;&lt; 4,
+    X = 1 &lt;&lt; 5,
+    Y = 1 &lt;&lt; 6,
+    A = 1 &lt;&lt; 7,
+    B = 1 &lt;&lt; 8,
+    LeftBumper = 1 &lt;&lt; 9,
+    RightBumper = 1 &lt;&lt; 10,
+    LeftTrigger = 1 &lt;&lt; 11,
+    RightTrigger = 1 &lt;&lt; 12,
+    LeftStickButton = 1 &lt;&lt; 13,
+    RightStickButton = 1 &lt;&lt; 14,
+}
+</code></pre>
+<p>The serialization of enums and mostly of primitive types is automatically handled
+by <a href="https://github.com/lucasteles/Backdash">Backdash</a>.</p>
+<div class="CAUTION">
+<h5>Caution</h5>
+<p>We can also handle serialization of complex structs that <strong>do not</strong> contain any reference type member. for those
+no <a href="https://lucasteles.github.io/Backdash/api/Backdash.NetcodeOptions.html#Backdash_NetcodeOptions_NetworkEndianness"><code>Endianess Convertion</code></a> is applied.</p>
+</div>
+<h3 id="custom-serializer">Custom Serializer</h3>
+<p>If you need a more complex input type and
+support <a href="https://lucasteles.github.io/Backdash/api/Backdash.NetcodeOptions.html#Backdash_NetcodeOptions_NetworkEndianness"><code>Endianess convertion</code></a>
+you must implement
+an <a href="https://lucasteles.github.io/Backdash/api/Backdash.Serialization.IBinarySerializer-1.html"><code>IBinarySerializer&lt;TInput&gt;</code></a>
+for your input type.</p>
+<div class="TIP">
+<h5>Tip</h5>
+<p>💡 The easiest way to implement a binary serializer is by deriving
+from <a href="https://lucasteles.github.io/Backdash/api/Backdash.Serialization.BinarySerializer-1.html"><code>BinarySerializer&lt;T&gt;</code></a></p>
+</div>
+<p><strong>Example:</strong></p>
+<p>Giving an input type composed as:</p>
+<pre><code class="lang-csharp">[Flags]
+public enum PadButtons : short
+{
+    None = 0,
+    Select = 1 &lt;&lt; 0,
+    Up = 1 &lt;&lt; 1,
+    Down = 1 &lt;&lt; 2,
+    Left = 1 &lt;&lt; 3,
+    Right = 1 &lt;&lt; 4,
+    X = 1 &lt;&lt; 5,
+    Y = 1 &lt;&lt; 6,
+    A = 1 &lt;&lt; 7,
+    B = 1 &lt;&lt; 8,
+
+    LeftBumper = 1 &lt;&lt; 9,
+    RightBumper = 1 &lt;&lt; 10,
+    LeftStickButton = 1 &lt;&lt; 11,
+    RightStickButton = 1 &lt;&lt; 12,
+}
+
+public record struct Axis
+{
+    public sbyte X;
+    public sbyte Y;
+}
+
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+public record struct MyPadInputs
+{
+    public PadButtons Buttons;
+    public byte LeftTrigger;
+    public byte RightTrigger;
+    public Axis LeftAxis;
+    public Axis RightAxis;
+}
+
+</code></pre>
+<p>You can implement the serializer as:</p>
+<pre><code class="lang-csharp">public class MyPadInputsBinarySerializer : BinarySerializer&lt;PadInputs&gt;
+{
+    protected override void Serialize(in BinaryRawBufferWriter binaryWriter, in PadInputs data)
+    {
+        binaryWriter.Write((short)data.Buttons);
+        binaryWriter.Write(data.LeftTrigger);
+        binaryWriter.Write(data.RightTrigger);
+
+        binaryWriter.Write(data.LeftAxis.X);
+        binaryWriter.Write(data.LeftAxis.Y);
+
+        binaryWriter.Write(data.RightAxis.X);
+        binaryWriter.Write(data.RightAxis.Y);
+    }
+
+    protected override void Deserialize(in BinaryBufferReader binaryReader, ref PadInputs result)
+    {
+        result.Buttons = (PadButtons)binaryReader.ReadShort();
+        result.LeftTrigger = binaryReader.ReadByte();
+        result.RightTrigger = binaryReader.ReadByte();
+
+        result.LeftAxis.X = binaryReader.ReadSByte();
+        result.LeftAxis.Y = binaryReader.ReadSByte();
+
+        result.RightAxis.X = binaryReader.ReadSByte();
+        result.RightAxis.Y = binaryReader.ReadSByte();
+    }
+}
+</code></pre>
+<p>To use your custom serializer:</p>
+<pre><code class="lang-csharp">MyPadInputsBinarySerializer mySerializer = new();
+
+var session = RollbackNetcode.WithInputType(t =&gt; t.Custom(mySerializer));
+
+</code></pre>
+<h2 id="tuning-your-application-frame-delay-vs-speculative-execution">Tuning Your Application: Frame Delay vs. Speculative Execution</h2>
+<p><a href="https://github.com/lucasteles/Backdash">Backdash</a> uses both frame delay and speculative execution to hide latency. It
+does so by allowing the application developer
+the choice of how many frames they'd like to delay input by. If it takes more time to transmit a packet than the
+number of frames specified by the game, <a href="https://github.com/lucasteles/Backdash">Backdash</a> will use speculative
+execution to hide the remaining latency. This number
+can be tuned by the application mid-game if you so desire. Choosing a proper value for the frame delay depends very much
+on your game. Here are some helpful hints.</p>
+<p>In general, you should try to make your frame delay as high as possible without affecting the qualitative experience of
+the game. For example, a fighting game requires pixel-perfect accuracy, excellent timing, and extremely tightly
+controlled joystick motions. For this type of game, any frame delay larger than 1 can be noticed by most intermediate
+players, and expert players may even notice a single frame of delay. On the other hand, board games or puzzle games
+which do not have very strict timing requirements may get away with setting the frame latency as high as 4 or 5 before
+users begin to notice.</p>
+<p>Another reason to set the frame delay high is to eliminate the glitching that can occur during a rollback. The longer
+the rollback, the more likely the user is to notice the discontinuities caused by temporarily executing the incorrect
+prediction frames. For example, suppose your game has a feature where the entire screen will flash for exactly 2 frames
+immediately after the user presses a button. Suppose further that you've chosen a value of 1 for the frame latency and
+the time to transmit a packet is 4 frames. In this case, a rollback is likely to be around 3 frames (4 – 1 = 3). If the
+flash occurs on the first frame of the rollback, your 2-second flash will be entirely consumed by the rollback, and the
+remote player will never get to see it!  In this case, you're better off either specifying a higher frame latency value
+or redesigning your video renderer to delay the flash until after the rollback occurs.</p>
+<h2 id="sample-applications">Sample Applications</h2>
+<p>Check the samples on the <a href="https://github.com/lucasteles/Backdash/tree/master/samples">samples</a> directory:</p>
+<p>There are examples for up to 4 players:</p>
+<ul>
+<li><a href="https://github.com/lucasteles/Backdash/tree/master/samples/ConsoleGame">Simple console game</a></li>
+<li><a href="https://github.com/lucasteles/Backdash/tree/master/samples/SpaceWar">Monogame SpaceWar</a></li>
+<li><a href="https://github.com/lucasteles/Backdash/tree/master/samples/SpaceWar.Lobby">Monogame SpaceWar with lobby over internet</a></li>
+<li><a href="https://github.com/lucasteles/BackdashGodotSample">Godot SpaceWar with lobby over internet</a></li>
+</ul>
+<blockquote>
+<p>See the <code>.cmd</code>/<code>.sh</code> files in the <code>scripts</code> directory for examples on how to start 2, 3, and 4-player games.</p>
+</blockquote>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/lucasteles/Backdash/blob/master/docfx/docs/developer_guide.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Developed by <a href="https://lucasteles.dev/">Lucas Teles</a>.</span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

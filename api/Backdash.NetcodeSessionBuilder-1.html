@@ -1,0 +1,2205 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Class NetcodeSessionBuilder&lt;TInput&gt; | Backdash Netcode </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Class NetcodeSessionBuilder&lt;TInput&gt; | Backdash Netcode ">
+      
+      <meta name="description" content="Builder for .">
+      <link rel="icon" href="../docs/images/favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../docs/images/logo.png" alt="Backdash">
+            Backdash
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="Backdash.NetcodeSessionBuilder`1">
+
+
+
+  <h1 id="Backdash_NetcodeSessionBuilder_1" data-uid="Backdash.NetcodeSessionBuilder`1" class="text-break">
+Class NetcodeSessionBuilder&lt;TInput&gt;  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/NetcodeSessionBuilder.cs"><i class="bi bi-code-slash"></i></a>
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Backdash.html">Backdash</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Backdash.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>Builder for <a class="xref" href="Backdash.INetcodeSession-1.html">INetcodeSession&lt;TInput&gt;</a>.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public sealed class NetcodeSessionBuilder&lt;TInput&gt; where TInput : unmanaged</code></pre>
+  </div>
+
+
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>TInput</code></dt>
+    <dd></dd>
+  </dl>
+
+  <dl class="typelist inheritance">
+    <dt>Inheritance</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></div>
+      <div><span class="xref">NetcodeSessionBuilder&lt;TInput&gt;</span></div>
+    </dd>
+  </dl>
+
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.tostring">object.ToString()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object)">object.Equals(object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gethashcode">object.GetHashCode()</a>
+    </div>
+  </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="Backdash_NetcodeSessionBuilder_1_Build_" data-uid="Backdash.NetcodeSessionBuilder`1.Build*"></a>
+
+  <h3 id="Backdash_NetcodeSessionBuilder_1_Build" data-uid="Backdash.NetcodeSessionBuilder`1.Build">
+  Build()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/NetcodeSessionBuilder.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Builds a new <a class="xref" href="Backdash.INetcodeSession-1.html">INetcodeSession&lt;TInput&gt;</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public INetcodeSession&lt;TInput&gt; Build()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.INetcodeSession-1.html">INetcodeSession</a>&lt;TInput&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_NetcodeSessionBuilder_1_Configure_" data-uid="Backdash.NetcodeSessionBuilder`1.Configure*"></a>
+
+  <h3 id="Backdash_NetcodeSessionBuilder_1_Configure_System_Action_Backdash_Options_NetcodeOptions__" data-uid="Backdash.NetcodeSessionBuilder`1.Configure(System.Action{Backdash.Options.NetcodeOptions})">
+  Configure(Action&lt;NetcodeOptions&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/NetcodeSessionBuilder.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Configure <a class="xref" href="Backdash.INetcodeSession-1.html">INetcodeSession&lt;TInput&gt;</a> options</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetcodeSessionBuilder&lt;TInput&gt; Configure(Action&lt;NetcodeOptions&gt; config)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>config</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.action-1">Action</a>&lt;<a class="xref" href="Backdash.Options.NetcodeOptions.html">NetcodeOptions</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.NetcodeSessionBuilder-1.html">NetcodeSessionBuilder</a>&lt;TInput&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <dl class="typelist seealso">
+    <dt>See Also</dt>
+    <dd>
+    <div><a class="xref" href="Backdash.Options.NetcodeOptions.html">NetcodeOptions</a></div>
+    </dd>
+  </dl>
+
+
+  <a id="Backdash_NetcodeSessionBuilder_1_ConfigureLogger_" data-uid="Backdash.NetcodeSessionBuilder`1.ConfigureLogger*"></a>
+
+  <h3 id="Backdash_NetcodeSessionBuilder_1_ConfigureLogger_System_Action_Backdash_Options_LoggerOptions__" data-uid="Backdash.NetcodeSessionBuilder`1.ConfigureLogger(System.Action{Backdash.Options.LoggerOptions})">
+  ConfigureLogger(Action&lt;LoggerOptions&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/NetcodeSessionBuilder.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Configure session logger</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetcodeSessionBuilder&lt;TInput&gt; ConfigureLogger(Action&lt;LoggerOptions&gt; config)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>config</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.action-1">Action</a>&lt;<a class="xref" href="Backdash.Options.LoggerOptions.html">LoggerOptions</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.NetcodeSessionBuilder-1.html">NetcodeSessionBuilder</a>&lt;TInput&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <dl class="typelist seealso">
+    <dt>See Also</dt>
+    <dd>
+    <div><a class="xref" href="Backdash.Options.LoggerOptions.html">LoggerOptions</a></div>
+    </dd>
+  </dl>
+
+
+  <a id="Backdash_NetcodeSessionBuilder_1_ConfigureProtocol_" data-uid="Backdash.NetcodeSessionBuilder`1.ConfigureProtocol*"></a>
+
+  <h3 id="Backdash_NetcodeSessionBuilder_1_ConfigureProtocol_System_Action_Backdash_Options_ProtocolOptions__" data-uid="Backdash.NetcodeSessionBuilder`1.ConfigureProtocol(System.Action{Backdash.Options.ProtocolOptions})">
+  ConfigureProtocol(Action&lt;ProtocolOptions&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/NetcodeSessionBuilder.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Configure session protocol</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetcodeSessionBuilder&lt;TInput&gt; ConfigureProtocol(Action&lt;ProtocolOptions&gt; config)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>config</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.action-1">Action</a>&lt;<a class="xref" href="Backdash.Options.ProtocolOptions.html">ProtocolOptions</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.NetcodeSessionBuilder-1.html">NetcodeSessionBuilder</a>&lt;TInput&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <dl class="typelist seealso">
+    <dt>See Also</dt>
+    <dd>
+    <div><a class="xref" href="Backdash.Options.ProtocolOptions.html">ProtocolOptions</a></div>
+    </dd>
+  </dl>
+
+
+  <a id="Backdash_NetcodeSessionBuilder_1_ConfigureReplay_" data-uid="Backdash.NetcodeSessionBuilder`1.ConfigureReplay*"></a>
+
+  <h3 id="Backdash_NetcodeSessionBuilder_1_ConfigureReplay_System_Action_Backdash_Options_SessionReplayOptions__0___" data-uid="Backdash.NetcodeSessionBuilder`1.ConfigureReplay(System.Action{Backdash.Options.SessionReplayOptions{`0}})">
+  ConfigureReplay(Action&lt;SessionReplayOptions&lt;TInput&gt;&gt;?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/NetcodeSessionBuilder.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Configure replay session options.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetcodeSessionBuilder&lt;TInput&gt; ConfigureReplay(Action&lt;SessionReplayOptions&lt;TInput&gt;&gt;? config = null)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>config</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.action-1">Action</a>&lt;<a class="xref" href="Backdash.Options.SessionReplayOptions-1.html">SessionReplayOptions</a>&lt;TInput&gt;&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.NetcodeSessionBuilder-1.html">NetcodeSessionBuilder</a>&lt;TInput&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <dl class="typelist seealso">
+    <dt>See Also</dt>
+    <dd>
+    <div><a class="xref" href="Backdash.Options.SessionReplayOptions-1.html">SessionReplayOptions</a>&lt;TInput&gt;</div>
+    </dd>
+  </dl>
+
+
+  <a id="Backdash_NetcodeSessionBuilder_1_ConfigureServices_" data-uid="Backdash.NetcodeSessionBuilder`1.ConfigureServices*"></a>
+
+  <h3 id="Backdash_NetcodeSessionBuilder_1_ConfigureServices_System_Action_Backdash_Options_ServicesConfig__0___" data-uid="Backdash.NetcodeSessionBuilder`1.ConfigureServices(System.Action{Backdash.Options.ServicesConfig{`0}})">
+  ConfigureServices(Action&lt;ServicesConfig&lt;TInput&gt;&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/NetcodeSessionBuilder.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Configure custom session services</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetcodeSessionBuilder&lt;TInput&gt; ConfigureServices(Action&lt;ServicesConfig&lt;TInput&gt;&gt; config)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>config</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.action-1">Action</a>&lt;<a class="xref" href="Backdash.Options.ServicesConfig-1.html">ServicesConfig</a>&lt;TInput&gt;&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.NetcodeSessionBuilder-1.html">NetcodeSessionBuilder</a>&lt;TInput&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <dl class="typelist seealso">
+    <dt>See Also</dt>
+    <dd>
+    <div><a class="xref" href="Backdash.Options.ServicesConfig-1.html">ServicesConfig</a>&lt;TInput&gt;</div>
+    </dd>
+  </dl>
+
+
+  <a id="Backdash_NetcodeSessionBuilder_1_ConfigureSpectator_" data-uid="Backdash.NetcodeSessionBuilder`1.ConfigureSpectator*"></a>
+
+  <h3 id="Backdash_NetcodeSessionBuilder_1_ConfigureSpectator_System_Action_Backdash_Options_SpectatorOptions__" data-uid="Backdash.NetcodeSessionBuilder`1.ConfigureSpectator(System.Action{Backdash.Options.SpectatorOptions})">
+  ConfigureSpectator(Action&lt;SpectatorOptions&gt;?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/NetcodeSessionBuilder.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Configure spectator session options.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetcodeSessionBuilder&lt;TInput&gt; ConfigureSpectator(Action&lt;SpectatorOptions&gt;? config = null)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>config</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.action-1">Action</a>&lt;<a class="xref" href="Backdash.Options.SpectatorOptions.html">SpectatorOptions</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.NetcodeSessionBuilder-1.html">NetcodeSessionBuilder</a>&lt;TInput&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <dl class="typelist seealso">
+    <dt>See Also</dt>
+    <dd>
+    <div><a class="xref" href="Backdash.Options.SpectatorOptions.html">SpectatorOptions</a></div>
+    </dd>
+  </dl>
+
+
+  <a id="Backdash_NetcodeSessionBuilder_1_ConfigureSyncTest_" data-uid="Backdash.NetcodeSessionBuilder`1.ConfigureSyncTest*"></a>
+
+  <h3 id="Backdash_NetcodeSessionBuilder_1_ConfigureSyncTest_System_Action_Backdash_Options_SyncTestOptions__0___" data-uid="Backdash.NetcodeSessionBuilder`1.ConfigureSyncTest(System.Action{Backdash.Options.SyncTestOptions{`0}})">
+  ConfigureSyncTest(Action&lt;SyncTestOptions&lt;TInput&gt;&gt;?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/NetcodeSessionBuilder.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Configure sync test session options.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetcodeSessionBuilder&lt;TInput&gt; ConfigureSyncTest(Action&lt;SyncTestOptions&lt;TInput&gt;&gt;? config = null)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>config</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.action-1">Action</a>&lt;<a class="xref" href="Backdash.Options.SyncTestOptions-1.html">SyncTestOptions</a>&lt;TInput&gt;&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.NetcodeSessionBuilder-1.html">NetcodeSessionBuilder</a>&lt;TInput&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <dl class="typelist seealso">
+    <dt>See Also</dt>
+    <dd>
+    <div><a class="xref" href="Backdash.Options.SyncTestOptions-1.html">SyncTestOptions</a>&lt;TInput&gt;</div>
+    </dd>
+  </dl>
+
+
+  <a id="Backdash_NetcodeSessionBuilder_1_ConfigureTimeSync_" data-uid="Backdash.NetcodeSessionBuilder`1.ConfigureTimeSync*"></a>
+
+  <h3 id="Backdash_NetcodeSessionBuilder_1_ConfigureTimeSync_System_Action_Backdash_Options_TimeSyncOptions__" data-uid="Backdash.NetcodeSessionBuilder`1.ConfigureTimeSync(System.Action{Backdash.Options.TimeSyncOptions})">
+  ConfigureTimeSync(Action&lt;TimeSyncOptions&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/NetcodeSessionBuilder.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Configure session time synchronization</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetcodeSessionBuilder&lt;TInput&gt; ConfigureTimeSync(Action&lt;TimeSyncOptions&gt; config)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>config</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.action-1">Action</a>&lt;<a class="xref" href="Backdash.Options.TimeSyncOptions.html">TimeSyncOptions</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.NetcodeSessionBuilder-1.html">NetcodeSessionBuilder</a>&lt;TInput&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <dl class="typelist seealso">
+    <dt>See Also</dt>
+    <dd>
+    <div><a class="xref" href="Backdash.Options.TimeSyncOptions.html">TimeSyncOptions</a></div>
+    </dd>
+  </dl>
+
+
+  <a id="Backdash_NetcodeSessionBuilder_1_ForLocal_" data-uid="Backdash.NetcodeSessionBuilder`1.ForLocal*"></a>
+
+  <h3 id="Backdash_NetcodeSessionBuilder_1_ForLocal" data-uid="Backdash.NetcodeSessionBuilder`1.ForLocal">
+  ForLocal()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/NetcodeSessionBuilder.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Set the <a class="xref" href="Backdash.SessionMode.html">SessionMode</a> as <a class="xref" href="Backdash.SessionMode.html#Backdash_SessionMode_Local">Local</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetcodeSessionBuilder&lt;TInput&gt; ForLocal()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.NetcodeSessionBuilder-1.html">NetcodeSessionBuilder</a>&lt;TInput&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_NetcodeSessionBuilder_1_ForRemote_" data-uid="Backdash.NetcodeSessionBuilder`1.ForRemote*"></a>
+
+  <h3 id="Backdash_NetcodeSessionBuilder_1_ForRemote" data-uid="Backdash.NetcodeSessionBuilder`1.ForRemote">
+  ForRemote()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/NetcodeSessionBuilder.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Set the <a class="xref" href="Backdash.SessionMode.html">SessionMode</a> as <a class="xref" href="Backdash.SessionMode.html#Backdash_SessionMode_Remote">Remote</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetcodeSessionBuilder&lt;TInput&gt; ForRemote()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.NetcodeSessionBuilder-1.html">NetcodeSessionBuilder</a>&lt;TInput&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_NetcodeSessionBuilder_1_ForReplay_" data-uid="Backdash.NetcodeSessionBuilder`1.ForReplay*"></a>
+
+  <h3 id="Backdash_NetcodeSessionBuilder_1_ForReplay_System_Action_Backdash_Options_SessionReplayOptions__0___" data-uid="Backdash.NetcodeSessionBuilder`1.ForReplay(System.Action{Backdash.Options.SessionReplayOptions{`0}})">
+  ForReplay(Action&lt;SessionReplayOptions&lt;TInput&gt;&gt;?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/NetcodeSessionBuilder.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Set the <a class="xref" href="Backdash.SessionMode.html">SessionMode</a> as <a class="xref" href="Backdash.SessionMode.html#Backdash_SessionMode_Replay">Replay</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetcodeSessionBuilder&lt;TInput&gt; ForReplay(Action&lt;SessionReplayOptions&lt;TInput&gt;&gt;? config = null)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>config</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.action-1">Action</a>&lt;<a class="xref" href="Backdash.Options.SessionReplayOptions-1.html">SessionReplayOptions</a>&lt;TInput&gt;&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.NetcodeSessionBuilder-1.html">NetcodeSessionBuilder</a>&lt;TInput&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_NetcodeSessionBuilder_1_ForSpectator_" data-uid="Backdash.NetcodeSessionBuilder`1.ForSpectator*"></a>
+
+  <h3 id="Backdash_NetcodeSessionBuilder_1_ForSpectator_System_Action_Backdash_Options_SpectatorOptions__" data-uid="Backdash.NetcodeSessionBuilder`1.ForSpectator(System.Action{Backdash.Options.SpectatorOptions})">
+  ForSpectator(Action&lt;SpectatorOptions&gt;?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/NetcodeSessionBuilder.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Set the <a class="xref" href="Backdash.SessionMode.html">SessionMode</a> as <a class="xref" href="Backdash.SessionMode.html#Backdash_SessionMode_Spectator">Spectator</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetcodeSessionBuilder&lt;TInput&gt; ForSpectator(Action&lt;SpectatorOptions&gt;? config = null)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>config</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.action-1">Action</a>&lt;<a class="xref" href="Backdash.Options.SpectatorOptions.html">SpectatorOptions</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.NetcodeSessionBuilder-1.html">NetcodeSessionBuilder</a>&lt;TInput&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_NetcodeSessionBuilder_1_ForSpectator_" data-uid="Backdash.NetcodeSessionBuilder`1.ForSpectator*"></a>
+
+  <h3 id="Backdash_NetcodeSessionBuilder_1_ForSpectator_System_Net_IPEndPoint_" data-uid="Backdash.NetcodeSessionBuilder`1.ForSpectator(System.Net.IPEndPoint)">
+  ForSpectator(IPEndPoint)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/NetcodeSessionBuilder.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Set the <a class="xref" href="Backdash.SessionMode.html">SessionMode</a> as <a class="xref" href="Backdash.SessionMode.html#Backdash_SessionMode_Spectator">Spectator</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetcodeSessionBuilder&lt;TInput&gt; ForSpectator(IPEndPoint hostEndpoint)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>hostEndpoint</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.net.ipendpoint">IPEndPoint</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.NetcodeSessionBuilder-1.html">NetcodeSessionBuilder</a>&lt;TInput&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_NetcodeSessionBuilder_1_ForSyncTest_" data-uid="Backdash.NetcodeSessionBuilder`1.ForSyncTest*"></a>
+
+  <h3 id="Backdash_NetcodeSessionBuilder_1_ForSyncTest_System_Action_Backdash_Options_SyncTestOptions__0___" data-uid="Backdash.NetcodeSessionBuilder`1.ForSyncTest(System.Action{Backdash.Options.SyncTestOptions{`0}})">
+  ForSyncTest(Action&lt;SyncTestOptions&lt;TInput&gt;&gt;?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/NetcodeSessionBuilder.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Set the <a class="xref" href="Backdash.SessionMode.html">SessionMode</a> as <a class="xref" href="Backdash.SessionMode.html#Backdash_SessionMode_SyncTest">SyncTest</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetcodeSessionBuilder&lt;TInput&gt; ForSyncTest(Action&lt;SyncTestOptions&lt;TInput&gt;&gt;? config = null)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>config</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.action-1">Action</a>&lt;<a class="xref" href="Backdash.Options.SyncTestOptions-1.html">SyncTestOptions</a>&lt;TInput&gt;&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.NetcodeSessionBuilder-1.html">NetcodeSessionBuilder</a>&lt;TInput&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_NetcodeSessionBuilder_1_UseBackgroundThread_" data-uid="Backdash.NetcodeSessionBuilder`1.UseBackgroundThread*"></a>
+
+  <h3 id="Backdash_NetcodeSessionBuilder_1_UseBackgroundThread_System_Boolean_" data-uid="Backdash.NetcodeSessionBuilder`1.UseBackgroundThread(System.Boolean)">
+  UseBackgroundThread(bool)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/NetcodeSessionBuilder.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Run jobs in a separated thread.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetcodeSessionBuilder&lt;TInput&gt; UseBackgroundThread(bool enabled = true)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>enabled</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.NetcodeSessionBuilder-1.html">NetcodeSessionBuilder</a>&lt;TInput&gt;</dt>
+    <dd><p>Defaults to <code>true</code></p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_NetcodeSessionBuilder_1_WithChecksumProvider_" data-uid="Backdash.NetcodeSessionBuilder`1.WithChecksumProvider*"></a>
+
+  <h3 id="Backdash_NetcodeSessionBuilder_1_WithChecksumProvider_Backdash_Synchronizing_State_ChecksumDelegate_" data-uid="Backdash.NetcodeSessionBuilder`1.WithChecksumProvider(Backdash.Synchronizing.State.ChecksumDelegate)">
+  WithChecksumProvider(ChecksumDelegate)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/NetcodeSessionBuilder.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Set the logger <a class="xref" href="Backdash.Options.ServicesConfig-1.html#Backdash_Options_ServicesConfig_1_ChecksumProvider">ChecksumProvider</a></p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetcodeSessionBuilder&lt;TInput&gt; WithChecksumProvider(ChecksumDelegate compute)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>compute</code> <a class="xref" href="Backdash.Synchronizing.State.ChecksumDelegate.html">ChecksumDelegate</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.NetcodeSessionBuilder-1.html">NetcodeSessionBuilder</a>&lt;TInput&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <dl class="typelist seealso">
+    <dt>See Also</dt>
+    <dd>
+    <div><a class="xref" href="Backdash.Options.NetcodeOptions.html#Backdash_Options_NetcodeOptions_Logger">Logger</a></div>
+    </dd>
+  </dl>
+
+
+  <a id="Backdash_NetcodeSessionBuilder_1_WithChecksumProvider_" data-uid="Backdash.NetcodeSessionBuilder`1.WithChecksumProvider*"></a>
+
+  <h3 id="Backdash_NetcodeSessionBuilder_1_WithChecksumProvider_Backdash_Synchronizing_State_IChecksumProvider_" data-uid="Backdash.NetcodeSessionBuilder`1.WithChecksumProvider(Backdash.Synchronizing.State.IChecksumProvider)">
+  WithChecksumProvider(IChecksumProvider)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/NetcodeSessionBuilder.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Set the logger <a class="xref" href="Backdash.Options.ServicesConfig-1.html#Backdash_Options_ServicesConfig_1_ChecksumProvider">ChecksumProvider</a></p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetcodeSessionBuilder&lt;TInput&gt; WithChecksumProvider(IChecksumProvider provider)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>provider</code> <a class="xref" href="Backdash.Synchronizing.State.IChecksumProvider.html">IChecksumProvider</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.NetcodeSessionBuilder-1.html">NetcodeSessionBuilder</a>&lt;TInput&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <dl class="typelist seealso">
+    <dt>See Also</dt>
+    <dd>
+    <div><a class="xref" href="Backdash.Options.NetcodeOptions.html#Backdash_Options_NetcodeOptions_Logger">Logger</a></div>
+    </dd>
+  </dl>
+
+
+  <a id="Backdash_NetcodeSessionBuilder_1_WithChecksumProvider_" data-uid="Backdash.NetcodeSessionBuilder`1.WithChecksumProvider*"></a>
+
+  <h3 id="Backdash_NetcodeSessionBuilder_1_WithChecksumProvider__1" data-uid="Backdash.NetcodeSessionBuilder`1.WithChecksumProvider``1">
+  WithChecksumProvider&lt;T&gt;()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/NetcodeSessionBuilder.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Set the logger <a class="xref" href="Backdash.Options.ServicesConfig-1.html#Backdash_Options_ServicesConfig_1_ChecksumProvider">ChecksumProvider</a></p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetcodeSessionBuilder&lt;TInput&gt; WithChecksumProvider&lt;T&gt;() where T : IChecksumProvider, new()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.NetcodeSessionBuilder-1.html">NetcodeSessionBuilder</a>&lt;TInput&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <dl class="typelist seealso">
+    <dt>See Also</dt>
+    <dd>
+    <div><a class="xref" href="Backdash.Options.NetcodeOptions.html#Backdash_Options_NetcodeOptions_Logger">Logger</a></div>
+    </dd>
+  </dl>
+
+
+  <a id="Backdash_NetcodeSessionBuilder_1_WithComparer_" data-uid="Backdash.NetcodeSessionBuilder`1.WithComparer*"></a>
+
+  <h3 id="Backdash_NetcodeSessionBuilder_1_WithComparer_System_Collections_Generic_EqualityComparer__0__" data-uid="Backdash.NetcodeSessionBuilder`1.WithComparer(System.Collections.Generic.EqualityComparer{`0})">
+  WithComparer(EqualityComparer&lt;TInput&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/NetcodeSessionBuilder.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Set the <code class="typeparamref">TInput</code> comparer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetcodeSessionBuilder&lt;TInput&gt; WithComparer(EqualityComparer&lt;TInput&gt; comparer)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>comparer</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.equalitycomparer-1">EqualityComparer</a>&lt;TInput&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.NetcodeSessionBuilder-1.html">NetcodeSessionBuilder</a>&lt;TInput&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_NetcodeSessionBuilder_1_WithComparer_" data-uid="Backdash.NetcodeSessionBuilder`1.WithComparer*"></a>
+
+  <h3 id="Backdash_NetcodeSessionBuilder_1_WithComparer__1" data-uid="Backdash.NetcodeSessionBuilder`1.WithComparer``1">
+  WithComparer&lt;T&gt;()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/NetcodeSessionBuilder.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Set the <code class="typeparamref">TInput</code> comparer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetcodeSessionBuilder&lt;TInput&gt; WithComparer&lt;T&gt;() where T : EqualityComparer&lt;TInput&gt;, new()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.NetcodeSessionBuilder-1.html">NetcodeSessionBuilder</a>&lt;TInput&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_NetcodeSessionBuilder_1_WithDeterministicRandom_" data-uid="Backdash.NetcodeSessionBuilder`1.WithDeterministicRandom*"></a>
+
+  <h3 id="Backdash_NetcodeSessionBuilder_1_WithDeterministicRandom_Backdash_Synchronizing_Random_IDeterministicRandom__0__" data-uid="Backdash.NetcodeSessionBuilder`1.WithDeterministicRandom(Backdash.Synchronizing.Random.IDeterministicRandom{`0})">
+  WithDeterministicRandom(IDeterministicRandom&lt;TInput&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/NetcodeSessionBuilder.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Set the logger <a class="xref" href="Backdash.Options.ServicesConfig-1.html#Backdash_Options_ServicesConfig_1_DeterministicRandom">DeterministicRandom</a></p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetcodeSessionBuilder&lt;TInput&gt; WithDeterministicRandom(IDeterministicRandom&lt;TInput&gt; writer)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>writer</code> <a class="xref" href="Backdash.Synchronizing.Random.IDeterministicRandom-1.html">IDeterministicRandom</a>&lt;TInput&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.NetcodeSessionBuilder-1.html">NetcodeSessionBuilder</a>&lt;TInput&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <dl class="typelist seealso">
+    <dt>See Also</dt>
+    <dd>
+    <div><a class="xref" href="Backdash.Options.NetcodeOptions.html#Backdash_Options_NetcodeOptions_Logger">Logger</a></div>
+    </dd>
+  </dl>
+
+
+  <a id="Backdash_NetcodeSessionBuilder_1_WithDeterministicRandom_" data-uid="Backdash.NetcodeSessionBuilder`1.WithDeterministicRandom*"></a>
+
+  <h3 id="Backdash_NetcodeSessionBuilder_1_WithDeterministicRandom__1" data-uid="Backdash.NetcodeSessionBuilder`1.WithDeterministicRandom``1">
+  WithDeterministicRandom&lt;T&gt;()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/NetcodeSessionBuilder.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Set the logger <a class="xref" href="Backdash.Options.ServicesConfig-1.html#Backdash_Options_ServicesConfig_1_DeterministicRandom">DeterministicRandom</a></p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetcodeSessionBuilder&lt;TInput&gt; WithDeterministicRandom&lt;T&gt;() where T : IDeterministicRandom&lt;TInput&gt;, new()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.NetcodeSessionBuilder-1.html">NetcodeSessionBuilder</a>&lt;TInput&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <dl class="typelist seealso">
+    <dt>See Also</dt>
+    <dd>
+    <div><a class="xref" href="Backdash.Options.NetcodeOptions.html#Backdash_Options_NetcodeOptions_Logger">Logger</a></div>
+    </dd>
+  </dl>
+
+
+  <a id="Backdash_NetcodeSessionBuilder_1_WithEndianness_" data-uid="Backdash.NetcodeSessionBuilder`1.WithEndianness*"></a>
+
+  <h3 id="Backdash_NetcodeSessionBuilder_1_WithEndianness_Backdash_Network_Endianness_" data-uid="Backdash.NetcodeSessionBuilder`1.WithEndianness(Backdash.Network.Endianness)">
+  WithEndianness(Endianness)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/NetcodeSessionBuilder.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Select the input serialization <a class="xref" href="Backdash.Network.Endianness.html">Endianness</a></p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetcodeSessionBuilder&lt;TInput&gt; WithEndianness(Endianness endianness)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>endianness</code> <a class="xref" href="Backdash.Network.Endianness.html">Endianness</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.NetcodeSessionBuilder-1.html">NetcodeSessionBuilder</a>&lt;TInput&gt;</dt>
+    <dd><p>Defaults to <a class="xref" href="Backdash.Network.Endianness.html#Backdash_Network_Endianness_BigEndian">BigEndian</a></p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <dl class="typelist seealso">
+    <dt>See Also</dt>
+    <dd>
+    <div><a class="xref" href="Backdash.Network.Platform.html">Platform</a></div>
+    </dd>
+  </dl>
+
+
+  <a id="Backdash_NetcodeSessionBuilder_1_WithFileLogWriter_" data-uid="Backdash.NetcodeSessionBuilder`1.WithFileLogWriter*"></a>
+
+  <h3 id="Backdash_NetcodeSessionBuilder_1_WithFileLogWriter_System_String_System_Boolean_" data-uid="Backdash.NetcodeSessionBuilder`1.WithFileLogWriter(System.String,System.Boolean)">
+  WithFileLogWriter(string?, bool)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/NetcodeSessionBuilder.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Set the logger <a class="xref" href="Backdash.Options.ServicesConfig-1.html#Backdash_Options_ServicesConfig_1_LogWriter">LogWriter</a></p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetcodeSessionBuilder&lt;TInput&gt; WithFileLogWriter(string? filename = null, bool append = true)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>filename</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>append</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.NetcodeSessionBuilder-1.html">NetcodeSessionBuilder</a>&lt;TInput&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <dl class="typelist seealso">
+    <dt>See Also</dt>
+    <dd>
+    <div><a class="xref" href="Backdash.Options.NetcodeOptions.html#Backdash_Options_NetcodeOptions_Logger">Logger</a></div>
+    <div><a class="xref" href="Backdash.Core.FileTextLogWriter.html">FileTextLogWriter</a></div>
+    </dd>
+  </dl>
+
+
+  <a id="Backdash_NetcodeSessionBuilder_1_WithFrameRate_" data-uid="Backdash.NetcodeSessionBuilder`1.WithFrameRate*"></a>
+
+  <h3 id="Backdash_NetcodeSessionBuilder_1_WithFrameRate_System_Int32_" data-uid="Backdash.NetcodeSessionBuilder`1.WithFrameRate(System.Int32)">
+  WithFrameRate(int)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/NetcodeSessionBuilder.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Base frame rate used to estimate fairness (frame advantage) over peers.</p>
+<p>Default FPS(frames per second)
+<returns>60</returns></p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetcodeSessionBuilder&lt;TInput&gt; WithFrameRate(int fps)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>fps</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.NetcodeSessionBuilder-1.html">NetcodeSessionBuilder</a>&lt;TInput&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <dl class="typelist seealso">
+    <dt>See Also</dt>
+    <dd>
+    <div><a class="xref" href="Backdash.FrameTime.html">FrameTime</a></div>
+    </dd>
+  </dl>
+
+
+  <a id="Backdash_NetcodeSessionBuilder_1_WithHandler_" data-uid="Backdash.NetcodeSessionBuilder`1.WithHandler*"></a>
+
+  <h3 id="Backdash_NetcodeSessionBuilder_1_WithHandler_Backdash_INetcodeSessionHandler_" data-uid="Backdash.NetcodeSessionBuilder`1.WithHandler(Backdash.INetcodeSessionHandler)">
+  WithHandler(INetcodeSessionHandler)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/NetcodeSessionBuilder.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Set the session handler for the <a class="xref" href="Backdash.INetcodeSession-1.html">INetcodeSession&lt;TInput&gt;</a></p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetcodeSessionBuilder&lt;TInput&gt; WithHandler(INetcodeSessionHandler handler)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>handler</code> <a class="xref" href="Backdash.INetcodeSessionHandler.html">INetcodeSessionHandler</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.NetcodeSessionBuilder-1.html">NetcodeSessionBuilder</a>&lt;TInput&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <dl class="typelist seealso">
+    <dt>See Also</dt>
+    <dd>
+    <div><a class="xref" href="Backdash.INetcodeSessionHandler.html">INetcodeSessionHandler</a></div>
+    <div><a class="xref" href="Backdash.INetcodeSession.html#Backdash_INetcodeSession_SetHandler_Backdash_INetcodeSessionHandler_">SetHandler</a>(<a class="xref" href="Backdash.INetcodeSessionHandler.html">INetcodeSessionHandler</a>)</div>
+    </dd>
+  </dl>
+
+
+  <a id="Backdash_NetcodeSessionBuilder_1_WithInputDelayFrames_" data-uid="Backdash.NetcodeSessionBuilder`1.WithInputDelayFrames*"></a>
+
+  <h3 id="Backdash_NetcodeSessionBuilder_1_WithInputDelayFrames_System_Int32_" data-uid="Backdash.NetcodeSessionBuilder`1.WithInputDelayFrames(System.Int32)">
+  WithInputDelayFrames(int)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/NetcodeSessionBuilder.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Amount of frames to delay local input.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetcodeSessionBuilder&lt;TInput&gt; WithInputDelayFrames(int frames)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>frames</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.NetcodeSessionBuilder-1.html">NetcodeSessionBuilder</a>&lt;TInput&gt;</dt>
+    <dd><p>Defaults to <code>2</code></p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_NetcodeSessionBuilder_1_WithInputListener_" data-uid="Backdash.NetcodeSessionBuilder`1.WithInputListener*"></a>
+
+  <h3 id="Backdash_NetcodeSessionBuilder_1_WithInputListener_Backdash_Synchronizing_Input_Confirmed_IInputListener__0__" data-uid="Backdash.NetcodeSessionBuilder`1.WithInputListener(Backdash.Synchronizing.Input.Confirmed.IInputListener{`0})">
+  WithInputListener(IInputListener&lt;TInput&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/NetcodeSessionBuilder.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Set the logger <a class="xref" href="Backdash.Options.ServicesConfig-1.html#Backdash_Options_ServicesConfig_1_InputListener">InputListener</a></p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetcodeSessionBuilder&lt;TInput&gt; WithInputListener(IInputListener&lt;TInput&gt; listener)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>listener</code> <a class="xref" href="Backdash.Synchronizing.Input.Confirmed.IInputListener-1.html">IInputListener</a>&lt;TInput&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.NetcodeSessionBuilder-1.html">NetcodeSessionBuilder</a>&lt;TInput&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <dl class="typelist seealso">
+    <dt>See Also</dt>
+    <dd>
+    <div><a class="xref" href="Backdash.Synchronizing.Input.Confirmed.IInputListener-1.html">IInputListener</a>&lt;TInput&gt;</div>
+    </dd>
+  </dl>
+
+
+  <a id="Backdash_NetcodeSessionBuilder_1_WithInputListener_" data-uid="Backdash.NetcodeSessionBuilder`1.WithInputListener*"></a>
+
+  <h3 id="Backdash_NetcodeSessionBuilder_1_WithInputListener__1" data-uid="Backdash.NetcodeSessionBuilder`1.WithInputListener``1">
+  WithInputListener&lt;T&gt;()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/NetcodeSessionBuilder.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Set the logger <a class="xref" href="Backdash.Options.ServicesConfig-1.html#Backdash_Options_ServicesConfig_1_InputListener">InputListener</a></p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetcodeSessionBuilder&lt;TInput&gt; WithInputListener&lt;T&gt;() where T : IInputListener&lt;TInput&gt;, new()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.NetcodeSessionBuilder-1.html">NetcodeSessionBuilder</a>&lt;TInput&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <dl class="typelist seealso">
+    <dt>See Also</dt>
+    <dd>
+    <div><a class="xref" href="Backdash.Synchronizing.Input.Confirmed.IInputListener-1.html">IInputListener</a>&lt;TInput&gt;</div>
+    </dd>
+  </dl>
+
+
+  <a id="Backdash_NetcodeSessionBuilder_1_WithLogLevel_" data-uid="Backdash.NetcodeSessionBuilder`1.WithLogLevel*"></a>
+
+  <h3 id="Backdash_NetcodeSessionBuilder_1_WithLogLevel_Backdash_Core_LogLevel_System_Boolean_" data-uid="Backdash.NetcodeSessionBuilder`1.WithLogLevel(Backdash.Core.LogLevel,System.Boolean)">
+  WithLogLevel(LogLevel, bool)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/NetcodeSessionBuilder.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Set <a class="xref" href="Backdash.INetcodeSession-1.html">INetcodeSession&lt;TInput&gt;</a> options</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetcodeSessionBuilder&lt;TInput&gt; WithLogLevel(LogLevel level, bool appendLevel = true)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>level</code> <a class="xref" href="Backdash.Core.LogLevel.html">LogLevel</a></dt>
+    <dd></dd>
+    <dt><code>appendLevel</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.NetcodeSessionBuilder-1.html">NetcodeSessionBuilder</a>&lt;TInput&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <dl class="typelist seealso">
+    <dt>See Also</dt>
+    <dd>
+    <div><a class="xref" href="Backdash.Options.NetcodeOptions.html">NetcodeOptions</a></div>
+    </dd>
+  </dl>
+
+
+  <a id="Backdash_NetcodeSessionBuilder_1_WithLogWriter_" data-uid="Backdash.NetcodeSessionBuilder`1.WithLogWriter*"></a>
+
+  <h3 id="Backdash_NetcodeSessionBuilder_1_WithLogWriter_Backdash_Core_ILogWriter_" data-uid="Backdash.NetcodeSessionBuilder`1.WithLogWriter(Backdash.Core.ILogWriter)">
+  WithLogWriter(ILogWriter)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/NetcodeSessionBuilder.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Set the logger <a class="xref" href="Backdash.Options.ServicesConfig-1.html#Backdash_Options_ServicesConfig_1_LogWriter">LogWriter</a></p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetcodeSessionBuilder&lt;TInput&gt; WithLogWriter(ILogWriter writer)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>writer</code> <a class="xref" href="Backdash.Core.ILogWriter.html">ILogWriter</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.NetcodeSessionBuilder-1.html">NetcodeSessionBuilder</a>&lt;TInput&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <dl class="typelist seealso">
+    <dt>See Also</dt>
+    <dd>
+    <div><a class="xref" href="Backdash.Options.NetcodeOptions.html#Backdash_Options_NetcodeOptions_Logger">Logger</a></div>
+    </dd>
+  </dl>
+
+
+  <a id="Backdash_NetcodeSessionBuilder_1_WithLogWriter_" data-uid="Backdash.NetcodeSessionBuilder`1.WithLogWriter*"></a>
+
+  <h3 id="Backdash_NetcodeSessionBuilder_1_WithLogWriter_System_Action_Backdash_Core_LogLevel_System_String__" data-uid="Backdash.NetcodeSessionBuilder`1.WithLogWriter(System.Action{Backdash.Core.LogLevel,System.String})">
+  WithLogWriter(Action&lt;LogLevel, string&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/NetcodeSessionBuilder.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Set the logger <a class="xref" href="Backdash.Options.ServicesConfig-1.html#Backdash_Options_ServicesConfig_1_LogWriter">LogWriter</a></p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetcodeSessionBuilder&lt;TInput&gt; WithLogWriter(Action&lt;LogLevel, string&gt; logAction)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>logAction</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.action-2">Action</a>&lt;<a class="xref" href="Backdash.Core.LogLevel.html">LogLevel</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.NetcodeSessionBuilder-1.html">NetcodeSessionBuilder</a>&lt;TInput&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <dl class="typelist seealso">
+    <dt>See Also</dt>
+    <dd>
+    <div><a class="xref" href="Backdash.Options.NetcodeOptions.html#Backdash_Options_NetcodeOptions_Logger">Logger</a></div>
+    </dd>
+  </dl>
+
+
+  <a id="Backdash_NetcodeSessionBuilder_1_WithLogWriter_" data-uid="Backdash.NetcodeSessionBuilder`1.WithLogWriter*"></a>
+
+  <h3 id="Backdash_NetcodeSessionBuilder_1_WithLogWriter__1" data-uid="Backdash.NetcodeSessionBuilder`1.WithLogWriter``1">
+  WithLogWriter&lt;T&gt;()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/NetcodeSessionBuilder.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Set the logger <a class="xref" href="Backdash.Options.ServicesConfig-1.html#Backdash_Options_ServicesConfig_1_LogWriter">LogWriter</a></p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetcodeSessionBuilder&lt;TInput&gt; WithLogWriter&lt;T&gt;() where T : ILogWriter, new()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.NetcodeSessionBuilder-1.html">NetcodeSessionBuilder</a>&lt;TInput&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <dl class="typelist seealso">
+    <dt>See Also</dt>
+    <dd>
+    <div><a class="xref" href="Backdash.Options.NetcodeOptions.html#Backdash_Options_NetcodeOptions_Logger">Logger</a></div>
+    </dd>
+  </dl>
+
+
+  <a id="Backdash_NetcodeSessionBuilder_1_WithMode_" data-uid="Backdash.NetcodeSessionBuilder`1.WithMode*"></a>
+
+  <h3 id="Backdash_NetcodeSessionBuilder_1_WithMode_Backdash_SessionMode_" data-uid="Backdash.NetcodeSessionBuilder`1.WithMode(Backdash.SessionMode)">
+  WithMode(SessionMode)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/NetcodeSessionBuilder.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Set the <a class="xref" href="Backdash.SessionMode.html">SessionMode</a> for the <a class="xref" href="Backdash.INetcodeSession-1.html">INetcodeSession&lt;TInput&gt;</a> to be build.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetcodeSessionBuilder&lt;TInput&gt; WithMode(SessionMode mode)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>mode</code> <a class="xref" href="Backdash.SessionMode.html">SessionMode</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.NetcodeSessionBuilder-1.html">NetcodeSessionBuilder</a>&lt;TInput&gt;</dt>
+    <dd><p>Defaults to <a class="xref" href="Backdash.SessionMode.html#Backdash_SessionMode_Remote">Remote</a></p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_NetcodeSessionBuilder_1_WithNetworkEndianness_" data-uid="Backdash.NetcodeSessionBuilder`1.WithNetworkEndianness*"></a>
+
+  <h3 id="Backdash_NetcodeSessionBuilder_1_WithNetworkEndianness_System_Boolean_" data-uid="Backdash.NetcodeSessionBuilder`1.WithNetworkEndianness(System.Boolean)">
+  WithNetworkEndianness(bool)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/NetcodeSessionBuilder.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>If <code class="paramref">useNetworkEndianness</code> is true,
+sets the input serialization <a class="xref" href="Backdash.Network.Endianness.html">Endianness</a> to <a class="xref" href="Backdash.Network.Endianness.html#Backdash_Network_Endianness_BigEndian">BigEndian</a></p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetcodeSessionBuilder&lt;TInput&gt; WithNetworkEndianness(bool useNetworkEndianness = true)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>useNetworkEndianness</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.NetcodeSessionBuilder-1.html">NetcodeSessionBuilder</a>&lt;TInput&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <dl class="typelist seealso">
+    <dt>See Also</dt>
+    <dd>
+    <div><a class="xref" href="Backdash.Network.Platform.html">Platform</a></div>
+    </dd>
+  </dl>
+
+
+  <a id="Backdash_NetcodeSessionBuilder_1_WithNetworkStats_" data-uid="Backdash.NetcodeSessionBuilder`1.WithNetworkStats*"></a>
+
+  <h3 id="Backdash_NetcodeSessionBuilder_1_WithNetworkStats_System_Boolean_" data-uid="Backdash.NetcodeSessionBuilder`1.WithNetworkStats(System.Boolean)">
+  WithNetworkStats(bool)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/NetcodeSessionBuilder.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Set <a class="xref" href="Backdash.INetcodeSession-1.html">INetcodeSession&lt;TInput&gt;</a> options</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetcodeSessionBuilder&lt;TInput&gt; WithNetworkStats(bool enabled = true)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>enabled</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.NetcodeSessionBuilder-1.html">NetcodeSessionBuilder</a>&lt;TInput&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <dl class="typelist seealso">
+    <dt>See Also</dt>
+    <dd>
+    <div><a class="xref" href="Backdash.Options.NetcodeOptions.html">NetcodeOptions</a></div>
+    </dd>
+  </dl>
+
+
+  <a id="Backdash_NetcodeSessionBuilder_1_WithOptions_" data-uid="Backdash.NetcodeSessionBuilder`1.WithOptions*"></a>
+
+  <h3 id="Backdash_NetcodeSessionBuilder_1_WithOptions_Backdash_Options_NetcodeOptions_" data-uid="Backdash.NetcodeSessionBuilder`1.WithOptions(Backdash.Options.NetcodeOptions)">
+  WithOptions(NetcodeOptions)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/NetcodeSessionBuilder.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Set <a class="xref" href="Backdash.INetcodeSession-1.html">INetcodeSession&lt;TInput&gt;</a> options</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetcodeSessionBuilder&lt;TInput&gt; WithOptions(NetcodeOptions options)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>options</code> <a class="xref" href="Backdash.Options.NetcodeOptions.html">NetcodeOptions</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.NetcodeSessionBuilder-1.html">NetcodeSessionBuilder</a>&lt;TInput&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <dl class="typelist seealso">
+    <dt>See Also</dt>
+    <dd>
+    <div><a class="xref" href="Backdash.Options.NetcodeOptions.html">NetcodeOptions</a></div>
+    </dd>
+  </dl>
+
+
+  <a id="Backdash_NetcodeSessionBuilder_1_WithPlayerCount_" data-uid="Backdash.NetcodeSessionBuilder`1.WithPlayerCount*"></a>
+
+  <h3 id="Backdash_NetcodeSessionBuilder_1_WithPlayerCount_System_Int32_" data-uid="Backdash.NetcodeSessionBuilder`1.WithPlayerCount(System.Int32)">
+  WithPlayerCount(int)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/NetcodeSessionBuilder.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Sets the number of players for the <a class="xref" href="Backdash.INetcodeSession-1.html">INetcodeSession&lt;TInput&gt;</a></p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetcodeSessionBuilder&lt;TInput&gt; WithPlayerCount(int count)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>count</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.NetcodeSessionBuilder-1.html">NetcodeSessionBuilder</a>&lt;TInput&gt;</dt>
+    <dd><p>Defaults to <code>2</code></p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_NetcodeSessionBuilder_1_WithPlayers_" data-uid="Backdash.NetcodeSessionBuilder`1.WithPlayers*"></a>
+
+  <h3 id="Backdash_NetcodeSessionBuilder_1_WithPlayers_Backdash_NetcodePlayer___" data-uid="Backdash.NetcodeSessionBuilder`1.WithPlayers(Backdash.NetcodePlayer[])">
+  WithPlayers(params NetcodePlayer[])
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/NetcodeSessionBuilder.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Set the players for the <a class="xref" href="Backdash.INetcodeSession-1.html">INetcodeSession&lt;TInput&gt;</a></p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetcodeSessionBuilder&lt;TInput&gt; WithPlayers(params NetcodePlayer[] players)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>players</code> <a class="xref" href="Backdash.NetcodePlayer.html">NetcodePlayer</a>[]</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.NetcodeSessionBuilder-1.html">NetcodeSessionBuilder</a>&lt;TInput&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_NetcodeSessionBuilder_1_WithPlayers_" data-uid="Backdash.NetcodeSessionBuilder`1.WithPlayers*"></a>
+
+  <h3 id="Backdash_NetcodeSessionBuilder_1_WithPlayers_System_Collections_Generic_IEnumerable_Backdash_NetcodePlayer__" data-uid="Backdash.NetcodeSessionBuilder`1.WithPlayers(System.Collections.Generic.IEnumerable{Backdash.NetcodePlayer})">
+  WithPlayers(IEnumerable&lt;NetcodePlayer&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/NetcodeSessionBuilder.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Set the players for the <a class="xref" href="Backdash.INetcodeSession-1.html">INetcodeSession&lt;TInput&gt;</a></p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetcodeSessionBuilder&lt;TInput&gt; WithPlayers(IEnumerable&lt;NetcodePlayer&gt; players)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>players</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1">IEnumerable</a>&lt;<a class="xref" href="Backdash.NetcodePlayer.html">NetcodePlayer</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.NetcodeSessionBuilder-1.html">NetcodeSessionBuilder</a>&lt;TInput&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_NetcodeSessionBuilder_1_WithPort_" data-uid="Backdash.NetcodeSessionBuilder`1.WithPort*"></a>
+
+  <h3 id="Backdash_NetcodeSessionBuilder_1_WithPort_System_Int32_" data-uid="Backdash.NetcodeSessionBuilder`1.WithPort(System.Int32)">
+  WithPort(int)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/NetcodeSessionBuilder.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Local Port for UDP connections</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetcodeSessionBuilder&lt;TInput&gt; WithPort(int port)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>port</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.NetcodeSessionBuilder-1.html">NetcodeSessionBuilder</a>&lt;TInput&gt;</dt>
+    <dd><p>Defaults to <code>random port</code></p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <dl class="typelist seealso">
+    <dt>See Also</dt>
+    <dd>
+    <div><a class="xref" href="Backdash.Network.Client.UdpSocket.html">UdpSocket</a></div>
+    </dd>
+  </dl>
+
+
+  <a id="Backdash_NetcodeSessionBuilder_1_WithReplayTestOptions_" data-uid="Backdash.NetcodeSessionBuilder`1.WithReplayTestOptions*"></a>
+
+  <h3 id="Backdash_NetcodeSessionBuilder_1_WithReplayTestOptions_Backdash_Options_SessionReplayOptions__0__" data-uid="Backdash.NetcodeSessionBuilder`1.WithReplayTestOptions(Backdash.Options.SessionReplayOptions{`0})">
+  WithReplayTestOptions(SessionReplayOptions&lt;TInput&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/NetcodeSessionBuilder.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Set replay session options.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetcodeSessionBuilder&lt;TInput&gt; WithReplayTestOptions(SessionReplayOptions&lt;TInput&gt; options)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>options</code> <a class="xref" href="Backdash.Options.SessionReplayOptions-1.html">SessionReplayOptions</a>&lt;TInput&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.NetcodeSessionBuilder-1.html">NetcodeSessionBuilder</a>&lt;TInput&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <dl class="typelist seealso">
+    <dt>See Also</dt>
+    <dd>
+    <div><a class="xref" href="Backdash.Options.SessionReplayOptions-1.html">SessionReplayOptions</a>&lt;TInput&gt;</div>
+    </dd>
+  </dl>
+
+
+  <a id="Backdash_NetcodeSessionBuilder_1_WithSaveStateCount_" data-uid="Backdash.NetcodeSessionBuilder`1.WithSaveStateCount*"></a>
+
+  <h3 id="Backdash_NetcodeSessionBuilder_1_WithSaveStateCount_System_Int32_" data-uid="Backdash.NetcodeSessionBuilder`1.WithSaveStateCount(System.Int32)">
+  WithSaveStateCount(int)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/NetcodeSessionBuilder.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Value to override the total number of <a class="xref" href="Backdash.Synchronizing.State.SavedFrame.html">SavedFrame</a> in state store.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetcodeSessionBuilder&lt;TInput&gt; WithSaveStateCount(int count)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>count</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.NetcodeSessionBuilder-1.html">NetcodeSessionBuilder</a>&lt;TInput&gt;</dt>
+    <dd><p>Defaults to <a class="xref" href="Backdash.Options.NetcodeOptions.html#Backdash_Options_NetcodeOptions_PredictionFrames">PredictionFrames</a> + <a class="xref" href="Backdash.Options.NetcodeOptions.html#Backdash_Options_NetcodeOptions_PredictionFramesOffset">PredictionFramesOffset</a></p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <dl class="typelist seealso">
+    <dt>See Also</dt>
+    <dd>
+    <div><a class="xref" href="Backdash.Synchronizing.State.IStateStore.html">IStateStore</a></div>
+    </dd>
+  </dl>
+
+
+  <a id="Backdash_NetcodeSessionBuilder_1_WithServices_" data-uid="Backdash.NetcodeSessionBuilder`1.WithServices*"></a>
+
+  <h3 id="Backdash_NetcodeSessionBuilder_1_WithServices_Backdash_Options_ServicesConfig__0__" data-uid="Backdash.NetcodeSessionBuilder`1.WithServices(Backdash.Options.ServicesConfig{`0})">
+  WithServices(ServicesConfig&lt;TInput&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/NetcodeSessionBuilder.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Set custom session services</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetcodeSessionBuilder&lt;TInput&gt; WithServices(ServicesConfig&lt;TInput&gt; services)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>services</code> <a class="xref" href="Backdash.Options.ServicesConfig-1.html">ServicesConfig</a>&lt;TInput&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.NetcodeSessionBuilder-1.html">NetcodeSessionBuilder</a>&lt;TInput&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <dl class="typelist seealso">
+    <dt>See Also</dt>
+    <dd>
+    <div><a class="xref" href="Backdash.Options.ServicesConfig-1.html">ServicesConfig</a>&lt;TInput&gt;</div>
+    </dd>
+  </dl>
+
+
+  <a id="Backdash_NetcodeSessionBuilder_1_WithSpectatorOptions_" data-uid="Backdash.NetcodeSessionBuilder`1.WithSpectatorOptions*"></a>
+
+  <h3 id="Backdash_NetcodeSessionBuilder_1_WithSpectatorOptions_Backdash_Options_SpectatorOptions_" data-uid="Backdash.NetcodeSessionBuilder`1.WithSpectatorOptions(Backdash.Options.SpectatorOptions)">
+  WithSpectatorOptions(SpectatorOptions)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/NetcodeSessionBuilder.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Set spectator session options.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetcodeSessionBuilder&lt;TInput&gt; WithSpectatorOptions(SpectatorOptions options)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>options</code> <a class="xref" href="Backdash.Options.SpectatorOptions.html">SpectatorOptions</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.NetcodeSessionBuilder-1.html">NetcodeSessionBuilder</a>&lt;TInput&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <dl class="typelist seealso">
+    <dt>See Also</dt>
+    <dd>
+    <div><a class="xref" href="Backdash.Options.SpectatorOptions.html">SpectatorOptions</a></div>
+    </dd>
+  </dl>
+
+
+  <a id="Backdash_NetcodeSessionBuilder_1_WithStateStore_" data-uid="Backdash.NetcodeSessionBuilder`1.WithStateStore*"></a>
+
+  <h3 id="Backdash_NetcodeSessionBuilder_1_WithStateStore_Backdash_Synchronizing_State_IStateStore_" data-uid="Backdash.NetcodeSessionBuilder`1.WithStateStore(Backdash.Synchronizing.State.IStateStore)">
+  WithStateStore(IStateStore)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/NetcodeSessionBuilder.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Set the logger <a class="xref" href="Backdash.Options.ServicesConfig-1.html#Backdash_Options_ServicesConfig_1_StateStore">StateStore</a></p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetcodeSessionBuilder&lt;TInput&gt; WithStateStore(IStateStore writer)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>writer</code> <a class="xref" href="Backdash.Synchronizing.State.IStateStore.html">IStateStore</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.NetcodeSessionBuilder-1.html">NetcodeSessionBuilder</a>&lt;TInput&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <dl class="typelist seealso">
+    <dt>See Also</dt>
+    <dd>
+    <div><a class="xref" href="Backdash.Options.NetcodeOptions.html#Backdash_Options_NetcodeOptions_Logger">Logger</a></div>
+    </dd>
+  </dl>
+
+
+  <a id="Backdash_NetcodeSessionBuilder_1_WithStateStore_" data-uid="Backdash.NetcodeSessionBuilder`1.WithStateStore*"></a>
+
+  <h3 id="Backdash_NetcodeSessionBuilder_1_WithStateStore__1" data-uid="Backdash.NetcodeSessionBuilder`1.WithStateStore``1">
+  WithStateStore&lt;T&gt;()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/NetcodeSessionBuilder.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Set the logger <a class="xref" href="Backdash.Options.ServicesConfig-1.html#Backdash_Options_ServicesConfig_1_StateStore">StateStore</a></p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetcodeSessionBuilder&lt;TInput&gt; WithStateStore&lt;T&gt;() where T : IStateStore, new()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.NetcodeSessionBuilder-1.html">NetcodeSessionBuilder</a>&lt;TInput&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <dl class="typelist seealso">
+    <dt>See Also</dt>
+    <dd>
+    <div><a class="xref" href="Backdash.Options.NetcodeOptions.html#Backdash_Options_NetcodeOptions_Logger">Logger</a></div>
+    </dd>
+  </dl>
+
+
+  <a id="Backdash_NetcodeSessionBuilder_1_WithSyncTestOptions_" data-uid="Backdash.NetcodeSessionBuilder`1.WithSyncTestOptions*"></a>
+
+  <h3 id="Backdash_NetcodeSessionBuilder_1_WithSyncTestOptions_Backdash_Options_SyncTestOptions__0__" data-uid="Backdash.NetcodeSessionBuilder`1.WithSyncTestOptions(Backdash.Options.SyncTestOptions{`0})">
+  WithSyncTestOptions(SyncTestOptions&lt;TInput&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/NetcodeSessionBuilder.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Set sync test session options.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public NetcodeSessionBuilder&lt;TInput&gt; WithSyncTestOptions(SyncTestOptions&lt;TInput&gt; options)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>options</code> <a class="xref" href="Backdash.Options.SyncTestOptions-1.html">SyncTestOptions</a>&lt;TInput&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.NetcodeSessionBuilder-1.html">NetcodeSessionBuilder</a>&lt;TInput&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <dl class="typelist seealso">
+    <dt>See Also</dt>
+    <dd>
+    <div><a class="xref" href="Backdash.Options.SyncTestOptions-1.html">SyncTestOptions</a>&lt;TInput&gt;</div>
+    </dd>
+  </dl>
+
+
+  <h2 id="seealso">See Also</h2>
+  <div class="seealso">
+      <div><a class="xref" href="Backdash.RollbackNetcode.html">RollbackNetcode</a></div>
+  </div>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/NetcodeSessionBuilder.cs" class="edit-link">Edit this page</a>
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Developed by <a href="https://lucasteles.dev/">Lucas Teles</a>.</span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
