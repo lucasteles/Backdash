@@ -1,4 +1,6 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 using Backdash.Core;
 using Backdash.Serialization;
 
@@ -34,17 +36,35 @@ sealed class HexStateStringParser : IStateStringParser
 ///     Try to get the json string representation of the state.
 /// </summary>
 public sealed class JsonStateStringParser(
-    JsonSerializerOptions? options = null,
+    JsonTypeInfo stateTypeInfo,
     IStateStringParser? stateStringFallback = null
 ) : IStateStringParser
 {
+    /// <summary>
+    ///     Try to get the json string representation of the state.
+    /// </summary>
+    /// <remarks>For AoT compatibility, use <see cref="JsonStateStringParser(JsonTypeInfo,IStateStringParser?)"/> instead.</remarks>
+    /// <param name="options"></param>
+    /// <param name="stateStringFallback"></param>
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo instead.")]
+    [RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
+    public JsonStateStringParser(
+    JsonSerializerOptions? options = null,
+    IStateStringParser? stateStringFallback = null
+    ) : this(
+        (options ?? new()
+        {
+            WriteIndented = true,
+            IncludeFields = true,
+        }).GetTypeInfo(typeof(object)),
+        stateStringFallback)
+    {
+
+    }
+
     internal Logger? Logger = null;
 
-    readonly JsonSerializerOptions jsonOptions = options ?? new()
-    {
-        WriteIndented = true,
-        IncludeFields = true,
-    };
+    readonly JsonTypeInfo typeInfo = stateTypeInfo ?? throw new ArgumentNullException(nameof(stateTypeInfo));
 
     readonly IStateStringParser fallback = stateStringFallback ?? new HexStateStringParser();
 
@@ -56,7 +76,7 @@ public sealed class JsonStateStringParser(
 
         try
         {
-            return JsonSerializer.Serialize(currentState, jsonOptions);
+            return JsonSerializer.Serialize(currentState, typeInfo);
         }
         catch (Exception e)
         {

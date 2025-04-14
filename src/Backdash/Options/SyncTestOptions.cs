@@ -1,4 +1,6 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 using Backdash.Synchronizing.Input;
 using Backdash.Synchronizing.State;
 
@@ -50,9 +52,21 @@ public sealed record SyncTestOptions<TInput> where TInput : unmanaged
     /// <summary>
     ///     Use <see cref="JsonStateStringParser" /> as state viewer.
     /// </summary>
+    /// <remarks>For AoT compatibility, use <see cref="UseJsonStateViewer(JsonTypeInfo)"/> instead.</remarks>
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo instead.")]
+    [RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
     public SyncTestOptions<TInput> UseJsonStateViewer(JsonSerializerOptions? options = null)
     {
         StateStringParser = new JsonStateStringParser(options);
+        return this;
+    }
+
+    /// <summary>
+    ///     Use <see cref="JsonStateStringParser" /> as state viewer.
+    /// </summary>
+    public SyncTestOptions<TInput> UseJsonStateViewer(JsonTypeInfo stateTypeInfo)
+    {
+        StateStringParser = new JsonStateStringParser(stateTypeInfo);
         return this;
     }
 
