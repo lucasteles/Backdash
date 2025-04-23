@@ -27,7 +27,4 @@ static class InternalExtensions
         foreach (var chars in chunks)
             yield return new(chars);
     }
-
-    public static string BreakToLines(this string value, int size) =>
-        string.Join('\n', value.SplitToLines(size));
 }

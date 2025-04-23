@@ -80,7 +80,7 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
         mismatchHandler = syncTestOptions.DesyncHandler;
         callbacks = services.SessionHandler;
 
-        stateParser = syncTestOptions.StateStringParser ?? new HexStateStringParser();
+        stateParser = syncTestOptions.StateStringParser ?? new DefaultStateStringParser();
         if (stateParser is JsonStateStringParser jsonParser)
             jsonParser.Logger = logger;
 
@@ -200,6 +200,9 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
 
     public ResultCode SynchronizeInputs()
     {
+        if (synchronizer.CurrentFrame.Number is 0)
+            synchronizer.SaveCurrentFrame();
+
         foreach (var (handle, input) in addedPlayers)
         {
             if (inRollback && savedFrames.Count > 0)
@@ -208,9 +211,6 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
             }
             else
             {
-                if (synchronizer.CurrentFrame.Number is 0)
-                    synchronizer.SaveCurrentFrame();
-
                 input.Last = input.Current;
             }
 

@@ -17,15 +17,23 @@ public interface IStateStringParser
 }
 
 /// <inheritdoc />
+sealed class DefaultStateStringParser : IStateStringParser
+{
+    /// <inheritdoc />
+    public string GetStateString(in Frame frame, ref readonly BinaryBufferReader reader, object? currentState) =>
+        currentState?.ToString() ?? string.Empty;
+}
+
+/// <inheritdoc />
 sealed class HexStateStringParser : IStateStringParser
 {
     /// <inheritdoc />
     public string GetStateString(in Frame frame, ref readonly BinaryBufferReader reader, object? currentState) =>
         $$"""
           {
-            --- Begin Hex ---
-            {{Convert.ToHexString(reader.CurrentBuffer).BreakToLines(LogStringBuffer.Capacity / 2)}}
-            ---  End Hex  ---
+            --- BEGIN State-Hex ---
+            {{Convert.ToHexString(reader.CurrentBuffer)}}
+            --- END State-Hex  ---
           }
           """;
 }
@@ -46,13 +54,14 @@ public sealed class JsonStateStringParser(
         IncludeFields = true,
     };
 
-    readonly IStateStringParser fallback = stateStringFallback ?? new HexStateStringParser();
+    readonly IStateStringParser fallback = stateStringFallback ?? new DefaultStateStringParser();
+    readonly HexStateStringParser nullFallback = new();
 
     /// <inheritdoc />
     public string GetStateString(in Frame frame, ref readonly BinaryBufferReader reader, object? currentState)
     {
         if (currentState is null)
-            return fallback.GetStateString(in frame, in reader, currentState);
+            return nullFallback.GetStateString(in frame, in reader, currentState);
 
         try
         {
