@@ -7,6 +7,7 @@ using Backdash.Network;
 using Backdash.Options;
 using Backdash.Serialization;
 using Backdash.Synchronizing.Input;
+using Backdash.Synchronizing.Input.Confirmed;
 using Backdash.Synchronizing.Random;
 using Backdash.Synchronizing.State;
 
@@ -19,14 +20,23 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
         Frame Frame,
         uint Checksum,
         byte[] State,
-        GameInput<TInput> Input
-    );
+        GameInput<ConfirmedInputs<TInput>> Inputs
+    )
+    {
+        public GameInput<TInput> GetInput(in PlayerHandle player) => new(Inputs.Data.Inputs[player.QueueIndex], Frame);
+    };
+
+    sealed class PlayerInputState
+    {
+        public GameInput<TInput> Current = new();
+        public GameInput<TInput> Last = new();
+    }
 
     readonly Synchronizer<TInput> synchronizer;
     readonly TaskCompletionSource tsc = new();
     readonly Logger logger;
-    readonly HashSet<PlayerHandle> addedPlayers = [];
     readonly HashSet<PlayerHandle> addedSpectators = [];
+    readonly Dictionary<PlayerHandle, PlayerInputState> addedPlayers = [];
     readonly Queue<SavedFrameBytes> savedFrames = [];
     readonly SynchronizedInput<TInput>[] syncInputBuffer = new SynchronizedInput<TInput>[Max.NumberOfPlayers];
     readonly TInput[] inputBuffer = new TInput[Max.NumberOfPlayers];
@@ -41,8 +51,6 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
     bool inRollback;
     bool running;
     Task backGroundJobTask = Task.CompletedTask;
-    GameInput<TInput> currentInput;
-    GameInput<TInput> lastInput;
     Frame lastVerified = Frame.Zero;
 
     public int FixedFrameRate { get; }
@@ -78,7 +86,7 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
 
         synchronizer = new(
             options, logger,
-            addedPlayers,
+            addedPlayers.Keys,
             services.StateStore,
             services.ChecksumProvider,
             new(options.NumberOfPlayers),
@@ -87,8 +95,6 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
         {
             Callbacks = callbacks,
         };
-        currentInput = new();
-        lastInput = new();
     }
 
     public void Dispose() => tsc.SetResult();
@@ -108,7 +114,7 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
     public SavedFrame GetCurrentSavedFrame() => synchronizer.GetLastSavedFrame();
 
     public IReadOnlySet<PlayerHandle> GetPlayers() =>
-        addedPlayers.Count is 0 ? localPlayerFallback : addedPlayers;
+        addedPlayers.Count is 0 ? localPlayerFallback : addedPlayers.Keys.ToHashSet();
 
     public IReadOnlySet<PlayerHandle> GetSpectators() => addedSpectators;
     public void DisconnectPlayer(in PlayerHandle player) { }
@@ -131,34 +137,14 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
         await backGroundJobTask.WaitAsync(stoppingToken).ConfigureAwait(false);
     }
 
-    public ResultCode AddPlayer(NetcodePlayer player)
-    {
-        if (addedPlayers.Count >= Max.NumberOfPlayers)
-            return ResultCode.TooManyPlayers;
-
-        if (player.IsSpectator())
-        {
-            if (!addedSpectators.Add(player.Handle))
-                return ResultCode.DuplicatedPlayer;
-        }
-        else
-        {
-            if (!addedPlayers.Add(player.Handle))
-                return ResultCode.DuplicatedPlayer;
-        }
-
-        return ResultCode.Ok;
-    }
-
-
     public ResultCode AddLocalPlayer(out PlayerHandle handle)
     {
-        handle = new(PlayerType.Local);
+        handle = new(PlayerType.Local, addedPlayers.Count);
 
         if (addedPlayers.Count >= Max.NumberOfPlayers)
             return ResultCode.TooManyPlayers;
 
-        if (!addedPlayers.Add(handle))
+        if (!addedPlayers.TryAdd(handle, new()))
             return ResultCode.DuplicatedPlayer;
 
         return ResultCode.Ok;
@@ -185,7 +171,7 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
 
     public PlayerConnectionStatus GetPlayerStatus(in PlayerHandle player)
     {
-        if (addedPlayers.Contains(player) || addedSpectators.Contains(player))
+        if (addedPlayers.ContainsKey(player) || addedSpectators.Contains(player))
             return player.IsLocal() ? PlayerConnectionStatus.Local : PlayerConnectionStatus.Connected;
         return PlayerConnectionStatus.Unknown;
     }
@@ -197,13 +183,16 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
         if (!running)
             return ResultCode.NotSynchronized;
 
+        if (!addedPlayers.TryGetValue(player, out var playerInput))
+            return ResultCode.InvalidPlayerHandle;
+
         var testInput = localInput;
 
         if (inputGenerator is not null)
             testInput = inputGenerator.Next();
 
-        currentInput.Frame = synchronizer.CurrentFrame;
-        currentInput.Data = testInput;
+        playerInput.Current.Frame = synchronizer.CurrentFrame;
+        playerInput.Current.Data = testInput;
         return ResultCode.Ok;
     }
 
@@ -211,21 +200,25 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
 
     public ResultCode SynchronizeInputs()
     {
-        if (inRollback)
+        foreach (var (handle, input) in addedPlayers)
         {
-            lastInput = savedFrames.Peek().Input;
-        }
-        else
-        {
-            if (synchronizer.CurrentFrame == Frame.Zero)
-                synchronizer.SaveCurrentFrame();
-            lastInput = currentInput;
+            if (inRollback && savedFrames.Count > 0)
+            {
+                input.Last = savedFrames.Peek().GetInput(in handle);
+            }
+            else
+            {
+                if (synchronizer.CurrentFrame.Number is 0)
+                    synchronizer.SaveCurrentFrame();
+
+                input.Last = input.Current;
+            }
+
+            inputBuffer[handle.QueueIndex] = input.Last.Data;
+            syncInputBuffer[handle.QueueIndex] = new(input.Last.Data, false);
         }
 
-        inputBuffer[0] = lastInput.Data;
-        syncInputBuffer[0] = new(lastInput.Data, false);
         random.UpdateSeed(CurrentFrame, inputBuffer, extraSeedState);
-
         return ResultCode.Ok;
     }
 
@@ -242,7 +235,14 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
     {
         logger.Write(LogLevel.Trace, $"End of frame({synchronizer.CurrentFrame})...");
         synchronizer.IncrementFrame();
-        currentInput.Erase();
+
+        GameInput<ConfirmedInputs<TInput>> lastInputs = new();
+
+        foreach (var (player, input) in addedPlayers)
+        {
+            input.Current.Erase();
+            lastInputs.Data.Inputs[player.QueueIndex] = input.Last.Data;
+        }
 
         if (inRollback) return;
 
@@ -255,7 +255,7 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
         var frame = synchronizer.CurrentFrame;
         savedFrames.Enqueue(new(
             Frame: frame,
-            Input: lastInput,
+            Inputs: lastInputs,
             State: stateBytes,
             Checksum: lastSaved.Checksum
         ));
@@ -264,7 +264,6 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
         // We've gone far enough ahead and should now start replaying frames.
         // Load the last verified frame and set the rollback flag to true.
         synchronizer.LoadFrame(in lastVerified);
-
 
         inRollback = true;
         while (savedFrames.Count > 0)
@@ -307,7 +306,7 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
         BinaryBufferReader previousReader = new(previous.GameState.WrittenSpan, ref lastOffset);
         var previousBody = stateParser.GetStateString(current.Frame, in previousReader, stateObject);
 
-        LogSaveState(level, "CURRENT", currentBody, current.Checksum, current.Frame, current.Input.Frame.Number);
+        LogSaveState(level, "CURRENT", currentBody, current.Checksum, current.Frame, current.Inputs.Frame.Number);
         LogSaveState(level, "LAST", previousBody, previous.Checksum, previous.Frame);
 
         if (mismatchHandler is not null)

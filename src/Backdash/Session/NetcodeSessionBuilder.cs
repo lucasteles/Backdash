@@ -65,7 +65,7 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
                 case SessionMode.Remote:
                     return new RemoteSession<TInput>(options, services);
                 case SessionMode.Local:
-                    ConfigureLocal();
+                    EnsureLocalPlayers();
                     return new LocalSession<TInput>(options, services);
                 case SessionMode.Spectator:
                     ConfigureSpectator();
@@ -75,6 +75,7 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
                     return new ReplaySession<TInput>(replayOptions, options, services);
                 case SessionMode.SyncTest:
                     ConfigureSyncTest();
+                    EnsureLocalPlayers();
                     return new SyncTestSession<TInput>(syncTestOptions, options, services);
                 default:
                     throw new InvalidOperationException($"Unknown session mode: {sessionMode}");
@@ -82,7 +83,7 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
         }
     }
 
-    void ConfigureLocal()
+    void EnsureLocalPlayers()
     {
         if (playerList.Count > 0) return;
 

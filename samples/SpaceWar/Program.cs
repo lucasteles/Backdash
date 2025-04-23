@@ -57,12 +57,17 @@ static INetcodeSession<PlayerInputs> ParseSessionArgs(string[] args)
                 )
                 .Build();
 
-        case ["sync-test", ..]:
+        case ["sync-test-auto", ..]:
             return builder
                 .ForSyncTest(options => options
                     .UseJsonStateViewer()
                     .UseRandomInputProvider()
                 )
+                .Build();
+
+        case ["sync-test", ..]:
+            return builder
+                .ForSyncTest(options => options.UseJsonStateViewer())
                 .Build();
 
         default:
