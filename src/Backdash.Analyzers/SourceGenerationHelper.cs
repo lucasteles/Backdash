@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Text;
 using Microsoft.CodeAnalysis;
 
@@ -186,8 +185,6 @@ static class SourceGenerationHelper
 
     static bool IsTypeArrayCopiable(ITypeSymbol type)
     {
-        Debug.Assert(type != null);
-
         if (!type.IsUnmanagedType || type is INamedTypeSymbol { EnumUnderlyingType: not null })
             return false;
 
