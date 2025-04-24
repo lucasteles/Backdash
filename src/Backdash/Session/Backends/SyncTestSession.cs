@@ -20,6 +20,7 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
         Frame Frame,
         uint Checksum,
         byte[] State,
+        int StateSize,
         GameInput<ConfirmedInputs<TInput>> Inputs
     )
     {
@@ -46,6 +47,7 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
     readonly IStateStringParser stateParser;
     readonly IInputProvider<TInput>? inputGenerator;
     readonly IDeterministicRandom<TInput> random;
+    readonly Endianness endianness;
 
     INetcodeSessionHandler callbacks;
     bool inRollback;
@@ -95,6 +97,8 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
         {
             Callbacks = callbacks,
         };
+
+        endianness = options.GetStateSerializationEndianness();
     }
 
     public void Dispose() => tsc.SetResult();
@@ -111,6 +115,7 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
 
     public ReadOnlySpan<TInput> CurrentInputs => inputBuffer;
 
+    public bool IsInRollback => synchronizer.InRollback;
     public SavedFrame GetCurrentSavedFrame() => synchronizer.GetLastSavedFrame();
 
     public IReadOnlySet<PlayerHandle> GetPlayers() =>
@@ -196,23 +201,20 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
         return ResultCode.Ok;
     }
 
-    public void BeginFrame() => logger.Write(LogLevel.Trace, $"Beginning of frame({synchronizer.CurrentFrame})...");
+    public void BeginFrame() =>
+        logger.Write(LogLevel.Trace, $"Beginning of frame ({synchronizer.CurrentFrame.Number})...");
 
     public ResultCode SynchronizeInputs()
     {
-        if (synchronizer.CurrentFrame.Number is 0)
+        if (synchronizer.CurrentFrame.Number is 0 && !inRollback)
             synchronizer.SaveCurrentFrame();
 
         foreach (var (handle, input) in addedPlayers)
         {
             if (inRollback && savedFrames.Count > 0)
-            {
                 input.Last = savedFrames.Peek().GetInput(in handle);
-            }
             else
-            {
                 input.Last = input.Current;
-            }
 
             inputBuffer[handle.QueueIndex] = input.Last.Data;
             syncInputBuffer[handle.QueueIndex] = new(input.Last.Data, false);
@@ -223,6 +225,7 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
     }
 
     uint extraSeedState;
+
     public void SetRandomSeed(uint seed, uint extraState = 0) => extraSeedState = unchecked(seed + extraState);
 
     public bool LoadFrame(Frame frame)
@@ -233,10 +236,12 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
 
     public void AdvanceFrame()
     {
-        logger.Write(LogLevel.Trace, $"End of frame({synchronizer.CurrentFrame})...");
+        logger.Write(LogLevel.Trace, $"End of frame ({synchronizer.CurrentFrame.Number})...");
+
         synchronizer.IncrementFrame();
 
-        GameInput<ConfirmedInputs<TInput>> lastInputs = new();
+        GameInput<ConfirmedInputs<TInput>> lastInputs = new(synchronizer.CurrentFrame);
+        lastInputs.Data.Count = (byte)addedPlayers.Count;
 
         foreach (var (player, input) in addedPlayers)
         {
@@ -257,10 +262,13 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
             Frame: frame,
             Inputs: lastInputs,
             State: stateBytes,
+            StateSize: lastSaved.GameState.WrittenCount,
             Checksum: lastSaved.Checksum
         ));
-        if (frame - lastVerified != checkDistance.FrameValue)
+
+        if (frame - lastVerified < checkDistance.FrameValue)
             return;
+
         // We've gone far enough ahead and should now start replaying frames.
         // Load the last verified frame and set the rollback flag to true.
         synchronizer.LoadFrame(in lastVerified);
@@ -269,21 +277,31 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
         while (savedFrames.Count > 0)
         {
             callbacks.AdvanceFrame();
-            // Verify that the checksum of this frame is the same as the one in our list.
-            var info = savedFrames.Dequeue();
-            ArrayPool<byte>.Shared.Return(info.State);
-            if (info.Frame != synchronizer.CurrentFrame)
-            {
-                var message = $"Frame number {info.Frame.Number} does not match saved frame number {frame}";
-                logger.Write(LogLevel.Error, message);
-                if (throwError) throw new NetcodeException(message);
-            }
 
-            var last = synchronizer.GetLastSavedFrame();
-            if (info.Checksum != last.Checksum)
-                HandleDesync(frame, info, last);
-            else
-                logger.Write(LogLevel.Trace, $"Checksum #{last.Checksum:x8} for frame {info.Frame.Number} matches");
+            // Verify that the checksum of this frame is the same as the one in our list.
+            var current = savedFrames.Dequeue();
+
+            try
+            {
+                if (current.Frame != synchronizer.CurrentFrame)
+                {
+                    var message = $"Frame number {current.Frame.Number} does not match saved frame number {frame}";
+                    logger.Write(LogLevel.Error, message);
+                    if (throwError)
+                        throw new NetcodeException(message);
+                }
+
+                var last = synchronizer.GetLastSavedFrame();
+                if (current.Checksum != last.Checksum)
+                    HandleDesync(frame, current, last);
+                else
+                    logger.Write(LogLevel.Trace,
+                        $"Checksum #{last.Checksum:x8} for frame {current.Frame.Number} matches");
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(current.State);
+            }
         }
 
         lastVerified = frame;
@@ -297,16 +315,18 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
             $"Checksum for frame {frame} does NOT match: (#{previous.Checksum:x8} != #{current.Checksum:x8})\n";
         logger.Write(LogLevel.Error, message);
 
-        var (currentOffset, lastOffset) = (0, 0);
 
-        var stateObject = callbacks.GetCurrentState();
-        BinaryBufferReader currentReader = new(current.State, ref currentOffset);
-        var currentBody = stateParser.GetStateString(current.Frame, in currentReader, stateObject);
-
-        BinaryBufferReader previousReader = new(previous.GameState.WrittenSpan, ref lastOffset);
-        var previousBody = stateParser.GetStateString(current.Frame, in previousReader, stateObject);
-
+        var currentOffset = 0;
+        var currentBytes = current.State.AsSpan(0, current.StateSize);
+        BinaryBufferReader currentReader = new(currentBytes, ref currentOffset, endianness);
+        var currentObject = callbacks.ParseState(current.Frame, in currentReader);
+        var currentBody = stateParser.GetStateString(current.Frame, in currentReader, currentObject);
         LogSaveState(level, "CURRENT", currentBody, current.Checksum, current.Frame, current.Inputs.Frame.Number);
+
+        var lastOffset = 0;
+        BinaryBufferReader previousReader = new(previous.GameState.WrittenSpan, ref lastOffset, endianness);
+        var previousObject = callbacks.ParseState(current.Frame, in previousReader);
+        var previousBody = stateParser.GetStateString(current.Frame, in previousReader, previousObject);
         LogSaveState(level, "LAST", previousBody, previous.Checksum, previous.Frame);
 
         if (mismatchHandler is not null)

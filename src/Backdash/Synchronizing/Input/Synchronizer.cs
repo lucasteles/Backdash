@@ -90,7 +90,7 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
             return false;
         }
 
-        if (currentFrame.Number == 0)
+        if (currentFrame.Number is 0)
             SaveCurrentFrame();
 
         logger.Write(LogLevel.Trace, $"Sending non-delayed local frame {currentFrame.Number} to queue {queue}");

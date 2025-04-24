@@ -148,6 +148,7 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
     public Frame CurrentFrame => synchronizer.CurrentFrame;
     public FrameSpan RollbackFrames => synchronizer.RollbackFrames;
     public FrameSpan FramesBehind => synchronizer.FramesBehind;
+    public bool IsInRollback => synchronizer.InRollback;
     public SavedFrame GetCurrentSavedFrame() => synchronizer.GetLastSavedFrame();
     public int NumberOfPlayers => addedPlayers.Count;
     public int NumberOfSpectators => addedSpectators.Count;

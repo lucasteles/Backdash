@@ -66,6 +66,11 @@ public interface INetcodeSession : INetcodeSessionInfo, IDisposable
     INetcodeSessionInfo GetInfo() => this;
 
     /// <summary>
+    ///     Returns true if the session is in rollback state
+    /// </summary>
+    bool IsInRollback { get; }
+
+    /// <summary>
     ///     Returns the last saved state.
     /// </summary>
     SavedFrame GetCurrentSavedFrame();

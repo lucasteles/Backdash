@@ -120,6 +120,7 @@ sealed class SpectatorSession<TInput> :
     public Frame CurrentFrame { get; private set; } = Frame.Zero;
     public FrameSpan RollbackFrames => FrameSpan.Zero;
     public FrameSpan FramesBehind => FrameSpan.Zero;
+    public bool IsInRollback => false;
     public SavedFrame GetCurrentSavedFrame() => stateStore.Last();
     public INetcodeRandom Random => random;
     public int NumberOfPlayers { get; private set; }

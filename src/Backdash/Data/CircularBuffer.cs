@@ -203,6 +203,13 @@ public sealed class CircularBuffer<T>(int capacity) : IReadOnlyList<T>, IEquatab
 
     public int GetSpan(out ReadOnlySpan<T> begin, out ReadOnlySpan<T> end)
     {
+        if (count is 0)
+        {
+            begin = [];
+            end = [];
+            return 0;
+        }
+
         var items = array.AsSpan();
         var headItem = head is 0 && count > 0 ? items.Length : head;
 

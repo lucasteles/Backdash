@@ -153,5 +153,10 @@ public sealed class GameSession(
         session.AdvanceFrame();
     }
 
-    public object? GetCurrentState() => gameState;
+    object INetcodeSessionHandler.ParseState(in Frame frame, ref readonly BinaryBufferReader reader)
+    {
+        GameState state = new();
+        state.LoadState(in reader);
+        return state;
+    }
 }

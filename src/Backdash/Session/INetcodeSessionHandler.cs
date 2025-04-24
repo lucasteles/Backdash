@@ -60,13 +60,13 @@ public interface INetcodeSessionHandler
     void OnPeerEvent(PlayerHandle player, PeerEventInfo evt);
 
     /// <summary>
-    ///     Get current state object.
+    ///     Reads a state object of a snapshot.
     ///     Used mostly for SyncTest and logging.
     /// </summary>
     /// <seealso cref="NetcodeSessionBuilder{TInput}.ForSyncTest" />
     /// <seealso cref="IStateStringParser" />
     /// <seealso cref="IStateStringParser.GetStateString" />
-    object? GetCurrentState() => null;
+    object? ParseState(in Frame frame, ref readonly BinaryBufferReader reader) => null;
 }
 
 sealed class EmptySessionHandler(Logger logger) : INetcodeSessionHandler
