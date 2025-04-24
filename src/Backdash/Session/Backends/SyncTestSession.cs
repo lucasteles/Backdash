@@ -48,6 +48,7 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
     readonly IInputProvider<TInput>? inputGenerator;
     readonly IDeterministicRandom<TInput> random;
     readonly Endianness endianness;
+    readonly bool logStateOnDesync;
 
     INetcodeSessionHandler callbacks;
     bool inRollback;
@@ -75,6 +76,7 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
 
         FixedFrameRate = options.FrameRate;
         checkDistance = new(syncTestOptions.CheckDistance);
+        logStateOnDesync = syncTestOptions.LogStateOnDesync;
         throwError = syncTestOptions.ThrowOnDesync;
         logger = services.Logger;
         random = services.DeterministicRandom;
@@ -332,8 +334,10 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
         if (mismatchHandler is not null)
         {
             (currentOffset, lastOffset) = (0, 0);
-            mismatchHandler.Handle(currentBody, current.Checksum, previousBody, previous.Checksum);
-            mismatchHandler.Handle(in currentReader, current.Checksum, in previousReader, previous.Checksum);
+            mismatchHandler.Handle(
+                new(previousBody, in previousReader, previous.Checksum, previousObject),
+                new(currentBody, in currentReader, current.Checksum, currentObject)
+            );
         }
 
         if (throwError) throw new NetcodeException(message);
@@ -345,6 +349,7 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
         object? extra = null
     )
     {
+        if (!logStateOnDesync) return;
         logger.Write(level, $"=> SAVED [{description}] (Frame {frame}{(extra is not null ? $" / {extra}" : "")})");
         logger.Write(level, $"== START STATE #{checksum:x8} ==");
         LogText(level, body);

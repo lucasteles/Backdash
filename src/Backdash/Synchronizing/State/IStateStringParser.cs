@@ -55,6 +55,7 @@ public sealed class JsonStateStringParser(
         IncludeFields = true,
         AllowTrailingCommas = true,
         ReferenceHandler = ReferenceHandler.IgnoreCycles,
+        Converters = { new JsonStringEnumConverter() },
     };
 
     readonly IStateStringParser fallback = stateStringFallback ?? new DefaultStateStringParser();

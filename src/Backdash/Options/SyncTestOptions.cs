@@ -21,6 +21,11 @@ public sealed record SyncTestOptions<TInput> where TInput : unmanaged
     public bool ThrowOnDesync { get; set; } = true;
 
     /// <summary>
+    ///     If true, log state string on desync
+    /// </summary>
+    public bool LogStateOnDesync { get; set; } = true;
+
+    /// <summary>
     ///     Sets desync handler for <see cref="SessionMode.SyncTest" /> sessions.
     ///     Useful for showing smart state diff.
     /// </summary>
@@ -57,7 +62,7 @@ public sealed record SyncTestOptions<TInput> where TInput : unmanaged
     }
 
     /// <inheritdoc cref="StateStringParser" />
-    public SyncTestOptions<TInput> UseStateViewer<T>() where T : IStateStringParser, new()
+    public SyncTestOptions<TInput> UseStateStringParser<T>() where T : IStateStringParser, new()
     {
         StateStringParser = new T();
         return this;
