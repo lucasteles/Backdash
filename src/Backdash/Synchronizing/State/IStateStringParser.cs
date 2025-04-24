@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Backdash.Core;
 using Backdash.Serialization;
 
@@ -52,6 +53,8 @@ public sealed class JsonStateStringParser(
     {
         WriteIndented = true,
         IncludeFields = true,
+        AllowTrailingCommas = true,
+        ReferenceHandler = ReferenceHandler.IgnoreCycles,
     };
 
     readonly IStateStringParser fallback = stateStringFallback ?? new DefaultStateStringParser();
