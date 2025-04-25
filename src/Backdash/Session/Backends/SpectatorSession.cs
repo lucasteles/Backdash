@@ -186,6 +186,8 @@ sealed class SpectatorSession<TInput> :
 
     public bool GetNetworkStatus(in PlayerHandle player, ref PeerNetworkStats info)
     {
+        if (isSynchronizing) return false;
+
         host.GetNetworkStats(ref info);
         return true;
     }

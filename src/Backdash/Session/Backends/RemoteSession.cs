@@ -345,8 +345,7 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
 
     public bool GetNetworkStatus(in PlayerHandle player, ref PeerNetworkStats info)
     {
-        if (!IsPlayerKnown(in player)) return false;
-        if (isSynchronizing) return false;
+        if (isSynchronizing || player.IsLocal() || !IsPlayerKnown(in player)) return false;
         endpoints[player.QueueIndex]?.GetNetworkStats(ref info);
         return true;
     }
