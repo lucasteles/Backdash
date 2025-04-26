@@ -9,7 +9,6 @@ namespace Backdash.Synchronizing.State;
 /// <param name="Frame">Saved frame number</param>
 /// <param name="GameState">Game state on <paramref name="Frame" /></param>
 /// <param name="Checksum">Checksum of state</param>
-[Serializable]
 public sealed record SavedFrame(Frame Frame, ArrayBufferWriter<byte> GameState, uint Checksum)
 {
     /// <summary>Saved frame number</summary>

@@ -140,8 +140,7 @@ sealed class LocalSession<TInput> : INetcodeSession<TInput> where TInput : unman
 
     public bool GetNetworkStatus(in PlayerHandle player, ref PeerNetworkStats info)
     {
-        info.RollbackFrames = RollbackFrames;
-        info.CurrentFrame = CurrentFrame;
+        info.Session = this;
         info.Valid = false;
         return false;
     }

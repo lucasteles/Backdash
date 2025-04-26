@@ -138,19 +138,16 @@ public readonly struct PeerEventInfo(PeerEvent type) : IUtf8SpanFormattable
 /// </summary>
 /// <param name="CurrentStep">Current synchronizing step.</param>
 /// <param name="TotalSteps">Total synchronization steps</param>
-[StructLayout(LayoutKind.Sequential)]
 public readonly record struct SynchronizingEventInfo(int CurrentStep, int TotalSteps);
 
 /// <summary>
 ///     Data for <see cref="PeerEvent.ConnectionInterrupted" /> event.
 /// </summary>
 /// <param name="DisconnectTimeout">Time to disconnect.</param>
-[StructLayout(LayoutKind.Sequential)]
 public readonly record struct ConnectionInterruptedEventInfo(TimeSpan DisconnectTimeout);
 
 /// <summary>
 ///     Data for <see cref="PeerEvent.Synchronized" /> event.
 /// </summary>
 /// <param name="Ping">Current ping</param>
-[StructLayout(LayoutKind.Sequential)]
 public readonly record struct SynchronizedEventInfo(TimeSpan Ping);

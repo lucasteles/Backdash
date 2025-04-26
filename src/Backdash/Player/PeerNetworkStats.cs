@@ -15,20 +15,11 @@ public sealed class PeerNetworkStats
     /// </summary>
     public bool Valid { get; internal set; }
 
-    /// <summary>
-    ///     Returns the current session <see cref="Frame" />.
-    ///     Same as <see cref="INetcodeSessionInfo.CurrentFrame"/>
-    /// </summary>
-    public Frame CurrentFrame { get; internal set; }
-
     /// <summary>Current roundtrip ping time</summary>
     public TimeSpan Ping { get; internal set; }
 
-    /// <summary>
-    ///     Returns the number of current session rollback frames.
-    ///     Same as <see cref="INetcodeSessionInfo.RollbackFrames"/>
-    /// </summary>
-    public FrameSpan RollbackFrames { get; internal set; }
+    /// <summary>Current session info</summary>
+    public INetcodeSessionInfo? Session { get; internal set; }
 
     /// <summary>Remote frame advantage</summary>
     public FrameSpan LocalFramesBehind { get; internal set; }
@@ -88,9 +79,8 @@ public sealed class PeerNetworkStats
     public void Reset()
     {
         Valid = false;
-        CurrentFrame = Frame.Zero;
+        Session = null;
         Ping = TimeSpan.Zero;
-        RollbackFrames = FrameSpan.Zero;
         LocalFramesBehind = FrameSpan.Zero;
         RemoteFramesBehind = FrameSpan.Zero;
         PendingInputCount = 0;

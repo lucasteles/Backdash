@@ -4,7 +4,7 @@ using Backdash.Serialization.Internal;
 
 namespace Backdash.Network.Messages;
 
-[Serializable, StructLayout(LayoutKind.Sequential)]
+[Serializable, StructLayout(LayoutKind.Sequential, Pack = 4)]
 record struct QualityReport : IUtf8SpanFormattable
 {
     public int FrameAdvantage; /* what's the other guy's frame advantage? */

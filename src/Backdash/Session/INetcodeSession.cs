@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
+using Backdash.Data;
 using Backdash.Network;
 using Backdash.Synchronizing;
 using Backdash.Synchronizing.Random;
@@ -53,6 +54,26 @@ public interface INetcodeSessionInfo
     ///     Returns the current TCP local port.
     /// </summary>
     int LocalPort { get; }
+
+    /// <summary>
+    ///     Returns true if the session is in rollback state
+    /// </summary>
+    bool IsInRollback { get; }
+
+    /// <summary>
+    ///     Returns the last saved state.
+    /// </summary>
+    SavedFrame GetCurrentSavedFrame();
+
+    /// <summary>
+    ///     Returns the checksum of the current saved state.
+    /// </summary>
+    uint CurrentChecksum => GetCurrentSavedFrame().Checksum;
+
+    /// <summary>
+    ///     Returns the size of the current saved state.
+    /// </summary>
+    ByteSize CurrentStateSize => GetCurrentSavedFrame().Size;
 }
 
 /// <summary>
@@ -64,16 +85,6 @@ public interface INetcodeSession : INetcodeSessionInfo, IDisposable
     ///     Returns session info
     /// </summary>
     INetcodeSessionInfo GetInfo() => this;
-
-    /// <summary>
-    ///     Returns true if the session is in rollback state
-    /// </summary>
-    bool IsInRollback { get; }
-
-    /// <summary>
-    ///     Returns the last saved state.
-    /// </summary>
-    SavedFrame GetCurrentSavedFrame();
 
     /// <summary>
     ///     Disconnects a remote player from a game.
@@ -127,32 +138,6 @@ public interface INetcodeSession : INetcodeSessionInfo, IDisposable
     SessionReplayControl? ReplayController => null;
 
     /// <summary>
-    ///     Return true if the session is <see cref="SessionMode.Replay" />
-    /// </summary>
-    [MemberNotNullWhen(true, nameof(ReplayController))]
-    bool IsReplay() => Mode is SessionMode.Replay;
-
-    /// <summary>
-    ///     Return true if the session is <see cref="SessionMode.Remote" />
-    /// </summary>
-    bool IsRemote() => Mode is SessionMode.Remote;
-
-    /// <summary>
-    ///     Return true if the session is <see cref="SessionMode.Spectator" />
-    /// </summary>
-    bool IsSpectator() => Mode is SessionMode.Spectator;
-
-    /// <summary>
-    ///     Return true if the session is <see cref="SessionMode.Local" />
-    /// </summary>
-    bool IsLocal() => Mode is SessionMode.Local;
-
-    /// <summary>
-    ///     Return true if the session is <see cref="SessionMode.SyncTest" />
-    /// </summary>
-    bool IsSyncTest() => Mode is SessionMode.SyncTest;
-
-    /// <summary>
     ///     Add a local player into the session.
     /// </summary>
     ResultCode AddLocalPlayer(out PlayerHandle handle);
@@ -193,6 +178,32 @@ public interface INetcodeSession : INetcodeSessionInfo, IDisposable
     ///     The client must call this before <see cref="Start" />.
     /// </summary>
     void SetHandler(INetcodeSessionHandler handler);
+
+    /// <summary>
+    ///     Return true if the session is <see cref="SessionMode.Replay" />
+    /// </summary>
+    [MemberNotNullWhen(true, nameof(ReplayController))]
+    bool IsReplay() => Mode is SessionMode.Replay;
+
+    /// <summary>
+    ///     Return true if the session is <see cref="SessionMode.Remote" />
+    /// </summary>
+    bool IsRemote() => Mode is SessionMode.Remote;
+
+    /// <summary>
+    ///     Return true if the session is <see cref="SessionMode.Spectator" />
+    /// </summary>
+    bool IsSpectator() => Mode is SessionMode.Spectator;
+
+    /// <summary>
+    ///     Return true if the session is <see cref="SessionMode.Local" />
+    /// </summary>
+    bool IsLocal() => Mode is SessionMode.Local;
+
+    /// <summary>
+    ///     Return true if the session is <see cref="SessionMode.SyncTest" />
+    /// </summary>
+    bool IsSyncTest() => Mode is SessionMode.SyncTest;
 
     /// <summary>
     ///     Add the <paramref name="player" /> into current session.
@@ -252,12 +263,6 @@ public interface INetcodeSession : INetcodeSessionInfo, IDisposable
     ///     Tries to get first remote player
     /// </summary>
     bool TryGetRemotePlayer(out PlayerHandle player) => TryGetPlayer(PlayerType.Remote, out player);
-
-
-    /// <summary>
-    ///     Returns the checksum of the last saved state.
-    /// </summary>
-    uint CurrentChecksum => GetCurrentSavedFrame().Checksum;
 }
 
 /// <summary>

@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using System.Numerics;
-using System.Runtime.InteropServices;
 using Backdash.Serialization.Internal;
 
 namespace Backdash;
@@ -12,7 +11,7 @@ namespace Backdash;
 /// <seealso cref="FrameTime.set_CurrentFrameRate"/>
 [Serializable]
 [DebuggerDisplay("{ToString()}")]
-[StructLayout(LayoutKind.Sequential)]
+
 public readonly record struct FrameSpan :
     IComparable<FrameSpan>,
     IUtf8SpanFormattable,

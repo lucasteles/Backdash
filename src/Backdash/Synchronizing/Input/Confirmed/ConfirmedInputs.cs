@@ -1,6 +1,5 @@
 using System.Numerics;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using Backdash.Core;
 
 namespace Backdash.Synchronizing.Input.Confirmed;
@@ -9,7 +8,6 @@ namespace Backdash.Synchronizing.Input.Confirmed;
 ///     All confirmed inputs for all players
 /// </summary>
 /// <typeparam name="TInput"></typeparam>
-[StructLayout(LayoutKind.Sequential)]
 public struct ConfirmedInputs<TInput> : IEquatable<ConfirmedInputs<TInput>> where TInput : unmanaged
 {
     /// <summary>

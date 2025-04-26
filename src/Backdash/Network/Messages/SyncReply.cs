@@ -4,7 +4,7 @@ using Backdash.Serialization.Internal;
 
 namespace Backdash.Network.Messages;
 
-[Serializable, StructLayout(LayoutKind.Sequential)]
+[Serializable, StructLayout(LayoutKind.Sequential, Pack = 4)]
 record struct SyncReply : IUtf8SpanFormattable
 {
     public uint RandomReply; /* please reply with this random data */

@@ -1,9 +1,8 @@
-using System.Runtime.InteropServices;
 using Backdash.Serialization;
 
 namespace Backdash.Network.Messages;
 
-[Serializable, StructLayout(LayoutKind.Sequential)]
+[Serializable]
 record struct ConnectStatus
 {
     public Frame LastFrame;

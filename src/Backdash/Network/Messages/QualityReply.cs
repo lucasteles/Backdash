@@ -1,10 +1,9 @@
-using System.Runtime.InteropServices;
 using Backdash.Serialization;
 using Backdash.Serialization.Internal;
 
 namespace Backdash.Network.Messages;
 
-[Serializable, StructLayout(LayoutKind.Sequential)]
+[Serializable]
 record struct QualityReply : IUtf8SpanFormattable
 {
     public long Pong;

@@ -1,4 +1,4 @@
-﻿using ObjectLayoutInspector;
+using ObjectLayoutInspector;
 
 namespace Backdash.Tests;
 

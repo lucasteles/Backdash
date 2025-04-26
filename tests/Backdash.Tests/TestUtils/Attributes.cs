@@ -1,4 +1,4 @@
-﻿namespace Backdash.Tests.TestUtils;
+namespace Backdash.Tests.TestUtils;
 
 [AttributeUsage(AttributeTargets.Method)]
 public sealed class NonCIFactAttribute : FactAttribute

@@ -186,8 +186,7 @@ sealed class SpectatorSession<TInput> :
 
     public bool GetNetworkStatus(in PlayerHandle player, ref PeerNetworkStats info)
     {
-        info.RollbackFrames = RollbackFrames;
-        info.CurrentFrame = CurrentFrame;
+        info.Session = this;
 
         if (isSynchronizing)
         {

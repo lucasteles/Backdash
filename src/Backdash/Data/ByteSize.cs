@@ -1,4 +1,5 @@
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using Backdash.Serialization.Internal;
 
 namespace Backdash.Data;
@@ -229,6 +230,7 @@ public readonly record struct ByteSize(long ByteCount)
     /// <summary>
     ///     Returns number of bits for <paramref name="byteCount" /> bytes.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int ByteCountOfBits(in ushort byteCount) => MathI.CeilDiv(byteCount, ByteToBits);
 
     /// <inheritdoc />

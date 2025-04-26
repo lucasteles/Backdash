@@ -1,6 +1,6 @@
-﻿using Backdash.Network.Messages;
-using Backdash.Tests.TestUtils;
+using Backdash.Network.Messages;
 using Backdash.Synchronizing.Input;
+using Backdash.Tests.TestUtils;
 using Xunit.Abstractions;
 
 namespace Backdash.Tests.Viewers;

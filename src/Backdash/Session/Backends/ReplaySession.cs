@@ -142,8 +142,7 @@ sealed class ReplaySession<TInput> : INetcodeSession<TInput> where TInput : unma
 
     public bool GetNetworkStatus(in PlayerHandle player, ref PeerNetworkStats info)
     {
-        info.RollbackFrames = RollbackFrames;
-        info.CurrentFrame = CurrentFrame;
+        info.Session = this;
         info.Valid = false;
         return false;
     }

@@ -4,7 +4,7 @@ using Backdash.Serialization;
 namespace Backdash.Network.Messages;
 
 [Serializable]
-[StructLayout(LayoutKind.Sequential, Size = Size, Pack = 2)]
+[StructLayout(LayoutKind.Sequential, Size = Size)]
 record struct Header(MessageType Type)
 {
     public const int Size = 6;

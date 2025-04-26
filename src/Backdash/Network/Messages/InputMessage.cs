@@ -8,7 +8,7 @@ using Backdash.Serialization.Internal;
 
 namespace Backdash.Network.Messages;
 
-[Serializable, StructLayout(LayoutKind.Sequential)]
+[Serializable, StructLayout(LayoutKind.Sequential, Pack = 4)]
 struct InputMessage : IEquatable<InputMessage>, IUtf8SpanFormattable
 {
     public byte PeerCount;
@@ -106,7 +106,9 @@ struct InputMessage : IEquatable<InputMessage>, IUtf8SpanFormattable
     public static bool operator !=(in InputMessage left, in InputMessage right) => !left.Equals(in right);
 }
 
-[Serializable, InlineArray(Max.NumberOfPlayers)]
+[Serializable]
+
+[InlineArray(Max.NumberOfPlayers)]
 struct PeerStatusBuffer : IEquatable<PeerStatusBuffer>
 {
     ConnectStatus element0;
