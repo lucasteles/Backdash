@@ -138,7 +138,13 @@ sealed class LocalSession<TInput> : INetcodeSession<TInput> where TInput : unman
     public PlayerConnectionStatus GetPlayerStatus(in PlayerHandle player) =>
         addedPlayers.Contains(player) ? PlayerConnectionStatus.Local : PlayerConnectionStatus.Unknown;
 
-    public bool GetNetworkStatus(in PlayerHandle player, ref PeerNetworkStats info) => false;
+    public bool GetNetworkStatus(in PlayerHandle player, ref PeerNetworkStats info)
+    {
+        info.RollbackFrames = RollbackFrames;
+        info.CurrentFrame = CurrentFrame;
+        info.Valid = false;
+        return false;
+    }
 
     public ResultCode AddLocalInput(in PlayerHandle player, in TInput localInput)
     {

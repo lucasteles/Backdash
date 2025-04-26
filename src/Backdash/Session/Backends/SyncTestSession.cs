@@ -183,7 +183,13 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
         return PlayerConnectionStatus.Unknown;
     }
 
-    public bool GetNetworkStatus(in PlayerHandle player, ref PeerNetworkStats info) => false;
+    public bool GetNetworkStatus(in PlayerHandle player, ref PeerNetworkStats info)
+    {
+        info.RollbackFrames = RollbackFrames;
+        info.CurrentFrame = CurrentFrame;
+        info.Valid = false;
+        return false;
+    }
 
     public ResultCode AddLocalInput(in PlayerHandle player, in TInput localInput)
     {

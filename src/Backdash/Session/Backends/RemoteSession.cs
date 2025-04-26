@@ -146,8 +146,8 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
 
     public INetcodeRandom Random => random;
     public Frame CurrentFrame => synchronizer.CurrentFrame;
-    public FrameSpan RollbackFrames => synchronizer.RollbackFrames;
     public FrameSpan FramesBehind => synchronizer.FramesBehind;
+    public FrameSpan RollbackFrames => synchronizer.RollbackFrames;
     public bool IsInRollback => synchronizer.InRollback;
     public SavedFrame GetCurrentSavedFrame() => synchronizer.GetLastSavedFrame();
     public int NumberOfPlayers => addedPlayers.Count;
@@ -345,8 +345,17 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
 
     public bool GetNetworkStatus(in PlayerHandle player, ref PeerNetworkStats info)
     {
-        if (isSynchronizing || player.IsLocal() || !IsPlayerKnown(in player)) return false;
+        info.RollbackFrames = RollbackFrames;
+        info.CurrentFrame = CurrentFrame;
+
+        if (isSynchronizing || player.IsLocal() || !IsPlayerKnown(in player))
+        {
+            info.Valid = false;
+            return false;
+        }
+
         endpoints[player.QueueIndex]?.GetNetworkStats(ref info);
+        info.Valid = true;
         return true;
     }
 

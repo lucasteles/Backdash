@@ -140,7 +140,13 @@ sealed class ReplaySession<TInput> : INetcodeSession<TInput> where TInput : unma
     }
 #pragma warning restore S4144
 
-    public bool GetNetworkStatus(in PlayerHandle player, ref PeerNetworkStats info) => true;
+    public bool GetNetworkStatus(in PlayerHandle player, ref PeerNetworkStats info)
+    {
+        info.RollbackFrames = RollbackFrames;
+        info.CurrentFrame = CurrentFrame;
+        info.Valid = false;
+        return false;
+    }
 
     public void SetFrameDelay(PlayerHandle player, int delayInFrames) { }
 
