@@ -6,8 +6,8 @@ namespace Backdash.Network.Messages;
 [Serializable, StructLayout(LayoutKind.Sequential)]
 record struct ConnectStatus
 {
-    public bool Disconnected;
     public Frame LastFrame;
+    public bool Disconnected;
 
     public readonly void Serialize(in BinaryRawBufferWriter writer)
     {

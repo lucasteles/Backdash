@@ -8,7 +8,6 @@ static class Generate
 {
     public static readonly Faker Faker = new();
     public static Randomizer Random => Faker.Random;
-
     public static Vector2 Vector2() => new(Random.Float(), Random.Float());
     public static Vector3 Vector3() => new(Random.Float(), Random.Float(), Random.Float());
     public static PeerAddress Peer() => Faker.Internet.IpEndPoint();

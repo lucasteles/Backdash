@@ -404,7 +404,7 @@ public class BinaryBufferReadWriteListTests
     public void ShouldRentClassFromPoolWhenExpandEmptyList()
     {
         TestObjectPool<SimpleRefData> pool = new();
-        var values = TestGenerators.For<SimpleRefData>().Sample(10).ToList();
+        var values = DataGenerator.For<SimpleRefData>().Sample(10).ToList();
 
         Setup(Endianness.LittleEndian, out var writer);
         writer.Write(in values);
@@ -422,13 +422,13 @@ public class BinaryBufferReadWriteListTests
     public void ShouldRentedClassFromPoolWhenExpandInitializedList()
     {
         TestObjectPool<SimpleRefData> pool = new();
-        var values = TestGenerators.For<SimpleRefData>().Sample(10).ToList();
+        var values = DataGenerator.For<SimpleRefData>().Sample(10).ToList();
 
         Setup(Endianness.LittleEndian, out var writer);
         writer.Write(in values);
 
         var reader = GetReader(writer);
-        var copy = TestGenerators.For<SimpleRefData>().Sample(5).ToList();
+        var copy = DataGenerator.For<SimpleRefData>().Sample(5).ToList();
         reader.Read(copy, pool);
 
         copy.Should().Equal(values);
@@ -440,14 +440,14 @@ public class BinaryBufferReadWriteListTests
     public void ShouldReturnRentedClassFromPoolWhenExpandInitializedList()
     {
         TestObjectPool<SimpleRefData> pool = new();
-        var target = TestGenerators.For<SimpleRefData>().Sample(5).ToList();
+        var target = DataGenerator.For<SimpleRefData>().Sample(5).ToList();
 
         Setup(Endianness.LittleEndian, out var writer);
         writer.Write(in target);
 
         var reader = GetReader(writer);
-        var source1 = TestGenerators.For<SimpleRefData>().Sample(5).ToList();
-        var source2 = TestGenerators.For<SimpleRefData>().Sample(5).ToList();
+        var source1 = DataGenerator.For<SimpleRefData>().Sample(5).ToList();
+        var source2 = DataGenerator.For<SimpleRefData>().Sample(5).ToList();
         List<SimpleRefData> source = [.. source1, .. source2];
 
         reader.Read(source, pool);
