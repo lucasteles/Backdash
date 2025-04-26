@@ -41,8 +41,8 @@ public sealed class Renderer(
             spriteBatch.Draw(
                 gameAssets.Thrust, ship.Position, null, Color.White, rotation,
                 new(
-                    gameAssets.Thrust.Bounds.Width + ship.Radius / 2f,
-                    gameAssets.Thrust.Bounds.Height - ship.Radius / 2f),
+                    gameAssets.Thrust.Bounds.Width + (ship.Radius / 2f),
+                    gameAssets.Thrust.Bounds.Height - (ship.Radius / 2f)),
                 1, SpriteEffects.None, 0);
         for (var i = 0; i < ship.Bullets.Length; i++)
         {
@@ -89,7 +89,7 @@ public sealed class Renderer(
         if (player.State is PlayerConnectState.Running)
             DrawBar(
                 new(
-                    shipRect.Left - ship.Radius, shipRect.Bottom - ship.Radius / 2,
+                    shipRect.Left - ship.Radius, shipRect.Bottom - (ship.Radius / 2),
                     shipRect.Width, Config.ShipProgressBarHeight
                 ),
                 Color.Green, ship.Health, Config.StartingHealth
@@ -142,8 +142,8 @@ public sealed class Renderer(
         const float scale = 0.6f;
         var size = gameAssets.MainFont.MeasureString(player.StatusText) * scale;
         var pos = new Vector2(
-            ship.Position.X - size.X / 2,
-            ship.Position.Y + ship.Radius + size.Y / 2
+            ship.Position.X - (size.X / 2),
+            ship.Position.Y + ship.Radius + (size.Y / 2)
         );
         spriteBatch.DrawString(gameAssets.MainFont, player.StatusText, pos,
             textColor, 0, Vector2.Zero, scale, SpriteEffects.None, 0);

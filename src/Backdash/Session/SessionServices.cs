@@ -15,7 +15,7 @@ sealed class SessionServices<TInput> where TInput : unmanaged
     public IBinarySerializer<TInput> InputSerializer { get; }
     public IChecksumProvider ChecksumProvider { get; }
     public Logger Logger { get; }
-    public IBackgroundJobManager JobManager { get; }
+    public BackgroundJobManager JobManager { get; }
     public IProtocolClientFactory ProtocolClientFactory { get; }
     public IStateStore StateStore { get; }
     public IRandomNumberGenerator Random { get; }

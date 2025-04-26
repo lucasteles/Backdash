@@ -5,8 +5,6 @@ namespace Backdash.Network.Protocol.Comm;
 
 sealed class ProtocolMessageSerializer(Endianness endianness) : IBinarySerializer<ProtocolMessage>
 {
-    public ProtocolMessageSerializer(bool networkEndianness) : this(Platform.GetNetworkEndianness(networkEndianness)) { }
-
     public Endianness Endianness => endianness;
 
     public int Serialize(in ProtocolMessage data, Span<byte> buffer)

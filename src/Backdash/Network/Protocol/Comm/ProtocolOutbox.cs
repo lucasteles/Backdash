@@ -6,13 +6,11 @@ using Backdash.Network.Messages;
 
 namespace Backdash.Network.Protocol.Comm;
 
-interface IProtocolOutbox : IMessageSender, IMessageHandler<ProtocolMessage>;
-
 sealed class ProtocolOutbox(
     ProtocolState state,
     IPeerClient<ProtocolMessage> peer,
     Logger logger
-) : IProtocolOutbox
+) : IMessageSender, IMessageHandler<ProtocolMessage>
 {
     int nextSendSeq;
 

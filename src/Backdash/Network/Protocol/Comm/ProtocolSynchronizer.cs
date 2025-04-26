@@ -5,14 +5,6 @@ using Backdash.Options;
 
 namespace Backdash.Network.Protocol.Comm;
 
-interface IProtocolSynchronizer
-{
-    void CreateRequestMessage(ref ProtocolMessage message);
-    void CreateReplyMessage(in SyncRequest request, ref ProtocolMessage replyMessage);
-    void Synchronize();
-    void Update();
-}
-
 sealed class ProtocolSynchronizer(
     Logger logger,
     IRandomNumberGenerator random,
@@ -20,7 +12,7 @@ sealed class ProtocolSynchronizer(
     ProtocolOptions options,
     IMessageSender sender,
     IProtocolNetworkEventHandler eventHandler
-) : IProtocolSynchronizer
+)
 {
     bool active;
     int retryCounter;

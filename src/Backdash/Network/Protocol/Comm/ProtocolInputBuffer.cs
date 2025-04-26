@@ -9,14 +9,6 @@ using Backdash.Synchronizing.Input;
 
 namespace Backdash.Network.Protocol.Comm;
 
-interface IProtocolInputBuffer<TInput> where TInput : unmanaged
-{
-    int PendingNumber { get; }
-    GameInput<TInput> LastSent { get; }
-    SendInputResult SendInput(in GameInput<TInput> input);
-    SendInputResult SendPendingInputs();
-}
-
 enum SendInputResult : byte
 {
     Ok = 0,
@@ -25,8 +17,7 @@ enum SendInputResult : byte
     AlreadyAcked,
 }
 
-sealed class ProtocolInputBuffer<TInput> : IProtocolInputBuffer<TInput>
-    where TInput : unmanaged
+sealed class ProtocolInputBuffer<TInput> where TInput : unmanaged
 {
     readonly Queue<GameInput<TInput>> pendingOutput;
     readonly byte[] workingBufferMemory;
@@ -50,7 +41,8 @@ sealed class ProtocolInputBuffer<TInput> : IProtocolInputBuffer<TInput>
         Logger logger,
         ITimeSync<TInput> timeSync,
         IMessageSender sender,
-        IProtocolInbox<TInput> inbox)
+        IProtocolInbox<TInput> inbox
+    )
     {
         this.options = options;
         this.inputSerializer = inputSerializer;

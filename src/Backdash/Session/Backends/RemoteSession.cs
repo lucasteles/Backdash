@@ -17,14 +17,14 @@ using Backdash.Synchronizing.State;
 
 namespace Backdash.Backends;
 
-sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEventHandler
+sealed class RemoteSession<TInput> : INetcodeSession<TInput>
     where TInput : unmanaged
 {
     readonly NetcodeOptions options;
     readonly Logger logger;
     readonly IProtocolPeerClient udp;
     readonly Synchronizer<TInput> synchronizer;
-    readonly IBackgroundJobManager backgroundJobManager;
+    readonly BackgroundJobManager backgroundJobManager;
     readonly PeerConnectionFactory peerConnectionFactory;
     readonly IDeterministicRandom<TInput> random;
 
@@ -35,13 +35,14 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
     readonly HashSet<PlayerHandle> addedPlayers = [];
     readonly HashSet<PlayerHandle> addedSpectators = [];
     readonly ProtocolInputEventQueue<TInput> peerInputEventQueue;
-    readonly IProtocolInputEventPublisher<ConfirmedInputs<TInput>> peerCombinedInputsEventPublisher;
+    readonly ProtocolCombinedInputsEventPublisher<TInput> peerCombinedInputsEventPublisher;
 
     readonly IBinarySerializer<TInput> inputSerializer;
     readonly IBinarySerializer<ConfirmedInputs<TInput>> inputGroupSerializer;
     readonly EqualityComparer<TInput> inputComparer;
     readonly EqualityComparer<ConfirmedInputs<TInput>> inputGroupComparer;
     readonly IInputListener<TInput>? inputListener;
+    readonly ProtocolNetworkEventQueue networkEventQueue;
 
     bool isSynchronizing = true;
     int nextRecommendedInterval;
@@ -77,10 +78,11 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
         random = services.DeterministicRandom;
         inputComparer = services.InputComparer;
 
+        peerInputEventQueue = new();
+        networkEventQueue = new();
         inputGroupComparer = ConfirmedInputComparer<TInput>.Create(services.InputComparer);
         syncNumber = services.Random.MagicNumber();
-        peerInputEventQueue = new();
-        peerCombinedInputsEventPublisher = new ProtocolCombinedInputsEventPublisher<TInput>(peerInputEventQueue);
+        peerCombinedInputsEventPublisher = new(peerInputEventQueue);
         inputGroupSerializer = new ConfirmedInputsSerializer<TInput>(inputSerializer);
         localConnections = new(Max.NumberOfPlayers);
         endpoints = new(Max.NumberOfPlayers);
@@ -104,7 +106,7 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
         udp = services.ProtocolClientFactory.CreateProtocolClient(options.LocalPort, peerObservers);
 
         peerConnectionFactory = new(
-            this,
+            networkEventQueue,
             services.Random,
             logger,
             udp,
@@ -124,6 +126,7 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
         udp.Dispose();
         logger.Dispose();
         backgroundJobManager.Dispose();
+        networkEventQueue.Dispose();
         inputListener?.Dispose();
     }
 
@@ -482,31 +485,6 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
         callbacks.OnSessionStart();
     }
 
-    void ConsumeProtocolInputEvents()
-    {
-        while (peerInputEventQueue.TryConsume(out var gameInputEvent))
-        {
-            var (player, eventInput) = gameInputEvent;
-            if (!player.IsRemote())
-            {
-                logger.Write(LogLevel.Warning, $"non-remote input received from {player}");
-                continue;
-            }
-
-            if (localConnections[player].Disconnected)
-                continue;
-
-            var currentRemoteFrame = localConnections[player].LastFrame;
-            var newRemoteFrame = eventInput.Frame;
-
-            ThrowIf.Assert(currentRemoteFrame.IsNull || newRemoteFrame == currentRemoteFrame.Next());
-            synchronizer.AddRemoteInput(in player, eventInput);
-            // Notify the other endpoints which frame we received from a peer
-            logger.Write(LogLevel.Trace, $"setting remote connect status frame {player} to {eventInput.Frame}");
-            localConnections[player].LastFrame = eventInput.Frame;
-        }
-    }
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     Span<PeerConnection<TInput>?> UpdateEndpoints()
     {
@@ -539,7 +517,9 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
 
     void DoSync()
     {
+        ConsumeProtocolNetworkEvents();
         backgroundJobManager.ThrowIfError();
+
         if (synchronizer.InRollback) return;
         ConsumeProtocolInputEvents();
 
@@ -613,7 +593,40 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
         nextRecommendedInterval = currentFrame.Number + options.RecommendationInterval;
     }
 
-    void IProtocolNetworkEventHandler.OnNetworkEvent(in ProtocolEventInfo evt)
+    void ConsumeProtocolInputEvents()
+    {
+        while (peerInputEventQueue.TryConsume(out var gameInputEvent))
+        {
+            var (player, eventInput) = gameInputEvent;
+            if (!player.IsRemote())
+            {
+                logger.Write(LogLevel.Warning, $"non-remote input received from {player}");
+                continue;
+            }
+
+            if (localConnections[player].Disconnected)
+                continue;
+
+            var currentRemoteFrame = localConnections[player].LastFrame;
+            var newRemoteFrame = eventInput.Frame;
+
+            ThrowIf.Assert(currentRemoteFrame.IsNull || newRemoteFrame == currentRemoteFrame.Next());
+            synchronizer.AddRemoteInput(in player, eventInput);
+            // Notify the other endpoints which frame we received from a peer
+            logger.Write(LogLevel.Trace, $"setting remote connect status frame {player} to {eventInput.Frame}");
+            localConnections[player].LastFrame = eventInput.Frame;
+        }
+    }
+
+    void ConsumeProtocolNetworkEvents()
+    {
+        while (networkEventQueue.TryRead(out var evt))
+            OnNetworkEvent(in evt);
+
+        CheckInitialSync();
+    }
+
+    void OnNetworkEvent(in ProtocolEventInfo evt)
     {
         ref readonly var player = ref evt.Player;
         switch (evt.Type)
@@ -632,14 +645,12 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
                 {
                     Synchronized = new(evt.Synchronized.Ping),
                 });
-                CheckInitialSync();
                 break;
             case ProtocolEvent.SyncFailure:
                 if (player.IsSpectator())
                 {
                     spectators[player.QueueIndex].Disconnect();
                     addedSpectators.Remove(player);
-                    CheckInitialSync();
                 }
                 else
                     callbacks.OnPeerEvent(player, new(PeerEvent.SynchronizationFailure));
@@ -663,6 +674,7 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>, IProtocolNetworkEv
 
                 if (player.Type is PlayerType.Remote)
                     DisconnectPlayer(player);
+
                 callbacks.OnPeerEvent(player, new(PeerEvent.Disconnected));
                 break;
             default:

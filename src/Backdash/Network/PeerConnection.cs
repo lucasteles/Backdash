@@ -19,12 +19,12 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
     readonly ProtocolOptions options;
     readonly ProtocolState state;
     readonly Logger logger;
-    readonly ITimeSync<TInput> timeSync;
+    readonly TimeSync<TInput> timeSync;
     readonly IProtocolNetworkEventHandler networkEventHandler;
-    readonly IProtocolSynchronizer syncRequest;
-    readonly IProtocolInbox<TInput> inbox;
-    readonly IProtocolOutbox outbox;
-    readonly IProtocolInputBuffer<TInput> inputBuffer;
+    readonly ProtocolSynchronizer syncRequest;
+    readonly ProtocolInbox<TInput> inbox;
+    readonly ProtocolOutbox outbox;
+    readonly ProtocolInputBuffer<TInput> inputBuffer;
     readonly IStateStore stateStore;
 
     readonly Timer qualityReportTimer;
@@ -39,12 +39,12 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
         ProtocolOptions options,
         ProtocolState state,
         Logger logger,
-        ITimeSync<TInput> timeSync,
+        TimeSync<TInput> timeSync,
         IProtocolNetworkEventHandler networkEventHandler,
-        IProtocolSynchronizer syncRequest,
-        IProtocolInbox<TInput> inbox,
-        IProtocolOutbox outbox,
-        IProtocolInputBuffer<TInput> inputBuffer,
+        ProtocolSynchronizer syncRequest,
+        ProtocolInbox<TInput> inbox,
+        ProtocolOutbox outbox,
+        ProtocolInputBuffer<TInput> inputBuffer,
         IStateStore stateStore
     )
     {

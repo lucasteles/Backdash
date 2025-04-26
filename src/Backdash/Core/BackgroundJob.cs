@@ -9,16 +9,7 @@ interface IBackgroundJob
     Task Start(CancellationToken cancellationToken);
 }
 
-interface IBackgroundJobManager : IDisposable
-{
-    Task Start(bool onThread, CancellationToken cancellationToken);
-    void Register(IBackgroundJob job, CancellationToken cancellationToken = default);
-    void Stop(TimeSpan timeout = default);
-    void ThrowIfError();
-    bool IsRunning { get; }
-}
-
-sealed class BackgroundJobManager(Logger logger) : IBackgroundJobManager
+sealed class BackgroundJobManager(Logger logger) : IDisposable
 {
     readonly HashSet<JobEntry> jobs = [];
     readonly Dictionary<Task, JobEntry> tasks = [];

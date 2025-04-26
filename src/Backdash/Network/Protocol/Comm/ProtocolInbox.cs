@@ -23,7 +23,7 @@ sealed class ProtocolInbox<TInput>(
     ProtocolOptions options,
     IBinarySerializer<TInput> inputSerializer,
     ProtocolState state,
-    IProtocolSynchronizer sync,
+    ProtocolSynchronizer sync,
     IMessageSender messageSender,
     IProtocolNetworkEventHandler networkEvents,
     IProtocolInputEventPublisher<TInput> inputEvents,

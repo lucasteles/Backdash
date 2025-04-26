@@ -18,7 +18,6 @@ namespace Backdash.Backends;
 
 sealed class SpectatorSession<TInput> :
     INetcodeSession<TInput>,
-    IProtocolNetworkEventHandler,
     IProtocolInputEventPublisher<ConfirmedInputs<TInput>>
     where TInput : unmanaged
 {
@@ -26,12 +25,13 @@ sealed class SpectatorSession<TInput> :
     readonly IProtocolPeerClient udp;
     readonly IPEndPoint hostEndpoint;
     readonly NetcodeOptions options;
-    readonly IBackgroundJobManager backgroundJobManager;
+    readonly BackgroundJobManager backgroundJobManager;
     readonly ConnectionsState localConnections = new(0);
     readonly GameInput<ConfirmedInputs<TInput>>[] inputs;
     readonly PeerConnection<ConfirmedInputs<TInput>> host;
     readonly FrozenSet<PlayerHandle> fakePlayers;
     readonly IDeterministicRandom<TInput> random;
+    readonly ProtocolNetworkEventQueue networkEventQueue;
 
     INetcodeSessionHandler callbacks;
     bool isSynchronizing;
@@ -81,9 +81,9 @@ sealed class SpectatorSession<TInput> :
         backgroundJobManager.Register(udp);
         var magicNumber = services.Random.MagicNumber();
 
-
+        networkEventQueue = new();
         PeerConnectionFactory peerConnectionFactory = new(
-            this, services.Random, logger, udp,
+            networkEventQueue, services.Random, logger, udp,
             options.Protocol, options.TimeSync, stateStore
         );
 
@@ -105,6 +105,7 @@ sealed class SpectatorSession<TInput> :
         Close();
         udp.Dispose();
         logger.Dispose();
+        networkEventQueue.Dispose();
         backgroundJobManager.Dispose();
     }
 
@@ -160,6 +161,7 @@ sealed class SpectatorSession<TInput> :
 
     public void BeginFrame()
     {
+        ConsumeProtocolNetworkEvents();
         host.Update();
         backgroundJobManager.ThrowIfError();
 
@@ -177,7 +179,6 @@ sealed class SpectatorSession<TInput> :
     public void AdvanceFrame()
     {
         logger.Write(LogLevel.Debug, $"[End Frame {CurrentFrame}]");
-
         CurrentFrame++;
         SaveCurrentFrame();
     }
@@ -220,7 +221,13 @@ sealed class SpectatorSession<TInput> :
         callbacks = handler;
     }
 
-    public void OnNetworkEvent(in ProtocolEventInfo evt)
+    void ConsumeProtocolNetworkEvents()
+    {
+        while (networkEventQueue.TryRead(out var evt))
+            OnNetworkEvent(in evt);
+    }
+
+    void OnNetworkEvent(in ProtocolEventInfo evt)
     {
         ref readonly var player = ref evt.Player;
         switch (evt.Type)
@@ -269,9 +276,11 @@ sealed class SpectatorSession<TInput> :
     {
         if (isSynchronizing)
             return ResultCode.NotSynchronized;
+
         ref var input = ref inputs[CurrentFrame.Number % inputs.Length];
         if (input.Data.Count is 0 && CurrentFrame == Frame.Zero)
             return ResultCode.NotSynchronized;
+
         if (input.Frame < CurrentFrame)
         {
             // Haven't received the input from the host yet.  Wait

@@ -32,7 +32,6 @@ sealed class ProtocolInputEventQueue<TInput> : IDisposable, IProtocolInputEventP
         });
 
     public bool TryConsume(out GameInputEvent<TInput> nextEvent) => channel.Reader.TryRead(out nextEvent);
-
     public bool Publish(in GameInputEvent<TInput> evt) => !disposed && channel.Writer.TryWrite(evt);
 
     public void Dispose()
@@ -43,8 +42,9 @@ sealed class ProtocolInputEventQueue<TInput> : IDisposable, IProtocolInputEventP
     }
 }
 
-sealed class ProtocolCombinedInputsEventPublisher<TInput>(IProtocolInputEventPublisher<TInput> peerInputEventPublisher)
-    : IProtocolInputEventPublisher<ConfirmedInputs<TInput>>
+sealed class ProtocolCombinedInputsEventPublisher<TInput>(
+    IProtocolInputEventPublisher<TInput> peerInputEventPublisher
+) : IProtocolInputEventPublisher<ConfirmedInputs<TInput>>
     where TInput : unmanaged
 {
     public bool Publish(in GameInputEvent<ConfirmedInputs<TInput>> evt)
