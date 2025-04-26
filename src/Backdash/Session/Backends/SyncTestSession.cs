@@ -208,8 +208,11 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
         return ResultCode.Ok;
     }
 
-    public void BeginFrame() =>
+    public void BeginFrame()
+    {
         logger.Write(LogLevel.Trace, $"Beginning of frame ({synchronizer.CurrentFrame.Number})...");
+        synchronizer.UpdateRollbackFrameCounter();
+    }
 
     public ResultCode SynchronizeInputs()
     {

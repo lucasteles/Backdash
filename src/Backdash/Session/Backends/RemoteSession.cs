@@ -517,6 +517,7 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>
 
     void DoSync()
     {
+        synchronizer.UpdateRollbackFrameCounter();
         ConsumeProtocolNetworkEvents();
         backgroundJobManager.ThrowIfError();
 

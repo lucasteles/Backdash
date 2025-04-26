@@ -123,6 +123,11 @@ public sealed record NetcodeOptions
     /// <value>Defaults to <c>true</c></value>
     public bool UseBackgroundThread { get; set; } = true;
 
+    /// <summary>Smooth factor for session rollback frames counter.</summary>
+    /// <seealso cref="INetcodeSessionInfo.RollbackFrames"/>
+    /// <value>Defaults to <c>0.2f</c></value>
+    public float RollbackFramesSmoothFactor { get; set; } = 0.2f;
+
     internal void EnsureDefaults()
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(NumberOfPlayers);

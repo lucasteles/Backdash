@@ -23,6 +23,7 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
     public required INetcodeSessionHandler Callbacks { get; internal set; }
     Frame currentFrame = Frame.Zero;
     Frame lastConfirmedFrame = Frame.Zero;
+    bool reachedPredictionBarrier;
     int NumberOfPlayers => players.Count;
 
     readonly Endianness endianness;
@@ -51,9 +52,13 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
     }
 
     public bool InRollback { get; private set; }
+
+    const float RollbackCounterSmoothFactor = 0.1f;
+    float rollbackFrameCounter;
+
     public Frame CurrentFrame => currentFrame;
     public FrameSpan FramesBehind => new(currentFrame.Number - lastConfirmedFrame.Number);
-    public FrameSpan RollbackFrames { get; private set; } = FrameSpan.Zero;
+    public FrameSpan RollbackFrames => new((int)Math.Round(rollbackFrameCounter));
 
     public void AddQueue(PlayerHandle player) =>
         inputQueues.Add(new(player.QueueIndex, options.InputQueueLength, logger, inputComparer)
@@ -85,11 +90,14 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
     {
         if (currentFrame.Number >= options.PredictionFrames && FramesBehind.FrameCount >= options.PredictionFrames)
         {
-            logger.Write(LogLevel.Warning,
+            logger.Write(reachedPredictionBarrier ? LogLevel.Information : LogLevel.Warning,
                 $"Rejecting input for frame {currentFrame.Number} from emulator: reached prediction barrier");
+
+            reachedPredictionBarrier = true;
             return false;
         }
 
+        reachedPredictionBarrier = false;
         if (currentFrame.Number is 0)
             SaveCurrentFrame();
 
@@ -162,6 +170,10 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
         currentFrame++;
         SaveCurrentFrame();
     }
+
+    public void UpdateRollbackFrameCounter() =>
+        rollbackFrameCounter = ((1f - options.RollbackFramesSmoothFactor) * rollbackFrameCounter) +
+                               (options.RollbackFramesSmoothFactor * FramesBehind.FrameCount);
 
     public void AdjustSimulation(in Frame seekTo)
     {
@@ -251,7 +263,6 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
 
             logger.Write(LogLevel.Information,
                 $"Incorrect frame {incorrect.Number} reported by queue {current.QueueId}");
-            RollbackFrames = new(Math.Max(RollbackFrames.FrameCount, incorrect.Number));
             firstIncorrect = incorrect;
 
             current = ref Unsafe.Add(ref current, 1)!;
@@ -261,7 +272,6 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
         {
             logger.Write(LogLevel.Trace, "Prediction OK, proceeding");
             seekTo = default;
-            RollbackFrames = FrameSpan.Zero;
             return true;
         }
 

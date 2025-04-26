@@ -208,6 +208,13 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
         return this;
     }
 
+    /// <inheritdoc cref="NetcodeOptions.StateSizeHint" />
+    public NetcodeSessionBuilder<TInput> WithStateSizeHint(int byteSize)
+    {
+        options.StateSizeHint = byteSize;
+        return this;
+    }
+
     /// <inheritdoc cref="NetcodeOptions.SaveStateCount" />
     public NetcodeSessionBuilder<TInput> WithSaveStateCount(int count)
     {
