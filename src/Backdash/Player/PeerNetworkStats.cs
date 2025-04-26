@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Backdash.Data;
 using Backdash.Options;
 
@@ -13,6 +14,7 @@ public sealed class PeerNetworkStats
     /// <summary>
     ///     Returns true if the last read stats call was successful.
     /// </summary>
+    [MemberNotNullWhen(true, nameof(Session))]
     public bool Valid { get; internal set; }
 
     /// <summary>Current roundtrip ping time</summary>
@@ -38,6 +40,9 @@ public sealed class PeerNetworkStats
 
     /// <summary>Packages received info</summary>
     public PackagesInfo Received { get; } = new();
+
+    /// <summary>Returns session rollback frames.</summary>
+    public FrameSpan? RollbackFrames => Session?.RollbackFrames;
 
     /// <summary>
     ///     Hold package traffic data
