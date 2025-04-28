@@ -101,14 +101,22 @@ app.MapDelete("lobby/{name}",
 
 app.MapPut("lobby/{name}",
     Results<NoContent, NotFound, BadRequest, UnprocessableEntity, UnauthorizedHttpResult> (
-        LobbyRepository repository, [FromHeader] Guid token, string name
+        LobbyRepository repository,
+        [FromHeader] Guid token,
+        string name
     ) =>
     {
-        if (string.IsNullOrWhiteSpace(name)) return BadRequest();
+        if (string.IsNullOrWhiteSpace(name))
+            return BadRequest();
+
         if (repository.FindEntry(token) is null || repository.FindLobby(name) is not { } lobby)
             return NotFound();
-        if (lobby.FindEntry(token) is not { } entry) return Unauthorized();
-        if (lobby.Ready) return UnprocessableEntity();
+
+        if (lobby.FindEntry(token) is not { } entry)
+            return Unauthorized();
+
+        if (lobby.Ready)
+            return UnprocessableEntity();
 
         if (entry.Mode is PeerMode.Player)
             lock (lobby.Locker)

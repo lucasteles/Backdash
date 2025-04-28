@@ -2,16 +2,18 @@ using System.Numerics;
 
 namespace ConsoleGame;
 
+using static Console;
+
 public class View
 {
-    readonly ConsoleColor defaultColor = ConsoleColor.Gray;
-    readonly ConsoleColor targetColor = ConsoleColor.Yellow;
+    const ConsoleColor DefaultColor = ConsoleColor.Gray;
+    const ConsoleColor TargetColor = ConsoleColor.Yellow;
     readonly ConsoleColor[] playerColors = [ConsoleColor.Green, ConsoleColor.Red];
-    public View() => Console.CursorVisible = false;
+    public View() => CursorVisible = false;
 
     public void Draw(in GameState currentState, NonGameState nonGameState)
     {
-        Console.Clear();
+        Clear();
         DrawHeader(nonGameState);
         DrawConnection(nonGameState);
         DrawField(in currentState, nonGameState);
@@ -24,31 +26,31 @@ public class View
     {
         if (nonGameState.LocalPlayer is { } localPlayer)
         {
-            Console.Title = $"Player {localPlayer.Number}";
-            Console.ForegroundColor = playerColors[localPlayer.Index];
-            Console.WriteLine($"-- Player {localPlayer.Number} --\n");
+            Title = $"Player {localPlayer.Number}";
+            ForegroundColor = playerColors[localPlayer.Index];
+            WriteLine($"-- Player {localPlayer.Number} --\n");
         }
         else
         {
-            Console.Title = "Spectator";
-            Console.ForegroundColor = ConsoleColor.Magenta;
-            Console.WriteLine("-- Spectator --\n");
+            Title = "Spectator";
+            ForegroundColor = ConsoleColor.Magenta;
+            WriteLine("-- Spectator --\n");
         }
 
-        Console.ForegroundColor = defaultColor;
+        ForegroundColor = DefaultColor;
     }
 
     void DrawScore(in GameState state)
     {
-        Console.Write("Score: ");
-        Console.ForegroundColor = playerColors[0];
-        Console.Write($"{state.Score1,-2:00}");
-        Console.ForegroundColor = defaultColor;
-        Console.Write(" X ");
-        Console.ForegroundColor = playerColors[1];
-        Console.Write($"{state.Score2,-2:00}");
-        Console.ForegroundColor = defaultColor;
-        Console.WriteLine();
+        Write("Score: ");
+        ForegroundColor = playerColors[0];
+        Write($"{state.Score1,-2:00}");
+        ForegroundColor = DefaultColor;
+        Write(" X ");
+        ForegroundColor = playerColors[1];
+        Write($"{state.Score2,-2:00}");
+        ForegroundColor = DefaultColor;
+        WriteLine();
     }
 
     void DrawField(in GameState currentState, NonGameState nonGameState)
@@ -61,43 +63,43 @@ public class View
             : PlayerStatus.Running;
         for (var row = 0; row < GameLogic.GridSize; row++)
         {
-            Console.Write(" ");
+            Write(" ");
             for (var col = 0; col < GameLogic.GridSize; col++)
             {
-                Console.Write(' ');
+                Write(' ');
                 if (DrawPlayer(currentState.Position1, col, row, playerColors[0], status1))
                     continue;
                 if (DrawPlayer(currentState.Position2, col, row, playerColors[1], status2))
                     continue;
                 if ((int)currentState.Target.X == col && (int)currentState.Target.Y == row)
                 {
-                    Console.ForegroundColor = targetColor;
-                    Console.Write('*');
-                    Console.ForegroundColor = defaultColor;
+                    ForegroundColor = TargetColor;
+                    Write('*');
+                    ForegroundColor = DefaultColor;
                     continue;
                 }
 
-                Console.Write(".");
+                Write(".");
             }
 
-            Console.WriteLine();
+            WriteLine();
         }
 
-        Console.WriteLine();
+        WriteLine();
     }
 
     bool DrawPlayer(Vector2 pos, int col, int row, ConsoleColor color, PlayerStatus status)
     {
         if ((int)pos.X == col && (int)pos.Y == row)
         {
-            Console.ForegroundColor = color;
-            Console.Write(status switch
+            ForegroundColor = color;
+            Write(status switch
             {
                 PlayerStatus.Running => "0",
                 PlayerStatus.Disconnected => "X",
                 _ => "?",
             });
-            Console.ForegroundColor = defaultColor;
+            ForegroundColor = DefaultColor;
             return true;
         }
 
@@ -106,62 +108,62 @@ public class View
 
     void DrawConnection(NonGameState nonGameState)
     {
-        Console.Write(" ");
+        Write(" ");
         switch (nonGameState.RemotePlayerStatus)
         {
             case PlayerStatus.Connecting:
-                Console.Write("Connecting");
+                Write("Connecting");
                 for (var i = 0; i < DateTime.UtcNow.Second % 4; i++)
-                    Console.Write('.');
-                Console.WriteLine();
+                    Write('.');
+                WriteLine();
                 break;
             case PlayerStatus.Synchronizing:
-                Console.Write("Synchronizing:");
+                Write("Synchronizing:");
                 DrawProgressBar(nonGameState.SyncProgress);
-                Console.WriteLine();
+                WriteLine();
                 break;
             case PlayerStatus.Running:
-                Console.ForegroundColor = ConsoleColor.Cyan;
-                Console.WriteLine("Connected.");
+                ForegroundColor = ConsoleColor.Cyan;
+                WriteLine("Connected.");
                 break;
             case PlayerStatus.Waiting:
-                Console.ForegroundColor = ConsoleColor.DarkYellow;
-                Console.Write("Waiting:");
+                ForegroundColor = ConsoleColor.DarkYellow;
+                Write("Waiting:");
                 var progress = (DateTime.UtcNow - nonGameState.LostConnectionTime)
                     .TotalMilliseconds / nonGameState.DisconnectTimeout.TotalMilliseconds;
                 DrawProgressBar(progress);
-                Console.WriteLine();
+                WriteLine();
                 break;
             case PlayerStatus.Disconnected:
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine("Disconnected.");
+                ForegroundColor = ConsoleColor.Red;
+                WriteLine("Disconnected.");
                 break;
         }
 
-        Console.ForegroundColor = defaultColor;
-        Console.WriteLine();
+        ForegroundColor = DefaultColor;
+        WriteLine();
     }
 
     static void DrawProgressBar(double percent)
     {
         const int loadingSize = 10;
         var loaded = loadingSize * percent;
-        var lastColor = Console.ForegroundColor;
-        Console.Write(" ");
+        var lastColor = ForegroundColor;
+        Write(' ');
         for (var i = 0; i < loadingSize; i++)
         {
-            Console.ForegroundColor = i <= loaded ? ConsoleColor.DarkGreen : ConsoleColor.White;
-            Console.Write('\u2588');
+            ForegroundColor = i <= loaded ? ConsoleColor.DarkGreen : ConsoleColor.White;
+            Write('\u2588');
         }
 
-        Console.ForegroundColor = lastColor;
+        ForegroundColor = lastColor;
     }
 
     static void DrawStats(GameState currentState, NonGameState nonGameState)
     {
         var peer = nonGameState.PeerNetworkStats;
         var info = nonGameState.SessionInfo;
-        Console.WriteLine(
+        WriteLine(
             $"""
              Ping:             {peer.Ping.TotalMilliseconds:f4} ms
              Rollback:         {info.RollbackFrames}
@@ -170,7 +172,7 @@ public class View
              """
         );
 #if DEBUG
-        Console.WriteLine(
+        WriteLine(
             $"""
              Pending Inputs:   {peer.PendingInputCount}
              Frame:            {info.CurrentFrame.Number} ack({peer.LastAckedFrame.Number}) send({peer.Send.LastFrame.Number})
@@ -180,7 +182,7 @@ public class View
              """
         );
         if (!string.IsNullOrWhiteSpace(nonGameState.LastError))
-            Console.WriteLine($"Last Error:       {nonGameState.LastError}");
+            WriteLine($"Last Error:       {nonGameState.LastError}");
 #endif
     }
 }
