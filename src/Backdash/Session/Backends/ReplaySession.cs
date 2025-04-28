@@ -1,6 +1,5 @@
 using System.Collections.Frozen;
 using System.Diagnostics.CodeAnalysis;
-using System.Net;
 using Backdash.Core;
 using Backdash.Network;
 using Backdash.Options;
@@ -15,7 +14,8 @@ namespace Backdash.Backends;
 sealed class ReplaySession<TInput> : INetcodeSession<TInput> where TInput : unmanaged
 {
     readonly Logger logger;
-    readonly FrozenSet<PlayerHandle> fakePlayers;
+    readonly FrozenSet<NetcodePlayer> fakePlayers;
+    readonly FrozenDictionary<Guid, NetcodePlayer> playerMap;
     INetcodeSessionHandler callbacks;
     bool isSynchronizing = true;
     SynchronizedInput<TInput>[] syncInputBuffer = [];
@@ -52,10 +52,11 @@ sealed class ReplaySession<TInput> : INetcodeSession<TInput> where TInput : unma
         FixedFrameRate = options.FrameRate;
         endianness = options.GetStateSerializationEndianness();
         callbacks = services.SessionHandler;
-        fakePlayers = Enumerable.Range(0, NumberOfPlayers)
-            .Select(x => new PlayerHandle(PlayerType.Remote, x))
-            .ToFrozenSet();
 
+        fakePlayers = Enumerable.Range(0, NumberOfPlayers)
+            .Select(x => new NetcodePlayer((sbyte)x, PlayerType.Remote))
+            .ToFrozenSet();
+        playerMap = fakePlayers.ToFrozenDictionary(x => x.Id, x => x);
         stateStore.Initialize(ReplayController.MaxBackwardFrames);
     }
 
@@ -89,10 +90,11 @@ sealed class ReplaySession<TInput> : INetcodeSession<TInput> where TInput : unma
     public INetcodeRandom Random => random;
 
     public SessionMode Mode => SessionMode.Replay;
-    public void DisconnectPlayer(in PlayerHandle player) { }
-    public ResultCode AddLocalInput(in PlayerHandle player, in TInput localInput) => ResultCode.Ok;
-    public IReadOnlySet<PlayerHandle> GetPlayers() => fakePlayers;
-    public IReadOnlySet<PlayerHandle> GetSpectators() => FrozenSet<PlayerHandle>.Empty;
+    public void DisconnectPlayer(NetcodePlayer player) { }
+    public ResultCode AddLocalInput(NetcodePlayer player, in TInput localInput) => ResultCode.Ok;
+    public IReadOnlySet<NetcodePlayer> GetPlayers() => fakePlayers;
+    public IReadOnlySet<NetcodePlayer> GetSpectators() => FrozenSet<NetcodePlayer>.Empty;
+    public NetcodePlayer? FindPlayer(Guid id) => playerMap.GetValueOrDefault(id);
 
     public ReadOnlySpan<SynchronizedInput<TInput>> CurrentSynchronizedInputs => syncInputBuffer;
     public ReadOnlySpan<TInput> CurrentInputs => inputBuffer;
@@ -118,36 +120,18 @@ sealed class ReplaySession<TInput> : INetcodeSession<TInput> where TInput : unma
         logger.Write(LogLevel.Debug, $"[End Frame {CurrentFrame}]");
     }
 
-    public PlayerConnectionStatus GetPlayerStatus(in PlayerHandle player) => PlayerConnectionStatus.Connected;
+    public PlayerConnectionStatus GetPlayerStatus(NetcodePlayer player) => PlayerConnectionStatus.Connected;
 
-    public ResultCode AddLocalPlayer(out PlayerHandle handle)
-    {
-        handle = default;
-        return ResultCode.NotSupported;
-    }
+    public ResultCode AddPlayer(NetcodePlayer player) => ResultCode.NotSupported;
 
-    public ResultCode AddRemotePlayer(EndPoint endpoint, out PlayerHandle handle)
+    public bool UpdateNetworkStats(NetcodePlayer player)
     {
-        handle = default;
-        return ResultCode.NotSupported;
-    }
-
-#pragma warning disable S4144
-    public ResultCode AddSpectator(EndPoint endpoint, out PlayerHandle handle)
-    {
-        handle = default;
-        return ResultCode.NotSupported;
-    }
-#pragma warning restore S4144
-
-    public bool GetNetworkStatus(in PlayerHandle player, ref PeerNetworkStats info)
-    {
-        info.Session = this;
-        info.Valid = false;
+        player.NetworkStats.Session = this;
+        player.NetworkStats.Valid = false;
         return false;
     }
 
-    public void SetFrameDelay(PlayerHandle player, int delayInFrames) { }
+    public void SetFrameDelay(NetcodePlayer player, int delayInFrames) { }
 
     public void Start(CancellationToken stoppingToken = default)
     {

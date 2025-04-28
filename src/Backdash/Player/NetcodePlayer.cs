@@ -1,6 +1,8 @@
 using System.Net;
 using System.Numerics;
+using System.Text;
 using Backdash.Core;
+using Backdash.Serialization.Internal;
 
 namespace Backdash;
 
@@ -8,23 +10,53 @@ namespace Backdash;
 ///     Holds data of a player to be added to <see cref="INetcodeSession{TInput}" />.
 /// </summary>
 [Serializable]
-public class NetcodePlayer : IEquatable<NetcodePlayer>, IEqualityOperators<NetcodePlayer, NetcodePlayer, bool>
+public class NetcodePlayer :
+    IUtf8SpanFormattable,
+    IEquatable<NetcodePlayer>,
+    IEqualityOperators<NetcodePlayer, NetcodePlayer, bool>
+
 {
-    internal PlayerHandle PlayerHandle;
+    sbyte queueIndex;
+
+    /// <summary>
+    ///     Player unique ID
+    /// </summary>
+    public Guid Id { get; } = Guid.NewGuid();
+
+    /// <summary>
+    ///     Player type
+    /// </summary>
+    public readonly PlayerType Type;
+
+    /// <summary>
+    ///     Custom user id value
+    /// </summary>
+    public int CustomId { get; set; }
+
+    /// <summary>
+    ///     Network stats for the peer
+    /// </summary>
+    /// <seealso cref="INetcodeSession.UpdateNetworkStats"/>
+    public PeerNetworkStats NetworkStats = new();
+
+    internal NetcodePlayer(sbyte queueIndex, PlayerType type, EndPoint? endPoint = null)
+    {
+        ThrowIf.InvalidEnum(type);
+
+        Type = type;
+        EndPoint = endPoint;
+        this.queueIndex = queueIndex;
+    }
 
     /// <summary>
     /// Initializes a new netcode player
     /// </summary>
-    public NetcodePlayer(PlayerType type, EndPoint? endPoint = null)
-    {
-        ThrowIf.InvalidEnum(type);
+    public NetcodePlayer(PlayerType type, EndPoint? endPoint = null) : this(-1, type, endPoint) { }
 
-        if (type is not PlayerType.Local && endPoint is null)
-            throw new ArgumentException($"EndPoint is required for player type: {type}", nameof(endPoint));
-
-        PlayerHandle = new(type);
-        EndPoint = endPoint;
-    }
+    /// <summary>
+    /// Initializes a new netcode player
+    /// </summary>
+    public NetcodePlayer() : this(-1, PlayerType.Local) { }
 
     /// <summary>
     ///     Holds data for a  player IP Endpoint
@@ -32,27 +64,70 @@ public class NetcodePlayer : IEquatable<NetcodePlayer>, IEqualityOperators<Netco
     public EndPoint? EndPoint { get; }
 
     /// <summary>
-    ///     Player handler, used to identify any player in session.
+    ///     Player number (starting from <c>1</c>)
     /// </summary>
-    public PlayerHandle Handle => PlayerHandle;
+    public int Number => queueIndex + 1;
 
-    /// <inheritdoc cref="PlayerHandle.Type" />
-    public PlayerType Type => Handle.Type;
+    /// <inheritdoc cref="NetcodePlayer.Index" />
+    public int Index => queueIndex;
 
-    /// <inheritdoc cref="PlayerHandle.Index" />
-    public int Index => Handle.Index;
+    internal void SetQueue(sbyte value) => queueIndex = value;
+    internal void SetQueue(int value) => SetQueue((sbyte)value);
 
-    /// <inheritdoc cref="PlayerHandle.IsSpectator()" />
-    public bool IsSpectator() => Handle.IsSpectator();
+    bool IUtf8SpanFormattable.TryFormat(
+        Span<byte> utf8Destination, out int bytesWritten,
+        ReadOnlySpan<char> format, IFormatProvider? provider)
+    {
+        bytesWritten = 0;
+        Utf8StringWriter writer = new(utf8Destination, ref bytesWritten);
+        if (!writer.Write("{"u8)) return false;
+        if (IsSpectator())
+        {
+            if (!writer.Write("Spectator: "u8)) return false;
+        }
+        else
+        {
+            if (!writer.WriteEnum(Type)) return false;
+            if (!writer.Write("Player: "u8)) return false;
+        }
 
-    /// <inheritdoc cref="PlayerHandle.IsRemote()" />
-    public bool IsRemote() => Handle.IsRemote();
+        if (!writer.Write(queueIndex)) return false;
+        if (!writer.Write("}"u8)) return false;
+        return true;
+    }
 
-    /// <inheritdoc cref="PlayerHandle.IsLocal()" />
-    public bool IsLocal() => Handle.IsLocal();
+    /// <summary>
+    ///     Returns <see langword="true" /> if player is <see cref="PlayerType.Spectator" />
+    /// </summary>
+    public bool IsSpectator() => Type is PlayerType.Spectator;
 
-    /// <inheritdoc cref="PlayerHandle.ToString()" />
-    public sealed override string ToString() => Handle.ToString();
+    /// <summary>
+    ///     Returns <see langword="true" /> if player is <see cref="PlayerType.Remote" />
+    /// </summary>
+    public bool IsRemote() => Type is PlayerType.Remote;
+
+    /// <summary>
+    ///     Returns <see langword="true" /> if player is <see cref="PlayerType.Local" />
+    /// </summary>
+    public bool IsLocal() => Type is PlayerType.Local;
+
+    /// <inheritdoc />
+    public override string ToString()
+    {
+        StringBuilder builder = new();
+        builder.Append('{');
+        if (IsSpectator())
+            builder.Append("Spectator ");
+        else
+        {
+            builder.Append(Type);
+            builder.Append("Player");
+        }
+
+        builder.Append(Index);
+        builder.Append('}');
+        return builder.ToString();
+    }
 
     /// <inheritdoc />
     public virtual bool Equals(NetcodePlayer? other) => Equals(this, other);
@@ -66,8 +141,8 @@ public class NetcodePlayer : IEquatable<NetcodePlayer>, IEqualityOperators<Netco
     static bool Equals(NetcodePlayer? left, NetcodePlayer? right)
     {
         if (ReferenceEquals(left, right)) return true;
-        if (left == null || right == null) return false;
-        return left.Handle.Equals(right.Handle);
+        if (left is null || right is null) return false;
+        return left.Type == right.Type && left.queueIndex == right.queueIndex;
     }
 
     /// <inheritdoc />

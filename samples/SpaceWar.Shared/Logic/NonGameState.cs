@@ -13,25 +13,24 @@ public enum PlayerConnectState
     Disconnecting,
 }
 
-public class PlayerConnectionInfo
+public class PlayerInfo(NetcodePlayer player)
 {
     public string? Name;
-    public PlayerHandle Handle;
+    public NetcodePlayer PlayerHandle = player;
     public PlayerConnectState State;
     public int ConnectProgress;
     public DateTime DisconnectStart;
     public TimeSpan DisconnectTimeout;
     public readonly StringBuilder StatusText = new();
-    public PeerNetworkStats PeerNetworkStats = new();
 }
 
 public class NonGameState(int numberOfPlayers)
 {
-    public readonly PlayerConnectionInfo[] Players = new PlayerConnectionInfo[numberOfPlayers];
+    public readonly PlayerInfo[] Players = new PlayerInfo[numberOfPlayers];
     public readonly Background Background = new();
     public readonly StringBuilder StatusText = new();
-    public PlayerHandle? LocalPlayerHandle;
-    public PlayerHandle? MirrorPlayerHandle;
+    public NetcodePlayer? LocalPlayer;
+    public NetcodePlayer? MirrorPlayer;
     public TimeSpan SleepTime;
     public bool Sleeping => SleepTime > TimeSpan.Zero;
     public int NumberOfPlayers => numberOfPlayers;
@@ -39,11 +38,11 @@ public class NonGameState(int numberOfPlayers)
     public uint StateChecksum;
     public ByteSize StateSize;
 
-    public bool TryGetPlayer(PlayerHandle handle, out PlayerConnectionInfo state)
+    public bool TryGetPlayer(NetcodePlayer handle, out PlayerInfo state)
     {
         for (var i = 0; i < Players.Length; i++)
         {
-            if (Players[i].Handle != handle) continue;
+            if (Players[i].PlayerHandle != handle) continue;
             state = Players[i];
             return true;
         }
@@ -52,7 +51,7 @@ public class NonGameState(int numberOfPlayers)
         return false;
     }
 
-    public void SetDisconnectTimeout(PlayerHandle handle, DateTime when, TimeSpan timeout)
+    public void SetDisconnectTimeout(NetcodePlayer handle, DateTime when, TimeSpan timeout)
     {
         if (!TryGetPlayer(handle, out var player)) return;
         player.DisconnectStart = when;
@@ -60,7 +59,7 @@ public class NonGameState(int numberOfPlayers)
         player.State = PlayerConnectState.Disconnecting;
     }
 
-    public void SetConnectState(in PlayerHandle handle, PlayerConnectState state)
+    public void SetConnectState(NetcodePlayer handle, PlayerConnectState state)
     {
         if (!TryGetPlayer(handle, out var player)) return;
         player.ConnectProgress = 0;
@@ -73,7 +72,7 @@ public class NonGameState(int numberOfPlayers)
             player.State = state;
     }
 
-    public void UpdateConnectProgress(PlayerHandle handle, int progress)
+    public void UpdateConnectProgress(NetcodePlayer handle, int progress)
     {
         if (!TryGetPlayer(handle, out var player)) return;
         player.ConnectProgress = progress;

@@ -13,10 +13,16 @@ static class Generate
     public static PeerAddress Peer() => Faker.Internet.IpEndPoint();
     public static ConnectionsState ConnectionsState() => new(Max.NumberOfPlayers);
 
-    public static PlayerHandle PlayerHandle() => new(
-        Random.Enum<PlayerType>(),
-        Random.Int(1, Max.NumberOfPlayers)
-    );
+    public static NetcodePlayer NetcodePlayer()
+    {
+        var type = Random.Enum<PlayerType>();
+
+        return new(
+            (sbyte)Random.Int(0, Max.NumberOfPlayers - 1),
+            type,
+            type is not PlayerType.Local ? Faker.Internet.IpEndPoint() : null
+        );
+    }
 
     public static GameInput GameInput(int frame, byte[] input)
     {

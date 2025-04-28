@@ -98,7 +98,7 @@ ref struct LogInterpolatedStringHandler
         writer.WriteChars(t.ToString());
     }
 
-    public void AppendFormatted<T>(T t) where T : struct, IUtf8SpanFormattable
+    public void AppendFormatted<T>(T t) where T : IUtf8SpanFormattable
     {
         if (!Enabled) return;
         Utf8StringWriter writer = new(Buffer, ref Length);

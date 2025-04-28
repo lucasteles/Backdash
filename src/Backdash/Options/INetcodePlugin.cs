@@ -20,10 +20,10 @@ public interface INetcodePlugin : IDisposable
     /// <summary>
     /// Start endpoint hook
     /// </summary>
-    void OnEndpointAdded(INetcodeSession session, EndPoint endpoint, in PlayerHandle player);
+    void OnEndpointAdded(INetcodeSession session, EndPoint endpoint, NetcodePlayer player);
 
     /// <summary>
     /// Close endpoint hook
     /// </summary>
-    void OnEndpointClosed(INetcodeSession session, EndPoint endpoint, in PlayerHandle player);
+    void OnEndpointClosed(INetcodeSession session, EndPoint endpoint, NetcodePlayer player);
 }

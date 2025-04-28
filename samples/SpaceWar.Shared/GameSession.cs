@@ -26,11 +26,11 @@ public sealed class GameSession(
         HandleNoGameInput(keyboard);
         var localInput = Inputs.ReadInputs(keyboard);
 
-        if (nonGameState.LocalPlayerHandle is { } localPlayer
+        if (nonGameState.LocalPlayer is { } localPlayer
             && session.AddLocalInput(localPlayer, localInput) is not ResultCode.Ok)
             return;
 
-        if (nonGameState.MirrorPlayerHandle is { } mirrorPlayer &&
+        if (nonGameState.MirrorPlayer is { } mirrorPlayer &&
             session.AddLocalInput(mirrorPlayer, localInput) is not ResultCode.Ok)
             return;
 
@@ -56,8 +56,8 @@ public sealed class GameSession(
     void DisconnectPlayer(int index)
     {
         if (nonGameState.NumberOfPlayers <= index) return;
-        var handle = nonGameState.Players[index].Handle;
-        session.DisconnectPlayer(in handle);
+        var handle = nonGameState.Players[index].PlayerHandle;
+        session.DisconnectPlayer(handle);
         nonGameState.StatusText.Clear();
         nonGameState.StatusText.Append("Disconnected player ");
         nonGameState.StatusText.Append(handle.Number);
@@ -94,14 +94,14 @@ public sealed class GameSession(
 
         for (var i = 0; i < nonGameState.Players.Length; i++)
         {
-            ref var player = ref nonGameState.Players[i];
-            if (!player.Handle.IsRemote())
+            ref var info = ref nonGameState.Players[i];
+            if (!info.PlayerHandle.IsRemote())
                 continue;
-            session.GetNetworkStatus(player.Handle, ref player.PeerNetworkStats);
+            session.UpdateNetworkStats(info.PlayerHandle);
         }
     }
 
-    public void OnPeerEvent(PlayerHandle player, PeerEventInfo evt)
+    public void OnPeerEvent(NetcodePlayer player, PeerEventInfo evt)
     {
         Console.WriteLine($"{DateTime.Now:o} => PEER EVENT: {evt} from {player}");
         if (player.IsSpectator()) return;

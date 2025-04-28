@@ -14,7 +14,7 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
 {
     readonly NetcodeOptions options;
     readonly Logger logger;
-    readonly IReadOnlyCollection<PlayerHandle> players;
+    readonly IReadOnlyCollection<NetcodePlayer> players;
     readonly IStateStore stateStore;
     readonly IChecksumProvider checksumProvider;
     readonly ConnectionsState localConnections;
@@ -31,7 +31,7 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
     public Synchronizer(
         NetcodeOptions options,
         Logger logger,
-        IReadOnlyCollection<PlayerHandle> players,
+        IReadOnlyCollection<NetcodePlayer> players,
         IStateStore stateStore,
         IChecksumProvider checksumProvider,
         ConnectionsState localConnections,
@@ -53,15 +53,14 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
 
     public bool InRollback { get; private set; }
 
-    const float RollbackCounterSmoothFactor = 0.1f;
     float rollbackFrameCounter;
 
     public Frame CurrentFrame => currentFrame;
     public FrameSpan FramesBehind => new(currentFrame.Number - lastConfirmedFrame.Number);
     public FrameSpan RollbackFrames => new((int)Math.Round(rollbackFrameCounter));
 
-    public void AddQueue(PlayerHandle player) =>
-        inputQueues.Add(new(player.QueueIndex, options.InputQueueLength, logger, inputComparer)
+    public void AddQueue(NetcodePlayer player) =>
+        inputQueues.Add(new(player.Index, options.InputQueueLength, logger, inputComparer)
         {
             LocalFrameDelay = player.IsLocal() ? Math.Max(options.InputDelayFrames, 0) : 0,
         });
@@ -83,10 +82,10 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
         }
     }
 
-    void AddInput(in PlayerHandle queue, ref GameInput<TInput> input) =>
-        inputQueues[queue.QueueIndex].AddInput(ref input);
+    void AddInput(NetcodePlayer queue, ref GameInput<TInput> input) =>
+        inputQueues[queue.Index].AddInput(ref input);
 
-    public bool AddLocalInput(in PlayerHandle queue, ref GameInput<TInput> input)
+    public bool AddLocalInput(NetcodePlayer queue, ref GameInput<TInput> input)
     {
         if (currentFrame.Number >= options.PredictionFrames && FramesBehind.FrameCount >= options.PredictionFrames)
         {
@@ -104,11 +103,11 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
         logger.Write(LogLevel.Trace, $"Sending non-delayed local frame {currentFrame.Number} to queue {queue}");
 
         input.Frame = currentFrame;
-        AddInput(in queue, ref input);
+        AddInput(queue, ref input);
         return true;
     }
 
-    public void AddRemoteInput(in PlayerHandle player, GameInput<TInput> input) => AddInput(in player, ref input);
+    public void AddRemoteInput(NetcodePlayer player, GameInput<TInput> input) => AddInput(player, ref input);
 
     public bool GetConfirmedInputGroup(in Frame frame, ref GameInput<ConfirmedInputs<TInput>> confirmed)
     {
@@ -279,8 +278,8 @@ sealed class Synchronizer<TInput> where TInput : unmanaged
         return false;
     }
 
-    public void SetFrameDelay(PlayerHandle player, int delay) =>
-        inputQueues[player.QueueIndex].LocalFrameDelay = Math.Max(delay, 0);
+    public void SetFrameDelay(NetcodePlayer player, int delay) =>
+        inputQueues[player.Index].LocalFrameDelay = Math.Max(delay, 0);
 
     void ResetPrediction(in Frame frameNumber)
     {

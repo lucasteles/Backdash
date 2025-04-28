@@ -1,6 +1,5 @@
 using System.Collections.Frozen;
 using System.Diagnostics.CodeAnalysis;
-using System.Net;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Backdash.Core;
@@ -17,7 +16,8 @@ sealed class LocalSession<TInput> : INetcodeSession<TInput> where TInput : unman
 {
     readonly TaskCompletionSource tsc = new();
     readonly Logger logger;
-    readonly HashSet<PlayerHandle> addedPlayers = new(Max.NumberOfPlayers);
+    readonly HashSet<NetcodePlayer> addedPlayers = new(Max.NumberOfPlayers);
+    readonly Dictionary<Guid, NetcodePlayer> allPlayers = [];
 
     InputQueue<TInput>[] inputQueues = [];
     SynchronizedInput<TInput>[] syncInputBuffer = [];
@@ -71,10 +71,12 @@ sealed class LocalSession<TInput> : INetcodeSession<TInput> where TInput : unman
     public bool IsInRollback => false;
     public SavedFrame GetCurrentSavedFrame() => stateStore.Last();
 
-    public IReadOnlySet<PlayerHandle> GetPlayers() => addedPlayers;
+    public IReadOnlySet<NetcodePlayer> GetPlayers() => addedPlayers;
 
-    public IReadOnlySet<PlayerHandle> GetSpectators() => FrozenSet<PlayerHandle>.Empty;
-    public void DisconnectPlayer(in PlayerHandle player) { }
+    public IReadOnlySet<NetcodePlayer> GetSpectators() => FrozenSet<NetcodePlayer>.Empty;
+
+    public NetcodePlayer? FindPlayer(Guid id) => allPlayers.GetValueOrDefault(id);
+    public void DisconnectPlayer(NetcodePlayer player) { }
 
     public void Start(CancellationToken stoppingToken = default)
     {
@@ -91,40 +93,42 @@ sealed class LocalSession<TInput> : INetcodeSession<TInput> where TInput : unman
         await backGroundJobTask.WaitAsync(stoppingToken).ConfigureAwait(false);
     }
 
-    public ResultCode AddLocalPlayer(out PlayerHandle handle)
+    public ResultCode AddPlayer(NetcodePlayer player)
     {
-        handle = default;
+        var result = player.Type switch
+        {
+            PlayerType.Local => AddLocalPlayer(player),
+            PlayerType.Spectator or PlayerType.Remote => ResultCode.NotSupported,
+            _ => throw new ArgumentOutOfRangeException(nameof(player)),
+        };
+
+        return result;
+    }
+
+    public ResultCode AddLocalPlayer(NetcodePlayer player)
+    {
+        ArgumentNullException.ThrowIfNull(player);
+        if (!player.IsLocal())
+            return ResultCode.InvalidNetcodePlayer;
 
         if (addedPlayers.Count >= Max.NumberOfPlayers)
             return ResultCode.TooManyPlayers;
 
-        PlayerHandle playerHandle = new(PlayerType.Local, addedPlayers.Count);
+        player.SetQueue(addedPlayers.Count);
 
-        if (!addedPlayers.Add(playerHandle))
+        if (!allPlayers.TryAdd(player.Id, player) || !addedPlayers.Add(player))
+        {
+            player.SetQueue(-1);
             return ResultCode.DuplicatedPlayer;
+        }
 
-        handle = playerHandle;
         IncrementInputBufferSize();
 
-        inputQueues[handle.QueueIndex] = new(handle.QueueIndex, options.InputQueueLength, logger, comparer)
+        inputQueues[player.Index] = new(player.Index, options.InputQueueLength, logger, comparer)
         {
             LocalFrameDelay = options.InputDelayFrames,
         };
         return ResultCode.Ok;
-    }
-
-    public ResultCode AddRemotePlayer(EndPoint endpoint, out PlayerHandle handle)
-    {
-        handle = default;
-        return ResultCode.NotSupported;
-    }
-
-#pragma warning disable S4144
-    public ResultCode AddSpectator(EndPoint endpoint, out PlayerHandle handle)
-#pragma warning restore S4144
-    {
-        handle = default;
-        return ResultCode.NotSupported;
     }
 
     void IncrementInputBufferSize()
@@ -135,35 +139,36 @@ sealed class LocalSession<TInput> : INetcodeSession<TInput> where TInput : unman
         Array.Resize(ref inputQueues, newSize);
     }
 
-    public PlayerConnectionStatus GetPlayerStatus(in PlayerHandle player) =>
+    public PlayerConnectionStatus GetPlayerStatus(NetcodePlayer player) =>
         addedPlayers.Contains(player) ? PlayerConnectionStatus.Local : PlayerConnectionStatus.Unknown;
 
-    public bool GetNetworkStatus(in PlayerHandle player, ref PeerNetworkStats info)
+    public bool UpdateNetworkStats(NetcodePlayer player)
     {
+        var info = player.NetworkStats;
         info.Session = this;
         info.Valid = false;
         return false;
     }
 
-    public ResultCode AddLocalInput(in PlayerHandle player, in TInput localInput)
+    public ResultCode AddLocalInput(NetcodePlayer player, in TInput localInput)
     {
         if (!running)
             return ResultCode.NotSynchronized;
 
         if (player.Type is not PlayerType.Local)
-            return ResultCode.InvalidPlayerHandle;
+            return ResultCode.InvalidNetcodePlayer;
 
-        if (!IsPlayerKnown(in player))
+        if (!IsPlayerKnown(player))
             return ResultCode.PlayerOutOfRange;
 
         GameInput<TInput> gameInput = new(localInput, CurrentFrame);
-        inputQueues[player.QueueIndex].AddInput(ref gameInput);
+        inputQueues[player.Index].AddInput(ref gameInput);
 
         return ResultCode.Ok;
     }
 
-    bool IsPlayerKnown(in PlayerHandle player) =>
-        player.QueueIndex >= 0 && addedPlayers.Contains(player);
+    bool IsPlayerKnown(NetcodePlayer player) =>
+        player.Index >= 0 && addedPlayers.Contains(player);
 
     public void BeginFrame() => logger.Write(LogLevel.Trace, $"Beginning of frame({CurrentFrame.Number})");
 
@@ -236,10 +241,10 @@ sealed class LocalSession<TInput> : INetcodeSession<TInput> where TInput : unman
         logger.Write(LogLevel.Trace, $"replay: saved frame {nextState.Frame} (checksum: {nextState.Checksum:x8})");
     }
 
-    public void SetFrameDelay(PlayerHandle player, int delayInFrames)
+    public void SetFrameDelay(NetcodePlayer player, int delayInFrames)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(delayInFrames);
-        ThrowIf.ArgumentOutOfBounds(player.QueueIndex, 0, addedPlayers.Count);
+        ThrowIf.ArgumentOutOfBounds(player.Index, 0, addedPlayers.Count);
 
         ref var current = ref MemoryMarshal.GetReference(inputQueues.AsSpan());
         ref var limit = ref Unsafe.Add(ref current, inputQueues.Length);

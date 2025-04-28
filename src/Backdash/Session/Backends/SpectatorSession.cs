@@ -29,7 +29,8 @@ sealed class SpectatorSession<TInput> :
     readonly ConnectionsState localConnections = new(0);
     readonly GameInput<ConfirmedInputs<TInput>>[] inputs;
     readonly PeerConnection<ConfirmedInputs<TInput>> host;
-    readonly FrozenSet<PlayerHandle> fakePlayers;
+    readonly FrozenSet<NetcodePlayer> fakePlayers;
+    readonly FrozenDictionary<Guid, NetcodePlayer> playerMap;
     readonly IDeterministicRandom<TInput> random;
     readonly ProtocolNetworkEventQueue networkEventQueue;
     readonly PluginManager plugins;
@@ -71,8 +72,6 @@ sealed class SpectatorSession<TInput> :
         checksumProvider = services.ChecksumProvider;
         plugins = services.PluginManager;
         NumberOfPlayers = options.NumberOfPlayers;
-        fakePlayers = Enumerable.Range(0, options.NumberOfPlayers)
-            .Select(x => new PlayerHandle(PlayerType.Remote, x)).ToFrozenSet();
         IBinarySerializer<ConfirmedInputs<TInput>> inputGroupSerializer =
             new ConfirmedInputsSerializer<TInput>(services.InputSerializer);
         PeerObserverGroup<ProtocolMessage> peerObservers = new();
@@ -90,10 +89,15 @@ sealed class SpectatorSession<TInput> :
         );
 
         ProtocolState protocolState =
-            new(new(PlayerType.Remote, 0), hostEndpoint, localConnections, magicNumber);
+            new(new(0, PlayerType.Remote, hostEndpoint), hostEndpoint, localConnections, magicNumber);
 
         var inputGroupComparer = ConfirmedInputComparer<TInput>.Create(services.InputComparer);
         host = peerConnectionFactory.Create(protocolState, inputGroupSerializer, this, inputGroupComparer);
+
+        fakePlayers = Enumerable.Range(0, options.NumberOfPlayers)
+            .Select(x => new NetcodePlayer((sbyte)x, PlayerType.Remote)).ToFrozenSet();
+        playerMap = fakePlayers.ToFrozenDictionary(x => x.Id, x => x);
+
         stateStore.Initialize(options.TotalSavedFramesAllowed);
         peerObservers.Add(host.GetUdpObserver());
         isSynchronizing = true;
@@ -139,30 +143,12 @@ sealed class SpectatorSession<TInput> :
 
     public SessionMode Mode => SessionMode.Spectator;
 
-    public void DisconnectPlayer(in PlayerHandle player) { }
-    public ResultCode AddLocalInput(in PlayerHandle player, in TInput localInput) => ResultCode.Ok;
-    public IReadOnlySet<PlayerHandle> GetPlayers() => fakePlayers;
-    public IReadOnlySet<PlayerHandle> GetSpectators() => FrozenSet<PlayerHandle>.Empty;
-
-    public ResultCode AddLocalPlayer(out PlayerHandle handle)
-    {
-        handle = default;
-        return ResultCode.NotSupported;
-    }
-
-    public ResultCode AddRemotePlayer(EndPoint endpoint, out PlayerHandle handle)
-    {
-        handle = default;
-        return ResultCode.NotSupported;
-    }
-
-#pragma warning disable S4144
-    public ResultCode AddSpectator(EndPoint endpoint, out PlayerHandle handle)
-    {
-        handle = default;
-        return ResultCode.NotSupported;
-    }
-#pragma warning restore S4144
+    public void DisconnectPlayer(NetcodePlayer player) { }
+    public ResultCode AddLocalInput(NetcodePlayer player, in TInput localInput) => ResultCode.Ok;
+    public IReadOnlySet<NetcodePlayer> GetPlayers() => fakePlayers;
+    public IReadOnlySet<NetcodePlayer> GetSpectators() => FrozenSet<NetcodePlayer>.Empty;
+    public NetcodePlayer? FindPlayer(Guid id) => playerMap.GetValueOrDefault(id);
+    public ResultCode AddPlayer(NetcodePlayer player) => ResultCode.NotSupported;
 
     public void BeginFrame()
     {
@@ -188,10 +174,11 @@ sealed class SpectatorSession<TInput> :
         SaveCurrentFrame();
     }
 
-    public PlayerConnectionStatus GetPlayerStatus(in PlayerHandle player) => host.Status.ToPlayerStatus();
+    public PlayerConnectionStatus GetPlayerStatus(NetcodePlayer player) => host.Status.ToPlayerStatus();
 
-    public bool GetNetworkStatus(in PlayerHandle player, ref PeerNetworkStats info)
+    public bool UpdateNetworkStats(NetcodePlayer player)
     {
+        var info = player.NetworkStats;
         info.Session = this;
 
         if (isSynchronizing)
@@ -205,7 +192,7 @@ sealed class SpectatorSession<TInput> :
         return true;
     }
 
-    public void SetFrameDelay(PlayerHandle player, int delayInFrames) { }
+    public void SetFrameDelay(NetcodePlayer player, int delayInFrames) { }
 
     public void Start(CancellationToken stoppingToken = default)
     {

@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Net;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Backdash.Core;
@@ -27,15 +26,17 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>
     readonly BackgroundJobManager backgroundJobManager;
     readonly PeerConnectionFactory peerConnectionFactory;
     readonly IDeterministicRandom<TInput> random;
+    readonly ProtocolCombinedInputsEventPublisher<TInput> peerCombinedInputsEventPublisher;
+    readonly PeerObserverGroup<ProtocolMessage> peerObservers;
+    readonly ProtocolInputEventQueue<TInput> peerInputEventQueue;
 
     readonly ConnectionsState localConnections;
-    readonly List<PeerConnection<ConfirmedInputs<TInput>>> spectators;
     readonly List<PeerConnection<TInput>?> endpoints;
-    readonly PeerObserverGroup<ProtocolMessage> peerObservers;
-    readonly HashSet<PlayerHandle> addedPlayers = [];
-    readonly HashSet<PlayerHandle> addedSpectators = [];
-    readonly ProtocolInputEventQueue<TInput> peerInputEventQueue;
-    readonly ProtocolCombinedInputsEventPublisher<TInput> peerCombinedInputsEventPublisher;
+    readonly List<PeerConnection<ConfirmedInputs<TInput>>> spectators;
+
+    readonly HashSet<NetcodePlayer> addedPlayers = [];
+    readonly HashSet<NetcodePlayer> addedSpectators = [];
+    readonly Dictionary<Guid, NetcodePlayer> allPlayers = [];
 
     readonly IBinarySerializer<TInput> inputSerializer;
     readonly IBinarySerializer<ConfirmedInputs<TInput>> inputGroupSerializer;
@@ -171,10 +172,11 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>
 
     public SessionMode Mode => SessionMode.Remote;
 
-    public IReadOnlySet<PlayerHandle> GetPlayers() => addedPlayers;
-    public IReadOnlySet<PlayerHandle> GetSpectators() => addedSpectators;
+    public IReadOnlySet<NetcodePlayer> GetPlayers() => addedPlayers;
+    public IReadOnlySet<NetcodePlayer> GetSpectators() => addedSpectators;
+    public NetcodePlayer? FindPlayer(Guid id) => allPlayers.GetValueOrDefault(id);
 
-    public bool TryGetPlayer(PlayerType playerType, out PlayerHandle player)
+    public bool TryGetPlayer(PlayerType playerType, [NotNullWhen(true)] out NetcodePlayer? player)
     {
         foreach (var p in addedPlayers)
         {
@@ -183,7 +185,7 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>
             return true;
         }
 
-        player = default;
+        player = null;
         return false;
     }
 
@@ -206,7 +208,6 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>
         return backgroundJobTask.WaitAsync(stoppingToken);
     }
 
-
     public void BeginFrame()
     {
         if (!isSynchronizing)
@@ -215,63 +216,80 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>
         DoSync();
     }
 
-    ///  <inheritdoc />
-    public ResultCode AddLocalPlayer(out PlayerHandle handle)
+    public ResultCode AddPlayer(NetcodePlayer player)
     {
-        handle = default;
+        var result = player.Type switch
+        {
+            PlayerType.Spectator => AddSpectator(player),
+            PlayerType.Remote => AddRemotePlayer(player),
+            PlayerType.Local => AddLocalPlayer(player),
+            _ => throw new ArgumentOutOfRangeException(nameof(player)),
+        };
+
+        return result;
+    }
+
+    public ResultCode AddLocalPlayer(NetcodePlayer player)
+    {
+        ArgumentNullException.ThrowIfNull(player);
+        if (!player.IsLocal())
+            return ResultCode.InvalidNetcodePlayer;
 
         if (addedPlayers.Count >= Max.NumberOfPlayers)
             return ResultCode.TooManyPlayers;
 
-        PlayerHandle playerHandle = new(PlayerType.Local, addedPlayers.Count);
-        if (!addedPlayers.Add(playerHandle))
+        player.SetQueue(addedPlayers.Count);
+
+        if (!allPlayers.TryAdd(player.Id, player) || !addedPlayers.Add(player))
+        {
+            player.SetQueue(-1);
             return ResultCode.DuplicatedPlayer;
+        }
 
-        handle = playerHandle;
         endpoints.Add(null);
-
         IncrementInputBufferSize();
-        synchronizer.AddQueue(handle);
+        synchronizer.AddQueue(player);
 
         return ResultCode.Ok;
     }
 
-    ///  <inheritdoc />
-    public ResultCode AddRemotePlayer(EndPoint endpoint, out PlayerHandle handle)
+    public ResultCode AddRemotePlayer(NetcodePlayer player)
     {
-        ArgumentNullException.ThrowIfNull(endpoint);
-        handle = default;
+        ArgumentNullException.ThrowIfNull(player);
+        if (!player.IsRemote() || player.EndPoint is null)
+            return ResultCode.InvalidNetcodePlayer;
 
         if (addedPlayers.Count >= Max.NumberOfPlayers)
             return ResultCode.TooManyPlayers;
 
-        PlayerHandle playerHandle = new(PlayerType.Remote, addedPlayers.Count);
-        if (!addedPlayers.Add(playerHandle))
+        player.SetQueue(addedPlayers.Count);
+        if (!allPlayers.TryAdd(player.Id, player) || !addedPlayers.Add(player))
+        {
+            player.SetQueue(-1);
             return ResultCode.DuplicatedPlayer;
-
-        handle = playerHandle;
+        }
 
         var protocol = peerConnectionFactory.Create(
-            new(handle, endpoint, localConnections, syncNumber),
+            new(player, player.EndPoint, localConnections, syncNumber),
             inputSerializer, peerInputEventQueue, inputComparer
         );
 
         peerObservers.Add(protocol.GetUdpObserver());
         endpoints.Add(protocol);
         IncrementInputBufferSize();
-        synchronizer.AddQueue(handle);
-        logger.Write(LogLevel.Information, $"Adding {handle} at {endpoint}");
+        synchronizer.AddQueue(player);
+        logger.Write(LogLevel.Information, $"Adding {player} at {player.EndPoint}");
         protocol.Synchronize();
         isSynchronizing = true;
-        plugins.OnEndpointAdded(this, endpoint, in handle);
+        plugins.OnEndpointAdded(this, player.EndPoint, player);
         return ResultCode.Ok;
     }
 
-    ///  <inheritdoc />
-    public ResultCode AddSpectator(EndPoint endpoint, out PlayerHandle handle)
+    public ResultCode AddSpectator(NetcodePlayer player)
     {
-        ArgumentNullException.ThrowIfNull(endpoint);
-        handle = default;
+        ArgumentNullException.ThrowIfNull(player);
+        if (!player.IsSpectator() || player.EndPoint is null)
+            return ResultCode.InvalidNetcodePlayer;
 
         if (spectators.Count >= Max.NumberOfSpectators)
             return ResultCode.TooManySpectators;
@@ -280,27 +298,29 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>
         if (!isSynchronizing)
             return ResultCode.AlreadySynchronized;
 
-        var queue = spectators.Count;
-        PlayerHandle spectatorHandle = new(PlayerType.Spectator, queue);
-        if (!addedSpectators.Add(spectatorHandle))
+        player.SetQueue(spectators.Count);
+        if (!allPlayers.TryAdd(player.Id, player) || !addedSpectators.Add(player))
+        {
+            player.SetQueue(-1);
             return ResultCode.DuplicatedPlayer;
+        }
 
-        handle = spectatorHandle;
         var protocol = peerConnectionFactory.Create(
-            new(spectatorHandle, endpoint, localConnections, syncNumber),
+            new(player, player.EndPoint, localConnections, syncNumber),
             inputGroupSerializer,
             peerCombinedInputsEventPublisher,
             inputGroupComparer
         );
+
         peerObservers.Add(protocol.GetUdpObserver());
         spectators.Add(protocol);
-        logger.Write(LogLevel.Information, $"Adding {handle} at {endpoint}");
+        logger.Write(LogLevel.Information, $"Adding {player} at {player.EndPoint}");
         protocol.Synchronize();
-        plugins.OnEndpointAdded(this, endpoint, in handle);
+        plugins.OnEndpointAdded(this, player.EndPoint, player);
         return ResultCode.Ok;
     }
 
-    public ResultCode AddLocalInput(in PlayerHandle player, in TInput localInput)
+    public ResultCode AddLocalInput(NetcodePlayer player, in TInput localInput)
     {
         GameInput<TInput> input = new()
         {
@@ -310,15 +330,15 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>
             return ResultCode.NotSynchronized;
 
         if (player.Type is not PlayerType.Local)
-            return ResultCode.InvalidPlayerHandle;
+            return ResultCode.InvalidNetcodePlayer;
 
-        if (!IsPlayerKnown(in player))
+        if (!IsPlayerKnown(player))
             return ResultCode.PlayerOutOfRange;
 
         if (synchronizer.InRollback)
             return ResultCode.InRollback;
 
-        if (!synchronizer.AddLocalInput(in player, ref input))
+        if (!synchronizer.AddLocalInput(player, ref input))
             return ResultCode.PredictionThreshold;
 
         // Update the local connect status state to indicate that we've got a confirmed local frame for this player.
@@ -327,7 +347,7 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>
             return ResultCode.Ok;
 
         logger.Write(LogLevel.Trace,
-            $"setting local connect status for local queue {player.QueueIndex} to {input.Frame}");
+            $"setting local connect status for local queue {player.Index} to {input.Frame}");
         localConnections[player].LastFrame = input.Frame;
 
         // Send the input to all the remote players.
@@ -346,7 +366,7 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>
                 {
                     sent = false;
                     logger.Write(LogLevel.Warning,
-                        $"Unable to send input to queue {currEp.Player.QueueIndex}, {result}");
+                        $"Unable to send input to queue {currEp.Player.Index}, {result}");
                 }
             }
 
@@ -359,17 +379,19 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>
         return ResultCode.Ok;
     }
 
-    public bool GetNetworkStatus(in PlayerHandle player, ref PeerNetworkStats info)
+    public bool UpdateNetworkStats(NetcodePlayer player)
     {
+        var info = player.NetworkStats;
+
         info.Session = this;
 
-        if (isSynchronizing || player.IsLocal() || !IsPlayerKnown(in player))
+        if (isSynchronizing || player.IsLocal() || !IsPlayerKnown(player))
         {
             info.Valid = false;
             return false;
         }
 
-        endpoints[player.QueueIndex]?.GetNetworkStats(ref info);
+        endpoints[player.Index]?.GetNetworkStats(ref info);
         info.Valid = true;
         return true;
     }
@@ -382,9 +404,9 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>
         synchronizer.Callbacks = handler;
     }
 
-    public void SetFrameDelay(PlayerHandle player, int delayInFrames)
+    public void SetFrameDelay(NetcodePlayer player, int delayInFrames)
     {
-        ThrowIf.ArgumentOutOfBounds(player.QueueIndex, 0, addedPlayers.Count);
+        ThrowIf.ArgumentOutOfBounds(player.Index, 0, addedPlayers.Count);
         ArgumentOutOfRangeException.ThrowIfNegative(delayInFrames);
         synchronizer.SetFrameDelay(player, delayInFrames);
     }
@@ -395,32 +417,32 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>
         return synchronizer.TryLoadFrame(in frame);
     }
 
-    public PlayerConnectionStatus GetPlayerStatus(in PlayerHandle player)
+    public PlayerConnectionStatus GetPlayerStatus(NetcodePlayer player)
     {
-        if (!IsPlayerKnown(in player)) return PlayerConnectionStatus.Unknown;
+        if (!IsPlayerKnown(player)) return PlayerConnectionStatus.Unknown;
         if (player.IsLocal()) return PlayerConnectionStatus.Local;
-        if (player.IsSpectator()) return spectators[player.QueueIndex].Status.ToPlayerStatus();
-        var endpoint = endpoints[player.QueueIndex];
+        if (player.IsSpectator()) return spectators[player.Index].Status.ToPlayerStatus();
+        var endpoint = endpoints[player.Index];
         if (endpoint?.IsRunning == true)
-            return localConnections.IsConnected(in player)
+            return localConnections.IsConnected(player)
                 ? PlayerConnectionStatus.Connected
                 : PlayerConnectionStatus.Disconnected;
         return endpoint?.Status.ToPlayerStatus() ?? PlayerConnectionStatus.Unknown;
     }
 
-    public void DisconnectPlayer(in PlayerHandle player)
+    public void DisconnectPlayer(NetcodePlayer player)
     {
-        if (!IsPlayerKnown(in player)) return;
+        if (!IsPlayerKnown(player)) return;
         if (localConnections[player].Disconnected) return;
         if (player.Type is not PlayerType.Remote) return;
-        if (endpoints[player.QueueIndex] is null)
+        if (endpoints[player.Index] is null)
         {
             var currentFrame = synchronizer.CurrentFrame;
             logger.Write(LogLevel.Information,
                 $"Disconnecting {player} at frame {localConnections[player].LastFrame} by user request.");
             for (int i = 0; i < endpoints.Count; i++)
-                if (endpoints[i] is not null)
-                    DisconnectPlayerQueue(new(PlayerType.Remote, i), currentFrame);
+                if (endpoints[i] is { Player: { } epPlayer })
+                    DisconnectPlayerQueue(epPlayer, currentFrame);
         }
         else
         {
@@ -430,8 +452,8 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>
         }
     }
 
-    public ref readonly SynchronizedInput<TInput> GetInput(in PlayerHandle player) =>
-        ref syncInputBuffer[player.QueueIndex];
+    public ref readonly SynchronizedInput<TInput> GetInput(NetcodePlayer player) =>
+        ref syncInputBuffer[player.Index];
 
     public ref readonly SynchronizedInput<TInput> GetInput(int index) =>
         ref syncInputBuffer[index];
@@ -458,9 +480,9 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>
     uint extraSeedState;
     public void SetRandomSeed(uint seed, uint extraState = 0) => extraSeedState = unchecked(seed + extraState);
 
-    bool IsPlayerKnown(in PlayerHandle player) =>
-        player.QueueIndex >= 0
-        && player.QueueIndex <
+    bool IsPlayerKnown(NetcodePlayer player) =>
+        player.Index >= 0
+        && player.Index <
         player.Type switch
         {
             PlayerType.Remote => endpoints.Count,
@@ -625,7 +647,7 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>
             var newRemoteFrame = eventInput.Frame;
 
             ThrowIf.Assert(currentRemoteFrame.IsNull || newRemoteFrame == currentRemoteFrame.Next());
-            synchronizer.AddRemoteInput(in player, eventInput);
+            synchronizer.AddRemoteInput(player, eventInput);
             // Notify the other endpoints which frame we received from a peer
             logger.Write(LogLevel.Trace, $"setting remote connect status frame {player} to {eventInput.Frame}");
             localConnections[player].LastFrame = eventInput.Frame;
@@ -663,8 +685,9 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>
             case ProtocolEvent.SyncFailure:
                 if (player.IsSpectator())
                 {
-                    spectators[player.QueueIndex].Disconnect();
+                    spectators[player.Index].Disconnect();
                     addedSpectators.Remove(player);
+                    allPlayers.Remove(player.Id);
                 }
                 else
                     callbacks.OnPeerEvent(player, new(PeerEvent.SynchronizationFailure));
@@ -682,8 +705,9 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>
             case ProtocolEvent.Disconnected:
                 if (player.Type is PlayerType.Spectator)
                 {
-                    spectators[player.QueueIndex].Disconnect();
+                    spectators[player.Index].Disconnect();
                     addedSpectators.Remove(player);
+                    allPlayers.Remove(player.Id);
                 }
 
                 if (player.Type is PlayerType.Remote)
@@ -719,7 +743,7 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>
             if (!queueConnected && !localConn.Disconnected && eps[i] is { Player: var handler })
             {
                 logger.Write(LogLevel.Information, $"disconnecting {i} by remote request");
-                DisconnectPlayerQueue(in handler, in totalMinConfirmed);
+                DisconnectPlayerQueue(handler, in totalMinConfirmed);
             }
 
             logger.Write(LogLevel.Trace, $"Queue {i} => min confirmed = {totalMinConfirmed}");
@@ -772,7 +796,7 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>
                     && eps[queue] is { Player: var handle })
                 {
                     logger.Write(LogLevel.Information, $"disconnecting queue {queue} by remote request");
-                    DisconnectPlayerQueue(in handle, in queueMinConfirmed);
+                    DisconnectPlayerQueue(handle, in queueMinConfirmed);
                 }
             }
 
@@ -782,10 +806,10 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>
         return totalMinConfirmed;
     }
 
-    void DisconnectPlayerQueue(in PlayerHandle player, in Frame syncTo)
+    void DisconnectPlayerQueue(NetcodePlayer player, in Frame syncTo)
     {
         var frameCount = synchronizer.CurrentFrame;
-        endpoints[player.QueueIndex]?.Disconnect();
+        endpoints[player.Index]?.Disconnect();
         ref var connStatus = ref localConnections[player];
         logger.Write(LogLevel.Debug,
             $"Changing player {player} local connect status for last frame from {connStatus.LastFrame.Number} to {syncTo} on disconnect request (current: {frameCount})");

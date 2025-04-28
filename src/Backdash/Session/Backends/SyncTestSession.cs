@@ -1,7 +1,6 @@
 using System.Buffers;
 using System.Collections.Frozen;
 using System.Diagnostics.CodeAnalysis;
-using System.Net;
 using Backdash.Core;
 using Backdash.Network;
 using Backdash.Options;
@@ -24,7 +23,7 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
         GameInput<ConfirmedInputs<TInput>> Inputs
     )
     {
-        public GameInput<TInput> GetInput(in PlayerHandle player) => new(Inputs.Data.Inputs[player.QueueIndex], Frame);
+        public GameInput<TInput> GetInput(NetcodePlayer player) => new(Inputs.Data.Inputs[player.Index], Frame);
     };
 
     sealed class PlayerInputState
@@ -36,8 +35,9 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
     readonly Synchronizer<TInput> synchronizer;
     readonly TaskCompletionSource tsc = new();
     readonly Logger logger;
-    readonly HashSet<PlayerHandle> addedSpectators = [];
-    readonly Dictionary<PlayerHandle, PlayerInputState> addedPlayers = [];
+    readonly HashSet<NetcodePlayer> addedSpectators = [];
+    readonly Dictionary<NetcodePlayer, PlayerInputState> addedPlayers = [];
+    readonly Dictionary<Guid, NetcodePlayer> allPlayers = [];
     readonly Queue<SavedFrameBytes> savedFrames = [];
     readonly SynchronizedInput<TInput>[] syncInputBuffer = new SynchronizedInput<TInput>[Max.NumberOfPlayers];
     readonly TInput[] inputBuffer = new TInput[Max.NumberOfPlayers];
@@ -58,9 +58,9 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
 
     public int FixedFrameRate { get; }
 
-    readonly IReadOnlySet<PlayerHandle> localPlayerFallback = new HashSet<PlayerHandle>
+    readonly IReadOnlySet<NetcodePlayer> localPlayerFallback = new HashSet<NetcodePlayer>
     {
-        new(PlayerType.Local, 0),
+        new(0, PlayerType.Local),
     }.ToFrozenSet();
 
     public SyncTestSession(
@@ -120,11 +120,12 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
     public bool IsInRollback => synchronizer.InRollback;
     public SavedFrame GetCurrentSavedFrame() => synchronizer.GetLastSavedFrame();
 
-    public IReadOnlySet<PlayerHandle> GetPlayers() =>
+    public IReadOnlySet<NetcodePlayer> GetPlayers() =>
         addedPlayers.Count is 0 ? localPlayerFallback : addedPlayers.Keys.ToHashSet();
 
-    public IReadOnlySet<PlayerHandle> GetSpectators() => addedSpectators;
-    public void DisconnectPlayer(in PlayerHandle player) { }
+    public IReadOnlySet<NetcodePlayer> GetSpectators() => addedSpectators;
+    public NetcodePlayer? FindPlayer(Guid id) => allPlayers.GetValueOrDefault(id);
+    public void DisconnectPlayer(NetcodePlayer player) { }
 
     public void Start(CancellationToken stoppingToken = default)
     {
@@ -144,59 +145,77 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
         await backGroundJobTask.WaitAsync(stoppingToken).ConfigureAwait(false);
     }
 
-    public ResultCode AddLocalPlayer(out PlayerHandle handle)
+    public ResultCode AddPlayer(NetcodePlayer player)
     {
-        handle = new(PlayerType.Local, addedPlayers.Count);
+        var result = player.Type switch
+        {
+            PlayerType.Local => AddLocalPlayer(player),
+            PlayerType.Spectator => AddSpectator(player),
+            PlayerType.Remote => ResultCode.NotSupported,
+            _ => throw new ArgumentOutOfRangeException(nameof(player)),
+        };
+
+        return result;
+    }
+
+    public ResultCode AddLocalPlayer(NetcodePlayer player)
+    {
+        if (!player.IsLocal())
+            return ResultCode.InvalidNetcodePlayer;
 
         if (addedPlayers.Count >= Max.NumberOfPlayers)
             return ResultCode.TooManyPlayers;
 
-        if (!addedPlayers.TryAdd(handle, new()))
+        player.SetQueue(addedPlayers.Count);
+        if (!addedPlayers.TryAdd(player, new()) || !allPlayers.TryAdd(player.Id, player))
+        {
+            player.SetQueue(-1);
             return ResultCode.DuplicatedPlayer;
+        }
 
         return ResultCode.Ok;
     }
 
-    public ResultCode AddRemotePlayer(EndPoint endpoint, out PlayerHandle handle)
+    public ResultCode AddSpectator(NetcodePlayer player)
     {
-        handle = default;
-        return ResultCode.NotSupported;
-    }
-
-    public ResultCode AddSpectator(EndPoint endpoint, out PlayerHandle handle)
-    {
-        handle = new(PlayerType.Spectator);
+        if (!player.IsSpectator())
+            return ResultCode.InvalidNetcodePlayer;
 
         if (addedSpectators.Count >= Max.NumberOfSpectators)
             return ResultCode.TooManyPlayers;
 
-        if (!addedSpectators.Add(handle))
+        player.SetQueue(addedSpectators.Count);
+        if (!allPlayers.TryAdd(player.Id, player) || !addedSpectators.Add(player))
+        {
+            player.SetQueue(-1);
             return ResultCode.DuplicatedPlayer;
+        }
 
         return ResultCode.Ok;
     }
 
-    public PlayerConnectionStatus GetPlayerStatus(in PlayerHandle player)
+    public PlayerConnectionStatus GetPlayerStatus(NetcodePlayer player)
     {
         if (addedPlayers.ContainsKey(player) || addedSpectators.Contains(player))
             return player.IsLocal() ? PlayerConnectionStatus.Local : PlayerConnectionStatus.Connected;
         return PlayerConnectionStatus.Unknown;
     }
 
-    public bool GetNetworkStatus(in PlayerHandle player, ref PeerNetworkStats info)
+    public bool UpdateNetworkStats(NetcodePlayer player)
     {
+        var info = player.NetworkStats;
         info.Session = this;
         info.Valid = false;
         return false;
     }
 
-    public ResultCode AddLocalInput(in PlayerHandle player, in TInput localInput)
+    public ResultCode AddLocalInput(NetcodePlayer player, in TInput localInput)
     {
         if (!running)
             return ResultCode.NotSynchronized;
 
         if (!addedPlayers.TryGetValue(player, out var playerInput))
-            return ResultCode.InvalidPlayerHandle;
+            return ResultCode.InvalidNetcodePlayer;
 
         var testInput = localInput;
 
@@ -219,15 +238,15 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
         if (synchronizer.CurrentFrame.Number is 0 && !inRollback)
             synchronizer.SaveCurrentFrame();
 
-        foreach (var (handle, input) in addedPlayers)
+        foreach (var (player, input) in addedPlayers)
         {
             if (inRollback && savedFrames.Count > 0)
-                input.Last = savedFrames.Peek().GetInput(in handle);
+                input.Last = savedFrames.Peek().GetInput(player);
             else
                 input.Last = input.Current;
 
-            inputBuffer[handle.QueueIndex] = input.Last.Data;
-            syncInputBuffer[handle.QueueIndex] = new(input.Last.Data, false);
+            inputBuffer[player.Index] = input.Last.Data;
+            syncInputBuffer[player.Index] = new(input.Last.Data, false);
         }
 
         random.UpdateSeed(CurrentFrame, inputBuffer, extraSeedState);
@@ -256,7 +275,7 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
         foreach (var (player, input) in addedPlayers)
         {
             input.Current.Erase();
-            lastInputs.Data.Inputs[player.QueueIndex] = input.Last.Data;
+            lastInputs.Data.Inputs[player.Index] = input.Last.Data;
         }
 
         if (inRollback) return;
@@ -379,9 +398,9 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
             logger.Write(level, chunk);
     }
 
-    public void SetFrameDelay(PlayerHandle player, int delayInFrames)
+    public void SetFrameDelay(NetcodePlayer player, int delayInFrames)
     {
-        ThrowIf.ArgumentOutOfBounds(player.QueueIndex, 0, addedPlayers.Count);
+        ThrowIf.ArgumentOutOfBounds(player.Index, 0, addedPlayers.Count);
         ArgumentOutOfRangeException.ThrowIfNegative(delayInFrames);
         synchronizer.SetFrameDelay(player, delayInFrames);
     }

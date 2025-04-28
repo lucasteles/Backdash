@@ -24,7 +24,7 @@ public sealed record ProtocolOptions
 
     /// <summary>
     ///     Max allowed pending inputs in sending queue.
-    ///     When reached <see cref="INetcodeSession{TInput}.AddLocalInput(in Backdash.PlayerHandle, in TInput)" /> will return
+    ///     When reached <see cref="INetcodeSession{TInput}.AddLocalInput(Backdash.NetcodePlayer, in TInput)" /> will return
     ///     <see cref="ResultCode.InputDropped" />.
     /// </summary>
     /// <value>Defaults to <c>64</c></value>

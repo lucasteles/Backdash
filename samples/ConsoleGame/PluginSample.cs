@@ -17,7 +17,7 @@ public sealed class PluginSample : INetcodePlugin
         if (session.TryGetLocalPlayer(out var player))
             suffix = $"player_{player.Number}";
 
-        var fileName = $"plugin_log_{session.Mode}_{suffix}.txt";
+        var fileName = $"log_plugin_{session.Mode}_{suffix}.txt";
         textWriter = new StreamWriter(fileName.ToLowerInvariant(), false)
         {
             AutoFlush = true,
@@ -28,10 +28,10 @@ public sealed class PluginSample : INetcodePlugin
 
     public void OnSessionClose(INetcodeSession session) => Log("Closing Session");
 
-    public void OnEndpointAdded(INetcodeSession session, EndPoint endpoint, in PlayerHandle player) =>
+    public void OnEndpointAdded(INetcodeSession session, EndPoint endpoint, NetcodePlayer player) =>
         Log($"Added Endpoint: {endpoint} for {player}");
 
-    public void OnEndpointClosed(INetcodeSession session, EndPoint endpoint, in PlayerHandle player) =>
+    public void OnEndpointClosed(INetcodeSession session, EndPoint endpoint, NetcodePlayer player) =>
         Log($"Closing Endpoint: {endpoint} for {player}");
 
     public void Dispose()

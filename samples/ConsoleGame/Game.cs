@@ -47,7 +47,7 @@ public sealed class Game : INetcodeSessionHandler
             nonGameState = new()
             {
                 LocalPlayer = null,
-                RemotePlayer = default,
+                RemotePlayer = new(),
                 SessionInfo = session,
             };
         }
@@ -63,7 +63,7 @@ public sealed class Game : INetcodeSessionHandler
         if (nonGameState.IsRunning)
             UpdateState();
 
-        session.GetNetworkStatus(nonGameState.RemotePlayer, ref nonGameState.PeerNetworkStats);
+        session.UpdateNetworkStats(nonGameState.RemotePlayer);
         view.Draw(in currentState, nonGameState);
     }
 
@@ -149,7 +149,7 @@ public sealed class Game : INetcodeSessionHandler
         Thread.Sleep(framesAhead.Duration());
     }
 
-    public void OnPeerEvent(PlayerHandle player, PeerEventInfo evt)
+    public void OnPeerEvent(NetcodePlayer player, PeerEventInfo evt)
     {
         Log($"PEER EVENT: {evt} from {player}");
         if (player.IsSpectator())

@@ -19,12 +19,12 @@ sealed class ConnectionsState
     }
 
     public ConnectionsState(int size) : this(size, Frame.Null) { }
-    public ref ConnectStatus this[in PlayerHandle player] => ref Statuses[player.QueueIndex];
+    public ref ConnectStatus this[in NetcodePlayer player] => ref Statuses[player.Index];
     public ref ConnectStatus this[int index] => ref Statuses[index];
-    public bool IsKnown(in PlayerHandle player) => player.QueueIndex >= 0 && player.QueueIndex < Length;
+    public bool IsKnown(NetcodePlayer player) => player.Index >= 0 && player.Index < Length;
 
-    public bool IsConnected(in PlayerHandle player) =>
-        IsKnown(in player) && !Statuses[player.QueueIndex].Disconnected;
+    public bool IsConnected(NetcodePlayer player) =>
+        IsKnown(player) && !Statuses[player.Index].Disconnected;
 
     public void CopyTo(Span<ConnectStatus> buffer) => Statuses.CopyTo(buffer);
 

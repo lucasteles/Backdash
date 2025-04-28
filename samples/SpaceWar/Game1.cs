@@ -71,23 +71,23 @@ public class Game1 : Game
 
         foreach (var player in session.GetPlayers())
         {
-            PlayerConnectionInfo playerInfo = new();
+            PlayerInfo playerInfo = new(player);
             ngs.Players[player.Index] = playerInfo;
-            playerInfo.Handle = player;
+            playerInfo.PlayerHandle = player;
             playerInfo.Name = $"player{player.Number}";
             if (player.IsLocal())
             {
                 playerInfo.ConnectProgress = 100;
                 ngs.SetConnectState(player, PlayerConnectState.Connecting);
 
-                if (ngs.LocalPlayerHandle is null)
+                if (ngs.LocalPlayer is null)
                 {
                     ConfigurePlayerWindow(player);
-                    ngs.LocalPlayerHandle = player;
+                    ngs.LocalPlayer = player;
                 }
                 // used for local session, 2nd player that mirrors the player 1
-                else if (ngs.MirrorPlayerHandle is null)
-                    ngs.MirrorPlayerHandle = player;
+                else if (ngs.MirrorPlayer is null)
+                    ngs.MirrorPlayer = player;
                 else
                     throw new InvalidOperationException("Too many local players");
             }
@@ -110,7 +110,7 @@ public class Game1 : Game
         session.SetHandler(gameSession);
     }
 
-    void ConfigurePlayerWindow(PlayerHandle player)
+    void ConfigurePlayerWindow(NetcodePlayer player)
     {
         Window.Title = $"SpaceWar - Player {player.Number}";
         if (graphics.IsFullScreen) return;

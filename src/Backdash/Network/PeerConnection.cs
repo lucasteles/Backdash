@@ -162,7 +162,7 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
     public SendInputResult SendInput(in GameInput<TInput> input) => inputBuffer.SendInput(in input);
     public ProtocolStatus Status => state.CurrentStatus;
     public bool IsRunning => state.CurrentStatus is ProtocolStatus.Running;
-    public PlayerHandle Player => state.Player;
+    public NetcodePlayer Player => state.Player;
     public PeerAddress Address => state.PeerAddress;
 
     // require idle input should be a configuration parameter

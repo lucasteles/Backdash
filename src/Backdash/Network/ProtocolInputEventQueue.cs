@@ -6,10 +6,10 @@ using Backdash.Synchronizing.Input.Confirmed;
 
 namespace Backdash.Network;
 
-readonly record struct GameInputEvent<TInput>(PlayerHandle Player, GameInput<TInput> Input)
+readonly record struct GameInputEvent<TInput>(NetcodePlayer Player, GameInput<TInput> Input)
     where TInput : unmanaged
 {
-    public readonly PlayerHandle Player = Player;
+    public readonly NetcodePlayer Player = Player;
     public readonly GameInput<TInput> Input = Input;
 }
 

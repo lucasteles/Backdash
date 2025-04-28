@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Net;
 using Backdash.Data;
 using Backdash.Network;
 using Backdash.Synchronizing;
@@ -89,10 +88,7 @@ public interface INetcodeSession : INetcodeSessionInfo, IDisposable
     /// <summary>
     ///     Disconnects a remote player from a game.
     /// </summary>
-    void DisconnectPlayer(in PlayerHandle player);
-
-    /// <inheritdoc cref="DisconnectPlayer(in Backdash.PlayerHandle)"/>
-    void DisconnectPlayer(in NetcodePlayer player) => DisconnectPlayer(player.Handle);
+    void DisconnectPlayer(NetcodePlayer player);
 
     /// <summary>
     ///     Should be called at the start of each frame of your application.
@@ -108,20 +104,20 @@ public interface INetcodeSession : INetcodeSessionInfo, IDisposable
     /// <summary>
     ///     Returns connection status of a player.
     /// </summary>
-    PlayerConnectionStatus GetPlayerStatus(in PlayerHandle player);
+    PlayerConnectionStatus GetPlayerStatus(NetcodePlayer player);
 
     /// <summary>
-    ///     Gets statistics and information about a player into <paramref name="info" />.
+    ///     Gets statistics and information about a player in <see cref="NetcodePlayer.NetworkStats"/>.
     ///     Returns <see langword="false" /> if the request player is not connected or synchronized.
     /// </summary>
-    bool GetNetworkStatus(in PlayerHandle player, ref PeerNetworkStats info);
+    bool UpdateNetworkStats(NetcodePlayer player);
 
     /// <summary>
     ///     Change the amount of delay frames for local input.
     /// </summary>
     /// <param name="player"></param>
     /// <param name="delayInFrames"></param>
-    void SetFrameDelay(PlayerHandle player, int delayInFrames);
+    void SetFrameDelay(NetcodePlayer player, int delayInFrames);
 
     /// <summary>
     ///     Load state for saved <paramref name="frame" />.
@@ -138,29 +134,14 @@ public interface INetcodeSession : INetcodeSessionInfo, IDisposable
     SessionReplayControl? ReplayController => null;
 
     /// <summary>
-    ///     Add a local player into the session.
-    /// </summary>
-    ResultCode AddLocalPlayer(out PlayerHandle handle);
-
-    /// <summary>
-    ///     Add a remote player into the session.
-    /// </summary>
-    ResultCode AddRemotePlayer(EndPoint endpoint, out PlayerHandle handle);
-
-    /// <summary>
-    ///     Add a spectator into the session.
-    /// </summary>
-    ResultCode AddSpectator(EndPoint endpoint, out PlayerHandle handle);
-
-    /// <summary>
     ///     Returns a list of all input players in the session.
     /// </summary>
-    IReadOnlySet<PlayerHandle> GetPlayers();
+    IReadOnlySet<NetcodePlayer> GetPlayers();
 
     /// <summary>
     ///     Returns a list of all spectators in the session.
     /// </summary>
-    IReadOnlySet<PlayerHandle> GetSpectators();
+    IReadOnlySet<NetcodePlayer> GetSpectators();
 
     /// <summary>
     ///     Starts the background work for the session.
@@ -210,22 +191,7 @@ public interface INetcodeSession : INetcodeSessionInfo, IDisposable
     /// </summary>
     /// <param name="player"></param>
     /// <returns><see cref="ResultCode.Ok" /> if success.</returns>
-    ResultCode AddPlayer(NetcodePlayer player)
-    {
-        ArgumentNullException.ThrowIfNull(player);
-        PlayerHandle handle;
-
-        var result = player.Type switch
-        {
-            PlayerType.Spectator => AddSpectator(player.EndPoint!, out handle),
-            PlayerType.Remote => AddRemotePlayer(player.EndPoint!, out handle),
-            PlayerType.Local => AddLocalPlayer(out handle),
-            _ => throw new ArgumentOutOfRangeException(nameof(player)),
-        };
-
-        player.PlayerHandle = handle;
-        return result;
-    }
+    ResultCode AddPlayer(NetcodePlayer player);
 
     /// <summary>
     ///     Add a list of <see name="Player" /> into current session.
@@ -240,29 +206,36 @@ public interface INetcodeSession : INetcodeSessionInfo, IDisposable
     }
 
     /// <summary>
+    ///     Find player by unique ID
+    /// </summary>
+    /// <seealso cref="NetcodePlayer.Id"/>
+    NetcodePlayer? FindPlayer(Guid id);
+
+    /// <summary>
     ///     Tries to get first player of type <paramref name="playerType"/>
     /// </summary>
-    bool TryGetPlayer(PlayerType playerType, out PlayerHandle player)
+    bool TryGetPlayer(PlayerType playerType, [NotNullWhen(true)] out NetcodePlayer? player)
     {
-        if (GetPlayers().Cast<PlayerHandle?>().FirstOrDefault(p => p?.Type == playerType) is { } found)
+        if (GetPlayers().Cast<NetcodePlayer?>().FirstOrDefault(p => p?.Type == playerType) is { } found)
         {
             player = found;
             return true;
         }
 
-        player = default;
-        return true;
+        player = null;
+        return false;
     }
 
     /// <summary>
     ///     Tries to get first local player
     /// </summary>
-    bool TryGetLocalPlayer(out PlayerHandle player) => TryGetPlayer(PlayerType.Local, out player);
+    bool TryGetLocalPlayer([NotNullWhen(true)] out NetcodePlayer? player) => TryGetPlayer(PlayerType.Local, out player);
 
     /// <summary>
     ///     Tries to get first remote player
     /// </summary>
-    bool TryGetRemotePlayer(out PlayerHandle player) => TryGetPlayer(PlayerType.Remote, out player);
+    bool TryGetRemotePlayer([NotNullWhen(true)] out NetcodePlayer? player) =>
+        TryGetPlayer(PlayerType.Remote, out player);
 }
 
 /// <summary>
@@ -283,11 +256,7 @@ public interface INetcodeSession<TInput> : INetcodeSession where TInput : unmana
     /// </summary>
     /// <param name="player">Player owner of the inputs</param>
     /// <param name="localInput">The input value</param>
-    ResultCode AddLocalInput(in PlayerHandle player, in TInput localInput);
-
-    /// <inheritdoc cref="AddLocalInput(in Backdash.PlayerHandle,in TInput)"/>
-    ResultCode AddLocalInput(NetcodePlayer player, in TInput localInput) =>
-        AddLocalInput(in player.PlayerHandle, in localInput);
+    ResultCode AddLocalInput(NetcodePlayer player, in TInput localInput);
 
     /// <summary>
     ///     Synchronizes the inputs of the local and remote players into a local buffer.
@@ -317,12 +286,8 @@ public interface INetcodeSession<TInput> : INetcodeSession where TInput : unmana
     ///     Returns the value of a synchronized input for the requested <paramref name="player" />.
     ///     This must be called after <see cref="SynchronizeInputs" />
     /// </summary>
-    ref readonly SynchronizedInput<TInput> GetInput(in PlayerHandle player) =>
-        ref CurrentSynchronizedInputs[player.QueueIndex];
-
-    /// <inheritdoc cref="GetInput(in Backdash.PlayerHandle)"/>
-    ref readonly SynchronizedInput<TInput> GetInput(in NetcodePlayer player) =>
-        ref CurrentSynchronizedInputs[player.PlayerHandle.QueueIndex];
+    ref readonly SynchronizedInput<TInput> GetInput(NetcodePlayer player) =>
+        ref CurrentSynchronizedInputs[player.Index];
 
     /// <summary>
     ///     Returns the value of a synchronized input for the requested player index.

@@ -11,15 +11,15 @@ public enum ResultCode : short
     /// <summary>Operation succeed.</summary>
     Ok = 0,
 
-    /// <summary>When <see cref="PlayerHandle" /> was not valid for session.</summary>
-    InvalidPlayerHandle,
+    /// <summary>When <see cref="NetcodePlayer" /> was not valid for session.</summary>
+    InvalidNetcodePlayer,
 
-    /// <summary>When <see cref="PlayerHandle.Index" /> was not known by session.</summary>
+    /// <summary>When <see cref="NetcodePlayer.Index" /> was not known by session.</summary>
     PlayerOutOfRange,
 
     /// <summary>When emulator reached prediction barrier.</summary>
     /// <seealso cref="NetcodeOptions.PredictionFrames" />
-    /// <seealso cref="INetcodeSession{TInput}.AddLocalInput(in Backdash.PlayerHandle, in TInput)" />
+    /// <seealso cref="INetcodeSession{TInput}.AddLocalInput(Backdash.NetcodePlayer, in TInput)" />
     PredictionThreshold,
 
     /// <summary>The synchronization with peer was not finished.</summary>
@@ -47,7 +47,7 @@ public enum ResultCode : short
     /// <seealso cref="INetcodeSession.Start" />
     AlreadySynchronized,
 
-    /// <summary>The <see cref="PlayerHandle" /> is already added to the session.</summary>
+    /// <summary>The <see cref="NetcodePlayer" /> is already added to the session.</summary>
     DuplicatedPlayer,
 
     /// <summary>The current session type not support the requested operation.</summary>

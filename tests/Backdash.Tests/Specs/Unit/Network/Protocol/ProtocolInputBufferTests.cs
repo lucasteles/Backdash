@@ -160,7 +160,7 @@ public class ProtocolInputBufferTests
             MaxPendingInputs = 1024,
         };
         ProtocolState state = new(
-            Generate.PlayerHandle(),
+            Generate.NetcodePlayer(),
             Generate.Peer(),
             Generate.ConnectionsState(),
             42

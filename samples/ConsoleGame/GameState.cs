@@ -26,8 +26,8 @@ public class GameState
 [Serializable]
 public class NonGameState
 {
-    public required PlayerHandle? LocalPlayer;
-    public required PlayerHandle RemotePlayer;
+    public required NetcodePlayer? LocalPlayer;
+    public required NetcodePlayer RemotePlayer;
     public required INetcodeSessionInfo SessionInfo;
     public bool IsRunning;
     public float SyncProgress;

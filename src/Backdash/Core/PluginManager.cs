@@ -37,16 +37,16 @@ sealed class PluginManager(
             }
     }
 
-    public void OnEndpointClosed(INetcodeSession session, PeerAddress address, in PlayerHandle player)
+    public void OnEndpointClosed(INetcodeSession session, PeerAddress address, NetcodePlayer player)
     {
         foreach (var plugin in plugins)
-            plugin.OnEndpointClosed(session, address.EndPoint, in player);
+            plugin.OnEndpointClosed(session, address.EndPoint, player);
     }
 
-    public void OnEndpointAdded(INetcodeSession session, PeerAddress address, in PlayerHandle player)
+    public void OnEndpointAdded(INetcodeSession session, PeerAddress address, NetcodePlayer player)
     {
         foreach (var plugin in plugins)
-            plugin.OnEndpointAdded(session, address.EndPoint, in player);
+            plugin.OnEndpointAdded(session, address.EndPoint, player);
     }
 
     public void Dispose()
