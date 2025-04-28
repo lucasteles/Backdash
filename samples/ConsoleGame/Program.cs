@@ -32,6 +32,7 @@ var builder = RollbackNetcode
     .WithPlayerCount(playerCount)
     .WithInputDelayFrames(2)
     .WithLogLevel(LogLevel.Information)
+    .UsePlugin<PluginSample>()
     .WithNetworkStats()
     .ConfigureProtocol(options =>
     {

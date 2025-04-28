@@ -27,6 +27,8 @@ sealed class SessionServices<TInput> where TInput : unmanaged
 
     public INetcodeSessionHandler SessionHandler { get; }
 
+    public PluginManager PluginManager { get; }
+
     public SessionServices(
         IBinarySerializer<TInput> inputSerializer,
         NetcodeOptions options,
@@ -47,10 +49,11 @@ sealed class SessionServices<TInput> where TInput : unmanaged
 
         var logWriter = services?.LogWriter ?? new ConsoleTextLogWriter();
         Logger = new(options.Logger, logWriter);
-        JobManager = new BackgroundJobManager(Logger);
+        JobManager = new(Logger);
         SessionHandler = services?.SessionHandler ?? new EmptySessionHandler(Logger);
 
         var socketFactory = services?.PeerSocketFactory ?? new PeerSocketFactory();
         ProtocolClientFactory = new ProtocolClientFactory(options, socketFactory, Logger, DelayStrategy);
+        PluginManager = new(Logger, services?.Plugins ?? []);
     }
 }

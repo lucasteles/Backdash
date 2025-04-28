@@ -104,8 +104,20 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
     /// <summary>
     ///     Set the <see cref="SessionMode" /> as <see cref="SessionMode.Spectator" />.
     /// </summary>
-    public NetcodeSessionBuilder<TInput> ForSpectator(IPEndPoint hostEndpoint) =>
+    public NetcodeSessionBuilder<TInput> ForSpectator(EndPoint hostEndpoint) =>
         ConfigureSpectator(options => options.HostEndPoint = hostEndpoint);
+
+    /// <summary>
+    ///     Set the <see cref="SessionMode" /> as <see cref="SessionMode.Spectator" />.
+    /// </summary>
+    public NetcodeSessionBuilder<TInput> ForSpectator(IPAddress hostAddress, int hostPort) =>
+        ForSpectator(new IPEndPoint(hostAddress, hostPort));
+
+    /// <summary>
+    ///     Set the <see cref="SessionMode" /> as <see cref="SessionMode.Spectator" /> at localhost.
+    /// </summary>
+    public NetcodeSessionBuilder<TInput> ForSpectator(int hostPort) =>
+        ForSpectator(new IPEndPoint(IPAddress.Loopback, hostPort));
 
     /// <summary>
     ///     Set the <see cref="SessionMode" /> as <see cref="SessionMode.Spectator" />.
@@ -421,6 +433,26 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
     public NetcodeSessionBuilder<TInput> WithStateStore<T>() where T : IStateStore, new() =>
         WithStateStore(new T());
 
+    /// <summary>
+    ///     Add plugin type
+    /// </summary>
+    /// <seealso cref="ServicesConfig{TInput}" />
+    [MemberNotNull(nameof(sessionServices))]
+    public NetcodeSessionBuilder<TInput> UsePlugin(INetcodePlugin plugin)
+    {
+        ArgumentNullException.ThrowIfNull(plugin);
+        var services = sessionServices ?? new();
+        services.Plugins.Add(plugin);
+        return WithServices(services);
+    }
+
+    /// <summary>
+    ///     Use plugin type
+    /// </summary>
+    /// <seealso cref="ServicesConfig{TInput}" />
+    [MemberNotNull(nameof(sessionServices))]
+    public NetcodeSessionBuilder<TInput> UsePlugin<TPlugin>() where TPlugin : INetcodePlugin, new() =>
+        UsePlugin(new TPlugin());
 
     /// <summary>
     ///     Set custom session services

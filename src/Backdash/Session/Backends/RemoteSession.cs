@@ -43,6 +43,7 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>
     readonly EqualityComparer<ConfirmedInputs<TInput>> inputGroupComparer;
     readonly IInputListener<TInput>? inputListener;
     readonly ProtocolNetworkEventQueue networkEventQueue;
+    readonly PluginManager plugins;
 
     bool isSynchronizing = true;
     int nextRecommendedInterval;
@@ -77,6 +78,7 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>
         inputListener = services.InputListener;
         random = services.DeterministicRandom;
         inputComparer = services.InputComparer;
+        plugins = services.PluginManager;
 
         peerInputEventQueue = new();
         networkEventQueue = new();
@@ -137,11 +139,20 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>
 
         logger.Write(LogLevel.Information, "Shutting down connections");
 
+        plugins.OnClose(this);
+
         foreach (var endpoint in endpoints)
-            endpoint?.Dispose();
+        {
+            if (endpoint is null) continue;
+            plugins.OnEndpointClosed(this, endpoint.Address, endpoint.Player);
+            endpoint.Dispose();
+        }
 
         foreach (var spectator in spectators)
+        {
+            plugins.OnEndpointClosed(this, spectator.Address, spectator.Player);
             spectator.Dispose();
+        }
 
         callbacks.OnSessionClose();
         inputListener?.OnSessionClose();
@@ -181,6 +192,7 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>
         if (started) return;
         started = true;
 
+        plugins.OnStart(this);
         inputListener?.OnSessionStart(in inputSerializer);
         backgroundJobTask = backgroundJobManager.Start(options.UseBackgroundThread, stoppingToken);
     }
@@ -225,7 +237,7 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>
     }
 
     ///  <inheritdoc />
-    public ResultCode AddRemotePlayer(IPEndPoint endpoint, out PlayerHandle handle)
+    public ResultCode AddRemotePlayer(EndPoint endpoint, out PlayerHandle handle)
     {
         ArgumentNullException.ThrowIfNull(endpoint);
         handle = default;
@@ -251,11 +263,12 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>
         logger.Write(LogLevel.Information, $"Adding {handle} at {endpoint}");
         protocol.Synchronize();
         isSynchronizing = true;
+        plugins.OnEndpointAdded(this, endpoint, in handle);
         return ResultCode.Ok;
     }
 
     ///  <inheritdoc />
-    public ResultCode AddSpectator(IPEndPoint endpoint, out PlayerHandle handle)
+    public ResultCode AddSpectator(EndPoint endpoint, out PlayerHandle handle)
     {
         ArgumentNullException.ThrowIfNull(endpoint);
         handle = default;
@@ -283,7 +296,7 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>
         spectators.Add(protocol);
         logger.Write(LogLevel.Information, $"Adding {handle} at {endpoint}");
         protocol.Synchronize();
-
+        plugins.OnEndpointAdded(this, endpoint, in handle);
         return ResultCode.Ok;
     }
 

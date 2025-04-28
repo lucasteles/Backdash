@@ -61,6 +61,7 @@ sealed class PeerClient<T> : IPeerJobClient<T> where T : struct
     readonly Logger logger;
     readonly IDelayStrategy? delayStrategy;
     readonly int maxPacketSize;
+    readonly int receiveSocketAddressSize;
     readonly Channel<QueueEntry> sendQueue;
     CancellationTokenSource? cancellation;
     public string JobName { get; }
@@ -82,7 +83,8 @@ sealed class PeerClient<T> : IPeerJobClient<T> where T : struct
         Logger logger,
         IDelayStrategy? delayStrategy = null,
         int maxPacketSize = Max.UdpPacketSize,
-        int maxPackageQueue = Max.PackageQueue
+        int maxPackageQueue = Max.PackageQueue,
+        int receiveSocketAddressSize = 0
     )
     {
         ArgumentNullException.ThrowIfNull(socket);
@@ -96,6 +98,11 @@ sealed class PeerClient<T> : IPeerJobClient<T> where T : struct
         this.logger = logger;
         this.delayStrategy = delayStrategy;
         this.maxPacketSize = maxPacketSize;
+
+        this.receiveSocketAddressSize =
+            receiveSocketAddressSize > 0
+                ? receiveSocketAddressSize
+                : SocketAddress.GetMaximumAddressSize(socket.AddressFamily);
 
         sendQueue = Channel.CreateBounded<QueueEntry>(
             new BoundedChannelOptions(maxPackageQueue)
@@ -135,7 +142,7 @@ sealed class PeerClient<T> : IPeerJobClient<T> where T : struct
         {
             try
             {
-                if (!await reader.WaitToReadAsync(default).ConfigureAwait(false)
+                if (!await reader.WaitToReadAsync(CancellationToken.None).ConfigureAwait(false)
                     || cancellationToken.IsCancellationRequested)
                     break;
 
@@ -187,7 +194,7 @@ sealed class PeerClient<T> : IPeerJobClient<T> where T : struct
     async Task StartReceiving(CancellationToken cancellationToken)
     {
         var buffer = Mem.AllocatePinnedArray(maxPacketSize);
-        SocketAddress address = new(socket.AddressFamily);
+        SocketAddress address = new(socket.AddressFamily, receiveSocketAddressSize);
         T msg = default;
         while (!cancellationToken.IsCancellationRequested)
         {

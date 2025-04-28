@@ -20,6 +20,16 @@ public sealed class UdpSocket : IPeerSocket
     readonly IPEndPoint anyEndPoint;
 
     /// <summary>
+    ///     Size of the UDP package header
+    /// </summary>
+    public const int UdpHeaderSize = 8;
+
+    /// <summary>
+    ///     Size of the IP address header
+    /// </summary>
+    public const int IpAddressHeaderSize = 20;
+
+    /// <summary>
     ///     Gets the main bind port of the Socket.
     /// </summary>
     public int Port { get; }
@@ -72,7 +82,6 @@ public sealed class UdpSocket : IPeerSocket
 
         socket.Bind(bindEndpoint);
     }
-
 
     /// <inheritdoc />
     public UdpSocket(IPAddress bindAddress, int port) : this(new(bindAddress, port)) { }

@@ -23,7 +23,7 @@ sealed class SpectatorSession<TInput> :
 {
     readonly Logger logger;
     readonly IProtocolPeerClient udp;
-    readonly IPEndPoint hostEndpoint;
+    readonly EndPoint hostEndpoint;
     readonly NetcodeOptions options;
     readonly BackgroundJobManager backgroundJobManager;
     readonly ConnectionsState localConnections = new(0);
@@ -32,6 +32,7 @@ sealed class SpectatorSession<TInput> :
     readonly FrozenSet<PlayerHandle> fakePlayers;
     readonly IDeterministicRandom<TInput> random;
     readonly ProtocolNetworkEventQueue networkEventQueue;
+    readonly PluginManager plugins;
 
     INetcodeSessionHandler callbacks;
     bool isSynchronizing;
@@ -62,12 +63,13 @@ sealed class SpectatorSession<TInput> :
 
         this.options = options;
         FixedFrameRate = this.options.FrameRate;
-        hostEndpoint = spectatorOptions.HostEndPoint;
+        hostEndpoint = spectatorOptions.GetHostEndPoint();
         backgroundJobManager = services.JobManager;
         random = services.DeterministicRandom;
         logger = services.Logger;
         stateStore = services.StateStore;
         checksumProvider = services.ChecksumProvider;
+        plugins = services.PluginManager;
         NumberOfPlayers = options.NumberOfPlayers;
         fakePlayers = Enumerable.Range(0, options.NumberOfPlayers)
             .Select(x => new PlayerHandle(PlayerType.Remote, x)).ToFrozenSet();
@@ -95,6 +97,7 @@ sealed class SpectatorSession<TInput> :
         stateStore.Initialize(options.TotalSavedFramesAllowed);
         peerObservers.Add(host.GetUdpObserver());
         isSynchronizing = true;
+        plugins.OnEndpointAdded(this, host.Address, host.Player);
         host.Synchronize();
     }
 
@@ -114,6 +117,8 @@ sealed class SpectatorSession<TInput> :
         if (closed) return;
         closed = true;
         logger.Write(LogLevel.Information, "Shutting down connections");
+        plugins.OnClose(this);
+        plugins.OnEndpointClosed(this, host.Address, host.Player);
         host.Dispose();
         callbacks.OnSessionClose();
     }
@@ -145,14 +150,14 @@ sealed class SpectatorSession<TInput> :
         return ResultCode.NotSupported;
     }
 
-    public ResultCode AddRemotePlayer(IPEndPoint endpoint, out PlayerHandle handle)
+    public ResultCode AddRemotePlayer(EndPoint endpoint, out PlayerHandle handle)
     {
         handle = default;
         return ResultCode.NotSupported;
     }
 
 #pragma warning disable S4144
-    public ResultCode AddSpectator(IPEndPoint endpoint, out PlayerHandle handle)
+    public ResultCode AddSpectator(EndPoint endpoint, out PlayerHandle handle)
     {
         handle = default;
         return ResultCode.NotSupported;
@@ -204,6 +209,7 @@ sealed class SpectatorSession<TInput> :
 
     public void Start(CancellationToken stoppingToken = default)
     {
+        plugins.OnStart(this);
         backgroundJobTask = backgroundJobManager.Start(options.UseBackgroundThread, stoppingToken);
         logger.Write(LogLevel.Information, $"Spectating started on host {hostEndpoint}");
     }
@@ -281,13 +287,13 @@ sealed class SpectatorSession<TInput> :
         if (input.Data.Count is 0 && CurrentFrame == Frame.Zero)
             return ResultCode.NotSynchronized;
 
-        if (input.Frame < CurrentFrame)
+        if (input.Frame.Number < CurrentFrame.Number)
         {
             // Haven't received the input from the host yet.  Wait
             return ResultCode.PredictionThreshold;
         }
 
-        if (input.Frame > CurrentFrame)
+        if (input.Frame.Number > CurrentFrame.Number)
         {
             // The host is way way way far ahead of the spectator.  How'd this
             // happen?  Anyway, the input we need is gone forever.

@@ -20,11 +20,10 @@ public sealed record SpectatorOptions
     public int HostPort { get; set; } = 9000;
 
     /// <summary>
-    ///     Host IP endpoint
+    ///     Host endpoint
     /// </summary>
-    public IPEndPoint HostEndPoint
-    {
-        get => new(HostAddress, HostPort);
-        set => (HostAddress, HostPort) = (value.Address, value.Port);
-    }
+    /// <value>Defaults to <see cref="IPEndPoint"/> using <see cref="HostAddress"/> and <see cref="HostPort"/></value>
+    public EndPoint? HostEndPoint { get; set; }
+
+    internal EndPoint GetHostEndPoint() => HostEndPoint ?? new IPEndPoint(HostAddress, HostPort);
 }

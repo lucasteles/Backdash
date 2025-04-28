@@ -113,14 +113,14 @@ sealed class LocalSession<TInput> : INetcodeSession<TInput> where TInput : unman
         return ResultCode.Ok;
     }
 
-    public ResultCode AddRemotePlayer(IPEndPoint endpoint, out PlayerHandle handle)
+    public ResultCode AddRemotePlayer(EndPoint endpoint, out PlayerHandle handle)
     {
         handle = default;
         return ResultCode.NotSupported;
     }
 
 #pragma warning disable S4144
-    public ResultCode AddSpectator(IPEndPoint endpoint, out PlayerHandle handle)
+    public ResultCode AddSpectator(EndPoint endpoint, out PlayerHandle handle)
 #pragma warning restore S4144
     {
         handle = default;

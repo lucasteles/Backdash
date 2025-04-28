@@ -27,7 +27,8 @@ sealed class ProtocolClientFactory(
             logger,
             delayStrategy,
             options.Protocol.UdpPacketBufferSize,
-            options.Protocol.MaxPackageQueue
+            options.Protocol.MaxPackageQueue,
+            options.Protocol.ReceiveSocketAddressSize
         )
         {
             NetworkLatency = options.Protocol.NetworkLatency,

@@ -57,4 +57,9 @@ public sealed class ServicesConfig<TInput> where TInput : unmanaged
 
     /// <inheritdoc cref="INetcodeSessionHandler"/>
     public INetcodeSessionHandler? SessionHandler { get; set; }
+
+    /// <summary>
+    /// Custom netcode plugins
+    /// </summary>
+    public HashSet<INetcodePlugin> Plugins { get; set; } = [];
 }

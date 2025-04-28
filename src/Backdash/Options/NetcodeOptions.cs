@@ -128,6 +128,12 @@ public sealed record NetcodeOptions
     /// <value>Defaults to <c>0.2f</c></value>
     public float RollbackFramesSmoothFactor { get; set; } = 0.2f;
 
+    /// <summary>
+    ///     Custom meta data
+    ///     Useful for <see cref="INetcodePlugin"/> implementations
+    /// </summary>
+    public Dictionary<string, object> Meta { get; } = [];
+
     internal void EnsureDefaults()
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(NumberOfPlayers);

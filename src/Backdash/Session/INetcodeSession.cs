@@ -145,12 +145,12 @@ public interface INetcodeSession : INetcodeSessionInfo, IDisposable
     /// <summary>
     ///     Add a remote player into the session.
     /// </summary>
-    ResultCode AddRemotePlayer(IPEndPoint endpoint, out PlayerHandle handle);
+    ResultCode AddRemotePlayer(EndPoint endpoint, out PlayerHandle handle);
 
     /// <summary>
     ///     Add a spectator into the session.
     /// </summary>
-    ResultCode AddSpectator(IPEndPoint endpoint, out PlayerHandle handle);
+    ResultCode AddSpectator(EndPoint endpoint, out PlayerHandle handle);
 
     /// <summary>
     ///     Returns a list of all input players in the session.

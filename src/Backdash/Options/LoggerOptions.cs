@@ -48,4 +48,15 @@ public sealed record LoggerOptions
     ///     <value>Defaults to <see langword="false" /></value>
     /// </summary>
     public bool AppendThreadId { get; set; }
+
+    /// <summary>
+    ///     Output text logs only
+    /// </summary>
+    public LoggerOptions RawLogs()
+    {
+        AppendLevel = false;
+        AppendTimestamps = false;
+        AppendThreadId = false;
+        return this;
+    }
 }

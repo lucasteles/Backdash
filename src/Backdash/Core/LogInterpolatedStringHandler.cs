@@ -85,6 +85,19 @@ ref struct LogInterpolatedStringHandler
         writer.Write(t.Port);
     }
 
+    public void AppendFormatted(EndPoint t)
+    {
+        if (t is IPEndPoint ep)
+        {
+            AppendFormatted(ep);
+            return;
+        }
+
+        if (!Enabled) return;
+        Utf8StringWriter writer = new(Buffer, ref Length);
+        writer.WriteChars(t.ToString());
+    }
+
     public void AppendFormatted<T>(T t) where T : struct, IUtf8SpanFormattable
     {
         if (!Enabled) return;

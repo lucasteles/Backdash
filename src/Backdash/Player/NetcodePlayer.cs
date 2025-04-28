@@ -15,7 +15,7 @@ public class NetcodePlayer : IEquatable<NetcodePlayer>, IEqualityOperators<Netco
     /// <summary>
     /// Initializes a new netcode player
     /// </summary>
-    public NetcodePlayer(PlayerType type, IPEndPoint? endPoint = null)
+    public NetcodePlayer(PlayerType type, EndPoint? endPoint = null)
     {
         ThrowIf.InvalidEnum(type);
 
@@ -29,7 +29,7 @@ public class NetcodePlayer : IEquatable<NetcodePlayer>, IEqualityOperators<Netco
     /// <summary>
     ///     Holds data for a  player IP Endpoint
     /// </summary>
-    public IPEndPoint? EndPoint { get; }
+    public EndPoint? EndPoint { get; }
 
     /// <summary>
     ///     Player handler, used to identify any player in session.
@@ -84,10 +84,34 @@ public class NetcodePlayer : IEquatable<NetcodePlayer>, IEqualityOperators<Netco
     /// <summary>
     ///   Create new <see cref="NetcodePlayer"/> of type <see cref="PlayerType.Remote"/>
     /// </summary>
-    public static NetcodePlayer CreateRemote(IPEndPoint endPoint) => new(PlayerType.Remote, endPoint);
+    public static NetcodePlayer CreateRemote(EndPoint endPoint) => new(PlayerType.Remote, endPoint);
+
+    /// <summary>
+    ///   Create new <see cref="NetcodePlayer"/> of type <see cref="PlayerType.Remote"/>
+    /// </summary>
+    public static NetcodePlayer CreateRemote(IPAddress address, int port) =>
+        CreateRemote(new IPEndPoint(address, port));
+
+    /// <summary>
+    ///   Create new localhost <see cref="NetcodePlayer"/> of type <see cref="PlayerType.Remote"/>
+    /// </summary>
+    public static NetcodePlayer CreateRemote(int port) =>
+        CreateRemote(IPAddress.Loopback, port);
 
     /// <summary>
     ///   Create new <see cref="NetcodePlayer"/> of type <see cref="PlayerType.Spectator"/>
     /// </summary>
-    public static NetcodePlayer CreateSpectator(IPEndPoint endPoint) => new(PlayerType.Spectator, endPoint);
+    public static NetcodePlayer CreateSpectator(EndPoint endPoint) => new(PlayerType.Spectator, endPoint);
+
+    /// <summary>
+    ///   Create new <see cref="NetcodePlayer"/> of type <see cref="PlayerType.Spectator"/>
+    /// </summary>
+    public static NetcodePlayer CreateSpectator(IPAddress address, int port) =>
+        CreateSpectator(new IPEndPoint(address, port));
+
+    /// <summary>
+    ///   Create new localhost <see cref="NetcodePlayer"/> of type <see cref="PlayerType.Spectator"/>
+    /// </summary>
+    public static NetcodePlayer CreateSpectator(int port) =>
+        CreateSpectator(IPAddress.Loopback, port);
 }

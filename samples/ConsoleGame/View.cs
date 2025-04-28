@@ -88,7 +88,7 @@ public class View
         WriteLine();
     }
 
-    bool DrawPlayer(Vector2 pos, int col, int row, ConsoleColor color, PlayerStatus status)
+    static bool DrawPlayer(Vector2 pos, int col, int row, ConsoleColor color, PlayerStatus status)
     {
         if ((int)pos.X == col && (int)pos.Y == row)
         {
@@ -106,7 +106,7 @@ public class View
         return false;
     }
 
-    void DrawConnection(NonGameState nonGameState)
+    static void DrawConnection(NonGameState nonGameState)
     {
         Write(" ");
         switch (nonGameState.RemotePlayerStatus)

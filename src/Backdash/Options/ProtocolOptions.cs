@@ -179,4 +179,10 @@ public sealed record ProtocolOptions
     /// <seealso cref="ConsistencyCheckInterval" />
     public TimeSpan ConsistencyCheckTimeout { get; set; } =
         TimeSpan.FromMilliseconds(10_000);
+
+    /// <summary>
+    ///     Custom receive socket address size
+    /// </summary>
+    public int ReceiveSocketAddressSize { get; set; }
+
 }

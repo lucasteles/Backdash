@@ -162,8 +162,8 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
     public SendInputResult SendInput(in GameInput<TInput> input) => inputBuffer.SendInput(in input);
     public ProtocolStatus Status => state.CurrentStatus;
     public bool IsRunning => state.CurrentStatus is ProtocolStatus.Running;
-
     public PlayerHandle Player => state.Player;
+    public PeerAddress Address => state.PeerAddress;
 
     // require idle input should be a configuration parameter
     public int GetRecommendFrameDelay() => timeSync.RecommendFrameWaitDuration();
@@ -338,11 +338,10 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
 
     void OnNetworkStatsTick(object? sender, ElapsedEventArgs e)
     {
-        const int udpHeaderSize = 8;
-        const int ipAddressHeaderSize = 20;
-        const int totalHeaderSize = udpHeaderSize + ipAddressHeaderSize;
+        const int packageHeaderSize = UdpSocket.UdpHeaderSize + UdpSocket.IpAddressHeaderSize;
         if (state.CurrentStatus is not ProtocolStatus.Running)
             return;
+
         var elapsed = Stopwatch.GetElapsedTime(startedAt);
         var seconds = elapsed.TotalSeconds;
         UpdateStats(ref state.Stats.Send);
@@ -358,13 +357,13 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
 
         void UpdateStats(ref ProtocolState.PackagesStats stats)
         {
-            var totalUdpHeaderSize = (ByteSize)(totalHeaderSize * stats.TotalPackets);
+            var totalUdpHeaderSize = (ByteSize)(packageHeaderSize * stats.TotalPackets);
             stats.TotalBytesWithHeaders = stats.TotalBytes + totalUdpHeaderSize;
             stats.TotalBytesWithHeaders = stats.TotalBytes + totalUdpHeaderSize;
             stats.PackagesPerSecond = (float)(stats.TotalPackets * 1000f / elapsed.TotalMilliseconds);
             stats.Bandwidth = stats.TotalBytesWithHeaders / seconds;
             stats.UdpOverhead =
-                (float)(100.0 * (totalHeaderSize * stats.TotalPackets) / stats.TotalBytes.ByteCount);
+                (float)(100.0 * (packageHeaderSize * stats.TotalPackets) / stats.TotalBytes.ByteCount);
         }
     }
 
