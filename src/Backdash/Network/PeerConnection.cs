@@ -69,7 +69,7 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
         qualityReportTimer = new(options.QualityReportInterval);
         qualityReportTimer.Elapsed += OnQualityReportTick;
 
-        networkStatsTimer = new(options.NetworkStatsInterval);
+        networkStatsTimer = new(options.NetworkPackageStatsInterval);
         networkStatsTimer.Elapsed += OnNetworkStatsTick;
 
         consistencyCheckTimer = new(options.ConsistencyCheckInterval);
@@ -92,10 +92,11 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
         qualityReportTimer.Elapsed -= OnQualityReportTick;
         networkStatsTimer.Elapsed -= OnNetworkStatsTick;
         consistencyCheckTimer.Elapsed -= OnConsistencyCheck;
-        networkStatsTimer.Dispose();
-        qualityReportTimer.Dispose();
+
         keepAliveTimer.Dispose();
         resendInputsTimer.Dispose();
+        qualityReportTimer.Dispose();
+        networkStatsTimer.Dispose();
         consistencyCheckTimer.Dispose();
     }
 
@@ -103,10 +104,13 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
     {
         keepAliveTimer.Start();
         qualityReportTimer.Start();
-        networkStatsTimer.Start();
         resendInputsTimer.Start();
 
+        if (options.NetworkPackageStatsEnabled)
+            networkStatsTimer.Start();
+
         if (state.Player.IsSpectator()) return;
+
         if (options.ConsistencyCheckEnabled)
             consistencyCheckTimer.Start();
     }
@@ -115,10 +119,13 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
     {
         keepAliveTimer.Stop();
         qualityReportTimer.Stop();
-        networkStatsTimer.Stop();
         resendInputsTimer.Stop();
 
+        if (options.NetworkPackageStatsEnabled)
+            networkStatsTimer.Stop();
+
         if (state.Player.IsSpectator()) return;
+
         if (options.ConsistencyCheckEnabled)
             consistencyCheckTimer.Stop();
     }
@@ -153,6 +160,8 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
                 break;
             case ProtocolStatus.Running:
                 CheckDisconnection();
+                if (options.CalculateRemotePlayerStats)
+                    GetNetworkStats(ref state.Player.NetworkStats);
                 break;
             case ProtocolStatus.Disconnected:
                 break;
@@ -209,30 +218,25 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
         info.LastAckedFrame = inbox.LastAckedFrame;
         info.RemoteFramesBehind = state.Fairness.RemoteFrameAdvantage;
         info.LocalFramesBehind = state.Fairness.LocalFrameAdvantage;
-        info.Send.TotalBytes = stats.Send.TotalBytesWithHeaders;
-        info.Send.Count = stats.Send.TotalPackets;
-        info.Send.LastTime = Stopwatch.GetElapsedTime(stats.Send.LastTime);
-        info.Send.PackagesPerSecond = stats.Send.PackagesPerSecond;
-        info.Send.Bandwidth = stats.Send.Bandwidth;
         info.Send.LastFrame = inputBuffer.LastSent.Frame;
-        info.Received.TotalBytes = stats.Received.TotalBytesWithHeaders;
-        info.Received.LastTime = Stopwatch.GetElapsedTime(stats.Received.LastTime);
-        info.Received.Count = stats.Received.TotalPackets;
-        info.Received.PackagesPerSecond = stats.Received.PackagesPerSecond;
-        info.Received.Bandwidth = stats.Received.Bandwidth;
         info.Received.LastFrame = inbox.LastReceivedInput.Frame;
+
+        if (!options.NetworkPackageStatsEnabled) return;
+        info.Send.Fill(stats.Send);
+        info.Received.Fill(stats.Received);
     }
 
     public bool GetPeerConnectStatus(int id, out Frame frame)
     {
-        frame = state.PeerConnectStatuses[id].LastFrame;
-        return !state.PeerConnectStatuses[id].Disconnected;
+        var peer = state.PeerConnectStatuses[id];
+        frame = peer.LastFrame;
+        return !peer.Disconnected;
     }
 
     public IPeerObserver<ProtocolMessage> GetUdpObserver() => inbox;
     public void Synchronize() => syncRequest.Synchronize();
 
-    public void CheckDisconnection()
+    void CheckDisconnection()
     {
         if (state.Stats.Received.LastTime <= 0 || !disconnectCheckEnabled) return;
         var lastReceivedTime = Stopwatch.GetElapsedTime(state.Stats.Received.LastTime);
@@ -339,19 +343,12 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
     void OnNetworkStatsTick(object? sender, ElapsedEventArgs e)
     {
         const int packageHeaderSize = UdpSocket.UdpHeaderSize + UdpSocket.IpAddressHeaderSize;
-        if (state.CurrentStatus is not ProtocolStatus.Running)
+        if (state.CurrentStatus is not ProtocolStatus.Running || !options.NetworkPackageStatsEnabled)
             return;
 
         var elapsed = Stopwatch.GetElapsedTime(startedAt);
-        var seconds = elapsed.TotalSeconds;
         UpdateStats(ref state.Stats.Send);
         UpdateStats(ref state.Stats.Received);
-
-        if (options.LogNetworkStats)
-        {
-            logger.Write(LogLevel.Information, $"Network Stats(send): {state.Stats.Send}");
-            logger.Write(LogLevel.Information, $"Network Stats(recv): {state.Stats.Received}");
-        }
 
         return;
 
@@ -361,7 +358,7 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
             stats.TotalBytesWithHeaders = stats.TotalBytes + totalUdpHeaderSize;
             stats.TotalBytesWithHeaders = stats.TotalBytes + totalUdpHeaderSize;
             stats.PackagesPerSecond = (float)(stats.TotalPackets * 1000f / elapsed.TotalMilliseconds);
-            stats.Bandwidth = stats.TotalBytesWithHeaders / seconds;
+            stats.Bandwidth = stats.TotalBytesWithHeaders / elapsed.TotalSeconds;
             stats.UdpOverhead =
                 (float)(100.0 * (packageHeaderSize * stats.TotalPackets) / stats.TotalBytes.ByteCount);
         }

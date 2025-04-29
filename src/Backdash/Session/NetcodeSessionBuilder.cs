@@ -204,6 +204,16 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
         return this;
     }
 
+    /// <summary>
+    ///     Sets the update factor <see cref="NetcodeOptions.RollbackFramesSmoothFactor"/> for <see cref="INetcodeSessionInfo.RollbackFrames"/>.
+    /// </summary>
+    public NetcodeSessionBuilder<TInput> WithRollbackCounterSmooth(float factor)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(factor);
+        options.RollbackFramesSmoothFactor = factor;
+        return this;
+    }
+
     /// <inheritdoc cref="NetcodeOptions.FrameRate" />
     public NetcodeSessionBuilder<TInput> WithFrameRate(int fps)
     {
@@ -241,7 +251,6 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
         return this;
     }
 
-
     /// <summary>
     ///     Select the input serialization <see cref="Endianness" />
     /// </summary>
@@ -272,9 +281,9 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
     }
 
     /// <summary>
-    ///     Set <see cref="INetcodeSession{TInput}" /> options
+    ///     Sets <see cref="NetcodeOptions.Logger" /> log level
     /// </summary>
-    /// <seealso cref="NetcodeOptions" />
+    /// <seealso cref="LogLevel" />
     public NetcodeSessionBuilder<TInput> WithLogLevel(LogLevel level, bool appendLevel = true) =>
         ConfigureLogger(o =>
         {
@@ -283,11 +292,17 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
         });
 
     /// <summary>
-    ///     Set <see cref="INetcodeSession{TInput}" /> options
+    ///     Sets <see cref="NetcodeOptions.Protocol"/>.<see cref="ProtocolOptions.NetworkPackageStatsEnabled" /> option
     /// </summary>
-    /// <seealso cref="NetcodeOptions" />
-    public NetcodeSessionBuilder<TInput> WithNetworkStats(bool enabled = true) =>
-        ConfigureProtocol(o => o.LogNetworkStats = enabled);
+    public NetcodeSessionBuilder<TInput> WithPackageStats(bool enabled = true) =>
+        ConfigureProtocol(o => o.NetworkPackageStatsEnabled = enabled);
+
+    /// <summary>
+    ///     Sets <see cref="NetcodeOptions.Protocol"/>.<see cref="ProtocolOptions.CalculateRemotePlayerStats" /> option
+    /// </summary>
+    /// <seealso cref="INetcodeSession.UpdateNetworkStats"/>
+    public NetcodeSessionBuilder<TInput> WithPlayerStats(bool enabled = true) =>
+        ConfigureProtocol(o => o.CalculateRemotePlayerStats = enabled);
 
     /// <summary>
     ///     Set the logger <see cref="ServicesConfig{TInput}.LogWriter" />

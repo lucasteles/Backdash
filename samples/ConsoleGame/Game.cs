@@ -63,7 +63,6 @@ public sealed class Game : INetcodeSessionHandler
         if (nonGameState.IsRunning)
             UpdateState();
 
-        session.UpdateNetworkStats(nonGameState.RemotePlayer);
         view.Draw(in currentState, nonGameState);
     }
 

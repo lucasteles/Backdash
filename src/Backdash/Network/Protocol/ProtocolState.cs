@@ -55,7 +55,7 @@ sealed class ProtocolState(
         public PackagesStats Received = new();
     }
 
-    public struct PackagesStats : IUtf8SpanFormattable
+    public sealed class PackagesStats : IUtf8SpanFormattable
     {
         public long LastTime;
         public int TotalPackets;
@@ -65,7 +65,7 @@ sealed class ProtocolState(
         public ByteSize Bandwidth;
         public ByteSize TotalBytesWithHeaders;
 
-        public readonly bool TryFormat(
+        public bool TryFormat(
             Span<byte> utf8Destination, out int bytesWritten, ReadOnlySpan<char> format,
             IFormatProvider? provider
         )

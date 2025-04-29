@@ -50,7 +50,7 @@ sealed class ProtocolSynchronizer(
 
     public void Synchronize()
     {
-        state.Sync.RemainingRoundTrips = options.NumberOfSyncRoundtrips;
+        state.Sync.RemainingRoundTrips = options.NumberOfSyncRoundTrips;
         state.CurrentStatus = ProtocolStatus.Syncing;
         retryCounter = 0;
         active = true;
@@ -72,7 +72,7 @@ sealed class ProtocolSynchronizer(
             return;
         }
 
-        var firstIteration = state.Sync.RemainingRoundTrips == options.NumberOfSyncRoundtrips;
+        var firstIteration = state.Sync.RemainingRoundTrips == options.NumberOfSyncRoundTrips;
         var interval = firstIteration ? options.SyncFirstRetryInterval : options.SyncRetryInterval;
         var elapsed = Stopwatch.GetElapsedTime(lastRequest);
         if (elapsed < interval)

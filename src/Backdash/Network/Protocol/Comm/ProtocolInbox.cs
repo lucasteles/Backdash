@@ -246,12 +246,12 @@ sealed class ProtocolInbox<TInput>(
 
         logger.Write(LogLevel.Debug,
             $"Checking sync state ({state.Sync.RemainingRoundTrips} round trips remaining)");
-        if (options.NumberOfSyncRoundtrips >= state.Sync.RemainingRoundTrips)
+        if (options.NumberOfSyncRoundTrips >= state.Sync.RemainingRoundTrips)
             state.Sync.TotalRoundTripsPing = TimeSpan.Zero;
         state.Sync.TotalRoundTripsPing += elapsed;
         if (--state.Sync.RemainingRoundTrips == 0)
         {
-            var ping = state.Sync.TotalRoundTripsPing / options.NumberOfSyncRoundtrips;
+            var ping = state.Sync.TotalRoundTripsPing / options.NumberOfSyncRoundTrips;
             logger.Write(LogLevel.Information,
                 $"Player {state.Player.Index} Synchronized! (Ping: {ping.TotalMilliseconds:f4})");
             state.CurrentStatus = ProtocolStatus.Running;
@@ -269,8 +269,8 @@ sealed class ProtocolInbox<TInput>(
                 new(ProtocolEvent.Synchronizing, state.Player)
                 {
                     Synchronizing = new(
-                        TotalSteps: options.NumberOfSyncRoundtrips,
-                        CurrentStep: options.NumberOfSyncRoundtrips - state.Sync.RemainingRoundTrips
+                        TotalSteps: options.NumberOfSyncRoundTrips,
+                        CurrentStep: options.NumberOfSyncRoundTrips - state.Sync.RemainingRoundTrips
                     ),
                 }
             );

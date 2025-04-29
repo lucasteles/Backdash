@@ -30,10 +30,10 @@ static INetcodeSession<PlayerInputs> ParseSessionArgs(string[] args)
         .WithLogLevel(LogLevel.Warning)
         .ConfigureProtocol(options =>
         {
-            options.NumberOfSyncRoundtrips = 10;
+            options.NumberOfSyncRoundTrips = 10;
             options.DisconnectTimeout = TimeSpan.FromSeconds(3);
             options.DisconnectNotifyStart = TimeSpan.FromSeconds(1);
-            options.LogNetworkStats = false;
+            options.NetworkPackageStatsEnabled = false;
             // options.NetworkLatency = Backdash.Data.FrameSpan.Of(3).Duration();
         });
 

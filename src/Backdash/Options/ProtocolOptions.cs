@@ -41,7 +41,7 @@ public sealed record ProtocolOptions
     ///     Number of synchronization roundtrips to consider two clients synchronized.
     /// </summary>
     /// <value>Defaults to <c>10</c></value>
-    public int NumberOfSyncRoundtrips { get; set; } = 10;
+    public int NumberOfSyncRoundTrips { get; set; } = 10;
 
     /// <summary>
     ///     Distance to check out-of-order packets.
@@ -72,12 +72,6 @@ public sealed record ProtocolOptions
     /// <seealso cref="NetworkLatency" />
     /// <seealso cref="Backdash.Network.DelayStrategy" />
     public DelayStrategy DelayStrategy { get; set; } = DelayStrategy.Gaussian;
-
-    /// <summary>
-    ///     When true, session log network stats periodically.
-    /// </summary>
-    /// <value>Defaults to <see lanword="false" /></value>
-    public bool LogNetworkStats { get; set; }
 
     /// <summary>
     ///     The time to wait before the first <see cref="PeerEvent.ConnectionInterrupted" /> timeout will be sent.
@@ -136,7 +130,27 @@ public sealed record ProtocolOptions
     /// </summary>
     /// <value>Defaults to <c>1000</c> milliseconds</value>
     /// <seealso cref="PeerNetworkStats" />
-    public TimeSpan NetworkStatsInterval { get; set; } = TimeSpan.FromMilliseconds(1000);
+    /// <seealso cref="NetworkPackageStatsEnabled" />
+    public TimeSpan NetworkPackageStatsInterval { get; set; } = TimeSpan.FromMilliseconds(1000);
+
+    /// <summary>
+    ///     When true, session will use calculate packages stats.
+    /// </summary>
+    /// <seealso cref="NetworkPackageStatsInterval"/>
+    /// <seealso cref="PeerNetworkStats.PackagesInfo"/>
+    /// <seealso cref="PeerNetworkStats.Send"/>
+    /// <seealso cref="PeerNetworkStats.Received"/>
+    /// <value>Defaults to <see lanword="true" /></value>
+    public bool NetworkPackageStatsEnabled { get; set; } = false;
+
+    /// <summary>
+    ///     When true, the session will calculate the remote player stats on each frame.
+    /// </summary>
+    /// <value>Defaults to <see lanword="true" /></value>
+    /// <seealso cref="NetcodePlayer.NetworkStats"/>
+    /// <seealso cref="NetworkPackageStatsEnabled"/>
+    /// <seealso cref="INetcodeSession.UpdateNetworkStats"/>
+    public bool CalculateRemotePlayerStats { get; set; } = true;
 
     /// <summary>
     ///     When the time from the last send input until now is greater than this, resends pending inputs.
@@ -184,5 +198,4 @@ public sealed record ProtocolOptions
     ///     Custom receive socket address size
     /// </summary>
     public int ReceiveSocketAddressSize { get; set; }
-
 }

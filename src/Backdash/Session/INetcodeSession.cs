@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Backdash.Data;
 using Backdash.Network;
+using Backdash.Options;
 using Backdash.Synchronizing;
 using Backdash.Synchronizing.Random;
 using Backdash.Synchronizing.State;
@@ -110,6 +111,8 @@ public interface INetcodeSession : INetcodeSessionInfo, IDisposable
     ///     Gets statistics and information about a player in <see cref="NetcodePlayer.NetworkStats"/>.
     ///     Returns <see langword="false" /> if the request player is not connected or synchronized.
     /// </summary>
+    /// <seealso cref="ProtocolOptions.CalculateRemotePlayerStats"/>
+    /// <seealso cref="NetcodeSessionBuilder{TInput}.WithPlayerStats"/>
     bool UpdateNetworkStats(NetcodePlayer player);
 
     /// <summary>

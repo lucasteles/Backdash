@@ -33,11 +33,10 @@ var builder = RollbackNetcode
     .WithInputDelayFrames(2)
     .WithLogLevel(LogLevel.Information)
     .UsePlugin<PluginSample>()
-    .WithNetworkStats()
+    .WithPackageStats()
     .ConfigureProtocol(options =>
     {
-        options.NumberOfSyncRoundtrips = 10;
-        // p.LogNetworkStats = true;
+        options.NumberOfSyncRoundTrips = 10;
         // p.NetworkLatency = TimeSpan.FromMilliseconds(300);
         // p.DelayStrategy = Backdash.Network.DelayStrategy.Constant;
         // options.DisconnectTimeoutEnabled = false;

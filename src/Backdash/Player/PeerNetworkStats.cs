@@ -1,12 +1,14 @@
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Backdash.Data;
+using Backdash.Network.Protocol;
 using Backdash.Options;
 
 namespace Backdash;
 
 /// <summary>
 ///     Holds current session network stats.
-///     Calculated in intervals of <see cref="ProtocolOptions.NetworkStatsInterval" />.
+///     Calculated in intervals of <see cref="ProtocolOptions.NetworkPackageStatsInterval" />.
 /// </summary>
 [Serializable]
 public sealed class PeerNetworkStats
@@ -77,6 +79,15 @@ public sealed class PeerNetworkStats
             PackagesPerSecond = 0;
             LastFrame = Frame.Zero;
             Bandwidth = ByteSize.Zero;
+        }
+
+        internal void Fill(ProtocolState.PackagesStats stats)
+        {
+            TotalBytes = stats.TotalBytesWithHeaders;
+            Count = stats.TotalPackets;
+            LastTime = Stopwatch.GetElapsedTime(stats.LastTime);
+            PackagesPerSecond = stats.PackagesPerSecond;
+            Bandwidth = stats.Bandwidth;
         }
     }
 
