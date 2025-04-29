@@ -26,4 +26,9 @@ public interface INetcodePlugin : IDisposable
     /// Close endpoint hook
     /// </summary>
     void OnEndpointClosed(INetcodeSession session, EndPoint endpoint, NetcodePlayer player);
+
+    /// <summary>
+    /// Beginning of a frame hook
+    /// </summary>
+    void OnFrameBegin(INetcodeSession session, bool isSynchronizing) { }
 }

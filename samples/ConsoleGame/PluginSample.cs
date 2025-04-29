@@ -32,6 +32,12 @@ public sealed class PluginSample : INetcodePlugin
     public void OnEndpointClosed(INetcodeSession session, EndPoint endpoint, NetcodePlayer player) =>
         Log($"Closing Endpoint: {endpoint} for {player}");
 
+    public void OnFrameBegin(INetcodeSession session, bool isSynchronizing)
+    {
+        if (isSynchronizing) return;
+        Log($"Frame Step: {session.CurrentFrame}");
+    }
+
     public void Dispose()
     {
         Log("Disposing");

@@ -556,6 +556,7 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>
         synchronizer.UpdateRollbackFrameCounter();
         ConsumeProtocolNetworkEvents();
         backgroundJobManager.ThrowIfError();
+        plugins.OnFrameBegin(this, isSynchronizing);
 
         if (synchronizer.InRollback) return;
         ConsumeProtocolInputEvents();

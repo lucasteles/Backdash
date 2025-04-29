@@ -1,4 +1,5 @@
-using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Backdash.Network;
 using Backdash.Options;
 
@@ -9,14 +10,14 @@ sealed class PluginManager(
     IEnumerable<INetcodePlugin> plugins
 ) : IDisposable
 {
-    readonly ImmutableArray<INetcodePlugin> plugins = [.. plugins];
+    readonly INetcodePlugin[] plugins = plugins.ToArray();
 
     public void OnStart(INetcodeSession session)
     {
         foreach (var plugin in plugins)
             try
             {
-                plugin?.OnSessionStart(session);
+                plugin.OnSessionStart(session);
             }
             catch (Exception e)
             {
@@ -29,7 +30,7 @@ sealed class PluginManager(
         foreach (var plugin in plugins)
             try
             {
-                plugin?.OnSessionClose(session);
+                plugin.OnSessionClose(session);
             }
             catch (Exception e)
             {
@@ -47,6 +48,18 @@ sealed class PluginManager(
     {
         foreach (var plugin in plugins)
             plugin.OnEndpointAdded(session, address.EndPoint, player);
+    }
+
+    public void OnFrameBegin(INetcodeSession session, bool isSynchronizing)
+    {
+        if (plugins.Length is 0) return;
+        ref var current = ref MemoryMarshal.GetReference(plugins.AsSpan());
+        ref var limit = ref Unsafe.Add(ref current, plugins.Length);
+        while (Unsafe.IsAddressLessThan(ref current, ref limit))
+        {
+            current.OnFrameBegin(session, isSynchronizing);
+            current = ref Unsafe.Add(ref current, 1)!;
+        }
     }
 
     public void Dispose()
