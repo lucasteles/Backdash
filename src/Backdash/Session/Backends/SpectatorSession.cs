@@ -183,7 +183,6 @@ sealed class SpectatorSession<TInput> :
     public bool UpdateNetworkStats(NetcodePlayer player)
     {
         var info = player.NetworkStats;
-        info.Session = this;
 
         if (isSynchronizing)
         {
@@ -192,7 +191,6 @@ sealed class SpectatorSession<TInput> :
         }
 
         host.GetNetworkStats(ref info);
-        info.Valid = true;
         return true;
     }
 

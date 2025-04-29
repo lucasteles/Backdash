@@ -129,7 +129,6 @@ sealed class ReplaySession<TInput> : INetcodeSession<TInput> where TInput : unma
 
     public bool UpdateNetworkStats(NetcodePlayer player)
     {
-        player.NetworkStats.Session = this;
         player.NetworkStats.Valid = false;
         return false;
     }

@@ -216,6 +216,7 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
     public void GetNetworkStats(ref PeerNetworkStats info)
     {
         var stats = state.Stats;
+        info.Valid = true;
         info.Ping = stats.RoundTripTime;
         info.PendingInputCount = inputBuffer.PendingNumber;
         info.LastAckedFrame = inbox.LastAckedFrame;

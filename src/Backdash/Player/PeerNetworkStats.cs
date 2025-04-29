@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using Backdash.Data;
 using Backdash.Network.Protocol;
 using Backdash.Options;
@@ -16,14 +15,10 @@ public sealed class PeerNetworkStats
     /// <summary>
     ///     Returns true if the last read stats call was successful.
     /// </summary>
-    [MemberNotNullWhen(true, nameof(Session))]
     public bool Valid { get; internal set; }
 
     /// <summary>Current roundtrip ping time</summary>
     public TimeSpan Ping { get; internal set; }
-
-    /// <summary>Current session info</summary>
-    public INetcodeSessionInfo? Session { get; internal set; }
 
     /// <summary>Remote frame advantage</summary>
     public FrameSpan LocalFramesBehind { get; internal set; }
@@ -42,9 +37,6 @@ public sealed class PeerNetworkStats
 
     /// <summary>Packages received info</summary>
     public PackagesInfo Received { get; } = new();
-
-    /// <summary>Returns session rollback frames.</summary>
-    public FrameSpan? RollbackFrames => Session?.RollbackFrames;
 
     /// <summary>
     ///     Hold package traffic data
@@ -95,7 +87,6 @@ public sealed class PeerNetworkStats
     public void Reset()
     {
         Valid = false;
-        Session = null;
         Ping = TimeSpan.Zero;
         LocalFramesBehind = FrameSpan.Zero;
         RemoteFramesBehind = FrameSpan.Zero;

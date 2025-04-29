@@ -386,8 +386,6 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>
     {
         var info = player.NetworkStats;
 
-        info.Session = this;
-
         if (isSynchronizing || player.IsLocal() || !IsPlayerKnown(player))
         {
             info.Valid = false;

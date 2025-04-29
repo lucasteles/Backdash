@@ -148,7 +148,6 @@ sealed class LocalSession<TInput> : INetcodeSession<TInput> where TInput : unman
     public bool UpdateNetworkStats(NetcodePlayer player)
     {
         var info = player.NetworkStats;
-        info.Session = this;
         info.Valid = false;
         return false;
     }

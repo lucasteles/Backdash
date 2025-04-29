@@ -207,7 +207,6 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
     public bool UpdateNetworkStats(NetcodePlayer player)
     {
         var info = player.NetworkStats;
-        info.Session = this;
         info.Valid = false;
         return false;
     }
