@@ -58,7 +58,7 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
         this.outbox = outbox;
         this.inputBuffer = inputBuffer;
         this.stateStore = stateStore;
-        disconnectCheckEnabled = options.DisconnectTimeout > TimeSpan.Zero && options.DisconnectTimeoutEnabled;
+        disconnectCheckEnabled = options.IsDisconnectTimeoutEnabled();
 
         keepAliveTimer = new(options.KeepAliveInterval);
         keepAliveTimer.Elapsed += OnKeepAliveTick;
@@ -106,7 +106,7 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
         qualityReportTimer.Start();
         resendInputsTimer.Start();
 
-        if (options.NetworkPackageStatsEnabled)
+        if (options.IsNetworkPackageStatsEnabled())
             networkStatsTimer.Start();
 
         if (state.Player.IsSpectator()) return;
@@ -121,26 +121,31 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
         qualityReportTimer.Stop();
         resendInputsTimer.Stop();
 
-        if (options.NetworkPackageStatsEnabled)
+        if (options.IsNetworkPackageStatsEnabled())
             networkStatsTimer.Stop();
 
-        if (state.Player.IsSpectator()) return;
-
-        if (options.ConsistencyCheckEnabled)
+        if (options.IsConsistencyCheckEnabled())
             consistencyCheckTimer.Stop();
     }
 
     public void Disconnect()
     {
-        state.CurrentStatus = ProtocolStatus.Disconnected;
-
         if (!state.StoppingTokenSource.IsCancellationRequested)
         {
+            state.CurrentStatus = ProtocolStatus.Disconnecting;
+            logger.Write(LogLevel.Debug, $"Begin player disconnection: {state.Player}");
             DispatchInterruptedEvent(options.ShutdownTime);
             state.StoppingTokenSource.CancelAfter(options.ShutdownTime);
         }
         else
+        {
+            if (state.CurrentStatus is ProtocolStatus.Disconnected)
+                return;
+
+            logger.Write(LogLevel.Debug, $"Player disconnected: {state.Player}");
+            state.CurrentStatus = ProtocolStatus.Disconnected;
             DispatchDisconnectEvent();
+        }
     }
 
     public void Start()
@@ -366,8 +371,7 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
 
     void OnConsistencyCheck(object? sender, ElapsedEventArgs e)
     {
-        if (state.CurrentStatus is not ProtocolStatus.Running || options.ConsistencyCheckInterval == TimeSpan.Zero)
-            return;
+        if (state.CurrentStatus is not ProtocolStatus.Running) return;
 
         var lastReceivedFrame = inbox.LastReceivedInput.Frame;
         var checkFrame = lastReceivedFrame.Number - options.ConsistencyCheckDistance;

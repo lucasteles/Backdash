@@ -27,7 +27,7 @@ static INetcodeSession<PlayerInputs> ParseSessionArgs(string[] args)
         .WithPort(port)
         .WithPlayerCount(playerCount)
         .WithInputDelayFrames(2)
-        .WithLogLevel(LogLevel.Warning)
+        .WithLogLevel(LogLevel.Information)
         .ConfigureProtocol(options =>
         {
             options.NumberOfSyncRoundTrips = 10;
@@ -47,6 +47,7 @@ static INetcodeSession<PlayerInputs> ParseSessionArgs(string[] args)
 
         case ["spectate", { } hostArg] when IPEndPoint.TryParse(hostArg, out var hostEndpoint):
             return builder
+                .WithFileLogWriter($"logs/log_spectator_{port}.log", append: false)
                 .ForSpectator(hostEndpoint)
                 .Build();
 
@@ -86,6 +87,7 @@ static INetcodeSession<PlayerInputs> ParseSessionArgs(string[] args)
                 throw new InvalidOperationException("No local player defined");
 
             return builder
+                .WithFileLogWriter($"logs/log_player_{port}.log", append: false)
                 .WithPlayers(players)
                 .ForRemote()
                 .Build();

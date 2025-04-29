@@ -93,6 +93,9 @@ sealed class LocalSession<TInput> : INetcodeSession<TInput> where TInput : unman
         await backGroundJobTask.WaitAsync(stoppingToken).ConfigureAwait(false);
     }
 
+    public void WriteLog(LogLevel level, string message) => logger.Write(level, message);
+    public void WriteLog(string message, Exception? error = null) => logger.Write(message, error);
+
     public ResultCode AddPlayer(NetcodePlayer player)
     {
         var result = player.Type switch

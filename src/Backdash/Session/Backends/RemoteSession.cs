@@ -216,6 +216,9 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>
         DoSync();
     }
 
+    public void WriteLog(LogLevel level, string message) => logger.Write(level, message);
+    public void WriteLog(string message, Exception? error = null) => logger.Write(message, error);
+
     public ResultCode AddPlayer(NetcodePlayer player)
     {
         var result = player.Type switch
@@ -662,9 +665,17 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>
         CheckInitialSync();
     }
 
+    void RemoveSpectator(NetcodePlayer player)
+    {
+        spectators[player.Index].Disconnect();
+        addedSpectators.Remove(player);
+        allPlayers.Remove(player.Id);
+    }
+
     void OnNetworkEvent(in ProtocolEventInfo evt)
     {
         ref readonly var player = ref evt.Player;
+        logger.Write(LogLevel.Trace, $"Session event: {evt} from {player}");
         switch (evt.Type)
         {
             case ProtocolEvent.Connected:
@@ -684,11 +695,7 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>
                 break;
             case ProtocolEvent.SyncFailure:
                 if (player.IsSpectator())
-                {
-                    spectators[player.Index].Disconnect();
-                    addedSpectators.Remove(player);
-                    allPlayers.Remove(player.Id);
-                }
+                    RemoveSpectator(player);
                 else
                     callbacks.OnPeerEvent(player, new(PeerEvent.SynchronizationFailure));
 
@@ -703,15 +710,15 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>
                 callbacks.OnPeerEvent(player, new(PeerEvent.ConnectionResumed));
                 break;
             case ProtocolEvent.Disconnected:
-                if (player.Type is PlayerType.Spectator)
+                switch (player.Type)
                 {
-                    spectators[player.Index].Disconnect();
-                    addedSpectators.Remove(player);
-                    allPlayers.Remove(player.Id);
+                    case PlayerType.Spectator:
+                        RemoveSpectator(player);
+                        break;
+                    case PlayerType.Remote:
+                        DisconnectPlayer(player);
+                        break;
                 }
-
-                if (player.Type is PlayerType.Remote)
-                    DisconnectPlayer(player);
 
                 callbacks.OnPeerEvent(player, new(PeerEvent.Disconnected));
                 break;

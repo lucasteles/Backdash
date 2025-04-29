@@ -57,7 +57,7 @@ sealed class Logger(
     public void Write(
         LogLevel level,
         [InterpolatedStringHandlerArgument("", "level")]
-        LogInterpolatedStringHandler builder
+        in LogInterpolatedStringHandler builder
     )
     {
         if (!builder.Enabled || !IsEnabledFor(in level)) return;
@@ -77,6 +77,14 @@ sealed class Logger(
         {
             pool.Return(buffer);
         }
+    }
+
+    public void Write(string message, Exception? error = null)
+    {
+        if (error is null)
+            Write(LogLevel.Information, message);
+        else
+            Write(LogLevel.Error, $"{message} => {error}");
     }
 
     public bool IsEnabledFor(in LogLevel level) => level >= EnabledLevel;

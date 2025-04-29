@@ -1,6 +1,7 @@
 dotnet build -c Release %~dp0\..\..
 pushd %~dp0\..\..\bin\Release\net8.0
 del *.log
+del logs\*.log
 @set LOBBY_SERVER_URL=https://lobby-server.fly.dev
 
 start SpaceWar -ServerURl %LOBBY_SERVER_URL% -LocalPort 9000 -Username ryu

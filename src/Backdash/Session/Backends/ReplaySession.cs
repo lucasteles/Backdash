@@ -122,6 +122,9 @@ sealed class ReplaySession<TInput> : INetcodeSession<TInput> where TInput : unma
 
     public PlayerConnectionStatus GetPlayerStatus(NetcodePlayer player) => PlayerConnectionStatus.Connected;
 
+    public void WriteLog(LogLevel level, string message) => logger.Write(level, message);
+    public void WriteLog(string message, Exception? error = null) => logger.Write(message, error);
+
     public ResultCode AddPlayer(NetcodePlayer player) => ResultCode.NotSupported;
 
     public bool UpdateNetworkStats(NetcodePlayer player)

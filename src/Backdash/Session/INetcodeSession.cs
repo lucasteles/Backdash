@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using Backdash.Core;
 using Backdash.Data;
 using Backdash.Network;
 using Backdash.Options;
@@ -188,6 +189,14 @@ public interface INetcodeSession : INetcodeSessionInfo, IDisposable
     ///     Return true if the session is <see cref="SessionMode.SyncTest" />
     /// </summary>
     bool IsSyncTest() => Mode is SessionMode.SyncTest;
+
+    /// <summary>
+    /// Writes a log message into the current session log writer
+    /// </summary>
+    void WriteLog(LogLevel level, string message);
+
+    /// <inheritdoc cref="WriteLog(Backdash.Core.LogLevel,string)"/>
+    void WriteLog(string message, Exception? error = null);
 
     /// <summary>
     ///     Add the <paramref name="player" /> into current session.

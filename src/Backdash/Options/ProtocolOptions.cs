@@ -93,6 +93,9 @@ public sealed record ProtocolOptions
     /// <value>Defaults to <c>true</c></value>
     public bool DisconnectTimeoutEnabled { get; set; } = true;
 
+    internal bool IsDisconnectTimeoutEnabled() =>
+        DisconnectTimeoutEnabled && DisconnectTimeout > TimeSpan.Zero;
+
     /// <summary>
     ///     The time to wait before end the session.
     /// </summary>
@@ -143,6 +146,9 @@ public sealed record ProtocolOptions
     /// <value>Defaults to <see lanword="true" /></value>
     public bool NetworkPackageStatsEnabled { get; set; } = false;
 
+    internal bool IsNetworkPackageStatsEnabled() =>
+        NetworkPackageStatsEnabled && NetworkPackageStatsInterval > TimeSpan.Zero;
+
     /// <summary>
     ///     When true, the session will calculate the remote player stats on each frame.
     /// </summary>
@@ -168,13 +174,6 @@ public sealed record ProtocolOptions
     public int ConsistencyCheckDistance { get; set; } = 8;
 
     /// <summary>
-    ///     Enable/Disable consistency check.
-    /// </summary>
-    /// <seealso cref="ConsistencyCheckDistance" />
-    /// <seealso cref="ConsistencyCheckTimeout" />
-    public bool ConsistencyCheckEnabled { get; set; } = true;
-
-    /// <summary>
     ///     The time to wait before send next consistency check (0 to disable).
     ///     On each interval one peer requests a frame to other peer which must respond
     ///     with the state checksum of that frame.
@@ -184,6 +183,16 @@ public sealed record ProtocolOptions
     /// <seealso cref="ConsistencyCheckTimeout" />
     public TimeSpan ConsistencyCheckInterval { get; set; } =
         TimeSpan.FromMilliseconds(3_000);
+
+    /// <summary>
+    ///     Enable/Disable consistency check.
+    /// </summary>
+    /// <seealso cref="ConsistencyCheckDistance" />
+    /// <seealso cref="ConsistencyCheckTimeout" />
+    public bool ConsistencyCheckEnabled { get; set; } = true;
+
+    internal bool IsConsistencyCheckEnabled() =>
+        ConsistencyCheckEnabled && ConsistencyCheckInterval > TimeSpan.Zero;
 
     /// <summary>
     ///     Max wait time for non-success consistency checks (0 to disable).

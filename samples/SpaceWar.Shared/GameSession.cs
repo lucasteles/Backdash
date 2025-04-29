@@ -37,7 +37,7 @@ public sealed class GameSession(
         var syncInputResult = session.SynchronizeInputs();
         if (syncInputResult is not ResultCode.Ok)
         {
-            // Console.WriteLine($"{DateTime.Now:o} => ERROR SYNC INPUTS: {syncInputResult}");
+            // session.WriteLog(LogLevel.Warning, $"ERROR SYNC INPUTS: {syncInputResult}");
             return;
         }
 
@@ -65,22 +65,28 @@ public sealed class GameSession(
 
     public void Draw() => renderer.Draw(gameState, nonGameState);
 
+    void Log(string message)
+    {
+        session.WriteLog(message);
+        Console.WriteLine(message);
+    }
+
     public void OnSessionStart()
     {
-        Console.WriteLine($"{DateTime.Now:o} => GAME STARTED");
+        Log("=> GAME STARTED");
         nonGameState.SetConnectState(PlayerConnectState.Running);
         nonGameState.StatusText.Clear();
     }
 
     public void OnSessionClose()
     {
-        Console.WriteLine($"{DateTime.Now:o} => GAME CLOSED");
+        Log("=> GAME CLOSED");
         nonGameState.SetConnectState(PlayerConnectState.Disconnected);
     }
 
     public void TimeSync(FrameSpan framesAhead)
     {
-        Console.WriteLine($"{DateTime.Now:o} => Time sync requested {framesAhead.FrameCount}");
+        Log($"=> TIME SYNC REQUESTED {framesAhead.FrameCount}");
         nonGameState.SleepTime = framesAhead.Duration();
     }
 
@@ -103,7 +109,7 @@ public sealed class GameSession(
 
     public void OnPeerEvent(NetcodePlayer player, PeerEventInfo evt)
     {
-        Console.WriteLine($"{DateTime.Now:o} => PEER EVENT: {evt} from {player}");
+        Log($"=> PEER EVENT: {evt} from {player}");
         if (player.IsSpectator()) return;
 
         switch (evt.Type)
@@ -142,7 +148,7 @@ public sealed class GameSession(
 
     public void LoadState(in Frame frame, ref readonly BinaryBufferReader reader)
     {
-        Console.WriteLine($"{DateTime.Now:o} => Loading state {frame}...");
+        Log($"=> LOADING STATE {frame}...");
         gameState.LoadState(in reader);
     }
 

@@ -148,6 +148,10 @@ sealed class SpectatorSession<TInput> :
     public IReadOnlySet<NetcodePlayer> GetPlayers() => fakePlayers;
     public IReadOnlySet<NetcodePlayer> GetSpectators() => FrozenSet<NetcodePlayer>.Empty;
     public NetcodePlayer? FindPlayer(Guid id) => playerMap.GetValueOrDefault(id);
+
+    public void WriteLog(LogLevel level, string message) => logger.Write(level, message);
+    public void WriteLog(string message, Exception? error = null) => logger.Write(message, error);
+
     public ResultCode AddPlayer(NetcodePlayer player) => ResultCode.NotSupported;
 
     public void BeginFrame()

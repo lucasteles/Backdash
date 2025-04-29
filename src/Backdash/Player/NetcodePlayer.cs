@@ -91,7 +91,7 @@ public class NetcodePlayer :
             if (!writer.Write("Player: "u8)) return false;
         }
 
-        if (!writer.Write(queueIndex)) return false;
+        if (!writer.Write(Number)) return false;
         if (!writer.Write("}"u8)) return false;
         return true;
     }
