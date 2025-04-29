@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using Backdash;
+using Backdash.Core;
 using Backdash.Options;
 
 namespace ConsoleGame;
@@ -17,11 +18,8 @@ public sealed class PluginSample : INetcodePlugin
         if (session.TryGetLocalPlayer(out var player))
             suffix = $"player_{player.Number}";
 
-        var fileName = $"log_plugin_{session.Mode}_{suffix}.txt";
-        textWriter = new StreamWriter(fileName.ToLowerInvariant(), false)
-        {
-            AutoFlush = true,
-        };
+        var fileName = $"logs/log_plugin_{session.Mode}_{suffix}.txt";
+        textWriter = FileTextLogWriter.GetLogFileWriter(fileName, false);
 
         Log("Starting Session");
     }

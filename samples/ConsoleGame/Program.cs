@@ -47,7 +47,7 @@ var builder = RollbackNetcode
 if (endpoints is ["spectate", { } hostArg] && IPEndPoint.TryParse(hostArg, out var host))
 {
     builder
-        .WithFileLogWriter($"log_game_spectator_{port}.log", append: false)
+        .WithFileLogWriter($"logs/log_game_spectator_{port}.log", append: false)
         .ConfigureSpectator(options =>
         {
             options.HostEndPoint = host;
@@ -61,7 +61,7 @@ else
                       ?? throw new InvalidOperationException("No local player defined");
     builder
         // Write logs in a file with player number
-        .WithFileLogWriter($"log_game_player_{port}.log", append: false)
+        .WithFileLogWriter($"logs/log_game_player_{port}.log", append: false)
         .WithPlayers(players)
         .ForRemote();
 }

@@ -100,7 +100,7 @@ public sealed class FileTextLogWriter : TextLogWriter
     /// <summary>
     ///     Initializes a new instance of the <see cref="FileTextLogWriter" /> class.
     /// </summary>
-    /// <param name="filename">
+    /// <param name="fileName">
     ///     Log file name
     ///     <remarks>
     ///         you can use placeholders for:
@@ -113,13 +113,25 @@ public sealed class FileTextLogWriter : TextLogWriter
     ///     true to append data to the file; false to overwrite the file. If the specified file does not exist, this parameter
     ///     has no effect, and the constructor creates a new file.
     /// </param>
-    public FileTextLogWriter(string? filename = null, bool append = true)
+    public FileTextLogWriter(string? fileName = null, bool append = true) =>
+        TextWriter = GetLogFileWriter(fileName, append);
+
+    /// <summary>
+    /// Return a log file stream writer
+    /// </summary>
+    /// <value><cons cref="DefaultFileName"/></value>
+    public static StreamWriter GetLogFileWriter(string? fileName = null, bool append = true)
     {
-        filename = !string.IsNullOrWhiteSpace(filename) ? filename : DefaultFileName;
-        filename = filename
+        fileName = !string.IsNullOrWhiteSpace(fileName) ? fileName : DefaultFileName;
+
+        if (Path.GetDirectoryName(fileName) is { } dir && !Directory.Exists(dir))
+            Directory.CreateDirectory(dir);
+
+        fileName = fileName
             .Replace("{{proc_id}}", Environment.ProcessId.ToString())
             .Replace("{{timestamp}}", $"{DateTime.UtcNow:yyyyMMddhhmmss}");
-        TextWriter = new StreamWriter(filename, append)
+
+        return new(fileName, append)
         {
             AutoFlush = true,
         };

@@ -34,7 +34,6 @@ public class NonGameState
     public string LastError = "";
     public uint Checksum;
     public PlayerStatus RemotePlayerStatus;
-    public PeerNetworkStats PeerNetworkStats = new();
     public DateTime LostConnectionTime;
     public TimeSpan DisconnectTimeout;
 }

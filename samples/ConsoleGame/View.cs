@@ -161,7 +161,9 @@ public class View
 
     static void DrawStats(GameState currentState, NonGameState nonGameState)
     {
-        var peer = nonGameState.PeerNetworkStats;
+        if (nonGameState.RemotePlayer is not { NetworkStats: { } peer })
+            return;
+
         var info = nonGameState.SessionInfo;
         WriteLine(
             $"""
