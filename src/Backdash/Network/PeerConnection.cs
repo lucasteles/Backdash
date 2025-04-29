@@ -109,9 +109,7 @@ sealed class PeerConnection<TInput> : IDisposable where TInput : unmanaged
         if (options.IsNetworkPackageStatsEnabled())
             networkStatsTimer.Start();
 
-        if (state.Player.IsSpectator()) return;
-
-        if (options.ConsistencyCheckEnabled)
+        if (options.IsConsistencyCheckEnabled())
             consistencyCheckTimer.Start();
     }
 

@@ -1,3 +1,4 @@
+dotnet build -c Release %~dp0\..\..
 call %~dp0\start_server.cmd
 @pushd %~dp0\..\..\bin\Release\net8.0
 del *.log
