@@ -34,7 +34,7 @@ state as well.
 Each player in a [Backdash](https://github.com/lucasteles/Backdash) networked game has a complete copy of your game
 running. [Backdash](https://github.com/lucasteles/Backdash) needs to keep both copies of the
 game state in sync to ensure that both players are experiencing the same game. It would be much too expensive to send an
-entire copy of the game state between players every frame. Instead [Backdash](https://github.com/lucasteles/Backdash)
+entire copy of the game state between players every frame. Instead, [Backdash](https://github.com/lucasteles/Backdash)
 sends the players' inputs to each other and has
 each player step the game forward. In order for this to work, your game engine must meet three criteria:
 
@@ -98,14 +98,14 @@ var session = RollbackNetcode
 ```
 
 > [!TIP]
-> If you want to use a integer type as your input type:
+> If you want to use an integer type as your input type:
 >
 > `RollbackNetcode.WithInputType(t => t.Integer<uint>())`
 
 The session builder can be used to configure the session by setting [`NetcodeOptions`](https://lucasteles.github.io/Backdash/api/Backdash.NetcodeOptions.html):
 - passing an instance to `.WithOptions(..)`
-- using the a delegate function on `.Configure(options => {})`
-- using the a fluent api
+- using a delegate function on `.Configure(options => {})`
+- using the fluent api
 
 
 ```csharp

@@ -72,10 +72,10 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(options);
         ArgumentNullException.ThrowIfNull(syncTestOptions);
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(syncTestOptions.CheckDistance);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(syncTestOptions.CheckDistanceFrames);
 
         FixedFrameRate = options.FrameRate;
-        checkDistance = new(syncTestOptions.CheckDistance);
+        checkDistance = new(syncTestOptions.CheckDistanceFrames);
         logStateOnDesync = syncTestOptions.LogStateOnDesync;
         throwError = syncTestOptions.ThrowOnDesync;
         logger = services.Logger;
@@ -351,13 +351,13 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
         var currentOffset = 0;
         var currentBytes = current.State.AsSpan(0, current.StateSize);
         BinaryBufferReader currentReader = new(currentBytes, ref currentOffset, endianness);
-        var currentObject = callbacks.ParseState(current.Frame, in currentReader);
+        var currentObject = callbacks.CreateState(current.Frame, in currentReader);
         var currentBody = stateParser.GetStateString(current.Frame, in currentReader, currentObject);
         LogSaveState(level, "CURRENT", currentBody, current.Checksum, current.Frame, current.Inputs.Frame.Number);
 
         var lastOffset = 0;
         BinaryBufferReader previousReader = new(previous.GameState.WrittenSpan, ref lastOffset, endianness);
-        var previousObject = callbacks.ParseState(current.Frame, in previousReader);
+        var previousObject = callbacks.CreateState(current.Frame, in previousReader);
         var previousBody = stateParser.GetStateString(current.Frame, in previousReader, previousObject);
         LogSaveState(level, "LAST", previousBody, previous.Checksum, previous.Frame);
 
@@ -365,6 +365,7 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
         {
             (currentOffset, lastOffset) = (0, 0);
             mismatchHandler.Handle(
+                this,
                 new(previousBody, in previousReader, previous.Checksum, previousObject),
                 new(currentBody, in currentReader, current.Checksum, currentObject)
             );

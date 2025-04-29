@@ -61,14 +61,18 @@ static INetcodeSession<PlayerInputs> ParseSessionArgs(string[] args)
         case ["sync-test-auto", ..]:
             return builder
                 .ForSyncTest(options => options
-                    .UseJsonStateViewer()
+                    .UseJsonStateParser()
+                    .UseDesyncHandler<DiffPlexDesyncHandler>()
                     .UseRandomInputProvider()
                 )
                 .Build();
 
         case ["sync-test", ..]:
             return builder
-                .ForSyncTest(options => options.UseJsonStateViewer())
+                .ForSyncTest(options => options
+                    .UseJsonStateParser()
+                    .UseDesyncHandler<DiffPlexDesyncHandler>()
+                )
                 .Build();
 
         default:

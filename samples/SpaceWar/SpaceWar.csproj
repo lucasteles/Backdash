@@ -24,4 +24,7 @@
     <ItemGroup>
         <ProjectReference Include="..\SpaceWar.Shared\SpaceWar.Shared.csproj"/>
     </ItemGroup>
+    <ItemGroup>
+      <PackageReference Include="DiffPlex" Version="1.7.2" />
+    </ItemGroup>
 </Project>

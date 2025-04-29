@@ -7,7 +7,8 @@ not starting a game from scratch. Most applications will already conform to most
 ## Isolate **Game State** from **Non-Game State**
 
 [Backdash](https://github.com/lucasteles/Backdash) will periodically request that you save and load the entire state of
-your game. For most games, the state that needs to be saved is a tiny fraction of the entire game. Usually, the video and
+your game. For most games, the state that needs to be saved is a tiny fraction of the entire game. Usually, the video
+and
 audio renderers, look-up tables, textures, sound data, and your code segments are either constant from frame to frame or
 not involved in the calculation of the game state. These do not need to be saved or restored.
 
@@ -63,7 +64,8 @@ times [Backdash](https://github.com/lucasteles/Backdash) needs to rollback to th
 ### Beware of External Time Sources (eg. random, clock time)
 
 Be careful if you use the current time of day in your game state calculation. This may be used for an effect on the game
-or to derive another game state (e.g. using the timer as a seed to the random number generator). The time on two computers
+or to derive another game state (e.g. using the timer as a seed to the random number generator). The time on two
+computers
 or game consoles is almost never in sync and using time in your game state calculations can lead to synchronization
 issues. You should either eliminate the use of time in your game state or include the current time for one of the
 players as part of the input to a frame and always use that time in your calculations.
@@ -72,8 +74,11 @@ The use of external time sources in **non-game state** calculations is fine (_e.
 screen, or the attenuation of audio samples_).
 
 > [!INFORMATION]
-> We provide an implementation of a _[Deterministic Random](https://lucasteles.github.io/Backdash/api/Backdash.Synchronizing.Random.IDeterministicRandom.html)_  out of the box
-> which can be accessed directly from the _[Rollback Session](https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSession-1.html#Backdash_INetcodeSession_1_Random)_
+> We provide an implementation of a
+_[Deterministic Random](https://lucasteles.github.io/Backdash/api/Backdash.Synchronizing.Random.IDeterministicRandom.html)_
+> out of the box
+> which can be accessed directly from the
+_[Rollback Session](https://lucasteles.github.io/Backdash/api/Backdash.INetcodeSession-1.html#Backdash_INetcodeSession_1_Random)_
 
 ## Beware of Dangling References
 
@@ -85,7 +90,8 @@ reference instead of the values.
 
 The language your game is written in may have features that make it difficult to track down all your state. [Static
 automatic variables in `C`](https://www.javatpoint.com/auto-and-static-variable-in-c)
-or [static members in `C#`](https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/classes-and-structs/static-classes-and-static-class-members)
+or [static members in
+`C#`](https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/classes-and-structs/static-classes-and-static-class-members)
 are examples of this behavior. You need to track down all these locations and convert them to
 a form that can be saved. For example, compare:
 
@@ -129,14 +135,34 @@ public class MySessionHandler : INetcodeSessionHandler
 }
 ```
 
-## Use the [Backdash](https://github.com/lucasteles/Backdash) Sync Test Feature. A Lot.
+## Use the [Backdash](https://github.com/lucasteles/Backdash) SyncTest Feature. A Lot.
 
-Once you've ported your application to [Backdash](https://github.com/lucasteles/Backdash), you can use
-the [`CreateSyncTestSession`](https://lucasteles.github.io/Backdash/api/Backdash.RollbackNetcode.html#Backdash_RollbackNetcode_CreateSyncTestSession__2_System_Nullable_Backdash_Data_FrameSpan__Backdash_NetcodeOptions_Backdash_SessionServices___0___1__System_Boolean_)
-function to help track down synchronization issues which may be the result of a leaky game state.
+Once you've ported your application to [Backdash](https://github.com/lucasteles/Backdash),
+you can use tool called `SyncTest` to help track down synchronization issues which may be the result of a leaky game
+state.
 
-The sync test session is a special, single player session which is designed to find errors in your simulation's
-determinism. When running in a **sync-test session**, [Backdash](https://github.com/lucasteles/Backdash) by default will
+To create a sync test session use:
+
+```csharp
+using Backdash;
+
+var session = RollbackNetcode
+    .WithInputType<MyGameInput>()
+    .Configure(options =>
+    {
+        // ...
+    })
+    .ForSyncTest(options => options
+    {
+        // ...
+    })
+    .Build();
+```
+
+The sync test session is a special session which is designed to find errors in your simulation's
+determinism.
+
+When running in a **sync-test session**, [Backdash](https://github.com/lucasteles/Backdash) by default will
 execute a 1 frame rollback for every frame of your game. It compares the state of the frame when it was executed the
 first time to the state executed during the rollback, and raises an error if they differ during your game's execution.
 If you set the [`LogLevel`](https://lucasteles.github.io/Backdash/api/Backdash.Core.LogLevel.html) to at
@@ -146,56 +172,76 @@ the rollback frame to track down errors.
 By running **sync-test** on developer systems continuously when writing game code, you can identify **de-sync** causing
 bugs immediately after they're introduced.
 
-You can also set the **sync-test session** to auto-generate random inputs to help find de-syncs:
+### Configuring
+
+You can configure a wide range of options to help debug you state, like:
+
+```csharp
+.ForSyncTest(options => options
+    .UseJsonStateParser() // tries to display you state as json on desync
+    .UseDesyncHandler<YourDesyncHandler>() // custom handler to deal wih a desync
+    .UseRandomInputProvider() // generate random inputs
+    .CheckDistance(4) // the forced rollback check distance in frames
+)
+```
+
+If you need better meaningful string representation of your state in the sync-test, it is recommended to implement
+the optional method `INetcodeSessionHandler.CreateState`. This will be used to materialize previous saved states
+before passing them to the `DesyncHandler`.
+
+> [!NOTE]
+> The `.UseJsonStateParser()` will only work if `INetcodeSessionHandler.CreateState` returns a JSON serializable object.
+
+#### Implement a DesyncHandler
+
+a `DesyncHandler` will help you to handle whenever a desync happens in a `SyncTest` session.
+
+As example, a `DesyncHandler` that uses [DiffPlex](https://github.com/mmanela/diffplex) to print on the console
+the state diff when a desync occurs:
 
 ```csharp
 using Backdash;
-using Backdash.Sync.Input;
+using Backdash.Synchronizing.State;
+using DiffPlex.DiffBuilder;
+using DiffPlex.DiffBuilder.Model;
 
-var session = RollbackNetcode.CreateSyncTestSession<MyGameInput>(
-    options: new()
+sealed class DiffPlexDesyncHandler : IStateDesyncHandler
+{
+    public void Handle(INetcodeSession session, in StateSnapshot previous, in StateSnapshot current)
     {
-        Log = new()
+        var diff = InlineDiffBuilder.Diff(previous.Value, current.Value);
+
+        var savedColor = Console.ForegroundColor;
+
+        foreach (var line in diff.Lines)
         {
-            EnabledLevel = LogLevel.Debug,
-        },
-    },
-    services: new()
-    {
-        InputGenerator = new RandomInputGenerator<MyGameInput>(),
+            switch (line.Type)
+            {
+                case ChangeType.Inserted:
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.Write("+ ");
+                    break;
+                case ChangeType.Deleted:
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.Write("- ");
+                    break;
+                default:
+                    Console.ForegroundColor = ConsoleColor.Gray;
+                    Console.Write("  ");
+                    break;
+            }
+
+            Console.WriteLine(line.Text);
+        }
+
+        Console.ForegroundColor = savedColor;
     }
-);
-```
-
-If you want a meaningful string representation of your state in the sync-test, you need to implement
- the method `GetStateString` in your handler.
-
-```csharp
-// print the state as json
-public string GetStateString(in Frame frame, ref readonly BinaryBufferReader reader)
-{
-    GameState state = new();
-
-    state.LoadState(in reader); // read and fill the state properties
-
-    return JsonSerializer.Serialize(state, jsonOptions);
 }
-
-static readonly JsonSerializerOptions jsonOptions = new()
-{
-    WriteIndented = true,
-    IncludeFields = true,
-};
-
 ```
 
-> [!NOTE]
-> For better debugging the `RollbackNetcode.WithInputType<>().ForSyncTest(...)` accepts an implementation of the `IStateDesyncHandler`
-> which is called whenever a state desync happens in the test.
->
-> You can use it for enhanced state logging or showing semantic diffs.
-
-
+> [!TIP]
+> You can see this implementation working with JSON in
+> the [SpaceWar](https://github.com/lucasteles/Backdash/tree/master/samples/SpaceWar) sample.
 
 ## Where to Go from Here
 

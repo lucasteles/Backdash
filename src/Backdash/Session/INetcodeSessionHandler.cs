@@ -61,12 +61,12 @@ public interface INetcodeSessionHandler
 
     /// <summary>
     ///     Reads a state object of a snapshot.
-    ///     Used mostly for SyncTest and logging.
+    ///     Used for SyncTest debug.
     /// </summary>
     /// <seealso cref="NetcodeSessionBuilder{TInput}.ForSyncTest" />
     /// <seealso cref="IStateStringParser" />
     /// <seealso cref="IStateStringParser.GetStateString" />
-    object? ParseState(in Frame frame, ref readonly BinaryBufferReader reader) => null;
+    object? CreateState(in Frame frame, ref readonly BinaryBufferReader reader) => null;
 }
 
 sealed class EmptySessionHandler(Logger logger) : INetcodeSessionHandler

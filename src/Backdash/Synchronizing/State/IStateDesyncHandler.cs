@@ -10,7 +10,7 @@ public interface IStateDesyncHandler
     /// <summary>
     ///     Handles the states binary representations
     /// </summary>
-    void Handle(in StateSnapshot previous, in StateSnapshot current);
+    void Handle(INetcodeSession session, in StateSnapshot previous, in StateSnapshot current);
 }
 
 /// <summary>
@@ -27,7 +27,7 @@ public readonly ref struct StateSnapshot(
     public readonly string Value = value;
 
     /// <summary>State object value</summary>
-    /// <seealso cref="INetcodeSessionHandler.ParseState"/>
+    /// <seealso cref="INetcodeSessionHandler.CreateState"/>
     public readonly object? State = state;
 
     /// <summary>State binary reader</summary>

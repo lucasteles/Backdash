@@ -71,6 +71,30 @@ public sealed class GameSession(
         Console.WriteLine(message);
     }
 
+    public void SaveState(in Frame frame, ref readonly BinaryBufferWriter writer)
+    {
+        // UNCOMMENT TO FORCE DESYNC ON FRAME 200
+#pragma warning disable S125
+        // if (frame.Number is 200)
+        //     gameState.FrameNumber = Random.Shared.Next(1000, 2000);
+#pragma warning restore S125
+
+        gameState.SaveState(in writer);
+    }
+
+    public void LoadState(in Frame frame, ref readonly BinaryBufferReader reader)
+    {
+        Log($"=> LOADING STATE {frame}...");
+        gameState.LoadState(in reader);
+    }
+
+    public void AdvanceFrame()
+    {
+        session.SynchronizeInputs();
+        gameState.Update(session.CurrentSynchronizedInputs);
+        session.AdvanceFrame();
+    }
+
     public void OnSessionStart()
     {
         Log("=> GAME STARTED");
@@ -93,18 +117,9 @@ public sealed class GameSession(
     void UpdateStats()
     {
         nonGameState.RollbackFrames = session.RollbackFrames;
-
         var saved = session.GetCurrentSavedFrame();
         nonGameState.StateChecksum = saved.Checksum;
         nonGameState.StateSize = saved.Size;
-
-        for (var i = 0; i < nonGameState.Players.Length; i++)
-        {
-            ref var info = ref nonGameState.Players[i];
-            if (!info.PlayerHandle.IsRemote())
-                continue;
-            session.UpdateNetworkStats(info.PlayerHandle);
-        }
     }
 
     public void OnPeerEvent(NetcodePlayer player, PeerEventInfo evt)
@@ -143,23 +158,8 @@ public sealed class GameSession(
         }
     }
 
-    public void SaveState(in Frame frame, ref readonly BinaryBufferWriter writer) =>
-        gameState.SaveState(in writer);
-
-    public void LoadState(in Frame frame, ref readonly BinaryBufferReader reader)
-    {
-        Log($"=> LOADING STATE {frame}...");
-        gameState.LoadState(in reader);
-    }
-
-    public void AdvanceFrame()
-    {
-        session.SynchronizeInputs();
-        gameState.Update(session.CurrentSynchronizedInputs);
-        session.AdvanceFrame();
-    }
-
-    object INetcodeSessionHandler.ParseState(in Frame frame, ref readonly BinaryBufferReader reader)
+    // used by SyncTest, the return value is used on the state desync handler call
+    object INetcodeSessionHandler.CreateState(in Frame frame, ref readonly BinaryBufferReader reader)
     {
         GameState state = new();
         state.LoadState(in reader);

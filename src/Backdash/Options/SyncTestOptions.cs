@@ -13,7 +13,7 @@ public sealed record SyncTestOptions<TInput> where TInput : unmanaged
     ///     Total forced rollback frames.
     /// </summary>
     /// <value>Defaults to <c>1</c></value>
-    public int CheckDistance { get; set; } = 1;
+    public int CheckDistanceFrames { get; set; } = 1;
 
     /// <summary>
     ///     If true, throws on state de-synchronization.
@@ -42,6 +42,27 @@ public sealed record SyncTestOptions<TInput> where TInput : unmanaged
     /// </summary>
     public IInputProvider<TInput>? InputProvider { get; set; }
 
+    /// <inheritdoc cref="CheckDistanceFrames" />
+    public SyncTestOptions<TInput> CheckDistance(int frames)
+    {
+        CheckDistanceFrames = frames;
+        return this;
+    }
+
+    /// <inheritdoc cref="LogStateOnDesync" />
+    public SyncTestOptions<TInput> LogState(bool enabled = true)
+    {
+        LogStateOnDesync = enabled;
+        return this;
+    }
+
+    /// <inheritdoc cref="ThrowOnDesync" />
+    public SyncTestOptions<TInput> ThrowError(bool enabled = true)
+    {
+        ThrowOnDesync = enabled;
+        return this;
+    }
+
     /// <summary>
     ///     Use <see cref="RandomInputProvider{TInput}" /> as input provider.
     /// </summary>
@@ -55,7 +76,7 @@ public sealed record SyncTestOptions<TInput> where TInput : unmanaged
     /// <summary>
     ///     Use <see cref="JsonStateStringParser" /> as state viewer.
     /// </summary>
-    public SyncTestOptions<TInput> UseJsonStateViewer(JsonSerializerOptions? options = null)
+    public SyncTestOptions<TInput> UseJsonStateParser(JsonSerializerOptions? options = null)
     {
         StateStringParser = new JsonStateStringParser(options);
         return this;
