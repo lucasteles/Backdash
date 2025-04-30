@@ -553,10 +553,10 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>
 
     void DoSync()
     {
+        plugins.OnFrameBegin(this, isSynchronizing);
         synchronizer.UpdateRollbackFrameCounter();
         ConsumeProtocolNetworkEvents();
         backgroundJobManager.ThrowIfError();
-        plugins.OnFrameBegin(this, isSynchronizing);
 
         if (synchronizer.InRollback) return;
         ConsumeProtocolInputEvents();

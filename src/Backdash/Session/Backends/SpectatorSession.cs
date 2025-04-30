@@ -156,10 +156,10 @@ sealed class SpectatorSession<TInput> :
 
     public void BeginFrame()
     {
+        plugins.OnFrameBegin(this, isSynchronizing);
         ConsumeProtocolNetworkEvents();
         host.Update();
         backgroundJobManager.ThrowIfError();
-        plugins.OnFrameBegin(this, isSynchronizing);
 
         if (isSynchronizing)
             return;
