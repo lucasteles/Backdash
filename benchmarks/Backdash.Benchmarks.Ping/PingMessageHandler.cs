@@ -4,7 +4,7 @@ using Backdash.Network.Client;
 
 namespace Backdash.Benchmarks.Ping;
 
-sealed class PingMessageHandler(IPeerClient<PingMessage> sender) : IPeerObserver<PingMessage>
+sealed class PingMessageHandler(PeerClient<PingMessage> sender) : IPeerObserver<PingMessage>
 {
     public static long TotalProcessed => processedCount;
     static long processedCount;

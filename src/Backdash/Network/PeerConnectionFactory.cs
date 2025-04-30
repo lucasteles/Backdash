@@ -14,7 +14,7 @@ sealed class PeerConnectionFactory(
     IProtocolNetworkEventHandler networkEventHandler,
     IRandomNumberGenerator random,
     Logger logger,
-    IPeerClient<ProtocolMessage> peer,
+    PeerClient<ProtocolMessage> peer,
     ProtocolOptions options,
     TimeSyncOptions timeSyncOptions,
     IStateStore stateStore

@@ -22,10 +22,10 @@ sealed class SpectatorSession<TInput> :
     where TInput : unmanaged
 {
     readonly Logger logger;
-    readonly IProtocolPeerClient udp;
+    readonly PeerClient<ProtocolMessage> udp;
     readonly EndPoint hostEndpoint;
     readonly NetcodeOptions options;
-    readonly BackgroundJobManager backgroundJobManager;
+    readonly NetcodeJobManager jobManager;
     readonly ConnectionsState localConnections = new(0);
     readonly GameInput<ConfirmedInputs<TInput>>[] inputs;
     readonly PeerConnection<ConfirmedInputs<TInput>> host;
@@ -65,7 +65,7 @@ sealed class SpectatorSession<TInput> :
         this.options = options;
         FixedFrameRate = this.options.FrameRate;
         hostEndpoint = spectatorOptions.GetHostEndPoint();
-        backgroundJobManager = services.JobManager;
+        jobManager = services.JobManager;
         random = services.DeterministicRandom;
         logger = services.Logger;
         stateStore = services.StateStore;
@@ -78,10 +78,10 @@ sealed class SpectatorSession<TInput> :
         inputs = new GameInput<ConfirmedInputs<TInput>>[options.SpectatorInputBufferLength];
         callbacks = services.SessionHandler;
         endianness = options.GetStateSerializationEndianness();
-        udp = services.ProtocolClientFactory.CreateProtocolClient(options.LocalPort, peerObservers);
-        backgroundJobManager.Register(udp);
-        var magicNumber = services.Random.MagicNumber();
+        udp = services.ProtocolClientFactory.CreateClient(options.LocalPort, peerObservers);
+        ConfigureJobs(services);
 
+        var magicNumber = services.Random.MagicNumber();
         networkEventQueue = new();
         PeerConnectionFactory peerConnectionFactory = new(
             networkEventQueue, services.Random, logger, udp,
@@ -105,6 +105,18 @@ sealed class SpectatorSession<TInput> :
         host.Synchronize();
     }
 
+    void ConfigureJobs(SessionServices<TInput> services)
+    {
+        jobManager.Register(udp);
+
+        // ReSharper disable once SuspiciousTypeConversion.Global
+        if (udp.Socket is INetcodeJob socketJob)
+            jobManager.Register(socketJob);
+
+        foreach (var job in services.Jobs)
+            jobManager.Register(job);
+    }
+
     public void Dispose()
     {
         if (disposed) return;
@@ -113,7 +125,7 @@ sealed class SpectatorSession<TInput> :
         udp.Dispose();
         logger.Dispose();
         networkEventQueue.Dispose();
-        backgroundJobManager.Dispose();
+        jobManager.Dispose();
     }
 
     public void Close()
@@ -157,9 +169,10 @@ sealed class SpectatorSession<TInput> :
     public void BeginFrame()
     {
         plugins.OnFrameBegin(this, isSynchronizing);
+        udp.Socket.Update();
         ConsumeProtocolNetworkEvents();
         host.Update();
-        backgroundJobManager.ThrowIfError();
+        jobManager.ThrowIfError();
 
         if (isSynchronizing)
             return;
@@ -200,13 +213,13 @@ sealed class SpectatorSession<TInput> :
     public void Start(CancellationToken stoppingToken = default)
     {
         plugins.OnStart(this);
-        backgroundJobTask = backgroundJobManager.Start(options.UseBackgroundThread, stoppingToken);
+        backgroundJobTask = jobManager.Start(options.UseBackgroundThread, stoppingToken);
         logger.Write(LogLevel.Information, $"Spectating started on host {hostEndpoint}");
     }
 
     public async Task WaitToStop(CancellationToken stoppingToken = default)
     {
-        backgroundJobManager.Stop(TimeSpan.Zero);
+        jobManager.Stop(TimeSpan.Zero);
         await backgroundJobTask.WaitAsync(stoppingToken).ConfigureAwait(false);
     }
 

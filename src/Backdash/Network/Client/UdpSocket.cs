@@ -13,7 +13,6 @@ public sealed class UdpSocket : IPeerSocket
     // ReSharper disable InconsistentNaming
     const uint IOC_IN = 0x80000000;
     const uint IOC_VENDOR = 0x18000000;
-
     const uint SIO_UDP_CONN_RESET = IOC_IN | IOC_VENDOR | 12;
 
     readonly Socket socket;

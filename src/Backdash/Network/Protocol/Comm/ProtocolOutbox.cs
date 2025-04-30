@@ -8,7 +8,7 @@ namespace Backdash.Network.Protocol.Comm;
 
 sealed class ProtocolOutbox(
     ProtocolState state,
-    IPeerClient<ProtocolMessage> peer,
+    PeerClient<ProtocolMessage> peer,
     Logger logger
 ) : IMessageSender, IMessageHandler<ProtocolMessage>
 {

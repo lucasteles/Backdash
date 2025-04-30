@@ -15,8 +15,8 @@ sealed class SessionServices<TInput> where TInput : unmanaged
     public IBinarySerializer<TInput> InputSerializer { get; }
     public IChecksumProvider ChecksumProvider { get; }
     public Logger Logger { get; }
-    public BackgroundJobManager JobManager { get; }
-    public IProtocolClientFactory ProtocolClientFactory { get; }
+    public NetcodeJobManager JobManager { get; }
+    public ProtocolClientFactory ProtocolClientFactory { get; }
     public IStateStore StateStore { get; }
     public IRandomNumberGenerator Random { get; }
     public IDeterministicRandom<TInput> DeterministicRandom { get; }
@@ -28,6 +28,7 @@ sealed class SessionServices<TInput> where TInput : unmanaged
     public INetcodeSessionHandler SessionHandler { get; }
 
     public PluginManager PluginManager { get; }
+    public INetcodeJob[] Jobs { get; set; }
 
     public SessionServices(
         IBinarySerializer<TInput> inputSerializer,
@@ -53,7 +54,8 @@ sealed class SessionServices<TInput> where TInput : unmanaged
         SessionHandler = services?.SessionHandler ?? new EmptySessionHandler(Logger);
 
         var socketFactory = services?.PeerSocketFactory ?? new PeerSocketFactory();
-        ProtocolClientFactory = new ProtocolClientFactory(options, socketFactory, Logger, DelayStrategy);
-        PluginManager = new(Logger, services?.Plugins ?? []);
+        ProtocolClientFactory = new(options, socketFactory, Logger, DelayStrategy);
+        Jobs = services?.Jobs.ToArray() ?? [];
+        PluginManager = new(Logger, services?.Plugin);
     }
 }

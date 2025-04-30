@@ -152,7 +152,7 @@ public class PeerClientTests
 
         void HandleMessageAsync(
             OpMessage message,
-            IPeerClient<OpMessage> udpClient,
+            PeerClient<OpMessage> udpClient,
             SocketAddress sender
         )
         {

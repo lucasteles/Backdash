@@ -40,4 +40,9 @@ public interface IPeerSocket : IDisposable
 
     /// <inheritdoc cref="Socket.Close()" />
     void Close();
+
+    /// <summary>
+    ///     Run synchronous update
+    /// </summary>
+    void Update() { }
 }

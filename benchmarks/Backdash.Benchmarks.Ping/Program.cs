@@ -9,7 +9,7 @@ var snapshotInterval = TimeSpan.FromSeconds(0);
 var printSnapshots = false;
 
 var logger = Logger.CreateConsoleLogger(LogLevel.None);
-using BackgroundJobManager jobs = new(logger);
+using NetcodeJobManager jobs = new(logger);
 
 const int bufferSize = Max.CompressedBytes * Max.NumberOfPlayers;
 
@@ -41,8 +41,9 @@ measurer.Stop();
 
 Console.Clear();
 Console.WriteLine(measurer.Summary(printSnapshots));
+return;
 
-IPeerClient<PingMessage> CreateClient(int port)
+PeerClient<PingMessage> CreateClient(int port)
 {
     PeerObserverGroup<PingMessage> observers = new();
     PeerClient<PingMessage> peer = new(

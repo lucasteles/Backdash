@@ -59,7 +59,12 @@ public sealed class ServicesConfig<TInput> where TInput : unmanaged
     public INetcodeSessionHandler? SessionHandler { get; set; }
 
     /// <summary>
-    /// Custom netcode plugins
+    /// Custom netcode plugin
     /// </summary>
-    public HashSet<INetcodePlugin> Plugins { get; set; } = [];
+    public INetcodePlugin? Plugin { get; set; }
+
+    /// <summary>
+    /// Custom netcode background jobs
+    /// </summary>
+    public HashSet<INetcodeJob> Jobs { get; set; } = [];
 }

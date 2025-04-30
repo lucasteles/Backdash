@@ -1,8 +1,10 @@
 // ReSharper disable AccessToDisposedClosure, UnusedVariable
 
 using System.Net;
+using System.Net.Sockets;
 using Backdash;
 using Backdash.Core;
+using Backdash.Network.Client;
 using ConsoleGame;
 
 var frameDuration = FrameTime.RateStep(60);

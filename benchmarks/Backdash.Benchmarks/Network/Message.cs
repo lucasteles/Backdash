@@ -11,7 +11,7 @@ public enum PingMessage : long
     Pong = 999999999,
 }
 
-sealed class PingMessageHandler(string name, IPeerClient<PingMessage> sender) : IPeerObserver<PingMessage>
+sealed class PingMessageHandler(string name, PeerClient<PingMessage> sender) : IPeerObserver<PingMessage>
 {
     long processedCount;
     long badMessages;

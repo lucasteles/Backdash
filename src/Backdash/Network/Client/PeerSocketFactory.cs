@@ -17,3 +17,8 @@ sealed class PeerSocketFactory : IPeerSocketFactory
 {
     public IPeerSocket Create(int port, NetcodeOptions options) => new UdpSocket(port, options.UseIPv6);
 }
+
+sealed class DelegateSocketFactory(Func<int, NetcodeOptions, IPeerSocket> factory) : IPeerSocketFactory
+{
+    public IPeerSocket Create(int port, NetcodeOptions options) => factory.Invoke(port, options);
+}

@@ -5,10 +5,10 @@ using System.Runtime.InteropServices;
 namespace Backdash.Network.Client;
 
 /// <summary>
-///     Observe a <see cref="IPeerClient{T}" />
+///     Observe a <see cref="PeerClient{T}" />
 /// </summary>
 /// <typeparam name="T"></typeparam>
-public interface IPeerObserver<T> where T : struct
+interface IPeerObserver<T>
 {
     /// <summary>
     ///     Handle new message from peer

@@ -8,34 +8,6 @@ using Backdash.Serialization;
 namespace Backdash.Network.Client;
 
 /// <summary>
-///     Client for peer communication
-/// </summary>
-public interface IPeerClient<T> : IDisposable where T : struct
-{
-    /// <summary>
-    ///     Send Message to peer.
-    /// </summary>
-    ValueTask SendTo(SocketAddress peerAddress, in T payload, IMessageHandler<T>? callback = null,
-        CancellationToken cancellationToken = default);
-
-    /// <summary>
-    ///     Try To Send Message to peer.
-    /// </summary>
-    bool TrySendTo(SocketAddress peerAddress, in T payload, IMessageHandler<T>? callback = null);
-
-
-    /// <summary>
-    ///     Start receiving messages.
-    /// </summary>
-    Task ProcessMessages(CancellationToken cancellationToken);
-
-    /// <summary>
-    ///     Local binding port.
-    /// </summary>
-    int BindPort { get; }
-}
-
-/// <summary>
 ///     Message sent handler.
 /// </summary>
 public interface IMessageHandler<T> where T : struct
@@ -51,9 +23,7 @@ public interface IMessageHandler<T> where T : struct
     void BeforeSendMessage(ref T message);
 }
 
-interface IPeerJobClient<T> : IBackgroundJob, IPeerClient<T> where T : struct;
-
-sealed class PeerClient<T> : IPeerJobClient<T> where T : struct
+sealed class PeerClient<T> : INetcodeJob, IDisposable where T : struct
 {
     readonly IPeerSocket socket;
     readonly IPeerObserver<T> observer;
@@ -67,6 +37,8 @@ sealed class PeerClient<T> : IPeerJobClient<T> where T : struct
     public string JobName { get; }
 
     public TimeSpan NetworkLatency = TimeSpan.Zero;
+
+    public IPeerSocket Socket => socket;
 
     struct QueueEntry(T body, SocketAddress recipient, long queuedAt, IMessageHandler<T>? callback)
     {

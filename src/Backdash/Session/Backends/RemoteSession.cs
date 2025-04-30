@@ -21,9 +21,9 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>
 {
     readonly NetcodeOptions options;
     readonly Logger logger;
-    readonly IProtocolPeerClient udp;
+    readonly PeerClient<ProtocolMessage> udp;
     readonly Synchronizer<TInput> synchronizer;
-    readonly BackgroundJobManager backgroundJobManager;
+    readonly NetcodeJobManager jobManager;
     readonly PeerConnectionFactory peerConnectionFactory;
     readonly IDeterministicRandom<TInput> random;
     readonly ProtocolCombinedInputsEventPublisher<TInput> peerCombinedInputsEventPublisher;
@@ -74,7 +74,7 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>
         this.options = options;
         FixedFrameRate = this.options.FrameRate;
         inputSerializer = services.InputSerializer;
-        backgroundJobManager = services.JobManager;
+        jobManager = services.JobManager;
         logger = services.Logger;
         inputListener = services.InputListener;
         random = services.DeterministicRandom;
@@ -106,7 +106,7 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>
             Callbacks = callbacks,
         };
 
-        udp = services.ProtocolClientFactory.CreateProtocolClient(options.LocalPort, peerObservers);
+        udp = services.ProtocolClientFactory.CreateClient(options.LocalPort, peerObservers);
 
         peerConnectionFactory = new(
             networkEventQueue,
@@ -118,7 +118,19 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>
             services.StateStore
         );
 
-        backgroundJobManager.Register(udp);
+        ConfigureJobs(services);
+    }
+
+    void ConfigureJobs(SessionServices<TInput> services)
+    {
+        jobManager.Register(udp);
+
+        // ReSharper disable once SuspiciousTypeConversion.Global
+        if (udp.Socket is INetcodeJob socketJob)
+            jobManager.Register(socketJob);
+
+        foreach (var job in services.Jobs)
+            jobManager.Register(job);
     }
 
     public void Dispose()
@@ -128,7 +140,7 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>
         Close();
         udp.Dispose();
         logger.Dispose();
-        backgroundJobManager.Dispose();
+        jobManager.Dispose();
         networkEventQueue.Dispose();
         inputListener?.Dispose();
     }
@@ -196,15 +208,15 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>
 
         plugins.OnStart(this);
         inputListener?.OnSessionStart(in inputSerializer);
-        backgroundJobTask = backgroundJobManager.Start(options.UseBackgroundThread, stoppingToken);
+        backgroundJobTask = jobManager.Start(options.UseBackgroundThread, stoppingToken);
     }
 
     public Task WaitToStop(CancellationToken stoppingToken = default)
     {
-        if (!backgroundJobManager.IsRunning)
+        if (!jobManager.IsRunning)
             return Task.CompletedTask;
 
-        backgroundJobManager.Stop(TimeSpan.Zero);
+        jobManager.Stop(TimeSpan.Zero);
         return backgroundJobTask.WaitAsync(stoppingToken);
     }
 
@@ -554,9 +566,10 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>
     void DoSync()
     {
         plugins.OnFrameBegin(this, isSynchronizing);
+        udp.Socket.Update();
         synchronizer.UpdateRollbackFrameCounter();
         ConsumeProtocolNetworkEvents();
-        backgroundJobManager.ThrowIfError();
+        jobManager.ThrowIfError();
 
         if (synchronizer.InRollback) return;
         ConsumeProtocolInputEvents();

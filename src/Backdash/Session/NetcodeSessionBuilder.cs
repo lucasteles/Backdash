@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using Backdash.Backends;
 using Backdash.Core;
 using Backdash.Network;
+using Backdash.Network.Client;
 using Backdash.Options;
 using Backdash.Serialization;
 using Backdash.Serialization.Internal;
@@ -384,9 +385,8 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
     }
 
     /// <summary>
-    ///     Set the logger <see cref="ServicesConfig{TInput}.ChecksumProvider" />
+    ///     Set the <see cref="ServicesConfig{TInput}.ChecksumProvider" />
     /// </summary>
-    /// <seealso cref="NetcodeOptions.Logger" />
     [MemberNotNull(nameof(sessionServices))]
     public NetcodeSessionBuilder<TInput> WithChecksumProvider(IChecksumProvider provider)
     {
@@ -395,25 +395,22 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
     }
 
     /// <summary>
-    ///     Set the logger <see cref="ServicesConfig{TInput}.ChecksumProvider" />
+    ///     Set the <see cref="ServicesConfig{TInput}.ChecksumProvider" />
     /// </summary>
-    /// <seealso cref="NetcodeOptions.Logger" />
     [MemberNotNull(nameof(sessionServices))]
     public NetcodeSessionBuilder<TInput> WithChecksumProvider<T>() where T : IChecksumProvider, new() =>
         WithChecksumProvider(new T());
 
     /// <summary>
-    ///     Set the logger <see cref="ServicesConfig{TInput}.ChecksumProvider" />
+    ///     Set the <see cref="ServicesConfig{TInput}.ChecksumProvider" />
     /// </summary>
-    /// <seealso cref="NetcodeOptions.Logger" />
     [MemberNotNull(nameof(sessionServices))]
     public NetcodeSessionBuilder<TInput> WithChecksumProvider(ChecksumDelegate compute) =>
         WithChecksumProvider(new DelegateChecksumProvider(compute));
 
     /// <summary>
-    ///     Set the logger <see cref="ServicesConfig{TInput}.DeterministicRandom" />
+    ///     Set the <see cref="ServicesConfig{TInput}.DeterministicRandom" />
     /// </summary>
-    /// <seealso cref="NetcodeOptions.Logger" />
     [MemberNotNull(nameof(sessionServices))]
     public NetcodeSessionBuilder<TInput> WithDeterministicRandom(IDeterministicRandom<TInput> writer)
     {
@@ -422,7 +419,7 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
     }
 
     /// <summary>
-    ///     Set the logger <see cref="ServicesConfig{TInput}.DeterministicRandom" />
+    ///     Set the <see cref="ServicesConfig{TInput}.DeterministicRandom" />
     /// </summary>
     /// <seealso cref="NetcodeOptions.Logger" />
     [MemberNotNull(nameof(sessionServices))]
@@ -430,9 +427,8 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
         WithDeterministicRandom(new T());
 
     /// <summary>
-    ///     Set the logger <see cref="ServicesConfig{TInput}.StateStore" />
+    ///     Set the <see cref="ServicesConfig{TInput}.StateStore" />
     /// </summary>
-    /// <seealso cref="NetcodeOptions.Logger" />
     [MemberNotNull(nameof(sessionServices))]
     public NetcodeSessionBuilder<TInput> WithStateStore(IStateStore writer)
     {
@@ -441,12 +437,31 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
     }
 
     /// <summary>
-    ///     Set the logger <see cref="ServicesConfig{TInput}.StateStore" />
+    ///     Set the <see cref="ServicesConfig{TInput}.StateStore" />
     /// </summary>
-    /// <seealso cref="NetcodeOptions.Logger" />
     [MemberNotNull(nameof(sessionServices))]
     public NetcodeSessionBuilder<TInput> WithStateStore<T>() where T : IStateStore, new() =>
         WithStateStore(new T());
+
+    /// <summary>
+    ///     Set the <see cref="ServicesConfig{TInput}.PeerSocketFactory" />
+    /// </summary>
+    [MemberNotNull(nameof(sessionServices))]
+    public NetcodeSessionBuilder<TInput> WithSocketFactory(IPeerSocketFactory factory)
+    {
+        ArgumentNullException.ThrowIfNull(factory);
+        return ConfigureServices(s => s.PeerSocketFactory = factory);
+    }
+
+    /// <inheritdoc cref="WithSocketFactory(Backdash.Network.Client.IPeerSocketFactory)"/>
+    [MemberNotNull(nameof(sessionServices))]
+    public NetcodeSessionBuilder<TInput> WithSocketFactory<T>() where T : IPeerSocketFactory, new() =>
+        WithSocketFactory(new T());
+
+    /// <inheritdoc cref="WithSocketFactory(Backdash.Network.Client.IPeerSocketFactory)"/>
+    [MemberNotNull(nameof(sessionServices))]
+    public NetcodeSessionBuilder<TInput> WithSocketFactory(Func<int, NetcodeOptions, IPeerSocket> factory) =>
+        WithSocketFactory(new DelegateSocketFactory(factory));
 
     /// <summary>
     ///     Add plugin type
@@ -456,9 +471,7 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
     public NetcodeSessionBuilder<TInput> UsePlugin(INetcodePlugin plugin)
     {
         ArgumentNullException.ThrowIfNull(plugin);
-        var services = sessionServices ?? new();
-        services.Plugins.Add(plugin);
-        return WithServices(services);
+        return ConfigureServices(services => services.Plugin = plugin);
     }
 
     /// <summary>
@@ -468,6 +481,25 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
     [MemberNotNull(nameof(sessionServices))]
     public NetcodeSessionBuilder<TInput> UsePlugin<TPlugin>() where TPlugin : INetcodePlugin, new() =>
         UsePlugin(new TPlugin());
+
+
+    /// <summary>
+    ///     Add new custom job
+    /// </summary>
+    [MemberNotNull(nameof(sessionServices))]
+    public NetcodeSessionBuilder<TInput> AddJob(INetcodeJob job)
+    {
+        ArgumentNullException.ThrowIfNull(job);
+        return ConfigureServices(services => services.Jobs.Add(job));
+    }
+
+    /// <summary>
+    ///     Add new custom job
+    /// </summary>
+    /// <seealso cref="ServicesConfig{TInput}" />
+    [MemberNotNull(nameof(sessionServices))]
+    public NetcodeSessionBuilder<TInput> AddJob<TPlugin>() where TPlugin : INetcodeJob, new() =>
+        AddJob(new TPlugin());
 
     /// <summary>
     ///     Set custom session services
