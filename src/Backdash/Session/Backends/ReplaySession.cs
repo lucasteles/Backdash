@@ -68,6 +68,12 @@ sealed class ReplaySession<TInput> : INetcodeSession<TInput> where TInput : unma
         logger.Dispose();
     }
 
+    public async ValueTask DisposeAsync()
+    {
+        Dispose();
+        await WaitToStop();
+    }
+
     public void Close()
     {
         if (closed) return;

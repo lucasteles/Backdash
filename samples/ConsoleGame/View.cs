@@ -13,7 +13,7 @@ public class View
 
     public void Draw(in GameState currentState, NonGameState nonGameState)
     {
-        Clear();
+        SetCursorPosition(0, 0);
         DrawHeader(nonGameState);
         DrawConnection(nonGameState);
         DrawField(in currentState, nonGameState);
@@ -124,7 +124,7 @@ public class View
                 break;
             case PlayerStatus.Running:
                 ForegroundColor = ConsoleColor.Cyan;
-                WriteLine("Connected.");
+                WriteLine("Connected.                        ");
                 break;
             case PlayerStatus.Waiting:
                 ForegroundColor = ConsoleColor.DarkYellow;
@@ -136,7 +136,7 @@ public class View
                 break;
             case PlayerStatus.Disconnected:
                 ForegroundColor = ConsoleColor.Red;
-                WriteLine("Disconnected.");
+                WriteLine("Disconnected.                        ");
                 break;
         }
 

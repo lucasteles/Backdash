@@ -27,8 +27,8 @@ public static class GameLogic
     )
     {
         currentState.RandomSeed = random.CurrentSeed;
-        currentState.Position1 = Move(currentState.Position1, inputPlayer1);
-        currentState.Position2 = Move(currentState.Position2, inputPlayer2);
+        currentState.Position1 = Move(in currentState.Position1, in currentState.Position2, inputPlayer1);
+        currentState.Position2 = Move(in currentState.Position2, in currentState.Position1, inputPlayer2);
 
         var player1Scored = currentState.Position1 == currentState.Target;
         var player2Scored = currentState.Position2 == currentState.Target;
@@ -55,7 +55,7 @@ public static class GameLogic
         }
     }
 
-    public static Vector2 Move(Vector2 pos, GameInput input)
+    public static Vector2 Move(in Vector2 pos, in Vector2 notAllowed, GameInput input)
     {
         var direction = Vector2.Zero;
         if (input.HasFlag(GameInput.Up))
@@ -66,8 +66,9 @@ public static class GameLogic
             direction = Vector2.UnitY;
         if (input.HasFlag(GameInput.Left))
             direction = -Vector2.UnitX;
-        pos += direction;
-        return Vector2.Clamp(pos, Vector2.Zero, new(GridSize - 1));
+
+        var next = Vector2.Clamp(pos + direction, Vector2.Zero, new(GridSize - 1));
+        return next == notAllowed ? pos : next;
     }
 
     public static GameInput ReadKeyboardInput(out bool disconnectRequest)

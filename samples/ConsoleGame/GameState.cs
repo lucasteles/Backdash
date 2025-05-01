@@ -23,7 +23,6 @@ public class GameState
     public uint RandomSeed;
 }
 
-[Serializable]
 public class NonGameState
 {
     public required NetcodePlayer? LocalPlayer;

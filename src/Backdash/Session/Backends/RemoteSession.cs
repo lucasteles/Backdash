@@ -139,6 +139,21 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>
         disposed = true;
         Close();
         udp.Dispose();
+        DisposeInternal();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (disposed) return;
+        disposed = true;
+        Close();
+        await udp.DisposeAsync();
+        DisposeInternal();
+        await WaitToStop();
+    }
+
+    void DisposeInternal()
+    {
         logger.Dispose();
         jobManager.Dispose();
         networkEventQueue.Dispose();

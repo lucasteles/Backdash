@@ -104,6 +104,13 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
     }
 
     public void Dispose() => tsc.SetResult();
+
+    public async ValueTask DisposeAsync()
+    {
+        Dispose();
+        await WaitToStop();
+    }
+
     public int NumberOfPlayers => Math.Max(addedPlayers.Count, 1);
     public int NumberOfSpectators => addedSpectators.Count;
     public int LocalPort => 0;

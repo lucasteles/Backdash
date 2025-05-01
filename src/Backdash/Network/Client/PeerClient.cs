@@ -23,7 +23,7 @@ public interface IMessageHandler<T> where T : struct
     void BeforeSendMessage(ref T message);
 }
 
-sealed class PeerClient<T> : INetcodeJob, IDisposable where T : struct
+sealed class PeerClient<T> : INetcodeJob, IDisposable, IAsyncDisposable where T : struct
 {
     readonly IPeerSocket socket;
     readonly IPeerObserver<T> observer;
@@ -37,7 +37,6 @@ sealed class PeerClient<T> : INetcodeJob, IDisposable where T : struct
     public string JobName { get; }
 
     public TimeSpan NetworkLatency = TimeSpan.Zero;
-
     public IPeerSocket Socket => socket;
 
     struct QueueEntry(T body, SocketAddress recipient, long queuedAt, IMessageHandler<T>? callback)
@@ -221,12 +220,41 @@ sealed class PeerClient<T> : INetcodeJob, IDisposable where T : struct
     public bool TrySendTo(SocketAddress peerAddress, in T payload, IMessageHandler<T>? callback = null) =>
         sendQueue.Writer.TryWrite(new(payload, peerAddress, Stopwatch.GetTimestamp(), callback));
 
-    public void Dispose()
+    public async ValueTask StopAsync()
     {
         sendQueue.Writer.TryComplete();
-        cancellation?.Cancel();
-        cancellation?.Dispose();
+
+        if (cancellation is { IsCancellationRequested: false })
+            await cancellation.CancelAsync();
+
         socket.Close();
+    }
+
+    public void Stop()
+    {
+        sendQueue.Writer.TryComplete();
+
+        if (cancellation is { IsCancellationRequested: false })
+            cancellation.Cancel();
+
+        socket.Close();
+    }
+
+    public void Dispose()
+    {
+        Stop();
+        DisposeInternal();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await StopAsync();
+        DisposeInternal();
+    }
+
+    void DisposeInternal()
+    {
+        cancellation?.Dispose();
         socket.Dispose();
     }
 }

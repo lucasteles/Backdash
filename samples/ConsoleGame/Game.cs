@@ -189,4 +189,20 @@ public sealed class Game : INetcodeSessionHandler
         GameLogic.Update(session.Random, ref currentState, input1, input2);
         session.AdvanceFrame();
     }
+
+    public async Task Run(CancellationToken cancellationToken)
+    {
+        var frameDuration = FrameTime.RateStep(60);
+
+        try
+        {
+            using PeriodicTimer timer = new(frameDuration);
+            do Update();
+            while (await timer.WaitForNextTickAsync(cancellationToken));
+        }
+        catch (OperationCanceledException)
+        {
+            // skip
+        }
+    }
 }

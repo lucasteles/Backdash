@@ -55,6 +55,13 @@ sealed class LocalSession<TInput> : INetcodeSession<TInput> where TInput : unman
     }
 
     public void Dispose() => tsc.SetResult();
+
+    public async ValueTask DisposeAsync()
+    {
+        Dispose();
+        await WaitToStop();
+    }
+
     public int NumberOfPlayers => Math.Max(addedPlayers.Count, 1);
     public int NumberOfSpectators => 0;
     public int FixedFrameRate => options.FrameRate;

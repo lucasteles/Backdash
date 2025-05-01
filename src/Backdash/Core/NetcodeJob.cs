@@ -109,6 +109,23 @@ sealed class NetcodeJobManager(Logger logger) : IDisposable
             cts.CancelAfter(TimeSpan.FromMilliseconds(100));
             exceptions.Add(ex);
         }
+        finally
+        {
+            try
+            {
+                // ReSharper disable SuspiciousTypeConversion.Global
+                if (entry.Job is IDisposable disposable)
+                    disposable.Dispose();
+
+                if (entry.Job is IAsyncDisposable asyncDisposable)
+                    await asyncDisposable.DisposeAsync();
+            }
+            catch (Exception ex)
+            {
+                logger.Write(LogLevel.Error, $"job dispose {job.JobName} error: {ex}");
+                exceptions.Add(ex);
+            }
+        }
     }
 
     public void ThrowIfError()

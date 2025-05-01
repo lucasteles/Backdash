@@ -80,7 +80,7 @@ public interface INetcodeSessionInfo
 /// <summary>
 ///     Contract for managing a netcode session.
 /// </summary>
-public interface INetcodeSession : INetcodeSessionInfo, IDisposable
+public interface INetcodeSession : INetcodeSessionInfo, IDisposable, IAsyncDisposable
 {
     /// <summary>
     ///     Returns session info
