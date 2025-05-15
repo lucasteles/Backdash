@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Interface INetcodeSession | Backdash Netcode </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Interface INetcodeSession | Backdash Netcode ">
+      
+      <meta name="description" content="Contract for managing a netcode session.">
+      <link rel="icon" href="../docs/images/favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../docs/images/logo.png" alt="Backdash">
+            Backdash
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="Backdash.INetcodeSession">
+
+
+
+  <h1 id="Backdash_INetcodeSession" data-uid="Backdash.INetcodeSession" class="text-break">
+Interface INetcodeSession  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/INetcodeSession.cs"><i class="bi bi-code-slash"></i></a>
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Backdash.html">Backdash</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Backdash.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>Contract for managing a netcode session.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public interface INetcodeSession : INetcodeSessionInfo, IDisposable, IAsyncDisposable</code></pre>
+  </div>
+
+
+
+
+
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="Backdash.INetcodeSessionInfo.html#Backdash_INetcodeSessionInfo_GetCurrentSavedFrame">INetcodeSessionInfo.GetCurrentSavedFrame()</a>
+    </div>
+    <div>
+      <a class="xref" href="Backdash.INetcodeSessionInfo.html#Backdash_INetcodeSessionInfo_NumberOfPlayers">INetcodeSessionInfo.NumberOfPlayers</a>
+    </div>
+    <div>
+      <a class="xref" href="Backdash.INetcodeSessionInfo.html#Backdash_INetcodeSessionInfo_NumberOfSpectators">INetcodeSessionInfo.NumberOfSpectators</a>
+    </div>
+    <div>
+      <a class="xref" href="Backdash.INetcodeSessionInfo.html#Backdash_INetcodeSessionInfo_FixedFrameRate">INetcodeSessionInfo.FixedFrameRate</a>
+    </div>
+    <div>
+      <a class="xref" href="Backdash.INetcodeSessionInfo.html#Backdash_INetcodeSessionInfo_CurrentFrame">INetcodeSessionInfo.CurrentFrame</a>
+    </div>
+    <div>
+      <a class="xref" href="Backdash.INetcodeSessionInfo.html#Backdash_INetcodeSessionInfo_Mode">INetcodeSessionInfo.Mode</a>
+    </div>
+    <div>
+      <a class="xref" href="Backdash.INetcodeSessionInfo.html#Backdash_INetcodeSessionInfo_RollbackFrames">INetcodeSessionInfo.RollbackFrames</a>
+    </div>
+    <div>
+      <a class="xref" href="Backdash.INetcodeSessionInfo.html#Backdash_INetcodeSessionInfo_FramesBehind">INetcodeSessionInfo.FramesBehind</a>
+    </div>
+    <div>
+      <a class="xref" href="Backdash.INetcodeSessionInfo.html#Backdash_INetcodeSessionInfo_LocalPort">INetcodeSessionInfo.LocalPort</a>
+    </div>
+    <div>
+      <a class="xref" href="Backdash.INetcodeSessionInfo.html#Backdash_INetcodeSessionInfo_IsInRollback">INetcodeSessionInfo.IsInRollback</a>
+    </div>
+    <div>
+      <a class="xref" href="Backdash.INetcodeSessionInfo.html#Backdash_INetcodeSessionInfo_CurrentChecksum">INetcodeSessionInfo.CurrentChecksum</a>
+    </div>
+    <div>
+      <a class="xref" href="Backdash.INetcodeSessionInfo.html#Backdash_INetcodeSessionInfo_CurrentStateSize">INetcodeSessionInfo.CurrentStateSize</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.idisposable.dispose">IDisposable.Dispose()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.iasyncdisposable.disposeasync">IAsyncDisposable.DisposeAsync()</a>
+    </div>
+  </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="properties">Properties
+</h2>
+
+
+  <a id="Backdash_INetcodeSession_ReplayController_" data-uid="Backdash.INetcodeSession.ReplayController*"></a>
+
+  <h3 id="Backdash_INetcodeSession_ReplayController" data-uid="Backdash.INetcodeSession.ReplayController">
+  ReplayController
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/INetcodeSession.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Try to get the session <a class="xref" href="Backdash.Synchronizing.SessionReplayControl.html">SessionReplayControl</a></p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">SessionReplayControl? ReplayController { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.Synchronizing.SessionReplayControl.html">SessionReplayControl</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="Backdash_INetcodeSession_AddPlayer_" data-uid="Backdash.INetcodeSession.AddPlayer*"></a>
+
+  <h3 id="Backdash_INetcodeSession_AddPlayer_Backdash_NetcodePlayer_" data-uid="Backdash.INetcodeSession.AddPlayer(Backdash.NetcodePlayer)">
+  AddPlayer(NetcodePlayer)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/INetcodeSession.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Add the <code class="paramref">player</code> into current session.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">ResultCode AddPlayer(NetcodePlayer player)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>player</code> <a class="xref" href="Backdash.NetcodePlayer.html">NetcodePlayer</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.ResultCode.html">ResultCode</a></dt>
+    <dd><p><a class="xref" href="Backdash.ResultCode.html#Backdash_ResultCode_Ok">Ok</a> if success.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_INetcodeSession_AddPlayers_" data-uid="Backdash.INetcodeSession.AddPlayers*"></a>
+
+  <h3 id="Backdash_INetcodeSession_AddPlayers_System_Collections_Generic_IReadOnlyList_Backdash_NetcodePlayer__" data-uid="Backdash.INetcodeSession.AddPlayers(System.Collections.Generic.IReadOnlyList{Backdash.NetcodePlayer})">
+  AddPlayers(IReadOnlyList&lt;NetcodePlayer&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/INetcodeSession.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Add a list of <see name="Player"></see> into current session.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IReadOnlyList&lt;ResultCode&gt; AddPlayers(IReadOnlyList&lt;NetcodePlayer&gt; players)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>players</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1">IReadOnlyList</a>&lt;<a class="xref" href="Backdash.NetcodePlayer.html">NetcodePlayer</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1">IReadOnlyList</a>&lt;<a class="xref" href="Backdash.ResultCode.html">ResultCode</a>&gt;</dt>
+    <dd><p>An equivalent <a class="xref" href="Backdash.ResultCode.html">ResultCode</a> list.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_INetcodeSession_AdvanceFrame_" data-uid="Backdash.INetcodeSession.AdvanceFrame*"></a>
+
+  <h3 id="Backdash_INetcodeSession_AdvanceFrame" data-uid="Backdash.INetcodeSession.AdvanceFrame">
+  AdvanceFrame()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/INetcodeSession.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Should be called at the end of each frame of your application and also in
+<a class="xref" href="Backdash.INetcodeSessionHandler.html#Backdash_INetcodeSessionHandler_AdvanceFrame">AdvanceFrame()</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void AdvanceFrame()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_INetcodeSession_BeginFrame_" data-uid="Backdash.INetcodeSession.BeginFrame*"></a>
+
+  <h3 id="Backdash_INetcodeSession_BeginFrame" data-uid="Backdash.INetcodeSession.BeginFrame">
+  BeginFrame()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/INetcodeSession.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Should be called at the start of each frame of your application.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void BeginFrame()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_INetcodeSession_DisconnectPlayer_" data-uid="Backdash.INetcodeSession.DisconnectPlayer*"></a>
+
+  <h3 id="Backdash_INetcodeSession_DisconnectPlayer_Backdash_NetcodePlayer_" data-uid="Backdash.INetcodeSession.DisconnectPlayer(Backdash.NetcodePlayer)">
+  DisconnectPlayer(NetcodePlayer)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/INetcodeSession.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Disconnects a remote player from a game.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void DisconnectPlayer(NetcodePlayer player)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>player</code> <a class="xref" href="Backdash.NetcodePlayer.html">NetcodePlayer</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_INetcodeSession_FindPlayer_" data-uid="Backdash.INetcodeSession.FindPlayer*"></a>
+
+  <h3 id="Backdash_INetcodeSession_FindPlayer_System_Guid_" data-uid="Backdash.INetcodeSession.FindPlayer(System.Guid)">
+  FindPlayer(Guid)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/INetcodeSession.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Find player by unique ID</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">NetcodePlayer? FindPlayer(Guid id)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>id</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.guid">Guid</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.NetcodePlayer.html">NetcodePlayer</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <dl class="typelist seealso">
+    <dt>See Also</dt>
+    <dd>
+    <div><a class="xref" href="Backdash.NetcodePlayer.html#Backdash_NetcodePlayer_Id">Id</a></div>
+    </dd>
+  </dl>
+
+
+  <a id="Backdash_INetcodeSession_GetInfo_" data-uid="Backdash.INetcodeSession.GetInfo*"></a>
+
+  <h3 id="Backdash_INetcodeSession_GetInfo" data-uid="Backdash.INetcodeSession.GetInfo">
+  GetInfo()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/INetcodeSession.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns session info</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">INetcodeSessionInfo GetInfo()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.INetcodeSessionInfo.html">INetcodeSessionInfo</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_INetcodeSession_GetPlayerStatus_" data-uid="Backdash.INetcodeSession.GetPlayerStatus*"></a>
+
+  <h3 id="Backdash_INetcodeSession_GetPlayerStatus_Backdash_NetcodePlayer_" data-uid="Backdash.INetcodeSession.GetPlayerStatus(Backdash.NetcodePlayer)">
+  GetPlayerStatus(NetcodePlayer)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/INetcodeSession.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns connection status of a player.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">PlayerConnectionStatus GetPlayerStatus(NetcodePlayer player)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>player</code> <a class="xref" href="Backdash.NetcodePlayer.html">NetcodePlayer</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.Network.PlayerConnectionStatus.html">PlayerConnectionStatus</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_INetcodeSession_GetPlayers_" data-uid="Backdash.INetcodeSession.GetPlayers*"></a>
+
+  <h3 id="Backdash_INetcodeSession_GetPlayers" data-uid="Backdash.INetcodeSession.GetPlayers">
+  GetPlayers()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/INetcodeSession.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns a list of all input players in the session.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IReadOnlySet&lt;NetcodePlayer&gt; GetPlayers()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlyset-1">IReadOnlySet</a>&lt;<a class="xref" href="Backdash.NetcodePlayer.html">NetcodePlayer</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_INetcodeSession_GetSpectators_" data-uid="Backdash.INetcodeSession.GetSpectators*"></a>
+
+  <h3 id="Backdash_INetcodeSession_GetSpectators" data-uid="Backdash.INetcodeSession.GetSpectators">
+  GetSpectators()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/INetcodeSession.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns a list of all spectators in the session.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">IReadOnlySet&lt;NetcodePlayer&gt; GetSpectators()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlyset-1">IReadOnlySet</a>&lt;<a class="xref" href="Backdash.NetcodePlayer.html">NetcodePlayer</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_INetcodeSession_IsLocal_" data-uid="Backdash.INetcodeSession.IsLocal*"></a>
+
+  <h3 id="Backdash_INetcodeSession_IsLocal" data-uid="Backdash.INetcodeSession.IsLocal">
+  IsLocal()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/INetcodeSession.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Return true if the session is <a class="xref" href="Backdash.SessionMode.html#Backdash_SessionMode_Local">Local</a></p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool IsLocal()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_INetcodeSession_IsRemote_" data-uid="Backdash.INetcodeSession.IsRemote*"></a>
+
+  <h3 id="Backdash_INetcodeSession_IsRemote" data-uid="Backdash.INetcodeSession.IsRemote">
+  IsRemote()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/INetcodeSession.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Return true if the session is <a class="xref" href="Backdash.SessionMode.html#Backdash_SessionMode_Remote">Remote</a></p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool IsRemote()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_INetcodeSession_IsReplay_" data-uid="Backdash.INetcodeSession.IsReplay*"></a>
+
+  <h3 id="Backdash_INetcodeSession_IsReplay" data-uid="Backdash.INetcodeSession.IsReplay">
+  IsReplay()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/INetcodeSession.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Return true if the session is <a class="xref" href="Backdash.SessionMode.html#Backdash_SessionMode_Replay">Replay</a></p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool IsReplay()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_INetcodeSession_IsSpectator_" data-uid="Backdash.INetcodeSession.IsSpectator*"></a>
+
+  <h3 id="Backdash_INetcodeSession_IsSpectator" data-uid="Backdash.INetcodeSession.IsSpectator">
+  IsSpectator()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/INetcodeSession.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Return true if the session is <a class="xref" href="Backdash.SessionMode.html#Backdash_SessionMode_Spectator">Spectator</a></p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool IsSpectator()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_INetcodeSession_IsSyncTest_" data-uid="Backdash.INetcodeSession.IsSyncTest*"></a>
+
+  <h3 id="Backdash_INetcodeSession_IsSyncTest" data-uid="Backdash.INetcodeSession.IsSyncTest">
+  IsSyncTest()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/INetcodeSession.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Return true if the session is <a class="xref" href="Backdash.SessionMode.html#Backdash_SessionMode_SyncTest">SyncTest</a></p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool IsSyncTest()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_INetcodeSession_LoadFrame_" data-uid="Backdash.INetcodeSession.LoadFrame*"></a>
+
+  <h3 id="Backdash_INetcodeSession_LoadFrame_Backdash_Frame_" data-uid="Backdash.INetcodeSession.LoadFrame(Backdash.Frame)">
+  LoadFrame(Frame)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/INetcodeSession.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Load state for saved <code class="paramref">frame</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool LoadFrame(Frame frame)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>frame</code> <a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p>true if succeeded.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_INetcodeSession_LoadFrame_" data-uid="Backdash.INetcodeSession.LoadFrame*"></a>
+
+  <h3 id="Backdash_INetcodeSession_LoadFrame_System_Int32_" data-uid="Backdash.INetcodeSession.LoadFrame(System.Int32)">
+  LoadFrame(int)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/INetcodeSession.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Load state for saved <code class="paramref">frame</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool LoadFrame(int frame)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>frame</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd><p>true if succeeded.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_INetcodeSession_SetFrameDelay_" data-uid="Backdash.INetcodeSession.SetFrameDelay*"></a>
+
+  <h3 id="Backdash_INetcodeSession_SetFrameDelay_Backdash_NetcodePlayer_System_Int32_" data-uid="Backdash.INetcodeSession.SetFrameDelay(Backdash.NetcodePlayer,System.Int32)">
+  SetFrameDelay(NetcodePlayer, int)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/INetcodeSession.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Change the amount of delay frames for local input.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void SetFrameDelay(NetcodePlayer player, int delayInFrames)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>player</code> <a class="xref" href="Backdash.NetcodePlayer.html">NetcodePlayer</a></dt>
+    <dd></dd>
+    <dt><code>delayInFrames</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_INetcodeSession_SetHandler_" data-uid="Backdash.INetcodeSession.SetHandler*"></a>
+
+  <h3 id="Backdash_INetcodeSession_SetHandler_Backdash_INetcodeSessionHandler_" data-uid="Backdash.INetcodeSession.SetHandler(Backdash.INetcodeSessionHandler)">
+  SetHandler(INetcodeSessionHandler)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/INetcodeSession.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Set the handler for the current session.
+The client must call this before <a class="xref" href="Backdash.INetcodeSession.html#Backdash_INetcodeSession_Start_System_Threading_CancellationToken_">Start(CancellationToken)</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void SetHandler(INetcodeSessionHandler handler)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>handler</code> <a class="xref" href="Backdash.INetcodeSessionHandler.html">INetcodeSessionHandler</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_INetcodeSession_Start_" data-uid="Backdash.INetcodeSession.Start*"></a>
+
+  <h3 id="Backdash_INetcodeSession_Start_System_Threading_CancellationToken_" data-uid="Backdash.INetcodeSession.Start(System.Threading.CancellationToken)">
+  Start(CancellationToken)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/INetcodeSession.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Starts the background work for the session.
+(Socket receiver, input queue, peer synchronization, etc.)</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void Start(CancellationToken stoppingToken = default)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>stoppingToken</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_INetcodeSession_TryGetLocalPlayer_" data-uid="Backdash.INetcodeSession.TryGetLocalPlayer*"></a>
+
+  <h3 id="Backdash_INetcodeSession_TryGetLocalPlayer_Backdash_NetcodePlayer__" data-uid="Backdash.INetcodeSession.TryGetLocalPlayer(Backdash.NetcodePlayer@)">
+  TryGetLocalPlayer(out NetcodePlayer?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/INetcodeSession.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Tries to get first local player</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool TryGetLocalPlayer(out NetcodePlayer? player)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>player</code> <a class="xref" href="Backdash.NetcodePlayer.html">NetcodePlayer</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_INetcodeSession_TryGetPlayer_" data-uid="Backdash.INetcodeSession.TryGetPlayer*"></a>
+
+  <h3 id="Backdash_INetcodeSession_TryGetPlayer_Backdash_PlayerType_Backdash_NetcodePlayer__" data-uid="Backdash.INetcodeSession.TryGetPlayer(Backdash.PlayerType,Backdash.NetcodePlayer@)">
+  TryGetPlayer(PlayerType, out NetcodePlayer?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/INetcodeSession.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Tries to get first player of type <code class="paramref">playerType</code></p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool TryGetPlayer(PlayerType playerType, out NetcodePlayer? player)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>playerType</code> <a class="xref" href="Backdash.PlayerType.html">PlayerType</a></dt>
+    <dd></dd>
+    <dt><code>player</code> <a class="xref" href="Backdash.NetcodePlayer.html">NetcodePlayer</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_INetcodeSession_TryGetRemotePlayer_" data-uid="Backdash.INetcodeSession.TryGetRemotePlayer*"></a>
+
+  <h3 id="Backdash_INetcodeSession_TryGetRemotePlayer_Backdash_NetcodePlayer__" data-uid="Backdash.INetcodeSession.TryGetRemotePlayer(Backdash.NetcodePlayer@)">
+  TryGetRemotePlayer(out NetcodePlayer?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/INetcodeSession.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Tries to get first remote player</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool TryGetRemotePlayer(out NetcodePlayer? player)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>player</code> <a class="xref" href="Backdash.NetcodePlayer.html">NetcodePlayer</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_INetcodeSession_UpdateNetworkStats_" data-uid="Backdash.INetcodeSession.UpdateNetworkStats*"></a>
+
+  <h3 id="Backdash_INetcodeSession_UpdateNetworkStats_Backdash_NetcodePlayer_" data-uid="Backdash.INetcodeSession.UpdateNetworkStats(Backdash.NetcodePlayer)">
+  UpdateNetworkStats(NetcodePlayer)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/INetcodeSession.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets statistics and information about a player in <a class="xref" href="Backdash.NetcodePlayer.html#Backdash_NetcodePlayer_NetworkStats">NetworkStats</a>.
+Returns <a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">false</a> if the request player is not connected or synchronized.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">bool UpdateNetworkStats(NetcodePlayer player)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>player</code> <a class="xref" href="Backdash.NetcodePlayer.html">NetcodePlayer</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <dl class="typelist seealso">
+    <dt>See Also</dt>
+    <dd>
+    <div><a class="xref" href="Backdash.Options.ProtocolOptions.html#Backdash_Options_ProtocolOptions_CalculateRemotePlayerStats">CalculateRemotePlayerStats</a></div>
+    <div><a class="xref" href="Backdash.NetcodeSessionBuilder-1.html#Backdash_NetcodeSessionBuilder_1_WithPlayerStats_System_Boolean_">WithPlayerStats</a>(<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a>)</div>
+    </dd>
+  </dl>
+
+
+  <a id="Backdash_INetcodeSession_WaitToStop_" data-uid="Backdash.INetcodeSession.WaitToStop*"></a>
+
+  <h3 id="Backdash_INetcodeSession_WaitToStop_System_Threading_CancellationToken_" data-uid="Backdash.INetcodeSession.WaitToStop(System.Threading.CancellationToken)">
+  WaitToStop(CancellationToken)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/INetcodeSession.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Waits the session background work to finish.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">Task WaitToStop(CancellationToken stoppingToken = default)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>stoppingToken</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken">CancellationToken</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task">Task</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_INetcodeSession_WriteLog_" data-uid="Backdash.INetcodeSession.WriteLog*"></a>
+
+  <h3 id="Backdash_INetcodeSession_WriteLog_Backdash_Core_LogLevel_System_String_" data-uid="Backdash.INetcodeSession.WriteLog(Backdash.Core.LogLevel,System.String)">
+  WriteLog(LogLevel, string)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/INetcodeSession.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes a log message into the current session log writer</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void WriteLog(LogLevel level, string message)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>level</code> <a class="xref" href="Backdash.Core.LogLevel.html">LogLevel</a></dt>
+    <dd></dd>
+    <dt><code>message</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_INetcodeSession_WriteLog_" data-uid="Backdash.INetcodeSession.WriteLog*"></a>
+
+  <h3 id="Backdash_INetcodeSession_WriteLog_System_String_System_Exception_" data-uid="Backdash.INetcodeSession.WriteLog(System.String,System.Exception)">
+  WriteLog(string, Exception?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/INetcodeSession.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes a log message into the current session log writer</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void WriteLog(string message, Exception? error = null)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>message</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>error</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.exception">Exception</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/INetcodeSession.cs" class="edit-link">Edit this page</a>
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Developed by <a href="https://lucasteles.dev/">Lucas Teles</a>.</span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
