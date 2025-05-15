@@ -35,6 +35,7 @@ public sealed class DefaultObjectPool<T> : IObjectPool<T> where T : class, new()
     int numItems;
     readonly Stack<T> items;
     readonly HashSet<T> set;
+    readonly IEqualityComparer<T> comparer;
     T? fastItem;
 
     /// <summary>
@@ -43,9 +44,12 @@ public sealed class DefaultObjectPool<T> : IObjectPool<T> where T : class, new()
     public DefaultObjectPool(int capacity = 100, IEqualityComparer<T>? comparer = null)
     {
         MaxCapacity = capacity - 1;
+        this.comparer = comparer ?? ReferenceEqualityComparer.Instance;
         items = new(MaxCapacity);
-        set = new(MaxCapacity, comparer ?? ReferenceEqualityComparer.Instance);
+        set = new(MaxCapacity, this.comparer);
     }
+
+    bool Contains(T value) => comparer.Equals(fastItem, value) || set.Contains(value);
 
     /// <inheritdoc />
     public T Rent()
@@ -70,9 +74,7 @@ public sealed class DefaultObjectPool<T> : IObjectPool<T> where T : class, new()
     public void Return(T value)
     {
         ArgumentNullException.ThrowIfNull(value);
-
-        if (ReferenceEquals(fastItem, value) || set.Contains(value))
-            return;
+        if (Contains(value)) return;
 
         if (fastItem is null)
         {
@@ -83,13 +85,13 @@ public sealed class DefaultObjectPool<T> : IObjectPool<T> where T : class, new()
         if (numItems >= MaxCapacity)
             return;
 
+        if (!set.Add(value)) return;
         numItems++;
         items.Push(value);
-        set.Add(value);
     }
 
     /// <summary>
-    ///     Clear object pool
+    ///     Clear the object pool
     /// </summary>
     public void Clear()
     {
