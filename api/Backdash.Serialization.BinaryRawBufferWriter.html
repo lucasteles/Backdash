@@ -1,0 +1,4944 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Struct BinaryRawBufferWriter | Backdash Netcode </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Struct BinaryRawBufferWriter | Backdash Netcode ">
+      
+      <meta name="description" content="Binary span writer.">
+      <link rel="icon" href="../docs/images/favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../docs/images/logo.png" alt="Backdash">
+            Backdash
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="Backdash.Serialization.BinaryRawBufferWriter">
+
+
+
+  <h1 id="Backdash_Serialization_BinaryRawBufferWriter" data-uid="Backdash.Serialization.BinaryRawBufferWriter" class="text-break">
+Struct BinaryRawBufferWriter  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Backdash.html">Backdash</a>.<a class="xref" href="Backdash.Serialization.html">Serialization</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Backdash.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>Binary span writer.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public readonly ref struct BinaryRawBufferWriter</code></pre>
+  </div>
+
+
+
+
+
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.valuetype.equals">ValueType.Equals(object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.valuetype.gethashcode">ValueType.GetHashCode()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.valuetype.tostring">ValueType.ToString()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+  </dd></dl>
+
+  <dl class="typelist extensionMethods">
+    <dt>Extension Methods</dt>
+    <dd>
+  <div>
+      <a class="xref" href="Backdash.Serialization.Numerics.NumericsExtensions.html#Backdash_Serialization_Numerics_NumericsExtensions_Write_Backdash_Serialization_BinaryRawBufferWriter__System_Numerics_Quaternion__">NumericsExtensions.Write(in BinaryRawBufferWriter, in Quaternion)</a>
+  </div>
+  <div>
+      <a class="xref" href="Backdash.Serialization.Numerics.NumericsExtensions.html#Backdash_Serialization_Numerics_NumericsExtensions_Write_Backdash_Serialization_BinaryRawBufferWriter__System_Numerics_Vector2__">NumericsExtensions.Write(in BinaryRawBufferWriter, in Vector2)</a>
+  </div>
+  <div>
+      <a class="xref" href="Backdash.Serialization.Numerics.NumericsExtensions.html#Backdash_Serialization_Numerics_NumericsExtensions_Write_Backdash_Serialization_BinaryRawBufferWriter__System_Numerics_Vector3__">NumericsExtensions.Write(in BinaryRawBufferWriter, in Vector3)</a>
+  </div>
+  <div>
+      <a class="xref" href="Backdash.Serialization.Numerics.NumericsExtensions.html#Backdash_Serialization_Numerics_NumericsExtensions_Write_Backdash_Serialization_BinaryRawBufferWriter__System_Numerics_Vector4__">NumericsExtensions.Write(in BinaryRawBufferWriter, in Vector4)</a>
+  </div>
+  </dd></dl>
+
+
+
+
+
+  <h2 class="section" id="constructors">Constructors
+</h2>
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter__ctor_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.#ctor*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter__ctor_System_Span_System_Byte___System_Int32__System_Nullable_Backdash_Network_Endianness__" data-uid="Backdash.Serialization.BinaryRawBufferWriter.#ctor(System.Span{System.Byte}@,System.Int32@,System.Nullable{Backdash.Network.Endianness})">
+  BinaryRawBufferWriter(scoped in Span&lt;byte&gt;, ref int, Endianness?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Initialize a new <a class="xref" href="Backdash.Serialization.BinaryRawBufferWriter.html">BinaryRawBufferWriter</a> for <code class="paramref">buffer</code></p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public BinaryRawBufferWriter(scoped in Span&lt;byte&gt; buffer, ref int offset, Endianness? endianness = null)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>buffer</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.span-1">Span</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>&gt;</dt>
+    <dd><p>Byte buffer to be written</p>
+</dd>
+    <dt><code>offset</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd><p>Write offset reference</p>
+</dd>
+    <dt><code>endianness</code> <a class="xref" href="Backdash.Network.Endianness.html">Endianness</a>?</dt>
+    <dd><p>Serialization endianness</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="fields">Fields
+</h2>
+
+
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Endianness" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Endianness">
+  Endianness
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Gets or init the value to define which endianness should be used for serialization.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public readonly Endianness Endianness</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.Network.Endianness.html">Endianness</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="properties">Properties
+</h2>
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Capacity_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Capacity*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Capacity" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Capacity">
+  Capacity
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Total buffer capacity in bytes.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int Capacity { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_CurrentBuffer_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.CurrentBuffer*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_CurrentBuffer" data-uid="Backdash.Serialization.BinaryRawBufferWriter.CurrentBuffer">
+  CurrentBuffer
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns a <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.span-1">Span&lt;T&gt;</a> for the current available buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Span&lt;byte&gt; CurrentBuffer { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.span-1">Span</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_FreeCapacity_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.FreeCapacity*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_FreeCapacity" data-uid="Backdash.Serialization.BinaryRawBufferWriter.FreeCapacity">
+  FreeCapacity
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Available buffer space in bytes</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int FreeCapacity { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_WrittenCount_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WrittenCount*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_WrittenCount" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WrittenCount">
+  WrittenCount
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Total written byte count.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int WrittenCount { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Advance_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Advance*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Advance_System_Int32_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Advance(System.Int32)">
+  Advance(int)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Advance write pointer by <code class="paramref">count</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Advance(int count)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>count</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_Backdash_Frame__" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(Backdash.Frame@)">
+  Write(in Frame)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes single <a class="xref" href="Backdash.Frame.html">Frame</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in Frame value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Boolean__" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Boolean@)">
+  Write(in bool)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in bool value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Byte__" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Byte@)">
+  Write(in byte)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in byte value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Char__" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Char@)">
+  Write(in char)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.char">char</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in char value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.char">char</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Collections_Generic_List_Backdash_Frame___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Collections.Generic.List{Backdash.Frame}@)">
+  Write(in List&lt;Frame&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes a list <a class="xref" href="Backdash.Frame.html">Frame</a> <code class="paramref">values</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in List&lt;Frame&gt; values)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>values</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;<a class="xref" href="Backdash.Frame.html">Frame</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Collections_Generic_List_System_Boolean___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Collections.Generic.List{System.Boolean}@)">
+  Write(in List&lt;bool&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes a list of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a> <code class="paramref">values</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in List&lt;bool&gt; values)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>values</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Collections_Generic_List_System_Byte___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Collections.Generic.List{System.Byte}@)">
+  Write(in List&lt;byte&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes a list of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a> <code class="paramref">values</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in List&lt;byte&gt; values)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>values</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Collections_Generic_List_System_Char___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Collections.Generic.List{System.Char}@)">
+  Write(in List&lt;char&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes a list of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.char">char</a> <code class="paramref">values</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in List&lt;char&gt; values)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>values</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.char">char</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Collections_Generic_List_System_DateOnly___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Collections.Generic.List{System.DateOnly}@)">
+  Write(in List&lt;DateOnly&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes a list <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.dateonly">DateOnly</a> <code class="paramref">values</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in List&lt;DateOnly&gt; values)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>values</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.dateonly">DateOnly</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Collections_Generic_List_System_DateTimeOffset___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Collections.Generic.List{System.DateTimeOffset}@)">
+  Write(in List&lt;DateTimeOffset&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes a list of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.datetimeoffset">DateTimeOffset</a> <code class="paramref">values</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in List&lt;DateTimeOffset&gt; values)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>values</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.datetimeoffset">DateTimeOffset</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Collections_Generic_List_System_DateTime___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Collections.Generic.List{System.DateTime}@)">
+  Write(in List&lt;DateTime&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes a list of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.datetime">DateTime</a> <code class="paramref">values</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in List&lt;DateTime&gt; values)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>values</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.datetime">DateTime</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Collections_Generic_List_System_Double___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Collections.Generic.List{System.Double}@)">
+  Write(in List&lt;double&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes a list of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.double">double</a> <code class="paramref">values</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in List&lt;double&gt; values)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>values</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.double">double</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Collections_Generic_List_System_Guid___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Collections.Generic.List{System.Guid}@)">
+  Write(in List&lt;Guid&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes a list of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.guid">Guid</a> <code class="paramref">values</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in List&lt;Guid&gt; values)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>values</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.guid">Guid</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Collections_Generic_List_System_Half___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Collections.Generic.List{System.Half}@)">
+  Write(in List&lt;Half&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes a list of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.half">Half</a> <code class="paramref">values</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in List&lt;Half&gt; values)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>values</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.half">Half</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Collections_Generic_List_System_Int128___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Collections.Generic.List{System.Int128}@)">
+  Write(in List&lt;Int128&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes a list of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int128">Int128</a> <code class="paramref">values</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in List&lt;Int128&gt; values)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>values</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int128">Int128</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Collections_Generic_List_System_Int16___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Collections.Generic.List{System.Int16}@)">
+  Write(in List&lt;short&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes a list of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int16">short</a> <code class="paramref">values</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in List&lt;short&gt; values)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>values</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int16">short</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Collections_Generic_List_System_Int32___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Collections.Generic.List{System.Int32}@)">
+  Write(in List&lt;int&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes a list of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a> <code class="paramref">values</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in List&lt;int&gt; values)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>values</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Collections_Generic_List_System_Int64___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Collections.Generic.List{System.Int64}@)">
+  Write(in List&lt;long&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes a list of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int64">long</a> <code class="paramref">values</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in List&lt;long&gt; values)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>values</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int64">long</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Collections_Generic_List_System_SByte___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Collections.Generic.List{System.SByte}@)">
+  Write(in List&lt;sbyte&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes a list of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.sbyte">sbyte</a> <code class="paramref">values</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in List&lt;sbyte&gt; values)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>values</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.sbyte">sbyte</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Collections_Generic_List_System_Single___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Collections.Generic.List{System.Single}@)">
+  Write(in List&lt;float&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes a list of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.single">float</a> <code class="paramref">values</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in List&lt;float&gt; values)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>values</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.single">float</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Collections_Generic_List_System_TimeOnly___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Collections.Generic.List{System.TimeOnly}@)">
+  Write(in List&lt;TimeOnly&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes a list of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.timeonly">TimeOnly</a> <code class="paramref">values</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in List&lt;TimeOnly&gt; values)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>values</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.timeonly">TimeOnly</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Collections_Generic_List_System_TimeSpan___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Collections.Generic.List{System.TimeSpan}@)">
+  Write(in List&lt;TimeSpan&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes a list of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.timespan">TimeSpan</a> <code class="paramref">values</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in List&lt;TimeSpan&gt; values)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>values</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.timespan">TimeSpan</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Collections_Generic_List_System_UInt128___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Collections.Generic.List{System.UInt128}@)">
+  Write(in List&lt;UInt128&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes a list of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint128">UInt128</a> <code class="paramref">values</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in List&lt;UInt128&gt; values)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>values</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint128">UInt128</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Collections_Generic_List_System_UInt16___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Collections.Generic.List{System.UInt16}@)">
+  Write(in List&lt;ushort&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes a list of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a> <code class="paramref">values</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in List&lt;ushort&gt; values)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>values</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Collections_Generic_List_System_UInt32___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Collections.Generic.List{System.UInt32}@)">
+  Write(in List&lt;uint&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes a list of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a> <code class="paramref">values</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in List&lt;uint&gt; values)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>values</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Collections_Generic_List_System_UInt64___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Collections.Generic.List{System.UInt64}@)">
+  Write(in List&lt;ulong&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes a list of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a> <code class="paramref">values</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in List&lt;ulong&gt; values)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>values</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_DateOnly__" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.DateOnly@)">
+  Write(in DateOnly)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.dateonly">DateOnly</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in DateOnly value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.dateonly">DateOnly</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_DateTime__" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.DateTime@)">
+  Write(in DateTime)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.datetime">DateTime</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in DateTime value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.datetime">DateTime</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_DateTimeOffset__" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.DateTimeOffset@)">
+  Write(in DateTimeOffset)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.datetimeoffset">DateTimeOffset</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in DateTimeOffset value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.datetimeoffset">DateTimeOffset</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Double__" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Double@)">
+  Write(in double)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.double">double</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in double value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.double">double</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Guid__" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Guid@)">
+  Write(in Guid)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.guid">Guid</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in Guid value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.guid">Guid</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Half__" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Half@)">
+  Write(in Half)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.half">Half</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in Half value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.half">Half</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Int128__" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Int128@)">
+  Write(in Int128)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int128">Int128</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in Int128 value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int128">Int128</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Int16__" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Int16@)">
+  Write(in short)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int16">short</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in short value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int16">short</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Int32__" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Int32@)">
+  Write(in int)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in int value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Int64__" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Int64@)">
+  Write(in long)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int64">long</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in long value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int64">long</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Nullable_Backdash_Frame___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Nullable{Backdash.Frame}@)">
+  Write(in Frame?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes single <a class="xref" href="Backdash.Frame.html">Frame</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in Frame? value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="Backdash.Frame.html">Frame</a>?</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Nullable_System_Boolean___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Nullable{System.Boolean}@)">
+  Write(in bool?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in bool? value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a>?</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Nullable_System_Byte___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Nullable{System.Byte}@)">
+  Write(in byte?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in byte? value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>?</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Nullable_System_Char___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Nullable{System.Char}@)">
+  Write(in char?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.char">char</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in char? value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.char">char</a>?</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Nullable_System_DateOnly___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Nullable{System.DateOnly}@)">
+  Write(in DateOnly?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.dateonly">DateOnly</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in DateOnly? value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.dateonly">DateOnly</a>?</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Nullable_System_DateTimeOffset___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Nullable{System.DateTimeOffset}@)">
+  Write(in DateTimeOffset?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.datetimeoffset">DateTimeOffset</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in DateTimeOffset? value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.datetimeoffset">DateTimeOffset</a>?</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Nullable_System_DateTime___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Nullable{System.DateTime}@)">
+  Write(in DateTime?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.datetime">DateTime</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in DateTime? value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.datetime">DateTime</a>?</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Nullable_System_Double___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Nullable{System.Double}@)">
+  Write(in double?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.double">double</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in double? value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.double">double</a>?</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Nullable_System_Guid___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Nullable{System.Guid}@)">
+  Write(in Guid?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.guid">Guid</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in Guid? value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.guid">Guid</a>?</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Nullable_System_Half___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Nullable{System.Half}@)">
+  Write(in Half?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.half">Half</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in Half? value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.half">Half</a>?</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Nullable_System_Int128___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Nullable{System.Int128}@)">
+  Write(in Int128?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int128">Int128</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in Int128? value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int128">Int128</a>?</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Nullable_System_Int16___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Nullable{System.Int16}@)">
+  Write(in short?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int16">short</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in short? value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int16">short</a>?</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Nullable_System_Int32___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Nullable{System.Int32}@)">
+  Write(in int?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in int? value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a>?</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Nullable_System_Int64___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Nullable{System.Int64}@)">
+  Write(in long?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int64">long</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in long? value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int64">long</a>?</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Nullable_System_SByte___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Nullable{System.SByte}@)">
+  Write(in sbyte?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.sbyte">sbyte</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in sbyte? value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.sbyte">sbyte</a>?</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Nullable_System_Single___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Nullable{System.Single}@)">
+  Write(in float?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.single">float</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in float? value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.single">float</a>?</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Nullable_System_TimeOnly___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Nullable{System.TimeOnly}@)">
+  Write(in TimeOnly?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.timeonly">TimeOnly</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in TimeOnly? value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.timeonly">TimeOnly</a>?</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Nullable_System_TimeSpan___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Nullable{System.TimeSpan}@)">
+  Write(in TimeSpan?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.timespan">TimeSpan</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in TimeSpan? value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.timespan">TimeSpan</a>?</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Nullable_System_UInt128___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Nullable{System.UInt128}@)">
+  Write(in UInt128?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint128">UInt128</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in UInt128? value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint128">UInt128</a>?</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Nullable_System_UInt16___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Nullable{System.UInt16}@)">
+  Write(in ushort?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in ushort? value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a>?</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Nullable_System_UInt32___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Nullable{System.UInt32}@)">
+  Write(in uint?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in uint? value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a>?</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Nullable_System_UInt64___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Nullable{System.UInt64}@)">
+  Write(in ulong?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in ulong? value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a>?</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_ReadOnlySpan_Backdash_Frame___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.ReadOnlySpan{Backdash.Frame}@)">
+  Write(in ReadOnlySpan&lt;Frame&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes a span of <a class="xref" href="Backdash.Frame.html">Frame</a> <code class="paramref">values</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in ReadOnlySpan&lt;Frame&gt; values)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>values</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="Backdash.Frame.html">Frame</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_ReadOnlySpan_System_Boolean___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.ReadOnlySpan{System.Boolean}@)">
+  Write(in ReadOnlySpan&lt;bool&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes a span of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in ReadOnlySpan&lt;bool&gt; value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_ReadOnlySpan_System_Byte___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.ReadOnlySpan{System.Byte}@)">
+  Write(in ReadOnlySpan&lt;byte&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes a span of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in ReadOnlySpan&lt;byte&gt; value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_ReadOnlySpan_System_Char___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.ReadOnlySpan{System.Char}@)">
+  Write(in ReadOnlySpan&lt;char&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes a span of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.char">char</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in ReadOnlySpan&lt;char&gt; value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.char">char</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_ReadOnlySpan_System_DateOnly___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.ReadOnlySpan{System.DateOnly}@)">
+  Write(in ReadOnlySpan&lt;DateOnly&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes a span of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.dateonly">DateOnly</a> <code class="paramref">values</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in ReadOnlySpan&lt;DateOnly&gt; values)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>values</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.dateonly">DateOnly</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_ReadOnlySpan_System_DateTimeOffset___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.ReadOnlySpan{System.DateTimeOffset}@)">
+  Write(in ReadOnlySpan&lt;DateTimeOffset&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes a span of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.datetimeoffset">DateTimeOffset</a> <code class="paramref">values</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in ReadOnlySpan&lt;DateTimeOffset&gt; values)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>values</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.datetimeoffset">DateTimeOffset</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_ReadOnlySpan_System_DateTime___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.ReadOnlySpan{System.DateTime}@)">
+  Write(in ReadOnlySpan&lt;DateTime&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes a span of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.datetime">DateTime</a> <code class="paramref">values</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in ReadOnlySpan&lt;DateTime&gt; values)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>values</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.datetime">DateTime</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_ReadOnlySpan_System_Double___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.ReadOnlySpan{System.Double}@)">
+  Write(in ReadOnlySpan&lt;double&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes a span of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.double">double</a> <code class="paramref">values</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in ReadOnlySpan&lt;double&gt; values)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>values</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.double">double</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_ReadOnlySpan_System_Guid___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.ReadOnlySpan{System.Guid}@)">
+  Write(in ReadOnlySpan&lt;Guid&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes a span of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.guid">Guid</a> <code class="paramref">values</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in ReadOnlySpan&lt;Guid&gt; values)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>values</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.guid">Guid</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_ReadOnlySpan_System_Half___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.ReadOnlySpan{System.Half}@)">
+  Write(in ReadOnlySpan&lt;Half&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes a span of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.half">Half</a> <code class="paramref">values</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in ReadOnlySpan&lt;Half&gt; values)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>values</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.half">Half</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_ReadOnlySpan_System_Int128___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.ReadOnlySpan{System.Int128}@)">
+  Write(in ReadOnlySpan&lt;Int128&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes a span of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int128">Int128</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in ReadOnlySpan&lt;Int128&gt; value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int128">Int128</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_ReadOnlySpan_System_Int16___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.ReadOnlySpan{System.Int16}@)">
+  Write(in ReadOnlySpan&lt;short&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes a span of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int16">short</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in ReadOnlySpan&lt;short&gt; value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int16">short</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_ReadOnlySpan_System_Int32___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.ReadOnlySpan{System.Int32}@)">
+  Write(in ReadOnlySpan&lt;int&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes a span of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in ReadOnlySpan&lt;int&gt; value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_ReadOnlySpan_System_Int64___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.ReadOnlySpan{System.Int64}@)">
+  Write(in ReadOnlySpan&lt;long&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes a span of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int64">long</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in ReadOnlySpan&lt;long&gt; value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int64">long</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_ReadOnlySpan_System_SByte___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.ReadOnlySpan{System.SByte}@)">
+  Write(in ReadOnlySpan&lt;sbyte&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes a span of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.sbyte">sbyte</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in ReadOnlySpan&lt;sbyte&gt; value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.sbyte">sbyte</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_ReadOnlySpan_System_Single___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.ReadOnlySpan{System.Single}@)">
+  Write(in ReadOnlySpan&lt;float&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes a span of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.single">float</a> <code class="paramref">values</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in ReadOnlySpan&lt;float&gt; values)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>values</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.single">float</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_ReadOnlySpan_System_TimeOnly___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.ReadOnlySpan{System.TimeOnly}@)">
+  Write(in ReadOnlySpan&lt;TimeOnly&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes a span of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.timeonly">TimeOnly</a> <code class="paramref">values</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in ReadOnlySpan&lt;TimeOnly&gt; values)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>values</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.timeonly">TimeOnly</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_ReadOnlySpan_System_TimeSpan___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.ReadOnlySpan{System.TimeSpan}@)">
+  Write(in ReadOnlySpan&lt;TimeSpan&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes a span of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.timespan">TimeSpan</a> <code class="paramref">values</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in ReadOnlySpan&lt;TimeSpan&gt; values)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>values</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.timespan">TimeSpan</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_ReadOnlySpan_System_UInt128___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.ReadOnlySpan{System.UInt128}@)">
+  Write(in ReadOnlySpan&lt;UInt128&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes a span of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint128">UInt128</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in ReadOnlySpan&lt;UInt128&gt; value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint128">UInt128</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_ReadOnlySpan_System_UInt16___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.ReadOnlySpan{System.UInt16}@)">
+  Write(in ReadOnlySpan&lt;ushort&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes a span of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in ReadOnlySpan&lt;ushort&gt; value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_ReadOnlySpan_System_UInt32___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.ReadOnlySpan{System.UInt32}@)">
+  Write(in ReadOnlySpan&lt;uint&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes a span of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in ReadOnlySpan&lt;uint&gt; value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_ReadOnlySpan_System_UInt64___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.ReadOnlySpan{System.UInt64}@)">
+  Write(in ReadOnlySpan&lt;ulong&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes a span of <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in ReadOnlySpan&lt;ulong&gt; value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_SByte__" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.SByte@)">
+  Write(in sbyte)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.sbyte">sbyte</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in sbyte value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.sbyte">sbyte</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_Single__" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.Single@)">
+  Write(in float)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.single">float</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in float value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.single">float</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_TimeOnly__" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.TimeOnly@)">
+  Write(in TimeOnly)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.timeonly">TimeOnly</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in TimeOnly value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.timeonly">TimeOnly</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_TimeSpan__" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.TimeSpan@)">
+  Write(in TimeSpan)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.timespan">TimeSpan</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in TimeSpan value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.timespan">TimeSpan</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_UInt128__" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.UInt128@)">
+  Write(in UInt128)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint128">UInt128</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in UInt128 value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint128">UInt128</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_UInt16__" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.UInt16@)">
+  Write(in ushort)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in ushort value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_UInt32__" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.UInt32@)">
+  Write(in uint)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in uint value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_Write_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_Write_System_UInt64__" data-uid="Backdash.Serialization.BinaryRawBufferWriter.Write(System.UInt64@)">
+  Write(in ulong)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes single <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void Write(in ulong value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsByte_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsByte*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsByte__1_System_Collections_Generic_List___0___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsByte``1(System.Collections.Generic.List{``0}@)">
+  WriteAsByte&lt;T&gt;(in List&lt;T&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reinterprets the <code class="paramref">value</code> as <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a> and writes it into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void WriteAsByte&lt;T&gt;(in List&lt;T&gt; value) where T : unmanaged</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsByte_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsByte*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsByte__1_System_Nullable___0___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsByte``1(System.Nullable{``0}@)">
+  WriteAsByte&lt;T&gt;(in T?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reinterprets the <code class="paramref">value</code> as <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a> and writes it into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void WriteAsByte&lt;T&gt;(in T? value) where T : unmanaged</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> T?</dt>
+    <dd></dd>
+  </dl>
+
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsByte_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsByte*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsByte__1_System_ReadOnlySpan___0___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsByte``1(System.ReadOnlySpan{``0}@)">
+  WriteAsByte&lt;T&gt;(in ReadOnlySpan&lt;T&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reinterprets the <code class="paramref">value</code> as <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a> and writes it into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void WriteAsByte&lt;T&gt;(in ReadOnlySpan&lt;T&gt; value) where T : unmanaged</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsByte_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsByte*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsByte__1___0__" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsByte``1(``0@)">
+  WriteAsByte&lt;T&gt;(in T)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reinterprets the <code class="paramref">value</code> as <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a> and writes it into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void WriteAsByte&lt;T&gt;(in T value) where T : unmanaged</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <span class="xref">T</span></dt>
+    <dd></dd>
+  </dl>
+
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsByte_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsByte*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsByte__1___0____" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsByte``1(``0[]@)">
+  WriteAsByte&lt;T&gt;(in T[])
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reinterprets the <code class="paramref">value</code> as <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a> and writes it into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void WriteAsByte&lt;T&gt;(in T[] value) where T : unmanaged</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> T[]</dt>
+    <dd></dd>
+  </dl>
+
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsInt16_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsInt16*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsInt16__1_System_Collections_Generic_List___0___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsInt16``1(System.Collections.Generic.List{``0}@)">
+  WriteAsInt16&lt;T&gt;(in List&lt;T&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reinterprets the <code class="paramref">value</code> as <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int16">short</a> and writes it into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void WriteAsInt16&lt;T&gt;(in List&lt;T&gt; value) where T : unmanaged</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsInt16_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsInt16*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsInt16__1_System_Nullable___0___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsInt16``1(System.Nullable{``0}@)">
+  WriteAsInt16&lt;T&gt;(in T?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reinterprets the <code class="paramref">value</code> as <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int16">short</a> and writes it into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void WriteAsInt16&lt;T&gt;(in T? value) where T : unmanaged</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> T?</dt>
+    <dd></dd>
+  </dl>
+
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsInt16_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsInt16*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsInt16__1_System_ReadOnlySpan___0___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsInt16``1(System.ReadOnlySpan{``0}@)">
+  WriteAsInt16&lt;T&gt;(in ReadOnlySpan&lt;T&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reinterprets the <code class="paramref">value</code> as <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int16">short</a> and writes it into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void WriteAsInt16&lt;T&gt;(in ReadOnlySpan&lt;T&gt; value) where T : unmanaged</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsInt16_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsInt16*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsInt16__1___0__" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsInt16``1(``0@)">
+  WriteAsInt16&lt;T&gt;(in T)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reinterprets the <code class="paramref">value</code> as <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int16">short</a> and writes it into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void WriteAsInt16&lt;T&gt;(in T value) where T : unmanaged</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <span class="xref">T</span></dt>
+    <dd></dd>
+  </dl>
+
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsInt16_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsInt16*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsInt16__1___0____" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsInt16``1(``0[]@)">
+  WriteAsInt16&lt;T&gt;(in T[])
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reinterprets the <code class="paramref">value</code> as <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int16">short</a> and writes it into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void WriteAsInt16&lt;T&gt;(in T[] value) where T : unmanaged</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> T[]</dt>
+    <dd></dd>
+  </dl>
+
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsInt32_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsInt32*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsInt32__1_System_Collections_Generic_List___0___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsInt32``1(System.Collections.Generic.List{``0}@)">
+  WriteAsInt32&lt;T&gt;(in List&lt;T&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reinterprets the <code class="paramref">value</code> as <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a> and writes it into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void WriteAsInt32&lt;T&gt;(in List&lt;T&gt; value) where T : unmanaged</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsInt32_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsInt32*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsInt32__1_System_Nullable___0___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsInt32``1(System.Nullable{``0}@)">
+  WriteAsInt32&lt;T&gt;(in T?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reinterprets the <code class="paramref">value</code> as <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a> and writes it into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void WriteAsInt32&lt;T&gt;(in T? value) where T : unmanaged</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> T?</dt>
+    <dd></dd>
+  </dl>
+
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsInt32_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsInt32*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsInt32__1_System_ReadOnlySpan___0___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsInt32``1(System.ReadOnlySpan{``0}@)">
+  WriteAsInt32&lt;T&gt;(in ReadOnlySpan&lt;T&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reinterprets the <code class="paramref">value</code> as <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a> and writes it into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void WriteAsInt32&lt;T&gt;(in ReadOnlySpan&lt;T&gt; value) where T : unmanaged</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsInt32_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsInt32*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsInt32__1___0__" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsInt32``1(``0@)">
+  WriteAsInt32&lt;T&gt;(in T)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reinterprets the <code class="paramref">value</code> as <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a> and writes it into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void WriteAsInt32&lt;T&gt;(in T value) where T : unmanaged</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <span class="xref">T</span></dt>
+    <dd></dd>
+  </dl>
+
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsInt32_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsInt32*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsInt32__1___0____" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsInt32``1(``0[]@)">
+  WriteAsInt32&lt;T&gt;(in T[])
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reinterprets the <code class="paramref">value</code> as <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a> and writes it into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void WriteAsInt32&lt;T&gt;(in T[] value) where T : unmanaged</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> T[]</dt>
+    <dd></dd>
+  </dl>
+
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsInt64_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsInt64*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsInt64__1_System_Collections_Generic_List___0___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsInt64``1(System.Collections.Generic.List{``0}@)">
+  WriteAsInt64&lt;T&gt;(in List&lt;T&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reinterprets the <code class="paramref">value</code> as <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int64">long</a> and writes it into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void WriteAsInt64&lt;T&gt;(in List&lt;T&gt; value) where T : unmanaged</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsInt64_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsInt64*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsInt64__1_System_Nullable___0___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsInt64``1(System.Nullable{``0}@)">
+  WriteAsInt64&lt;T&gt;(in T?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reinterprets the <code class="paramref">value</code> as <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int64">long</a> and writes it into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void WriteAsInt64&lt;T&gt;(in T? value) where T : unmanaged</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> T?</dt>
+    <dd></dd>
+  </dl>
+
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsInt64_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsInt64*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsInt64__1_System_ReadOnlySpan___0___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsInt64``1(System.ReadOnlySpan{``0}@)">
+  WriteAsInt64&lt;T&gt;(in ReadOnlySpan&lt;T&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reinterprets the <code class="paramref">value</code> as <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int64">long</a> and writes it into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void WriteAsInt64&lt;T&gt;(in ReadOnlySpan&lt;T&gt; value) where T : unmanaged</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsInt64_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsInt64*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsInt64__1___0__" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsInt64``1(``0@)">
+  WriteAsInt64&lt;T&gt;(in T)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reinterprets the <code class="paramref">value</code> as <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int64">long</a> and writes it into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void WriteAsInt64&lt;T&gt;(in T value) where T : unmanaged</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <span class="xref">T</span></dt>
+    <dd></dd>
+  </dl>
+
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsInt64_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsInt64*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsInt64__1___0____" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsInt64``1(``0[]@)">
+  WriteAsInt64&lt;T&gt;(in T[])
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reinterprets the <code class="paramref">value</code> as <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int64">long</a> and writes it into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void WriteAsInt64&lt;T&gt;(in T[] value) where T : unmanaged</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> T[]</dt>
+    <dd></dd>
+  </dl>
+
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsSByte_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsSByte*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsSByte__1_System_Collections_Generic_List___0___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsSByte``1(System.Collections.Generic.List{``0}@)">
+  WriteAsSByte&lt;T&gt;(in List&lt;T&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reinterprets the <code class="paramref">value</code> as <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.sbyte">sbyte</a> and writes it into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void WriteAsSByte&lt;T&gt;(in List&lt;T&gt; value) where T : unmanaged</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsSByte_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsSByte*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsSByte__1_System_Nullable___0___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsSByte``1(System.Nullable{``0}@)">
+  WriteAsSByte&lt;T&gt;(in T?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reinterprets the <code class="paramref">value</code> as <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.sbyte">sbyte</a> and writes it into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void WriteAsSByte&lt;T&gt;(in T? value) where T : unmanaged</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> T?</dt>
+    <dd></dd>
+  </dl>
+
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsSByte_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsSByte*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsSByte__1_System_ReadOnlySpan___0___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsSByte``1(System.ReadOnlySpan{``0}@)">
+  WriteAsSByte&lt;T&gt;(in ReadOnlySpan&lt;T&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reinterprets the <code class="paramref">value</code> as <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.sbyte">sbyte</a> and writes it into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void WriteAsSByte&lt;T&gt;(in ReadOnlySpan&lt;T&gt; value) where T : unmanaged</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsSByte_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsSByte*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsSByte__1___0__" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsSByte``1(``0@)">
+  WriteAsSByte&lt;T&gt;(in T)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reinterprets the <code class="paramref">value</code> as <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.sbyte">sbyte</a> and writes it into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void WriteAsSByte&lt;T&gt;(in T value) where T : unmanaged</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <span class="xref">T</span></dt>
+    <dd></dd>
+  </dl>
+
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsSByte_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsSByte*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsSByte__1___0____" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsSByte``1(``0[]@)">
+  WriteAsSByte&lt;T&gt;(in T[])
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reinterprets the <code class="paramref">value</code> as <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.sbyte">sbyte</a> and writes it into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void WriteAsSByte&lt;T&gt;(in T[] value) where T : unmanaged</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> T[]</dt>
+    <dd></dd>
+  </dl>
+
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsUInt16_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsUInt16*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsUInt16__1_System_Collections_Generic_List___0___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsUInt16``1(System.Collections.Generic.List{``0}@)">
+  WriteAsUInt16&lt;T&gt;(in List&lt;T&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reinterprets the <code class="paramref">value</code> as <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a> and writes it into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void WriteAsUInt16&lt;T&gt;(in List&lt;T&gt; value) where T : unmanaged</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsUInt16_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsUInt16*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsUInt16__1_System_Nullable___0___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsUInt16``1(System.Nullable{``0}@)">
+  WriteAsUInt16&lt;T&gt;(in T?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reinterprets the <code class="paramref">value</code> as <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a> and writes it into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void WriteAsUInt16&lt;T&gt;(in T? value) where T : unmanaged</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> T?</dt>
+    <dd></dd>
+  </dl>
+
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsUInt16_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsUInt16*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsUInt16__1_System_ReadOnlySpan___0___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsUInt16``1(System.ReadOnlySpan{``0}@)">
+  WriteAsUInt16&lt;T&gt;(in ReadOnlySpan&lt;T&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reinterprets the <code class="paramref">value</code> as <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a> and writes it into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void WriteAsUInt16&lt;T&gt;(in ReadOnlySpan&lt;T&gt; value) where T : unmanaged</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsUInt16_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsUInt16*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsUInt16__1___0__" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsUInt16``1(``0@)">
+  WriteAsUInt16&lt;T&gt;(in T)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reinterprets the <code class="paramref">value</code> as <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a> and writes it into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void WriteAsUInt16&lt;T&gt;(in T value) where T : unmanaged</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <span class="xref">T</span></dt>
+    <dd></dd>
+  </dl>
+
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsUInt16_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsUInt16*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsUInt16__1___0____" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsUInt16``1(``0[]@)">
+  WriteAsUInt16&lt;T&gt;(in T[])
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reinterprets the <code class="paramref">value</code> as <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint16">ushort</a> and writes it into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void WriteAsUInt16&lt;T&gt;(in T[] value) where T : unmanaged</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> T[]</dt>
+    <dd></dd>
+  </dl>
+
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsUInt32_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsUInt32*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsUInt32__1_System_Collections_Generic_List___0___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsUInt32``1(System.Collections.Generic.List{``0}@)">
+  WriteAsUInt32&lt;T&gt;(in List&lt;T&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reinterprets the <code class="paramref">value</code> as <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a> and writes it into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void WriteAsUInt32&lt;T&gt;(in List&lt;T&gt; value) where T : unmanaged</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsUInt32_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsUInt32*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsUInt32__1_System_Nullable___0___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsUInt32``1(System.Nullable{``0}@)">
+  WriteAsUInt32&lt;T&gt;(in T?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reinterprets the <code class="paramref">value</code> as <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a> and writes it into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void WriteAsUInt32&lt;T&gt;(in T? value) where T : unmanaged</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> T?</dt>
+    <dd></dd>
+  </dl>
+
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsUInt32_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsUInt32*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsUInt32__1_System_ReadOnlySpan___0___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsUInt32``1(System.ReadOnlySpan{``0}@)">
+  WriteAsUInt32&lt;T&gt;(in ReadOnlySpan&lt;T&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reinterprets the <code class="paramref">value</code> as <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a> and writes it into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void WriteAsUInt32&lt;T&gt;(in ReadOnlySpan&lt;T&gt; value) where T : unmanaged</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsUInt32_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsUInt32*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsUInt32__1___0__" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsUInt32``1(``0@)">
+  WriteAsUInt32&lt;T&gt;(in T)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reinterprets the <code class="paramref">value</code> as <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a> and writes it into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void WriteAsUInt32&lt;T&gt;(in T value) where T : unmanaged</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <span class="xref">T</span></dt>
+    <dd></dd>
+  </dl>
+
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsUInt32_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsUInt32*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsUInt32__1___0____" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsUInt32``1(``0[]@)">
+  WriteAsUInt32&lt;T&gt;(in T[])
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reinterprets the <code class="paramref">value</code> as <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint32">uint</a> and writes it into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void WriteAsUInt32&lt;T&gt;(in T[] value) where T : unmanaged</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> T[]</dt>
+    <dd></dd>
+  </dl>
+
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsUInt64_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsUInt64*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsUInt64__1_System_Collections_Generic_List___0___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsUInt64``1(System.Collections.Generic.List{``0}@)">
+  WriteAsUInt64&lt;T&gt;(in List&lt;T&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reinterprets the <code class="paramref">value</code> as <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a> and writes it into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void WriteAsUInt64&lt;T&gt;(in List&lt;T&gt; value) where T : unmanaged</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.collections.generic.list-1">List</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsUInt64_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsUInt64*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsUInt64__1_System_Nullable___0___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsUInt64``1(System.Nullable{``0}@)">
+  WriteAsUInt64&lt;T&gt;(in T?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reinterprets the <code class="paramref">value</code> as <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a> and writes it into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void WriteAsUInt64&lt;T&gt;(in T? value) where T : unmanaged</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> T?</dt>
+    <dd></dd>
+  </dl>
+
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsUInt64_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsUInt64*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsUInt64__1_System_ReadOnlySpan___0___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsUInt64``1(System.ReadOnlySpan{``0}@)">
+  WriteAsUInt64&lt;T&gt;(in ReadOnlySpan&lt;T&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reinterprets the <code class="paramref">value</code> as <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a> and writes it into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void WriteAsUInt64&lt;T&gt;(in ReadOnlySpan&lt;T&gt; value) where T : unmanaged</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsUInt64_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsUInt64*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsUInt64__1___0__" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsUInt64``1(``0@)">
+  WriteAsUInt64&lt;T&gt;(in T)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reinterprets the <code class="paramref">value</code> as <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a> and writes it into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void WriteAsUInt64&lt;T&gt;(in T value) where T : unmanaged</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <span class="xref">T</span></dt>
+    <dd></dd>
+  </dl>
+
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsUInt64_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsUInt64*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_WriteAsUInt64__1___0____" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteAsUInt64``1(``0[]@)">
+  WriteAsUInt64&lt;T&gt;(in T[])
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reinterprets the <code class="paramref">value</code> as <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.uint64">ulong</a> and writes it into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void WriteAsUInt64&lt;T&gt;(in T[] value) where T : unmanaged</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> T[]</dt>
+    <dd></dd>
+  </dl>
+
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_WriteNumber_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteNumber*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_WriteNumber__1_System_Nullable___0___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteNumber``1(System.Nullable{``0}@)">
+  WriteNumber&lt;T&gt;(in T?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes a <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.numerics.ibinaryinteger-1">IBinaryInteger&lt;TSelf&gt;</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void WriteNumber&lt;T&gt;(in T? value) where T : unmanaged, IBinaryInteger&lt;T&gt;</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> T?</dt>
+    <dd></dd>
+  </dl>
+
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd><p>A numeric type that implements <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.numerics.ibinaryinteger-1">IBinaryInteger&lt;TSelf&gt;</a>.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_WriteNumber_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteNumber*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_WriteNumber__1___0__" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteNumber``1(``0@)">
+  WriteNumber&lt;T&gt;(in T)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes a <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.numerics.ibinaryinteger-1">IBinaryInteger&lt;TSelf&gt;</a> <code class="paramref">value</code> into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void WriteNumber&lt;T&gt;(in T value) where T : unmanaged, IBinaryInteger&lt;T&gt;</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <span class="xref">T</span></dt>
+    <dd></dd>
+  </dl>
+
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd><p>A numeric type that implements <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.numerics.ibinaryinteger-1">IBinaryInteger&lt;TSelf&gt;</a>.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_WriteStruct_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteStruct*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_WriteStruct__1_System_ReadOnlySpan___0__" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteStruct``1(System.ReadOnlySpan{``0})">
+  WriteStruct&lt;T&gt;(ReadOnlySpan&lt;T&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes an unmanaged struct span into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void WriteStruct&lt;T&gt;(ReadOnlySpan&lt;T&gt; values) where T : unmanaged</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>values</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;T&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_WriteStruct_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteStruct*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_WriteStruct__1___0__" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteStruct``1(``0@)">
+  WriteStruct&lt;T&gt;(in T)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes an unmanaged struct into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void WriteStruct&lt;T&gt;(in T value) where T : unmanaged</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <span class="xref">T</span></dt>
+    <dd></dd>
+  </dl>
+
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_WriteStruct_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteStruct*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_WriteStruct__1___0____" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteStruct``1(``0[]@)">
+  WriteStruct&lt;T&gt;(in T[])
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes an unmanaged struct span into buffer.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void WriteStruct&lt;T&gt;(in T[] values) where T : unmanaged</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>values</code> T[]</dt>
+    <dd></dd>
+  </dl>
+
+
+  <h4 class="section">Type Parameters</h4>
+  <dl class="parameters">
+    <dt><code>T</code></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Serialization_BinaryRawBufferWriter_WriteUtf8String_" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteUtf8String*"></a>
+
+  <h3 id="Backdash_Serialization_BinaryRawBufferWriter_WriteUtf8String_System_ReadOnlySpan_System_Char___" data-uid="Backdash.Serialization.BinaryRawBufferWriter.WriteUtf8String(System.ReadOnlySpan{System.Char}@)">
+  WriteUtf8String(in ReadOnlySpan&lt;char&gt;)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Writes an <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a> <code class="paramref">value</code> into buffer as UTF8.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void WriteUtf8String(in ReadOnlySpan&lt;char&gt; value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.char">char</a>&gt;</dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Serialization/BinaryRawBufferWriter.cs" class="edit-link">Edit this page</a>
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Developed by <a href="https://lucasteles.dev/">Lucas Teles</a>.</span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

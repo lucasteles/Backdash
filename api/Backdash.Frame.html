@@ -1,0 +1,1911 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Struct Frame | Backdash Netcode </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Struct Frame | Backdash Netcode ">
+      
+      <meta name="description" content="Value representation of a Frame">
+      <link rel="icon" href="../docs/images/favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../docs/images/logo.png" alt="Backdash">
+            Backdash
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="Backdash.Frame">
+
+
+
+  <h1 id="Backdash_Frame" data-uid="Backdash.Frame" class="text-break">
+Struct Frame  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Frame.cs"><i class="bi bi-code-slash"></i></a>
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Backdash.html">Backdash</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Backdash.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>Value representation of a Frame</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public readonly struct Frame : IComparable&lt;Frame&gt;, IComparable&lt;int&gt;, IEquatable&lt;int&gt;, IUtf8SpanFormattable, IFormattable, IComparisonOperators&lt;Frame, Frame, bool&gt;, IEqualityOperators&lt;Frame, Frame, bool&gt;, IAdditionOperators&lt;Frame, Frame, Frame&gt;, ISubtractionOperators&lt;Frame, Frame, Frame&gt;, IIncrementOperators&lt;Frame&gt;, IDecrementOperators&lt;Frame&gt;, IComparisonOperators&lt;Frame, int, bool&gt;, IEqualityOperators&lt;Frame, int, bool&gt;, IModulusOperators&lt;Frame, int, Frame&gt;, IAdditionOperators&lt;Frame, int, Frame&gt;, ISubtractionOperators&lt;Frame, int, Frame&gt;, IAdditionOperators&lt;Frame, FrameSpan, FrameSpan&gt;, IEquatable&lt;Frame&gt;</code></pre>
+  </div>
+
+
+
+
+
+  <dl class="typelist implements">
+    <dt>Implements</dt>
+    <dd>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.icomparable-1">IComparable</a>&lt;<a class="xref" href="Backdash.Frame.html">Frame</a>&gt;</div>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.icomparable-1">IComparable</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a>&gt;</div>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.iequatable-1">IEquatable</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a>&gt;</div>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.iutf8spanformattable">IUtf8SpanFormattable</a></div>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.iformattable">IFormattable</a></div>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.numerics.icomparisonoperators-3">IComparisonOperators</a>&lt;<a class="xref" href="Backdash.Frame.html">Frame</a>, <a class="xref" href="Backdash.Frame.html">Frame</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a>&gt;</div>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.numerics.iequalityoperators-3">IEqualityOperators</a>&lt;<a class="xref" href="Backdash.Frame.html">Frame</a>, <a class="xref" href="Backdash.Frame.html">Frame</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a>&gt;</div>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.numerics.iadditionoperators-3">IAdditionOperators</a>&lt;<a class="xref" href="Backdash.Frame.html">Frame</a>, <a class="xref" href="Backdash.Frame.html">Frame</a>, <a class="xref" href="Backdash.Frame.html">Frame</a>&gt;</div>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.numerics.isubtractionoperators-3">ISubtractionOperators</a>&lt;<a class="xref" href="Backdash.Frame.html">Frame</a>, <a class="xref" href="Backdash.Frame.html">Frame</a>, <a class="xref" href="Backdash.Frame.html">Frame</a>&gt;</div>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.numerics.iincrementoperators-1">IIncrementOperators</a>&lt;<a class="xref" href="Backdash.Frame.html">Frame</a>&gt;</div>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.numerics.idecrementoperators-1">IDecrementOperators</a>&lt;<a class="xref" href="Backdash.Frame.html">Frame</a>&gt;</div>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.numerics.icomparisonoperators-3">IComparisonOperators</a>&lt;<a class="xref" href="Backdash.Frame.html">Frame</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a>&gt;</div>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.numerics.iequalityoperators-3">IEqualityOperators</a>&lt;<a class="xref" href="Backdash.Frame.html">Frame</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a>&gt;</div>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.numerics.imodulusoperators-3">IModulusOperators</a>&lt;<a class="xref" href="Backdash.Frame.html">Frame</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a>, <a class="xref" href="Backdash.Frame.html">Frame</a>&gt;</div>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.numerics.iadditionoperators-3">IAdditionOperators</a>&lt;<a class="xref" href="Backdash.Frame.html">Frame</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a>, <a class="xref" href="Backdash.Frame.html">Frame</a>&gt;</div>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.numerics.isubtractionoperators-3">ISubtractionOperators</a>&lt;<a class="xref" href="Backdash.Frame.html">Frame</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a>, <a class="xref" href="Backdash.Frame.html">Frame</a>&gt;</div>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.numerics.iadditionoperators-3">IAdditionOperators</a>&lt;<a class="xref" href="Backdash.Frame.html">Frame</a>, <a class="xref" href="Backdash.FrameSpan.html">FrameSpan</a>, <a class="xref" href="Backdash.FrameSpan.html">FrameSpan</a>&gt;</div>
+      <div><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.iequatable-1">IEquatable</a>&lt;<a class="xref" href="Backdash.Frame.html">Frame</a>&gt;</div>
+    </dd>
+  </dl>
+
+
+  <dl class="typelist inheritedMembers">
+    <dt>Inherited Members</dt>
+    <dd>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.gettype">object.GetType()</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.equals#system-object-equals(system-object-system-object)">object.Equals(object, object)</a>
+    </div>
+    <div>
+      <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object.referenceequals">object.ReferenceEquals(object, object)</a>
+    </div>
+  </dd></dl>
+
+
+
+
+
+
+  <h2 class="section" id="constructors">Constructors
+</h2>
+
+
+  <a id="Backdash_Frame__ctor_" data-uid="Backdash.Frame.#ctor*"></a>
+
+  <h3 id="Backdash_Frame__ctor_System_Int32_" data-uid="Backdash.Frame.#ctor(System.Int32)">
+  Frame(int)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Frame.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Initialize new <a class="xref" href="Backdash.Frame.html">Frame</a> for frame <code class="paramref">number</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Frame(int number)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>number</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="fields">Fields
+</h2>
+
+
+
+  <h3 id="Backdash_Frame_MaxValue" data-uid="Backdash.Frame.MaxValue">
+  MaxValue
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Frame.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns max frame value</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static readonly Frame MaxValue</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Backdash_Frame_Null" data-uid="Backdash.Frame.Null">
+  Null
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Frame.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Return Null frame value</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static readonly Frame Null</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Backdash_Frame_Number" data-uid="Backdash.Frame.Number">
+  Number
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Frame.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns the <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a> value for the current <a class="xref" href="Backdash.Frame.html">Frame</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public readonly int Number</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Backdash_Frame_One" data-uid="Backdash.Frame.One">
+  One
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Frame.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Return frame value <code>1</code></p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static readonly Frame One</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+  <h3 id="Backdash_Frame_Zero" data-uid="Backdash.Frame.Zero">
+  Zero
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Frame.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Return frame value <code>0</code></p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static readonly Frame Zero</code></pre>
+  </div>
+
+
+
+
+  <h4 class="section">Field Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="properties">Properties
+</h2>
+
+
+  <a id="Backdash_Frame_IsNull_" data-uid="Backdash.Frame.IsNull*"></a>
+
+  <h3 id="Backdash_Frame_IsNull" data-uid="Backdash.Frame.IsNull">
+  IsNull
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Frame.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns <a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">true</a> if the current frame is a null frame</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool IsNull { get; }</code></pre>
+  </div>
+
+
+
+
+
+  <h4 class="section">Property Value</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="Backdash_Frame_Abs_" data-uid="Backdash.Frame.Abs*"></a>
+
+  <h3 id="Backdash_Frame_Abs_Backdash_Frame__" data-uid="Backdash.Frame.Abs(Backdash.Frame@)">
+  Abs(in Frame)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Frame.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns the absolute value of a Frame.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static Frame Abs(in Frame frame)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>frame</code> <a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Frame_Clamp_" data-uid="Backdash.Frame.Clamp*"></a>
+
+  <h3 id="Backdash_Frame_Clamp_Backdash_Frame__Backdash_Frame__Backdash_Frame__" data-uid="Backdash.Frame.Clamp(Backdash.Frame@,Backdash.Frame@,Backdash.Frame@)">
+  Clamp(in Frame, in Frame, in Frame)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Frame.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Clamps frame value to a range</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static Frame Clamp(in Frame frame, in Frame min, in Frame max)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>frame</code> <a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+    <dt><code>min</code> <a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+    <dt><code>max</code> <a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Frame_Clamp_" data-uid="Backdash.Frame.Clamp*"></a>
+
+  <h3 id="Backdash_Frame_Clamp_Backdash_Frame__System_Int32_System_Int32_" data-uid="Backdash.Frame.Clamp(Backdash.Frame@,System.Int32,System.Int32)">
+  Clamp(in Frame, int, int)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Frame.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Clamps frame value to a range</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static Frame Clamp(in Frame frame, int min, int max)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>frame</code> <a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+    <dt><code>min</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>max</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Frame_CompareTo_" data-uid="Backdash.Frame.CompareTo*"></a>
+
+  <h3 id="Backdash_Frame_CompareTo_Backdash_Frame_" data-uid="Backdash.Frame.CompareTo(Backdash.Frame)">
+  CompareTo(Frame)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Frame.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int CompareTo(Frame other)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>other</code> <a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Frame_CompareTo_" data-uid="Backdash.Frame.CompareTo*"></a>
+
+  <h3 id="Backdash_Frame_CompareTo_System_Int32_" data-uid="Backdash.Frame.CompareTo(System.Int32)">
+  CompareTo(int)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Frame.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public int CompareTo(int other)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>other</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Frame_Equals_" data-uid="Backdash.Frame.Equals*"></a>
+
+  <h3 id="Backdash_Frame_Equals_Backdash_Frame_" data-uid="Backdash.Frame.Equals(Backdash.Frame)">
+  Equals(Frame)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Frame.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool Equals(Frame other)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>other</code> <a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Frame_Equals_" data-uid="Backdash.Frame.Equals*"></a>
+
+  <h3 id="Backdash_Frame_Equals_System_Int32_" data-uid="Backdash.Frame.Equals(System.Int32)">
+  Equals(int)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Frame.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool Equals(int other)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>other</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Frame_Equals_" data-uid="Backdash.Frame.Equals*"></a>
+
+  <h3 id="Backdash_Frame_Equals_System_Object_" data-uid="Backdash.Frame.Equals(System.Object)">
+  Equals(object)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Frame.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override bool Equals(object obj)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>obj</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Frame_GetHashCode_" data-uid="Backdash.Frame.GetHashCode*"></a>
+
+  <h3 id="Backdash_Frame_GetHashCode" data-uid="Backdash.Frame.GetHashCode">
+  GetHashCode()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Frame.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override int GetHashCode()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Frame_Max_" data-uid="Backdash.Frame.Max*"></a>
+
+  <h3 id="Backdash_Frame_Max_Backdash_Frame__Backdash_Frame__" data-uid="Backdash.Frame.Max(Backdash.Frame@,Backdash.Frame@)">
+  Max(in Frame, in Frame)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Frame.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns the larger of two <a class="xref" href="Backdash.Frame.html">Frame</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static Frame Max(in Frame left, in Frame right)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>left</code> <a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+    <dt><code>right</code> <a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Frame_Min_" data-uid="Backdash.Frame.Min*"></a>
+
+  <h3 id="Backdash_Frame_Min_Backdash_Frame__Backdash_Frame__" data-uid="Backdash.Frame.Min(Backdash.Frame@,Backdash.Frame@)">
+  Min(in Frame, in Frame)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Frame.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns the smaller of two <a class="xref" href="Backdash.Frame.html">Frame</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static Frame Min(in Frame left, in Frame right)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>left</code> <a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+    <dt><code>right</code> <a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Frame_Next_" data-uid="Backdash.Frame.Next*"></a>
+
+  <h3 id="Backdash_Frame_Next" data-uid="Backdash.Frame.Next">
+  Next()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Frame.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns the next frame for the current <a class="xref" href="Backdash.Frame.html">Frame</a> value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Frame Next()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Frame_Next_" data-uid="Backdash.Frame.Next*"></a>
+
+  <h3 id="Backdash_Frame_Next_System_Int32_" data-uid="Backdash.Frame.Next(System.Int32)">
+  Next(int)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Frame.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns the next frame after <code class="paramref">amount</code></p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Frame Next(int amount)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>amount</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Frame_Previous_" data-uid="Backdash.Frame.Previous*"></a>
+
+  <h3 id="Backdash_Frame_Previous" data-uid="Backdash.Frame.Previous">
+  Previous()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Frame.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns the previous frame for the current <a class="xref" href="Backdash.Frame.html">Frame</a> value.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Frame Previous()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Frame_Previous_" data-uid="Backdash.Frame.Previous*"></a>
+
+  <h3 id="Backdash_Frame_Previous_System_Int32_" data-uid="Backdash.Frame.Previous(System.Int32)">
+  Previous(int)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Frame.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns the previous frame after <code class="paramref">amount</code></p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public Frame Previous(int amount)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>amount</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Frame_ToString_" data-uid="Backdash.Frame.ToString*"></a>
+
+  <h3 id="Backdash_Frame_ToString" data-uid="Backdash.Frame.ToString">
+  ToString()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Frame.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public override string ToString()</code></pre>
+  </div>
+
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Frame_ToString_" data-uid="Backdash.Frame.ToString*"></a>
+
+  <h3 id="Backdash_Frame_ToString_System_String_System_IFormatProvider_" data-uid="Backdash.Frame.ToString(System.String,System.IFormatProvider)">
+  ToString(string?, IFormatProvider?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Frame.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public string ToString(string? format, IFormatProvider? formatProvider)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>format</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+    <dt><code>formatProvider</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.iformatprovider">IFormatProvider</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.string">string</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Frame_TryFormat_" data-uid="Backdash.Frame.TryFormat*"></a>
+
+  <h3 id="Backdash_Frame_TryFormat_System_Span_System_Byte__System_Int32__System_ReadOnlySpan_System_Char__System_IFormatProvider_" data-uid="Backdash.Frame.TryFormat(System.Span{System.Byte},System.Int32@,System.ReadOnlySpan{System.Char},System.IFormatProvider)">
+  TryFormat(Span&lt;byte&gt;, out int, ReadOnlySpan&lt;char&gt;, IFormatProvider?)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Frame.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public bool TryFormat(Span&lt;byte&gt; utf8Destination, out int bytesWritten, ReadOnlySpan&lt;char&gt; format, IFormatProvider? provider)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>utf8Destination</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.span-1">Span</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.byte">byte</a>&gt;</dt>
+    <dd></dd>
+    <dt><code>bytesWritten</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+    <dt><code>format</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.readonlyspan-1">ReadOnlySpan</a>&lt;<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.char">char</a>&gt;</dt>
+    <dd></dd>
+    <dt><code>provider</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.iformatprovider">IFormatProvider</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="operators">Operators
+</h2>
+
+
+  <a id="Backdash_Frame_op_Explicit_" data-uid="Backdash.Frame.op_Explicit*"></a>
+
+  <h3 id="Backdash_Frame_op_Explicit_Backdash_Frame__System_Int32" data-uid="Backdash.Frame.op_Explicit(Backdash.Frame)~System.Int32">
+  explicit operator int(Frame)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Frame.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Returns the <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a> value for the current <a class="xref" href="Backdash.Frame.html">Frame</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static explicit operator int(Frame frame)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>frame</code> <a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Frame_op_Explicit_" data-uid="Backdash.Frame.op_Explicit*"></a>
+
+  <h3 id="Backdash_Frame_op_Explicit_System_Int32__Backdash_Frame" data-uid="Backdash.Frame.op_Explicit(System.Int32)~Backdash.Frame">
+  explicit operator Frame(int)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Frame.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Initialize new <a class="xref" href="Backdash.Frame.html">Frame</a> for frame <code class="paramref">number</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public static explicit operator Frame(int frame)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>frame</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="eii">Explicit Interface Implementations
+</h2>
+
+
+  <a id="Backdash_Frame_op_Addition_" data-uid="Backdash.Frame.op_Addition*"></a>
+
+  <h3 id="Backdash_Frame_op_Addition_Backdash_Frame_Backdash_Frame_" data-uid="Backdash.Frame.op_Addition(Backdash.Frame,Backdash.Frame)">
+  operator +(Frame, Frame)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Frame.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">static Frame operator +(Frame left, Frame right)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>left</code> <a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+    <dt><code>right</code> <a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Frame_op_Addition_" data-uid="Backdash.Frame.op_Addition*"></a>
+
+  <h3 id="Backdash_Frame_op_Addition_Backdash_Frame_Backdash_FrameSpan_" data-uid="Backdash.Frame.op_Addition(Backdash.Frame,Backdash.FrameSpan)">
+  operator +(Frame, FrameSpan)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Frame.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">static FrameSpan operator +(Frame left, FrameSpan right)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>left</code> <a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+    <dt><code>right</code> <a class="xref" href="Backdash.FrameSpan.html">FrameSpan</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.FrameSpan.html">FrameSpan</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Frame_op_Addition_" data-uid="Backdash.Frame.op_Addition*"></a>
+
+  <h3 id="Backdash_Frame_op_Addition_Backdash_Frame_System_Int32_" data-uid="Backdash.Frame.op_Addition(Backdash.Frame,System.Int32)">
+  operator +(Frame, int)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Frame.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">static Frame operator +(Frame a, int b)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>a</code> <a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+    <dt><code>b</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Frame_op_Decrement_" data-uid="Backdash.Frame.op_Decrement*"></a>
+
+  <h3 id="Backdash_Frame_op_Decrement_Backdash_Frame_" data-uid="Backdash.Frame.op_Decrement(Backdash.Frame)">
+  operator --(Frame)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Frame.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">static Frame operator --(Frame value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Frame_op_Equality_" data-uid="Backdash.Frame.op_Equality*"></a>
+
+  <h3 id="Backdash_Frame_op_Equality_Backdash_Frame_Backdash_Frame_" data-uid="Backdash.Frame.op_Equality(Backdash.Frame,Backdash.Frame)">
+  operator ==(Frame, Frame)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Frame.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">static bool operator ==(Frame left, Frame right)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>left</code> <a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+    <dt><code>right</code> <a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Frame_op_Equality_" data-uid="Backdash.Frame.op_Equality*"></a>
+
+  <h3 id="Backdash_Frame_op_Equality_Backdash_Frame_System_Int32_" data-uid="Backdash.Frame.op_Equality(Backdash.Frame,System.Int32)">
+  operator ==(Frame, int)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Frame.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">static bool operator ==(Frame left, int right)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>left</code> <a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+    <dt><code>right</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Frame_op_GreaterThan_" data-uid="Backdash.Frame.op_GreaterThan*"></a>
+
+  <h3 id="Backdash_Frame_op_GreaterThan_Backdash_Frame_Backdash_Frame_" data-uid="Backdash.Frame.op_GreaterThan(Backdash.Frame,Backdash.Frame)">
+  operator &gt;(Frame, Frame)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Frame.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">static bool operator &gt;(Frame left, Frame right)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>left</code> <a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+    <dt><code>right</code> <a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Frame_op_GreaterThan_" data-uid="Backdash.Frame.op_GreaterThan*"></a>
+
+  <h3 id="Backdash_Frame_op_GreaterThan_Backdash_Frame_System_Int32_" data-uid="Backdash.Frame.op_GreaterThan(Backdash.Frame,System.Int32)">
+  operator &gt;(Frame, int)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Frame.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">static bool operator &gt;(Frame left, int right)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>left</code> <a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+    <dt><code>right</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Frame_op_GreaterThanOrEqual_" data-uid="Backdash.Frame.op_GreaterThanOrEqual*"></a>
+
+  <h3 id="Backdash_Frame_op_GreaterThanOrEqual_Backdash_Frame_Backdash_Frame_" data-uid="Backdash.Frame.op_GreaterThanOrEqual(Backdash.Frame,Backdash.Frame)">
+  operator &gt;=(Frame, Frame)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Frame.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">static bool operator &gt;=(Frame left, Frame right)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>left</code> <a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+    <dt><code>right</code> <a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Frame_op_GreaterThanOrEqual_" data-uid="Backdash.Frame.op_GreaterThanOrEqual*"></a>
+
+  <h3 id="Backdash_Frame_op_GreaterThanOrEqual_Backdash_Frame_System_Int32_" data-uid="Backdash.Frame.op_GreaterThanOrEqual(Backdash.Frame,System.Int32)">
+  operator &gt;=(Frame, int)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Frame.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">static bool operator &gt;=(Frame left, int right)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>left</code> <a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+    <dt><code>right</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Frame_op_Increment_" data-uid="Backdash.Frame.op_Increment*"></a>
+
+  <h3 id="Backdash_Frame_op_Increment_Backdash_Frame_" data-uid="Backdash.Frame.op_Increment(Backdash.Frame)">
+  operator ++(Frame)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Frame.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">static Frame operator ++(Frame value)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>value</code> <a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Frame_op_Inequality_" data-uid="Backdash.Frame.op_Inequality*"></a>
+
+  <h3 id="Backdash_Frame_op_Inequality_Backdash_Frame_Backdash_Frame_" data-uid="Backdash.Frame.op_Inequality(Backdash.Frame,Backdash.Frame)">
+  operator !=(Frame, Frame)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Frame.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">static bool operator !=(Frame left, Frame right)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>left</code> <a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+    <dt><code>right</code> <a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Frame_op_Inequality_" data-uid="Backdash.Frame.op_Inequality*"></a>
+
+  <h3 id="Backdash_Frame_op_Inequality_Backdash_Frame_System_Int32_" data-uid="Backdash.Frame.op_Inequality(Backdash.Frame,System.Int32)">
+  operator !=(Frame, int)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Frame.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">static bool operator !=(Frame left, int right)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>left</code> <a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+    <dt><code>right</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Frame_op_LessThan_" data-uid="Backdash.Frame.op_LessThan*"></a>
+
+  <h3 id="Backdash_Frame_op_LessThan_Backdash_Frame_Backdash_Frame_" data-uid="Backdash.Frame.op_LessThan(Backdash.Frame,Backdash.Frame)">
+  operator &lt;(Frame, Frame)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Frame.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">static bool operator &lt;(Frame left, Frame right)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>left</code> <a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+    <dt><code>right</code> <a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Frame_op_LessThan_" data-uid="Backdash.Frame.op_LessThan*"></a>
+
+  <h3 id="Backdash_Frame_op_LessThan_Backdash_Frame_System_Int32_" data-uid="Backdash.Frame.op_LessThan(Backdash.Frame,System.Int32)">
+  operator &lt;(Frame, int)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Frame.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">static bool operator &lt;(Frame left, int right)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>left</code> <a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+    <dt><code>right</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Frame_op_LessThanOrEqual_" data-uid="Backdash.Frame.op_LessThanOrEqual*"></a>
+
+  <h3 id="Backdash_Frame_op_LessThanOrEqual_Backdash_Frame_Backdash_Frame_" data-uid="Backdash.Frame.op_LessThanOrEqual(Backdash.Frame,Backdash.Frame)">
+  operator &lt;=(Frame, Frame)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Frame.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">static bool operator &lt;=(Frame left, Frame right)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>left</code> <a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+    <dt><code>right</code> <a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Frame_op_LessThanOrEqual_" data-uid="Backdash.Frame.op_LessThanOrEqual*"></a>
+
+  <h3 id="Backdash_Frame_op_LessThanOrEqual_Backdash_Frame_System_Int32_" data-uid="Backdash.Frame.op_LessThanOrEqual(Backdash.Frame,System.Int32)">
+  operator &lt;=(Frame, int)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Frame.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">static bool operator &lt;=(Frame left, int right)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>left</code> <a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+    <dt><code>right</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.boolean">bool</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Frame_op_Modulus_" data-uid="Backdash.Frame.op_Modulus*"></a>
+
+  <h3 id="Backdash_Frame_op_Modulus_Backdash_Frame_System_Int32_" data-uid="Backdash.Frame.op_Modulus(Backdash.Frame,System.Int32)">
+  operator %(Frame, int)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Frame.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">static Frame operator %(Frame left, int right)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>left</code> <a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+    <dt><code>right</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Frame_op_Subtraction_" data-uid="Backdash.Frame.op_Subtraction*"></a>
+
+  <h3 id="Backdash_Frame_op_Subtraction_Backdash_Frame_Backdash_Frame_" data-uid="Backdash.Frame.op_Subtraction(Backdash.Frame,Backdash.Frame)">
+  operator -(Frame, Frame)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Frame.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">static Frame operator -(Frame left, Frame right)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>left</code> <a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+    <dt><code>right</code> <a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_Frame_op_Subtraction_" data-uid="Backdash.Frame.op_Subtraction*"></a>
+
+  <h3 id="Backdash_Frame_op_Subtraction_Backdash_Frame_System_Int32_" data-uid="Backdash.Frame.op_Subtraction(Backdash.Frame,System.Int32)">
+  operator -(Frame, int)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Frame.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">static Frame operator -(Frame a, int b)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>a</code> <a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+    <dt><code>b</code> <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.int32">int</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Frame.cs" class="edit-link">Edit this page</a>
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Developed by <a href="https://lucasteles.dev/">Lucas Teles</a>.</span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
