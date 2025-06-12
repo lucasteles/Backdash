@@ -398,6 +398,30 @@ public class BinaryBufferReadWriteListTests
             reader.ReadCount.Should().Be(size);
             return value.SequenceEqual(read);
         }
+
+        [PropertyTest]
+        public bool ListOfInt128(List<Int128Enum> value, Endianness endianness)
+        {
+            var size = Setup(value, endianness, out var writer);
+            writer.WriteAsInt128(value);
+            var reader = GetReader(writer);
+            List<Int128Enum> read = [];
+            reader.ReadAsInt128(read);
+            reader.ReadCount.Should().Be(size);
+            return value.SequenceEqual(read);
+        }
+
+        [PropertyTest]
+        public bool ListOfUInt128(List<UInt128Enum> value, Endianness endianness)
+        {
+            var size = Setup(value, endianness, out var writer);
+            writer.WriteAsUInt128(value);
+            var reader = GetReader(writer);
+            List<UInt128Enum> read = [];
+            reader.ReadAsUInt128(read);
+            reader.ReadCount.Should().Be(size);
+            return value.SequenceEqual(read);
+        }
     }
 
     [Fact]

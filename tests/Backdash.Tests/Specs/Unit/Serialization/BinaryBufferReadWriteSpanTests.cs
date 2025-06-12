@@ -467,6 +467,30 @@ public class BinaryBufferReadWriteSpanTests
             reader.ReadCount.Should().Be(size);
             return value.AsSpan().SequenceEqual(read);
         }
+
+        [PropertyTest]
+        public bool SpanOfInt128(Int128Enum[] value, Endianness endianness)
+        {
+            var size = Setup(value, endianness, out var writer);
+            writer.WriteAsInt128(value);
+            var reader = GetReader(writer);
+            Span<Int128Enum> read = stackalloc Int128Enum[value.Length];
+            reader.ReadAsInt128(read);
+            reader.ReadCount.Should().Be(size);
+            return value.AsSpan().SequenceEqual(read);
+        }
+
+        [PropertyTest]
+        public bool SpanOfUInt128(UInt128Enum[] value, Endianness endianness)
+        {
+            var size = Setup(value, endianness, out var writer);
+            writer.WriteAsUInt128(value);
+            var reader = GetReader(writer);
+            Span<UInt128Enum> read = stackalloc UInt128Enum[value.Length];
+            reader.ReadAsUInt128(read);
+            reader.ReadCount.Should().Be(size);
+            return value.AsSpan().SequenceEqual(read);
+        }
     }
 
     static int readOffset;

@@ -688,6 +688,42 @@ public class BinaryBufferReadWriteValueTests
 
             return value == read;
         }
+
+        [PropertyTest]
+        public bool TestInt128(Int128Enum value, Int128Enum read, Endianness endianness)
+        {
+            var size = Setup<Int128Enum>(endianness, out var writer);
+            writer.WriteAsInt128(in value);
+
+            var reader = GetReader(writer);
+            reader.ReadAsInt128(ref read);
+            reader.ReadCount.Should().Be(size);
+
+            ResetRead();
+            var otherRead = reader.ReadAsInt128<Int128Enum>();
+            reader.ReadCount.Should().Be(size);
+            otherRead.Should().Be(read);
+
+            return value == read;
+        }
+
+        [PropertyTest]
+        public bool TestUInt128(UInt128Enum value, UInt128Enum read, Endianness endianness)
+        {
+            var size = Setup<UInt128Enum>(endianness, out var writer);
+            writer.WriteAsUInt128(in value);
+
+            var reader = GetReader(writer);
+            reader.ReadAsUInt128(ref read);
+            reader.ReadCount.Should().Be(size);
+
+            ResetRead();
+            var otherRead = reader.ReadAsUInt128<UInt128Enum>();
+            reader.ReadCount.Should().Be(size);
+            otherRead.Should().Be(read);
+
+            return value == read;
+        }
     }
 
     static int readOffset;

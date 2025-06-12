@@ -1102,4 +1102,56 @@ public readonly ref struct BinaryBufferReader
         var value = ReadNullableUInt64();
         return Unsafe.As<ulong?, T?>(ref value);
     }
+
+    /// <summary>Reads a <see cref="Int128" /> from buffer and reinterpret it as <typeparamref name="T" />.</summary>
+    public T ReadAsInt128<T>() where T : unmanaged
+    {
+        var value = ReadInt128();
+        return Unsafe.As<Int128, T>(ref value);
+    }
+
+    /// <inheritdoc cref="ReadAsInt128{T}()" />
+    public void ReadAsInt128<T>(ref T value) where T : unmanaged => Read(ref Unsafe.As<T, Int128>(ref value));
+
+    /// <inheritdoc cref="ReadAsInt128{T}()" />
+    public void ReadAsInt128<T>(ref T? value) where T : unmanaged => Read(ref Unsafe.As<T?, Int128?>(ref value));
+
+    /// <inheritdoc cref="ReadAsInt128{T}()" />
+    public void ReadAsInt128<T>(in Span<T> values) where T : unmanaged => Read(MemoryMarshal.Cast<T, Int128>(values));
+
+    /// <inheritdoc cref="ReadAsInt128{T}()" />
+    public void ReadAsInt128<T>(in List<T> values) where T : unmanaged => ReadAsInt128(GetListSpan(in values));
+
+    /// <inheritdoc cref="ReadAsInt128{T}()" />
+    public T? ReadAsNullableInt128<T>() where T : unmanaged
+    {
+        var value = ReadNullableInt128();
+        return Unsafe.As<Int128?, T?>(ref value);
+    }
+
+    /// <summary>Reads a <see cref="UInt128" /> from buffer and reinterprets it as <typeparamref name="T" />.</summary>
+    public T ReadAsUInt128<T>() where T : unmanaged
+    {
+        var value = ReadUInt128();
+        return Unsafe.As<UInt128, T>(ref value);
+    }
+
+    /// <inheritdoc cref="ReadAsUInt128{T}()" />
+    public void ReadAsUInt128<T>(ref T value) where T : unmanaged => Read(ref Unsafe.As<T, UInt128>(ref value));
+
+    /// <inheritdoc cref="ReadAsUInt128{T}()" />
+    public void ReadAsUInt128<T>(ref T? value) where T : unmanaged => Read(ref Unsafe.As<T?, UInt128?>(ref value));
+
+    /// <inheritdoc cref="ReadAsUInt128{T}()" />
+    public void ReadAsUInt128<T>(in Span<T> values) where T : unmanaged => Read(MemoryMarshal.Cast<T, UInt128>(values));
+
+    /// <inheritdoc cref="ReadAsUInt128{T}()" />
+    public void ReadAsUInt128<T>(in List<T> values) where T : unmanaged => ReadAsUInt128(GetListSpan(in values));
+
+    /// <inheritdoc cref="ReadAsUInt128{T}()" />
+    public T? ReadAsNullableUInt128<T>() where T : unmanaged
+    {
+        var value = ReadNullableUInt128();
+        return Unsafe.As<UInt128?, T?>(ref value);
+    }
 }

@@ -755,5 +755,51 @@ public readonly ref struct BinaryRawBufferWriter
     /// <inheritdoc cref="WriteAsUInt64{T}(in T)" />
     public void WriteAsUInt64<T>(in List<T> value) where T : unmanaged => WriteAsUInt64<T>(GetListSpan(in value));
 
+    /// <summary>Reinterprets the <paramref name="value" /> as <see cref="Int128" /> and writes it into buffer.</summary>
+    public void WriteAsInt128<T>(in T value) where T : unmanaged =>
+        Write(in Unsafe.As<T, Int128>(ref Unsafe.AsRef(in value)));
+
+    /// <inheritdoc cref="WriteAsInt128{T}(in T)" />
+    public void WriteAsInt128<T>(in T? value) where T : unmanaged
+    {
+        Write(value.HasValue);
+        if (value.HasValue)
+            WriteAsInt128(in Nullable.GetValueRefOrDefaultRef(in value));
+    }
+
+    /// <inheritdoc cref="WriteAsInt128{T}(in T)" />
+    public void WriteAsInt128<T>(in ReadOnlySpan<T> value) where T : unmanaged =>
+        Write(MemoryMarshal.Cast<T, Int128>(value));
+
+    /// <inheritdoc cref="WriteAsInt128{T}(in T)" />
+    public void WriteAsInt128<T>(in T[] value) where T : unmanaged =>
+        WriteAsInt128((ReadOnlySpan<T>)value);
+
+    /// <inheritdoc cref="WriteAsInt128{T}(in T)" />
+    public void WriteAsInt128<T>(in List<T> value) where T : unmanaged => WriteAsInt128<T>(GetListSpan(in value));
+
+    /// <summary>Reinterprets the <paramref name="value" /> as <see cref="UInt128" /> and writes it into buffer.</summary>
+    public void WriteAsUInt128<T>(in T value) where T : unmanaged =>
+        Write(in Unsafe.As<T, UInt128>(ref Unsafe.AsRef(in value)));
+
+    /// <inheritdoc cref="WriteAsUInt128{T}(in T)" />
+    public void WriteAsUInt128<T>(in T? value) where T : unmanaged
+    {
+        Write(value.HasValue);
+        if (value.HasValue)
+            WriteAsUInt128(in Nullable.GetValueRefOrDefaultRef(in value));
+    }
+
+    /// <inheritdoc cref="WriteAsUInt128{T}(in T)" />
+    public void WriteAsUInt128<T>(in ReadOnlySpan<T> value) where T : unmanaged =>
+        Write(MemoryMarshal.Cast<T, UInt128>(value));
+
+    /// <inheritdoc cref="WriteAsUInt128{T}(in T)" />
+    public void WriteAsUInt128<T>(in T[] value) where T : unmanaged =>
+        WriteAsUInt128((ReadOnlySpan<T>)value);
+
+    /// <inheritdoc cref="WriteAsUInt128{T}(in T)" />
+    public void WriteAsUInt128<T>(in List<T> value) where T : unmanaged => WriteAsUInt128<T>(GetListSpan(in value));
+
     #endregion
 }

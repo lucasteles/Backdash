@@ -367,3 +367,7 @@ public enum Int64Enum : long
     N2 = 1L << 38,
     O2 = 1L << 39,
 }
+
+public record struct Int128Enum(Int128 Value);
+
+public record struct UInt128Enum(UInt128 Value);
