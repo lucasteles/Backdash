@@ -6,6 +6,11 @@ namespace Backdash.Synchronizing.Random;
 public interface INetcodeRandom
 {
     /// <summary>
+    ///     Returns the initial seed
+    /// </summary>
+    uint InitialSeed { get; }
+
+    /// <summary>
     ///     Returns the current seed
     /// </summary>
     uint CurrentSeed { get; }
@@ -61,6 +66,11 @@ public interface INetcodeRandom
 /// </summary>
 public interface IDeterministicRandom<TInput> : INetcodeRandom where TInput : unmanaged
 {
+    /// <summary>
+    ///     Sets the initial state seed
+    /// </summary>
+    void SetInitialSeed(uint value);
+
     /// <summary>
     ///     Updates the seed for the current random instance
     /// </summary>

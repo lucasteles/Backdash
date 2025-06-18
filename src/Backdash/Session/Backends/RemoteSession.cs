@@ -84,7 +84,7 @@ sealed class RemoteSession<TInput> : INetcodeSession<TInput>
         peerInputEventQueue = new();
         networkEventQueue = new();
         inputGroupComparer = ConfirmedInputComparer<TInput>.Create(services.InputComparer);
-        syncNumber = services.Random.MagicNumber();
+        syncNumber = services.Random.SyncNumber();
         peerCombinedInputsEventPublisher = new(peerInputEventQueue);
         inputGroupSerializer = new ConfirmedInputsSerializer<TInput>(inputSerializer);
         localConnections = new(Max.NumberOfPlayers);

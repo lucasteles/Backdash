@@ -161,12 +161,12 @@ abstract class DataGenerator
 
     public static Arbitrary<Header> HeaderGenerator() => Arb.From(
         from msgType in Generate<MessageType>()
-        from magic in Generate<ushort>()
+        from syncNumber in Generate<ushort>()
         from seqNum in Generate<ushort>()
         select new Header
         {
             Type = msgType,
-            Magic = magic,
+            SyncNumber = syncNumber,
             SequenceNumber = seqNum,
         }
     );
@@ -211,7 +211,7 @@ abstract class DataGenerator
     );
 
     public static Arbitrary<SyncRequest> SyncRequestGenerator() => Arb.From(
-        from randRequest in Generate<uint>()
+        from randRequest in Generate<ushort>()
         select new SyncRequest
         {
             RandomRequest = randRequest,

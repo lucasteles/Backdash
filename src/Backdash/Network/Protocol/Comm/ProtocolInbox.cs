@@ -58,7 +58,7 @@ sealed class ProtocolInbox<TInput>(
                 return;
             }
 
-            if (message.Header.Magic != state.RemoteMagicNumber)
+            if (message.Header.SyncNumber != state.RemoteSyncNumber)
             {
                 logger.Write(LogLevel.Debug, $"recv rejecting: {message} on {state.Player}");
                 return;
@@ -228,7 +228,7 @@ sealed class ProtocolInbox<TInput>(
         if (state.CurrentStatus is not ProtocolStatus.Syncing)
         {
             logger.Write(LogLevel.Trace, "Ignoring SyncReply while not syncing");
-            return msg.Header.Magic == state.RemoteMagicNumber;
+            return msg.Header.SyncNumber == state.RemoteSyncNumber;
         }
 
         if (msg.SyncReply.RandomReply != state.Sync.CurrentRandom)
@@ -257,7 +257,7 @@ sealed class ProtocolInbox<TInput>(
             state.CurrentStatus = ProtocolStatus.Running;
             state.Stats.RoundTripTime = ping;
             lastReceivedInput.ResetFrame();
-            state.RemoteMagicNumber = msg.Header.Magic;
+            state.RemoteSyncNumber = msg.Header.SyncNumber;
             networkEvents.OnNetworkEvent(new(ProtocolEvent.Synchronized, state.Player)
             {
                 Synchronized = new(ping),
@@ -282,11 +282,11 @@ sealed class ProtocolInbox<TInput>(
 
     public bool OnSyncRequest(ref readonly ProtocolMessage msg, ref ProtocolMessage replyMsg)
     {
-        var remoteMagicNumber = state.RemoteMagicNumber;
-        if (remoteMagicNumber is not 0 && msg.Header.Magic != remoteMagicNumber)
+        var remoteMagicNumber = state.RemoteSyncNumber;
+        if (remoteMagicNumber is not 0 && msg.Header.SyncNumber != remoteMagicNumber)
         {
             logger.Write(LogLevel.Warning,
-                $"Ignoring sync request from unknown endpoint ({msg.Header.Magic} != {remoteMagicNumber})");
+                $"Ignoring sync request from unknown endpoint ({msg.Header.SyncNumber} != {remoteMagicNumber})");
             return false;
         }
 

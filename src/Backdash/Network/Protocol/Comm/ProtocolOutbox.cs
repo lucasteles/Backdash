@@ -18,7 +18,7 @@ sealed class ProtocolOutbox(
 
     public void BeforeSendMessage(ref ProtocolMessage message)
     {
-        message.Header.Magic = state.SyncNumber;
+        message.Header.SyncNumber = state.SyncNumber;
         message.Header.SequenceNumber = (ushort)nextSendSeq;
         nextSendSeq++;
 

@@ -81,7 +81,7 @@ sealed class SpectatorSession<TInput> :
         udp = services.ProtocolClientFactory.CreateClient(options.LocalPort, peerObservers);
         ConfigureJobs(services);
 
-        var magicNumber = services.Random.MagicNumber();
+        var magicNumber = services.Random.SyncNumber();
         networkEventQueue = new();
         PeerConnectionFactory peerConnectionFactory = new(
             networkEventQueue, services.Random, logger, udp,

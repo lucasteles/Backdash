@@ -79,6 +79,11 @@ class MainBuild : NukeBuild
             .EnableNoRestore()
             .SetProject(Solution)));
 
+    Target PreCommit => _ => _
+        .Description("Run Format and Tests")
+        .DependsOn(Format)
+        .Triggers(Test);
+
     Target Test => _ => _
         .Description("Run tests with coverage")
         .DependsOn(Build)

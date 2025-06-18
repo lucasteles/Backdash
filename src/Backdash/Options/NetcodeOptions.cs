@@ -107,6 +107,12 @@ public sealed record NetcodeOptions
     /// <seealso cref="FrameTime"/>
     public int FrameRate { get; set; } = FrameTime.DefaultFrameRate;
 
+    /// <summary>
+    ///     Initial seed for <see cref="ServicesConfig{TInput}.DeterministicRandom"/>
+    /// </summary>
+    /// <value>Defaults to <c>0</c></value>
+    public uint DeterministicRandomInitialSeed { get; set; }
+
     /// <summary>Time synchronization options.</summary>
     /// <seealso cref="TimeSyncOptions" />
     public TimeSyncOptions TimeSync { get; set; } = new();

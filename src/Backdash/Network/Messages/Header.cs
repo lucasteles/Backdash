@@ -10,13 +10,13 @@ record struct Header(MessageType Type)
     public const int Size = 6;
 
     public MessageType Type = Type;
-    public ushort Magic = 0;
+    public ushort SyncNumber = 0;
     public ushort SequenceNumber = 0;
 
     public readonly void Serialize(in BinaryRawBufferWriter writer)
     {
         writer.Write((ushort)Type);
-        writer.Write(in Magic);
+        writer.Write(in SyncNumber);
         writer.Write(in SequenceNumber);
     }
 
@@ -25,13 +25,13 @@ record struct Header(MessageType Type)
         try
         {
             Type = reader.ReadAsUInt16<MessageType>();
-            Magic = reader.ReadUInt16();
+            SyncNumber = reader.ReadUInt16();
             SequenceNumber = reader.ReadUInt16();
         }
         catch
         {
             Type = MessageType.Unknown;
-            Magic = 0;
+            SyncNumber = 0;
             SequenceNumber = 0;
         }
     }

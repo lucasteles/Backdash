@@ -36,6 +36,7 @@
         "GenerateBadges",
         "GenerateReport",
         "Lint",
+        "PreCommit",
         "Report",
         "Restore",
         "Test",

@@ -19,13 +19,15 @@ public sealed class Game : INetcodeSessionHandler
     readonly View view;
 
     // Actual game state
-    GameState currentState = GameLogic.InitialState();
+    GameState currentState;
 
     public Game(INetcodeSession<GameInput> session, CancellationTokenSource cancellation)
     {
         view = new();
         this.session = session;
         this.cancellation = cancellation;
+
+        currentState = GameLogic.InitialState();
 
         if (session.IsRemote())
         {

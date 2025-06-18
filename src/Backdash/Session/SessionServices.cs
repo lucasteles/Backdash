@@ -41,12 +41,15 @@ sealed class SessionServices<TInput> where TInput : unmanaged
 
         ChecksumProvider = services?.ChecksumProvider ?? new Fletcher32ChecksumProvider();
         StateStore = services?.StateStore ?? new DefaultStateStore(options.StateSizeHint);
-        DeterministicRandom = services?.DeterministicRandom ?? new XorShiftRandom<TInput>();
         InputListener = services?.InputListener;
         Random = new DefaultRandomNumberGenerator(services?.Random ?? System.Random.Shared);
         DelayStrategy = DelayStrategyFactory.Create(Random, options.Protocol.DelayStrategy);
         InputComparer = services?.InputComparer ?? EqualityComparer<TInput>.Default;
         InputSerializer = inputSerializer;
+
+        DeterministicRandom = services?.DeterministicRandom ?? new XorShiftRandom<TInput>();
+        if (DeterministicRandom.InitialSeed is 0)
+            DeterministicRandom.SetInitialSeed(options.DeterministicRandomInitialSeed);
 
         var logWriter = services?.LogWriter ?? new ConsoleTextLogWriter();
         Logger = new(options.Logger, logWriter);

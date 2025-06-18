@@ -24,7 +24,7 @@ sealed class ProtocolState(
     public readonly ConnectionsState LocalConnectStatuses = localConnectStatuses;
     public readonly ConnectionsState PeerConnectStatuses = new(Max.NumberOfPlayers, Frame.Null);
     public readonly ushort SyncNumber = syncNumber;
-    public ushort RemoteMagicNumber;
+    public ushort RemoteSyncNumber;
     public ProtocolStatus CurrentStatus;
 
     public sealed class ConnectionState
@@ -91,10 +91,10 @@ sealed class ProtocolState(
     {
         public readonly object Locker = new();
         int remainingRoundTrips;
-        uint currentRandom;
+        ushort currentRandom;
         TimeSpan totalRoundTripsPing;
 
-        public uint CurrentRandom
+        public ushort CurrentRandom
         {
             get
             {

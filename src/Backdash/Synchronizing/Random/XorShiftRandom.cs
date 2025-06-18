@@ -13,6 +13,9 @@ public sealed class XorShiftRandom<TInput> : IDeterministicRandom<TInput> where 
     uint state;
 
     /// <inheritdoc />
+    public uint InitialSeed { get; private set; }
+
+    /// <inheritdoc />
     public uint CurrentSeed { get; private set; }
 
     /// <inheritdoc />
@@ -21,16 +24,16 @@ public sealed class XorShiftRandom<TInput> : IDeterministicRandom<TInput> where 
     /// <inheritdoc />
     public uint Next()
     {
-        unchecked
-        {
-            Debug.Assert(state > 0);
-            var x = state;
-            x ^= x << 13;
-            x ^= x >> 17;
-            x ^= x << 5;
-            return state = x;
-        }
+        Debug.Assert(state > 0);
+        var x = state;
+        x ^= x << 13;
+        x ^= x >> 17;
+        x ^= x << 5;
+        return state = x;
     }
+
+    /// <inheritdoc />
+    public void SetInitialSeed(uint value) => InitialSeed = value;
 
     /// <inheritdoc />
     public void UpdateSeed(in Frame currentFrame, ReadOnlySpan<TInput> inputs, uint extraState = 0)
@@ -39,7 +42,7 @@ public sealed class XorShiftRandom<TInput> : IDeterministicRandom<TInput> where 
         {
             var offset = currentFrame.Number % 31;
             var inputSeed = MathI.SumRaw(MemoryMarshal.Cast<TInput, uint>(inputs)) << offset;
-            var newSeed = (uint)currentFrame.Number + inputSeed + extraState + 1;
+            var newSeed = InitialSeed + (uint)currentFrame.Number + inputSeed + extraState + 1;
             if (BitConverter.IsLittleEndian)
                 newSeed = BinaryPrimitives.ReverseEndianness(newSeed);
             state = CurrentSeed = newSeed;

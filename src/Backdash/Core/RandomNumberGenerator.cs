@@ -4,23 +4,14 @@ namespace Backdash.Core;
 
 interface IRandomNumberGenerator
 {
-    uint SyncNumber();
-    ushort MagicNumber();
+    ushort SyncNumber();
     int NextInt();
     double NextGaussian();
 }
 
 sealed class DefaultRandomNumberGenerator(Random random) : IRandomNumberGenerator
 {
-    public uint SyncNumber()
-    {
-        using var gen = RandomNumberGenerator.Create();
-        Span<byte> buff = stackalloc byte[sizeof(uint)];
-        gen.GetBytes(buff);
-        return BitConverter.ToUInt32(buff);
-    }
-
-    public ushort MagicNumber()
+    public ushort SyncNumber()
     {
         using var gen = RandomNumberGenerator.Create();
         Span<byte> buff = stackalloc byte[sizeof(ushort)];

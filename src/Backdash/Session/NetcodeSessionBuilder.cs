@@ -224,6 +224,17 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
         return this;
     }
 
+    /// <inheritdoc cref="NetcodeOptions.DeterministicRandomInitialSeed" />
+    public NetcodeSessionBuilder<TInput> WithInitialRandomSeed(uint value)
+    {
+        options.DeterministicRandomInitialSeed = value;
+        return this;
+    }
+
+    /// <inheritdoc cref="WithInitialRandomSeed(uint)" />
+    public NetcodeSessionBuilder<TInput> WithInitialRandomSeed(int value) =>
+        WithInitialRandomSeed(unchecked((uint)value));
+
     /// <inheritdoc cref="NetcodeOptions.LocalPort" />
     public NetcodeSessionBuilder<TInput> WithPort(int port)
     {
