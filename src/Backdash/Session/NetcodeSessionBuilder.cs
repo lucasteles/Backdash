@@ -317,6 +317,12 @@ public sealed class NetcodeSessionBuilder<TInput> where TInput : unmanaged
         ConfigureProtocol(o => o.CalculateRemotePlayerStats = enabled);
 
     /// <summary>
+    ///     Sets <see cref="NetcodeOptions.Protocol"/>.<see cref="ProtocolOptions.ConsistencyCheckEnabled" /> option
+    /// </summary>
+    public NetcodeSessionBuilder<TInput> WithConsistencyCheck(bool enabled) =>
+        ConfigureProtocol(o => o.ConsistencyCheckEnabled = enabled);
+
+    /// <summary>
     ///     Set the logger <see cref="ServicesConfig{TInput}.LogWriter" />
     /// </summary>
     /// <seealso cref="NetcodeOptions.Logger" />
