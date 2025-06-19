@@ -109,9 +109,6 @@ sealed class InputQueue<TInput> where TInput : unmanaged
 
     public bool GetInput(in Frame requestedFrame, out GameInput<TInput> input)
     {
-        if (inputs.IsEmpty)
-            throw new InvalidOperationException("Can't get inputs: queue is empty.");
-
         logger.Write(LogLevel.Trace, $"Queue {QueueId} => requesting input frame {requestedFrame.Number}.");
         // No one should ever try to grab any input when we have a prediction error.
         // Doing so means that we're just going further down the wrong path.
@@ -119,7 +116,7 @@ sealed class InputQueue<TInput> where TInput : unmanaged
         // Remember the last requested frame number for later. We'll need this in AddInput() to drop out of prediction mode.
         lastFrameRequested = requestedFrame;
         if (requestedFrame.Number < FirstInput.Frame.Number)
-            throw new InvalidOperationException(
+            throw new NetcodeAssertionException(
                 $"Requested frame ({requestedFrame.Number}) can not be smaller than the first input frame ({FirstInput.Frame.Number})."
             );
 

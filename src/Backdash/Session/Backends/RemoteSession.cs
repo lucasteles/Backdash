@@ -16,8 +16,7 @@ using Backdash.Synchronizing.State;
 
 namespace Backdash.Backends;
 
-sealed class RemoteSession<TInput> : INetcodeSession<TInput>
-    where TInput : unmanaged
+sealed class RemoteSession<TInput> : INetcodeSession<TInput> where TInput : unmanaged
 {
     readonly NetcodeOptions options;
     readonly Logger logger;
