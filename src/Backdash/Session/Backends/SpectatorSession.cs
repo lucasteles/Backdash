@@ -355,7 +355,7 @@ sealed class SpectatorSession<TInput> :
 
     public bool LoadFrame(Frame frame)
     {
-        frame = Frame.Max(in frame, in Frame.Zero);
+        if (frame.Number < 0) return false;
 
         if (frame.Number == CurrentFrame.Number)
         {

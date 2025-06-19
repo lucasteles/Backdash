@@ -208,7 +208,7 @@ sealed class LocalSession<TInput> : INetcodeSession<TInput> where TInput : unman
 
     public bool LoadFrame(Frame frame)
     {
-        frame = Frame.Max(in frame, in Frame.Zero);
+        if (frame.Number < 1) return false;
 
         if (frame.Number == CurrentFrame.Number)
         {

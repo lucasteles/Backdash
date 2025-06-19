@@ -79,11 +79,19 @@ sealed class InputQueue<TInput> where TInput : unmanaged
 
         var offset = lastUserAddedFrame.Number - frame.Number;
         if (offset < 0) return;
+
         logger.Write(LogLevel.Debug, $"Queue {QueueId} => dropping last {offset} frames.");
         inputs.Advance(-offset);
+
         lastUserAddedFrame = frame;
         lastFrameRequested = frame;
         lastAddedFrame = frame + LocalFrameDelay;
+
+        if (!inputs.IsEmpty) return;
+        var firstInput = inputs.Front();
+        firstInput.Frame = frame;
+        lastAddedFrame = frame;
+        inputs.Add(firstInput);
     }
 
     public bool GetConfirmedInput(in Frame requestedFrame, ref GameInput<TInput> input)
@@ -101,13 +109,20 @@ sealed class InputQueue<TInput> where TInput : unmanaged
 
     public bool GetInput(in Frame requestedFrame, out GameInput<TInput> input)
     {
+        if (inputs.IsEmpty)
+            throw new InvalidOperationException("Can't get inputs: queue is empty.");
+
         logger.Write(LogLevel.Trace, $"Queue {QueueId} => requesting input frame {requestedFrame.Number}.");
         // No one should ever try to grab any input when we have a prediction error.
         // Doing so means that we're just going further down the wrong path.
         ThrowIf.Assert(firstIncorrectFrame.IsNull);
         // Remember the last requested frame number for later. We'll need this in AddInput() to drop out of prediction mode.
         lastFrameRequested = requestedFrame;
-        ThrowIf.Assert(requestedFrame.Number >= FirstInput.Frame.Number);
+        if (requestedFrame.Number < FirstInput.Frame.Number)
+            throw new InvalidOperationException(
+                $"Requested frame ({requestedFrame.Number}) can not be smaller than the first input frame ({FirstInput.Frame.Number})."
+            );
+
         if (prediction.Frame.IsNull)
         {
             // If the frame requested is in our range, fetch it out of the queue and  return it.

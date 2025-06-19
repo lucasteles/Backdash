@@ -102,7 +102,7 @@ public readonly record struct Frame :
     }
 
     /// <inheritdoc cref="Number" />
-    public static explicit operator int(Frame frame) => frame.Number;
+    public static implicit operator int(Frame frame) => frame.Number;
 
     /// <inheritdoc cref="Frame(int)" />
     public static explicit operator Frame(int frame) => new(frame);

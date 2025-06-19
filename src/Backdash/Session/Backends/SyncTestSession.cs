@@ -268,7 +268,7 @@ sealed class SyncTestSession<TInput> : INetcodeSession<TInput>
 
     public bool LoadFrame(Frame frame)
     {
-        frame = Frame.Max(in frame, in Frame.Zero);
+        if (frame.Number < 0) return false;
         return synchronizer.TryLoadFrame(in frame);
     }
 

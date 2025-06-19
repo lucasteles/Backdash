@@ -61,7 +61,6 @@ public sealed class CircularBuffer<T>(int capacity) : IReadOnlyList<T>, IEquatab
         return value;
     }
 
-
     public ref T Next() => ref array[head];
     public ref T Front() => ref array[CurrentIndex];
     public ref T Back() => ref array[tail];
