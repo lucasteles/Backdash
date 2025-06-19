@@ -12,15 +12,15 @@ namespace Backdash.Serialization;
 ///     Binary span writer.
 /// </summary>
 [DebuggerDisplay("Written: {WrittenCount}")]
-public readonly ref struct BinaryRawBufferWriter
+public readonly ref struct BinarySpanWriter
 {
     /// <summary>
-    ///     Initialize a new <see cref="BinaryRawBufferWriter" /> for <paramref name="buffer" />
+    ///     Initialize a new <see cref="BinarySpanWriter" /> for <paramref name="buffer" />
     /// </summary>
     /// <param name="buffer">Byte buffer to be written</param>
     /// <param name="offset">Write offset reference</param>
     /// <param name="endianness">Serialization endianness</param>
-    public BinaryRawBufferWriter(
+    public BinarySpanWriter(
         scoped in Span<byte> buffer,
         ref int offset,
         Endianness? endianness = null

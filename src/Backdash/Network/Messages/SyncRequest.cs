@@ -10,7 +10,7 @@ record struct SyncRequest : IUtf8SpanFormattable
     public ushort RandomRequest;
     public long Ping;
 
-    public readonly void Serialize(in BinaryRawBufferWriter writer)
+    public readonly void Serialize(in BinarySpanWriter writer)
     {
         writer.Write(in RandomRequest);
         writer.Write(in Ping);

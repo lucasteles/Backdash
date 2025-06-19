@@ -6,7 +6,7 @@ namespace Backdash.Serialization;
 public interface IBinarySerializable
 {
     /// <summary>
-    ///     Serialize the current instance using <see cref="BinaryRawBufferWriter" />
+    ///     Serialize the current instance using <see cref="BinarySpanWriter" />
     /// </summary>
     /// <param name="writer">Binary writer</param>
     void Serialize(ref readonly BinaryBufferWriter writer);

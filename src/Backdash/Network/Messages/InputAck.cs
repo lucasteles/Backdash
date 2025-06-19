@@ -7,7 +7,7 @@ namespace Backdash.Network.Messages;
 record struct InputAck : IUtf8SpanFormattable
 {
     public Frame AckFrame;
-    public readonly void Serialize(in BinaryRawBufferWriter writer) => writer.Write(in AckFrame);
+    public readonly void Serialize(in BinarySpanWriter writer) => writer.Write(in AckFrame);
 
     public void Deserialize(in BinaryBufferReader reader) =>
         AckFrame = reader.ReadFrame();

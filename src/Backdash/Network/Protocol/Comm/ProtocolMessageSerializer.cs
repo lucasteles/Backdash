@@ -10,7 +10,7 @@ sealed class ProtocolMessageSerializer(Endianness endianness) : IBinarySerialize
     public int Serialize(in ProtocolMessage data, Span<byte> buffer)
     {
         var offset = 0;
-        BinaryRawBufferWriter writer = new(buffer, ref offset, endianness);
+        BinarySpanWriter writer = new(buffer, ref offset, endianness);
         data.Serialize(in writer);
         return writer.WrittenCount;
     }

@@ -301,7 +301,7 @@ public class BinarySpanReadWriteValueTests
 
     static int Setup<T>(
         Endianness endianness,
-        out BinaryRawBufferWriter writer,
+        out BinarySpanWriter writer,
         out BinaryBufferReader reader,
         int extra = 0
     ) where T : struct

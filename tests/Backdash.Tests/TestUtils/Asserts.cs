@@ -8,7 +8,7 @@ static class AssertThat
 {
     public static class Serialization
     {
-        public delegate void SerializeFn<T>(ref T value, BinaryRawBufferWriter writer);
+        public delegate void SerializeFn<T>(ref T value, BinarySpanWriter writer);
 
         public delegate void DeserializeFn<T>(ref T value, BinaryBufferReader reader);
 

@@ -12,7 +12,7 @@ sealed class ConfirmedInputsSerializer<T>(IBinarySerializer<T> inputSerializer) 
     public Endianness Endianness => endianness;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    void Write(in BinaryRawBufferWriter writer, in ConfirmedInputs<T> data)
+    void Write(in BinarySpanWriter writer, in ConfirmedInputs<T> data)
     {
         ReadOnlySpan<T> inputs = data.Inputs;
         writer.Write(data.Count);
@@ -46,7 +46,7 @@ sealed class ConfirmedInputsSerializer<T>(IBinarySerializer<T> inputSerializer) 
     public int Serialize(in ConfirmedInputs<T> data, Span<byte> buffer)
     {
         var offset = 0;
-        BinaryRawBufferWriter writer = new(buffer, ref offset, endianness);
+        BinarySpanWriter writer = new(buffer, ref offset, endianness);
         Write(in writer, in data);
         return writer.WrittenCount;
     }

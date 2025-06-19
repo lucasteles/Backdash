@@ -8,7 +8,7 @@ record struct ConsistencyCheckRequest : IUtf8SpanFormattable
 {
     public Frame Frame;
 
-    public readonly void Serialize(in BinaryRawBufferWriter writer) =>
+    public readonly void Serialize(in BinarySpanWriter writer) =>
         writer.Write(in Frame);
 
     public void Deserialize(in BinaryBufferReader reader) =>

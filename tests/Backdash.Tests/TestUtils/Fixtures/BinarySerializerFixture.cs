@@ -9,7 +9,7 @@ readonly ref struct BinarySerializerFixture
 {
     readonly byte[] buffer;
     public readonly BinaryBufferReader Reader;
-    public readonly BinaryRawBufferWriter Writer;
+    public readonly BinarySpanWriter Writer;
     public readonly ref int WriteOffset;
     public readonly ref int ReadOffset;
 

@@ -10,7 +10,7 @@ public class ProtocolMessageTests
     internal bool SerializationAndDeserialization(ProtocolMessage value) =>
         AssertThat.Serialization.IsValid(
             ref value,
-            (ref ProtocolMessage v, BinaryRawBufferWriter w) => v.Serialize(w),
+            (ref ProtocolMessage v, BinarySpanWriter w) => v.Serialize(w),
             (ref ProtocolMessage v, BinaryBufferReader r) => v.Deserialize(r)
         );
 }

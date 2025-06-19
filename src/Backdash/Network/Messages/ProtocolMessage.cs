@@ -38,7 +38,7 @@ struct ProtocolMessage(MessageType type = MessageType.Unknown) : IEquatable<Prot
     [FieldOffset(Header.Size)]
     public InputMessage Input;
 
-    public readonly void Serialize(in BinaryRawBufferWriter writer)
+    public readonly void Serialize(in BinarySpanWriter writer)
     {
         Header.Serialize(in writer);
         switch (Header.Type)

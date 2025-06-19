@@ -8,7 +8,7 @@ record struct ConnectStatus
     public Frame LastFrame;
     public bool Disconnected;
 
-    public readonly void Serialize(in BinaryRawBufferWriter writer)
+    public readonly void Serialize(in BinarySpanWriter writer)
     {
         writer.Write(in Disconnected);
         writer.Write(in LastFrame);

@@ -117,14 +117,14 @@ public static class NumericsExtensions
     #region BinaryRawBufferWriter
 
     /// <summary>Writes single <see cref="Vector2" /> <paramref name="value" /> into buffer.</summary>
-    public static void Write(in this BinaryRawBufferWriter writer, in Vector2 value)
+    public static void Write(in this BinarySpanWriter writer, in Vector2 value)
     {
         writer.Write(value.X);
         writer.Write(value.Y);
     }
 
     /// <summary>Writes single <see cref="Vector3" /> <paramref name="value" /> into buffer.</summary>
-    public static void Write(in this BinaryRawBufferWriter writer, in Vector3 value)
+    public static void Write(in this BinarySpanWriter writer, in Vector3 value)
     {
         writer.Write(value.X);
         writer.Write(value.Y);
@@ -132,7 +132,7 @@ public static class NumericsExtensions
     }
 
     /// <summary>Writes single <see cref="Vector4" /> <paramref name="value" /> into buffer.</summary>
-    public static void Write(in this BinaryRawBufferWriter writer, in Vector4 value)
+    public static void Write(in this BinarySpanWriter writer, in Vector4 value)
     {
         writer.Write(value.X);
         writer.Write(value.Y);
@@ -141,7 +141,7 @@ public static class NumericsExtensions
     }
 
     /// <summary>Writes single <see cref="Quaternion" /> <paramref name="value" /> into buffer.</summary>
-    public static void Write(in this BinaryRawBufferWriter writer, in Quaternion value)
+    public static void Write(in this BinarySpanWriter writer, in Quaternion value)
     {
         writer.Write(value.X);
         writer.Write(value.Y);
@@ -187,7 +187,7 @@ public static class NumericsExtensions
     }
 
 
-    /// <inheritdoc cref="Write(in Backdash.Serialization.BinaryRawBufferWriter,in System.Numerics.Vector2)" />
+    /// <inheritdoc cref="Write(in BinarySpanWriter,in System.Numerics.Vector2)" />
     public static void Write(in this BinaryBufferWriter writer, in Vector2? value)
     {
         writer.Write(value.HasValue);
@@ -195,7 +195,7 @@ public static class NumericsExtensions
             writer.Write(in Nullable.GetValueRefOrDefaultRef(in value));
     }
 
-    /// <inheritdoc cref="Write(in Backdash.Serialization.BinaryRawBufferWriter,in System.Numerics.Vector3)" />
+    /// <inheritdoc cref="Write(in BinarySpanWriter,in System.Numerics.Vector3)" />
     public static void Write(in this BinaryBufferWriter writer, in Vector3? value)
     {
         writer.Write(value.HasValue);
@@ -203,7 +203,7 @@ public static class NumericsExtensions
             writer.Write(in Nullable.GetValueRefOrDefaultRef(in value));
     }
 
-    /// <inheritdoc cref="Write(in Backdash.Serialization.BinaryRawBufferWriter,in System.Numerics.Vector4)" />
+    /// <inheritdoc cref="Write(in BinarySpanWriter,in System.Numerics.Vector4)" />
     public static void Write(in this BinaryBufferWriter writer, in Vector4? value)
     {
         writer.Write(value.HasValue);
@@ -211,7 +211,7 @@ public static class NumericsExtensions
             writer.Write(in Nullable.GetValueRefOrDefaultRef(in value));
     }
 
-    /// <inheritdoc cref="Write(in Backdash.Serialization.BinaryRawBufferWriter,in System.Numerics.Quaternion)" />
+    /// <inheritdoc cref="Write(in BinarySpanWriter,in System.Numerics.Quaternion)" />
     public static void Write(in this BinaryBufferWriter writer, in Quaternion? value)
     {
         writer.Write(value.HasValue);

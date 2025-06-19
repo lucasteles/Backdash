@@ -32,7 +32,7 @@ struct InputMessage : IEquatable<InputMessage>, IUtf8SpanFormattable
         InputSize = 0;
     }
 
-    public readonly void Serialize(in BinaryRawBufferWriter writer)
+    public readonly void Serialize(in BinarySpanWriter writer)
     {
         writer.Write(in StartFrame);
         writer.Write(in AckFrame);

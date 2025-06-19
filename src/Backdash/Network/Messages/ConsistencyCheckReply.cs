@@ -9,7 +9,7 @@ record struct ConsistencyCheckReply : IUtf8SpanFormattable
     public Frame Frame;
     public uint Checksum;
 
-    public readonly void Serialize(in BinaryRawBufferWriter writer)
+    public readonly void Serialize(in BinarySpanWriter writer)
     {
         writer.Write(in Frame);
         writer.Write(in Checksum);

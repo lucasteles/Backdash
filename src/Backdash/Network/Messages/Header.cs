@@ -13,7 +13,7 @@ record struct Header(MessageType Type)
     public ushort SyncNumber = 0;
     public ushort SequenceNumber = 0;
 
-    public readonly void Serialize(in BinaryRawBufferWriter writer)
+    public readonly void Serialize(in BinarySpanWriter writer)
     {
         writer.Write((ushort)Type);
         writer.Write(in SyncNumber);

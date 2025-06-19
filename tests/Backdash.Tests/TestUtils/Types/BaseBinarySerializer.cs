@@ -10,11 +10,11 @@ abstract class BaseBinarySerializer<T>(Endianness endianness = Endianness.BigEnd
     public Endianness Endianness { get; } = endianness;
 
     /// <summary>
-    /// Serialize <paramref name="data"/> using <see cref="BinaryRawBufferWriter"/>
+    /// Serialize <paramref name="data"/> using <see cref="BinarySpanWriter"/>
     /// </summary>
     /// <param name="binaryWriter">Binary writer</param>
     /// <param name="data">Data to be written</param>
-    protected abstract void Serialize(in BinaryRawBufferWriter binaryWriter, in T data);
+    protected abstract void Serialize(in BinarySpanWriter binaryWriter, in T data);
 
     /// <summary>
     /// Deserialize buffer data using <paramref name="binaryReader"/> into <paramref name="result"/>
@@ -26,7 +26,7 @@ abstract class BaseBinarySerializer<T>(Endianness endianness = Endianness.BigEnd
     int IBinarySerializer<T>.Serialize(in T data, Span<byte> buffer)
     {
         var offset = 0;
-        BinaryRawBufferWriter writer = new(buffer, ref offset, Endianness);
+        BinarySpanWriter writer = new(buffer, ref offset, Endianness);
         Serialize(in writer, in data);
         return writer.WrittenCount;
     }
