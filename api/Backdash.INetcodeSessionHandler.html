@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Interface INetcodeSessionHandler | Backdash Netcode </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Interface INetcodeSessionHandler | Backdash Netcode ">
+      
+      <meta name="description" content="Defines the callback functions that your application must implement. Backdash will periodically call these functions during the session lifecycle.">
+      <link rel="icon" href="../docs/images/favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="ManagedReference">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../docs/images/logo.png" alt="Backdash">
+            Backdash
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="Backdash.INetcodeSessionHandler">
+
+
+
+  <h1 id="Backdash_INetcodeSessionHandler" data-uid="Backdash.INetcodeSessionHandler" class="text-break">
+Interface INetcodeSessionHandler  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/INetcodeSessionHandler.cs"><i class="bi bi-code-slash"></i></a>
+  </h1>
+
+  <div class="facts text-secondary">
+    <dl><dt>Namespace</dt><dd><a class="xref" href="Backdash.html">Backdash</a></dd></dl>
+  <dl><dt>Assembly</dt><dd>Backdash.dll</dd></dl>
+  </div>
+
+  <div class="markdown summary"><p>Defines the callback functions that your application must implement.
+Backdash will periodically call these functions during the session lifecycle.</p>
+</div>
+  <div class="markdown conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public interface INetcodeSessionHandler</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <h2 class="section" id="methods">Methods
+</h2>
+
+
+  <a id="Backdash_INetcodeSessionHandler_AdvanceFrame_" data-uid="Backdash.INetcodeSessionHandler.AdvanceFrame*"></a>
+
+  <h3 id="Backdash_INetcodeSessionHandler_AdvanceFrame" data-uid="Backdash.INetcodeSessionHandler.AdvanceFrame">
+  AdvanceFrame()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/INetcodeSessionHandler.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Called during a rollback after <a class="xref" href="Backdash.INetcodeSessionHandler.html#Backdash_INetcodeSessionHandler_LoadState_Backdash_Frame__Backdash_Serialization_BinaryBufferReader__">LoadState(in Frame, ref readonly BinaryBufferReader)</a>. You should advance your game
+state by exactly one frame.  Before each frame, call <a class="xref" href="Backdash.INetcodeSession-1.html#Backdash_INetcodeSession_1_SynchronizeInputs">SynchronizeInputs()</a>
+to retrieve the inputs you should use for that frame. After each frame, you should call
+<a class="xref" href="Backdash.INetcodeSession.html#Backdash_INetcodeSession_AdvanceFrame">AdvanceFrame()</a> to notify
+Backdash that you're finished.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void AdvanceFrame()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_INetcodeSessionHandler_CreateState_" data-uid="Backdash.INetcodeSessionHandler.CreateState*"></a>
+
+  <h3 id="Backdash_INetcodeSessionHandler_CreateState_Backdash_Frame__Backdash_Serialization_BinaryBufferReader__" data-uid="Backdash.INetcodeSessionHandler.CreateState(Backdash.Frame@,Backdash.Serialization.BinaryBufferReader@)">
+  CreateState(in Frame, ref readonly BinaryBufferReader)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/INetcodeSessionHandler.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Reads a state object of a snapshot.
+Used for SyncTest debug.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">object? CreateState(in Frame frame, ref readonly BinaryBufferReader reader)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>frame</code> <a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd></dd>
+    <dt><code>reader</code> <a class="xref" href="Backdash.Serialization.BinaryBufferReader.html">BinaryBufferReader</a></dt>
+    <dd></dd>
+  </dl>
+
+  <h4 class="section">Returns</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a></dt>
+    <dd></dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+  <dl class="typelist seealso">
+    <dt>See Also</dt>
+    <dd>
+    <div><a class="xref" href="Backdash.NetcodeSessionBuilder-1.html#Backdash_NetcodeSessionBuilder_1_ForSyncTest_System_Action_Backdash_Options_SyncTestOptions__0___">ForSyncTest</a>(<a class="xref" href="https://learn.microsoft.com/dotnet/api/system.action-1">Action</a>&lt;<a class="xref" href="Backdash.Options.SyncTestOptions-1.html">SyncTestOptions</a>&lt;TInput&gt;&gt;)</div>
+    <div><a class="xref" href="Backdash.Synchronizing.State.IStateStringParser.html">IStateStringParser</a></div>
+    <div><a class="xref" href="Backdash.Synchronizing.State.IStateStringParser.html#Backdash_Synchronizing_State_IStateStringParser_GetStateString_Backdash_Frame__Backdash_Serialization_BinaryBufferReader__System_Object_">GetStateString</a>(in <a class="xref" href="Backdash.Frame.html">Frame</a>, ref readonly <a class="xref" href="Backdash.Serialization.BinaryBufferReader.html">BinaryBufferReader</a>, <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.object">object</a>)</div>
+    </dd>
+  </dl>
+
+
+  <a id="Backdash_INetcodeSessionHandler_LoadState_" data-uid="Backdash.INetcodeSessionHandler.LoadState*"></a>
+
+  <h3 id="Backdash_INetcodeSessionHandler_LoadState_Backdash_Frame__Backdash_Serialization_BinaryBufferReader__" data-uid="Backdash.INetcodeSessionHandler.LoadState(Backdash.Frame@,Backdash.Serialization.BinaryBufferReader@)">
+  LoadState(in Frame, ref readonly BinaryBufferReader)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/INetcodeSessionHandler.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Backdash will call this function at the beginning  of a rollback.
+Binary reader for the state.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void LoadState(in Frame frame, ref readonly BinaryBufferReader reader)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>frame</code> <a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd><p>The loading frame</p>
+</dd>
+    <dt><code>reader</code> <a class="xref" href="Backdash.Serialization.BinaryBufferReader.html">BinaryBufferReader</a></dt>
+    <dd><p>Binary state reader</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_INetcodeSessionHandler_OnPeerEvent_" data-uid="Backdash.INetcodeSessionHandler.OnPeerEvent*"></a>
+
+  <h3 id="Backdash_INetcodeSessionHandler_OnPeerEvent_Backdash_NetcodePlayer_Backdash_PeerEventInfo_" data-uid="Backdash.INetcodeSessionHandler.OnPeerEvent(Backdash.NetcodePlayer,Backdash.PeerEventInfo)">
+  OnPeerEvent(NetcodePlayer, PeerEventInfo)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/INetcodeSessionHandler.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Notification that some <a class="xref" href="Backdash.PeerEvent.html">PeerEvent</a> has happened for a <a class="xref" href="Backdash.NetcodePlayer.html">NetcodePlayer</a></p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void OnPeerEvent(NetcodePlayer player, PeerEventInfo evt)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>player</code> <a class="xref" href="Backdash.NetcodePlayer.html">NetcodePlayer</a></dt>
+    <dd><p>The player owner of the event</p>
+</dd>
+    <dt><code>evt</code> <a class="xref" href="Backdash.PeerEventInfo.html">PeerEventInfo</a></dt>
+    <dd><p>Event data</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_INetcodeSessionHandler_OnSessionClose_" data-uid="Backdash.INetcodeSessionHandler.OnSessionClose*"></a>
+
+  <h3 id="Backdash_INetcodeSessionHandler_OnSessionClose" data-uid="Backdash.INetcodeSessionHandler.OnSessionClose">
+  OnSessionClose()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/INetcodeSessionHandler.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Called at the end of a game session, before release resources.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void OnSessionClose()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_INetcodeSessionHandler_OnSessionStart_" data-uid="Backdash.INetcodeSessionHandler.OnSessionStart*"></a>
+
+  <h3 id="Backdash_INetcodeSessionHandler_OnSessionStart" data-uid="Backdash.INetcodeSessionHandler.OnSessionStart">
+  OnSessionStart()
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/INetcodeSessionHandler.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>Called at start of a game session, when all the clients have synchronized.
+You may begin sending inputs with.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void OnSessionStart()</code></pre>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_INetcodeSessionHandler_SaveState_" data-uid="Backdash.INetcodeSessionHandler.SaveState*"></a>
+
+  <h3 id="Backdash_INetcodeSessionHandler_SaveState_Backdash_Frame__Backdash_Serialization_BinaryBufferWriter__" data-uid="Backdash.INetcodeSessionHandler.SaveState(Backdash.Frame@,Backdash.Serialization.BinaryBufferWriter@)">
+  SaveState(in Frame, ref readonly BinaryBufferWriter)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/INetcodeSessionHandler.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>The client should  copy the entire contents of the current game state using <code class="paramref">writer</code>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void SaveState(in Frame frame, ref readonly BinaryBufferWriter writer)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>frame</code> <a class="xref" href="Backdash.Frame.html">Frame</a></dt>
+    <dd><p>The frame which the save occurs.</p>
+</dd>
+    <dt><code>writer</code> <a class="xref" href="Backdash.Serialization.BinaryBufferWriter.html">BinaryBufferWriter</a></dt>
+    <dd><p>Binary state writer.</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+  <a id="Backdash_INetcodeSessionHandler_TimeSync_" data-uid="Backdash.INetcodeSessionHandler.TimeSync*"></a>
+
+  <h3 id="Backdash_INetcodeSessionHandler_TimeSync_Backdash_FrameSpan_" data-uid="Backdash.INetcodeSessionHandler.TimeSync(Backdash.FrameSpan)">
+  TimeSync(FrameSpan)
+  <a class="header-action link-secondary" title="View source" href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/INetcodeSessionHandler.cs"><i class="bi bi-code-slash"></i></a>
+  </h3>
+
+  <div class="markdown level1 summary"><p>The time synchronization has determined that this client is too far ahead of the other one
+and should slow down to ensure fairness.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">void TimeSync(FrameSpan framesAhead)</code></pre>
+  </div>
+
+  <h4 class="section">Parameters</h4>
+  <dl class="parameters">
+    <dt><code>framesAhead</code> <a class="xref" href="Backdash.FrameSpan.html">FrameSpan</a></dt>
+    <dd><p>Indicates how many frames the client is ahead</p>
+</dd>
+  </dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/lucasteles/Backdash/blob/master/src/Backdash/Session/INetcodeSessionHandler.cs" class="edit-link">Edit this page</a>
+        </div>
+
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Developed by <a href="https://lucasteles.dev/">Lucas Teles</a>.</span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

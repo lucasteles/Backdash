@@ -1,0 +1,1603 @@
+{
+  "sitemap": {
+    "baseUrl": "https://lucasteles.github.io/Backdash/"
+  },
+  "source_base_path": "/home/runner/work/Backdash/Backdash/docfx",
+  "xrefmap": "xrefmap.yml",
+  "files": [
+    {
+      "type": "Resource",
+      "output": {
+        "resource": {
+          "relative_path": "index.json"
+        }
+      }
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "../assets/images/banner.png",
+      "output": {
+        "resource": {
+          "relative_path": "assets/images/banner.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "../assets/images/logo.png",
+      "output": {
+        "resource": {
+          "relative_path": "assets/images/logo.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "../assets/images/logo256.png",
+      "output": {
+        "resource": {
+          "relative_path": "assets/images/logo256.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "../logo.png",
+      "output": {
+        "resource": {
+          "relative_path": "logo.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.ConnectionInterruptedEventInfo.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.ConnectionInterruptedEventInfo.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.ConnectionInterruptedEventInfo",
+      "Summary": "<p sourcefile=\"api/Backdash.ConnectionInterruptedEventInfo.yml\" sourcestartlinenumber=\"1\">Data for <xref href=\"Backdash.PeerEvent.ConnectionInterrupted\" data-throw-if-not-resolved=\"false\"></xref> event.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Core.ConsoleTextLogWriter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Core.ConsoleTextLogWriter.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Core.ConsoleTextLogWriter",
+      "Summary": "<p sourcefile=\"api/Backdash.Core.ConsoleTextLogWriter.yml\" sourcestartlinenumber=\"1\">Implementation of <xref href=\"Backdash.Core.ILogWriter\" data-throw-if-not-resolved=\"false\"></xref> for logging into <xref href=\"System.Console\" data-throw-if-not-resolved=\"false\"></xref>.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Core.FileTextLogWriter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Core.FileTextLogWriter.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Core.FileTextLogWriter",
+      "Summary": "<p sourcefile=\"api/Backdash.Core.FileTextLogWriter.yml\" sourcestartlinenumber=\"1\">Implementation of <xref href=\"Backdash.Core.ILogWriter\" data-throw-if-not-resolved=\"false\"></xref> for logging into a file.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Core.ILogWriter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Core.ILogWriter.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Core.ILogWriter",
+      "Summary": "<p sourcefile=\"api/Backdash.Core.ILogWriter.yml\" sourcestartlinenumber=\"1\">Defines how and where the log's should be written.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Core.INetcodeJob.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Core.INetcodeJob.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Core.INetcodeJob",
+      "Summary": "<p sourcefile=\"api/Backdash.Core.INetcodeJob.yml\" sourcestartlinenumber=\"1\">Defines an asynchronous background job</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Core.InvalidTypeArgumentException-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Core.InvalidTypeArgumentException-1.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Core.InvalidTypeArgumentException<T>",
+      "Summary": "<p sourcefile=\"api/Backdash.Core.InvalidTypeArgumentException-1.yml\" sourcestartlinenumber=\"1\">An exception that is thrown when for invalid type argument <code class=\"typeparamref\">T</code>.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Core.InvalidTypeArgumentException.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Core.InvalidTypeArgumentException.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Core.InvalidTypeArgumentException",
+      "Summary": "<p sourcefile=\"api/Backdash.Core.InvalidTypeArgumentException.yml\" sourcestartlinenumber=\"1\">An exception that is thrown for invalid type arguments.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Core.LogLevel.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Core.LogLevel.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Core.LogLevel",
+      "Summary": "<p sourcefile=\"api/Backdash.Core.LogLevel.yml\" sourcestartlinenumber=\"1\">Defines logging severity levels.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Core.NetcodeAssertionException.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Core.NetcodeAssertionException.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Core.NetcodeAssertionException",
+      "Summary": "<p sourcefile=\"api/Backdash.Core.NetcodeAssertionException.yml\" sourcestartlinenumber=\"1\">An exception that is thrown when an error is encountered on netcode deserialization.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Core.NetcodeDeserializationException.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Core.NetcodeDeserializationException.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Core.NetcodeDeserializationException",
+      "Summary": "<p sourcefile=\"api/Backdash.Core.NetcodeDeserializationException.yml\" sourcestartlinenumber=\"1\">An exception that is thrown when an error is encountered on netcode deserialization.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Core.NetcodeException.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Core.NetcodeException.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Core.NetcodeException",
+      "Summary": "<p sourcefile=\"api/Backdash.Core.NetcodeException.yml\" sourcestartlinenumber=\"1\">An exception that is thrown when an error is encountered on netcode.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Core.NetcodeSerializationException-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Core.NetcodeSerializationException-1.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Core.NetcodeSerializationException<T>",
+      "Summary": "<p sourcefile=\"api/Backdash.Core.NetcodeSerializationException-1.yml\" sourcestartlinenumber=\"1\">An exception that is thrown when an error is encountered on netcode serialization for type\n<code class=\"typeparamref\">T</code>.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Core.NetcodeSerializationException.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Core.NetcodeSerializationException.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Core.NetcodeSerializationException",
+      "Summary": "<p sourcefile=\"api/Backdash.Core.NetcodeSerializationException.yml\" sourcestartlinenumber=\"1\">An exception that is thrown when an error is encountered on netcode serialization.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Core.TextLogWriter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Core.TextLogWriter.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Core.TextLogWriter",
+      "Summary": "<p sourcefile=\"api/Backdash.Core.TextLogWriter.yml\" sourcestartlinenumber=\"1\">Base implementation of <xref href=\"Backdash.Core.ILogWriter\" data-throw-if-not-resolved=\"false\"></xref> for any <xref href=\"Backdash.Core.TextLogWriter.TextWriter\" data-throw-if-not-resolved=\"false\"></xref>.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Core.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Core.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Core",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Data.ByteSize.Measure.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Data.ByteSize.Measure.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Data.ByteSize.Measure",
+      "Summary": "<p sourcefile=\"api/Backdash.Data.ByteSize.Measure.yml\" sourcestartlinenumber=\"1\">Unit of measure for <xref href=\"Backdash.Data.ByteSize\" data-throw-if-not-resolved=\"false\"></xref></p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Data.ByteSize.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Data.ByteSize.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Data.ByteSize",
+      "Summary": "<p sourcefile=\"api/Backdash.Data.ByteSize.yml\" sourcestartlinenumber=\"1\">Represents a byte size value</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Data.CircularBuffer-1.Enumerator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Data.CircularBuffer-1.Enumerator.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Data.CircularBuffer<T>.Enumerator",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Data.CircularBuffer-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Data.CircularBuffer-1.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Data.CircularBuffer<T>",
+      "Summary": "<p sourcefile=\"api/Backdash.Data.CircularBuffer-1.yml\" sourcestartlinenumber=\"1\">A collection data structure that uses a single fixed-size buffer as if it were connected end-to-end.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Data.DefaultObjectPool-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Data.DefaultObjectPool-1.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Data.DefaultObjectPool<T>",
+      "Summary": "<p sourcefile=\"api/Backdash.Data.DefaultObjectPool-1.yml\" sourcestartlinenumber=\"1\">Default object pool for types with empty constructor</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Data.IObjectPool-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Data.IObjectPool-1.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Data.IObjectPool<T>",
+      "Summary": "<p sourcefile=\"api/Backdash.Data.IObjectPool-1.yml\" sourcestartlinenumber=\"1\">Defines an object pooling contract</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Data.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Data.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Data",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Frame.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Frame.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Frame",
+      "Summary": "<p sourcefile=\"api/Backdash.Frame.yml\" sourcestartlinenumber=\"1\">Value representation of a Frame</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.FrameSpan.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.FrameSpan.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.FrameSpan",
+      "Summary": "<p sourcefile=\"api/Backdash.FrameSpan.yml\" sourcestartlinenumber=\"1\">Value representation of a span of frames\nUses the FPS defined in <xref href=\"Backdash.FrameTime\" data-throw-if-not-resolved=\"false\"></xref>.<xref href=\"Backdash.FrameTime.CurrentFrameRate\" data-throw-if-not-resolved=\"false\"></xref></p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.FrameTime.Fixed.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.FrameTime.Fixed.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.FrameTime.Fixed",
+      "Summary": "<p sourcefile=\"api/Backdash.FrameTime.Fixed.yml\" sourcestartlinenumber=\"1\">Frame time calculator</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.FrameTime.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.FrameTime.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.FrameTime",
+      "Summary": "<p sourcefile=\"api/Backdash.FrameTime.yml\" sourcestartlinenumber=\"1\">Frame time helpers</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.INetcodeSession-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.INetcodeSession-1.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.INetcodeSession<TInput>",
+      "Summary": "<p sourcefile=\"api/Backdash.INetcodeSession-1.yml\" sourcestartlinenumber=\"1\">Contract for managing a netcode session.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.INetcodeSession.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.INetcodeSession.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.INetcodeSession",
+      "Summary": "<p sourcefile=\"api/Backdash.INetcodeSession.yml\" sourcestartlinenumber=\"1\">Contract for managing a netcode session.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.INetcodeSessionHandler.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.INetcodeSessionHandler.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.INetcodeSessionHandler",
+      "Summary": "<p sourcefile=\"api/Backdash.INetcodeSessionHandler.yml\" sourcestartlinenumber=\"1\">Defines the callback functions that your application must implement.\nBackdash will periodically call these functions during the session lifecycle.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.INetcodeSessionInfo.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.INetcodeSessionInfo.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.INetcodeSessionInfo",
+      "Summary": "<p sourcefile=\"api/Backdash.INetcodeSessionInfo.yml\" sourcestartlinenumber=\"1\">Contract for managing a netcode session.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.MathI.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.MathI.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.MathI",
+      "Summary": "<p sourcefile=\"api/Backdash.MathI.yml\" sourcestartlinenumber=\"1\">Int Math</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.NetcodePlayer.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.NetcodePlayer.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.NetcodePlayer",
+      "Summary": "<p sourcefile=\"api/Backdash.NetcodePlayer.yml\" sourcestartlinenumber=\"1\">Holds data of a player to be added to <xref href=\"Backdash.INetcodeSession%601\" data-throw-if-not-resolved=\"false\"></xref>.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.NetcodeSessionBuilder-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.NetcodeSessionBuilder-1.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.NetcodeSessionBuilder<TInput>",
+      "Summary": "<p sourcefile=\"api/Backdash.NetcodeSessionBuilder-1.yml\" sourcestartlinenumber=\"1\">Builder for <xref href=\"Backdash.INetcodeSession%601\" data-throw-if-not-resolved=\"false\"></xref>.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.NetcodeSessionBuilder.InputTypeSelected-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.NetcodeSessionBuilder.InputTypeSelected-1.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.NetcodeSessionBuilder.InputTypeSelected<T>",
+      "Summary": "<p sourcefile=\"api/Backdash.NetcodeSessionBuilder.InputTypeSelected-1.yml\" sourcestartlinenumber=\"1\">Selected input type for <see name=\"NetcodeSessionBuilder{TInput}\"></see></p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.NetcodeSessionBuilder.InputTypeSelector.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.NetcodeSessionBuilder.InputTypeSelector.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.NetcodeSessionBuilder.InputTypeSelector",
+      "Summary": "<p sourcefile=\"api/Backdash.NetcodeSessionBuilder.InputTypeSelector.yml\" sourcestartlinenumber=\"1\">Selector for <xref href=\"Backdash.INetcodeSession%601\" data-throw-if-not-resolved=\"false\"></xref> input type</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.NetcodeSessionBuilder.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.NetcodeSessionBuilder.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.NetcodeSessionBuilder",
+      "Summary": "<p sourcefile=\"api/Backdash.NetcodeSessionBuilder.yml\" sourcestartlinenumber=\"1\">Builder for <xref href=\"Backdash.INetcodeSession%601\" data-throw-if-not-resolved=\"false\"></xref>.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Network.Client.IMessageHandler-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Network.Client.IMessageHandler-1.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Network.Client.IMessageHandler<T>",
+      "Summary": "<p sourcefile=\"api/Backdash.Network.Client.IMessageHandler-1.yml\" sourcestartlinenumber=\"1\">Message sent handler.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Network.Client.IPeerSocket.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Network.Client.IPeerSocket.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Network.Client.IPeerSocket",
+      "Summary": "<p sourcefile=\"api/Backdash.Network.Client.IPeerSocket.yml\" sourcestartlinenumber=\"1\">Socket abstraction over peers</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Network.Client.IPeerSocketFactory.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Network.Client.IPeerSocketFactory.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Network.Client.IPeerSocketFactory",
+      "Summary": "<p sourcefile=\"api/Backdash.Network.Client.IPeerSocketFactory.yml\" sourcestartlinenumber=\"1\">Factory for peer sockets</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Network.Client.UdpSocket.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Network.Client.UdpSocket.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Network.Client.UdpSocket",
+      "Summary": "<p sourcefile=\"api/Backdash.Network.Client.UdpSocket.yml\" sourcestartlinenumber=\"1\">UDP specialized socket interface.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Network.Client.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Network.Client.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Network.Client",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Network.DelayStrategy.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Network.DelayStrategy.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Network.DelayStrategy",
+      "Summary": "<p sourcefile=\"api/Backdash.Network.DelayStrategy.yml\" sourcestartlinenumber=\"1\">Jitter delay strategy</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Network.Endianness.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Network.Endianness.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Network.Endianness",
+      "Summary": "<p sourcefile=\"api/Backdash.Network.Endianness.yml\" sourcestartlinenumber=\"1\">Defines a endianness value</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Network.NetUtils.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Network.NetUtils.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Network.NetUtils",
+      "Summary": "<p sourcefile=\"api/Backdash.Network.NetUtils.yml\" sourcestartlinenumber=\"1\">Network utilities</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Network.Platform.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Network.Platform.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Network.Platform",
+      "Summary": "<p sourcefile=\"api/Backdash.Network.Platform.yml\" sourcestartlinenumber=\"1\">Platform Info</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Network.PlayerConnectionStatus.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Network.PlayerConnectionStatus.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Network.PlayerConnectionStatus",
+      "Summary": "<p sourcefile=\"api/Backdash.Network.PlayerConnectionStatus.yml\" sourcestartlinenumber=\"1\">Player Connection Status</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Network.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Network.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Network",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Options.INetcodePlugin.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Options.INetcodePlugin.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Options.INetcodePlugin",
+      "Summary": "<p sourcefile=\"api/Backdash.Options.INetcodePlugin.yml\" sourcestartlinenumber=\"1\">Netcode plugin to hook into the session lifetime</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Options.LoggerOptions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Options.LoggerOptions.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Options.LoggerOptions",
+      "Summary": "<p sourcefile=\"api/Backdash.Options.LoggerOptions.yml\" sourcestartlinenumber=\"1\">Specifies options common to logging.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Options.NetcodeOptions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Options.NetcodeOptions.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Options.NetcodeOptions",
+      "Summary": "<p sourcefile=\"api/Backdash.Options.NetcodeOptions.yml\" sourcestartlinenumber=\"1\">Configurations for sessions.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Options.ProtocolOptions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Options.ProtocolOptions.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Options.ProtocolOptions",
+      "Summary": "<p sourcefile=\"api/Backdash.Options.ProtocolOptions.yml\" sourcestartlinenumber=\"1\">Network protocol configuration.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Options.ServicesConfig-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Options.ServicesConfig-1.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Options.ServicesConfig<TInput>",
+      "Summary": "<p sourcefile=\"api/Backdash.Options.ServicesConfig-1.yml\" sourcestartlinenumber=\"1\">Session dependencies.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Options.SessionReplayOptions-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Options.SessionReplayOptions-1.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Options.SessionReplayOptions<TInput>",
+      "Summary": "<p sourcefile=\"api/Backdash.Options.SessionReplayOptions-1.yml\" sourcestartlinenumber=\"1\">Configurations for <xref href=\"Backdash.INetcodeSession%601\" data-throw-if-not-resolved=\"false\"></xref> in <xref href=\"Backdash.SessionMode.Replay\" data-throw-if-not-resolved=\"false\"></xref> mode.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Options.SpectatorOptions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Options.SpectatorOptions.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Options.SpectatorOptions",
+      "Summary": "<p sourcefile=\"api/Backdash.Options.SpectatorOptions.yml\" sourcestartlinenumber=\"1\">Configurations for <xref href=\"Backdash.INetcodeSession%601\" data-throw-if-not-resolved=\"false\"></xref> in <xref href=\"Backdash.SessionMode.Spectator\" data-throw-if-not-resolved=\"false\"></xref> mode.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Options.SyncTestOptions-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Options.SyncTestOptions-1.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Options.SyncTestOptions<TInput>",
+      "Summary": "<p sourcefile=\"api/Backdash.Options.SyncTestOptions-1.yml\" sourcestartlinenumber=\"1\">Configurations for <xref href=\"Backdash.INetcodeSession%601\" data-throw-if-not-resolved=\"false\"></xref> in <xref href=\"Backdash.SessionMode.SyncTest\" data-throw-if-not-resolved=\"false\"></xref> mode.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Options.TimeSyncOptions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Options.TimeSyncOptions.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Options.TimeSyncOptions",
+      "Summary": "<p sourcefile=\"api/Backdash.Options.TimeSyncOptions.yml\" sourcestartlinenumber=\"1\">Time Synchronization options.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Options.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Options.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Options",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.PeerEvent.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.PeerEvent.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.PeerEvent",
+      "Summary": "<p sourcefile=\"api/Backdash.PeerEvent.yml\" sourcestartlinenumber=\"1\">Peer event type</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.PeerEventInfo.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.PeerEventInfo.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.PeerEventInfo",
+      "Summary": "<p sourcefile=\"api/Backdash.PeerEventInfo.yml\" sourcestartlinenumber=\"1\">Data structure for <xref href=\"Backdash.PeerEventInfo\" data-throw-if-not-resolved=\"false\"></xref> notifications.\n<xref href=\"Backdash.INetcodeSessionHandler.OnPeerEvent(Backdash.NetcodePlayer%2cBackdash.PeerEventInfo)\" data-throw-if-not-resolved=\"false\"></xref></p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.PeerNetworkStats.PackagesInfo.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.PeerNetworkStats.PackagesInfo.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.PeerNetworkStats.PackagesInfo",
+      "Summary": "<p sourcefile=\"api/Backdash.PeerNetworkStats.PackagesInfo.yml\" sourcestartlinenumber=\"1\">Hold package traffic data</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.PeerNetworkStats.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.PeerNetworkStats.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.PeerNetworkStats",
+      "Summary": "<p sourcefile=\"api/Backdash.PeerNetworkStats.yml\" sourcestartlinenumber=\"1\">Holds current session network stats.\nCalculated in intervals of <xref href=\"Backdash.Options.ProtocolOptions.NetworkPackageStatsInterval\" data-throw-if-not-resolved=\"false\"></xref>.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.PlayerType.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.PlayerType.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.PlayerType",
+      "Summary": "<p sourcefile=\"api/Backdash.PlayerType.yml\" sourcestartlinenumber=\"1\">Defines player type.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.ResultCode.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.ResultCode.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.ResultCode",
+      "Summary": "<p sourcefile=\"api/Backdash.ResultCode.yml\" sourcestartlinenumber=\"1\">Results for <xref href=\"Backdash.INetcodeSession%601\" data-throw-if-not-resolved=\"false\"></xref> operations.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.RollbackNetcode.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.RollbackNetcode.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.RollbackNetcode",
+      "Summary": "<p sourcefile=\"api/Backdash.RollbackNetcode.yml\" sourcestartlinenumber=\"1\">The session builder entrypoint.\nused to create new netcode sessions.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Serialization.BinaryBufferReader.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Serialization.BinaryBufferReader.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Serialization.BinaryBufferReader",
+      "Summary": "<p sourcefile=\"api/Backdash.Serialization.BinaryBufferReader.yml\" sourcestartlinenumber=\"1\">Binary span reader.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Serialization.BinaryBufferWriter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Serialization.BinaryBufferWriter.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Serialization.BinaryBufferWriter",
+      "Summary": "<p sourcefile=\"api/Backdash.Serialization.BinaryBufferWriter.yml\" sourcestartlinenumber=\"1\">Binary span writer.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Serialization.BinarySerializerAttribute-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Serialization.BinarySerializerAttribute-1.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Serialization.BinarySerializerAttribute<TState>",
+      "Summary": "<p sourcefile=\"api/Backdash.Serialization.BinarySerializerAttribute-1.yml\" sourcestartlinenumber=\"1\">Enable game state serializer source generator for <code class=\"typeparamref\">TState</code>.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Serialization.BinarySpanWriter.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Serialization.BinarySpanWriter.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Serialization.BinarySpanWriter",
+      "Summary": "<p sourcefile=\"api/Backdash.Serialization.BinarySpanWriter.yml\" sourcestartlinenumber=\"1\">Binary span writer.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Serialization.IBinarySerializable.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Serialization.IBinarySerializable.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Serialization.IBinarySerializable",
+      "Summary": "<p sourcefile=\"api/Backdash.Serialization.IBinarySerializable.yml\" sourcestartlinenumber=\"1\">Make the type Binary Serializable</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Serialization.IBinarySerializer-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Serialization.IBinarySerializer-1.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Serialization.IBinarySerializer<T>",
+      "Summary": "<p sourcefile=\"api/Backdash.Serialization.IBinarySerializer-1.yml\" sourcestartlinenumber=\"1\">Binary serializer for <code class=\"typeparamref\">T</code></p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Serialization.Numerics.NumericsExtensions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Serialization.Numerics.NumericsExtensions.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Serialization.Numerics.NumericsExtensions",
+      "Summary": "<p sourcefile=\"api/Backdash.Serialization.Numerics.NumericsExtensions.yml\" sourcestartlinenumber=\"1\">Serialization extensions for System\n<xref href=\"System.Numerics\" data-throw-if-not-resolved=\"false\"></xref></p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Serialization.Numerics.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Serialization.Numerics.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Serialization.Numerics",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Serialization.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Serialization.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Serialization",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.SessionMode.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.SessionMode.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.SessionMode",
+      "Summary": "<p sourcefile=\"api/Backdash.SessionMode.yml\" sourcestartlinenumber=\"1\">Defines the mode of <xref href=\"Backdash.INetcodeSession%601\" data-throw-if-not-resolved=\"false\"></xref>&gt;</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.SynchronizedEventInfo.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.SynchronizedEventInfo.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.SynchronizedEventInfo",
+      "Summary": "<p sourcefile=\"api/Backdash.SynchronizedEventInfo.yml\" sourcestartlinenumber=\"1\">Data for <xref href=\"Backdash.PeerEvent.Synchronized\" data-throw-if-not-resolved=\"false\"></xref> event.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.SynchronizedInput-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.SynchronizedInput-1.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.SynchronizedInput<T>",
+      "Summary": "<p sourcefile=\"api/Backdash.SynchronizedInput-1.yml\" sourcestartlinenumber=\"1\">Synchronized input result</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Synchronizing.Input.Confirmed.ConfirmedInputs-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Synchronizing.Input.Confirmed.ConfirmedInputs-1.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Synchronizing.Input.Confirmed.ConfirmedInputs<TInput>",
+      "Summary": "<p sourcefile=\"api/Backdash.Synchronizing.Input.Confirmed.ConfirmedInputs-1.yml\" sourcestartlinenumber=\"1\">All confirmed inputs for all players</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Synchronizing.Input.Confirmed.IInputListener-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Synchronizing.Input.Confirmed.IInputListener-1.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Synchronizing.Input.Confirmed.IInputListener<TInput>",
+      "Summary": "<p sourcefile=\"api/Backdash.Synchronizing.Input.Confirmed.IInputListener-1.yml\" sourcestartlinenumber=\"1\">Listen for confirmed input</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Synchronizing.Input.Confirmed.InputArray-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Synchronizing.Input.Confirmed.InputArray-1.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Synchronizing.Input.Confirmed.InputArray<TInput>",
+      "Summary": "<p sourcefile=\"api/Backdash.Synchronizing.Input.Confirmed.InputArray-1.yml\" sourcestartlinenumber=\"1\">Array of inputs for all players</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Synchronizing.Input.Confirmed.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Synchronizing.Input.Confirmed.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Synchronizing.Input.Confirmed",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Synchronizing.Input.IInputProvider-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Synchronizing.Input.IInputProvider-1.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Synchronizing.Input.IInputProvider<TInput>",
+      "Summary": "<p sourcefile=\"api/Backdash.Synchronizing.Input.IInputProvider-1.yml\" sourcestartlinenumber=\"1\">Input value provider</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Synchronizing.Input.RandomInputProvider-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Synchronizing.Input.RandomInputProvider-1.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Synchronizing.Input.RandomInputProvider<TInput>",
+      "Summary": "<p sourcefile=\"api/Backdash.Synchronizing.Input.RandomInputProvider-1.yml\" sourcestartlinenumber=\"1\">Random input value provider</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Synchronizing.Input.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Synchronizing.Input.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Synchronizing.Input",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Synchronizing.Random.IDeterministicRandom-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Synchronizing.Random.IDeterministicRandom-1.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Synchronizing.Random.IDeterministicRandom<TInput>",
+      "Summary": "<p sourcefile=\"api/Backdash.Synchronizing.Random.IDeterministicRandom-1.yml\" sourcestartlinenumber=\"1\">Defines a deterministic random number generator</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Synchronizing.Random.INetcodeRandom.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Synchronizing.Random.INetcodeRandom.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Synchronizing.Random.INetcodeRandom",
+      "Summary": "<p sourcefile=\"api/Backdash.Synchronizing.Random.INetcodeRandom.yml\" sourcestartlinenumber=\"1\">Defines a random number generator</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Synchronizing.Random.XorShiftRandom-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Synchronizing.Random.XorShiftRandom-1.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Synchronizing.Random.XorShiftRandom<TInput>",
+      "Summary": "<p sourcefile=\"api/Backdash.Synchronizing.Random.XorShiftRandom-1.yml\" sourcestartlinenumber=\"1\">XOR Shift random number generators (shift-register generators) implementation\n<xref href=\"Backdash.Synchronizing.Random.IDeterministicRandom%601\" data-throw-if-not-resolved=\"false\"></xref></p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Synchronizing.Random.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Synchronizing.Random.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Synchronizing.Random",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Synchronizing.SessionReplayControl.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Synchronizing.SessionReplayControl.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Synchronizing.SessionReplayControl",
+      "Summary": "<p sourcefile=\"api/Backdash.Synchronizing.SessionReplayControl.yml\" sourcestartlinenumber=\"1\">Control flow of a <xref href=\"Backdash.SessionMode.Replay\" data-throw-if-not-resolved=\"false\"></xref> session.\n<xref href=\"Backdash.NetcodeSessionBuilder%601.ForReplay(System.Action%7bBackdash.Options.SessionReplayOptions%7b%600%7d%7d)\" data-throw-if-not-resolved=\"false\"></xref></p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Synchronizing.State.ChecksumDelegate.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Synchronizing.State.ChecksumDelegate.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Synchronizing.State.ChecksumDelegate",
+      "Summary": "<p sourcefile=\"api/Backdash.Synchronizing.State.ChecksumDelegate.yml\" sourcestartlinenumber=\"1\">Provider of checksum values</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Synchronizing.State.DefaultStateStore.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Synchronizing.State.DefaultStateStore.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Synchronizing.State.DefaultStateStore",
+      "Summary": "<p sourcefile=\"api/Backdash.Synchronizing.State.DefaultStateStore.yml\" sourcestartlinenumber=\"1\">Binary store for temporary save and restore game states using <xref href=\"Backdash.Serialization.IBinarySerializer%601\" data-throw-if-not-resolved=\"false\"></xref>.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Synchronizing.State.EmptyChecksumProvider.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Synchronizing.State.EmptyChecksumProvider.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Synchronizing.State.EmptyChecksumProvider",
+      "Summary": "<p sourcefile=\"api/Backdash.Synchronizing.State.EmptyChecksumProvider.yml\" sourcestartlinenumber=\"1\">Provider always zero checksum</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Synchronizing.State.Fletcher32ChecksumProvider.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Synchronizing.State.Fletcher32ChecksumProvider.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Synchronizing.State.Fletcher32ChecksumProvider",
+      "Summary": "<p sourcefile=\"api/Backdash.Synchronizing.State.Fletcher32ChecksumProvider.yml\" sourcestartlinenumber=\"1\">Fletcher 32 checksum provider\nsee: <a href=\"http://en.wikipedia.org/wiki/Fletcher%27s_checksum\" sourcefile=\"api/Backdash.Synchronizing.State.Fletcher32ChecksumProvider.yml\" sourcestartlinenumber=\"2\">http://en.wikipedia.org/wiki/Fletcher%27s_checksum</a></p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Synchronizing.State.IChecksumProvider.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Synchronizing.State.IChecksumProvider.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Synchronizing.State.IChecksumProvider",
+      "Summary": "<p sourcefile=\"api/Backdash.Synchronizing.State.IChecksumProvider.yml\" sourcestartlinenumber=\"1\">Provider of checksum values</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Synchronizing.State.IStateDesyncHandler.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Synchronizing.State.IStateDesyncHandler.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Synchronizing.State.IStateDesyncHandler",
+      "Summary": "<p sourcefile=\"api/Backdash.Synchronizing.State.IStateDesyncHandler.yml\" sourcestartlinenumber=\"1\">Handles <xref href=\"Backdash.SessionMode.SyncTest\" data-throw-if-not-resolved=\"false\"></xref> state desync.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Synchronizing.State.IStateStore.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Synchronizing.State.IStateStore.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Synchronizing.State.IStateStore",
+      "Summary": "<p sourcefile=\"api/Backdash.Synchronizing.State.IStateStore.yml\" sourcestartlinenumber=\"1\">Repository for temporary save and restore game states.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Synchronizing.State.IStateStringParser.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Synchronizing.State.IStateStringParser.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Synchronizing.State.IStateStringParser",
+      "Summary": "<p sourcefile=\"api/Backdash.Synchronizing.State.IStateStringParser.yml\" sourcestartlinenumber=\"1\">Get string representation of the state\nUsed for Sync Test logging <xref href=\"Backdash.NetcodeSessionBuilder%601.ForSyncTest(System.Action%7bBackdash.Options.SyncTestOptions%7b%600%7d%7d)\" data-throw-if-not-resolved=\"false\"></xref></p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Synchronizing.State.JsonStateStringParser.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Synchronizing.State.JsonStateStringParser.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Synchronizing.State.JsonStateStringParser",
+      "Summary": "<p sourcefile=\"api/Backdash.Synchronizing.State.JsonStateStringParser.yml\" sourcestartlinenumber=\"1\">Try to get the json string representation of the state.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Synchronizing.State.SavedFrame.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Synchronizing.State.SavedFrame.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Synchronizing.State.SavedFrame",
+      "Summary": "<p sourcefile=\"api/Backdash.Synchronizing.State.SavedFrame.yml\" sourcestartlinenumber=\"1\">Represents a save-state at specific frame.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Synchronizing.State.StateSnapshot.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Synchronizing.State.StateSnapshot.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Synchronizing.State.StateSnapshot",
+      "Summary": "<p sourcefile=\"api/Backdash.Synchronizing.State.StateSnapshot.yml\" sourcestartlinenumber=\"1\">State desync snapshot</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Synchronizing.State.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Synchronizing.State.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Synchronizing.State",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.Synchronizing.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.Synchronizing.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.Synchronizing",
+      "Summary": null
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.SynchronizingEventInfo.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.SynchronizingEventInfo.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash.SynchronizingEventInfo",
+      "Summary": "<p sourcefile=\"api/Backdash.SynchronizingEventInfo.yml\" sourcestartlinenumber=\"1\">Data for <xref href=\"Backdash.PeerEvent.Synchronizing\" data-throw-if-not-resolved=\"false\"></xref> event.</p>\n"
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/Backdash.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/Backdash.html"
+        }
+      },
+      "version": "",
+      "Uid": null,
+      "IsMRef": true,
+      "Title": "Backdash",
+      "Summary": null
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "api/toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/toc.html"
+        },
+        ".json": {
+          "relative_path": "api/toc.json"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "docs/developer_guide.md",
+      "output": {
+        ".html": {
+          "relative_path": "docs/developer_guide.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "docs/images/favicon.ico",
+      "output": {
+        "resource": {
+          "relative_path": "docs/images/favicon.ico"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "docs/images/logo.png",
+      "output": {
+        "resource": {
+          "relative_path": "docs/images/logo.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "docs/introduction.md",
+      "output": {
+        ".html": {
+          "relative_path": "docs/introduction.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "docs/toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "docs/toc.html"
+        },
+        ".json": {
+          "relative_path": "docs/toc.json"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "docs/troubleshooting.md",
+      "output": {
+        ".html": {
+          "relative_path": "docs/troubleshooting.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "index.md",
+      "output": {
+        ".html": {
+          "relative_path": "index.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "toc.html"
+        },
+        ".json": {
+          "relative_path": "toc.json"
+        }
+      },
+      "version": ""
+    }
+  ],
+  "groups": [
+    {
+      "xrefmap": "xrefmap.yml"
+    }
+  ]
+}
